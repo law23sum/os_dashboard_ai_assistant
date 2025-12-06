@@ -1,0 +1,1148 @@
+#!/usr/bin/env python3
+import os
+import json
+import sqlite3
+from dataclasses import dataclass
+from datetime import datetime
+from typing import List, Optional, Dict, Any
+
+# Optional: system metrics (safe, read-only)
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
+# ================== CONFIG / CONSTANTS ==================
+
+DB_FILE = "assistant_hub.db"
+
+# Personas + roles
+PERSONAS = ["Chris", "AIC", "Aria", "Sora"]
+PERSONA_ROLES = {
+    "Chris": "Human Owner / Primary User",
+    "AIC": "Auditor – reviews, checks, cross-validates",
+    "Aria": "Assistant – daily flow, tasks, priorities",
+    "Sora": "Archive – long-term structure, history, references",
+}
+
+STATUS_OPTIONS = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE"]
+PRIORITY_OPTIONS = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+
+DATE_FORMAT = "%Y-%m-%d"
+
+
+# ================== DATA MODELS ==================
+
+@dataclass
+class Task:
+    id: int
+    title: str
+    project: str = "General"
+    status: str = "TODO"          # One of STATUS_OPTIONS
+    priority: str = "MEDIUM"      # One of PRIORITY_OPTIONS
+    due_date: Optional[str] = ""  # YYYY-MM-DD or ""
+    notes: str = ""
+    owner: str = "Chris"          # One of PERSONAS
+    created_at: str = datetime.now().isoformat(timespec="seconds")
+
+
+@dataclass
+class Project:
+    name: str
+    description: str = ""
+    status: str = "active"        # active | paused | archived
+
+
+@dataclass
+class AssistantState:
+    tasks: List[Task]
+    projects: List[Project]
+    active_persona: str = "AIC"
+
+
+@dataclass
+class Settings:
+    theme: str = "plain"              # plain | light | dark (you can extend)
+    default_view: str = "dashboard"   # dashboard | tasks | projects
+    show_system_status: bool = True   # show CPU/RAM/Disk in menus
+
+
+# ================== DB INIT / META ==================
+
+def init_db() -> sqlite3.Connection:
+    """Create tables if they don't exist and return an open connection."""
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+
+    # Key-value store for meta + settings
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS state_meta (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )
+    """)
+
+    # Tasks / Projects
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            project TEXT,
+            status TEXT,
+            priority TEXT,
+            due_date TEXT,
+            notes TEXT,
+            owner TEXT,
+            created_at TEXT
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS projects (
+            name TEXT PRIMARY KEY,
+            description TEXT,
+            status TEXT
+        )
+    """)
+
+    # External data sources (Google, GitHub, etc.)
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS external_sources (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE,
+            kind TEXT,
+            connected INTEGER DEFAULT 1,
+            last_sync TEXT
+        )
+    """)
+
+    # External items (emails, events, tickets, etc.)
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS external_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_id INTEGER,
+            external_id TEXT,
+            kind TEXT,
+            title TEXT,
+            data_json TEXT,
+            created_at TEXT,
+            last_seen_at TEXT,
+            FOREIGN KEY(source_id) REFERENCES external_sources(id)
+        )
+    """)
+
+    conn.commit()
+    return conn
+
+
+def get_meta(conn: sqlite3.Connection, key: str, default: Optional[str] = None) -> Optional[str]:
+    c = conn.cursor()
+    c.execute("SELECT value FROM state_meta WHERE key = ?", (key,))
+    row = c.fetchone()
+    if row is None:
+        return default
+    return row["value"]
+
+
+def set_meta(conn: sqlite3.Connection, key: str, value: str):
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO state_meta (key, value) VALUES (?, ?) "
+        "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        (key, value),
+    )
+    conn.commit()
+
+
+# ================== LOAD / SAVE CORE STATE ==================
+
+def load_state(conn: sqlite3.Connection) -> AssistantState:
+    """Load tasks, projects, and active persona from the DB into memory."""
+    c = conn.cursor()
+
+    # Load tasks
+    c.execute("SELECT * FROM tasks")
+    tasks_rows = c.fetchall()
+    tasks: List[Task] = []
+    for r in tasks_rows:
+        status = (r["status"] or "TODO").upper()
+        if status not in STATUS_OPTIONS:
+            status = "TODO"
+        priority = (r["priority"] or "MEDIUM").upper()
+        if priority not in PRIORITY_OPTIONS:
+            priority = "MEDIUM"
+        owner = r["owner"] or "Chris"
+        if owner not in PERSONAS:
+            owner = "Chris"
+
+        tasks.append(
+            Task(
+                id=r["id"],
+                title=r["title"],
+                project=r["project"] or "General",
+                status=status,
+                priority=priority,
+                due_date=r["due_date"] or "",
+                notes=r["notes"] or "",
+                owner=owner,
+                created_at=r["created_at"] or datetime.now().isoformat(timespec="seconds"),
+            )
+        )
+
+    # Load projects
+    c.execute("SELECT * FROM projects")
+    proj_rows = c.fetchall()
+    projects: List[Project] = [
+        Project(
+            name=r["name"],
+            description=r["description"] or "",
+            status=r["status"] or "active",
+        )
+        for r in proj_rows
+    ]
+
+    # Load active persona
+    active_persona = get_meta(conn, "active_persona", "AIC") or "AIC"
+    if active_persona not in PERSONAS:
+        active_persona = "AIC"
+
+    return AssistantState(tasks=tasks, projects=projects, active_persona=active_persona)
+
+
+def load_settings(conn: sqlite3.Connection) -> Settings:
+    theme = get_meta(conn, "setting.theme", "plain") or "plain"
+    default_view = get_meta(conn, "setting.default_view", "dashboard") or "dashboard"
+    show_system_status_raw = get_meta(conn, "setting.show_system_status", "1") or "1"
+    show_system_status = (show_system_status_raw == "1")
+    return Settings(
+        theme=theme,
+        default_view=default_view,
+        show_system_status=show_system_status,
+    )
+
+
+def save_settings(conn: sqlite3.Connection, settings: Settings):
+    set_meta(conn, "setting.theme", settings.theme)
+    set_meta(conn, "setting.default_view", settings.default_view)
+    set_meta(conn, "setting.show_system_status", "1" if settings.show_system_status else "0")
+
+
+def save_active_persona(conn: sqlite3.Connection, state: AssistantState):
+    set_meta(conn, "active_persona", state.active_persona)
+
+
+def db_upsert_project(conn: sqlite3.Connection, proj: Project):
+    c = conn.cursor()
+    c.execute(
+        """
+        INSERT INTO projects (name, description, status)
+        VALUES (?, ?, ?)
+        ON CONFLICT(name) DO UPDATE SET
+            description = excluded.description,
+            status = excluded.status
+        """,
+        (proj.name, proj.description, proj.status),
+    )
+    conn.commit()
+
+
+def db_delete_project(conn: sqlite3.Connection, name: str):
+    c = conn.cursor()
+    c.execute("DELETE FROM projects WHERE name = ?", (name,))
+    conn.commit()
+
+
+def db_insert_task(conn: sqlite3.Connection, t: Task) -> int:
+    c = conn.cursor()
+    c.execute(
+        """
+        INSERT INTO tasks
+        (title, project, status, priority, due_date, notes, owner, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (t.title, t.project, t.status, t.priority, t.due_date, t.notes, t.owner, t.created_at),
+    )
+    conn.commit()
+    return c.lastrowid
+
+
+def db_update_task(conn: sqlite3.Connection, t: Task):
+    c = conn.cursor()
+    c.execute(
+        """
+        UPDATE tasks
+        SET title = ?, project = ?, status = ?, priority = ?,
+            due_date = ?, notes = ?, owner = ?
+        WHERE id = ?
+        """,
+        (t.title, t.project, t.status, t.priority, t.due_date, t.notes, t.owner, t.id),
+    )
+    conn.commit()
+
+
+def db_delete_task(conn: sqlite3.Connection, task_id: int):
+    c = conn.cursor()
+    c.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+    conn.commit()
+
+
+# ================== EXTERNAL DATA LAYER ==================
+
+def ensure_external_source(conn: sqlite3.Connection, name: str, kind: str) -> int:
+    """
+    Ensure an external source (e.g., 'Google Calendar', 'Gmail', 'GitHub')
+    exists and return its id.
+    """
+    c = conn.cursor()
+    c.execute("SELECT id FROM external_sources WHERE name = ?", (name,))
+    row = c.fetchone()
+    now = datetime.now().isoformat(timespec="seconds")
+    if row:
+        return row["id"]
+
+    c.execute(
+        """
+        INSERT INTO external_sources (name, kind, connected, last_sync)
+        VALUES (?, ?, 1, ?)
+        """,
+        (name, kind, now),
+    )
+    conn.commit()
+    return c.lastrowid
+
+
+def record_external_item(
+    conn: sqlite3.Connection,
+    source_name: str,
+    source_kind: str,
+    external_id: str,
+    item_kind: str,
+    title: str,
+    data: Dict[str, Any],
+):
+    """
+    Generic hook all your 3rd-party integrations should call.
+
+    Example usage (in a future Google Calendar sync module):
+
+        record_external_item(
+            conn,
+            source_name="Google Calendar",
+            source_kind="calendar",
+            external_id=event_id,
+            item_kind="event",
+            title=event_summary,
+            data={
+                "start": start_time,
+                "end": end_time,
+                "location": location,
+                ...
+            },
+        )
+
+    Everything goes into SQLite, so both CLI and GUI can read it.
+    """
+    source_id = ensure_external_source(conn, source_name, source_kind)
+    now = datetime.now().isoformat(timespec="seconds")
+    data_json = json.dumps(data, ensure_ascii=False)
+
+    c = conn.cursor()
+    # Upsert-like behavior: if same external_id+source_id, update last_seen_at + data
+    c.execute(
+        """
+        SELECT id FROM external_items
+        WHERE source_id = ? AND external_id = ?
+        """,
+        (source_id, external_id),
+    )
+    row = c.fetchone()
+    if row:
+        c.execute(
+            """
+            UPDATE external_items
+            SET kind = ?, title = ?, data_json = ?, last_seen_at = ?
+            WHERE id = ?
+            """,
+            (item_kind, title, data_json, now, row["id"]),
+        )
+    else:
+        c.execute(
+            """
+            INSERT INTO external_items
+            (source_id, external_id, kind, title, data_json, created_at, last_seen_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (source_id, external_id, item_kind, title, data_json, now, now),
+        )
+    conn.commit()
+
+
+# ================== UTILITIES ==================
+
+def clear_screen():
+    os.system("cls" if os.name == "nt" else "clear")
+
+
+def pause():
+    input("\nPress Enter to continue...")
+
+
+def parse_date(date_str: str) -> Optional[datetime]:
+    try:
+        return datetime.strptime(date_str, DATE_FORMAT)
+    except Exception:
+        return None
+
+
+def input_with_default(prompt: str, default: str) -> str:
+    raw = input(f"{prompt} [{default}]: ").strip()
+    return raw if raw else default
+
+
+def print_header(title: str):
+    print("=" * 70)
+    print(title.center(70))
+    print("=" * 70)
+
+
+def find_project(state: AssistantState, name: str) -> Optional[Project]:
+    for p in state.projects:
+        if p.name == name:
+            return p
+    return None
+
+
+def ensure_project_exists(conn: sqlite3.Connection, state: AssistantState, name: str) -> Project:
+    proj = find_project(state, name)
+    if proj is not None:
+        return proj
+    proj = Project(name=name, description="", status="active")
+    state.projects.append(proj)
+    db_upsert_project(conn, proj)
+    return proj
+
+
+def print_task(task: Task, idx_label: str = ""):
+    label = f"[{idx_label}] " if idx_label else ""
+    print(f"{label}{task.title}")
+    print(f"    ID       : {task.id}")
+    print(f"    Project  : {task.project}")
+    print(f"    Owner    : {task.owner}")
+    print(f"    Status   : {task.status}")
+    print(f"    Priority : {task.priority}")
+    print(f"    Due      : {task.due_date or 'None'}")
+    print(f"    Created  : {task.created_at}")
+    if task.notes:
+        print(f"    Notes    : {task.notes}")
+
+
+# ================== SYSTEM STATUS (OPTIONAL) ==================
+
+def system_status_view(settings: Settings):
+    clear_screen()
+    print_header("SYSTEM STATUS")
+
+    if not settings.show_system_status:
+        print("System status is disabled in settings.")
+        pause()
+        return
+
+    if psutil is None:
+        print("psutil not installed. Install with: pip install psutil")
+        pause()
+        return
+
+    cpu = psutil.cpu_percent(interval=0.5)
+    mem = psutil.virtual_memory()
+    disk = psutil.disk_usage(os.path.expanduser("~"))
+
+    print(f"CPU usage     : {cpu:.1f}%")
+    print(f"Memory used   : {mem.percent:.1f}% ({mem.used // (1024**2)} MB / {mem.total // (1024**2)} MB)")
+    print(f"Home disk used: {disk.percent:.1f}% ({disk.used // (1024**3)} GB / {disk.total // (1024**3)} GB)")
+
+    print("\n(Shown because show_system_status = True in settings.)")
+    pause()
+
+
+# ================== DASHBOARD ==================
+
+def dashboard_view(state: AssistantState, settings: Settings):
+    clear_screen()
+    title = f"{state.active_persona.upper()} CONTROL ROOM"
+    print_header(title)
+
+    print("Personas & Roles:")
+    for p in PERSONAS:
+        role = PERSONA_ROLES.get(p, "")
+        marker = "◉" if p == state.active_persona else "○"
+        print(f"  {marker} {p:5} → {role}")
+    print("-" * 70)
+
+    tasks = state.tasks
+    today_str = datetime.now().strftime(DATE_FORMAT)
+
+    # Today tasks: due today and not done
+    today_tasks = [
+        t for t in tasks
+        if t.due_date == today_str and t.status != "DONE"
+    ]
+
+    # Priority weight for sorting
+    priority_weight = {p: i for i, p in enumerate(PRIORITY_OPTIONS)}
+
+    # Incomplete tasks
+    incomplete = [t for t in tasks if t.status != "DONE"]
+    incomplete_sorted = sorted(
+        incomplete,
+        key=lambda t: (
+            priority_weight.get(t.priority, 1),
+            t.due_date or "9999-99-99",
+        ),
+    )
+
+    # Upcoming deadlines
+    upcoming = [
+        t for t in tasks
+        if t.due_date and t.due_date > today_str and t.status != "DONE"
+    ]
+    upcoming_sorted = sorted(upcoming, key=lambda t: t.due_date)[:5]
+
+    # Status overview
+    status_counts: Dict[str, int] = {s: 0 for s in STATUS_OPTIONS}
+    for t in tasks:
+        status_counts[t.status] = status_counts.get(t.status, 0) + 1
+
+    # Per-persona load
+    persona_load: Dict[str, int] = {p: 0 for p in PERSONAS}
+    for t in incomplete:
+        persona_load[t.owner] = persona_load.get(t.owner, 0) + 1
+
+    # --- Today Focus ---
+    print("\n🔹 TODAY'S FOCUS")
+    if today_tasks:
+        for i, t in enumerate(today_tasks, 1):
+            print_task(t, str(i))
+            print("-" * 70)
+    elif incomplete_sorted[:3]:
+        print("(No tasks specifically due today; showing top 3 priorities.)")
+        for i, t in enumerate(incomplete_sorted[:3], 1):
+            print_task(t, str(i))
+            print("-" * 70)
+    else:
+        print("No active tasks. System is idle. Time to create a move.")
+
+    # --- Upcoming Deadlines ---
+    print("\n🔹 UPCOMING DEADLINES")
+    if upcoming_sorted:
+        for i, t in enumerate(upcoming_sorted, 1):
+            print_task(t, str(i))
+            print("-" * 70)
+    else:
+        print("No upcoming deadlines logged.")
+
+    # --- Status Overview ---
+    print("\n🔹 STATUS OVERVIEW")
+    for s in STATUS_OPTIONS:
+        print(f"  {s:12}: {status_counts.get(s, 0)}")
+
+    # --- Persona Load ---
+    print("\n🔹 LOAD BY PERSONA (incomplete tasks)")
+    for p in PERSONAS:
+        marker = "◉" if p == state.active_persona else "○"
+        print(f"  {marker} {p:8}: {persona_load.get(p, 0)}")
+
+    # Optional system status mini-line
+    if settings.show_system_status and psutil is not None:
+        cpu = psutil.cpu_percent(interval=0.1)
+        print(f"\n(Quick CPU peek: {cpu:.1f}% — full details in System Status menu)")
+
+    print("\n" + "-" * 70)
+    pause()
+
+
+# ================== TASKS ==================
+
+def add_task(conn: sqlite3.Connection, state: AssistantState, quick: bool = False):
+    clear_screen()
+    print_header("ADD TASK")
+
+    title = input("Title: ").strip()
+    if not title:
+        print("Title is required.")
+        pause()
+        return
+
+    if quick:
+        project_name = "General"
+        owner = state.active_persona
+        status = "TODO"
+        priority = "MEDIUM"
+        due_date = ""
+        notes = ""
+    else:
+        project_name = input("Project (blank = General): ").strip() or "General"
+        ensure_project_exists(conn, state, project_name)
+
+        print(f"Status options: {', '.join(STATUS_OPTIONS)}")
+        status = input_with_default("Status", "TODO").upper()
+        if status not in STATUS_OPTIONS:
+            status = "TODO"
+
+        print(f"Priority options: {', '.join(PRIORITY_OPTIONS)}")
+        priority = input_with_default("Priority", "MEDIUM").upper()
+        if priority not in PRIORITY_OPTIONS:
+            priority = "MEDIUM"
+
+        print(f"Personas: {', '.join(PERSONAS)}")
+        owner = input_with_default("Owner", state.active_persona).strip()
+        if owner not in PERSONAS:
+            owner = state.active_persona
+
+        due_date = input("Due date (YYYY-MM-DD, blank for none): ").strip()
+        if due_date and not parse_date(due_date):
+            print("Invalid date format, ignoring due date.")
+            due_date = ""
+
+        notes = input("Notes (optional): ").strip()
+
+    t = Task(
+        id=0,
+        title=title,
+        project=project_name,
+        status=status,
+        priority=priority,
+        due_date=due_date,
+        notes=notes,
+        owner=owner,
+        created_at=datetime.now().isoformat(timespec="seconds"),
+    )
+
+    new_id = db_insert_task(conn, t)
+    t.id = new_id
+    state.tasks.append(t)
+
+    print(f"\n[✓] Task #{t.id} created.")
+    pause()
+
+
+def list_tasks(state: AssistantState, filter_project: Optional[str] = None,
+               filter_owner: Optional[str] = None, show_done: bool = True):
+    clear_screen()
+
+    title_parts = ["TASKS"]
+    if filter_project:
+        title_parts.append(f"PROJECT={filter_project}")
+    if filter_owner:
+        title_parts.append(f"OWNER={filter_owner}")
+    title = " – ".join(title_parts)
+
+    print_header(title)
+
+    tasks = state.tasks
+    if filter_project:
+        tasks = [t for t in tasks if t.project == filter_project]
+    if filter_owner:
+        tasks = [t for t in tasks if t.owner == filter_owner]
+    if not show_done:
+        tasks = [t for t in tasks if t.status != "DONE"]
+
+    if not tasks:
+        print("No tasks found with that filter.")
+        pause()
+        return
+
+    priority_weight = {p: i for i, p in enumerate(PRIORITY_OPTIONS)}
+    tasks_sorted = sorted(
+        tasks,
+        key=lambda t: (
+            priority_weight.get(t.priority, 1),
+            t.due_date or "9999-99-99",
+            t.id,
+        ),
+    )
+
+    for t in tasks_sorted:
+        print_task(t, str(t.id))
+        print("-" * 70)
+
+    pause()
+
+
+def choose_task_by_id(state: AssistantState) -> Optional[Task]:
+    if not state.tasks:
+        print("No tasks available.")
+        return None
+
+    try:
+        raw = input("Enter task ID (or blank to cancel): ").strip()
+        if not raw:
+            return None
+        tid = int(raw)
+    except ValueError:
+        print("Invalid ID.")
+        return None
+
+    for t in state.tasks:
+        if t.id == tid:
+            return t
+
+    print("Task not found.")
+    return None
+
+
+def update_task(conn: sqlite3.Connection, state: AssistantState):
+    clear_screen()
+    print_header("UPDATE TASK")
+
+    if not state.tasks:
+        print("No tasks to update.")
+        pause()
+        return
+
+    incomplete = [t for t in state.tasks if t.status != "DONE"]
+    if incomplete:
+        print("Incomplete tasks (for reference):")
+        for t in incomplete:
+            print(f"  ID {t.id:3} | {t.title} [{t.status}, {t.priority}] (Owner: {t.owner})")
+        print("-" * 70)
+
+    task = choose_task_by_id(state)
+    if task is None:
+        pause()
+        return
+
+    print("\nCurrent values:")
+    print_task(task)
+    print("\nLeave input blank to keep current value.\n")
+
+    new_title = input_with_default("Title", task.title).strip()
+    if new_title:
+        task.title = new_title
+
+    new_proj = input_with_default("Project", task.project).strip()
+    if new_proj:
+        task.project = new_proj
+        ensure_project_exists(conn, state, new_proj)
+
+    print(f"\nStatus options: {', '.join(STATUS_OPTIONS)}")
+    new_status = input_with_default("Status", task.status).upper()
+    if new_status in STATUS_OPTIONS:
+        task.status = new_status
+
+    print(f"Priority options: {', '.join(PRIORITY_OPTIONS)}")
+    new_priority = input_with_default("Priority", task.priority).upper()
+    if new_priority in PRIORITY_OPTIONS:
+        task.priority = new_priority
+
+    print(f"Personas: {', '.join(PERSONAS)}")
+    new_owner = input_with_default("Owner", task.owner).strip()
+    if new_owner in PERSONAS:
+        task.owner = new_owner
+
+    current_due = task.due_date or ""
+    new_due = input_with_default("Due date (YYYY-MM-DD or empty)", current_due).strip()
+    if new_due:
+        if parse_date(new_due):
+            task.due_date = new_due
+        else:
+            print("Invalid date, keeping old due date.")
+    else:
+        task.due_date = ""
+
+    new_notes = input_with_default("Notes", task.notes).strip()
+    task.notes = new_notes
+
+    db_update_task(conn, task)
+    print("\n[✓] Task updated.")
+    pause()
+
+
+def delete_task(conn: sqlite3.Connection, state: AssistantState):
+    clear_screen()
+    print_header("DELETE TASK")
+
+    if not state.tasks:
+        print("No tasks to delete.")
+        pause()
+        return
+
+    task = choose_task_by_id(state)
+    if task is None:
+        pause()
+        return
+
+    print("\nYou are about to delete:")
+    print_task(task)
+    confirm = input("Type 'yes' to confirm deletion: ").strip().lower()
+    if confirm == "yes":
+        db_delete_task(conn, task.id)
+        state.tasks = [t for t in state.tasks if t.id != task.id]
+        print("\n[✓] Task deleted.")
+    else:
+        print("\nDeletion cancelled.")
+    pause()
+
+
+def tasks_menu(conn: sqlite3.Connection, state: AssistantState):
+    while True:
+        clear_screen()
+        print_header("TASKS MENU")
+        print("1) List all tasks")
+        print("2) List pending tasks only")
+        print("3) List tasks by project")
+        print("4) List tasks by owner/persona")
+        print("5) Add task (full)")
+        print("6) Quick add task (uses active persona)")
+        print("7) Update task")
+        print("8) Delete task")
+        print("9) Back")
+        print("-" * 70)
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            list_tasks(state, show_done=True)
+        elif choice == "2":
+            list_tasks(state, show_done=False)
+        elif choice == "3":
+            proj = input("Project name: ").strip()
+            list_tasks(state, filter_project=proj or None)
+        elif choice == "4":
+            print(f"Personas: {', '.join(PERSONAS)}")
+            owner = input("Owner/persona: ").strip()
+            if owner in PERSONAS:
+                list_tasks(state, filter_owner=owner)
+            else:
+                print("Unknown persona.")
+                pause()
+        elif choice == "5":
+            add_task(conn, state, quick=False)
+        elif choice == "6":
+            add_task(conn, state, quick=True)
+        elif choice == "7":
+            update_task(conn, state)
+        elif choice == "8":
+            delete_task(conn, state)
+        elif choice == "9":
+            break
+        else:
+            print("Invalid choice.")
+            pause()
+
+
+# ================== PROJECTS ==================
+
+def list_projects(state: AssistantState):
+    clear_screen()
+    print_header("PROJECTS")
+
+    if not state.projects:
+        print("No projects yet. Projects will be created when you assign them to tasks,")
+        print("or you can add them explicitly from this menu.")
+        pause()
+        return
+
+    counts: Dict[str, int] = {}
+    for t in state.tasks:
+        counts[t.project] = counts.get(t.project, 0) + 1
+
+    for p in state.projects:
+        c = counts.get(p.name, 0)
+        print(f"- {p.name} [{p.status}] ({c} tasks)")
+        if p.description:
+            print(f"    {p.description}")
+    pause()
+
+
+def add_project(conn: sqlite3.Connection, state: AssistantState):
+    clear_screen()
+    print_header("ADD PROJECT")
+
+    name = input("Name: ").strip()
+    if not name:
+        print("Project name cannot be empty.")
+        pause()
+        return
+
+    if find_project(state, name):
+        print("Project with that name already exists.")
+        pause()
+        return
+
+    desc = input("Description [optional]: ").strip()
+    p = Project(name=name, description=desc, status="active")
+    state.projects.append(p)
+    db_upsert_project(conn, p)
+    print(f"\n[✓] Project '{p.name}' created.")
+    pause()
+
+
+def update_project(conn: sqlite3.Connection, state: AssistantState):
+    clear_screen()
+    print_header("UPDATE PROJECT")
+
+    if not state.projects:
+        print("No projects to update.")
+        pause()
+        return
+
+    for p in state.projects:
+        print(f"- {p.name} [{p.status}]")
+
+    name = input("\nEnter project name: ").strip()
+    proj = find_project(state, name)
+    if not proj:
+        print("Project not found.")
+        pause()
+        return
+
+    print(f"\nEditing Project: {proj.name}")
+    print("Leave input blank to keep current value.\n")
+
+    new_name = input_with_default("Name", proj.name).strip()
+    if new_name and new_name != proj.name:
+        proj.name = new_name
+
+    new_desc = input_with_default("Description", proj.description or "none").strip()
+    proj.description = new_desc if new_desc.lower() != "none" else ""
+
+    new_status = input_with_default("Status (active/paused/archived)", proj.status).strip()
+    if new_status in ("active", "paused", "archived"):
+        proj.status = new_status
+
+    db_upsert_project(conn, proj)
+    print("\n[✓] Project updated.")
+    pause()
+
+
+def projects_menu(conn: sqlite3.Connection, state: AssistantState):
+    while True:
+        clear_screen()
+        print_header("PROJECTS MENU")
+        print("1) List projects")
+        print("2) Add project")
+        print("3) Update project")
+        print("4) Back")
+        print("-" * 70)
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            list_projects(state)
+        elif choice == "2":
+            add_project(conn, state)
+        elif choice == "3":
+            update_project(conn, state)
+        elif choice == "4":
+            break
+        else:
+            print("Invalid choice.")
+            pause()
+
+
+# ================== PERSONA CONTEXT ==================
+
+def persona_menu(conn: sqlite3.Connection, state: AssistantState):
+    clear_screen()
+    print_header("PERSONA CONTEXT")
+    print(f"Current active persona: {state.active_persona}\n")
+    for idx, p in enumerate(PERSONAS, start=1):
+        role = PERSONA_ROLES.get(p, "")
+        print(f"{idx}) {p:5} → {role}")
+    print(f"{len(PERSONAS)+1}) Back")
+
+    choice = input("\nSelect persona: ").strip()
+    try:
+        idx = int(choice)
+    except ValueError:
+        print("Invalid choice.")
+        pause()
+        return
+
+    if 1 <= idx <= len(PERSONAS):
+        state.active_persona = PERSONAS[idx - 1]
+        save_active_persona(conn, state)
+        print(f"\n[✓] Active persona set to {state.active_persona}.")
+        pause()
+    else:
+        # Back or invalid index
+        pass
+
+
+# ================== SETTINGS MENU ==================
+
+def settings_menu(conn: sqlite3.Connection, settings: Settings):
+    while True:
+        clear_screen()
+        print_header("SETTINGS")
+        print(f"Current theme           : {settings.theme}")
+        print(f"Default view on startup : {settings.default_view}")
+        print(f"Show system status      : {settings.show_system_status}")
+        print("-" * 70)
+        print("1) Change theme (plain / light / dark)")
+        print("2) Change default view (dashboard / tasks / projects)")
+        print("3) Toggle system status on dashboard/menus")
+        print("4) Back")
+        print("-" * 70)
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            new_theme = input_with_default("New theme", settings.theme).strip().lower()
+            if new_theme in ("plain", "light", "dark"):
+                settings.theme = new_theme
+                save_settings(conn, settings)
+            else:
+                print("Unknown theme.")
+                pause()
+        elif choice == "2":
+            new_view = input_with_default("New default view", settings.default_view).strip().lower()
+            if new_view in ("dashboard", "tasks", "projects"):
+                settings.default_view = new_view
+                save_settings(conn, settings)
+            else:
+                print("Unknown view.")
+                pause()
+        elif choice == "3":
+            settings.show_system_status = not settings.show_system_status
+            save_settings(conn, settings)
+        elif choice == "4":
+            break
+        else:
+            print("Invalid choice.")
+            pause()
+
+
+# ================== EXTERNAL DATA MENU ==================
+
+def external_data_menu(conn: sqlite3.Connection):
+    while True:
+        clear_screen()
+        print_header("EXTERNAL DATA")
+
+        c = conn.cursor()
+        c.execute("""
+            SELECT s.id, s.name, s.kind, s.connected, s.last_sync,
+                   COUNT(e.id) as item_count
+            FROM external_sources s
+            LEFT JOIN external_items e ON e.source_id = s.id
+            GROUP BY s.id, s.name, s.kind, s.connected, s.last_sync
+            ORDER BY s.name
+        """)
+        rows = c.fetchall()
+
+        if not rows:
+            print("No external sources yet.")
+            print("Once you integrate APIs, use record_external_item(...)")
+            print("and data will show up here.")
+            pause()
+            return
+
+        for r in rows:
+            status = "connected" if r["connected"] else "disconnected"
+            print(f"[{r['id']}] {r['name']} ({r['kind']}) – {status}, "
+                  f"{r['item_count']} items, last_sync={r['last_sync']}")
+
+        print("\nOptions:")
+        print("1) View items for a source")
+        print("2) Back")
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            try:
+                sid_raw = input("Source ID: ").strip()
+                sid = int(sid_raw)
+            except ValueError:
+                print("Invalid ID.")
+                pause()
+                continue
+
+            c.execute("""
+                SELECT id, external_id, kind, title, created_at, last_seen_at
+                FROM external_items
+                WHERE source_id = ?
+                ORDER BY last_seen_at DESC
+                LIMIT 50
+            """, (sid,))
+            items = c.fetchall()
+            clear_screen()
+            print_header(f"EXTERNAL ITEMS (source_id={sid})")
+            if not items:
+                print("No items for this source yet.")
+            else:
+                for it in items:
+                    print(f"- [{it['id']}] {it['title']} ({it['kind']})")
+                    print(f"    external_id: {it['external_id']}")
+                    print(f"    created_at : {it['created_at']}")
+                    print(f"    last_seen  : {it['last_seen_at']}")
+                    print("-" * 70)
+            pause()
+        elif choice == "2":
+            break
+        else:
+            print("Invalid choice.")
+            pause()
+
+
+# ================== MAIN LOOP ==================
+
+def main():
+    conn = init_db()
+    state = load_state(conn)
+    settings = load_settings(conn)
+
+    # Honor default view on startup
+    if settings.default_view == "dashboard":
+        dashboard_view(state, settings)
+    elif settings.default_view == "tasks":
+        tasks_menu(conn, state)
+    elif settings.default_view == "projects":
+        projects_menu(conn, state)
+
+    while True:
+        clear_screen()
+        print_header("PERSONAL ASSISTANT HUB")
+        print(f"Active Persona : {state.active_persona} "
+              f"({PERSONA_ROLES.get(state.active_persona, '')})")
+        print(f"Theme          : {settings.theme}")
+        print(f"Default View   : {settings.default_view}")
+        print("-" * 70)
+        print("1) View Dashboard")
+        print("2) Tasks")
+        print("3) Projects")
+        print("4) Persona Context (Chris / AIC / Aria / Sora)")
+        print("5) System Status")
+        print("6) Settings")
+        print("7) External Data (3rd-party items)")
+        print("8) Save & Exit")
+        print("-" * 70)
+
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            dashboard_view(state, settings)
+        elif choice == "2":
+            tasks_menu(conn, state)
+        elif choice == "3":
+            projects_menu(conn, state)
+        elif choice == "4":
+            persona_menu(conn, state)
+        elif choice == "5":
+            system_status_view(settings)
+        elif choice == "6":
+            settings_menu(conn, settings)
+        elif choice == "7":
+            external_data_menu(conn)
+        elif choice == "8":
+            save_active_persona(conn, state)
+            save_settings(conn, settings)
+            print("Goodbye.")
+            break
+        else:
+            print("Invalid choice.")
+            pause()
+
+    conn.close()
+
+
+if __name__ == "__main__":
+    main()
+

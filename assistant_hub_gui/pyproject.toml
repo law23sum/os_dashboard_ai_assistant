@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "assistant_hub_gui"
+version = "0.1.0"
+description = "Personal Assistant Hub GUI (AIC auditor, Aria assistant, Sora archive)"
+requires-python = ">=3.9"
+dependencies = [
+    "psutil",
+    "openai",
+    "ttkbootstrap>=1.10.1",
+    "pillow>=10.0.0",
+    "customtkinter>=5.2.0",
+    "tkinter-tooltip>=2.1.0",
+]
