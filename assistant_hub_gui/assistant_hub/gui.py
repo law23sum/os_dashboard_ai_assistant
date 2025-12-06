@@ -70,6 +70,27 @@ from .integrations import (
 from .task_automation import process_recurring_tasks, check_task_dependencies
 from .task_templates import load_templates, save_template, delete_template, create_task_from_template, TaskTemplate
 from .ai_task_creation import create_task_from_ai_message
+from .analytics import (
+    get_task_completion_stats,
+    get_project_stats,
+    get_time_tracking_stats,
+    get_productivity_metrics,
+    generate_report,
+)
+from .suggestions import (
+    get_deadline_reminders,
+    get_workload_balance,
+    get_project_health,
+    get_smart_prioritization_suggestions,
+)
+from .export_import import (
+    export_tasks_to_csv,
+    export_tasks_to_json,
+    export_projects_to_json,
+    export_full_backup,
+    import_tasks_from_csv,
+    import_tasks_from_json,
+)
 
 try:
     import psutil
@@ -2186,6 +2207,430 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             messagebox.showerror("Sync Error", f"Failed to sync {name}.")
         self.refresh_integrations_list()
+
+
+# ---------- Analytics Tab ----------
+
+    def _build_analytics_tab(self):
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.analytics_frame = ttkb.Frame(self.notebook)
+        else:
+            self.analytics_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.analytics_frame, text="📊 Analytics")
+        
+        self.analytics_frame.columnconfigure(0, weight=1)
+        self.analytics_frame.rowconfigure(0, weight=1)
+        
+        # Main container with scrollable text
+        if TTKBOOTSTRAP_AVAILABLE:
+            main_container = ttkb.Frame(self.analytics_frame)
+        else:
+            main_container = ttk.Frame(self.analytics_frame)
+        main_container.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+        main_container.columnconfigure(0, weight=1)
+        main_container.rowconfigure(1, weight=1)
+        
+        # Header
+        if TTKBOOTSTRAP_AVAILABLE:
+            header = ttkb.Label(main_container, text="Analytics & Reports", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+        else:
+            header = ttk.Label(main_container, text="Analytics & Reports", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+        header.grid(row=0, column=0, sticky="w", pady=(0, 8))
+        
+        # Text widget for displaying analytics
+        text_frame = ttk.Frame(main_container)
+        text_frame.grid(row=1, column=0, sticky="nsew")
+        text_frame.columnconfigure(0, weight=1)
+        text_frame.rowconfigure(0, weight=1)
+        
+        self.analytics_text = tk.Text(text_frame, wrap="word", font=("Courier", 10), bg="#f5f5f5" if not TTKBOOTSTRAP_AVAILABLE else None)
+        self.analytics_text.grid(row=0, column=0, sticky="nsew")
+        
+        scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=self.analytics_text.yview)
+        self.analytics_text.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        
+        # Buttons
+        if TTKBOOTSTRAP_AVAILABLE:
+            btn_frame = ttkb.Frame(main_container)
+        else:
+            btn_frame = ttk.Frame(main_container)
+        btn_frame.grid(row=2, column=0, sticky="ew", pady=(8, 0))
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            refresh_btn = ttkb.Button(btn_frame, text="🔄 Refresh", command=self.refresh_analytics, bootstyle="primary")
+            export_btn = ttkb.Button(btn_frame, text="💾 Export Report", command=self.on_export_analytics_report, bootstyle="info-outline")
+        else:
+            refresh_btn = ttk.Button(btn_frame, text="Refresh", command=self.refresh_analytics)
+            export_btn = ttk.Button(btn_frame, text="Export Report", command=self.on_export_analytics_report)
+        
+        refresh_btn.grid(row=0, column=0, padx=4)
+        export_btn.grid(row=0, column=1, padx=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            ToolTip(refresh_btn, text="Refresh analytics data")
+            ToolTip(export_btn, text="Export report to text file")
+    
+    def refresh_analytics(self):
+        """Refresh the analytics display."""
+        if not hasattr(self, 'analytics_text'):
+            return
+        
+        self.analytics_text.delete('1.0', 'end')
+        
+        try:
+            # Get all analytics data
+            task_stats = get_task_completion_stats(self.state_obj)
+            project_stats = get_project_stats(self.state_obj)
+            time_stats = get_time_tracking_stats(self.state_obj)
+            productivity = get_productivity_metrics(self.state_obj)
+            deadline_reminders = get_deadline_reminders(self.state_obj, days_ahead=7)
+            workload = get_workload_balance(self.state_obj)
+            project_health = get_project_health(self.state_obj)
+            suggestions = get_smart_prioritization_suggestions(self.state_obj)
+            
+            # Build display text
+            lines = []
+            lines.append("=" * 70)
+            lines.append("ASSISTANT HUB ANALYTICS REPORT")
+            lines.append("=" * 70)
+            lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            lines.append("")
+            
+            # Task Statistics
+            lines.append("TASK STATISTICS")
+            lines.append("-" * 70)
+            lines.append(f"Total Tasks: {task_stats['total']}")
+            lines.append(f"  ✓ Done: {task_stats['done']}")
+            lines.append(f"  ⟳ In Progress: {task_stats['in_progress']}")
+            lines.append(f"  ☐ TODO: {task_stats['todo']}")
+            lines.append(f"  ⛔ Blocked: {task_stats['blocked']}")
+            lines.append(f"Completion Rate: {task_stats['completion_rate']}%")
+            lines.append("")
+            
+            # Project Statistics
+            lines.append("PROJECT STATISTICS")
+            lines.append("-" * 70)
+            for project_name, stats in sorted(project_stats.items(), key=lambda x: x[1]["total"], reverse=True):
+                lines.append(f"{project_name}:")
+                lines.append(f"  Total: {stats['total']}, Done: {stats['done']}, Completion: {stats['completion_rate']}%")
+            lines.append("")
+            
+            # Time Tracking
+            lines.append("TIME TRACKING")
+            lines.append("-" * 70)
+            lines.append(f"Estimated: {time_stats['estimated_hours']} hours ({time_stats['total_estimated_minutes']} minutes)")
+            lines.append(f"Logged: {time_stats['logged_hours']} hours ({time_stats['total_logged_minutes']} minutes)")
+            lines.append(f"Tasks with time data: {time_stats['tasks_with_time']}")
+            if time_stats['total_estimated_minutes'] > 0:
+                variance = ((time_stats['total_logged_minutes'] - time_stats['total_estimated_minutes']) / time_stats['total_estimated_minutes']) * 100
+                lines.append(f"Time variance: {variance:+.1f}%")
+            lines.append("")
+            
+            # Productivity Metrics
+            lines.append("PRODUCTIVITY METRICS")
+            lines.append("-" * 70)
+            lines.append(f"Completion Rate: {productivity['completion_rate']}%")
+            lines.append(f"Tasks Completed: {productivity['tasks_completed']}")
+            lines.append(f"Tasks In Progress: {productivity['tasks_in_progress']}")
+            lines.append(f"Total Time Logged: {productivity['total_time_logged_hours']} hours")
+            lines.append(f"Average Time per Task: {productivity['average_time_per_task_minutes']} minutes")
+            lines.append("")
+            
+            # Deadline Reminders
+            if deadline_reminders:
+                lines.append("DEADLINE REMINDERS (Next 7 Days)")
+                lines.append("-" * 70)
+                for reminder in deadline_reminders[:10]:  # Top 10
+                    task = reminder['task']
+                    urgency = reminder['urgency'].upper()
+                    days = reminder['days_until']
+                    lines.append(f"[{urgency}] Task #{task.id}: {task.title[:50]} - {days} day(s) until due")
+                lines.append("")
+            
+            # Workload Balance
+            lines.append("WORKLOAD BALANCE")
+            lines.append("-" * 70)
+            for persona, data in workload.items():
+                status = "⚠️ OVERLOADED" if data['overloaded'] else "✓ OK"
+                lines.append(f"{persona}: {status}")
+                lines.append(f"  Tasks: {data['task_count']}, Est. Hours: {data['estimated_hours']}, Logged: {data['logged_hours']}")
+                lines.append(f"  High Priority: {data['high_priority_count']}")
+            lines.append("")
+            
+            # Project Health
+            lines.append("PROJECT HEALTH")
+            lines.append("-" * 70)
+            for project_name, health in sorted(project_health.items(), key=lambda x: x[1]['health_score']):
+                status_icon = "✓" if health['health_status'] == "healthy" else "⚠" if health['health_status'] == "warning" else "✗"
+                lines.append(f"{status_icon} {project_name}: {health['health_status'].upper()} (Score: {health['health_score']})")
+                lines.append(f"  Total: {health['total_tasks']}, Completed: {health['completed']}, Blocked: {health['blocked']}, Overdue: {health['overdue']}")
+            lines.append("")
+            
+            # Smart Suggestions
+            if suggestions:
+                lines.append("SMART SUGGESTIONS")
+                lines.append("-" * 70)
+                for suggestion in suggestions[:10]:  # Top 10
+                    priority = suggestion['priority'].upper()
+                    lines.append(f"[{priority}] {suggestion['message']}")
+                lines.append("")
+            
+            # Display the report
+            self.analytics_text.insert('1.0', '\n'.join(lines))
+            self.analytics_text.see('1.0')
+            
+        except Exception as e:
+            self.analytics_text.insert('1.0', f"Error generating analytics: {e}")
+    
+    def on_export_analytics_report(self):
+        """Export analytics report to a text file."""
+        try:
+            report = generate_report(self.state_obj)
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                initialfile=f"analytics_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+            )
+            if filename:
+                with open(filename, 'w') as f:
+                    f.write(report)
+                messagebox.showinfo("Export", f"Report exported to {filename}")
+        except Exception as e:
+            messagebox.showerror("Export Error", f"Failed to export report: {e}")
+
+
+# ---------- Templates Tab ----------
+
+    def _build_templates_tab(self):
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.templates_frame = ttkb.Frame(self.notebook)
+        else:
+            self.templates_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.templates_frame, text="📋 Templates")
+        
+        self.templates_frame.columnconfigure(0, weight=1)
+        self.templates_frame.rowconfigure(0, weight=1)
+        
+        # Main container
+        if TTKBOOTSTRAP_AVAILABLE:
+            main_container = ttkb.Frame(self.templates_frame)
+        else:
+            main_container = ttk.Frame(self.templates_frame)
+        main_container.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+        main_container.columnconfigure(0, weight=1)
+        main_container.columnconfigure(1, weight=2)
+        main_container.rowconfigure(1, weight=1)
+        
+        # Header
+        if TTKBOOTSTRAP_AVAILABLE:
+            header = ttkb.Label(main_container, text="Task Templates", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+        else:
+            header = ttk.Label(main_container, text="Task Templates", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+        header.grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 8))
+        
+        # Left: Template list
+        list_frame = ttk.Frame(main_container)
+        list_frame.grid(row=1, column=0, sticky="nsew", padx=(0, 4))
+        list_frame.columnconfigure(0, weight=1)
+        list_frame.rowconfigure(0, weight=1)
+        
+        columns = ("name", "project", "priority")
+        self.templates_tree = ttk.Treeview(list_frame, columns=columns, show="headings", selectmode="browse")
+        self.templates_tree.heading("name", text="TEMPLATE NAME")
+        self.templates_tree.heading("project", text="PROJECT")
+        self.templates_tree.heading("priority", text="PRIORITY")
+        
+        self.templates_tree.column("name", width=150)
+        self.templates_tree.column("project", width=100)
+        self.templates_tree.column("priority", width=80)
+        
+        self.templates_tree.grid(row=0, column=0, sticky="nsew")
+        self.templates_tree.bind("<<TreeviewSelect>>", self.on_template_select)
+        
+        scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.templates_tree.yview)
+        self.templates_tree.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        
+        # Right: Template details form
+        if TTKBOOTSTRAP_AVAILABLE:
+            form_frame = ttkb.Labelframe(main_container, text="Template Details", bootstyle="info")
+        else:
+            form_frame = ttk.LabelFrame(main_container, text="Template Details")
+        form_frame.grid(row=1, column=1, sticky="nsew", padx=(4, 0))
+        form_frame.columnconfigure(1, weight=1)
+        
+        row = 0
+        ttk.Label(form_frame, text="Name:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
+        self.template_name_var = tk.StringVar()
+        template_name_entry = ttk.Entry(form_frame, textvariable=self.template_name_var)
+        template_name_entry.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
+        
+        row += 1
+        ttk.Label(form_frame, text="Title:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
+        self.template_title_var = tk.StringVar()
+        template_title_entry = ttk.Entry(form_frame, textvariable=self.template_title_var)
+        template_title_entry.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
+        
+        row += 1
+        ttk.Label(form_frame, text="Project:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
+        self.template_project_var = tk.StringVar()
+        template_project_combo = ttk.Combobox(form_frame, textvariable=self.template_project_var, state="readonly")
+        template_project_combo.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
+        self.template_project_combo = template_project_combo
+        
+        row += 1
+        ttk.Label(form_frame, text="Priority:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
+        self.template_priority_var = tk.StringVar()
+        template_priority_combo = ttk.Combobox(form_frame, textvariable=self.template_priority_var, values=PRIORITY_OPTIONS, state="readonly")
+        template_priority_combo.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
+        
+        row += 1
+        ttk.Label(form_frame, text="Time Est. (min):").grid(row=row, column=0, sticky="e", padx=4, pady=4)
+        self.template_time_estimated_var = tk.StringVar()
+        template_time_entry = ttk.Entry(form_frame, textvariable=self.template_time_estimated_var)
+        template_time_entry.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
+        
+        row += 1
+        ttk.Label(form_frame, text="Notes:").grid(row=row, column=0, sticky="ne", padx=4, pady=4)
+        self.template_notes_text = tk.Text(form_frame, height=6, wrap="word")
+        self.template_notes_text.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
+        
+        # Buttons
+        if TTKBOOTSTRAP_AVAILABLE:
+            btn_frame = ttkb.Frame(main_container)
+        else:
+            btn_frame = ttk.Frame(main_container)
+        btn_frame.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            new_btn = ttkb.Button(btn_frame, text="➕ New", command=self.on_new_template, bootstyle="success-outline")
+            save_btn = ttkb.Button(btn_frame, text="💾 Save", command=self.on_save_template, bootstyle="primary")
+            delete_btn = ttkb.Button(btn_frame, text="🗑️ Delete", command=self.on_delete_template, bootstyle="danger-outline")
+            create_task_btn = ttkb.Button(btn_frame, text="✅ Create Task", command=self.on_create_task_from_template, bootstyle="info")
+            refresh_btn = ttkb.Button(btn_frame, text="🔄 Refresh", command=self.refresh_templates_list, bootstyle="secondary-outline")
+        else:
+            new_btn = ttk.Button(btn_frame, text="New", command=self.on_new_template)
+            save_btn = ttk.Button(btn_frame, text="Save", command=self.on_save_template)
+            delete_btn = ttk.Button(btn_frame, text="Delete", command=self.on_delete_template)
+            create_task_btn = ttk.Button(btn_frame, text="Create Task", command=self.on_create_task_from_template)
+            refresh_btn = ttk.Button(btn_frame, text="Refresh", command=self.refresh_templates_list)
+        
+        new_btn.grid(row=0, column=0, padx=4)
+        save_btn.grid(row=0, column=1, padx=4)
+        delete_btn.grid(row=0, column=2, padx=4)
+        create_task_btn.grid(row=0, column=3, padx=4)
+        refresh_btn.grid(row=0, column=4, padx=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            ToolTip(new_btn, text="Create a new template")
+            ToolTip(save_btn, text="Save the current template")
+            ToolTip(delete_btn, text="Delete the selected template")
+            ToolTip(create_task_btn, text="Create a task from this template")
+            ToolTip(refresh_btn, text="Refresh the templates list")
+        
+        self.current_template_id = None
+    
+    def refresh_templates_list(self):
+        """Refresh the templates list display."""
+        if not hasattr(self, 'templates_tree'):
+            return
+        
+        for row in self.templates_tree.get_children():
+            self.templates_tree.delete(row)
+        
+        templates = load_templates(self.conn)
+        for template in templates:
+            self.templates_tree.insert(
+                "",
+                "end",
+                iid=template.id,
+                values=(template.name, template.project or "", template.priority or ""),
+            )
+        
+        # Update project combo
+        if hasattr(self, 'template_project_combo'):
+            projects = [p.name for p in self.state_obj.projects]
+            self.template_project_combo['values'] = projects
+    
+    def on_template_select(self, event=None):
+        """Handle template selection."""
+        sel = self.templates_tree.selection()
+        if not sel:
+            self.current_template_id = None
+            return
+        
+        template_id = sel[0]
+        templates = load_templates(self.conn)
+        template = next((t for t in templates if t.id == template_id), None)
+        
+        if template:
+            self.current_template_id = template.id
+            self.template_name_var.set(template.name)
+            self.template_title_var.set(template.title or "")
+            self.template_project_var.set(template.project or "")
+            self.template_priority_var.set(template.priority or "")
+            self.template_time_estimated_var.set(str(template.time_estimated or ""))
+            self.template_notes_text.delete('1.0', 'end')
+            self.template_notes_text.insert('1.0', template.notes or "")
+    
+    def on_new_template(self):
+        """Create a new template."""
+        self.current_template_id = None
+        self.template_name_var.set("")
+        self.template_title_var.set("")
+        self.template_project_var.set("")
+        self.template_priority_var.set("")
+        self.template_time_estimated_var.set("")
+        self.template_notes_text.delete('1.0', 'end')
+        self.templates_tree.selection_remove(self.templates_tree.selection())
+    
+    def on_save_template(self):
+        """Save the current template."""
+        name = self.template_name_var.get().strip()
+        if not name:
+            messagebox.showerror("Error", "Template name is required.")
+            return
+        
+        template = TaskTemplate(
+            id=self.current_template_id or str(uuid.uuid4()),
+            name=name,
+            title=self.template_title_var.get().strip() or None,
+            project=self.template_project_var.get().strip() or None,
+            priority=self.template_priority_var.get().strip() or None,
+            time_estimated=int(self.template_time_estimated_var.get()) if self.template_time_estimated_var.get().strip() else None,
+            notes=self.template_notes_text.get('1.0', 'end').strip() or None,
+        )
+        
+        save_template(self.conn, template)
+        self.refresh_templates_list()
+        messagebox.showinfo("Success", "Template saved.")
+    
+    def on_delete_template(self):
+        """Delete the selected template."""
+        if not self.current_template_id:
+            messagebox.showinfo("No Selection", "Please select a template to delete.")
+            return
+        
+        if messagebox.askyesno("Confirm", "Delete this template?"):
+            delete_template(self.conn, self.current_template_id)
+            self.on_new_template()
+            self.refresh_templates_list()
+            messagebox.showinfo("Success", "Template deleted.")
+    
+    def on_create_task_from_template(self):
+        """Create a task from the selected template."""
+        if not self.current_template_id:
+            messagebox.showinfo("No Selection", "Please select a template to create a task from.")
+            return
+        
+        try:
+            task = create_task_from_template(self.conn, self.current_template_id, owner=self.state_obj.active_persona)
+            self.refresh_task_list()
+            self.refresh_dashboard()
+            messagebox.showinfo("Success", f"Task created: {task.title}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to create task: {e}")
 
 
 # ---------- Settings Tab ----------
