@@ -97,6 +97,7 @@ from .export_import import (
     import_tasks_from_csv,
     import_tasks_from_json,
 )
+from .daemon import start_daemon_system
 
 try:
     import psutil
@@ -305,7 +306,25 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             process_recurring_tasks(self.conn)
         except Exception:
             pass
-        
+
+        # Start cognitive daemon system for continuous background automation
+        try:
+            self.cognitive_daemon = start_daemon_system(self.conn, enabled=True)
+            print("[GUI] Cognitive daemon system started - active automation enabled")
+        except Exception as e:
+            print(f"[GUI] Warning: Could not start cognitive daemon: {e}")
+            self.cognitive_daemon = None
+
+        # Initialize Git versioning worker for automatic version control
+        try:
+            from .versioning import start_git_worker, get_git_manager
+
+            start_git_worker()
+            get_git_manager().ensure_repo()
+            print("[GUI] Git versioning initialized - all changes will be automatically tracked")
+        except Exception as e:
+            print(f"[GUI] Warning: Could not initialize Git versioning: {e}")
+
         self._apply_default_view()
         self.refresh_all()
         self._update_chat_status()
