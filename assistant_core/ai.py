@@ -403,3 +403,35 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
     }
 
 
+<<<<<<< HEAD
+=======
+class AIAssistant:
+    """Lightweight AI assistant wrapper for tests and integrations."""
+
+    def __init__(self, persona: str = "AIC"):
+        self.persona = persona
+        self.history: List[ChatMessage] = []
+
+    def add_message(self, content: str, *, role: str = "user", kind: str = "chat") -> ChatMessage:
+        """Record a message in the assistant history."""
+        message = ChatMessage(
+            id=len(self.history) + 1,
+            persona=self.persona,
+            role=role,
+            kind=kind,
+            content=content,
+        )
+        self.history.append(message)
+        return message
+
+    def reply(self, prompt: str) -> str:
+        """Generate a reply using the existing helper or echo fallback."""
+        try:
+            response, error, _ = generate_ai_reply(self.history, self.persona, prompt=prompt)
+            if error:
+                return error
+            return response
+        except Exception:
+            # In constrained environments fall back to deterministic echo
+            return f"[offline] {prompt}"
+>>>>>>> a27d718 (Merge remote-tracking branch 'origin/develop' into develop)
