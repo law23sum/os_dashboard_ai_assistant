@@ -264,3 +264,4 @@ def _analyze_file_structure(files: List[str]) -> Dict:
     
     return structure
 
+

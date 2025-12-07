@@ -345,3 +345,4 @@ def get_categories(conn: sqlite3.Connection) -> List[str]:
     rows = c.fetchall()
     return [row["category"] for row in rows]
 
+

@@ -46,3 +46,4 @@ def handle_projects_command(args, conn: sqlite3.Connection) -> int:
         return 1
 
 
+
