@@ -34,6 +34,8 @@ class OneNoteService:
         mirror_path = self.mirror_root / f"page_{page_id}.html"
         mirror_path.parent.mkdir(parents=True, exist_ok=True)
         mirror_path.write_text(cleaned, encoding="utf-8")
+        # Auto-commit the mirror
+        enqueue_git_commit([str(mirror_path)], actor=actor, reason="Clean OneNote page", tag="onenote")
         return mirror_path
 
     def clean_section(self, section_id: str, actor: str = "AIC") -> List[str]:
