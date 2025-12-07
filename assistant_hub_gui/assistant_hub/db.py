@@ -58,6 +58,7 @@ class Project:
     description: str = ""
     status: str = "active"
     priority: str = "MEDIUM"
+    order_num: int = 0
 
 
 @dataclass
@@ -196,9 +197,21 @@ def init_db() -> sqlite3.Connection:
             name TEXT PRIMARY KEY,
             description TEXT,
             status TEXT,
-            priority TEXT
+            priority TEXT,
+            order_num INTEGER DEFAULT 0
         )
     """)
+
+    # Add new columns if they don't exist (for existing databases)
+    c.execute("PRAGMA table_info(projects)")
+    columns = [row[1] for row in c.fetchall()]
+    new_columns = [
+        ("priority", "TEXT DEFAULT 'MEDIUM'"),
+        ("order_num", "INTEGER DEFAULT 0"),
+    ]
+    for col_name, col_type in new_columns:
+        if col_name not in columns:
+            c.execute(f"ALTER TABLE projects ADD COLUMN {col_name} {col_type}")
 
     c.execute("""
         CREATE TABLE IF NOT EXISTS external_sources (
@@ -439,12 +452,20 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
             priority = "MEDIUM"
         if priority not in PRIORITY_OPTIONS:
             priority = "MEDIUM"
+
+        # Check if order_num column exists by trying to access it
+        try:
+            order_num = r["order_num"] if r["order_num"] is not None else 0
+        except (KeyError, IndexError):
+            order_num = 0
+
         projects.append(
             Project(
                 name=r["name"],
                 description=r["description"] or "",
                 status=r["status"] or "active",
                 priority=priority,
+                order_num=order_num,
             )
         )
 
@@ -540,23 +561,27 @@ def save_security_status(conn: sqlite3.Connection, status: SecurityStatus):
 
 def db_upsert_project(conn: sqlite3.Connection, proj: Project):
     c = conn.cursor()
-    # Check if priority column exists, if not add it
+    # Check if new columns exist, if not add them
     c.execute("PRAGMA table_info(projects)")
     columns = [row[1] for row in c.fetchall()]
     if "priority" not in columns:
         c.execute("ALTER TABLE projects ADD COLUMN priority TEXT DEFAULT 'MEDIUM'")
         conn.commit()
-    
+    if "order_num" not in columns:
+        c.execute("ALTER TABLE projects ADD COLUMN order_num INTEGER DEFAULT 0")
+        conn.commit()
+
     c.execute(
         """
-        INSERT INTO projects (name, description, status, priority)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO projects (name, description, status, priority, order_num)
+        VALUES (?, ?, ?, ?, ?)
         ON CONFLICT(name) DO UPDATE SET
             description = excluded.description,
             status = excluded.status,
-            priority = excluded.priority
+            priority = excluded.priority,
+            order_num = excluded.order_num
         """,
-        (proj.name, proj.description, proj.status, proj.priority),
+        (proj.name, proj.description, proj.status, proj.priority, proj.order_num),
     )
     conn.commit()
 
