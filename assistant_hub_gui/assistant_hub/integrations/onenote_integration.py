@@ -23,7 +23,19 @@ class OneNoteIntegration(BaseIntegration):
     def authenticate(self) -> bool:
         """Authenticate with Microsoft Graph for OneNote."""
         try:
-            graph_client = GraphClient()
+            # Check if credentials are configured first (pass connection to load from DB)
+            from ..msgraph.auth import GraphCredentials
+            try:
+                creds = GraphCredentials.from_env(conn=self.conn)
+                if not creds.tenant_id or not creds.client_id or not creds.client_secret:
+                    self.update_status(False, "Not authenticated. Configure Microsoft Graph credentials.")
+                    return False
+            except Exception as e:
+                self.update_status(False, f"Credentials error: {str(e)}")
+                return False
+            
+            # Pass connection to GraphClient so it can load credentials from database
+            graph_client = GraphClient(conn=self.conn)
             self.client = OneNoteClient(graph_client)
             self.service = OneNoteService(self.mirror_root, self.client)
             
@@ -33,10 +45,15 @@ class OneNoteIntegration(BaseIntegration):
             return True
         except Exception as e:
             error_msg = str(e)
-            if "credentials" in error_msg.lower() or "auth" in error_msg.lower():
-                self.update_status(False, "Not authenticated. Please configure Microsoft Graph credentials.")
+            # Provide more specific error messages
+            if "401" in error_msg or "Unauthorized" in error_msg:
+                self.update_status(False, "Authentication failed. Check credentials and permissions.")
+            elif "credentials" in error_msg.lower() or "auth" in error_msg.lower() or "Authentication" in error_msg:
+                self.update_status(False, "Not authenticated. Configure Microsoft Graph credentials.")
             else:
-                self.update_status(False, error_msg)
+                # Truncate long error messages for display
+                display_msg = error_msg[:100] + "..." if len(error_msg) > 100 else error_msg
+                self.update_status(False, display_msg)
             return False
     
     def sync(self) -> int:

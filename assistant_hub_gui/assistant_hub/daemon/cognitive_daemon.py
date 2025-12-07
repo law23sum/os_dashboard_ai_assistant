@@ -14,7 +14,7 @@ from typing import Dict, List, Optional
 from pathlib import Path
 import os
 
-from ..db import load_state, load_settings
+from ..db import load_state, load_settings, init_db, DB_FILE
 from ..versioning import start_git_worker, get_git_manager
 from .monitors import (
     DocumentMonitor,
@@ -40,7 +40,8 @@ class CognitiveDaemon:
     """
     
     def __init__(self, conn: sqlite3.Connection, enabled: bool = True):
-        self.conn = conn
+        # Store DB file path instead of connection (connections can't be shared across threads)
+        self.db_file = DB_FILE
         self.enabled = enabled
         self.running = False
         self.thread: Optional[threading.Thread] = None
@@ -49,22 +50,10 @@ class CognitiveDaemon:
         start_git_worker()
         get_git_manager().ensure_repo()
         
-        # Initialize all monitors
-        self.monitors = {
-            "documents": DocumentMonitor(conn),
-            "tasks": TaskMonitor(conn),
-            "integrations": IntegrationMonitor(conn),
-            "filesystem": FileSystemMonitor(conn),
-            "outdated": OutdatedContentMonitor(conn),
-        }
-        
-        # Initialize all automators
-        self.automators = {
-            "draft": AutoDraftService(conn),
-            "update": AutoUpdateService(conn),
-            "suggest": AutoSuggestService(conn),
-            "workflow": WorkflowExecutor(conn),
-        }
+        # Don't initialize monitors/automators here - they'll be created in the daemon thread
+        # to avoid SQLite threading issues
+        self.monitors = None
+        self.automators = None
         
         # Statistics
         self.stats = {
@@ -97,16 +86,36 @@ class CognitiveDaemon:
     
     def _run(self):
         """Main daemon loop - runs continuously, monitoring and automating."""
+        # Create a new database connection in this thread (SQLite connections are thread-specific)
+        conn = init_db()
+        
+        # Initialize monitors and automators in this thread with the thread-local connection
+        self.monitors = {
+            "documents": DocumentMonitor(conn),
+            "tasks": TaskMonitor(conn),
+            "integrations": IntegrationMonitor(conn),
+            "filesystem": FileSystemMonitor(conn),
+            "outdated": OutdatedContentMonitor(conn),
+        }
+        
+        self.automators = {
+            "draft": AutoDraftService(conn),
+            "update": AutoUpdateService(conn),
+            "suggest": AutoSuggestService(conn),
+            "workflow": WorkflowExecutor(conn),
+        }
+        
         cycle_interval = 60  # Check every 60 seconds
         
-        while self.running:
-            try:
-                cycle_start = datetime.now()
-                self.stats["cycles"] += 1
-                
-                # Load current state
-                state = load_state(self.conn)
-                settings = load_settings(self.conn)
+        try:
+            while self.running:
+                try:
+                    cycle_start = datetime.now()
+                    self.stats["cycles"] += 1
+                    
+                    # Load current state using thread-local connection
+                    state = load_state(conn)
+                    settings = load_settings(conn)
                 
                 # Run all monitors to detect opportunities
                 findings = self._run_monitors(state, settings)
@@ -124,18 +133,25 @@ class CognitiveDaemon:
                     print(f"[CognitiveDaemon] Cycle {self.stats['cycles']} completed: "
                           f"{len(findings)} findings, {len(actions)} actions in {cycle_duration:.2f}s")
                 
-            except Exception as e:
-                print(f"[CognitiveDaemon] Error in daemon cycle: {e}")
-            
-            # Sleep until next cycle
-            for _ in range(cycle_interval):
-                if not self.running:
-                    break
-                time.sleep(1)
+                except Exception as e:
+                    print(f"[CognitiveDaemon] Error in daemon cycle: {e}")
+                
+                # Sleep until next cycle
+                for _ in range(cycle_interval):
+                    if not self.running:
+                        break
+                    time.sleep(1)
+        finally:
+            # Close the connection when daemon stops
+            conn.close()
     
     def _run_monitors(self, state, settings) -> Dict[str, List]:
         """Run all monitors and collect findings."""
         findings = {}
+        
+        # Safety check - monitors should be initialized in _run()
+        if not self.monitors:
+            return findings
         
         try:
             findings["documents"] = self.monitors["documents"].check(state, settings)
@@ -172,6 +188,10 @@ class CognitiveDaemon:
     def _execute_automations(self, findings: Dict[str, List], state, settings) -> List[str]:
         """Execute automated actions based on monitor findings."""
         actions = []
+        
+        # Safety check - automators should be initialized in _run()
+        if not self.automators:
+            return actions
         
         # Auto-draft missing documents
         try:
