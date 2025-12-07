@@ -22,6 +22,7 @@ Example commands after installation:
 - `osdash software locate <name>` – look up a specific executable and optional aliases.
 - `osdash chat <agent> <message>` – send a message to one of the scaffolded agents (aic, aria, sora).
 - `osdash workflow-clean-notebook <path>` – run the example notebook cleaning workflow prompt.
+- `osdash workflow-knowledge-pipeline <notes_path>` – convert raw notes into a structured Markdown brief, log the action to the audit file, and optionally commit the generated deliverable when run inside a git repo.
 
 ## Package layout
 
@@ -35,3 +36,7 @@ Example commands after installation:
 - `assistant_hub/data/state.json` – default JSON state used by the CLI.
 
 Use this baseline to plug in real API calls, prompt orchestration, and richer state handling.
+
+## Vision
+
+Read the high-level vision for how the OS Dashboard AI Assistant grows into a governed, end-to-end cognitive operating system in [VISION.md](VISION.md).
