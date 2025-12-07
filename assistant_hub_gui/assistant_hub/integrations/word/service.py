@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from docx import Document
 
 from ...ai_layer.tools import summarize_text
-from .local_client import load_document, save_document
+from ...versioning import enqueue_git_commit
+from .cloud_client import CloudWordClient
+from .local_client import LocalDocument, load_document, save_document
 
 
 class WordService:
@@ -32,3 +34,18 @@ class WordService:
             new_doc.add_paragraph(line)
         save_document(new_doc, path)
         return [path]
+
+
+# Backwards compatibility functions
+def draft_local_revision(path: str, draft: str, *, actor: str = "Aria", note: str = "") -> Dict[str, str]:
+    """Write a revision text file next to an existing document and auto-commit (backwards compatibility)."""
+    document = LocalDocument(path)
+    revision_path = document.write_revision(draft, note=note or f"Drafted by {actor}")
+    enqueue_git_commit([revision_path], actor=actor, reason="Word draft", tag="word")
+    return {"document": str(document.path), "revision_path": str(revision_path)}
+
+
+def upload_cloud_revision(client: CloudWordClient, drive_item_id: str, content: bytes, *, actor: str = "Aria") -> Dict[str, str]:
+    """Upload a new document version to OneDrive/SharePoint and record metadata (backwards compatibility)."""
+    response = client.upload_document(drive_item_id, content)
+    return {"drive_item_id": drive_item_id, "status": response.get("id", "uploaded"), "actor": actor}
