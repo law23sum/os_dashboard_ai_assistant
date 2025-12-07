@@ -47,6 +47,9 @@ class SourceSystem(str, Enum):
     FILESYSTEM = "filesystem"
     OPENAI = "openai"
     SYSTEM = "system"
+    APPLE_NOTES = "apple_notes"
+    APPLE_CALENDAR = "apple_calendar"
+    ICLOUD = "icloud"
 
 
 class AnnotationType(str, Enum):
@@ -300,6 +303,52 @@ class DocumentMetadata(BaseModel):
     # Custom properties
     custom_fields: Dict[str, Any] = Field(default_factory=dict)
     tags: List[str] = Field(default_factory=list)
+
+
+class EventStatus(str, Enum):
+    """Standard event status values"""
+
+    CONFIRMED = "confirmed"
+    TENTATIVE = "tentative"
+    CANCELLED = "cancelled"
+    NEEDS_ACTION = "needs_action"
+
+
+class EventPriority(str, Enum):
+    """Priority indicators for calendar events"""
+
+    LOW = "low"
+    NORMAL = "normal"
+    HIGH = "high"
+    URGENT = "urgent"
+
+
+class CalendarEvent(BaseModel):
+    """Structured representation of a calendar event"""
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str = ""
+    description: str = ""
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    location: Optional[str] = None
+    attendees: List[str] = Field(default_factory=list)
+    status: EventStatus = EventStatus.CONFIRMED
+    priority: EventPriority = EventPriority.NORMAL
+    all_day: bool = False
+    recurrence: Optional[str] = None
+    reminders: List[Dict[str, Any]] = Field(default_factory=list)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class CalendarExtension(BaseModel):
+    """Calendar-specific extension data for CIR documents"""
+
+    events: List[CalendarEvent] = Field(default_factory=list)
+    calendar_name: Optional[str] = None
+    timezone: Optional[str] = None
+    last_synced: Optional[datetime] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
 class CIRDocument(BaseModel):
