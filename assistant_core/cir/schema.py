@@ -1,285 +1,33 @@
-"""
-Canonical Internal Representation (CIR) - Universal Document Schema
-The heart of the OS Dashboard AI Assistant that enables seamless transformation
-between all software types while preserving semantic meaning and audit trails.
-"""
+"""Canonical Internal Representation (CIR) schema definitions.
 
+This module provides a lossless, extensible data model that sits between
+source document formats (Word, Excel, PowerPoint, PDF, Markdown, etc.) and
+application logic that needs to transform or analyze content. The schema
+captures semantics, structure, provenance, and collaboration metadata to
+support reliable round-trip conversions and auditability.
+"""
 from __future__ import annotations
 
-import uuid
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Optional, Union
+from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field
 
+# --- Core Document Model ----------------------------------------------------
 
-class ContentType(str, Enum):
-    """Content types supported by the CIR system"""
+@dataclass
+class DocumentMetadata:
+    """Rich metadata for document classification and discovery."""
 
-    NOTE = "note"
-    DOCUMENT = "document"
-    SPREADSHEET = "spreadsheet"
-    PRESENTATION = "presentation"
-    PDF = "pdf"
-    SECTION = "section"
-    SLIDE = "slide"
-    PARAGRAPH = "paragraph"
-    TABLE = "table"
-    LIST = "list"
-    IMAGE = "image"
-    CHART = "chart"
-    CODE = "code"
-    FORMULA = "formula"
-    COMMENT = "comment"
-
-
-class SourceSystem(str, Enum):
-    """Source systems that can generate CIR content"""
-
-    WORD = "word"
-    EXCEL = "excel"
-    POWERPOINT = "powerpoint"
-    ONENOTE = "onenote"
-    PDF = "pdf"
-    NOTES = "notes"
-    GIT = "git"
-    FILESYSTEM = "filesystem"
-    OPENAI = "openai"
-    SYSTEM = "system"
-    APPLE_NOTES = "apple_notes"
-    APPLE_CALENDAR = "apple_calendar"
-    ICLOUD = "icloud"
-
-
-class AnnotationType(str, Enum):
-    """Types of annotations that can be attached to content"""
-
-    COMMENT = "comment"
-    HIGHLIGHT = "highlight"
-    REDLINE = "redline"
-    SUGGESTION = "suggestion"
-    AI_INSIGHT = "ai_insight"
-    APPROVAL = "approval"
-    REJECTION = "rejection"
-
-
-class Provenance(BaseModel):
-    """Tracks the origin and lineage of content"""
-
-    source_system: SourceSystem
-    source_id: str
-    source_path: Optional[str] = None
-    version_hint: Optional[str] = None  # git commit, doc revision, etc.
-    extracted_at: datetime = Field(default_factory=datetime.utcnow)
-    extraction_method: str = "api"  # api, file_parse, ocr, manual
-    confidence: float = 1.0  # 0.0 to 1.0 confidence in extraction accuracy
-
-    # Lineage tracking
-    parent_provenance_id: Optional[str] = None
-    transformation_applied: Optional[str] = None
-
-
-class Annotation(BaseModel):
-    """User or AI annotations on content"""
-
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    author: str
-    author_type: Literal["user", "ai", "system"] = "user"
-    annotation_type: AnnotationType
-    text: str
-    anchor: Optional[str] = None  # CIR node id or text range
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    # Rich annotation data
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    confidence: Optional[float] = None  # For AI annotations
-    requires_approval: bool = False
-
-
-class EmbeddingRef(BaseModel):
-    """Reference to vector embeddings for semantic search"""
-
-    model: str  # e.g., "text-embedding-ada-002"
-    vector_id: str  # ID in vector database
-    dimensions: int
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    chunk_strategy: str = "full"  # full, paragraph, sentence
-
-
-class Relationship(BaseModel):
-    """Relationships between CIR nodes or documents"""
-
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    relationship_type: str  # references, derives_from, updates, supersedes
-    target_node_id: str
-    target_document_id: Optional[str] = None
-    strength: float = 1.0  # 0.0 to 1.0 relationship strength
-    bidirectional: bool = False
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-
-class FormattingInfo(BaseModel):
-    """Rich formatting information preserved during transformations"""
-
-    font_family: Optional[str] = None
-    font_size: Optional[float] = None
-    bold: bool = False
-    italic: bool = False
-    underline: bool = False
-    color: Optional[str] = None
-    background_color: Optional[str] = None
-    alignment: Optional[str] = None  # left, center, right, justify
-
-    # Advanced formatting
-    styles: Dict[str, Any] = Field(default_factory=dict)
-    css_classes: List[str] = Field(default_factory=list)
-
-
-class TableData(BaseModel):
-    """Structured table representation"""
-
-    headers: List[str] = Field(default_factory=list)
-    rows: List[List[str]] = Field(default_factory=list)
-    column_types: List[str] = Field(default_factory=list)  # text, number, date, etc.
-
-    # Table properties
-    has_header_row: bool = True
-    has_total_row: bool = False
-    table_style: Optional[str] = None
-
-    # Cell-level formatting
-    cell_formatting: Dict[str, FormattingInfo] = Field(default_factory=dict)
-    merged_cells: List[Dict[str, Any]] = Field(default_factory=list)
-
-
-class ChartData(BaseModel):
-    """Chart and visualization data"""
-
-    chart_type: str = "column"  # column, line, pie, scatter, etc.
-    title: str = ""
-
-    # Data series
-    datasets: List[Dict[str, Any]] = Field(default_factory=list)
-    categories: List[str] = Field(default_factory=list)
-
-    # Styling
-    colors: List[str] = Field(default_factory=list)
-    chart_style: Dict[str, Any] = Field(default_factory=dict)
-
-    # Axes configuration
-    x_axis: Dict[str, Any] = Field(default_factory=dict)
-    y_axis: Dict[str, Any] = Field(default_factory=dict)
-
-    # Data source reference
-    source_table_id: Optional[str] = None
-    source_range: Optional[str] = None
-
-
-class ImageData(BaseModel):
-    """Image and media content"""
-
-    url: str = ""
-    alt_text: str = ""
-    caption: str = ""
-
-    # Dimensions
-    width: Optional[int] = None
-    height: Optional[int] = None
-    aspect_ratio: Optional[float] = None
-
-    # File properties
-    format: str = ""  # png, jpg, svg, etc.
-    file_size: Optional[int] = None
-
-    # Processing results
-    thumbnail_url: Optional[str] = None
-    extracted_text: Optional[str] = None  # OCR results
-    image_embedding: Optional[EmbeddingRef] = None
-
-
-class CIRNode(BaseModel):
-    """Universal content node that can represent any type of structured content"""
-
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    type: ContentType
-    title: Optional[str] = None
-    text: Optional[str] = None
-
-    # Hierarchical structure
-    children: List["CIRNode"] = Field(default_factory=list)
-    parent_id: Optional[str] = None
-    order: int = 0  # Position within parent
-    level: int = 0  # Hierarchy depth
-
-    # Rich content
-    table: Optional[TableData] = None
-    chart: Optional[ChartData] = None
-    image: Optional[ImageData] = None
-    formatting: Optional[FormattingInfo] = None
-
-    # Semantic information
-    semantic_role: str = "content"  # title, subtitle, body, caption, note, etc.
-    importance: float = 1.0  # 0.0 to 1.0 importance score
-    keywords: List[str] = Field(default_factory=list)
-
-    # Governance and tracking
-    annotations: List[Annotation] = Field(default_factory=list)
-    provenance: List[Provenance] = Field(default_factory=list)
-    relationships: List[Relationship] = Field(default_factory=list)
-    embedding: Optional[EmbeddingRef] = None
-
-    # Metadata
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
-
-    def walk(self) -> List["CIRNode"]:
-        """Recursively walk all nodes in the tree"""
-
-        nodes = [self]
-        for child in self.children:
-            nodes.extend(child.walk())
-        return nodes
-
-    def find_by_type(self, content_type: ContentType) -> List["CIRNode"]:
-        """Find all nodes of a specific type"""
-
-        return [node for node in self.walk() if node.type == content_type]
-
-    def find_by_id(self, node_id: str) -> Optional["CIRNode"]:
-        """Find a node by its ID"""
-
-        for node in self.walk():
-            if node.id == node_id:
-                return node
-        return None
-
-    def add_annotation(self, annotation: Annotation):
-        """Add an annotation to this node"""
-
-        self.annotations.append(annotation)
-        self.updated_at = datetime.utcnow()
-
-    def add_relationship(self, relationship: Relationship):
-        """Add a relationship to another node"""
-
-        self.relationships.append(relationship)
-        self.updated_at = datetime.utcnow()
-
-
-class DocumentMetadata(BaseModel):
-    """Rich metadata for document classification and discovery"""
-
-    # Basic properties
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    modified_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    modified_at: datetime = field(default_factory=datetime.utcnow)
     author: str = ""
-    contributors: List[str] = Field(default_factory=list)
+    contributors: List[str] = field(default_factory=list)
 
     # Classification
-    category: str = ""  # report, presentation, note, contract, etc.
+    category: str = ""
     subcategory: str = ""
     priority: str = "normal"  # low, normal, high, critical
     status: str = "draft"  # draft, review, approved, archived
@@ -291,166 +39,715 @@ class DocumentMetadata(BaseModel):
     confidentiality: str = "internal"  # public, internal, confidential, restricted
 
     # Technical properties
-    source_format: str = ""  # docx, xlsx, pptx, pdf, md, etc.
+    source_format: str = ""
     source_path: str = ""
     file_size: Optional[int] = None
     checksum: Optional[str] = None
 
-    # Version information
-    version: str = "1.0.0"
-    revision_history: List[Dict[str, Any]] = Field(default_factory=list)
-
     # Custom properties
-    custom_fields: Dict[str, Any] = Field(default_factory=dict)
-    tags: List[str] = Field(default_factory=list)
+    custom_fields: Dict[str, Any] = field(default_factory=dict)
 
 
-class EventStatus(str, Enum):
-    """Standard event status values"""
+@dataclass
+class CIRDocument:
+    """Root document container that represents any document type."""
 
-    CONFIRMED = "confirmed"
-    TENTATIVE = "tentative"
-    CANCELLED = "cancelled"
-    NEEDS_ACTION = "needs_action"
-
-
-class EventPriority(str, Enum):
-    """Priority indicators for calendar events"""
-
-    LOW = "low"
-    NORMAL = "normal"
-    HIGH = "high"
-    URGENT = "urgent"
-
-
-class CalendarEvent(BaseModel):
-    """Structured representation of a calendar event"""
-
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    id: UUID = field(default_factory=uuid4)
     title: str = ""
-    description: str = ""
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    location: Optional[str] = None
-    attendees: List[str] = Field(default_factory=list)
-    status: EventStatus = EventStatus.CONFIRMED
-    priority: EventPriority = EventPriority.NORMAL
-    all_day: bool = False
-    recurrence: Optional[str] = None
-    reminders: List[Dict[str, Any]] = Field(default_factory=list)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    document_type: str = "generic"  # word, excel, powerpoint, pdf, note, etc.
 
-
-class CalendarExtension(BaseModel):
-    """Calendar-specific extension data for CIR documents"""
-
-    events: List[CalendarEvent] = Field(default_factory=list)
-    calendar_name: Optional[str] = None
-    timezone: Optional[str] = None
-    last_synced: Optional[datetime] = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-
-class CIRDocument(BaseModel):
-    """Complete document representation with governance and audit trails"""
-
-    # Core identity
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    title: str = ""
-    document_type: SourceSystem = SourceSystem.SYSTEM
-
-    # Content structure
-    root: CIRNode
-    metadata: DocumentMetadata = Field(default_factory=DocumentMetadata)
+    metadata: DocumentMetadata = field(default_factory=lambda: DocumentMetadata())
+    sections: List[Section] = field(default_factory=list)  # type: ignore[name-defined]
+    attachments: List[Attachment] = field(default_factory=list)  # type: ignore[name-defined]
 
     # Semantic layer
-    semantic_tags: List[str] = Field(default_factory=list)
-    summary: Optional[str] = None
-    key_points: List[str] = Field(default_factory=list)
+    semantic_tags: List[str] = field(default_factory=list)
+    embeddings: Optional[Dict[str, List[float]]] = None
+    relationships: List[DocumentRelationship] = field(default_factory=list)  # type: ignore[name-defined]
 
-    # Document-level relationships
-    relationships: List[Relationship] = Field(default_factory=list)
-
-    # Governance
+    # Provenance & governance
+    provenance: ProvenanceChain = field(default_factory=lambda: ProvenanceChain())  # type: ignore[name-defined]
     version: str = "1.0.0"
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Collaboration
-    comments: List[Annotation] = Field(default_factory=list)
-    approvals: List[Dict[str, Any]] = Field(default_factory=list)
+    comments: List[Comment] = field(default_factory=list)  # type: ignore[name-defined]
+    annotations: List[Annotation] = field(default_factory=list)  # type: ignore[name-defined]
 
     def get_all_text(self) -> str:
         """Extract all text content from the document"""
-
         text_parts = []
-        for node in self.root.walk():
-            if node.text:
-                text_parts.append(node.text)
+
+        # Add title
+        if self.title:
+            text_parts.append(self.title)
+
+        # Extract text from all sections and content blocks
+        for section in self.sections:
+            text_parts.extend(self._extract_section_text(section))
+
+        # Add attachment descriptions
+        for attachment in self.attachments:
+            if attachment.description:
+                text_parts.append(attachment.description)
+
         return "\n".join(text_parts)
 
-    def get_structure_summary(self) -> Dict[str, Any]:
-        """Get a summary of the document structure"""
+    def _extract_section_text(self, section: Section) -> List[str]:
+        """Extract text from a section recursively"""
+        text_parts = []
 
-        all_nodes = self.root.walk()
-        return {
-            "total_nodes": len(all_nodes),
-            "node_types": {
-                node_type.value: len([n for n in all_nodes if n.type == node_type])
-                for node_type in ContentType
-            },
-            "max_depth": max((node.level for node in all_nodes), default=0),
-            "has_tables": any(node.table for node in all_nodes),
-            "has_charts": any(node.chart for node in all_nodes),
-            "has_images": any(node.image for node in all_nodes),
-        }
+        # Add section title
+        if section.title:
+            text_parts.append(section.title)
 
-    def add_document_annotation(self, annotation: Annotation):
-        """Add a document-level annotation"""
+        # Extract text from content blocks
+        for block in section.content_blocks:
+            text_parts.extend(self._extract_block_text(block))
 
-        self.comments.append(annotation)
-        self.updated_at = datetime.utcnow()
+        # Process subsections recursively
+        for subsection in section.subsections:
+            text_parts.extend(self._extract_section_text(subsection))
 
-    def add_relationship(self, relationship: Relationship):
-        """Add a document-level relationship"""
+        return text_parts
 
-        self.relationships.append(relationship)
-        self.updated_at = datetime.utcnow()
+    def _extract_block_text(self, block: ContentBlock) -> List[str]:
+        """Extract text from a content block"""
+        text_parts = []
 
+        if block.content:
+            if isinstance(block.content, str):
+                text_parts.append(block.content)
+            elif isinstance(block.content, dict):
+                # Handle structured content like tables
+                if "text" in block.content:
+                    text_parts.append(str(block.content["text"]))
+                elif "rows" in block.content:
+                    # Extract text from table rows
+                    for row in block.content.get("rows", []):
+                        if isinstance(row, list):
+                            text_parts.extend([str(cell) for cell in row])
 
-# Software-specific extensions
-class ExcelExtension(BaseModel):
-    """Excel-specific extensions to CIR"""
-
-    worksheets: List[str] = Field(default_factory=list)
-    named_ranges: Dict[str, str] = Field(default_factory=dict)
-    formulas: List[Dict[str, Any]] = Field(default_factory=list)
-    pivot_tables: List[Dict[str, Any]] = Field(default_factory=list)
-    charts: List[ChartData] = Field(default_factory=list)
+        return text_parts
 
 
-class PowerPointExtension(BaseModel):
-    """PowerPoint-specific extensions"""
-
-    slide_count: int = 0
-    slide_layouts: List[str] = Field(default_factory=list)
-    master_slide: Optional[str] = None
-    transitions: List[Dict[str, Any]] = Field(default_factory=list)
-    animations: List[Dict[str, Any]] = Field(default_factory=list)
+# --- Content Structure ------------------------------------------------------
 
 
-class PDFExtension(BaseModel):
-    """PDF-specific extensions"""
+class ContentBlockType(Enum):
+    TEXT = "text"
+    TABLE = "table"
+    IMAGE = "image"
+    CHART = "chart"
+    CODE = "code"
+    FORMULA = "formula"
+    LIST = "list"
+    QUOTE = "quote"
+    MEDIA = "media"
+    EMBED = "embed"
+    CUSTOM = "custom"
 
-    page_count: int = 0
+
+class ContentType(Enum):
+    """High-level content type classification for search and filtering."""
+    DOCUMENT = "document"
+    IMAGE = "image"
+    VIDEO = "video"
+    AUDIO = "audio"
+    SPREADSHEET = "spreadsheet"
+    PRESENTATION = "presentation"
+    NOTE = "note"
+    EMAIL = "email"
+    CALENDAR = "calendar"
+    CONTACT = "contact"
+    TASK = "task"
+    WEBPAGE = "webpage"
+    CODE = "code"
+    DATABASE = "database"
+    ARCHIVE = "archive"
+    OTHER = "other"
+
+
+class SourceSystem(Enum):
+    """Source system classification for content provenance."""
+    ONEDRIVE = "onedrive"
+    SHAREPOINT = "sharepoint"
+    OUTLOOK = "outlook"
+    TEAMS = "teams"
+    AZURE_DEVOPS = "azure_devops"
+    GITHUB = "github"
+    GITLAB = "gitlab"
+    GOOGLE_DRIVE = "google_drive"
+    GOOGLE_MAIL = "google_mail"
+    GOOGLE_CALENDAR = "google_calendar"
+    DROPBOX = "dropbox"
+    BOX = "box"
+    SLACK = "slack"
+    DISCORD = "discord"
+    LOCAL_FILESYSTEM = "local_filesystem"
+    DATABASE = "database"
+    WEB_SCRAPER = "web_scraper"
+    API_INTEGRATION = "api_integration"
+    MANUAL_UPLOAD = "manual_upload"
+    OTHER = "other"
+
+
+@dataclass
+class TextFormatting:
+    """Comprehensive text formatting information."""
+
+    font_family: Optional[str] = None
+    font_size: Optional[float] = None
+    font_weight: Optional[str] = None
+    font_style: Optional[str] = None
+
+    color: Optional[str] = None
+    background_color: Optional[str] = None
+    text_decoration: List[str] = field(default_factory=list)
+
+    alignment: Optional[str] = None
+    line_height: Optional[float] = None
+    paragraph_spacing: Optional[float] = None
+    indent: Optional[float] = None
+
+    language: Optional[str] = None
+    direction: str = "ltr"
+
+
+@dataclass
+class LayoutProperties:
+    """Basic layout hints for content blocks."""
+
+    position: Dict[str, float] = field(default_factory=dict)
+    size: Dict[str, float] = field(default_factory=dict)
+    style: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class Reference:
+    """References to external content or data sources."""
+
+    id: UUID = field(default_factory=uuid4)
+    reference_type: str = ""
+    target_uri: str = ""
+    target_title: str = ""
+    target_description: str = ""
+    access_date: Optional[datetime] = None
+    is_active: bool = True
+    authors: List[str] = field(default_factory=list)
+    publication_date: Optional[datetime] = None
+    publisher: str = ""
+
+
+@dataclass
+class Hyperlink:
+    """Inline hyperlink metadata."""
+
+    url: str = ""
+    display_text: str = ""
+    tooltip: Optional[str] = None
+
+
+@dataclass
+class ContentBlock:
+    """Atomic content unit (text, table, image, chart, etc.)."""
+
+    id: UUID = field(default_factory=uuid4)
+    block_type: ContentBlockType = ContentBlockType.TEXT
+    content: Union[str, Dict[str, Any], List[Any]] = ""
+
+    formatting: TextFormatting = field(default_factory=lambda: TextFormatting())
+    layout: LayoutProperties = field(default_factory=lambda: LayoutProperties())
+
+    semantic_role: str = "body"
+    importance: float = 1.0
+
+    references: List[Reference] = field(default_factory=list)
+    hyperlinks: List[Hyperlink] = field(default_factory=list)
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class Section:
+    """Hierarchical content section (chapters, slides, sheets, etc.)."""
+
+    id: UUID = field(default_factory=uuid4)
+    title: str = ""
+    section_type: str = "content"
+    level: int = 1
+    order: int = 0
+
+    content_blocks: List[ContentBlock] = field(default_factory=list)
+    subsections: List[Section] = field(default_factory=list)  # type: ignore[name-defined]
+
+    layout_hints: Dict[str, Any] = field(default_factory=dict)
+    style_properties: Dict[str, Any] = field(default_factory=dict)
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    tags: List[str] = field(default_factory=list)
+
+
+# --- Rich Content Types -----------------------------------------------------
+
+
+@dataclass
+class TableData:
+    """Structured table representation."""
+
+    headers: List[str] = field(default_factory=list)
+    rows: List[List[str]] = field(default_factory=list)
+    column_types: List[str] = field(default_factory=list)
+
+    has_header_row: bool = True
+    has_total_row: bool = False
+    table_style: Optional[str] = None
+
+    cell_formatting: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    merged_cells: List[Dict[str, Any]] = field(default_factory=list)
+
+
+@dataclass
+class ChartData:
+    """Chart and visualization data."""
+
+    chart_type: str = "column"
+    title: str = ""
+
+    datasets: List[Dict[str, Any]] = field(default_factory=list)
+    categories: List[str] = field(default_factory=list)
+
+    colors: List[str] = field(default_factory=list)
+    chart_style: Dict[str, Any] = field(default_factory=dict)
+
+    x_axis: Dict[str, Any] = field(default_factory=dict)
+    y_axis: Dict[str, Any] = field(default_factory=dict)
+
+    data_source: Optional[Reference] = None
+
+
+@dataclass
+class ImageData:
+    """Image and media content."""
+
+    url: str = ""
+    alt_text: str = ""
+    caption: str = ""
+
+    width: Optional[int] = None
+    height: Optional[int] = None
+    aspect_ratio: Optional[float] = None
+
+    format: str = ""
+    file_size: Optional[int] = None
+
+    thumbnail_url: Optional[str] = None
+    embeddings: Optional[List[float]] = None
+    extracted_text: Optional[str] = None
+
+
+@dataclass
+class DocumentRelationship:
+    """Relationships between documents and content."""
+
+    id: UUID = field(default_factory=uuid4)
+    relationship_type: str = ""
+    target_document_id: UUID = field(default_factory=uuid4)
+    target_section_id: Optional[UUID] = None
+
+    strength: float = 1.0
+    bidirectional: bool = False
+
+    description: str = ""
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_by: str = ""
+
+
+@dataclass
+class Annotation:
+    """User annotations and AI-generated insights."""
+
+    id: UUID = field(default_factory=uuid4)
+    annotation_type: str = "comment"
+    target_section_id: Optional[UUID] = None
+    target_block_id: Optional[UUID] = None
+    target_text_range: Optional[Dict[str, int]] = None
+
+    content: str = ""
+    author: str = ""
+    created_at: datetime = field(default_factory=datetime.utcnow)
+
+    is_resolved: bool = False
+    priority: str = "normal"
+    tags: List[str] = field(default_factory=list)
+
+
+@dataclass
+class Comment(Annotation):
+    """Alias for backwards compatibility with legacy comment storage."""
+
+
+@dataclass
+class Attachment:
+    """Binary or external attachment associated with a document."""
+
+    id: UUID = field(default_factory=uuid4)
+    filename: str = ""
+    uri: str = ""
+    description: str = ""
+    file_size: Optional[int] = None
+    checksum: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# --- Provenance & Governance ------------------------------------------------
+
+
+@dataclass
+class ChangeRecord:
+    """Specific change within a provenance event."""
+
+    change_type: str = ""
+    target_path: str = ""
+    old_value: Optional[Any] = None
+    new_value: Optional[Any] = None
+    confidence: float = 1.0
+    requires_approval: bool = False
+
+
+@dataclass
+class ProvenanceEvent:
+    """Single change event in document history."""
+
+    id: UUID = field(default_factory=uuid4)
+    timestamp: datetime = field(default_factory=datetime.utcnow)
+    event_type: str = ""
+    description: str = ""
+    actor_type: str = "user"
+    actor_id: str = ""
+    actor_name: str = ""
+    changes: List[ChangeRecord] = field(default_factory=list)
+    operation_id: Optional[UUID] = None
+    parent_event_id: Optional[UUID] = None
+    checksum_before: Optional[str] = None
+    checksum_after: Optional[str] = None
+
+
+@dataclass
+class ProvenanceChain:
+    """Complete audit trail of document changes."""
+
+    creation_event: ProvenanceEvent = field(default_factory=lambda: ProvenanceEvent(event_type="create"))
+    events: List[ProvenanceEvent] = field(default_factory=list)
+
+    def add_event(self, event: ProvenanceEvent) -> None:
+        self.events.append(event)
+
+    def get_lineage(self) -> List[ProvenanceEvent]:
+        return [self.creation_event] + self.events
+
+
+# --- Domain Extensions ------------------------------------------------------
+
+
+@dataclass
+class Cell:
+    """Individual cell with formula and formatting."""
+
+    value: Any = None
+    formula: Optional[str] = None
+    data_type: str = "text"
+    formatting: TextFormatting = field(default_factory=lambda: TextFormatting())
+
+
+@dataclass
+class Worksheet:
+    """Individual worksheet representation."""
+
+    name: str = ""
+    cells: Dict[str, Cell] = field(default_factory=dict)
+    dimensions: Dict[str, int] = field(default_factory=dict)
+
+
+@dataclass
+class Formula:
+    """Excel formula with dependencies."""
+
+    cell_address: str = ""
+    formula_text: str = ""
+    dependencies: List[str] = field(default_factory=list)
+    result: Any = None
+
+
+@dataclass
+class PivotTable:
+    """Placeholder for pivot table metadata."""
+
+    name: str = ""
+    source_range: str = ""
+    configuration: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class SpreadsheetExtension:
+    """Excel-specific extensions to CIR."""
+
+    worksheets: List[Worksheet] = field(default_factory=list)
+    named_ranges: Dict[str, str] = field(default_factory=dict)
+    formulas: List[Formula] = field(default_factory=list)
+    pivot_tables: List[PivotTable] = field(default_factory=list)
+    charts: List[ChartData] = field(default_factory=list)
+
+
+@dataclass
+class SlideElement:
+    """Elements on a slide (text boxes, images, shapes)."""
+
+    element_type: str = "textbox"
+    position: Dict[str, float] = field(default_factory=dict)
+    content: Union[str, ImageData, ChartData, ContentBlock] = ""
+    formatting: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class Background:
+    """Slide background properties."""
+
+    fill: Dict[str, Any] = field(default_factory=dict)
+    image: Optional[ImageData] = None
+
+
+@dataclass
+class Slide:
+    """Individual slide representation."""
+
+    slide_number: int = 1
+    layout_type: str = "content"
+    background: Optional[Background] = None
+    elements: List[SlideElement] = field(default_factory=list)
+    duration: Optional[float] = None
+    auto_advance: bool = False
+
+
+@dataclass
+class Transition:
+    """Slide transition metadata."""
+
+    type: str = "fade"
+    duration: float = 0.0
+
+
+@dataclass
+class Animation:
+    """Slide animation metadata."""
+
+    target_element_index: int = 0
+    effect: str = ""
+    duration: float = 0.0
+    trigger: str = "on_click"
+
+
+@dataclass
+class SlideMaster:
+    """Global slide styling and placeholders."""
+
+    layouts: Dict[str, Any] = field(default_factory=dict)
+    theme: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class PresentationExtension:
+    """PowerPoint-specific extensions."""
+
+    slides: List[Slide] = field(default_factory=list)
+    slide_master: Optional[SlideMaster] = None
+    transitions: List[Transition] = field(default_factory=list)
+    animations: List[Animation] = field(default_factory=list)
+
+
+@dataclass
+class TextBlock:
+    """PDF text block representation."""
+
+    text: str = ""
+    bounding_box: Dict[str, float] = field(default_factory=dict)
+    style: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class Bookmark:
+    """PDF bookmark data."""
+
+    title: str = ""
+    page_number: int = 1
+    destination: Optional[str] = None
+
+
+@dataclass
+class DigitalSignature:
+    """PDF digital signature metadata."""
+
+    signer: str = ""
+    signed_at: Optional[datetime] = None
+    certificate_serial: Optional[str] = None
+
+
+@dataclass
+class FormField:
+    """PDF form field."""
+
+    field_name: str = ""
+    field_type: str = "text"
+    value: Any = None
+    position: Dict[str, float] = field(default_factory=dict)
+    is_required: bool = False
+
+
+@dataclass
+class PDFPage:
+    """Individual PDF page."""
+
+    page_number: int = 1
+    dimensions: Dict[str, float] = field(default_factory=dict)
+    text_blocks: List[TextBlock] = field(default_factory=list)
+    images: List[ImageData] = field(default_factory=list)
+    ocr_confidence: Optional[float] = None
+    extracted_text: Optional[str] = None
+
+
+@dataclass
+class PDFExtension:
+    """PDF-specific extensions."""
+
+    pages: List[PDFPage] = field(default_factory=list)
+    bookmarks: List[Bookmark] = field(default_factory=list)
+    forms: List[FormField] = field(default_factory=list)
+    signatures: List[DigitalSignature] = field(default_factory=list)
     is_searchable: bool = True
     is_form: bool = False
-    bookmarks: List[Dict[str, Any]] = Field(default_factory=list)
-    form_fields: List[Dict[str, Any]] = Field(default_factory=list)
-    signatures: List[Dict[str, Any]] = Field(default_factory=list)
-    security_settings: Dict[str, Any] = Field(default_factory=dict)
-    ocr_confidence: Optional[float] = None
+    security_settings: Dict[str, Any] = field(default_factory=dict)
 
 
-# Update CIRDocument to include extensions
-CIRDocument.model_rebuild()
+# --- Transformation Layer ---------------------------------------------------
+
+
+@dataclass
+class TransformationRule:
+    """Rules for preserving semantics during format conversion."""
+
+    source_format: str = ""
+    target_format: str = ""
+    rule_type: str = "mapping"  # mapping, enhancement, reduction
+    element_mappings: Dict[str, str] = field(default_factory=dict)
+    style_mappings: Dict[str, str] = field(default_factory=dict)
+    preserve_hierarchy: bool = True
+    preserve_formatting: bool = True
+    preserve_relationships: bool = True
+    custom_transformer: Optional[str] = None
+
+
+class UnsupportedFormatException(Exception):
+    """Raised when a transformer cannot handle the requested format."""
+
+
+class CIRTransformer:
+    """Handles transformations between CIR and specific formats."""
+
+    def __init__(self) -> None:
+        self.transformation_rules = self.load_transformation_rules()
+        self.format_handlers = self.register_format_handlers()
+
+    async def to_cir(self, source_data: Any, source_format: str) -> CIRDocument:
+        handler = self.format_handlers.get(source_format)
+        if not handler:
+            raise UnsupportedFormatException(f"No handler for {source_format}")
+        return await handler.parse_to_cir(source_data)
+
+    async def from_cir(self, cir_doc: CIRDocument, target_format: str) -> Any:
+        handler = self.format_handlers.get(target_format)
+        if not handler:
+            raise UnsupportedFormatException(f"No handler for {target_format}")
+        return await handler.generate_from_cir(cir_doc)
+
+    async def transform(self, source_data: Any, source_format: str, target_format: str) -> Any:
+        cir_doc = await self.to_cir(source_data, source_format)
+        transformed_cir = await self.apply_transformation_rules(cir_doc, source_format, target_format)
+        return await self.from_cir(transformed_cir, target_format)
+
+    def load_transformation_rules(self) -> List[TransformationRule]:
+        return []
+
+    def register_format_handlers(self) -> Dict[str, Any]:
+        return {}
+
+    async def apply_transformation_rules(self, cir_doc: CIRDocument, source_format: str, target_format: str) -> CIRDocument:
+        return cir_doc
+
+
+class SemanticPreserver:
+    """Ensures semantic meaning is preserved during transformations."""
+
+    async def preserve_document_structure(self, cir_doc: CIRDocument, target_format: str) -> CIRDocument:
+        if target_format == "powerpoint":
+            return await self.adapt_for_presentation(cir_doc)
+        if target_format == "excel":
+            return await self.adapt_for_spreadsheet(cir_doc)
+        if target_format == "pdf":
+            return await self.adapt_for_pdf(cir_doc)
+        return cir_doc
+
+    async def adapt_for_presentation(self, cir_doc: CIRDocument) -> CIRDocument:
+        # Convert sections to slides, summarize long text blocks, and adapt layout hints.
+        return cir_doc
+
+    async def adapt_for_spreadsheet(self, cir_doc: CIRDocument) -> CIRDocument:
+        # Extract structured data into worksheet-friendly formats and preserve formulas.
+        return cir_doc
+
+    async def adapt_for_pdf(self, cir_doc: CIRDocument) -> CIRDocument:
+        # Flatten layout while retaining searchable text and annotations.
+        return cir_doc
+
+
+__all__ = [
+    "Annotation",
+    "Attachment",
+    "Background",
+    "CIRDocument",
+    "CIRTransformer",
+    "Cell",
+    "ChangeRecord",
+    "ChartData",
+    "Comment",
+    "ContentBlock",
+    "ContentBlockType",
+    "ContentType",
+    "DigitalSignature",
+    "DocumentMetadata",
+    "DocumentRelationship",
+    "FormField",
+    "Formula",
+    "Hyperlink",
+    "ImageData",
+    "LayoutProperties",
+    "PDFExtension",
+    "PDFPage",
+    "PivotTable",
+    "PresentationExtension",
+    "ProvenanceChain",
+    "ProvenanceEvent",
+    "Reference",
+    "Section",
+    "SemanticPreserver",
+    "Slide",
+    "SlideElement",
+    "SlideMaster",
+    "SourceSystem",
+    "SpreadsheetExtension",
+    "TableData",
+    "TextBlock",
+    "TextFormatting",
+    "TransformationRule",
+    "Transition",
+    "UnsupportedFormatException",
+    "Worksheet",
+]

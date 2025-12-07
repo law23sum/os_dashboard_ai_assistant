@@ -94,6 +94,13 @@ except ImportError:
     EXCEL_CLOUD_AVAILABLE = False
     ExcelCloudClient = None
 
+try:
+    from assistant_hub.integrations.pdf_integration import PDFIntegration
+    PDF_INTEGRATION_AVAILABLE = True
+except ImportError:
+    PDF_INTEGRATION_AVAILABLE = False
+    PDFIntegration = None
+
     EXCEL_SERVICE_AVAILABLE = False
     ExcelService = None
     summarize_local_workbook = None
@@ -2632,14 +2639,26 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 content = self._load_pdf_preview(file_path)
             else:
                 content = "Unsupported file type"
-            
+
+            # Ensure content is a string before inserting
+            if content is None:
+                content = "No content available"
+            elif not isinstance(content, str):
+                content = str(content)
+
+            # Clean content to prevent tkinter parsing issues
+            content = content.replace('\r\n', '\n').replace('\r', '\n')
+
             self.file_preview_text.insert("1.0", content)
             self.file_preview_text.config(state="normal")  # Keep editable for user interaction
             self.file_preview_status_var.set(f"Last updated: {datetime.now().strftime('%H:%M:%S')}")
             self.active_file_session['last_update'] = datetime.now()
             self._log_document_activity(f"Refreshed {file_type} preview at {self.active_file_session['last_update'].strftime('%H:%M:%S')}")
         except Exception as e:
-            self.file_preview_text.insert("1.0", f"Error loading file: {str(e)}")
+            error_msg = f"Error loading file: {str(e)}"
+            # Clean error message
+            error_msg = error_msg.replace('\r\n', '\n').replace('\r', '\n')
+            self.file_preview_text.insert("1.0", error_msg)
             self.file_preview_text.config(state="normal")  # Keep editable
             self.file_preview_status_var.set(f"Error: {str(e)}")
             self._log_document_activity(f"Error loading file: {str(e)}")
@@ -3074,38 +3093,41 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 return self._load_large_pdf_preview(file_path)
             
             # Try to use PDF integration to extract text
-            pdf_integration = PDFIntegration(self.conn)
-            if hasattr(pdf_integration, 'extract_text'):
-                # Load PDF asynchronously to prevent UI blocking
-                import threading
-                
-                def load_pdf_async():
-                    try:
-                        content = pdf_integration.extract_text(file_path)
-                        if content and content.strip():
-                            # Show all content - no truncation
-                            preview_content = content
-                            self.after(0, lambda c=preview_content: self._update_pdf_preview_content(c))
-                        else:
-                            self.after(0, lambda: self._update_pdf_preview_content(
-                                "PDF loaded but text extraction returned no content. PDF libraries may not be installed (PyPDF2 or pdfplumber)."
-                            ))
-                    except Exception as e:
-                        self.after(0, lambda: self._update_pdf_preview_content(f"Error loading PDF: {str(e)}"))
-                
-                thread = threading.Thread(target=load_pdf_async, daemon=True)
-                thread.start()
-                
-                # Show loading message immediately
-                return f"Loading PDF ({file_size_mb:.1f} MB)... This may take a moment for large files.\n\n[Loading in background, content will appear shortly...]"
-            else:
-                return "PDF preview not available (extract_text method not found)"
+            if PDF_INTEGRATION_AVAILABLE and PDFIntegration:
+                pdf_integration = PDFIntegration(self.conn)
+                if hasattr(pdf_integration, 'extract_text'):
+                    # Load PDF asynchronously to prevent UI blocking
+                    import threading
+
+                    def load_pdf_async():
+                        try:
+                            content = pdf_integration.extract_text(file_path)
+                            if content and content.strip():
+                                # Show all content - no truncation
+                                preview_content = content
+                                self.after(0, lambda c=preview_content: self._update_pdf_preview_content(c))
+                            else:
+                                self.after(0, lambda: self._update_pdf_preview_content(
+                                    "PDF loaded but text extraction returned no content. PDF libraries may not be installed (PyPDF2 or pdfplumber)."
+                                ))
+                        except Exception as e:
+                            self.after(0, lambda: self._update_pdf_preview_content(f"Error loading PDF: {str(e)}"))
+
+                    thread = threading.Thread(target=load_pdf_async, daemon=True)
+                    thread.start()
+
+                    # Show loading message immediately
+                    return f"Loading PDF ({file_size_mb:.1f} MB)... This may take a moment for large files.\n\n[Loading in background, content will appear shortly...]"
+                else:
+                    return "PDF preview not available (extract_text method not found)"
         except Exception as e:
             return f"Error loading PDF: {str(e)}"
     
     def _load_large_pdf_preview(self, file_path: str) -> str:
         """Load large PDF files with pagination support."""
         try:
+            if not PDF_INTEGRATION_AVAILABLE or not PDFIntegration:
+                return "PDF integration not available"
             pdf_integration = PDFIntegration(self.conn)
             if hasattr(pdf_integration, 'extract_text'):
                 # For large PDFs, extract first few pages only
@@ -3179,6 +3201,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def _update_pdf_preview_content(self, content: str):
         """Update PDF preview content asynchronously."""
         if hasattr(self, 'file_preview_text') and self.file_preview_text:
+            # Ensure content is a string
+            if content is None:
+                content = "No content available"
+            elif not isinstance(content, str):
+                content = str(content)
+
+            # Clean content to prevent tkinter parsing issues
+            content = content.replace('\r\n', '\n').replace('\r', '\n')
+
             self.file_preview_text.config(state="normal")
             self.file_preview_text.delete("1.0", "end")
             self.file_preview_text.insert("1.0", content)
@@ -4579,8 +4610,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             "OneDrive": OneDriveIntegration(self.conn),
             "Local Files": FilesystemIntegration(self.conn),
             "Git": GitIntegration(self.conn),
-            "PDF": PDFIntegration(self.conn),
         }
+
+        # Add PDF integration if available
+        if PDF_INTEGRATION_AVAILABLE and PDFIntegration:
+            integrations["PDF"] = PDFIntegration(self.conn)
         
         for name, integration in integrations.items():
             # Try to authenticate to get current status
