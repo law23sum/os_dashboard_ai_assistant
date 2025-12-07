@@ -5,73 +5,35 @@ import logging
 
 from .base import IntegrationAPIGateway
 from .universal_connector import (
-    AppleNotesConnector,
+    AuthenticationException,
     BaseConnector,
-    CIRDocument,
     ConnectorCapability,
     ConnectorConfig,
-    ConnectorManager,
-    ConnectorRegistry,
-    ContentBlock,
-    ContentBlockType,
-    GitConnector,
-    MicrosoftGraphConnector,
-    OfficeFileConnector,
-    OpenAIConnector,
+    ConnectorException,
+    ConnectorHealthMonitor,
     OperationResult,
-    PDFConnector,
-    Section,
+    OperationStatus,
+    RateLimitException,
+    ResourceNotFoundException,
+    UnsupportedOperationException,
 )
 
 logger = logging.getLogger(__name__)
 
 __version__ = "1.1.0"
 __all__ = [
-    "AppleNotesConnector",
+    "AuthenticationException",
     "BaseConnector",
-    "CIRDocument",
     "ConnectorCapability",
     "ConnectorConfig",
-    "ConnectorManager",
-    "ConnectorRegistry",
-    "ContentBlock",
-    "ContentBlockType",
-    "GitConnector",
+    "ConnectorException",
+    "ConnectorHealthMonitor",
     "IntegrationAPIGateway",
-    "ConnectorCapability",
-    "ConnectorConfig",
     "OperationResult",
-    "ConnectorManager",
-    "ConnectorRegistry",
-    "MicrosoftGraphConnector",
-    "OfficeFileConnector",
-    "PDFConnector",
-    "GitConnector",
-    "OpenAIConnector",
-    "get_connector",
-    "list_available_connectors",
-]
-
-from .base import IntegrationAPIGateway
-from .universal_connector import (
-    ConnectorCapability,
-    ConnectorConfig,
-    ConnectorManager,
-    ConnectorRegistry,
-    GitConnector,
-    MicrosoftGraphConnector,
-    OfficeFileConnector,
-    OpenAIConnector,
-    OperationResult,
-    PDFConnector,
-)
-
-    "MicrosoftGraphConnector",
-    "OfficeFileConnector",
-    "OpenAIConnector",
-    "OperationResult",
-    "PDFConnector",
-    "Section",
+    "OperationStatus",
+    "RateLimitException",
+    "ResourceNotFoundException",
+    "UnsupportedOperationException",
     "get_connector",
     "list_available_connectors",
     "register_connector",
@@ -93,7 +55,7 @@ def list_available_connectors() -> Dict[str, Any]:
     return _connector_registry.copy()
 
 
-def register_connector(name: str, connector_class: Any):
+def register_connector(name: str, connector_class: Any) -> None:
     """Register a connector class."""
 
     _connector_registry[name] = connector_class
