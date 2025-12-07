@@ -38,6 +38,7 @@ from .db import (
     db_delete_project,
     db_insert_chat_message,
     db_clear_chat_history,
+    db_get_document_samples,
     SecurityStatus,
     AssistantState,
     Settings,
@@ -149,6 +150,7 @@ from .document_manager import (
     get_document_versions,
     restore_document_version,
     get_document_version,
+    materialize_document_samples,
 )
 
 try:
@@ -5210,6 +5212,45 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 self.pdf_status_var.set(f"❌ Error: {error_msg[:50]}")
             messagebox.showerror("Error", f"Failed to refresh PDF documents:\n\n{error_msg}")
 
+    def refresh_document_samples_tree(self):
+        """Populate the templates & samples table from the governed catalog."""
+        if not hasattr(self, "sample_tree"):
+            return
+
+        for item in self.sample_tree.get_children():
+            self.sample_tree.delete(item)
+
+        samples = db_get_document_samples(self.conn)
+        for sample in samples:
+            governance_snippet = (sample.governance[:80] + "…") if len(sample.governance or "") > 80 else sample.governance
+            self.sample_tree.insert(
+                "",
+                "end",
+                values=(sample.file_type, sample.category, sample.title, governance_snippet),
+            )
+
+        if hasattr(self, "sample_status_var"):
+            self.sample_status_var.set(
+                f"Loaded {len(samples)} governed samples spanning csv, json, pdf, xlsx, docx, and txt."
+            )
+
+    def on_generate_sample_files(self):
+        """Materialize governed sample files into the shared Samples project."""
+
+        created, skipped = materialize_document_samples(self.conn)
+        summary = []
+        if created:
+            summary.append(f"Generated {len(created)} sample files")
+        if skipped:
+            summary.append(f"Skipped {len(skipped)} existing files")
+        message = "; ".join(summary) if summary else "No sample files created"
+
+        if hasattr(self, "sample_status_var"):
+            self.sample_status_var.set(message)
+
+        messagebox.showinfo("Sample Files", message)
+        self.refresh_document_samples_tree()
+
     def _safe_get(self, obj, key, default=""):
         """Safely get a value from a dictionary or object."""
         try:
@@ -5254,7 +5295,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         # PDF Documents section
         self._build_pdf_tools_section(tools_notebook)
-        
+
+        # Template and sample documents section
+        self._build_template_samples_section(tools_notebook)
+
         # Workflow Execution section
         self._build_workflow_tools_section(tools_notebook)
 
@@ -5584,7 +5628,80 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             status_label = ttk.Label(frame, textvariable=self.pdf_status_var)
         status_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=8, pady=4)
-    
+
+    def _build_template_samples_section(self, parent):
+        """Surface governed template samples and allow one-click materialization."""
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(parent)
+        else:
+            frame = ttk.Frame(parent)
+        parent.add(frame, text="📚 Templates & Samples")
+
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(2, weight=1)
+
+        governance_text = (
+            "every AI edit is tracked; every change is diffed; every document has a version history; "
+            "every operation has a timestamp; every action is reversible; every output is accountable"
+        )
+        roles_text = (
+            "OneNote becomes the living structured memory • Word becomes the formatted deliverable engine • "
+            "Excel becomes the analytical substrate • Git becomes the brain stem • ChatGPT becomes the reasoning center • "
+            "Daemons become the continuous active cortex • AIC/Sora/Aria guide knowledge formation"
+        )
+        behaviors_text = (
+            "notices missing documents • drafts proposals • updates reports • summarizes notebooks • analyzes spreadsheets • "
+            "reorganizes folders • updates tasks • alerts the user when something's outdated • tracks version history • "
+            "suggests improvements • predicts next steps • executes workflows"
+        )
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            header = ttkb.Label(frame, text="Template + Sample Library", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+        else:
+            header = ttk.Label(frame, text="Template + Sample Library", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+        header.grid(row=0, column=0, sticky="w", padx=8, pady=(8, 4))
+
+        description = (
+            "Blueprints for briefs, proposals, compliance reports, patient summaries, risk assessments, regulatory filings, "
+            "engineering specs, technical documents, product updates, and operational manuals."
+        )
+        desc_label = ttk.Label(frame, text=description, wraplength=900, justify="left")
+        desc_label.grid(row=1, column=0, sticky="w", padx=8)
+
+        meta_label = ttk.Label(frame, text=f"Governance: {governance_text}\nRoles: {roles_text}\nBehaviors: {behaviors_text}", wraplength=900, justify="left")
+        meta_label.grid(row=2, column=0, sticky="w", padx=8, pady=(4, 8))
+
+        columns = ("file_type", "category", "title", "governance")
+        self.sample_tree = ttk.Treeview(frame, columns=columns, show="headings", selectmode="browse", height=6)
+        for col, width in zip(columns, (80, 160, 260, 420)):
+            self.sample_tree.heading(col, text=col.replace("_", " ").title())
+            self.sample_tree.column(col, width=width, anchor="w")
+        self.sample_tree.grid(row=3, column=0, sticky="nsew", padx=8, pady=(4, 4))
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            scrollbar = ttkb.Scrollbar(frame, orient="vertical", command=self.sample_tree.yview, bootstyle="primary-round")
+        else:
+            scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.sample_tree.yview)
+        self.sample_tree.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=3, column=1, sticky="ns", pady=4)
+
+        button_frame = ttk.Frame(frame)
+        button_frame.grid(row=4, column=0, sticky="ew", padx=8, pady=4)
+        button_frame.columnconfigure(0, weight=1)
+        button_frame.columnconfigure(1, weight=1)
+
+        refresh_btn = ttk.Button(button_frame, text="Refresh Samples", command=self.refresh_document_samples_tree)
+        create_btn = ttk.Button(button_frame, text="Generate Sample Files", command=self.on_generate_sample_files)
+        refresh_btn.grid(row=0, column=0, sticky="w")
+        create_btn.grid(row=0, column=1, sticky="e")
+
+        self.sample_status_var = tk.StringVar(value="Sample definitions loaded from governed templates.")
+        status_label = ttk.Label(frame, textvariable=self.sample_status_var, wraplength=900, justify="left")
+        status_label.grid(row=5, column=0, sticky="w", padx=8, pady=(0, 8))
+
+        self.refresh_document_samples_tree()
+
     def _build_workflow_tools_section(self, parent):
         """Build workflow execution section.
         
