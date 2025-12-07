@@ -8,8 +8,10 @@ from .github import GitHubIntegration
 from .google_calendar import GoogleCalendarIntegration
 from .msgraph import GraphClient, GraphCredentials, load_credentials_from_env, request_access_token
 from .notes import NotesIntegration
+from .onenote.service import OneNoteService
+from .excel.service import ExcelService
 from .onenote import OneNoteClient, clean_section, mirror_page_to_disk, summarize_page
-from .word import CloudWordClient, LocalDocument, draft_local_revision, upload_cloud_revision
+from .word import CloudWordClient, LocalDocument, WordService, draft_local_revision, upload_cloud_revision
 
 __all__ = [
     "BaseIntegration",
@@ -22,6 +24,9 @@ __all__ = [
     "GraphCredentials",
     "load_credentials_from_env",
     "request_access_token",
+    "OneNoteService",
+    "ExcelService",
+    "WordService",
     "OneNoteClient",
     "mirror_page_to_disk",
     "summarize_page",
