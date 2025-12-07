@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 import requests
 
@@ -14,8 +14,15 @@ class GraphClient:
 
     base_url = "https://graph.microsoft.com/v1.0"
 
-    def __init__(self, auth: Optional[GraphAuth] = None):
-        self.auth = auth or GraphAuth(GraphCredentials.from_env())
+    def __init__(self, auth: Optional[GraphAuth] = None, token_provider: Optional[Callable[[], str]] = None):
+        if token_provider:
+            # Backwards compatibility: create a GraphAuth wrapper
+            class TokenProviderAuth:
+                def get_token(self):
+                    return token_provider()
+            self.auth = TokenProviderAuth()
+        else:
+            self.auth = auth or GraphAuth(GraphCredentials.from_env())
 
     def _headers(self) -> Dict[str, str]:
         token = self.auth.get_token()
@@ -35,6 +42,13 @@ class GraphClient:
 
     def patch(self, path: str, json: Optional[Any] = None, **kwargs) -> Dict[str, Any]:
         response = requests.patch(
+            f"{self.base_url}{path}", headers=self._headers(), json=json, timeout=10, **kwargs
+        )
+        response.raise_for_status()
+        return response.json() if response.text else {}
+
+    def put(self, path: str, json: Optional[Any] = None, **kwargs) -> Dict[str, Any]:
+        response = requests.put(
             f"{self.base_url}{path}", headers=self._headers(), json=json, timeout=10, **kwargs
         )
         response.raise_for_status()
