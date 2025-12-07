@@ -1713,28 +1713,40 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.chat_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.chat_frame, text="AI Console")
 
-        # Support side-by-side layout: chat on left, file preview on right
-        self.chat_frame.columnconfigure(0, weight=2)  # Chat takes 2/3
-        self.chat_frame.columnconfigure(1, weight=1)  # File preview takes 1/3
-        self.chat_frame.rowconfigure(0, weight=3)
-        self.chat_frame.rowconfigure(1, weight=2)
+        # Two-column layout: document panel on the left, conversation + preview on the right
+        self.chat_frame.columnconfigure(0, weight=1)
+        self.chat_frame.rowconfigure(0, weight=1)
 
-        # Left side: Chat conversation and compose
         if TTKBOOTSTRAP_AVAILABLE:
             chat_container = ttkb.Frame(self.chat_frame)
         else:
             chat_container = ttk.Frame(self.chat_frame)
-        chat_container.grid(row=0, column=0, rowspan=2, sticky="nsew", padx=(8, 4), pady=8)
+        chat_container.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
         chat_container.columnconfigure(0, weight=1)
-        chat_container.rowconfigure(0, weight=3)
-        chat_container.rowconfigure(1, weight=2)
+        chat_container.columnconfigure(1, weight=2)
+        chat_container.rowconfigure(0, weight=1)
 
+        # Build the document panel on the left
+        self._build_document_panel(chat_container)
+
+        # Right side container holds chat UI and optional file preview
         if TTKBOOTSTRAP_AVAILABLE:
-            convo_frame = ttkb.Labelframe(chat_container, text="💬 Chat & Terminal", bootstyle="primary")
-            compose = ttkb.Labelframe(chat_container, text="✍️ Compose Message & Terminal", bootstyle="info")
+            self.conversation_container = ttkb.Frame(chat_container)
         else:
-            convo_frame = ttk.LabelFrame(chat_container, text="Chat & Terminal")
-            compose = ttk.LabelFrame(chat_container, text="Compose Message & Terminal")
+            self.conversation_container = ttk.Frame(chat_container)
+        self.conversation_container.grid(row=0, column=1, sticky="nsew")
+        self.conversation_container.columnconfigure(0, weight=2)
+        self.conversation_container.columnconfigure(1, weight=1)
+        self.conversation_container.rowconfigure(0, weight=3)
+        self.conversation_container.rowconfigure(1, weight=2)
+
+        # Conversation panel (chat + compose)
+        if TTKBOOTSTRAP_AVAILABLE:
+            convo_frame = ttkb.Labelframe(self.conversation_container, text="💬 Chat & Terminal", bootstyle="primary")
+            compose = ttkb.Labelframe(self.conversation_container, text="✍️ Compose Message & Terminal", bootstyle="info")
+        else:
+            convo_frame = ttk.LabelFrame(self.conversation_container, text="Chat & Terminal")
+            compose = ttk.LabelFrame(self.conversation_container, text="Compose Message & Terminal")
         convo_frame.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
         convo_frame.columnconfigure(0, weight=1)
         convo_frame.rowconfigure(0, weight=1)
@@ -1752,15 +1764,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Right side: File preview panel (initially hidden)
         # Track active file editing session
         self.active_file_session = None  # Dict with 'type', 'path', 'content', etc.
-        
+
         # Initialize file preview panel reference (will be created in _build_file_preview_panel)
         self.file_preview_frame = None
         self.file_preview_text = None
         self.file_preview_title_var = None
         self.file_preview_status_var = None
-        
-        # Build the file preview panel
-        self._build_file_preview_panel()
+
+        # Build the file preview panel inside the right container
+        self._build_file_preview_panel(self.conversation_container)
+        self._close_file_preview()
 
         if TTKBOOTSTRAP_AVAILABLE:
             ttkb.Label(compose, text="From:", bootstyle="secondary").grid(row=0, column=0, sticky="e", padx=4, pady=2)
@@ -1925,12 +1938,55 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_progress.progress_bar.grid_remove()
         self.chat_progress.indicator_label.grid_remove()
 
-    def _build_file_preview_panel(self):
+    def _build_document_panel(self, parent):
+        if TTKBOOTSTRAP_AVAILABLE:
+            doc_frame = ttkb.Labelframe(parent, text="📁 Document Intake", bootstyle="info")
+        else:
+            doc_frame = ttk.LabelFrame(parent, text="Document Intake")
+        doc_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 8), pady=4)
+        doc_frame.columnconfigure(0, weight=1)
+
+        help_text = "Import snippets directly into the prompt or upload reference files for agents."
+        ttk.Label(doc_frame, text=help_text, wraplength=280, justify="left").grid(row=0, column=0, sticky="w", padx=6, pady=4)
+
+        btns = ttkb.Frame(doc_frame) if TTKBOOTSTRAP_AVAILABLE else ttk.Frame(doc_frame)
+        btns.grid(row=1, column=0, sticky="ew", padx=4, pady=4)
+        btns.columnconfigure((0, 1), weight=1)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            import_btn = ttkb.Button(btns, text="📥 Import to Prompt", command=self.on_import_chat_file, bootstyle="secondary-outline")
+            upload_btn = ttkb.Button(btns, text="☁️ Upload to Agents", command=self._upload_file_with_feedback, bootstyle="primary")
+        else:
+            import_btn = ttk.Button(btns, text="Import to Prompt", command=self.on_import_chat_file)
+            upload_btn = ttk.Button(btns, text="Upload to Agents", command=self._upload_file_with_feedback)
+        import_btn.grid(row=0, column=0, padx=4, pady=2, sticky="ew")
+        upload_btn.grid(row=0, column=1, padx=4, pady=2, sticky="ew")
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            ToolTip(import_btn, text="Load a file's content directly into the chat input")
+            ToolTip(upload_btn, text="Send a file to AI agents for reference")
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            list_label = ttkb.Label(doc_frame, text="Uploaded Files", bootstyle="secondary")
+        else:
+            list_label = ttk.Label(doc_frame, text="Uploaded Files")
+        list_label.grid(row=2, column=0, sticky="w", padx=6, pady=(6, 2))
+
+        self.upload_list = tk.Listbox(doc_frame, height=8)
+        self.upload_list.grid(row=3, column=0, sticky="nsew", padx=6, pady=(0, 6))
+        doc_frame.rowconfigure(3, weight=1)
+
+        clear_btn = ttkb.Button(doc_frame, text="🗑️ Clear List", command=self._clear_uploaded_files, bootstyle="danger-outline") if TTKBOOTSTRAP_AVAILABLE else ttk.Button(doc_frame, text="Clear List", command=self._clear_uploaded_files)
+        clear_btn.grid(row=4, column=0, sticky="ew", padx=6, pady=4)
+
+        self._refresh_upload_list()
+
+    def _build_file_preview_panel(self, parent):
         """Build the file preview panel for side-by-side file editing."""
         if TTKBOOTSTRAP_AVAILABLE:
-            self.file_preview_frame = ttkb.Labelframe(self.chat_frame, text="📄 File Preview", bootstyle="success")
+            self.file_preview_frame = ttkb.Labelframe(parent, text="📄 File Preview", bootstyle="success")
         else:
-            self.file_preview_frame = ttk.LabelFrame(self.chat_frame, text="File Preview")
+            self.file_preview_frame = ttk.LabelFrame(parent, text="File Preview")
         
         # Initially hidden - will be shown when file editing starts
         self.file_preview_frame.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=(4, 8), pady=8)
@@ -2000,9 +2056,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if hasattr(self, 'file_preview_title_var') and self.file_preview_title_var:
             self.file_preview_title_var.set("No file open")
         # Adjust chat layout back to full width
-        if hasattr(self, 'chat_frame'):
-            self.chat_frame.columnconfigure(0, weight=1)
-            self.chat_frame.columnconfigure(1, weight=0)
+        if hasattr(self, 'conversation_container'):
+            self.conversation_container.columnconfigure(0, weight=1)
+            self.conversation_container.columnconfigure(1, weight=0)
 
     def _show_file_preview(self, file_type: str, file_path: str, file_id: Optional[str] = None):
         """Show the file preview panel with the specified file."""
@@ -2023,8 +2079,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         # Show the panel and adjust layout
         self.file_preview_frame.grid()
-        self.chat_frame.columnconfigure(0, weight=2)
-        self.chat_frame.columnconfigure(1, weight=1)
+        if hasattr(self, 'conversation_container'):
+            self.conversation_container.columnconfigure(0, weight=2)
+            self.conversation_container.columnconfigure(1, weight=1)
         
         # Load and display file content
         self._refresh_file_preview()
@@ -2333,7 +2390,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     purpose='assistants'
                 )
             
-            self.uploaded_files.append(file_obj.id)
+            self.uploaded_files.append({"name": os.path.basename(path), "id": file_obj.id})
+            self._refresh_upload_list()
             label = os.path.basename(path)
             
             # Add file reference to chat input
@@ -2386,11 +2444,26 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def _upload_file_with_feedback(self):
         """Upload file with visual feedback"""
         self.on_upload_file()
-    
+
     def _run_terminal_with_feedback(self, event=None):
         """Run terminal command with visual feedback"""
         AnimationHelper.pulse_button(getattr(self, '_terminal_run_btn', None))
         self.on_run_terminal_command(event)
+
+    def _refresh_upload_list(self):
+        if not hasattr(self, "upload_list"):
+            return
+        self.upload_list.delete(0, tk.END)
+        for item in self.uploaded_files:
+            name = item.get("name", "(file)") if isinstance(item, dict) else str(item)
+            file_id = item.get("id") if isinstance(item, dict) else None
+            display = name if not file_id else f"{name} — {file_id}"
+            self.upload_list.insert(tk.END, display)
+
+    def _clear_uploaded_files(self):
+        self.uploaded_files = []
+        self._refresh_upload_list()
+        self._update_chat_status("Cleared uploaded file list.")
     
     def on_send_chat_message(self, invoke_ai: bool = True):
         if not hasattr(self, 'chat_input'):
