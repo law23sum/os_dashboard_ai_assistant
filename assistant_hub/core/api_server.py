@@ -11,6 +11,8 @@ from socketserver import ThreadingMixIn
 from typing import Any, Callable, Dict, List, Tuple
 
 from ..logging_config import get_logger
+from ..sync_scheduler import create_default_scheduler
+from ..integrations import IntegrationAPIGateway
 
 
 def _open_db(db_path: Path) -> sqlite3.Connection:
@@ -50,6 +52,12 @@ def _get_tasks(db_path: Path, limit: int = 100) -> List[Dict[str, Any]]:
         "time_estimated FROM tasks ORDER BY datetime(created_at) DESC LIMIT ?",
         (limit,),
     )
+
+
+def _get_integration_api(db_path: Path) -> IntegrationAPIGateway:
+    conn = _open_db(db_path)
+    scheduler = create_default_scheduler(conn)
+    return IntegrationAPIGateway(conn, scheduler=scheduler)
 
 
 class _ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
@@ -97,6 +105,8 @@ class _DashboardAPIHandler(BaseHTTPRequestHandler):
                 self._handle_tasks(params)
             elif path == "/agent-runs" or path == "/activity":
                 self._handle_agent_runs(params)
+            elif path == "/integrations":
+                self._handle_integrations(params)
             else:
                 self._send_json({"error": "Not Found", "path": path}, status=404)
         except Exception as exc:  # pragma: no cover - defensive
@@ -120,6 +130,22 @@ class _DashboardAPIHandler(BaseHTTPRequestHandler):
         limit = int(params.get("limit", ["20"])[0])
         runs = _get_agent_runs(self.db_path, limit=limit)
         self._send_json({"agent_runs": runs, "limit": limit})
+
+    def _handle_integrations(self, params: Dict[str, List[str]]) -> None:
+        target = params.get("target", ["all"])[0]
+        action = params.get("action", ["status"])[0]
+        options_raw = params.get("options", [None])[0]
+        options = None
+
+        if options_raw:
+            try:
+                options = json.loads(options_raw)
+            except json.JSONDecodeError:
+                options = None
+
+        gateway = _get_integration_api(self.db_path)
+        result = gateway.call_action(target, action=action, options=options)
+        self._send_json({"target": target, "action": action, "result": result})
 
 
 def _handler_factory(db_path: Path) -> Callable:

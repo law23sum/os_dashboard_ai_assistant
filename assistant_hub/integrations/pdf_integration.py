@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Any
 import sqlite3
 
 from .base import BaseIntegration, IntegrationStatus
@@ -13,6 +13,24 @@ class PDFIntegration(BaseIntegration):
     
     def __init__(self, conn: sqlite3.Connection):
         super().__init__(conn, "PDF", "pdf")
+
+    def available_actions(self) -> Dict[str, Dict[str, Any]]:
+        base = super().available_actions()
+        base.update({
+            "extract_text": {
+                "label": "Extract Text",
+                "description": "Extract raw text from a PDF file.",
+                "fields": [
+                    {
+                        "name": "path",
+                        "label": "PDF Path",
+                        "type": "text",
+                        "placeholder": "~/Documents/file.pdf",
+                    }
+                ],
+            }
+        })
+        return base
     
     def authenticate(self) -> bool:
         """Check if PDF libraries are available."""
@@ -103,4 +121,55 @@ class PDFIntegration(BaseIntegration):
         if not hasattr(self, '_status') or not self._status:
             self._status = IntegrationStatus()
         return self._status
+
+    def extract_text(self, file_path: str) -> str:
+        """Extract text content from a PDF file."""
+        if not file_path or not os.path.exists(file_path):
+            return ""
+
+        try:
+            # Try PyPDF2 first
+            try:
+                import PyPDF2
+                with open(file_path, 'rb') as f:
+                    pdf_reader = PyPDF2.PdfReader(f)
+                    text_parts = []
+                    for page in pdf_reader.pages:
+                        try:
+                            text = page.extract_text()
+                            if text:
+                                text_parts.append(text)
+                        except Exception:
+                            continue
+                    return "\n\n".join(text_parts)
+            except ImportError:
+                pass
+
+            # Fallback to pdfplumber
+            try:
+                import pdfplumber
+                text_parts = []
+                with pdfplumber.open(file_path) as pdf:
+                    for page in pdf.pages:
+                        try:
+                            text = page.extract_text()
+                            if text:
+                                text_parts.append(text)
+                        except Exception:
+                            continue
+                return "\n\n".join(text_parts)
+            except ImportError:
+                pass
+
+            # If no PDF libraries available, return empty
+            return ""
+        except Exception as e:
+            return f"Error extracting PDF text: {str(e)}"
+
+    def invoke_action(self, action: str, options: Dict[str, Any] | None = None) -> Any:
+        options = options or {}
+        if action == "extract_text":
+            return self.extract_text(options.get("path", ""))
+
+        return super().invoke_action(action, options)
 
