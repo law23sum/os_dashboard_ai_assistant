@@ -66,6 +66,12 @@ from .integrations import (
     GmailIntegration,
     GitHubIntegration,
     NotesIntegration,
+    WordIntegration,
+    ExcelIntegration,
+    OneNoteIntegration,
+    FilesystemIntegration,
+    GitIntegration,
+    PDFIntegration,
 )
 from .task_automation import process_recurring_tasks, check_task_dependencies
 from .task_templates import load_templates, save_template, delete_template, create_task_from_template, TaskTemplate
@@ -2147,12 +2153,18 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         for row in self.integrations_tree.get_children():
             self.integrations_tree.delete(row)
         
-        # Get integration statuses
+        # Get integration statuses - all available integrations
         integrations = {
             "Local Notes": NotesIntegration(self.conn),
             "Google Calendar": GoogleCalendarIntegration(self.conn),
             "Gmail": GmailIntegration(self.conn),
             "GitHub": GitHubIntegration(self.conn),
+            "Word": WordIntegration(self.conn),
+            "Excel": ExcelIntegration(self.conn),
+            "OneNote": OneNoteIntegration(self.conn),
+            "Local Files": FilesystemIntegration(self.conn),
+            "Git": GitIntegration(self.conn),
+            "PDF": PDFIntegration(self.conn),
         }
         
         for name, integration in integrations.items():
@@ -2198,6 +2210,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             "Google Calendar": "calendar",
             "Gmail": "mail",
             "GitHub": "github",
+            "Word": "word",
+            "Excel": "excel",
+            "OneNote": "onenote",
+            "Local Files": "filesystem",
+            "Git": "git",
+            "PDF": "pdf",
         }
         key = name_map.get(name, name.lower().replace(" ", "_"))
         results = self.sync_scheduler.sync_now(key)
