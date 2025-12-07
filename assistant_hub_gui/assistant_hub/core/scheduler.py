@@ -134,3 +134,4 @@ class Scheduler:
 
             time.sleep(1)  # Check every second
 
+

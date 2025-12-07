@@ -683,3 +683,121 @@ def save_external_connections(
             "notes": conn_obj.notes,
         }
     set_meta(conn, "external.connections", json.dumps(payload, ensure_ascii=False))
+
+
+# Note Links (Document Management) Functions
+def db_create_note_link(
+    conn: sqlite3.Connection,
+    project_id: str,
+    integration_type: str,
+    external_id: str,
+    title: str = "",
+    description: str = ""
+) -> int:
+    """Create a note link (document reference) in the database."""
+    c = conn.cursor()
+    created_at = datetime.now().isoformat(timespec="seconds")
+    c.execute(
+        """
+        INSERT INTO note_links (project_id, integration_type, external_id, title, description, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (project_id, integration_type, external_id, title, description, created_at),
+    )
+    conn.commit()
+    return c.lastrowid
+
+
+def db_get_note_links(
+    conn: sqlite3.Connection,
+    project_id: Optional[str] = None,
+    integration_type: Optional[str] = None
+) -> List[NoteLink]:
+    """Get note links, optionally filtered by project and/or integration type."""
+    c = conn.cursor()
+    query = "SELECT * FROM note_links WHERE 1=1"
+    params = []
+    
+    if project_id:
+        query += " AND project_id = ?"
+        params.append(project_id)
+    
+    if integration_type:
+        query += " AND integration_type = ?"
+        params.append(integration_type)
+    
+    query += " ORDER BY created_at DESC"
+    
+    c.execute(query, params)
+    rows = c.fetchall()
+    
+    links = []
+    for r in rows:
+        links.append(
+            NoteLink(
+                id=r["id"],
+                project_id=r["project_id"],
+                integration_type=r["integration_type"],
+                external_id=r["external_id"],
+                title=r["title"] or "",
+                description=r["description"] or "",
+                created_at=r["created_at"] or datetime.now().isoformat(timespec="seconds"),
+                last_synced=r.get("last_synced"),
+            )
+        )
+    return links
+
+
+def db_get_note_link(conn: sqlite3.Connection, link_id: int) -> Optional[NoteLink]:
+    """Get a single note link by ID."""
+    c = conn.cursor()
+    c.execute("SELECT * FROM note_links WHERE id = ?", (link_id,))
+    row = c.fetchone()
+    if not row:
+        return None
+    
+    return NoteLink(
+        id=row["id"],
+        project_id=row["project_id"],
+        integration_type=row["integration_type"],
+        external_id=row["external_id"],
+        title=row["title"] or "",
+        description=row["description"] or "",
+        created_at=row["created_at"] or datetime.now().isoformat(timespec="seconds"),
+        last_synced=row.get("last_synced"),
+    )
+
+
+def db_update_note_link(
+    conn: sqlite3.Connection,
+    link_id: int,
+    title: Optional[str] = None,
+    description: Optional[str] = None
+):
+    """Update a note link's metadata."""
+    c = conn.cursor()
+    updates = []
+    params = []
+    
+    if title is not None:
+        updates.append("title = ?")
+        params.append(title)
+    
+    if description is not None:
+        updates.append("description = ?")
+        params.append(description)
+    
+    if not updates:
+        return
+    
+    params.append(link_id)
+    query = f"UPDATE note_links SET {', '.join(updates)} WHERE id = ?"
+    c.execute(query, params)
+    conn.commit()
+
+
+def db_delete_note_link(conn: sqlite3.Connection, link_id: int):
+    """Delete a note link from the database."""
+    c = conn.cursor()
+    c.execute("DELETE FROM note_links WHERE id = ?", (link_id,))
+    conn.commit()

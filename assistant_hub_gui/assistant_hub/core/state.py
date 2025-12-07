@@ -32,3 +32,4 @@ def save_state(state: AssistantState, conn: Optional[sqlite3.Connection] = None)
     # This is a placeholder for future bulk save operations
     pass
 
+

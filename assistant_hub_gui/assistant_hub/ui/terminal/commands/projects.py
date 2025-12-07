@@ -45,3 +45,4 @@ def handle_projects_command(args, conn: sqlite3.Connection) -> int:
         print(f"Unknown Projects subcommand: {args.subcommand}", file=sys.stderr)
         return 1
 
+

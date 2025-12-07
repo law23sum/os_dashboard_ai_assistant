@@ -48,8 +48,13 @@ class GraphClient:
             # If it's a delegated auth error and we need to authenticate
             if isinstance(self.auth, GraphDelegatedAuth) and "No valid access token" in error_msg:
                 raise AuthenticationError(
-                    "Delegated authentication required. Please authenticate using device code flow.\n"
-                    "This can be done through the GUI: Settings > Integrations > Microsoft Graph > Authenticate"
+                    "Delegated authentication required. Please authenticate using device code flow.\n\n"
+                    "To authenticate:\n"
+                    "1. Go to the 'Integrations' tab\n"
+                    "2. Select 'OneNote' from the list\n"
+                    "3. Click 'Connect' button\n"
+                    "4. Click 'Authenticate (Device Code)' button\n"
+                    "5. Follow the on-screen instructions to sign in"
                 ) from e
             raise
         return {"Authorization": f"Bearer {token}"}

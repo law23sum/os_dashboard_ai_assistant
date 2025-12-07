@@ -96,19 +96,21 @@ class OneNoteIntegration(BaseIntegration):
             if "400" in error_msg and ("Bad Request" in error_msg or "/me/" in error_msg):
                 self.update_status(
                     False, 
-                    "OneNote requires delegated permissions (user sign-in). "
-                    "Current setup uses app-only auth which doesn't support /me/ endpoints."
+                    "Delegated authentication required. Go to Integrations > OneNote > Connect > Authenticate (Device Code)"
                 )
             elif "401" in error_msg or "Unauthorized" in error_msg:
                 self.update_status(False, "Authentication failed. Check credentials and permissions.")
-            elif "DELEGATED" in error_msg or "delegated" in error_msg.lower():
+            elif "DELEGATED" in error_msg or "delegated" in error_msg.lower() or "Delegated authentication required" in error_msg:
                 self.update_status(
                     False,
-                    "OneNote requires user sign-in (delegated permissions). "
-                    "App-only authentication is not supported for /me/ endpoints."
+                    "Delegated authentication required. Go to Integrations tab > Select OneNote > Connect > Authenticate (Device Code)"
                 )
             elif "credentials" in error_msg.lower() or "auth" in error_msg.lower() or "Authentication" in error_msg:
-                self.update_status(False, "Not authenticated. Configure Microsoft Graph credentials.")
+                if "Delegated authentication required" in error_msg:
+                    # Extract the helpful instructions from the error message
+                    self.update_status(False, error_msg.split("\n\n")[-1] if "\n\n" in error_msg else error_msg)
+                else:
+                    self.update_status(False, "Not authenticated. Go to Integrations > OneNote > Connect to configure Microsoft Graph.")
             elif "Module" in error_msg or "ImportError" in error_msg or "No module" in error_msg:
                 self.update_status(False, "Required modules not installed. Check dependencies.")
             else:
