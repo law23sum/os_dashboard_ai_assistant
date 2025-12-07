@@ -17,10 +17,7 @@ A comprehensive AI-powered operating system dashboard that integrates with exter
 │   ├── google_client.py      # Google APIs (Gmail, Calendar)
 │   ├── ms_graph_client.py    # Microsoft Graph APIs
 │   └── integrations/         # All service integrations
-├── ui/                       # Frontend/Dashboard files
-│   ├── index.html            # Main dashboard view
-│   ├── dashboard_app.py      # Flask web application
-│   ├── assets/               # CSS, JS, images
+├── ui/                       # UI components (deprecated web UI removed)
 │   └── terminal/             # CLI interface components
 ├── tests/                    # Unit and integration tests
 ├── config/                   # Configuration and secrets management
@@ -29,7 +26,12 @@ A comprehensive AI-powered operating system dashboard that integrates with exter
 ├── utils/                    # Helper functions
 │   ├── auth_helpers.py       # Token management
 │   └── file_parsers.py       # File processing utilities
+├── marketplace/              # Plugin marketplace (created on first run)
+│   ├── plugins/             # Available plugin packages
+│   └── installed/           # Installed plugin instances
 ├── main.py                   # Application entry point
+├── plugin_manager.py         # Plugin management CLI
+├── security_monitor.py       # Security monitoring and compliance CLI
 ├── settings.py               # Global application settings
 └── requirements.txt          # Python dependencies
 ```
@@ -82,8 +84,22 @@ python ui/main.py
 - **Git Client**: Local repository operations and management
 
 ### UI Components
-- **Web Dashboard**: Flask-based responsive web interface
 - **Terminal Interface**: Command-line tools and utilities
+
+### Security Framework
+- **Enterprise Security**: Comprehensive security controls and threat detection
+- **Compliance Monitoring**: GDPR, HIPAA, SOX, PCI-DSS, ISO27001, SOC2, CCPA, NIST frameworks
+- **Audit Logging**: Complete audit trails for all system activities
+- **Data Protection**: Automatic data classification and encryption
+- **Access Control**: Role-based access control with policy enforcement
+- **Threat Detection**: Real-time threat analysis and incident response
+
+### Plugin System
+- **Plugin Marketplace**: Secure third-party plugin distribution
+- **Plugin Types**: Integration, Widget, Automation, Analytics, Notification, Security, Utility
+- **Security Scanning**: Automatic security analysis of plugin code
+- **Plugin Management**: Install, enable, disable, and uninstall plugins
+- **Review System**: Community ratings and reviews for plugins
 
 ## Development
 
@@ -93,6 +109,54 @@ python ui/main.py
 pytest tests/
 ```
 
+### Plugin Management
+
+The system includes a comprehensive plugin marketplace for extending functionality:
+
+```bash
+# List available plugins
+python plugin_manager.py list
+
+# Search plugins by type or keyword
+python plugin_manager.py list --query "weather" --type integration
+
+# Show detailed plugin information
+python plugin_manager.py show weather-integration
+
+# Install a plugin
+python plugin_manager.py install weather-integration
+
+# Install specific version
+python plugin_manager.py install weather-integration --version 1.0.0
+
+# Uninstall a plugin
+python plugin_manager.py uninstall weather-integration
+
+# View marketplace statistics
+python plugin_manager.py stats
+```
+
+### Security Monitoring
+
+The system includes enterprise-grade security and compliance monitoring:
+
+```bash
+# View security dashboard
+python security_monitor.py dashboard
+
+# Run compliance assessment
+python security_monitor.py compliance gdpr
+
+# Check security incidents
+python security_monitor.py incidents
+
+# View audit logs
+python security_monitor.py audit --user "username" --days 7
+
+# Analyze threats from log data
+python security_monitor.py analyze-threats access.log
+```
+
 ### Adding New Integrations
 
 1. Create a new client in `api_connectors/`
@@ -100,11 +164,48 @@ pytest tests/
 3. Add configuration in `config/config.yaml`
 4. Update the data aggregator to handle the new data source
 
-### Extending the Dashboard
+### Extending the Application
 
-1. Modify `ui/index.html` for new UI components
-2. Update `ui/dashboard_app.py` for new API endpoints
-3. Extend `assistant_core/dashboard_engine.py` for new data processing
+The web UI has been removed. For extending the application:
+
+1. Modify the GUI in `assistant_hub_gui/assistant_hub/gui.py`
+2. Extend `assistant_core/dashboard_engine.py` for new data processing
+3. Update integrations in `api_connectors/` for new API endpoints
+
+### Developing Plugins
+
+Create custom plugins to extend the OS Dashboard:
+
+1. **Choose Plugin Type**:
+   - `IntegrationPlugin`: External service integrations
+   - `WidgetPlugin`: Dashboard widgets
+   - `AutomationPlugin`: Workflow automation
+   - `AnalyticsPlugin`: Data analysis tools
+
+2. **Plugin Structure**:
+   ```
+   my-plugin/
+   ├── manifest.yaml    # Plugin metadata and configuration
+   └── main.py         # Plugin implementation
+   ```
+
+3. **Example Manifest**:
+   ```yaml
+   id: "my-plugin"
+   name: "My Custom Plugin"
+   version: "1.0.0"
+   type: "integration"
+   entry_point: "main.py"
+   config_schema:
+     api_key:
+       type: "string"
+       required: true
+   ```
+
+4. **Plugin Security**:
+   - Plugins are automatically scanned for security issues
+   - High-risk plugins require manual approval
+   - Plugins run in isolated environments
 
 ## Template-driven deliverables
 

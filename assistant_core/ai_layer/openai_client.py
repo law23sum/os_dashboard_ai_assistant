@@ -6,7 +6,7 @@ import openai
 from openai import AsyncOpenAI
 
 from config import get_api_config
-from logging_config import setup_logger
+from config.logging_config import setup_logger
 
 
 class OpenAIClient:

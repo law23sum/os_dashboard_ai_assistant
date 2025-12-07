@@ -20,6 +20,17 @@ except Exception:  # pragma: no cover - handled gracefully when dependency missi
 
 from .db import ChatMessage, CHAT_ROLES, PERSONAS
 from .terminal import run_bash_command
+from typing import Any, Optional
+
+
+
+class AIAssistant:
+    """Main AI Assistant class that coordinates all AI functionality."""
+
+    def __init__(self, app_state: Any):
+        """Initialize the AI assistant with application state."""
+        self.app_state = app_state
+        self.openai_available = openai_available()
 
 # Model assignments per agent
 # Note: o1 models require special handling (no system messages, different API)
@@ -229,11 +240,12 @@ def generate_ai_reply(
             kwargs["tool_choice"] = "auto"
         
         response = client.chat.completions.create(**kwargs)
-        
+
         message = response.choices[0].message
         text = message.content or ""
         tool_calls = message.tool_calls if hasattr(message, 'tool_calls') and message.tool_calls else None
-        
+
+
         return text.strip(), None, tool_calls
     except (AuthenticationError, APIError, ValueError, RuntimeError) as exc:
         return _offline_reply(fallback_source or "(empty prompt)", exc), str(exc), None
@@ -263,7 +275,7 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                 file_path = os.path.join(work_dir, file_path)
             
             file_path = os.path.normpath(os.path.expanduser(file_path))
-            
+
             if not os.path.exists(file_path):
                 return {
                     "tool_call_id": tool_call.id,
@@ -271,7 +283,7 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                     "name": "read_file",
                     "content": f"Error: File not found: {file_path}"
                 }
-            
+
             if not os.path.isfile(file_path):
                 return {
                     "tool_call_id": tool_call.id,
@@ -279,19 +291,19 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                     "name": "read_file",
                     "content": f"Error: Path is not a file: {file_path}"
                 }
-            
+
             # Try to read as text
             try:
                 with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
                     lines = f.readlines()
                     total_lines = len(lines)
-                    
+
                     if total_lines > max_lines:
                         content = ''.join(lines[:max_lines])
                         content += f"\n\n[File truncated: showing first {max_lines} of {total_lines} total lines]"
                     else:
                         content = ''.join(lines)
-                    
+
                     return {
                         "tool_call_id": tool_call.id,
                         "role": "tool",
@@ -313,13 +325,13 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                 "name": "read_file",
                 "content": f"Error reading file: {str(e)}"
             }
-    
+
     elif tool_call.function.name == "execute_command":
         try:
             args = json.loads(tool_call.function.arguments)
             command = args.get("command", "")
             work_dir = args.get("working_directory", cwd) or cwd or os.getcwd()
-            
+
             if not command:
                 return {
                     "tool_call_id": tool_call.id,
@@ -327,9 +339,9 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                     "name": "execute_command",
                     "content": "Error: No command provided"
                 }
-            
+
             result = run_bash_command(command, cwd=work_dir)
-            
+
             output_parts = []
             if result.stdout:
                 output_parts.append(f"STDOUT:\n{result.stdout}")
@@ -337,10 +349,10 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                 output_parts.append(f"STDERR:\n{result.stderr}")
             if not output_parts:
                 output_parts.append("(no output)")
-            
+
             output_parts.append(f"\nExit code: {result.returncode}")
             content = "\n".join(output_parts)
-            
+
             return {
                 "tool_call_id": tool_call.id,
                 "role": "tool",
@@ -354,7 +366,7 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                 "name": "execute_command",
                 "content": f"Error executing command: {str(e)}"
             }
-    
+
     return {
         "tool_call_id": tool_call.id,
         "role": "tool",
@@ -363,32 +375,3 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
     }
 
 
-class AIAssistant:
-    """Lightweight AI assistant wrapper for tests and integrations."""
-
-    def __init__(self, persona: str = "AIC"):
-        self.persona = persona
-        self.history: List[ChatMessage] = []
-
-    def add_message(self, content: str, *, role: str = "user", kind: str = "chat") -> ChatMessage:
-        """Record a message in the assistant history."""
-        message = ChatMessage(
-            id=len(self.history) + 1,
-            persona=self.persona,
-            role=role,
-            kind=kind,
-            content=content,
-        )
-        self.history.append(message)
-        return message
-
-    def reply(self, prompt: str) -> str:
-        """Generate a reply using the existing helper or echo fallback."""
-        try:
-            response, error, _ = generate_ai_reply(self.history, self.persona, prompt=prompt)
-            if error:
-                return error
-            return response
-        except Exception:
-            # In constrained environments fall back to deterministic echo
-            return f"[offline] {prompt}"
