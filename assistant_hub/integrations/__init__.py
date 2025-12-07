@@ -21,6 +21,7 @@ from .onenote_integration import OneNoteIntegration
 from .filesystem_integration import FilesystemIntegration
 from .git_integration import GitIntegration
 from .pdf_integration import PDFIntegration
+from .api import IntegrationAPIGateway
 
 __all__ = [
     "BaseIntegration",
@@ -35,6 +36,7 @@ __all__ = [
     "FilesystemIntegration",
     "GitIntegration",
     "PDFIntegration",
+    "IntegrationAPIGateway",
     "GraphClient",
     "GraphCredentials",
     "load_credentials_from_env",
