@@ -7,34 +7,24 @@ import sqlite3
 
 from .base import BaseIntegration, IntegrationStatus
 
-try:
-    from .word import WordService, LocalDocument
-    WORD_AVAILABLE = True
-except (ModuleNotFoundError, ImportError):
-    WORD_AVAILABLE = False
-    WordService = None
-    LocalDocument = None
-
 
 class WordIntegration(BaseIntegration):
     """Integration for Microsoft Word documents."""
     
     def __init__(self, conn: sqlite3.Connection):
         super().__init__(conn, "Word", "word")
-        self.service = WordService() if WORD_AVAILABLE and WordService else None
+        # WordIntegration works independently - doesn't need WordService for file scanning
     
     def authenticate(self) -> bool:
         """Check if Word integration is available."""
-        if not WORD_AVAILABLE or not self.service:
-            self.update_status(False, "python-docx package not installed")
-            return False
+        # Word integration can discover files even without python-docx
+        # Only advanced editing features require python-docx
         self.update_status(True)
         return True
     
     def sync(self) -> int:
         """Scan for Word documents in common locations."""
-        if not self.authenticate():
-            return 0
+        # File discovery works without python-docx
         
         count = 0
         try:
