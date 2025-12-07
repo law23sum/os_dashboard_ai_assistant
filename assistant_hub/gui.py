@@ -2547,25 +2547,43 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         targets = ["all", *sorted(self.integration_api.available_integrations().keys())]
         self.integration_api_target_var = tk.StringVar(value=targets[0])
         self.integration_api_action_var = tk.StringVar(value="status")
+        self.integration_api_options_var = tk.StringVar(value="")
 
         ttk.Label(api_box, text="Target:").grid(row=0, column=0, sticky="e", padx=4, pady=4)
         target_combo = ttk.Combobox(api_box, textvariable=self.integration_api_target_var, values=targets, state="readonly")
         target_combo.grid(row=0, column=1, sticky="w", padx=4, pady=4)
 
         ttk.Label(api_box, text="Action:").grid(row=1, column=0, sticky="e", padx=4, pady=4)
-        action_combo = ttk.Combobox(api_box, textvariable=self.integration_api_action_var, values=["status", "sync"], state="readonly")
-        action_combo.grid(row=1, column=1, sticky="w", padx=4, pady=4)
+        actions = self.integration_api.integration_actions().get(self.integration_api_target_var.get(), [])
+        action_values = [action.get("name") for action in actions] or ["status", "sync"]
+        self.integration_api_action_combo = ttk.Combobox(
+            api_box,
+            textvariable=self.integration_api_action_var,
+            values=action_values,
+            state="readonly",
+        )
+        self.integration_api_action_combo.grid(row=1, column=1, sticky="w", padx=4, pady=4)
+
+        ttk.Label(api_box, text="Options (JSON):").grid(row=2, column=0, sticky="e", padx=4, pady=4)
+        options_entry = ttk.Entry(
+            api_box,
+            textvariable=self.integration_api_options_var,
+            width=50,
+        )
+        options_entry.grid(row=2, column=1, sticky="we", padx=4, pady=4)
 
         call_btn = ttkb.Button(api_box, text="Invoke", command=self.on_call_integration_api, bootstyle="success") if TTKBOOTSTRAP_AVAILABLE else ttk.Button(api_box, text="Invoke", command=self.on_call_integration_api)
-        call_btn.grid(row=0, column=2, rowspan=2, padx=4, pady=4, sticky="ns")
+        call_btn.grid(row=0, column=2, rowspan=3, padx=4, pady=4, sticky="ns")
 
         self.integration_api_output = tk.Text(api_box, height=4, wrap="word", state="disabled")
-        self.integration_api_output.grid(row=2, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 6))
+        self.integration_api_output.grid(row=3, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 6))
 
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(sync_btn, text="Sync all enabled integrations")
             ToolTip(sync_selected_btn, text="Sync the selected integration")
             ToolTip(refresh_btn, text="Refresh the integrations list")
+
+        target_combo.bind("<<ComboboxSelected>>", self.on_integration_target_change)
     
     def refresh_integrations_list(self):
         """Refresh the integrations list display."""
@@ -2655,11 +2673,31 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             messagebox.showerror("Sync Error", f"Failed to sync {name}.")
         self.refresh_integrations_list()
 
+    def on_integration_target_change(self, event=None):
+        """Refresh the available actions when the target changes."""
+        if not hasattr(self, "integration_api_action_combo"):
+            return
+
+        actions = self.integration_api.integration_actions().get(self.integration_api_target_var.get(), [])
+        values = [action.get("name") for action in actions] or ["status", "sync"]
+        self.integration_api_action_combo.configure(values=values)
+        if self.integration_api_action_var.get() not in values:
+            self.integration_api_action_var.set(values[0])
+
     def on_call_integration_api(self):
         target = self.integration_api_target_var.get()
         action = self.integration_api_action_var.get()
+        options_raw = self.integration_api_options_var.get().strip()
+        options = None
+
+        if options_raw:
+            try:
+                options = json.loads(options_raw)
+            except json.JSONDecodeError:
+                messagebox.showerror("Invalid Options", "Options must be valid JSON (e.g., {\"limit\": 10}).")
+                return
         try:
-            result = self.integration_api.call_action(target, action=action)
+            result = self.integration_api.call_action(target, action=action, options=options)
             text = json.dumps(result, indent=2, ensure_ascii=False)
         except Exception as exc:
             text = f"Error: {exc}"
