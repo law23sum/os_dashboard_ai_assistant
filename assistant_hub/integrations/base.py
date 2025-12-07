@@ -3,10 +3,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional, Any
 import sqlite3
 
 from ..db import record_external_item, ensure_external_source
+from ..logging_config import get_logger
 
 
 @dataclass
@@ -26,6 +27,7 @@ class BaseIntegration(ABC):
         self.source_name = source_name
         self.source_kind = source_kind
         self._status = IntegrationStatus()
+        self.logger = get_logger(self.__class__.__name__)
     
     @abstractmethod
     def authenticate(self) -> bool:
@@ -70,4 +72,21 @@ class BaseIntegration(ABC):
         self._status.last_sync = datetime.now().isoformat(timespec="seconds") if connected else None
         self._status.error = error
         self._status.item_count = item_count
+
+        status_text = "connected" if connected else "disconnected"
+        if error:
+            self.logger.error("%s status updated: %s | error=%s", self.source_name, status_text, error)
+        else:
+            self.logger.info(
+                "%s status updated: %s | items=%s",
+                self.source_name,
+                status_text,
+                item_count,
+            )
+
+    def _safe_truncate(self, value: Optional[str], length: int = 180) -> Optional[str]:
+        """Truncate long strings for status messages."""
+        if value is None:
+            return None
+        return value if len(value) <= length else value[: length - 3] + "..."
 
