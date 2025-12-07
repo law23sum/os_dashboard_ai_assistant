@@ -145,7 +145,7 @@ python setup_third_party_credentials.py
   - Verify credentials don't have extra spaces or newlines
   - Check that client secret hasn't expired
   - Ensure API permissions are granted in Azure Portal
-  - For `/me/` endpoints, use delegated permissions (run `python authenticate_azure_delegated.py`)
+  - For `/me/` endpoints, ensure proper API permissions are configured in Azure Portal
 
 ---
 

@@ -10,9 +10,8 @@ from ..msgraph.client import GraphClient
 class ExcelCloudClient:
     """Interact with Excel workbooks stored in OneDrive or SharePoint."""
 
-    def __init__(self, graph: GraphClient | None = None, use_delegated: bool = True):
-        # /me/ endpoints require delegated permissions, so default to True
-        self.graph = graph or GraphClient(use_delegated=use_delegated)
+    def __init__(self, graph: GraphClient | None = None):
+        self.graph = graph or GraphClient()
 
     def list_workbooks(self) -> List[Dict[str, Any]]:
         return self.graph.get("/me/drive/root/children").get("value", [])
