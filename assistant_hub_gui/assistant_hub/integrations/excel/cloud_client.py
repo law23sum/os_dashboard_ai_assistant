@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
+import sqlite3
 
 from ..msgraph.client import GraphClient
 
@@ -10,8 +11,19 @@ from ..msgraph.client import GraphClient
 class ExcelCloudClient:
     """Interact with Excel workbooks stored in OneDrive or SharePoint."""
 
-    def __init__(self, graph: GraphClient | None = None):
-        self.graph = graph or GraphClient()
+    def __init__(self, graph: GraphClient | None = None, conn: sqlite3.Connection | None = None):
+        """
+        Initialize Excel cloud client.
+        
+        Args:
+            graph: Optional GraphClient instance (if None, creates one with delegated auth)
+            conn: Optional database connection for storing auth tokens
+        """
+        if graph:
+            self.graph = graph
+        else:
+            # Use delegated auth for /me/ endpoints (Excel uses /me/drive)
+            self.graph = GraphClient(conn=conn, use_delegated=True)
 
     def list_workbooks(self) -> List[Dict[str, Any]]:
         return self.graph.get("/me/drive/root/children").get("value", [])

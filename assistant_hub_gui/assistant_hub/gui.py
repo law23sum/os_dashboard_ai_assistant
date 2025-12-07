@@ -1748,8 +1748,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         # Support side-by-side layout: chat on left, document interaction on right
         # Keep the layout evenly split so both areas are always visible
-        self.chat_frame.columnconfigure(0, weight=1)
-        self.chat_frame.columnconfigure(1, weight=1)
+        # Give more space to document frame (right side)
+        self.chat_frame.columnconfigure(0, weight=1)  # Chat column
+        self.chat_frame.columnconfigure(1, weight=2)  # Document column (2x larger)
         self.chat_frame.rowconfigure(0, weight=3)
         self.chat_frame.rowconfigure(1, weight=2)
 
@@ -1830,7 +1831,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.model_combo = ttkb.Combobox(
                 compose,
                 textvariable=self.chat_model_var,
-                values=["auto", "gpt-4o", "gpt-4o-mini", "o1-preview", "gpt-4-turbo"],
+                values=["auto", "gpt-4o", "gpt-4o-mini", "o1-mini", "o1-reasoning", "gpt-4-turbo"],
                 state="readonly",
                 width=16,
                 bootstyle="success"
@@ -1858,7 +1859,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.model_combo = ttk.Combobox(
                 compose,
                 textvariable=self.chat_model_var,
-                values=["auto", "gpt-4o", "gpt-4o-mini", "o1-preview", "gpt-4-turbo"],
+                values=["auto", "gpt-4o", "gpt-4o-mini", "o1-mini", "o1-reasoning", "gpt-4-turbo"],
                 state="readonly",
                 width=16,
             )
@@ -1907,53 +1908,46 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_input.bind("<Return>", lambda e: self.on_handle_combined_input_enter(e))
         
         # Placeholder hint
-        placeholder_text = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder_text = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
         self.chat_input.insert("1.0", placeholder_text)
         self.chat_input.config(foreground="gray")
         self.chat_input.bind("<FocusIn>", self.on_input_focus_in)
         self.chat_input.bind("<FocusOut>", self.on_input_focus_out)
         
+        # Update placeholder references
+        self.chat_placeholder = placeholder_text
+        
         # Keep command_var for backward compatibility but use chat_input
         self.command_var = tk.StringVar()
 
 
-        # Buttons row - consolidated and no duplicates
+        # Buttons row - Send and Clear only (AI can access files via shell commands from browse directory)
         if TTKBOOTSTRAP_AVAILABLE:
             btns = ttkb.Frame(compose)
         else:
             btns = ttk.Frame(compose)
         btns.grid(row=4, column=0, columnspan=6, sticky="ew", pady=(4, 0))
         
-        # Configure columns for buttons
-        for idx in range(4):
+        # Configure columns for buttons (2 buttons: Send and Clear)
+        for idx in range(2):
             btns.columnconfigure(idx, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            import_btn = ttkb.Button(btns, text="📁 Import", command=self.on_import_chat_file, bootstyle="info-outline")
-            upload_btn = ttkb.Button(btns, text="☁️ Upload", command=self._upload_file_with_feedback, bootstyle="secondary-outline")
             send_btn = ttkb.Button(btns, text="🚀 Send", command=lambda: self.on_handle_combined_input(chat_mode=True), bootstyle="primary")
             clear_btn = ttkb.Button(btns, text="🗑️ Clear", command=self.on_clear_chat_history, bootstyle="danger-outline")
         else:
-            import_btn = ttk.Button(btns, text="Import", command=self.on_import_chat_file)
-            upload_btn = ttk.Button(btns, text="Upload", command=self._upload_file_with_feedback)
             send_btn = ttk.Button(btns, text="Send", command=lambda: self.on_handle_combined_input(chat_mode=True))
             clear_btn = ttk.Button(btns, text="Clear", command=self.on_clear_chat_history)
-        import_btn.grid(row=0, column=0, padx=4, sticky="ew")
-        upload_btn.grid(row=0, column=1, padx=4, sticky="ew")
-        send_btn.grid(row=0, column=2, padx=4, sticky="ew")
-        clear_btn.grid(row=0, column=3, padx=4, sticky="ew")
+        send_btn.grid(row=0, column=0, padx=4, sticky="ew")
+        clear_btn.grid(row=0, column=1, padx=4, sticky="ew")
         
         # Add hover effects to chat buttons
-        AnimationHelper.add_hover_effect(import_btn)
-        AnimationHelper.add_hover_effect(upload_btn)
         AnimationHelper.add_hover_effect(send_btn)
         AnimationHelper.add_hover_effect(clear_btn)
         self._chat_send_btn = send_btn
         
         if TTKBOOTSTRAP_AVAILABLE:
-            ToolTip(import_btn, text="Import file content into input")
-            ToolTip(upload_btn, text="Upload file to OpenAI for AI analysis")
-            ToolTip(send_btn, text="Send message (Ctrl+Enter) or run command (Enter for single-line, prefix with $)")
+            ToolTip(send_btn, text="Send message (Ctrl+Enter) or run command (Enter for single-line, prefix with $). AI can access files in the browse directory via shell commands.")
             ToolTip(clear_btn, text="Clear all chat history")
 
         if TTKBOOTSTRAP_AVAILABLE:
@@ -2053,15 +2047,28 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         content_frame.rowconfigure(0, weight=1)
 
         # Text widget for displaying file content
-        self.file_preview_text = tk.Text(content_frame, wrap="word", state="disabled", font=self.text_font)
+        # Make file preview editable and interactive
+        self.file_preview_text = tk.Text(content_frame, wrap="word", state="normal", font=self.text_font)
         self.file_preview_text.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
-
+        
+        # Scrollbar for text widget
         if TTKBOOTSTRAP_AVAILABLE:
             preview_scroll = ttkb.Scrollbar(content_frame, orient="vertical", command=self.file_preview_text.yview, bootstyle="success-round")
         else:
             preview_scroll = ttk.Scrollbar(content_frame, orient="vertical", command=self.file_preview_text.yview)
         self.file_preview_text.configure(yscrollcommand=preview_scroll.set)
         preview_scroll.grid(row=0, column=1, sticky="ns")
+        
+        # Add save button for editable content (below text widget)
+        if TTKBOOTSTRAP_AVAILABLE:
+            save_preview_btn = ttkb.Button(content_frame, text="💾 Save Changes", 
+                                          command=self._save_file_preview_changes, 
+                                          bootstyle="success-outline", width=15)
+        else:
+            save_preview_btn = ttk.Button(content_frame, text="Save Changes", 
+                                         command=self._save_file_preview_changes, width=15)
+        save_preview_btn.grid(row=1, column=0, columnspan=2, sticky="e", padx=2, pady=2)
+        self.file_preview_save_btn = save_preview_btn
 
         # Status bar for file operations
         if TTKBOOTSTRAP_AVAILABLE:
@@ -2180,15 +2187,53 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 content = "Unsupported file type"
             
             self.file_preview_text.insert("1.0", content)
-            self.file_preview_text.config(state="disabled")
+            self.file_preview_text.config(state="normal")  # Keep editable for user interaction
             self.file_preview_status_var.set(f"Last updated: {datetime.now().strftime('%H:%M:%S')}")
             self.active_file_session['last_update'] = datetime.now()
             self._log_document_activity(f"Refreshed {file_type} preview at {self.active_file_session['last_update'].strftime('%H:%M:%S')}")
         except Exception as e:
             self.file_preview_text.insert("1.0", f"Error loading file: {str(e)}")
-            self.file_preview_text.config(state="disabled")
+            self.file_preview_text.config(state="normal")  # Keep editable
             self.file_preview_status_var.set(f"Error: {str(e)}")
             self._log_document_activity(f"Error loading file: {str(e)}")
+    
+    def _save_file_preview_changes(self):
+        """Save changes made to the file preview back to the file."""
+        if not self.active_file_session:
+            messagebox.showwarning("No File", "No file is currently open for editing.")
+            return
+        
+        file_path = self.active_file_session.get('path')
+        file_type = self.active_file_session.get('type')
+        
+        if not file_path or not os.path.exists(file_path):
+            messagebox.showerror("Error", "File path is invalid or file does not exist.")
+            return
+        
+        # Only allow saving text-based files
+        if file_type not in ["Text", "CSV", "JSON"]:
+            if not messagebox.askyesno("Confirm Save", 
+                f"Saving changes to {file_type} files may not preserve formatting. Continue?"):
+                return
+        
+        try:
+            content = self.file_preview_text.get("1.0", "end-1c")  # Get all content except final newline
+            
+            # Backup original file
+            backup_path = f"{file_path}.backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            import shutil
+            shutil.copy2(file_path, backup_path)
+            
+            # Write new content
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            
+            self.file_preview_status_var.set(f"Saved at {datetime.now().strftime('%H:%M:%S')} (backup: {os.path.basename(backup_path)})")
+            self._log_document_activity(f"Saved changes to {os.path.basename(file_path)}")
+            messagebox.showinfo("Saved", f"Changes saved to {os.path.basename(file_path)}\nBackup created: {os.path.basename(backup_path)}")
+        except Exception as e:
+            messagebox.showerror("Save Error", f"Failed to save file: {str(e)}")
+            self._log_document_activity(f"Error saving file: {str(e)}")
 
     def _load_onenote_preview(self, page_id: Optional[str]) -> str:
         """Load OneNote page content for preview."""
@@ -2209,52 +2254,83 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             return f"Error loading OneNote: {str(e)}"
 
     def _load_excel_preview(self, file_path: str) -> str:
-        """Load Excel file content for preview."""
+        """Load Excel file content for preview with better formatting."""
         if not EXCEL_SERVICE_AVAILABLE or not file_path:
             return "Excel preview not available"
         
         try:
             if os.path.exists(file_path):
                 import pandas as pd
-                # Try to load and display as table
                 try:
-                    # Read first sheet
-                    df = pd.read_excel(file_path, sheet_name=0, nrows=100)  # Limit to 100 rows for preview
-                    preview = f"Excel Workbook: {os.path.basename(file_path)}\n"
-                    preview += f"Shape: {df.shape[0]} rows × {df.shape[1]} columns\n"
-                    preview += "=" * 80 + "\n\n"
-                    preview += df.to_string(max_rows=50, max_cols=10)  # Limit display size
-                    return preview
+                    # Read all sheets
+                    excel_file = pd.ExcelFile(file_path)
+                    preview_parts = [f"📊 Excel Workbook: {os.path.basename(file_path)}\n"]
+                    preview_parts.append("=" * 100 + "\n")
+                    
+                    for sheet_name in excel_file.sheet_names[:5]:  # Limit to first 5 sheets
+                        df = pd.read_excel(file_path, sheet_name=sheet_name, nrows=200)  # More rows for better display
+                        preview_parts.append(f"\n📋 Sheet: {sheet_name}")
+                        preview_parts.append(f"   Shape: {df.shape[0]} rows × {df.shape[1]} columns\n")
+                        preview_parts.append("-" * 100 + "\n")
+                        
+                        # Use tabulate for better table formatting if available
+                        try:
+                            from tabulate import tabulate
+                            # Format with tabulate for better readability
+                            table_str = tabulate(df.head(100), headers='keys', tablefmt='grid', showindex=True, maxcolwidths=30)
+                            preview_parts.append(table_str)
+                        except ImportError:
+                            # Fallback to pandas to_string with better formatting
+                            preview_parts.append(df.head(100).to_string(max_rows=100, max_cols=15))
+                        
+                        preview_parts.append("\n")
+                    
+                    if len(excel_file.sheet_names) > 5:
+                        preview_parts.append(f"\n... and {len(excel_file.sheet_names) - 5} more sheets\n")
+                    
+                    return "\n".join(preview_parts)
                 except Exception as e:
-                    # Fallback to summary
-                    try:
-                        summary = summarize_local_workbook(file_path)
-                        if summary:
-                            return f"Excel Workbook: {os.path.basename(file_path)}\n\n{summary}"
-                    except:
-                        pass
                     return f"Excel file loaded\n(Error displaying table: {str(e)})"
             return f"File not found: {file_path}"
         except Exception as e:
             return f"Error loading Excel: {str(e)}"
 
     def _load_csv_preview(self, file_path: str) -> str:
-        """Load CSV file content for preview."""
+        """Load CSV file content for preview with better table formatting."""
         if not file_path:
             return "CSV preview not available"
 
         try:
             if os.path.exists(file_path):
-                import csv
-
-                lines = []
-                with open(file_path, newline='', encoding='utf-8', errors='ignore') as f:
-                    reader = csv.reader(f)
-                    for idx, row in enumerate(reader):
-                        lines.append(", ".join(row))
-                        if idx >= 50:
-                            break
-                return "CSV Preview (first 50 rows):\n" + "\n".join(lines)
+                import pandas as pd
+                try:
+                    # Read CSV with pandas for better handling
+                    df = pd.read_csv(file_path, nrows=200)  # Read more rows
+                    preview_parts = [f"📊 CSV File: {os.path.basename(file_path)}\n"]
+                    preview_parts.append(f"   Shape: {df.shape[0]} rows × {df.shape[1]} columns\n")
+                    preview_parts.append("=" * 100 + "\n")
+                    
+                    # Use tabulate for better table formatting if available
+                    try:
+                        from tabulate import tabulate
+                        table_str = tabulate(df.head(100), headers='keys', tablefmt='grid', showindex=True, maxcolwidths=30)
+                        preview_parts.append(table_str)
+                    except ImportError:
+                        # Fallback to pandas to_string
+                        preview_parts.append(df.head(100).to_string(max_rows=100, max_cols=15))
+                    
+                    return "\n".join(preview_parts)
+                except Exception as e:
+                    # Fallback to basic CSV reading
+                    import csv
+                    lines = []
+                    with open(file_path, newline='', encoding='utf-8', errors='ignore') as f:
+                        reader = csv.reader(f)
+                        for idx, row in enumerate(reader):
+                            lines.append(" | ".join(str(cell)[:50] for cell in row))  # Limit cell width
+                            if idx >= 100:
+                                break
+                    return f"CSV Preview (first 100 rows):\n{'=' * 100}\n" + "\n".join(lines)
             return f"File not found: {file_path}"
         except Exception as e:
             return f"Error loading CSV: {str(e)}"
@@ -2274,17 +2350,28 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             return f"Error loading text: {str(e)}"
 
     def _load_json_preview(self, file_path: str) -> str:
-        """Load JSON content for preview."""
+        """Load JSON content for preview with better formatting."""
         if not file_path:
             return "JSON preview not available"
 
         try:
             if os.path.exists(file_path):
                 import json
-
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                     data = json.load(f)
-                return json.dumps(data, indent=2)[:MAX_IMPORTED_FILE_CHARS]
+                
+                # Format with better indentation and structure
+                formatted = json.dumps(data, indent=2, ensure_ascii=False)
+                
+                # Add header
+                preview = f"📄 JSON File: {os.path.basename(file_path)}\n"
+                preview += "=" * 100 + "\n\n"
+                preview += formatted[:MAX_IMPORTED_FILE_CHARS]
+                
+                if len(formatted) > MAX_IMPORTED_FILE_CHARS:
+                    preview += f"\n\n... (truncated, showing first {MAX_IMPORTED_FILE_CHARS} characters)"
+                
+                return preview
             return f"File not found: {file_path}"
         except Exception as e:
             return f"Error loading JSON: {str(e)}"
@@ -2307,7 +2394,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             return f"Error loading Word: {str(e)}"
 
     def _load_pdf_preview(self, file_path: str) -> str:
-        """Load PDF file content for preview."""
+        """Load PDF file content for preview with pagination for large files."""
         if not file_path:
             return "PDF preview not available"
         
@@ -2315,17 +2402,179 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             if not os.path.exists(file_path):
                 return f"File not found: {file_path}"
             
+            # Check file size first
+            file_size = os.path.getsize(file_path)
+            file_size_mb = file_size / (1024 * 1024)
+            
+            # For large PDFs (>5MB), load in chunks with pagination
+            if file_size_mb > 5:
+                return self._load_large_pdf_preview(file_path)
+            
             # Try to use PDF integration to extract text
             pdf_integration = PDFIntegration(self.conn)
             if hasattr(pdf_integration, 'extract_text'):
-                content = pdf_integration.extract_text(file_path)
-                if content and content.strip():
-                    return content[:50000]  # Limit preview size
-                return "PDF loaded but text extraction returned no content. PDF libraries may not be installed (PyPDF2 or pdfplumber)."
+                # Load PDF asynchronously to prevent UI blocking
+                import threading
+                
+                def load_pdf_async():
+                    try:
+                        content = pdf_integration.extract_text(file_path)
+                        if content and content.strip():
+                            # Limit to first 100KB for initial display
+                            preview_content = content[:100000]
+                            if len(content) > 100000:
+                                preview_content += f"\n\n[PDF truncated: showing first 100KB of {len(content)} characters. Use 'read_file' tool to read specific pages.]"
+                            self.after(0, lambda c=preview_content: self._update_pdf_preview_content(c))
+                        else:
+                            self.after(0, lambda: self._update_pdf_preview_content(
+                                "PDF loaded but text extraction returned no content. PDF libraries may not be installed (PyPDF2 or pdfplumber)."
+                            ))
+                    except Exception as e:
+                        self.after(0, lambda: self._update_pdf_preview_content(f"Error loading PDF: {str(e)}"))
+                
+                thread = threading.Thread(target=load_pdf_async, daemon=True)
+                thread.start()
+                
+                # Show loading message immediately
+                return f"Loading PDF ({file_size_mb:.1f} MB)... This may take a moment for large files.\n\n[Loading in background, content will appear shortly...]"
             else:
                 return "PDF preview not available (extract_text method not found)"
         except Exception as e:
             return f"Error loading PDF: {str(e)}"
+    
+    def _load_large_pdf_preview(self, file_path: str) -> str:
+        """Load large PDF files with pagination support."""
+        try:
+            pdf_integration = PDFIntegration(self.conn)
+            if hasattr(pdf_integration, 'extract_text'):
+                # For large PDFs, extract first few pages only
+                # Try to use pdfplumber or PyPDF2 directly for page-by-page extraction
+                try:
+                    import pdfplumber
+                    with pdfplumber.open(file_path) as pdf:
+                        total_pages = len(pdf.pages)
+                        # Extract first 10 pages
+                        content_parts = [f"PDF: {os.path.basename(file_path)} ({total_pages} pages total)\n"]
+                        content_parts.append("=" * 80 + "\n")
+                        content_parts.append(f"Showing first 10 pages of {total_pages}:\n\n")
+                        
+                        for i, page in enumerate(pdf.pages[:10]):
+                            text = page.extract_text()
+                            if text:
+                                content_parts.append(f"\n--- Page {i+1} ---\n")
+                                content_parts.append(text)
+                                content_parts.append("\n")
+                        
+                        if total_pages > 10:
+                            content_parts.append(f"\n[Showing first 10 of {total_pages} pages. Use AI to read specific pages.]")
+                        
+                        return "".join(content_parts)
+                except ImportError:
+                    # Fallback to full extraction but with warning
+                    return f"Large PDF detected. Loading first portion...\n[Note: Install pdfplumber for better large PDF handling: pip install pdfplumber]"
+            
+            return "PDF preview not available"
+        except Exception as e:
+            return f"Error loading large PDF: {str(e)}"
+    
+    def _update_pdf_preview_content(self, content: str):
+        """Update PDF preview content asynchronously."""
+        if hasattr(self, 'file_preview_text') and self.file_preview_text:
+            self.file_preview_text.config(state="normal")
+            self.file_preview_text.delete("1.0", "end")
+            self.file_preview_text.insert("1.0", content)
+            self.file_preview_text.config(state="normal")  # Keep editable
+            if hasattr(self, 'file_preview_status_var') and self.file_preview_status_var:
+                self.file_preview_status_var.set(f"Last updated: {datetime.now().strftime('%H:%M:%S')}")
+    
+    def _get_displayed_file_content(self, file_path: str, file_type: str) -> str:
+        """Get the full content of the currently displayed file for AI reading."""
+        if not file_path or not os.path.exists(file_path):
+            return f"File not found: {file_path}"
+        
+        try:
+            if file_type == "PDF":
+                # Extract full text from PDF
+                try:
+                    import pdfplumber
+                    content = ""
+                    with pdfplumber.open(file_path) as pdf:
+                        for i, page in enumerate(pdf.pages):
+                            text = page.extract_text()
+                            if text:
+                                content += f"\n--- Page {i+1} ---\n"
+                                content += text
+                                content += "\n"
+                    return content if content else "PDF loaded but no text could be extracted."
+                except ImportError:
+                    # Fallback: try PyPDF2
+                    try:
+                        import PyPDF2
+                        content = ""
+                        with open(file_path, 'rb') as f:
+                            pdf_reader = PyPDF2.PdfReader(f)
+                            for i, page in enumerate(pdf_reader.pages):
+                                text = page.extract_text()
+                                if text:
+                                    content += f"\n--- Page {i+1} ---\n"
+                                    content += text
+                                    content += "\n"
+                        return content if content else "PDF loaded but no text could be extracted."
+                    except ImportError:
+                        return "PDF libraries not available. Install pdfplumber or PyPDF2 to read PDFs."
+            
+            elif file_type == "Excel":
+                # Read Excel file
+                try:
+                    import pandas as pd
+                    df = pd.read_excel(file_path, sheet_name=None)  # Read all sheets
+                    content_parts = []
+                    for sheet_name, df_sheet in df.items():
+                        content_parts.append(f"\n=== Sheet: {sheet_name} ===\n")
+                        content_parts.append(df_sheet.to_string())
+                        content_parts.append("\n")
+                    return "\n".join(content_parts)
+                except Exception as e:
+                    return f"Error reading Excel file: {str(e)}"
+            
+            elif file_type == "CSV":
+                # Read CSV file
+                try:
+                    import pandas as pd
+                    df = pd.read_csv(file_path)
+                    return df.to_string()
+                except Exception as e:
+                    # Fallback to plain text
+                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        return f.read()
+            
+            elif file_type == "Word":
+                # Read Word document
+                try:
+                    from .integrations.word_integration import WordIntegration
+                    word_int = WordIntegration(self.conn)
+                    if hasattr(word_int, 'service') and word_int.service:
+                        # Try to extract text using Word service
+                        content = word_int.service.extract_text(file_path)
+                        return content if content else "Word document loaded but no text could be extracted."
+                    else:
+                        return "Word integration not available."
+                except Exception as e:
+                    return f"Error reading Word document: {str(e)}"
+            
+            elif file_type == "OneNote":
+                # OneNote content is already in preview text widget
+                if hasattr(self, 'file_preview_text') and self.file_preview_text:
+                    return self.file_preview_text.get("1.0", "end-1c")
+                return "OneNote content not available."
+            
+            else:
+                # Text files, JSON, etc.
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    return f.read()
+        
+        except Exception as e:
+            return f"Error reading file: {str(e)}"
 
     def _load_text_like_preview(self, file_path: str) -> str:
         """Load plain text or CSV-style files for preview."""
@@ -2384,7 +2633,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.file_preview_text.config(state="normal")
         self.file_preview_text.delete("1.0", "end")
         self.file_preview_text.insert("1.0", placeholder)
-        self.file_preview_text.config(state="disabled")
+        self.file_preview_text.config(state="normal")  # Keep editable
         if hasattr(self, 'file_preview_status_var') and self.file_preview_status_var:
             self.file_preview_status_var.set("Waiting for document...")
         self.active_file_session = None
@@ -2660,7 +2909,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         # Clear placeholder if present
         current = self.chat_input.get('1.0', 'end').strip()
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
         if current == placeholder:
             self.chat_input.delete('1.0', 'end')
             self.chat_input.config(foreground="black")
@@ -2754,7 +3003,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         text = self.chat_input.get('1.0', 'end').strip()
         
         # Ignore placeholder text
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
         if not text or text == placeholder:
             messagebox.showinfo('Chat', 'Type a message first.')
             return
@@ -2848,9 +3097,36 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     self.after(0, lambda r=reply, e=error: self._handle_ai_reply(r, e, responder))
                     return
                 
-                # If there are tool calls, execute them
+                # If there are tool calls, execute them asynchronously to prevent UI blocking
                 if tool_calls:
                     tool_results = []
+                    import threading
+                    import queue
+                    
+                    # Use a queue to collect results from threads
+                    result_queue = queue.Queue()
+                    
+                    def execute_tool_async(tc, file_op_detected):
+                        """Execute a tool call in a separate thread."""
+                        try:
+                            # Prepare GUI context for tools that need it (like read_displayed_file)
+                            gui_context = {
+                                'active_file_session': getattr(self, 'active_file_session', None),
+                                'read_file_func': self._get_displayed_file_content if hasattr(self, '_get_displayed_file_content') else None
+                            }
+                            result = execute_tool_call(tc, cwd=cwd, gui_context=gui_context)
+                            result_queue.put(('success', tc, result, file_op_detected))
+                        except Exception as e:
+                            error_result = {
+                                "tool_call_id": tc.id if hasattr(tc, 'id') else None,
+                                "role": "tool",
+                                "name": getattr(tc.function, 'name', 'unknown') if hasattr(tc, 'function') else 'unknown',
+                                "content": f"Error executing tool: {str(e)}"
+                            }
+                            result_queue.put(('error', tc, error_result, file_op_detected))
+                    
+                    # Start all tool executions in parallel
+                    threads = []
                     for tool_call in tool_calls:
                         # Detect file operations and show preview
                         file_op = self._detect_file_operation(tool_call)
@@ -2859,31 +3135,51 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                                 op['type'], op['path'], op.get('id')
                             ))
                         
-                        result = execute_tool_call(tool_call, cwd=cwd)
+                        # Start thread for this tool call
+                        thread = threading.Thread(target=execute_tool_async, args=(tool_call, file_op), daemon=True)
+                        thread.start()
+                        threads.append(thread)
+                    
+                    # Collect results with timeout
+                    collected = 0
+                    timeout_per_tool = 60  # 60 seconds per tool
+                    for thread in threads:
+                        thread.join(timeout=timeout_per_tool)
+                        if thread.is_alive():
+                            self.after(0, lambda: self._update_chat_status("Some tool executions are taking longer than expected..."))
+                    
+                    # Collect all results from queue
+                    while not result_queue.empty():
+                        status, tc, result, file_op = result_queue.get()
                         tool_results.append(result)
                         
-                        # After file operation, refresh preview
+                        # Handle result in main thread
                         if file_op:
                             self.after(0, lambda: self._refresh_file_preview())
                         
-                        # Store terminal command and result in chat immediately
-                        if tool_call.function.name == "execute_command":
+                        # Store terminal command and result in chat immediately (on main thread)
+                        if hasattr(tc, 'function') and tc.function.name == "execute_command":
                             import json
                             try:
-                                args = json.loads(tool_call.function.arguments)
+                                args = json.loads(tc.function.arguments)
                                 cmd = args.get("command", "")
                                 if cmd:
                                     header = f'$ {cmd}\n(cwd: {cwd})'
-                                    self._store_chat_message(responder, 'user', header, kind='terminal')
-                                    self._store_chat_message(responder, 'assistant', result["content"], kind='terminal_result')
-                                    self.after(0, self.refresh_chat_history)
+                                    result_content = result["content"]
+                                    # Schedule database operations on main thread
+                                    self.after(0, lambda h=header, rc=result_content: (
+                                        self._store_chat_message(responder, 'user', h, kind='terminal'),
+                                        self._store_chat_message(responder, 'assistant', rc, kind='terminal_result'),
+                                        self.refresh_chat_history()
+                                    ))
                             except:
                                 pass
                     
-                    # Store tool results in chat for next iteration
+                    # Store tool results in chat for next iteration (on main thread)
                     for result in tool_results:
                         result_content = result.get("content", "")
-                        self._store_chat_message(responder, 'tool', result_content, kind='tool_result')
+                        # Schedule database operation on main thread
+                        self.after(0, lambda rc=result_content: self._store_chat_message(responder, 'tool', rc, kind='tool_result'))
                         
                         # Check if tool result mentions a file
                         file_op = self._detect_file_in_message(result_content)
@@ -2971,7 +3267,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def on_input_focus_in(self, event=None):
         """Clear placeholder text when input gains focus."""
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
         current_text = self.chat_input.get('1.0', 'end').strip()
         if current_text == placeholder:
             self.chat_input.delete('1.0', 'end')
@@ -2980,71 +3276,87 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def on_input_focus_out(self, event=None):
         """Restore placeholder text if input is empty."""
         current_text = self.chat_input.get('1.0', 'end').strip()
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
         if not current_text:
             self.chat_input.insert("1.0", placeholder)
             self.chat_input.config(foreground="gray")
 
-    def on_handle_combined_input(self, chat_mode=False):
-        """Handle combined input field - can be either chat message or terminal command."""
+    def on_handle_combined_input(self, chat_mode=True):
+        """Handle combined input field - always send to AI, AI can execute commands via tools."""
         if not hasattr(self, 'chat_input'):
             return
         
         text = self.chat_input.get('1.0', 'end').strip()
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
         
         # Ignore placeholder text
         if not text or text == placeholder:
             return
         
-        # Check if it's a command (starts with $ or chat_mode is False and it's a single line)
-        is_command = text.startswith('$') or (not chat_mode and '\n' not in text)
-        
-        if is_command:
-            # Remove $ prefix if present
-            command = text.lstrip('$').strip()
-            if command:
-                # Update command_var for backward compatibility
-                self.command_var.set(command)
-                # Run the terminal command
-                self._run_terminal_with_feedback()
-        else:
-            # Send as chat message
-            self.on_send_chat_message(invoke_ai=True)
+        # Always send to AI - the AI can execute commands via its tools
+        # If user wants to run a command, they can ask the AI to do it
+        # Commands starting with $ are still sent to AI, which can execute them
+        self.on_send_chat_message(invoke_ai=True)
         
         # Clear input and restore placeholder
         self.chat_input.delete('1.0', 'end')
         self.on_input_focus_out()
 
     def on_handle_combined_input_enter(self, event):
-        """Handle Enter key in combined input - check if it's a command or newline."""
+        """Handle Enter key in combined input - Enter sends to AI, $ prefix executes shell commands."""
         if not hasattr(self, 'chat_input'):
             return None
         
         text = self.chat_input.get('1.0', 'end').strip()
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
         
         # Ignore placeholder text
         if not text or text == placeholder:
             return "break"  # Prevent default Enter behavior
         
-        # If Ctrl is pressed, always allow newline (user wants multi-line)
-        if event.state & 0x4:  # Ctrl pressed
+        # Check if Shift is pressed - allow newline for multi-line messages
+        if event.state & 0x1:  # Shift pressed
             return None  # Allow default Enter behavior (newline)
         
-        # Check if it's a single-line command
-        # If it starts with $, it's definitely a command
-        # If it's a single line (no newlines), treat as command
-        has_newlines = '\n' in text
-        starts_with_dollar = text.startswith('$')
+        # Check if it's a shell command (starts with $)
+        starts_with_dollar = text.strip().startswith('$')
         
-        if starts_with_dollar or (not has_newlines and len(text) > 0):
-            # Treat as command - execute it
-            self.on_handle_combined_input(chat_mode=False)
+        if starts_with_dollar:
+            # Execute as shell command
+            command = text.strip()[1:].strip()  # Remove $ prefix
+            if command:
+                self.after(0, lambda: self._execute_shell_command(command))
+                self.chat_input.delete('1.0', 'end')
+                self.on_input_focus_out()
             return "break"  # Prevent default Enter behavior
         
-        # Otherwise, allow Enter to create a newline (default behavior for multi-line messages)
-        return None
+        # Enter without Shift - send to AI (single or multi-line)
+        self.on_handle_combined_input(chat_mode=True)
+        return "break"  # Prevent default Enter behavior
+    
+    def _execute_shell_command(self, command: str):
+        """Execute a shell command and display result in chat."""
+        if not command:
+            return
+        
+        cwd = os.path.expanduser(self.cwd_var.get().strip() if hasattr(self, 'cwd_var') else os.getcwd())
+        result = run_bash_command(command, cwd=cwd)
+        
+        # Store command and result in chat
+        output_parts = []
+        if result.stdout:
+            output_parts.append(f"STDOUT:\n{result.stdout}")
+        if result.stderr:
+            output_parts.append(f"STDERR:\n{result.stderr}")
+        if not output_parts:
+            output_parts.append("(no output)")
+        
+        output_parts.append(f"\nExit code: {result.returncode}")
+        output = "\n".join(output_parts)
+        
+        # Store in chat
+        self._store_chat_message('System', 'system', f"Command: {command}\n{output}", kind='terminal')
+        self.refresh_chat_history()
 
 
 # ---------- Integrations Tab ----------
@@ -3548,16 +3860,136 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to save credentials: {e}")
         
+        # Add device code authentication button for delegated permissions
+        def authenticate_delegated():
+            """Start device code authentication flow for delegated permissions."""
+            tenant = tenant_var.get().strip()
+            client_id = client_id_var.get().strip()
+            
+            if not tenant or not client_id:
+                messagebox.showerror("Error", "Please enter Tenant ID and Client ID first.")
+                return
+            
+            try:
+                from .integrations.msgraph.auth import GraphCredentials, GraphDelegatedAuth
+                credentials = GraphCredentials(tenant_id=tenant, client_id=client_id, client_secret="")
+                delegated_auth = GraphDelegatedAuth(credentials, conn=self.conn)
+                
+                # Show device code in a new dialog
+                device_dialog = tk.Toplevel(dialog)
+                device_dialog.title("Microsoft Graph Authentication")
+                device_dialog.geometry("600x400")
+                device_dialog.transient(dialog)
+                
+                if TTKBOOTSTRAP_AVAILABLE:
+                    device_frame = ttkb.Frame(device_dialog, padding=20)
+                else:
+                    device_frame = ttk.Frame(device_dialog, padding=20)
+                device_frame.pack(fill="both", expand=True)
+                
+                status_label = ttk.Label(device_frame, text="Starting authentication...", justify="center")
+                status_label.pack(pady=20)
+                
+                code_label = ttk.Label(device_frame, text="", font=("Courier", 16, "bold"), justify="center")
+                code_label.pack(pady=10)
+                
+                url_label = ttk.Label(device_frame, text="", justify="center", foreground="blue", cursor="hand2")
+                url_label.pack(pady=10)
+                
+                instructions_label = ttk.Label(
+                    device_frame,
+                    text="",
+                    justify="center",
+                    wraplength=500
+                )
+                instructions_label.pack(pady=20, fill="x")
+                
+                def start_auth():
+                    try:
+                        device_data = delegated_auth.get_device_code()
+                        user_code = device_data["user_code"]
+                        verification_url = device_data["verification_uri"]
+                        expires_in = device_data.get("expires_in", 900)
+                        
+                        status_label.config(text="Waiting for you to sign in...")
+                        code_label.config(text=user_code)
+                        url_label.config(text=verification_url)
+                        url_label.bind("<Button-1>", lambda e: __import__("webbrowser").open(verification_url))
+                        
+                        instructions_label.config(
+                            text=f"1. Visit the URL above (or click it)\n"
+                                 f"2. Enter the code: {user_code}\n"
+                                 f"3. Sign in and grant permissions\n"
+                                 f"4. This dialog will close automatically when complete\n\n"
+                                 f"Timeout in {expires_in} seconds"
+                        )
+                        
+                        # Poll for token in background
+                        import threading
+                        def poll_token():
+                            try:
+                                interval = device_data.get("interval", 5)
+                                access_token = delegated_auth.poll_for_token(
+                                    device_data["device_code"],
+                                    interval=interval,
+                                    timeout=expires_in
+                                )
+                                device_dialog.after(0, lambda: (
+                                    status_label.config(text="✅ Authentication successful!"),
+                                    code_label.config(text=""),
+                                    url_label.config(text=""),
+                                    instructions_label.config(text="You can now close this window."),
+                                    dialog.after(1000, dialog.destroy),
+                                    device_dialog.after(2000, device_dialog.destroy),
+                                    self.refresh_integrations_list()
+                                ))
+                            except Exception as e:
+                                device_dialog.after(0, lambda: (
+                                    status_label.config(text=f"❌ Authentication failed"),
+                                    instructions_label.config(text=f"Error: {str(e)}\n\nPlease try again.")
+                                ))
+                        
+                        thread = threading.Thread(target=poll_token, daemon=True)
+                        thread.start()
+                    except Exception as e:
+                        status_label.config(text=f"❌ Error: {str(e)}")
+                
+                start_auth()
+                
+                if TTKBOOTSTRAP_AVAILABLE:
+                    close_btn = ttkb.Button(device_frame, text="Close", command=device_dialog.destroy, bootstyle="secondary")
+                else:
+                    close_btn = ttk.Button(device_frame, text="Close", command=device_dialog.destroy)
+                close_btn.pack(pady=10)
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to start authentication: {e}")
+        
+        # Add separator and info about delegated auth
+        separator = ttk.Separator(frame, orient="horizontal")
+        separator.pack(fill="x", pady=20)
+        
+        info_label = ttk.Label(
+            frame,
+            text="For Excel, Word, and OneNote (accessing /me/ endpoints), you also need to authenticate with delegated permissions:",
+            justify="left",
+            wraplength=450
+        )
+        info_label.pack(pady=10, fill="x")
+        
         if TTKBOOTSTRAP_AVAILABLE:
             save_btn = ttkb.Button(frame, text="Save Credentials", command=save_credentials, bootstyle="success")
+            auth_btn = ttkb.Button(frame, text="🔐 Authenticate (Device Code)", command=authenticate_delegated, bootstyle="info")
             cancel_btn = ttkb.Button(frame, text="Cancel", command=dialog.destroy, bootstyle="secondary")
         else:
             save_btn = ttk.Button(frame, text="Save Credentials", command=save_credentials)
+            auth_btn = ttk.Button(frame, text="Authenticate (Device Code)", command=authenticate_delegated)
             cancel_btn = ttk.Button(frame, text="Cancel", command=dialog.destroy)
         
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=20)
         save_btn.pack(side="left", padx=5)
+        auth_btn.pack(side="left", padx=5)
         cancel_btn.pack(side="left", padx=5)
     
     def _show_notes_config_dialog(self, dialog, frame):
@@ -4028,7 +4460,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             try:
                 # Pass connection to GraphClient so it can load credentials from database
                 from .integrations.msgraph.client import GraphClient
-                graph_client = GraphClient(conn=self.conn)
+                # Use delegated auth for /me/ endpoints
+                graph_client = GraphClient(conn=self.conn, use_delegated=True)
                 client = OneNoteClient(graph_client)
                 notebooks = client.list_notebooks()
                 
@@ -4092,8 +4525,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             try:
                 # Pass connection to GraphClient so it can load credentials from database
                 from .integrations.msgraph.client import GraphClient
-                graph_client = GraphClient(conn=self.conn)
-                client = ExcelCloudClient(graph_client)
+                from .integrations.excel.cloud_client import ExcelCloudClient
+                # Use delegated auth for /me/ endpoints
+                graph_client = GraphClient(conn=self.conn, use_delegated=True)
+                client = ExcelCloudClient(graph=graph_client, conn=self.conn)
                 items = client.list_workbooks()
                 
                 # Filter for Excel files
@@ -4139,8 +4574,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             try:
                 # Pass connection to GraphClient so it can load credentials from database
                 from .integrations.msgraph.client import GraphClient
-                graph_client = GraphClient(conn=self.conn)
-                client = ExcelCloudClient(graph_client)  # Reuse ExcelCloudClient for OneDrive access
+                from .integrations.excel.cloud_client import ExcelCloudClient
+                # Use delegated auth for /me/ endpoints
+                graph_client = GraphClient(conn=self.conn, use_delegated=True)
+                client = ExcelCloudClient(graph=graph_client, conn=self.conn)  # Reuse ExcelCloudClient for OneDrive access
                 items = client.list_workbooks()  # This lists all OneDrive files
                 
                 # Filter for Word files
@@ -4207,8 +4644,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             try:
                 # Pass connection to GraphClient so it can load credentials from database
                 from .integrations.msgraph.client import GraphClient
-                graph_client = GraphClient(conn=self.conn)
-                client = ExcelCloudClient(graph_client)  # Reuse ExcelCloudClient for OneDrive access
+                from .integrations.excel.cloud_client import ExcelCloudClient
+                # Use delegated auth for /me/ endpoints
+                graph_client = GraphClient(conn=self.conn, use_delegated=True)
+                client = ExcelCloudClient(graph=graph_client, conn=self.conn)  # Reuse ExcelCloudClient for OneDrive access
                 items = client.list_workbooks()  # This lists all OneDrive files
                 
                 # Filter for PDF files

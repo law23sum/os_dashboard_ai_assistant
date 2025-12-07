@@ -355,6 +355,235 @@ class GraphAuth:
         return response.json()["access_token"]
 
 
+class GraphDelegatedAuth:
+    """Acquire tokens for Microsoft Graph APIs using delegated permissions (user sign-in)."""
+    
+    def __init__(self, credentials: GraphCredentials, conn=None, scopes: list = None):
+        """
+        Initialize delegated authentication.
+        
+        Args:
+            credentials: GraphCredentials with client_id and tenant_id
+            conn: Optional database connection to store/load refresh tokens
+            scopes: List of scopes to request (default: Notes.ReadWrite, Files.ReadWrite.All, User.Read)
+        """
+        self.credentials = credentials
+        self.conn = conn
+        self.scopes = scopes or [
+            "https://graph.microsoft.com/Notes.ReadWrite",
+            "https://graph.microsoft.com/Files.ReadWrite.All",
+            "https://graph.microsoft.com/User.Read",
+        ]
+        self.scope_string = " ".join(self.scopes)
+        self._access_token = None
+        self._refresh_token = None
+        self._load_refresh_token()
+    
+    def _load_refresh_token(self):
+        """Load refresh token from database if available."""
+        if self.conn:
+            try:
+                from ...db import get_meta
+                self._refresh_token = get_meta(self.conn, "azure.delegated_refresh_token")
+            except Exception:
+                self._refresh_token = None
+    
+    def _save_refresh_token(self, refresh_token: str):
+        """Save refresh token to database."""
+        if self.conn:
+            try:
+                from ...db import set_meta
+                set_meta(self.conn, "azure.delegated_refresh_token", refresh_token)
+                self._refresh_token = refresh_token
+            except Exception:
+                pass
+    
+    def _clear_refresh_token(self):
+        """Clear refresh token from database."""
+        if self.conn:
+            try:
+                from ...db import set_meta
+                set_meta(self.conn, "azure.delegated_refresh_token", "")
+                self._refresh_token = None
+            except Exception:
+                pass
+    
+    def get_device_code(self) -> Dict[str, str]:
+        """
+        Initiate device code flow. Returns device_code and user_code.
+        User should visit the verification_url and enter the user_code.
+        """
+        tenant_lower = self.credentials.tenant_id.lower()
+        if tenant_lower in ["consumers", "common", "organizations"]:
+            device_code_url = f"https://login.microsoftonline.com/{tenant_lower}/oauth2/v2.0/devicecode"
+        else:
+            device_code_url = f"https://login.microsoftonline.com/{self.credentials.tenant_id}/oauth2/v2.0/devicecode"
+        
+        form_data = {
+            "client_id": self.credentials.client_id,
+            "scope": self.scope_string,
+        }
+        
+        response = requests.post(
+            device_code_url,
+            data=form_data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=10,
+        )
+        response.raise_for_status()
+        return response.json()
+    
+    def poll_for_token(self, device_code: str, interval: int = 5, timeout: int = 300) -> str:
+        """
+        Poll for access token using device code.
+        
+        Args:
+            device_code: Device code from get_device_code()
+            interval: Polling interval in seconds
+            timeout: Maximum time to wait in seconds
+        
+        Returns:
+            Access token string
+        """
+        import time
+        
+        tenant_lower = self.credentials.tenant_id.lower()
+        if tenant_lower in ["consumers", "common", "organizations"]:
+            token_url = f"https://login.microsoftonline.com/{tenant_lower}/oauth2/v2.0/token"
+        else:
+            token_url = f"https://login.microsoftonline.com/{self.credentials.tenant_id}/oauth2/v2.0/token"
+        
+        form_data = {
+            "client_id": self.credentials.client_id,
+            "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+            "device_code": device_code,
+        }
+        
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            response = requests.post(
+                token_url,
+                data=form_data,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                timeout=10,
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                access_token = data["access_token"]
+                refresh_token = data.get("refresh_token")
+                if refresh_token:
+                    self._save_refresh_token(refresh_token)
+                self._access_token = access_token
+                return access_token
+            elif response.status_code == 400:
+                error_data = response.json()
+                error = error_data.get("error", "")
+                if error == "authorization_pending":
+                    # User hasn't completed sign-in yet, keep polling
+                    time.sleep(interval)
+                    continue
+                elif error == "slow_down":
+                    # Rate limited, wait longer
+                    time.sleep(interval + 5)
+                    continue
+                elif error == "expired_token":
+                    raise AuthenticationError("Device code expired. Please start authentication again.")
+                elif error == "access_denied":
+                    raise AuthenticationError("User denied access. Please try again and grant permissions.")
+                else:
+                    raise AuthenticationError(f"Authentication failed: {error_data.get('error_description', error)}")
+            else:
+                response.raise_for_status()
+        
+        raise AuthenticationError("Authentication timeout. Please try again.")
+    
+    def get_token(self) -> str:
+        """
+        Get access token. Uses refresh token if available, otherwise requires new authentication.
+        """
+        # If we have a cached access token, return it (in production, check expiry)
+        if self._access_token:
+            return self._access_token
+        
+        # Try to refresh using stored refresh token
+        if self._refresh_token:
+            try:
+                return self._refresh_access_token()
+            except Exception:
+                # Refresh failed, clear token and require new auth
+                self._clear_refresh_token()
+        
+        raise AuthenticationError(
+            "No valid access token. Please authenticate using device code flow.\n"
+            "Call get_device_code() and poll_for_token() to authenticate."
+        )
+    
+    def _refresh_access_token(self) -> str:
+        """Refresh access token using refresh token."""
+        tenant_lower = self.credentials.tenant_id.lower()
+        if tenant_lower in ["consumers", "common", "organizations"]:
+            token_url = f"https://login.microsoftonline.com/{tenant_lower}/oauth2/v2.0/token"
+        else:
+            token_url = f"https://login.microsoftonline.com/{self.credentials.tenant_id}/oauth2/v2.0/token"
+        
+        form_data = {
+            "client_id": self.credentials.client_id,
+            "grant_type": "refresh_token",
+            "refresh_token": self._refresh_token,
+            "scope": self.scope_string,
+        }
+        
+        response = requests.post(
+            token_url,
+            data=form_data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=10,
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            access_token = data["access_token"]
+            refresh_token = data.get("refresh_token")
+            if refresh_token:
+                self._save_refresh_token(refresh_token)
+            self._access_token = access_token
+            return access_token
+        else:
+            # Refresh token expired or invalid
+            self._clear_refresh_token()
+            raise AuthenticationError("Refresh token expired. Please authenticate again.")
+    
+    def authenticate_interactive(self) -> str:
+        """
+        Interactive authentication using device code flow.
+        Prints instructions and polls for token.
+        """
+        print("\n🔐 Starting Microsoft Graph authentication...")
+        print("=" * 60)
+        
+        # Get device code
+        device_data = self.get_device_code()
+        user_code = device_data["user_code"]
+        verification_url = device_data["verification_uri"]
+        expires_in = device_data.get("expires_in", 900)
+        interval = device_data.get("interval", 5)
+        
+        print(f"\n📱 Please visit: {verification_url}")
+        print(f"🔑 Enter this code: {user_code}")
+        print(f"\n⏳ Waiting for you to sign in... (this will timeout in {expires_in} seconds)")
+        print("=" * 60)
+        
+        # Poll for token
+        try:
+            access_token = self.poll_for_token(device_data["device_code"], interval=interval, timeout=expires_in)
+            print("\n✅ Authentication successful!")
+            return access_token
+        except AuthenticationError as e:
+            print(f"\n❌ Authentication failed: {e}")
+            raise
+
+
 # Backwards compatibility functions
 def load_credentials_from_env() -> GraphCredentials:
     """Load Graph credentials from environment variables (backwards compatibility)."""

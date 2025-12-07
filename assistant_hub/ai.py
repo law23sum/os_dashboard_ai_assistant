@@ -22,17 +22,17 @@ from .db import ChatMessage, CHAT_ROLES, PERSONAS
 from .terminal import run_bash_command
 
 # Model assignments per agent
-# Note: o1-preview requires special handling (no system messages, different API)
+# Note: o1 models require special handling (no system messages, different API)
 AGENT_MODELS = {
     "Sora": "gpt-4o",  # Using gpt-4o (closest to "5.1" - latest GPT-4)
     "Aria": "gpt-4o",
-    "AIC": "o1-preview",  # Using o1-preview for "5.1 Thinking" - reasoning model
+    "AIC": "o1-mini",  # Using o1-mini for reasoning model (latest stable o1)
     "Chris": "gpt-4o-mini",  # Default for human user
 }
 
 # Fallback models if primary model unavailable
 AGENT_MODEL_FALLBACKS = {
-    "AIC": "gpt-4o",  # Fallback if o1-preview unavailable
+    "AIC": "gpt-4o",  # Fallback if o1-mini unavailable
 }
 
 DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-4o-mini")
@@ -41,7 +41,9 @@ DEFAULT_SYSTEM_PROMPT = os.getenv(
     "You are a cooperative team of AI agents (Aria, AIC, Sora) tasked with helping Chris manage"
     " priorities, code, and research. Explain your thinking clearly, cite concrete next steps,"
     " and keep answers concise and actionable. You have access to a shell terminal and can execute"
-    " commands when needed. Use the execute_command function to run shell commands.",
+    " commands when needed. You can also read files directly using the read_file function, or use"
+    " execute_command to run shell commands. Files in the current working directory (browse directory)"
+    " are accessible to you.",
 )
 
 _client: Optional[OpenAI] = None
@@ -107,8 +109,31 @@ def get_agent_model(persona: str) -> str:
 
 
 def get_shell_functions(cwd: str = None) -> List[Dict]:
-    """Return function definitions for shell command execution."""
+    """Return function definitions for shell command execution and file operations."""
+    base_dir = cwd or os.getcwd()
     return [
+        {
+            "type": "function",
+            "function": {
+                "name": "read_file",
+                "description": "Read the contents of a file. Use this to read text files, code files, configuration files, etc. from the current working directory or absolute paths. For binary files, use execute_command with appropriate tools.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the file to read. Can be relative to the working directory or an absolute path."
+                        },
+                        "max_lines": {
+                            "type": "integer",
+                            "description": "Maximum number of lines to read (default: 1000). Use this to limit output for large files.",
+                            "default": 1000
+                        }
+                    },
+                    "required": ["file_path"]
+                }
+            }
+        },
         {
             "type": "function",
             "function": {
@@ -123,8 +148,8 @@ def get_shell_functions(cwd: str = None) -> List[Dict]:
                         },
                         "working_directory": {
                             "type": "string",
-                            "description": f"Working directory for the command (default: {cwd or os.getcwd()})",
-                            "default": cwd or os.getcwd()
+                            "description": f"Working directory for the command (default: {base_dir})",
+                            "default": base_dir
                         }
                     },
                     "required": ["command"]
@@ -215,9 +240,81 @@ def generate_ai_reply(
 
 
 def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
-    """Execute a tool call (shell command) and return the result."""
-    if tool_call.function.name == "execute_command":
-        import json
+    """Execute a tool call (shell command or file operation) and return the result."""
+    import json
+    
+    if tool_call.function.name == "read_file":
+        try:
+            args = json.loads(tool_call.function.arguments)
+            file_path = args.get("file_path", "")
+            max_lines = args.get("max_lines", 1000)
+            
+            if not file_path:
+                return {
+                    "tool_call_id": tool_call.id,
+                    "role": "tool",
+                    "name": "read_file",
+                    "content": "Error: No file path provided"
+                }
+            
+            # Resolve path relative to cwd if not absolute
+            work_dir = cwd or os.getcwd()
+            if not os.path.isabs(file_path):
+                file_path = os.path.join(work_dir, file_path)
+            
+            file_path = os.path.normpath(os.path.expanduser(file_path))
+            
+            if not os.path.exists(file_path):
+                return {
+                    "tool_call_id": tool_call.id,
+                    "role": "tool",
+                    "name": "read_file",
+                    "content": f"Error: File not found: {file_path}"
+                }
+            
+            if not os.path.isfile(file_path):
+                return {
+                    "tool_call_id": tool_call.id,
+                    "role": "tool",
+                    "name": "read_file",
+                    "content": f"Error: Path is not a file: {file_path}"
+                }
+            
+            # Try to read as text
+            try:
+                with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                    lines = f.readlines()
+                    total_lines = len(lines)
+                    
+                    if total_lines > max_lines:
+                        content = ''.join(lines[:max_lines])
+                        content += f"\n\n[File truncated: showing first {max_lines} of {total_lines} total lines]"
+                    else:
+                        content = ''.join(lines)
+                    
+                    return {
+                        "tool_call_id": tool_call.id,
+                        "role": "tool",
+                        "name": "read_file",
+                        "content": f"File: {file_path}\nTotal lines: {total_lines}\n\n{content}"
+                    }
+            except UnicodeDecodeError:
+                # Binary file - suggest using execute_command with appropriate tool
+                return {
+                    "tool_call_id": tool_call.id,
+                    "role": "tool",
+                    "name": "read_file",
+                    "content": f"Error: File appears to be binary or not text-encoded: {file_path}. Use execute_command with appropriate tools (e.g., 'file', 'hexdump', 'strings') to inspect binary files."
+                }
+        except Exception as e:
+            return {
+                "tool_call_id": tool_call.id,
+                "role": "tool",
+                "name": "read_file",
+                "content": f"Error reading file: {str(e)}"
+            }
+    
+    elif tool_call.function.name == "execute_command":
         try:
             args = json.loads(tool_call.function.arguments)
             command = args.get("command", "")
