@@ -69,6 +69,7 @@ from .integrations import (
     WordIntegration,
     ExcelIntegration,
     OneNoteIntegration,
+    OneDriveIntegration,
     FilesystemIntegration,
     GitIntegration,
     PDFIntegration,
@@ -2232,14 +2233,18 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             return "PDF preview not available"
         
         try:
-            if os.path.exists(file_path):
-                # Try to use PDF integration
-                pdf_integration = PDFIntegration(self.conn)
+            if not os.path.exists(file_path):
+                return f"File not found: {file_path}"
+            
+            # Try to use PDF integration to extract text
+            pdf_integration = PDFIntegration(self.conn)
+            if hasattr(pdf_integration, 'extract_text'):
                 content = pdf_integration.extract_text(file_path)
-                if content:
+                if content and content.strip():
                     return content[:50000]  # Limit preview size
-                return "PDF loaded (text extraction not available)"
-            return f"File not found: {file_path}"
+                return "PDF loaded but text extraction returned no content. PDF libraries may not be installed (PyPDF2 or pdfplumber)."
+            else:
+                return "PDF preview not available (extract_text method not found)"
         except Exception as e:
             return f"Error loading PDF: {str(e)}"
 
@@ -2961,6 +2966,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             "Word": WordIntegration(self.conn),
             "Excel": ExcelIntegration(self.conn),
             "OneNote": OneNoteIntegration(self.conn),
+            "OneDrive": OneDriveIntegration(self.conn),
             "Local Files": FilesystemIntegration(self.conn),
             "Git": GitIntegration(self.conn),
             "PDF": PDFIntegration(self.conn),
@@ -3264,22 +3270,26 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         )
         instructions.pack(pady=10, fill="x")
         
+        # Load existing credentials from database to pre-populate fields
+        from .db import load_azure_credentials
+        existing_creds = load_azure_credentials(self.conn)
+        
         tenant_frame = ttk.Frame(frame)
         tenant_frame.pack(fill="x", pady=5)
         ttk.Label(tenant_frame, text="Tenant ID:").pack(anchor="w")
-        tenant_var = tk.StringVar()
+        tenant_var = tk.StringVar(value=existing_creds.get("tenant_id", "") if existing_creds else "")
         ttk.Entry(tenant_frame, textvariable=tenant_var, width=50).pack(fill="x", pady=(5, 0))
         
         client_id_frame = ttk.Frame(frame)
         client_id_frame.pack(fill="x", pady=5)
         ttk.Label(client_id_frame, text="Client ID:").pack(anchor="w")
-        client_id_var = tk.StringVar()
+        client_id_var = tk.StringVar(value=existing_creds.get("client_id", "") if existing_creds else "")
         ttk.Entry(client_id_frame, textvariable=client_id_var, width=50).pack(fill="x", pady=(5, 0))
         
         secret_frame = ttk.Frame(frame)
         secret_frame.pack(fill="x", pady=5)
         ttk.Label(secret_frame, text="Client Secret:").pack(anchor="w")
-        secret_var = tk.StringVar()
+        secret_var = tk.StringVar(value=existing_creds.get("client_secret", "") if existing_creds else "")
         ttk.Entry(secret_frame, textvariable=secret_var, width=50, show="*").pack(fill="x", pady=(5, 0))
         
         def save_credentials():
@@ -3291,23 +3301,28 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 messagebox.showerror("Error", "Please fill in all fields.")
                 return
             
-            # Save to environment variables
-            import os
-            os.environ["AZURE_TENANT_ID"] = tenant
-            os.environ["AZURE_CLIENT_ID"] = client_id
-            os.environ["AZURE_CLIENT_SECRET"] = secret
-            
-            # Also save to config file for persistence
-            config_dir = os.path.expanduser("~/.assistant_hub")
-            os.makedirs(config_dir, exist_ok=True)
-            config_file = os.path.join(config_dir, "azure_config.txt")
-            
+            # Save to database (primary storage)
             try:
+                from .db import save_azure_credentials
+                save_azure_credentials(self.conn, tenant, client_id, secret)
+                
+                # Also save to environment variables for current session
+                import os
+                os.environ["AZURE_TENANT_ID"] = tenant
+                os.environ["AZURE_CLIENT_ID"] = client_id
+                os.environ["AZURE_CLIENT_SECRET"] = secret
+                
+                # Also save to config file for backup/compatibility
+                config_dir = os.path.expanduser("~/.assistant_hub")
+                os.makedirs(config_dir, exist_ok=True)
+                config_file = os.path.join(config_dir, "azure_config.txt")
+                
                 with open(config_file, "w") as f:
                     f.write(f"AZURE_TENANT_ID={tenant}\n")
                     f.write(f"AZURE_CLIENT_ID={client_id}\n")
                     f.write(f"AZURE_CLIENT_SECRET={secret}\n")
-                messagebox.showinfo("Success", "Microsoft Graph credentials saved!")
+                
+                messagebox.showinfo("Success", "Microsoft Graph credentials saved to database!")
                 dialog.destroy()
                 self.refresh_integrations_list()
             except Exception as e:
@@ -3853,15 +3868,39 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 self.onenote_status_var.set("❌ OneNote client not available. Check Microsoft Graph configuration.")
                 return
             
+            # Check if credentials are configured
+            from .integrations import GraphCredentials
+            try:
+                creds = GraphCredentials.from_env()
+                if not creds.tenant_id or not creds.client_id or not creds.client_secret:
+                    self.onenote_status_var.set("❌ Not authenticated. Configure Microsoft Graph credentials in Settings > Integrations.")
+                    messagebox.showwarning(
+                        "Not Authenticated",
+                        "Microsoft Graph credentials are not configured.\n\n"
+                        "Please go to:\n"
+                        "1. Settings tab > Integrations\n"
+                        "2. Click 'Configure' next to OneNote\n"
+                        "3. Enter your Azure credentials\n\n"
+                        "Or run: python get_azure_credentials.py"
+                    )
+                    return
+            except Exception as e:
+                self.onenote_status_var.set("❌ Credentials error. Check Microsoft Graph configuration.")
+                messagebox.showwarning("Credentials Error", f"Failed to load credentials: {e}")
+                return
+            
             self.onenote_status_var.set("🔄 Loading notebooks...")
             self.update()
             
             try:
-                client = OneNoteClient()
+                # Pass connection to GraphClient so it can load credentials from database
+                from .integrations.msgraph.client import GraphClient
+                graph_client = GraphClient(conn=self.conn)
+                client = OneNoteClient(graph_client)
                 notebooks = client.list_notebooks()
                 
                 if not notebooks:
-                    self.onenote_status_var.set("ℹ️ No notebooks found or not authenticated. Check Microsoft Graph credentials.")
+                    self.onenote_status_var.set("ℹ️ No notebooks found. You may not have any OneNote notebooks.")
                     return
                 
                 for nb in notebooks:
@@ -3875,11 +3914,33 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 
                 self.onenote_status_var.set(f"✅ Loaded {len(notebooks)} notebook(s)")
             except Exception as e:
-                self.onenote_status_var.set(f"❌ Error: {str(e)}")
-                messagebox.showerror("Error", f"Failed to load OneNote notebooks: {e}")
+                error_msg = str(e)
+                # Check for specific authentication errors
+                if "401" in error_msg or "Unauthorized" in error_msg or "Authentication" in error_msg:
+                    self.onenote_status_var.set("❌ Authentication failed. Check Microsoft Graph credentials.")
+                    messagebox.showerror(
+                        "Authentication Failed",
+                        f"Failed to authenticate with Microsoft Graph:\n\n{error_msg}\n\n"
+                        "Possible causes:\n"
+                        "1. Invalid or expired client secret\n"
+                        "2. Wrong tenant ID, client ID, or client secret\n"
+                        "3. Missing required permissions (Notes.ReadWrite)\n\n"
+                        "Go to Settings > Integrations to reconfigure credentials."
+                    )
+                elif "credentials" in error_msg.lower():
+                    self.onenote_status_var.set("❌ Credentials not configured. Set up Microsoft Graph in Settings.")
+                    messagebox.showwarning(
+                        "Not Configured",
+                        "Microsoft Graph credentials are not configured.\n\n"
+                        "Go to Settings > Integrations to configure."
+                    )
+                else:
+                    self.onenote_status_var.set(f"❌ Error: {error_msg[:50]}")
+                    messagebox.showerror("Error", f"Failed to load OneNote notebooks:\n\n{error_msg}")
         except Exception as e:
-            self.onenote_status_var.set(f"❌ Error: {str(e)}")
-            messagebox.showerror("Error", f"Failed to refresh notebooks: {e}")
+            error_msg = str(e)
+            self.onenote_status_var.set(f"❌ Error: {error_msg[:50]}")
+            messagebox.showerror("Error", f"Failed to refresh notebooks:\n\n{error_msg}")
     
     def refresh_excel_workbooks(self):
         """Refresh the list of Excel workbooks from OneDrive."""
@@ -3896,7 +3957,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.update()
             
             try:
-                client = ExcelCloudClient()
+                # Pass connection to GraphClient so it can load credentials from database
+                from .integrations.msgraph.client import GraphClient
+                graph_client = GraphClient(conn=self.conn)
+                client = ExcelCloudClient(graph_client)
                 items = client.list_workbooks()
                 
                 # Filter for Excel files

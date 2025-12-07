@@ -268,6 +268,36 @@ def init_db() -> sqlite3.Connection:
         )
     """)
 
+    # Create comments table for tasks and projects
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            entity_type TEXT NOT NULL,
+            entity_id TEXT NOT NULL,
+            author TEXT NOT NULL,
+            content TEXT NOT NULL,
+            mentions TEXT,
+            created_at TEXT NOT NULL
+        )
+    """)
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_comments_entity 
+        ON comments(entity_type, entity_id)
+    """)
+
+    # Create document_templates table
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS document_templates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            category TEXT NOT NULL,
+            content TEXT NOT NULL,
+            description TEXT,
+            placeholders TEXT,
+            created_at TEXT NOT NULL
+        )
+    """)
+
     conn.commit()
     return conn
 
@@ -555,6 +585,36 @@ def db_insert_chat_message(conn: sqlite3.Connection, msg: ChatMessage) -> int:
 def db_clear_chat_history(conn: sqlite3.Connection):
     c = conn.cursor()
     c.execute("DELETE FROM chat_messages")
+    conn.commit()
+
+
+# Azure/Microsoft Graph credentials storage
+def save_azure_credentials(conn: sqlite3.Connection, tenant_id: str, client_id: str, client_secret: str):
+    """Save Azure credentials to the database."""
+    set_meta(conn, "azure.tenant_id", tenant_id)
+    set_meta(conn, "azure.client_id", client_id)
+    set_meta(conn, "azure.client_secret", client_secret)
+
+
+def load_azure_credentials(conn: sqlite3.Connection) -> Optional[Dict[str, str]]:
+    """Load Azure credentials from the database. Returns dict with tenant_id, client_id, client_secret or None."""
+    tenant_id = get_meta(conn, "azure.tenant_id")
+    client_id = get_meta(conn, "azure.client_id")
+    client_secret = get_meta(conn, "azure.client_secret")
+    
+    if tenant_id and client_id and client_secret:
+        return {
+            "tenant_id": tenant_id,
+            "client_id": client_id,
+            "client_secret": client_secret,
+        }
+    return None
+
+
+def delete_azure_credentials(conn: sqlite3.Connection):
+    """Delete Azure credentials from the database."""
+    c = conn.cursor()
+    c.execute("DELETE FROM state_meta WHERE key IN ('azure.tenant_id', 'azure.client_id', 'azure.client_secret')")
     conn.commit()
 
 

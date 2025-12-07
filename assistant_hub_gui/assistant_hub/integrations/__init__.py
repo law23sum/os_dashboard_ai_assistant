@@ -18,6 +18,7 @@ from .word import CloudWordClient, LocalDocument, WordService, draft_local_revis
 from .word_integration import WordIntegration
 from .excel_integration import ExcelIntegration
 from .onenote_integration import OneNoteIntegration
+from .onedrive_integration import OneDriveIntegration
 from .filesystem_integration import FilesystemIntegration
 from .git_integration import GitIntegration
 from .pdf_integration import PDFIntegration
@@ -32,6 +33,7 @@ __all__ = [
     "WordIntegration",
     "ExcelIntegration",
     "OneNoteIntegration",
+    "OneDriveIntegration",
     "FilesystemIntegration",
     "GitIntegration",
     "PDFIntegration",
