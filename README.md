@@ -18,6 +18,8 @@ Example commands after installation:
 - `osdash excel workbooks` – show Graph stub workbook metadata.
 - `osdash excel summarize-local <path>` – summarize a local Excel workbook (pandas required).
 - `osdash word summarize-local <path>` – summarize a local Word document.
+- `osdash software defaults` – check where git, Word, Excel, and PDF viewers are installed.
+- `osdash software locate <name>` – look up a specific executable and optional aliases.
 - `osdash chat <agent> <message>` – send a message to one of the scaffolded agents (aic, aria, sora).
 - `osdash workflow-clean-notebook <path>` – run the example notebook cleaning workflow prompt.
 
@@ -29,7 +31,7 @@ Example commands after installation:
 - `assistant_hub/integrations/` – stub clients/services for Graph, OneNote, Excel, Word, and filesystem helpers.
 - `assistant_hub/versioning/` – simple git helpers plus a background commit queue stub.
 - `assistant_hub/ui/terminal/cli.py` – `osdash` Click-based entry point exposing demo commands.
-- `assistant_hub/ui/gui/app.py` – temporary GUI shim that invokes the CLI.
+- `assistant_hub/ui/gui/app.py` – lightweight GUI for locating installed software.
 - `assistant_hub/data/state.json` – default JSON state used by the CLI.
 
 Use this baseline to plug in real API calls, prompt orchestration, and richer state handling.
