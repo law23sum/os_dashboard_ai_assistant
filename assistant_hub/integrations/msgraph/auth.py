@@ -1,21 +1,60 @@
-"""Placeholder authentication for Microsoft Graph."""
+"""Authentication helpers for Microsoft Graph integrations."""
+
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
-from typing import Optional
+from typing import Dict
+
+import requests
 
 
 @dataclass
-class GraphToken:
-    access_token: str
-    token_type: str = "Bearer"
+class GraphCredentials:
+    tenant_id: str
+    client_id: str
+    client_secret: str
+
+    @classmethod
+    def from_env(cls) -> "GraphCredentials":
+        return cls(
+            tenant_id=os.environ.get("AZURE_TENANT_ID", ""),
+            client_id=os.environ.get("AZURE_CLIENT_ID", ""),
+            client_secret=os.environ.get("AZURE_CLIENT_SECRET", ""),
+        )
 
 
-class GraphAuthenticator:
-    def __init__(self, tenant_id: Optional[str], client_id: Optional[str], client_secret: Optional[str]):
-        self.tenant_id = tenant_id
-        self.client_id = client_id
-        self.client_secret = client_secret
+class GraphAuth:
+    """Acquire tokens for Microsoft Graph APIs using client credentials."""
 
-    def get_token(self) -> GraphToken:
-        return GraphToken(access_token="fake-token")
+    scope: str = "https://graph.microsoft.com/.default"
+
+    def __init__(self, credentials: GraphCredentials):
+        self.credentials = credentials
+
+    def get_token(self) -> str:
+        token_url = f"https://login.microsoftonline.com/{self.credentials.tenant_id}/oauth2/v2.0/token"
+        response = requests.post(
+            token_url,
+            data={
+                "client_id": self.credentials.client_id,
+                "client_secret": self.credentials.client_secret,
+                "scope": self.scope,
+                "grant_type": "client_credentials",
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+        return response.json()["access_token"]
+
+
+# Backwards compatibility functions
+def load_credentials_from_env() -> GraphCredentials:
+    """Load Graph credentials from environment variables (backwards compatibility)."""
+    return GraphCredentials.from_env()
+
+
+def request_access_token(credentials: GraphCredentials) -> str:
+    """Request a bearer token using the client credentials flow (backwards compatibility)."""
+    auth = GraphAuth(credentials)
+    return auth.get_token()
