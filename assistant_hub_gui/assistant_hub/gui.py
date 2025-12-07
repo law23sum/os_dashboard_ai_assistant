@@ -381,11 +381,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             start_git_worker()
             get_git_manager().ensure_repo()
             print("[GUI] Git versioning initialized - all changes will be automatically tracked")
+        except Exception as e:
+            print(f"[GUI] Warning: Could not initialize Git versioning: {e}")
         
         # Setup keyboard shortcuts for better usability
         self._setup_keyboard_shortcuts()
-        except Exception as e:
-            print(f"[GUI] Warning: Could not initialize Git versioning: {e}")
         
         self._apply_default_view()
         self.refresh_all()
