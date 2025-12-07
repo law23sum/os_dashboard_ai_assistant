@@ -1,0 +1,73 @@
+{
+  "workflow_id": "urgent-task-workflow",
+  "name": "Urgent Task Escalation Workflow",
+  "description": "Handles urgent tasks that are approaching their due dates",
+  "enabled": true,
+  "variables": {
+    "urgent_threshold_days": 3,
+    "escalation_levels": ["reminder", "warning", "critical"]
+  },
+  "triggers": [
+    {
+      "trigger_type": "system_event",
+      "config": {
+        "event_type": "urgent_task"
+      },
+      "enabled": true
+    }
+  ],
+  "actions": [
+    {
+      "action_id": "assess_urgency_level",
+      "action_type": "conditional",
+      "config": {
+        "condition_type": "simple",
+        "left": "${trigger_event.days_until_due}",
+        "operator": "<=",
+        "right": 1
+      },
+      "depends_on": [],
+      "retry_count": 1,
+      "timeout_seconds": 30
+    },
+    {
+      "action_id": "generate_escalation_message",
+      "action_type": "transform_data",
+      "config": {
+        "transform_type": "format_template",
+        "template": "🚨 **URGENT TASK ALERT** 🚨\n\n**Task:** ${trigger_event.task_title} (ID: ${trigger_event.task_id})\n**Days Until Due:** ${trigger_event.days_until_due}\n**Status:** Critical - Immediate attention required\n\n**Recommended Actions:**\n1. Review task requirements\n2. Allocate necessary resources\n3. Update task status or extend deadline if needed\n4. Notify stakeholders\n\n**Automated Alert Generated:** ${execution_id}",
+        "source_action": "assess_urgency_level"
+      },
+      "depends_on": ["assess_urgency_level"],
+      "retry_count": 1,
+      "timeout_seconds": 30
+    },
+    {
+      "action_id": "escalate_to_management",
+      "action_type": "send_notification",
+      "config": {
+        "notification_type": "urgent_task_escalation",
+        "recipients": ["project_manager", "team_lead", "stakeholders"],
+        "subject": "CRITICAL: Task ${trigger_event.task_id} requires immediate attention",
+        "message": "${action_results.generate_escalation_message.transformed_data}",
+        "priority": "high",
+        "channels": ["email", "slack", "dashboard"]
+      },
+      "depends_on": ["generate_escalation_message"],
+      "retry_count": 3,
+      "timeout_seconds": 60
+    },
+    {
+      "action_id": "log_escalation",
+      "action_type": "write_resource",
+      "config": {
+        "connector": "filesystem",
+        "resource_id": "logs/escalations/${new Date().toISOString().split('T')[0]}_urgent_tasks.log",
+        "content": "[${new Date().toISOString()}] ESCALATION: Task ${trigger_event.task_id} - ${trigger_event.task_title} - ${trigger_event.days_until_due} days remaining\n"
+      },
+      "depends_on": ["escalate_to_management"],
+      "retry_count": 2,
+      "timeout_seconds": 30
+    }
+  ]
+}

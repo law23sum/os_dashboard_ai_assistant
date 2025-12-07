@@ -1,0 +1,7 @@
+{
+  "title": "Risk Assessment",
+  "versioning": "every AI edit is tracked | every change is diffed | every document has a version history | every operation has a timestamp | every action is reversible | every output is accountable",
+  "operating_model": "OneNote becomes the living structured memory; Word becomes the formatted deliverable engine; Excel becomes the analytical substrate; Git becomes the brain stem holding the lineage of every thought; ChatGPT becomes the reasoning center; Daemons become the continuous active cortex; AIC/Sora/Aria become the interpretive personalities that guide knowledge formation",
+  "behaviors": "notices missing documents | drafts proposals | updates reports | summarizes notebooks | analyzes spreadsheets | reorganizes folders | updates tasks | alerts the user when something's outdated | tracks version history | suggests improvements | predicts next steps | executes workflows",
+  "sections": ["briefs", "proposals", "compliance reports", "patient summaries", "risk assessments", "regulatory filings", "engineering specs", "technical documents", "product updates", "operational manuals"]
+}
