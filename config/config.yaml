@@ -1,0 +1,27 @@
+# Application configuration
+app:
+  name: "OS Dashboard Assistant"
+  version: "1.0.0"
+
+# API rate limits and refresh intervals
+api:
+  refresh_interval: 300  # seconds
+  rate_limits:
+    openai: 100  # requests per minute
+    google: 1000
+    microsoft: 1000
+
+# Logging configuration
+logging:
+  level: "INFO"
+  file: "logs/app.log"
+
+# Database configuration
+database:
+  type: "sqlite"
+  path: "data/app.db"
+
+# UI settings
+ui:
+  theme: "dark"
+  port: 8080

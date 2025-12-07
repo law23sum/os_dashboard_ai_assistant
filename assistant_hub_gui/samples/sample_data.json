@@ -1,0 +1,135 @@
+{
+  "schema": {
+    "version": "1.0",
+    "name": "AI-Governed Data Schema",
+    "description": "Comprehensive data structure with AI governance and audit trails",
+    "created": "2024-12-07T12:00:00Z",
+    "ai_processed": "2024-12-07T12:05:00Z",
+    "governance": {
+      "tracking": "Every AI edit tracked",
+      "versioning": "Git-backed lineage",
+      "auditing": "All changes diffed",
+      "compliance": "Complete accountability"
+    }
+  },
+  "data_points": [
+    {
+      "id": "dp_001",
+      "name": "Sample Data Point Alpha",
+      "value": 42.5,
+      "category": "measurement",
+      "metadata": {
+        "timestamp": "2024-12-07T10:30:00Z",
+        "ai_confidence": 0.95,
+        "validated_by": "human_reviewer",
+        "change_reason": "Initial data import",
+        "version_history": [
+          {
+            "version": "1.0",
+            "timestamp": "2024-12-07T10:30:00Z",
+            "changed_by": "system",
+            "change_type": "creation",
+            "ai_oversight": "initial_validation_completed"
+          }
+        ]
+      },
+      "ai_insights": {
+        "anomaly_score": 0.02,
+        "trend_prediction": "stable",
+        "quality_score": 0.98,
+        "recommendations": [
+          "Data point within normal parameters",
+          "No action required"
+        ]
+      }
+    },
+    {
+      "id": "dp_002",
+      "name": "Sample Data Point Beta",
+      "value": 37.8,
+      "category": "sensor_reading",
+      "metadata": {
+        "timestamp": "2024-12-07T10:31:00Z",
+        "ai_confidence": 0.89,
+        "validated_by": "ai_validated",
+        "change_reason": "Automated sensor reading",
+        "version_history": [
+          {
+            "version": "1.0",
+            "timestamp": "2024-12-07T10:31:00Z",
+            "changed_by": "iot_device",
+            "change_type": "automated_collection",
+            "ai_oversight": "real_time_validation_completed"
+          }
+        ]
+      },
+      "ai_insights": {
+        "anomaly_score": 0.15,
+        "trend_prediction": "decreasing",
+        "quality_score": 0.92,
+        "recommendations": [
+          "Monitor for continued decline",
+          "Check sensor calibration"
+        ]
+      }
+    },
+    {
+      "id": "dp_003",
+      "name": "Sample Data Point Gamma",
+      "value": 51.2,
+      "category": "quality_control",
+      "metadata": {
+        "timestamp": "2024-12-07T10:32:00Z",
+        "ai_confidence": 0.97,
+        "validated_by": "human_approved",
+        "change_reason": "Manual quality control entry",
+        "version_history": [
+          {
+            "version": "1.0",
+            "timestamp": "2024-12-07T10:32:00Z",
+            "changed_by": "quality_engineer",
+            "change_type": "manual_entry",
+            "ai_oversight": "human_override_approved"
+          }
+        ]
+      },
+      "ai_insights": {
+        "anomaly_score": 0.08,
+        "trend_prediction": "increasing",
+        "quality_score": 0.99,
+        "recommendations": [
+          "High-quality measurement",
+          "Consider as benchmark"
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "total_records": 3,
+    "average_confidence": 0.937,
+    "data_quality_score": 0.963,
+    "anomaly_count": 0,
+    "categories": ["measurement", "sensor_reading", "quality_control"]
+  },
+  "audit_trail": {
+    "document_id": "sample_data_20241207_001",
+    "total_versions": 1,
+    "last_modified": "2024-12-07T12:05:00Z",
+    "governance_status": "compliant",
+    "retention_policy": "7_years",
+    "access_log": [
+      {
+        "timestamp": "2024-12-07T12:00:00Z",
+        "action": "created",
+        "actor": "system",
+        "ai_validation": "schema_compliance_verified"
+      },
+      {
+        "timestamp": "2024-12-07T12:05:00Z",
+        "action": "validated",
+        "actor": "ai_daemon",
+        "ai_validation": "data_quality_assessment_completed"
+      }
+    ]
+  }
+}

@@ -1,41 +1,110 @@
-# OS Dashboard AI Assistant Scaffold
+# OS Dashboard AI Assistant
 
-This repository now ships an installable scaffold for the "osdash" CLI and a minimal agent/integration architecture. The package is intentionally lightweight so you can extend each module at your own pace while still being able to run end-to-end commands.
+A comprehensive AI-powered operating system dashboard that integrates with external services to provide intelligent task management, document processing, and workflow automation.
+
+## Project Structure
+
+```
+├── assistant_core/           # Primary application logic (The "Brain")
+│   ├── ai_manager.py         # AI interaction handling
+│   ├── data_aggregator.py    # Data processing and normalization
+│   ├── dashboard_engine.py   # Dashboard state management
+│   ├── ai/                   # AI agents and workflows
+│   ├── core/                 # Core application components
+│   └── daemon/               # Background processes
+├── api_connectors/           # Modular wrappers for external services
+│   ├── git_client.py         # Git repository operations
+│   ├── google_client.py      # Google APIs (Gmail, Calendar)
+│   ├── ms_graph_client.py    # Microsoft Graph APIs
+│   └── integrations/         # All service integrations
+├── ui/                       # Frontend/Dashboard files
+│   ├── index.html            # Main dashboard view
+│   ├── dashboard_app.py      # Flask web application
+│   ├── assets/               # CSS, JS, images
+│   └── terminal/             # CLI interface components
+├── tests/                    # Unit and integration tests
+├── config/                   # Configuration and secrets management
+│   ├── config.yaml           # Application configuration
+│   └── credentials/          # OAuth tokens and API keys
+├── utils/                    # Helper functions
+│   ├── auth_helpers.py       # Token management
+│   └── file_parsers.py       # File processing utilities
+├── main.py                   # Application entry point
+├── settings.py               # Global application settings
+└── requirements.txt          # Python dependencies
+```
 
 ## Install
 
 ```bash
-pip install .
+pip install -r requirements.txt
 ```
 
-## CLI usage
+## Usage
 
-Example commands after installation:
+### Running the Application
 
-- `osdash projects list` – show known projects from the JSON state file.
-- `osdash projects add <name>` – add a project to the state file.
-- `osdash onenote notebooks` – list stub OneNote notebooks via the Graph stub.
-- `osdash excel workbooks` – show Graph stub workbook metadata.
-- `osdash excel summarize-local <path>` – summarize a local Excel workbook (pandas required).
-- `osdash word summarize-local <path>` – summarize a local Word document.
-- `osdash software defaults` – check where git, Word, Excel, and PDF viewers are installed.
-- `osdash software locate <name>` – look up a specific executable and optional aliases.
-- `osdash chat <agent> <message>` – send a message to one of the scaffolded agents (aic, aria, sora).
-- `osdash workflow-clean-notebook <path>` – run the example notebook cleaning workflow prompt.
-- `osdash workflow-knowledge-pipeline <notes_path>` – convert raw notes into a structured Markdown brief, log the action to the audit file, and optionally commit the generated deliverable when run inside a git repo.
+```bash
+# Start the main application
+python main.py
 
-## Package layout
+# Start the web dashboard
+python ui/main.py
+```
 
-- `assistant_hub/config.py` – environment-driven configuration for OpenAI and Microsoft Graph.
-- `assistant_hub/core/` – lightweight models, JSON state store, router, and scheduler stub.
-- `assistant_hub/ai/` – OpenAI wrapper, prompts, tool registry, agents, and a sample workflow.
-- `assistant_hub/integrations/` – stub clients/services for Graph, OneNote, Excel, Word, and filesystem helpers.
-- `assistant_hub/versioning/` – simple git helpers plus a background commit queue stub.
-- `assistant_hub/ui/terminal/cli.py` – `osdash` Click-based entry point exposing demo commands.
-- `assistant_hub/ui/gui/app.py` – lightweight GUI for locating installed software.
-- `assistant_hub/data/state.json` – default JSON state used by the CLI.
+### Configuration
 
-Use this baseline to plug in real API calls, prompt orchestration, and richer state handling.
+1. Copy configuration files and set up credentials:
+   ```bash
+   # Create config directory structure
+   mkdir -p config/credentials
+
+   # Copy and edit configuration
+   cp config/config.yaml config/config.local.yaml
+   # Edit config.local.yaml with your settings
+   ```
+
+2. Set up API credentials:
+   - Google APIs: Place `client_secret.json` in `config/credentials/`
+   - Microsoft Graph: Configure client ID, tenant ID, and secret in config
+   - OpenAI: Set API key in environment or config
+
+## Key Components
+
+### Assistant Core
+- **AI Manager**: Handles all interactions with LLM services (OpenAI, Anthropic)
+- **Data Aggregator**: Normalizes data from various sources into common formats
+- **Dashboard Engine**: Manages application state and prepares display data
+
+### API Connectors
+- **Google Client**: Gmail and Google Calendar integration
+- **MS Graph Client**: Word, Excel, OneNote, and OneDrive integration
+- **Git Client**: Local repository operations and management
+
+### UI Components
+- **Web Dashboard**: Flask-based responsive web interface
+- **Terminal Interface**: Command-line tools and utilities
+
+## Development
+
+### Running Tests
+
+```bash
+pytest tests/
+```
+
+### Adding New Integrations
+
+1. Create a new client in `api_connectors/`
+2. Implement the required interface methods
+3. Add configuration in `config/config.yaml`
+4. Update the data aggregator to handle the new data source
+
+### Extending the Dashboard
+
+1. Modify `ui/index.html` for new UI components
+2. Update `ui/dashboard_app.py` for new API endpoints
+3. Extend `assistant_core/dashboard_engine.py` for new data processing
 
 ## Vision
 
