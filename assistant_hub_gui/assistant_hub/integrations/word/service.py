@@ -23,6 +23,9 @@ class WordService:
         dest_path = Path(destination)
         dest_path.parent.mkdir(parents=True, exist_ok=True)
         save_document(doc, destination)
+        # Auto-commit the new document
+        from ...versioning import enqueue_commit
+        enqueue_commit([str(dest_path)], actor=actor, tag="word", reason="Draft summary document")
         return [str(dest_path)]
 
     def rewrite_document(self, path: str, style: str = "concise", actor: str = "Aria") -> List[str]:
@@ -33,6 +36,9 @@ class WordService:
         for line in rewritten.split("\n"):
             new_doc.add_paragraph(line)
         save_document(new_doc, path)
+        # Auto-commit the rewritten document
+        from ...versioning import enqueue_commit
+        enqueue_commit([path], actor=actor, tag="word", reason=f"Rewrite document ({style})")
         return [path]
 
 

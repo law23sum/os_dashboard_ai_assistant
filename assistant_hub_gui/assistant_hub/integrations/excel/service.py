@@ -21,9 +21,18 @@ class ExcelService:
         df = load_sheet(workbook_path, sheet_name)
         code = excel_generate_pandas_code(df.head(20).to_markdown(index=False), instruction)
         local_vars: dict = {"df": df.copy()}
-        exec(code, {}, local_vars)
-        result_df: pd.DataFrame = local_vars.get("result_df", df)
+        try:
+            exec(code, {}, local_vars)  # noqa: S102
+        except Exception as exc:
+            raise RuntimeError(f"Generated pandas code failed: {exc}\nCode:\n{code}") from exc
+        
+        result_df = local_vars.get("result_df")
+        if not isinstance(result_df, pd.DataFrame):
+            raise RuntimeError("Generated code did not produce result_df DataFrame")
+        
         save_sheet(workbook_path, "Summary", result_df)
+        # Auto-commit the changes
+        enqueue_commit([workbook_path], actor=actor, tag="excel", reason=f"Summarize sheet {sheet_name}")
         return [workbook_path]
 
 
