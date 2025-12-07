@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """Local Word document utilities using python-docx when available."""
 
 from __future__ import annotations
@@ -34,3 +35,20 @@ def write_document_text(path: str | Path, text: str) -> None:
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     document.save(output_path)
+=======
+"""Local Word document helpers using python-docx."""
+
+from __future__ import annotations
+
+from typing import Optional
+
+from docx import Document
+
+
+def load_document(path: str) -> Document:
+    return Document(path)
+
+
+def save_document(doc: Document, path: str) -> None:
+    doc.save(path)
+>>>>>>> develop

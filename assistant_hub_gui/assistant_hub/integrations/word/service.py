@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 """High-level Word document workflows powered by GPT."""
+=======
+"""Word service for drafting and rewriting documents with AI."""
+>>>>>>> develop
 
 from __future__ import annotations
 
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Dict, Optional
 
 from ...ai import get_openai_client, openai_available
@@ -63,3 +68,34 @@ class WordService:
         ]
         response = client.chat.completions.create(model=DEFAULT_MODEL, messages=messages)
         return response.choices[0].message.content or ""
+=======
+from typing import List
+
+from docx import Document
+
+from ...ai_layer.tools import summarize_text
+from .local_client import load_document, save_document
+
+
+class WordService:
+    """High-level Word document operations."""
+
+    def draft_summary(self, source_text: str, destination: str, actor: str = "Aria") -> List[str]:
+        summary = summarize_text(source_text, style="clear")
+        doc = Document()
+        doc.add_paragraph(summary)
+        dest_path = Path(destination)
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        save_document(doc, destination)
+        return [str(dest_path)]
+
+    def rewrite_document(self, path: str, style: str = "concise", actor: str = "Aria") -> List[str]:
+        doc = load_document(path)
+        paragraphs = "\n".join(p.text for p in doc.paragraphs)
+        rewritten = summarize_text(paragraphs, style=style)
+        new_doc = Document()
+        for line in rewritten.split("\n"):
+            new_doc.add_paragraph(line)
+        save_document(new_doc, path)
+        return [path]
+>>>>>>> develop
