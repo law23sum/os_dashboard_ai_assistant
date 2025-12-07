@@ -24,6 +24,8 @@ except ImportError:
             self.text = text
             self.tipwindow = None
 
+from .config import DB_PATH
+from .core.api_server import start_api_server
 from .db import (
     init_db,
     load_state,
@@ -334,6 +336,19 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             print("[GUI] Git versioning initialized - all changes will be automatically tracked")
         except Exception as e:
             print(f"[GUI] Warning: Could not initialize Git versioning: {e}")
+
+        self.api_server = None
+        api_enabled = os.getenv("ASSISTANT_HUB_API_ENABLED", "1").lower() not in ("0", "false", "off")
+        if api_enabled:
+            try:
+                api_host = os.getenv("ASSISTANT_HUB_API_HOST", "127.0.0.1")
+                api_port = int(os.getenv("ASSISTANT_HUB_API_PORT", "8070"))
+                self.api_server = start_api_server(DB_PATH, host=api_host, port=api_port)
+                print(
+                    f"[GUI] Dashboard API server available at http://{api_host}:{self.api_server.server_address[1]}"
+                )
+            except Exception as e:
+                print(f"[GUI] Warning: Could not start dashboard API server: {e}")
 
         self._apply_default_view()
         self.refresh_all()
@@ -2934,6 +2949,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def on_close(self):
         save_active_persona(self.conn, self.state_obj)
         save_settings(self.conn, self.settings)
+        if self.api_server:
+            try:
+                self.api_server.shutdown()
+            except Exception:
+                pass
         self.conn.close()
         self.destroy()
 
