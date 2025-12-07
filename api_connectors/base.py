@@ -88,10 +88,25 @@ class BaseAPIConnector(ABC):
         self.cache: Dict[str, Tuple[Any, datetime]] = {}
         self.cache_ttl = config.get("cache_ttl_seconds", 300)
 
-    @abstractmethod
-    def _setup_rate_limiter(self) -> RateLimiter:
-        """Setup rate limiter for this connector"""
-        pass
+    def _setup_rate_limiter(self, rate_limit: Optional[RateLimit] = None) -> RateLimiter:
+        """
+        Setup rate limiter for this connector.
+
+        Connectors can optionally provide a :class:`RateLimit` to customize
+        throughput for a specific API. If not provided, conservative defaults
+        are derived from the connector configuration to avoid unbounded
+        requests.
+        """
+
+        if rate_limit is None:
+            rate_limit = RateLimit(
+                requests_per_minute=self.config.get("requests_per_minute", 60),
+                requests_per_hour=self.config.get("requests_per_hour", 1000),
+                requests_per_day=self.config.get("requests_per_day", 5000),
+                burst_limit=self.config.get("burst_limit", 10),
+            )
+
+        return RateLimiter(rate_limit)
 
     @abstractmethod
     async def authenticate(self) -> bool:
