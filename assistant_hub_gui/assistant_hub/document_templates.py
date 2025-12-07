@@ -1233,6 +1233,91 @@ This PowerPoint presentation has been optimized by our AI governance framework:
 *Presentation ID: {presentation_id} | AI Design Score: {design_score}/10 | Generated: {timestamp}*
 """
     },
+    "sample_docx_template": {
+        "name": "Word Document Template",
+        "category": "document",
+        "content": """# Word Document Template - {document_title}
+# Version: {version} | Created: {created_date} | Format: DOCX
+# AI Governance: every AI edit is tracked | every change is diffed | every output is accountable
+# Version History: every document has a version history | every operation has a timestamp | every action is reversible
+
+## Document Properties
+- **Title:** {document_title}
+- **Author:** {author}
+- **Classification:** {classification}
+- **Version:** {version}
+- **Last Modified:** {modified_date}
+
+## AI + Office Roles
+- OneNote becomes the living structured memory
+- Word becomes the formatted deliverable engine
+- Excel becomes the analytical substrate
+- Git becomes the brain stem holding the lineage of every thought
+- ChatGPT becomes the reasoning center
+- Daemons become the continuous active cortex
+- AIC/Sora/Aria become the interpretive personalities that guide knowledge formation
+
+## Executive Summary
+{summary}
+
+## Core Sections
+{sections}
+
+## Governance Footnotes
+- Track Changes enabled for all contributors
+- Automated diffs stored at: {diff_path}
+- Version tag recorded at: {version_tag}
+- External collaboration handled with: {external_company}
+
+## Change Log
+| Version | Timestamp | Author | Notes |
+|---------|-----------|--------|-------|
+| {version} | {modified_date} | {author} | Initial AI-enhanced draft |
+
+*Document ID: {document_id} | Managed by AI Ops Feed*
+"""
+    },
+    "sample_xlsx_template": {
+        "name": "Excel Workbook Template",
+        "category": "data",
+        "content": """# Excel Workbook Template - {workbook_name}
+# Version: {version} | Created: {created_date} | Format: XLSX
+# Analytics Fabric: Excel becomes the analytical substrate | alerts the user when something's outdated
+# Governance: every AI edit is tracked | every change is diffed | every operation has a timestamp
+
+## Sheets and Purpose
+- **Inputs:** capture assumptions and raw data (validated at {created_date})
+- **Models:** calculation blocks with automated dependency checks
+- **Dashboards:** charts and KPIs refreshed by daemons
+- **Audit Trail:** Git-backed snapshots for each AI/analyst touch
+
+## Named Ranges
+- assumptions_rate
+- revenue_growth
+- opex_schedule
+
+## Cell-Level Metadata
+- Validation state: {validation_state}
+- Last AI touch: {last_ai_edit}
+- External system: {external_company}
+
+## AI Observability
+- notices missing documents
+- drafts proposals
+- updates reports
+- summarizes notebooks
+- analyzes spreadsheets
+- reorganizes folders
+- updates tasks
+- alerts the user when something's outdated
+- tracks version history
+- suggests improvements
+- predicts next steps
+- executes workflows
+
+*Workbook ID: {workbook_id} | Diff Path: {diff_path} | Managed by AI Ops Feed*
+"""
+    },
     "sample_text_template": {
         "name": "Plain Text Document Template",
         "category": "document",

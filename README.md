@@ -26,6 +26,8 @@ A comprehensive AI-powered operating system dashboard that integrates with exter
 ├── utils/                    # Helper functions
 │   ├── auth_helpers.py       # Token management
 │   └── file_parsers.py       # File processing utilities
+├── assistant_core/cir/       # Canonical Internal Representation (CIR) schema
+│   └── schema.py             # Lossless, semantic document model
 ├── marketplace/              # Plugin marketplace (created on first run)
 │   ├── plugins/             # Available plugin packages
 │   └── installed/           # Installed plugin instances

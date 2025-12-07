@@ -49,6 +49,11 @@ from .db import (
     PERSONA_ROLES,
     STATUS_OPTIONS,
     PRIORITY_OPTIONS,
+    OPERATION_STATUS_OPTIONS,
+    DocumentOperation,
+    db_list_document_operations,
+    db_record_document_operation,
+    db_update_document_operation_status,
     DEFAULT_FETCH_PREFERENCES,
 )
 from config.logging_config import setup_logger
@@ -133,6 +138,7 @@ from .suggestions import (
     get_project_health,
     get_smart_prioritization_suggestions,
 )
+from .api_bridge import get_operation_feed, summarize_operation_counts
 from .export_import import (
     export_tasks_to_csv,
     export_tasks_to_json,
@@ -342,6 +348,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.cwd_var = tk.StringVar(value=os.getcwd())
         self.project_docs_file_paths = {}  # Map item_id -> file_path for project documents
         self.project_docs_link_ids = {}  # Map item_id -> link_id for project documents
+        self.ai_ops_status_filter = tk.StringVar(value="all")
+        self.ai_ops_integration_filter = tk.StringVar(value="all")
         # Optional automation orchestrator instance (set when feature is available)
         # Initialize to None so attribute lookups remain safe even if the feature
         # isn't loaded, avoiding Tk's __getattr__ fallback from raising errors
@@ -367,6 +375,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self._build_tasks_tab()
         self._build_projects_tab()
         self._build_chat_tab()
+        self._build_ai_operations_tab()
         self._build_tools_tab()
         
         # Update tab labels with icons if available
@@ -375,7 +384,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.notebook.tab(1, text="✅ Tasks")
             self.notebook.tab(2, text="📁 Projects")
             self.notebook.tab(3, text="💬 AI Console")
-            self.notebook.tab(4, text="🔧 Tools")
+            self.notebook.tab(4, text="🛰️ AI Ops")
+            self.notebook.tab(5, text="🔧 Tools")
 
         # Initialize sync scheduler
         self.sync_scheduler = create_default_scheduler(self.conn)
@@ -5264,6 +5274,172 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             return default
 
 
+# ---------- AI Operations Tab ----------
+
+    def _build_ai_operations_tab(self):
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.ai_ops_frame = ttkb.Frame(self.notebook, padding=12)
+        else:
+            self.ai_ops_frame = ttk.Frame(self.notebook, padding=12)
+        self.notebook.add(self.ai_ops_frame, text="AI Ops")
+
+        header = ttkb.Label(self.ai_ops_frame, text="AI Operations Feed", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold")) if TTKBOOTSTRAP_AVAILABLE else ttk.Label(self.ai_ops_frame, text="AI Operations Feed", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+        header.grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 8))
+
+        self.ai_ops_summary_var = tk.StringVar(value="Live view of every AI edit, diff, and external hand-off.")
+        summary_label = ttk.Label(self.ai_ops_frame, textvariable=self.ai_ops_summary_var, wraplength=900)
+        summary_label.grid(row=1, column=0, columnspan=3, sticky="w", pady=(0, 10))
+
+        filters = ttk.Frame(self.ai_ops_frame)
+        filters.grid(row=2, column=0, sticky="w", pady=(0, 6))
+
+        ttk.Label(filters, text="Status:").grid(row=0, column=0, padx=(0, 4))
+        status_values = ["all"] + OPERATION_STATUS_OPTIONS
+        self.ai_ops_status_combo = ttk.Combobox(filters, values=status_values, textvariable=self.ai_ops_status_filter, state="readonly", width=18)
+        self.ai_ops_status_combo.grid(row=0, column=1, padx=(0, 12))
+        self.ai_ops_status_combo.bind("<<ComboboxSelected>>", lambda _event: self.refresh_ai_operations())
+
+        ttk.Label(filters, text="Integration:").grid(row=0, column=2, padx=(0, 4))
+        integration_values = ["all", "word", "excel", "onenote", "pdf", "powerpoint", "notes"]
+        self.ai_ops_integration_combo = ttk.Combobox(filters, values=integration_values, textvariable=self.ai_ops_integration_filter, state="readonly", width=18)
+        self.ai_ops_integration_combo.grid(row=0, column=3, padx=(0, 12))
+        self.ai_ops_integration_combo.bind("<<ComboboxSelected>>", lambda _event: self.refresh_ai_operations())
+
+        action_buttons = ttk.Frame(self.ai_ops_frame)
+        action_buttons.grid(row=2, column=1, sticky="e", pady=(0, 6))
+        refresh_btn = ttk.Button(action_buttons, text="🔄 Refresh", command=self.refresh_ai_operations)
+        refresh_btn.grid(row=0, column=0, padx=4)
+        mark_done_btn = ttk.Button(action_buttons, text="✅ Mark Succeeded", command=lambda: self.on_mark_ai_operation_status("succeeded"))
+        mark_done_btn.grid(row=0, column=1, padx=4)
+        mark_review_btn = ttk.Button(action_buttons, text="🛑 Needs Review", command=lambda: self.on_mark_ai_operation_status("needs_review"))
+        mark_review_btn.grid(row=0, column=2, padx=4)
+
+        table_frame = ttk.Frame(self.ai_ops_frame)
+        table_frame.grid(row=3, column=0, columnspan=2, sticky="nsew", pady=(6, 6))
+        self.ai_ops_frame.rowconfigure(3, weight=1)
+        self.ai_ops_frame.columnconfigure(0, weight=3)
+        self.ai_ops_frame.columnconfigure(1, weight=2)
+
+        columns = ("id", "title", "operation", "persona", "status", "integration", "external", "started", "completed", "diff")
+        self.ai_ops_tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=14)
+        headings = {
+            "id": "ID",
+            "title": "Document / Task",
+            "operation": "Operation",
+            "persona": "AI",
+            "status": "Status",
+            "integration": "Integration",
+            "external": "External Company",
+            "started": "Started",
+            "completed": "Completed",
+            "diff": "Diff / Version",
+        }
+        for col, text in headings.items():
+            self.ai_ops_tree.heading(col, text=text)
+            width = 60 if col == "id" else 140
+            if col in {"title", "operation"}:
+                width = 200
+            self.ai_ops_tree.column(col, width=width, anchor="w")
+        self.ai_ops_tree.column("id", width=50, anchor="center")
+        self.ai_ops_tree.pack(fill="both", expand=True)
+
+        governance_frame = ttk.Frame(self.ai_ops_frame)
+        governance_frame.grid(row=3, column=2, sticky="nsew", padx=(10, 0))
+        governance_frame.rowconfigure(1, weight=1)
+        governance_frame.columnconfigure(0, weight=1)
+
+        ttk.Label(governance_frame, text="Governance Manifest", font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold")).grid(row=0, column=0, sticky="w")
+        self.ai_ops_manifest = tk.Text(governance_frame, wrap="word", height=18, relief="groove", borderwidth=1, font=self.text_font)
+        manifest_text = (
+            "every AI edit is tracked\n"
+            "every change is diffed\n"
+            "every document has a version history\n"
+            "every operation has a timestamp\n"
+            "every action is reversible\n"
+            "every output is accountable\n\n"
+            "OneNote becomes the living structured memory\n"
+            "Word becomes the formatted deliverable engine\n"
+            "Excel becomes the analytical substrate\n"
+            "Git becomes the brain stem holding the lineage of every thought\n"
+            "ChatGPT becomes the reasoning center\n"
+            "Daemons become the continuous active cortex\n"
+            "AIC/Sora/Aria become the interpretive personalities that guide knowledge formation"
+        )
+        self.ai_ops_manifest.insert("1.0", manifest_text)
+        self.ai_ops_manifest.configure(state="disabled")
+        self.ai_ops_manifest.grid(row=1, column=0, sticky="nsew", pady=(6, 0))
+
+        self.refresh_ai_operations()
+
+
+    def refresh_ai_operations(self):
+        status = self.ai_ops_status_filter.get()
+        integration = self.ai_ops_integration_filter.get()
+        status_arg = status if status != "all" else None
+        integration_arg = integration if integration != "all" else None
+
+        try:
+            operations = get_operation_feed(self.conn, status=status_arg, integration_type=integration_arg, limit=200)
+        except Exception as exc:
+            messagebox.showerror("AI Ops", f"Failed to load AI operations: {exc}")
+            operations = []
+
+        if hasattr(self, "ai_ops_tree"):
+            for item in self.ai_ops_tree.get_children():
+                self.ai_ops_tree.delete(item)
+            for op in operations:
+                diff_display = op.diff_path or op.version_tag or "—"
+                external_display = op.external_company or ""
+                self.ai_ops_tree.insert(
+                    "",
+                    "end",
+                    iid=f"op_{op.id}",
+                    values=(
+                        op.id,
+                        op.title,
+                        op.operation,
+                        op.persona,
+                        op.status,
+                        op.integration_type,
+                        external_display,
+                        op.started_at,
+                        op.completed_at or "",
+                        diff_display,
+                    ),
+                )
+
+        try:
+            counts = summarize_operation_counts(self.conn)
+            summary_parts = [f"{k}: {v}" for k, v in counts.items()]
+            self.ai_ops_summary_var.set(
+                "Live feed across Office + PDFs + Notes — " + ", ".join(summary_parts)
+            )
+        except Exception:
+            pass
+
+
+    def on_mark_ai_operation_status(self, status: str):
+        if not hasattr(self, "ai_ops_tree"):
+            return
+        selection = self.ai_ops_tree.selection()
+        if not selection:
+            messagebox.showinfo("AI Ops", "Select an operation to update its status.")
+            return
+        for item in selection:
+            values = self.ai_ops_tree.item(item, "values")
+            try:
+                op_id = int(values[0])
+            except Exception:
+                continue
+            db_update_document_operation_status(
+                self.conn,
+                op_id,
+                status=status,
+                mark_complete=status in {"succeeded", "failed", "needs_review"},
+            )
+        self.refresh_ai_operations()
+
+
 # ---------- Tools & Operations Tab ----------
 
     def _build_tools_tab(self):
@@ -6469,6 +6645,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.refresh_task_list()
         self.refresh_project_list()
         self.refresh_chat_history()
+        if hasattr(self, "refresh_ai_operations"):
+            self.refresh_ai_operations()
         if hasattr(self, 'refresh_analytics'):
             self.refresh_analytics()
 
