@@ -28,6 +28,40 @@ class BaseIntegration(ABC):
         self.source_kind = source_kind
         self._status = IntegrationStatus()
         self.logger = get_logger(self.__class__.__name__)
+
+    def available_actions(self) -> Dict[str, Dict[str, Any]]:
+        """Return a map of supported actions and their input schemas.
+
+        Each entry should follow the structure::
+
+            {
+                "action_name": {
+                    "label": "Human readable label",
+                    "description": "What the action does",
+                    "fields": [
+                        {"name": "path", "label": "File Path", "type": "text", "placeholder": "~/Documents/file.txt"}
+                    ]
+                }
+            }
+        """
+
+        return {
+            "status": {
+                "label": "Connection Status",
+                "description": "Check whether the integration is connected and when it last synced.",
+                "fields": [],
+            },
+            "sync": {
+                "label": "Sync",
+                "description": "Sync data from the integration and refresh status.",
+                "fields": [],
+            },
+            "authenticate": {
+                "label": "Authenticate",
+                "description": "Force an authentication attempt for the integration.",
+                "fields": [],
+            },
+        }
     
     @abstractmethod
     def authenticate(self) -> bool:
@@ -43,6 +77,35 @@ class BaseIntegration(ABC):
     def get_status(self) -> IntegrationStatus:
         """Get current status of the integration."""
         pass
+
+    def invoke_action(self, action: str, options: Optional[Dict[str, Any]] = None) -> Any:
+        """Invoke an action exposed by the integration.
+
+        Concrete integrations can override this to support richer behaviors,
+        but by default we expose the core lifecycle actions.
+        """
+
+        options = options or {}
+        if action == "authenticate":
+            return self.authenticate()
+        if action == "sync":
+            return self.sync()
+        if action == "status":
+            status = self.get_status()
+            return {
+                "connected": status.connected,
+                "last_sync": status.last_sync,
+                "error": status.error,
+                "item_count": status.item_count,
+            }
+
+        # As a fallback, allow calling a method directly if explicitly exposed
+        if hasattr(self, action):
+            attr = getattr(self, action)
+            if callable(attr):
+                return attr(**options) if options else attr()
+
+        raise ValueError(f"Unsupported action '{action}' for {self.source_name}")
     
     def record_item(
         self,
