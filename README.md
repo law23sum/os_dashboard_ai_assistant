@@ -34,8 +34,13 @@ Example commands after installation:
 - `assistant_hub/ui/terminal/cli.py` – `osdash` Click-based entry point exposing demo commands.
 - `assistant_hub/ui/gui/app.py` – lightweight GUI for locating installed software.
 - `assistant_hub/data/state.json` – default JSON state used by the CLI.
+- `assistant_hub/document_templates.py` – governed template catalog with multi-format samples (CSV/JSON/PDF/XLSX/DOCX/TXT/PPTX) covering briefs, proposals, compliance reports, patient summaries, risk assessments, regulatory filings, engineering specs, technical documents, product updates, and operational manuals.
 
 Use this baseline to plug in real API calls, prompt orchestration, and richer state handling.
+
+## Template-driven deliverables
+
+The template catalog enforces that every AI edit is tracked, every change is diffed, every document has version history, every operation is timestamped, every action is reversible, and every output is accountable. It aligns the stack so OneNote serves as structured memory, Word is the formatted deliverable engine, Excel is the analytical substrate, Git preserves lineage, ChatGPT is the reasoning center, daemons form the active cortex, and AIC/Sora/Aria guide knowledge formation. Daemons can notice missing documents, draft proposals, update reports, summarize notebooks, analyze spreadsheets, reorganize folders, update tasks, alert when content is outdated, track version history, suggest improvements, predict next steps, and execute workflows.
 
 ## Vision
 
