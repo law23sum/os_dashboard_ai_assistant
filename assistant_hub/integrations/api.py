@@ -7,7 +7,7 @@ third-party services without needing to know their concrete implementations.
 
 from __future__ import annotations
 
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 import sqlite3
 
 from . import (
@@ -59,9 +59,58 @@ class IntegrationAPIGateway:
 
         return integrations
 
+    def integration_actions(self) -> Dict[str, List[Dict[str, Any]]]:
+        """Return the supported actions for each integration.
+
+        Actions are described for UI/API consumers so they can present a dropdown
+        of valid operations instead of hard-coding strings.
+        """
+
+        base_actions = [
+            {"name": "status", "label": "Status", "description": "Check connection status"},
+            {"name": "sync", "label": "Sync", "description": "Synchronize new items"},
+        ]
+
+        specific_actions = {
+            "filesystem": [
+                {
+                    "name": "list_files",
+                    "label": "List Files",
+                    "description": "Preview tracked files (honors optional extension filter)",
+                    "options": {"extension": "Optional extension like .md", "limit": "Max items to return"},
+                }
+            ]
+        }
+
+        actions: Dict[str, List[Dict[str, Any]]] = {}
+        for name in self._ensure_clients().keys():
+            actions[name] = base_actions + specific_actions.get(name, [])
+        actions["all"] = base_actions
+        return actions
+
     def available_integrations(self) -> Dict[str, object]:
         """Return the integration client map keyed by slug."""
         return self._ensure_clients()
+
+    def list_actions(self, name: Optional[str] = None) -> Dict[str, Any]:
+        """Return action metadata for integrations.
+
+        Args:
+            name: Optional integration name. When provided we only return actions
+                for that integration; otherwise we return a map for all.
+        """
+
+        integrations = self._ensure_clients()
+        if name:
+            client = integrations.get(name)
+            if not client:
+                raise ValueError(f"Integration '{name}' is not available")
+            return client.available_actions() if hasattr(client, "available_actions") else {}
+
+        return {
+            key: (client.available_actions() if hasattr(client, "available_actions") else {})
+            for key, client in integrations.items()
+        }
 
     def list_statuses(self) -> Dict[str, Any]:
         """Return status dictionaries for all integrations."""
@@ -80,27 +129,45 @@ class IntegrationAPIGateway:
                 self.logger.error("Failed to read status for %s: %s", name, exc)
         return statuses
 
-    def call_action(self, name: str, action: str = "status") -> Any:
+    def call_action(self, name: str, action: str = "status", options: Optional[Dict[str, Any]] = None) -> Any:
         """Call a supported action on an integration or all integrations."""
+
         name = name or "all"
         action = action or "status"
+        options = options or {}
 
+        # Special dispatcher actions
         if action == "sync":
             return self.scheduler.sync_now(None if name == "all" else name)
-
         if action == "status":
             if name == "all":
                 return self.list_statuses()
+        if action == "actions":
+            return self.list_actions(None if name == "all" else name)
+
+        client = self._ensure_clients().get(name)
+        if not client:
+            raise ValueError(f"Integration '{name}' is not available")
+
+        if hasattr(client, "invoke_action"):
+            return client.invoke_action(action, options)
+
+        if hasattr(client, action):
+            attr = getattr(client, action)
+            if callable(attr):
+                return attr(**options) if options else attr()
+
+        if action == "list_actions":
+            actions = self.integration_actions()
+            return actions if name == "all" else actions.get(name, [])
+
+        if name == "filesystem" and action == "list_files":
             client = self._ensure_clients().get(name)
             if not client:
-                raise ValueError(f"Integration '{name}' is not available")
-            status = client.get_status()
-            return {
-                "connected": status.connected,
-                "last_sync": status.last_sync,
-                "error": status.error,
-                "item_count": status.item_count,
-            }
+                raise ValueError("Filesystem integration is not available")
+            limit = int(options.get("limit", 50)) if isinstance(options, dict) else 50
+            extension = options.get("extension") if isinstance(options, dict) else None
+            return client.list_files(limit=limit, extension=extension)
 
         raise ValueError(f"Unsupported action '{action}' for integration API")
 

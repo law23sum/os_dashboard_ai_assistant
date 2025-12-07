@@ -7,7 +7,7 @@ import subprocess
 import threading
 import uuid
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 from queue import Queue
 
 import tkinter as tk
@@ -2544,28 +2544,62 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         api_box.grid(row=3, column=0, sticky="ew", pady=(12, 0))
         api_box.columnconfigure(1, weight=1)
 
+        self.integration_actions_metadata = self.integration_api.list_actions()
         targets = ["all", *sorted(self.integration_api.available_integrations().keys())]
         self.integration_api_target_var = tk.StringVar(value=targets[0])
         self.integration_api_action_var = tk.StringVar(value="status")
+        self.integration_api_options_var = tk.StringVar(value="")
 
         ttk.Label(api_box, text="Target:").grid(row=0, column=0, sticky="e", padx=4, pady=4)
         target_combo = ttk.Combobox(api_box, textvariable=self.integration_api_target_var, values=targets, state="readonly")
         target_combo.grid(row=0, column=1, sticky="w", padx=4, pady=4)
 
         ttk.Label(api_box, text="Action:").grid(row=1, column=0, sticky="e", padx=4, pady=4)
-        action_combo = ttk.Combobox(api_box, textvariable=self.integration_api_action_var, values=["status", "sync"], state="readonly")
-        action_combo.grid(row=1, column=1, sticky="w", padx=4, pady=4)
+        self.integration_api_action_combo = ttk.Combobox(
+            api_box,
+            textvariable=self.integration_api_action_var,
+            values=self._get_integration_actions_for_target(targets[0]),
+            state="readonly",
+        )
+        self.integration_api_action_combo.grid(row=1, column=1, sticky="w", padx=4, pady=4)
+        actions = self.integration_api.integration_actions().get(self.integration_api_target_var.get(), [])
+        action_values = [action.get("name") for action in actions] or ["status", "sync"]
+        self.integration_api_action_combo = ttk.Combobox(
+            api_box,
+            textvariable=self.integration_api_action_var,
+            values=action_values,
+            state="readonly",
+        )
+        self.integration_api_action_combo.grid(row=1, column=1, sticky="w", padx=4, pady=4)
+
+        ttk.Label(api_box, text="Options (JSON):").grid(row=2, column=0, sticky="e", padx=4, pady=4)
+        options_entry = ttk.Entry(
+            api_box,
+            textvariable=self.integration_api_options_var,
+            width=50,
+        )
+        options_entry.grid(row=2, column=1, sticky="we", padx=4, pady=4)
 
         call_btn = ttkb.Button(api_box, text="Invoke", command=self.on_call_integration_api, bootstyle="success") if TTKBOOTSTRAP_AVAILABLE else ttk.Button(api_box, text="Invoke", command=self.on_call_integration_api)
-        call_btn.grid(row=0, column=2, rowspan=2, padx=4, pady=4, sticky="ns")
+        call_btn.grid(row=0, column=2, rowspan=3, padx=4, pady=4, sticky="ns")
+
+        self.integration_action_fields_frame = ttk.Frame(api_box)
+        self.integration_action_fields_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 0))
+        self.integration_action_field_vars: Dict[str, tk.StringVar] = {}
+        self._render_integration_action_fields(targets[0], self.integration_api_action_var.get())
 
         self.integration_api_output = tk.Text(api_box, height=4, wrap="word", state="disabled")
-        self.integration_api_output.grid(row=2, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 6))
+        self.integration_api_output.grid(row=3, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 6))
+
+        target_combo.bind("<<ComboboxSelected>>", self._on_integration_target_change)
+        self.integration_api_action_combo.bind("<<ComboboxSelected>>", self._on_integration_action_change)
 
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(sync_btn, text="Sync all enabled integrations")
             ToolTip(sync_selected_btn, text="Sync the selected integration")
             ToolTip(refresh_btn, text="Refresh the integrations list")
+
+        target_combo.bind("<<ComboboxSelected>>", self.on_integration_target_change)
     
     def refresh_integrations_list(self):
         """Refresh the integrations list display."""
@@ -2575,6 +2609,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Get integration statuses via the API gateway
         if not hasattr(self, "integration_api"):
             self.integration_api = IntegrationAPIGateway(self.conn, scheduler=self.sync_scheduler)
+        self.integration_actions_metadata = self.integration_api.list_actions()
 
         display_map = {
             "notes": "Local Notes",
@@ -2655,11 +2690,38 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             messagebox.showerror("Sync Error", f"Failed to sync {name}.")
         self.refresh_integrations_list()
 
+    def on_integration_target_change(self, event=None):
+        """Refresh the available actions when the target changes."""
+        if not hasattr(self, "integration_api_action_combo"):
+            return
+
+        actions = self.integration_api.integration_actions().get(self.integration_api_target_var.get(), [])
+        values = [action.get("name") for action in actions] or ["status", "sync"]
+        self.integration_api_action_combo.configure(values=values)
+        if self.integration_api_action_var.get() not in values:
+            self.integration_api_action_var.set(values[0])
+
     def on_call_integration_api(self):
         target = self.integration_api_target_var.get()
         action = self.integration_api_action_var.get()
+        options: Dict[str, Any] = {}
+        field_defs = getattr(self, "integration_action_field_definitions", {})
+        for key, var in getattr(self, "integration_action_field_vars", {}).items():
+            value = var.get()
+            placeholder = field_defs.get(key, {}).get("placeholder")
+            if value and value != placeholder:
+                options[key] = value
+        options_raw = self.integration_api_options_var.get().strip()
+        options = None
+
+        if options_raw:
+            try:
+                options = json.loads(options_raw)
+            except json.JSONDecodeError:
+                messagebox.showerror("Invalid Options", "Options must be valid JSON (e.g., {\"limit\": 10}).")
+                return
         try:
-            result = self.integration_api.call_action(target, action=action)
+            result = self.integration_api.call_action(target, action=action, options=options)
             text = json.dumps(result, indent=2, ensure_ascii=False)
         except Exception as exc:
             text = f"Error: {exc}"
@@ -2669,6 +2731,67 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.integration_api_output.delete("1.0", "end")
             self.integration_api_output.insert("1.0", text)
             self.integration_api_output.config(state="disabled")
+
+    def _on_integration_target_change(self, event=None):
+        target = self.integration_api_target_var.get()
+        actions = self._get_integration_actions_for_target(target)
+        self.integration_api_action_combo.configure(values=actions)
+        if actions:
+            self.integration_api_action_var.set(actions[0])
+        self._render_integration_action_fields(target, self.integration_api_action_var.get())
+
+    def _on_integration_action_change(self, event=None):
+        target = self.integration_api_target_var.get()
+        action = self.integration_api_action_var.get()
+        self._render_integration_action_fields(target, action)
+
+    def _get_integration_actions_for_target(self, target: str) -> list[str]:
+        base_actions = ["status", "sync", "actions"]
+        if target == "all":
+            return base_actions
+
+        actions = list(self.integration_actions_metadata.get(target, {}).keys()) if hasattr(self, "integration_actions_metadata") else []
+        # Always include core actions for consistency
+        for action in base_actions:
+            if action not in actions:
+                actions.append(action)
+        return actions
+
+    def _render_integration_action_fields(self, target: str, action: str):
+        for child in self.integration_action_fields_frame.winfo_children():
+            child.destroy()
+
+        metadata = {}
+        if hasattr(self, "integration_actions_metadata"):
+            metadata = self.integration_actions_metadata.get(target, {}).get(action, {})
+
+        fields = metadata.get("fields", []) if metadata else []
+        self.integration_action_field_vars = {}
+        self.integration_action_field_definitions: Dict[str, Dict[str, Any]] = {}
+
+        if not fields:
+            ttk.Label(self.integration_action_fields_frame, text="No options required for this action").grid(row=0, column=0, sticky="w", padx=4, pady=2)
+            return
+
+        for idx, field in enumerate(fields):
+            label = ttk.Label(self.integration_action_fields_frame, text=f"{field.get('label', field['name'])}:")
+            label.grid(row=idx, column=0, sticky="e", padx=4, pady=2)
+
+            var = tk.StringVar()
+            self.integration_action_field_vars[field["name"]] = var
+            self.integration_action_field_definitions[field["name"]] = field
+            ftype = field.get("type", "text")
+            choices = field.get("choices", [])
+
+            if ftype == "select" and choices:
+                entry = ttk.Combobox(self.integration_action_fields_frame, textvariable=var, values=choices, state="readonly")
+            else:
+                entry = ttk.Entry(self.integration_action_fields_frame, textvariable=var)
+                placeholder = field.get("placeholder")
+                if placeholder:
+                    var.set(placeholder)
+
+            entry.grid(row=idx, column=1, sticky="w", padx=4, pady=2)
 
 
 # ---------- Analytics Tab ----------
