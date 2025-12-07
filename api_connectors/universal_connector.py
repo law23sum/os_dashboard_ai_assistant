@@ -117,21 +117,15 @@ class ConnectorConfig:
 @dataclass
 class OperationResult:
     """Standard result format for all connector operations."""
-    """Standard result format for all connector operations"""
 
     success: bool
     data: Any = None
     error: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
     operation_id: Optional[str] = None
     timestamp: Optional[datetime] = None
 
     def __post_init__(self) -> None:
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    operation_id: Optional[str] = None
-    timestamp: datetime = None
-
-    def __post_init__(self):
         if self.timestamp is None:
             self.timestamp = datetime.utcnow()
 
@@ -765,26 +759,6 @@ class OfficeFileConnector(BaseConnector):
         }
         return OperationResult(success=True, data=metadata)
 
-    async def read_resource(self, resource_id: str, options: Optional[Dict[str, Any]] = None) -> OperationResult:
-        file_path = self.base_path / resource_id
-        if not file_path.exists():
-            return OperationResult(success=False, error="File not found")
-
-        processor = self.processors.get(file_path.suffix)
-        if not processor:
-            return OperationResult(success=False, error="Unsupported file type")
-
-        try:
-        stat = file_path.stat()
-        metadata = {
-            "id": resource_id,
-            "name": file_path.name,
-            "type": self._get_file_type(file_path.suffix),
-            "size": stat.st_size,
-            "modified": datetime.fromtimestamp(stat.st_mtime),
-        }
-        return OperationResult(success=True, data=metadata)
-
     async def read_resource(self, resource_id: str, options: Dict[str, Any] = None) -> OperationResult:
         try:
             file_path = self.base_path / resource_id
@@ -852,32 +826,13 @@ class OfficeFileConnector(BaseConnector):
 
 class PDFConnector(BaseConnector):
     """Connector for PDF files with optional OCR support."""
-        file_path.unlink()
-        return OperationResult(success=True, data={"path": str(file_path)})
-
-    async def search(self, query: str, filters: Dict[str, Any] = None, options: Dict[str, Any] = None) -> OperationResult:
-        list_result = await self.list_resources(filters=filters)
-        if not list_result.success:
-            return list_result
-        query_lower = query.lower()
-        matched = [res for res in list_result.data if query_lower in res.get("name", "").lower()]
-        return OperationResult(success=True, data=matched)
-
-    def _get_file_type(self, suffix: str) -> str:
-        mapping = {".docx": "word", ".xlsx": "excel", ".pptx": "powerpoint"}
-        return mapping.get(suffix.lower(), "unknown")
-
-
-class PDFConnector(BaseConnector):
-    """Connector for PDF files with OCR and annotation support."""
 
     def __init__(self, config: ConnectorConfig):
         super().__init__(config)
         self.base_path = Path(config.settings.get("base_path", "."))
-        self.ocr_engine = self._initialize_ocr()
+        self.base_path.mkdir(parents=True, exist_ok=True)
 
     async def connect(self) -> OperationResult:
-        self.base_path.mkdir(parents=True, exist_ok=True)
         self.is_connected = True
         return OperationResult(success=True, data={"status": "connected"})
 
@@ -886,12 +841,11 @@ class PDFConnector(BaseConnector):
         return OperationResult(success=True, data={"status": "disconnected"})
 
     async def health_check(self) -> OperationResult:
+        exists = self.base_path.exists()
         self.last_health_check = datetime.utcnow()
-        return OperationResult(success=True, data={"status": "healthy"})
+        return OperationResult(success=exists, data={"path_exists": exists, "checked_at": self.last_health_check})
 
-    async def list_resources(
-        self, resource_type: Optional[str] = None, filters: Optional[Dict[str, Any]] = None
-    ) -> OperationResult:
+    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
         resources: List[Dict[str, Any]] = []
         for file_path in self.base_path.rglob("*.pdf"):
             if file_path.is_file():
@@ -908,27 +862,9 @@ class PDFConnector(BaseConnector):
                 )
 
         if filters:
-            resources = [res for res in resources if all(res.get(k) == v for k, v in filters.items())]
+            resources = self._apply_filters(resources, filters)
 
         return OperationResult(success=True, data=resources)
-        exists = self.base_path.exists()
-        return OperationResult(success=exists, data={"checked_at": self.last_health_check}, error=None if exists else "Base path missing")
-
-    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
-        resources: List[Dict[str, Any]] = []
-        for file_path in self.base_path.rglob("*.pdf"):
-            stat = file_path.stat()
-            resources.append(
-                {
-                    "id": str(file_path.relative_to(self.base_path)),
-                    "name": file_path.name,
-                    "type": "pdf",
-                    "size": stat.st_size,
-                    "modified": datetime.fromtimestamp(stat.st_mtime),
-                    "path": str(file_path),
-                }
-            )
-        return OperationResult(success=True, data=self._apply_filters(resources, filters))
 
     async def get_resource_metadata(self, resource_id: str) -> OperationResult:
         file_path = self.base_path / resource_id
@@ -938,52 +874,54 @@ class PDFConnector(BaseConnector):
         stat = file_path.stat()
         return OperationResult(
             success=True,
-            data={"size": stat.st_size, "modified": datetime.fromtimestamp(stat.st_mtime), "suffix": file_path.suffix},
+            data={
+                "id": resource_id,
+                "name": file_path.name,
+                "type": "pdf",
+                "size": stat.st_size,
+                "modified": datetime.fromtimestamp(stat.st_mtime),
+                "suffix": file_path.suffix,
+            },
         )
 
     async def read_resource(self, resource_id: str, options: Optional[Dict[str, Any]] = None) -> OperationResult:
-        if fitz is None:
-            return OperationResult(success=False, error="PyMuPDF is not installed")
-
         file_path = self.base_path / resource_id
         if not file_path.exists():
             return OperationResult(success=False, error="File not found")
 
         try:
-            pdf_document = fitz.open(str(file_path))
-            pages: List[str] = []
-            for page_num in range(pdf_document.page_count):
-                page = pdf_document[page_num]
-                text = page.get_text()
-                if not text.strip() and self.ocr_engine and Image is not None:
-                    pix = page.get_pixmap()
-                    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                    text = await self._perform_ocr(img)
-                pages.append(text)
-            pdf_document.close()
-            return OperationResult(success=True, data={"pages": pages, "title": file_path.stem})
+            return OperationResult(
+                success=True,
+                data={"id": resource_id, "name": file_path.name, "path": str(file_path)},
+            )
         except Exception as exc:  # pragma: no cover - depends on local files
             return OperationResult(success=False, error=str(exc))
 
-    async def write_resource(self, resource_id: str, cir_content: Any, options: Optional[Dict[str, Any]] = None) -> OperationResult:
+    async def write_resource(
+        self, resource_id: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
+    ) -> OperationResult:
         return OperationResult(success=False, error="PDF writing not implemented")
 
     async def create_resource(
         self, resource_type: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
     ) -> OperationResult:
         return OperationResult(success=False, error="Create operation not implemented")
-        stat = file_path.stat()
-        metadata = {
-            "id": resource_id,
-            "name": file_path.name,
-            "type": "pdf",
-            "size": stat.st_size,
-            "modified": datetime.fromtimestamp(stat.st_mtime),
-        }
-        return OperationResult(success=True, data=metadata)
 
-    async def read_resource(self, resource_id: str, options: Dict[str, Any] = None) -> OperationResult:
+    async def delete_resource(self, resource_id: str) -> OperationResult:
         file_path = self.base_path / resource_id
+        if not file_path.exists():
+            return OperationResult(success=False, error="File not found")
+
+        file_path.unlink()
+        return OperationResult(success=True, data={"path": str(file_path)})
+
+    async def search(self, query: str, filters: Dict[str, Any] = None, options: Dict[str, Any] = None) -> OperationResult:
+        list_result = await self.list_resources(filters=filters)
+        if not list_result.success:
+            return list_result
+        query_lower = query.lower()
+        matched = [res for res in list_result.data if query_lower in res.get("name", "").lower()]
+        return OperationResult(success=True, data=matched)
         if not file_path.exists():
             return OperationResult(success=False, error="File not found")
         text_content = file_path.read_text(encoding="utf-8", errors="ignore")
@@ -1058,7 +996,7 @@ class PDFConnector(BaseConnector):
 
 
 class GitConnector(BaseConnector):
-    """Connector for Git repositories with version control integration."""
+    """Connector for Git repositories using GitPython."""
 
     def __init__(self, config: ConnectorConfig):
         super().__init__(config)
@@ -1067,39 +1005,29 @@ class GitConnector(BaseConnector):
 
     async def connect(self) -> OperationResult:
         if Repo is None:
-            return OperationResult(success=False, error="GitPython is not installed")
-
-        self.repo = None
-
-    async def connect(self) -> OperationResult:
-        if not importlib.util.find_spec("git"):
-            return OperationResult(success=False, error="GitPython is not installed")
-
-        from git import Repo  # type: ignore
-
+            return OperationResult(success=False, error="GitPython not installed")
         try:
-            if self.repo_path.exists() and (self.repo_path / ".git").exists():
+            self.repo_path.mkdir(parents=True, exist_ok=True)
+            if (self.repo_path / ".git").exists():
                 self.repo = Repo(str(self.repo_path))
             else:
                 self.repo = Repo.init(str(self.repo_path))
             self.is_connected = True
             return OperationResult(success=True, data={"status": "connected"})
-        except Exception as exc:  # pragma: no cover - filesystem dependent
+        except Exception as exc:  # pragma: no cover - git dependent
             return OperationResult(success=False, error=str(exc))
 
     async def disconnect(self) -> OperationResult:
-        self.is_connected = False
         self.repo = None
+        self.is_connected = False
         return OperationResult(success=True, data={"status": "disconnected"})
 
     async def health_check(self) -> OperationResult:
         exists = self.repo_path.exists() and (self.repo_path / ".git").exists()
         self.last_health_check = datetime.utcnow()
-        return OperationResult(success=exists, data={"repo_exists": exists})
+        return OperationResult(success=exists, data={"repo_exists": exists, "checked_at": self.last_health_check})
 
-    async def list_resources(
-        self, resource_type: Optional[str] = None, filters: Optional[Dict[str, Any]] = None
-    ) -> OperationResult:
+    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
         if not self.repo:
             return OperationResult(success=False, error="Repository not connected")
 
@@ -1178,12 +1106,6 @@ class GitConnector(BaseConnector):
         self, resource_type: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
     ) -> OperationResult:
         return await self.write_resource(options.get("filename", "new_file"), cir_content, options or {})
-                self.repo_path.mkdir(parents=True, exist_ok=True)
-                self.repo = Repo.init(str(self.repo_path))
-            self.is_connected = True
-            return OperationResult(success=True, data={"status": "connected"})
-        except Exception as exc:
-            return OperationResult(success=False, error=str(exc))
 
     async def disconnect(self) -> OperationResult:
         self.repo = None
