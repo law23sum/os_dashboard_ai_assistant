@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 import logging
 
 from .base import IntegrationAPIGateway
+from .microsoft_graph import MicrosoftGraphConnector, ResourceRef
 from .universal_connector import (
     AppleNotesConnector,
     BaseConnector,
@@ -15,7 +16,6 @@ from .universal_connector import (
     ContentBlock,
     ContentBlockType,
     GitConnector,
-    MicrosoftGraphConnector,
     OfficeFileConnector,
     OpenAIConnector,
     OperationResult,
@@ -38,39 +38,12 @@ __all__ = [
     "ContentBlockType",
     "GitConnector",
     "IntegrationAPIGateway",
-    "ConnectorCapability",
-    "ConnectorConfig",
-    "OperationResult",
-    "ConnectorManager",
-    "ConnectorRegistry",
-    "MicrosoftGraphConnector",
-    "OfficeFileConnector",
-    "PDFConnector",
-    "GitConnector",
-    "OpenAIConnector",
-    "get_connector",
-    "list_available_connectors",
-]
-
-from .base import IntegrationAPIGateway
-from .universal_connector import (
-    ConnectorCapability,
-    ConnectorConfig,
-    ConnectorManager,
-    ConnectorRegistry,
-    GitConnector,
-    MicrosoftGraphConnector,
-    OfficeFileConnector,
-    OpenAIConnector,
-    OperationResult,
-    PDFConnector,
-)
-
     "MicrosoftGraphConnector",
     "OfficeFileConnector",
     "OpenAIConnector",
     "OperationResult",
     "PDFConnector",
+    "ResourceRef",
     "Section",
     "get_connector",
     "list_available_connectors",
