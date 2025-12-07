@@ -46,14 +46,40 @@ class OneDriveIntegration(BaseIntegration):
             
             # Pass connection to GraphClient so it can load credentials from database
             # Use delegated auth for /me/ endpoints (OneDrive typically uses /me/drive)
-            graph_client = GraphClient(conn=self.conn)
+            graph_client = GraphClient(conn=self.conn, use_delegated=True)
             self.client = OneDriveClient(graph_client)
             self.service = OneDriveService(self.sync_root, self.client)
             
             # Try to get drive info to verify auth
-            drive_info = self.client.get_drive_info()
-            self.update_status(True, item_count=0)
-            return True
+            try:
+                drive_info = self.client.get_drive_info()
+                self.update_status(True, item_count=0)
+                return True
+            except Exception as auth_error:
+                error_msg = str(auth_error)
+                # Check if we need to authenticate
+                if "No valid access token" in error_msg or "authenticate" in error_msg.lower():
+                    # Try to authenticate interactively
+                    try:
+                        from .msgraph.auth import GraphDelegatedAuth, GraphCredentials
+                        delegated_auth = GraphDelegatedAuth(
+                            GraphCredentials.from_env(conn=self.conn),
+                            conn=self.conn
+                        )
+                        delegated_auth.authenticate_interactive()
+                        # Retry with new token
+                        graph_client = GraphClient(auth=delegated_auth, conn=self.conn)
+                        self.client = OneDriveClient(graph_client)
+                        drive_info = self.client.get_drive_info()
+                        self.update_status(True, item_count=0)
+                        return True
+                    except Exception as interactive_error:
+                        self.update_status(
+                            False,
+                            f"Authentication required. Error: {str(interactive_error)[:80]}"
+                        )
+                        return False
+                raise
         except Exception as e:
             error_msg = str(e)
             if "credentials" in error_msg.lower() or "auth" in error_msg.lower() or "401" in error_msg or "400" in error_msg:

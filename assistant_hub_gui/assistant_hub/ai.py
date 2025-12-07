@@ -22,17 +22,17 @@ from .db import ChatMessage, CHAT_ROLES, PERSONAS
 from .terminal import run_bash_command
 
 # Model assignments per agent
-# Note: o1-preview requires special handling (no system messages, different API)
+# Note: o1 models require special handling (no system messages, different API)
 AGENT_MODELS = {
     "Sora": "gpt-4o",  # Using gpt-4o (closest to "5.1" - latest GPT-4)
     "Aria": "gpt-4o",
-    "AIC": "o1-preview",  # Using o1-preview for "5.1 Thinking" - reasoning model
+    "AIC": "o1-mini",  # Using o1-mini for reasoning model (latest stable o1)
     "Chris": "gpt-4o-mini",  # Default for human user
 }
 
 # Fallback models if primary model unavailable
 AGENT_MODEL_FALLBACKS = {
-    "AIC": "gpt-4o",  # Fallback if o1-preview unavailable
+    "AIC": "gpt-4o",  # Fallback if o1-mini unavailable
 }
 
 DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-4o-mini")
@@ -130,6 +130,18 @@ def get_shell_functions(cwd: str = None) -> List[Dict]:
                     "required": ["command"]
                 }
             }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "read_displayed_file",
+                "description": "Read the content of the file currently displayed in the document preview panel. Use this when the user mentions a document they have open or displayed. Returns the full content of the displayed file.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                }
+            }
         }
     ]
 
@@ -214,8 +226,100 @@ def generate_ai_reply(
         return _offline_reply(fallback_source or "(empty prompt)", exc), str(exc), None
 
 
-def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
-    """Execute a tool call (shell command) and return the result."""
+def execute_tool_call(tool_call, cwd: Optional[str] = None, gui_context: Optional[Dict] = None) -> Dict:
+    """
+    Execute a tool call (shell command) and return the result.
+    
+    Args:
+        tool_call: The tool call object from OpenAI
+        cwd: Optional working directory
+        gui_context: Optional context from GUI (e.g., active_file_session for read_displayed_file)
+    """
+    if tool_call.function.name == "read_displayed_file":
+        # Handle reading displayed file - requires GUI context
+        if not gui_context:
+            return {
+                "tool_call_id": tool_call.id,
+                "role": "tool",
+                "name": "read_displayed_file",
+                "content": "No GUI context available. Cannot read displayed file."
+            }
+        
+        active_session = gui_context.get('active_file_session')
+        if not active_session:
+            return {
+                "tool_call_id": tool_call.id,
+                "role": "tool",
+                "name": "read_displayed_file",
+                "content": "No file is currently displayed in the document preview panel. Please open a file first using the 'Open Document' button or by having the AI open a file."
+            }
+        
+        file_path = active_session.get('path')
+        file_type = active_session.get('type', 'Unknown')
+        
+        if not file_path or not os.path.exists(file_path):
+            return {
+                "tool_call_id": tool_call.id,
+                "role": "tool",
+                "name": "read_displayed_file",
+                "content": f"No valid file path available. File path: {file_path}"
+            }
+        
+        # Try to read the file
+        try:
+            # Use the GUI's file reading method if available
+            read_file_func = gui_context.get('read_file_func')
+            if read_file_func:
+                content = read_file_func(file_path, file_type)
+            else:
+                # Fallback: read file directly (basic text reading)
+                if file_type == "PDF":
+                    try:
+                        import pdfplumber
+                        content = ""
+                        with pdfplumber.open(file_path) as pdf:
+                            for i, page in enumerate(pdf.pages):
+                                text = page.extract_text()
+                                if text:
+                                    content += f"\n--- Page {i+1} ---\n"
+                                    content += text
+                                    content += "\n"
+                    except ImportError:
+                        try:
+                            import PyPDF2
+                            content = ""
+                            with open(file_path, 'rb') as f:
+                                pdf_reader = PyPDF2.PdfReader(f)
+                                for i, page in enumerate(pdf_reader.pages):
+                                    text = page.extract_text()
+                                    if text:
+                                        content += f"\n--- Page {i+1} ---\n"
+                                        content += text
+                                        content += "\n"
+                        except ImportError:
+                            content = "PDF libraries not available. Install pdfplumber or PyPDF2 to read PDFs."
+                    except Exception as e:
+                        content = f"Error reading PDF: {str(e)}"
+                else:
+                    # For text files
+                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        content = f.read()
+            
+            file_name = os.path.basename(file_path)
+            return {
+                "tool_call_id": tool_call.id,
+                "role": "tool",
+                "name": "read_displayed_file",
+                "content": f"Content of displayed file '{file_name}' ({file_type}):\n\n{content}"
+            }
+        except Exception as e:
+            return {
+                "tool_call_id": tool_call.id,
+                "role": "tool",
+                "name": "read_displayed_file",
+                "content": f"Error reading displayed file: {str(e)}\nFile path: {file_path}\nFile type: {file_type}"
+            }
+    
     if tool_call.function.name == "execute_command":
         import json
         try:

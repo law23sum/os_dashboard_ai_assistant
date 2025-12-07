@@ -56,26 +56,64 @@ class OneNoteIntegration(BaseIntegration):
             
             # Pass connection to GraphClient so it can load credentials from database
             # Use delegated auth for /me/ endpoints
-            graph_client = GraphClient(conn=self.conn)
+            graph_client = GraphClient(conn=self.conn, use_delegated=True)
             self.client = OneNoteClient(graph_client)
             self.service = OneNoteService(self.mirror_root, self.client)
             
             # Try to list notebooks to verify auth
-            notebooks = self.client.list_notebooks()
-            self.update_status(True, item_count=len(notebooks) if notebooks else 0)
-            return True
+            try:
+                notebooks = self.client.list_notebooks()
+                self.update_status(True, item_count=len(notebooks) if notebooks else 0)
+                return True
+            except Exception as auth_error:
+                error_msg = str(auth_error)
+                # Check if we need to authenticate
+                if "No valid access token" in error_msg or "authenticate" in error_msg.lower():
+                    # Try to authenticate interactively
+                    try:
+                        from .msgraph.auth import GraphDelegatedAuth
+                        delegated_auth = GraphDelegatedAuth(
+                            GraphCredentials.from_env(conn=self.conn),
+                            conn=self.conn
+                        )
+                        delegated_auth.authenticate_interactive()
+                        # Retry with new token
+                        graph_client = GraphClient(auth=delegated_auth, conn=self.conn)
+                        self.client = OneNoteClient(graph_client)
+                        notebooks = self.client.list_notebooks()
+                        self.update_status(True, item_count=len(notebooks) if notebooks else 0)
+                        return True
+                    except Exception as interactive_error:
+                        self.update_status(
+                            False,
+                            f"Authentication required. Error: {str(interactive_error)[:80]}"
+                        )
+                        return False
+                raise
         except Exception as e:
             error_msg = str(e)
             # Provide more specific error messages
-            if "401" in error_msg or "Unauthorized" in error_msg:
+            if "400" in error_msg and ("Bad Request" in error_msg or "/me/" in error_msg):
+                self.update_status(
+                    False, 
+                    "OneNote requires delegated permissions (user sign-in). "
+                    "Current setup uses app-only auth which doesn't support /me/ endpoints."
+                )
+            elif "401" in error_msg or "Unauthorized" in error_msg:
                 self.update_status(False, "Authentication failed. Check credentials and permissions.")
+            elif "DELEGATED" in error_msg or "delegated" in error_msg.lower():
+                self.update_status(
+                    False,
+                    "OneNote requires user sign-in (delegated permissions). "
+                    "App-only authentication is not supported for /me/ endpoints."
+                )
             elif "credentials" in error_msg.lower() or "auth" in error_msg.lower() or "Authentication" in error_msg:
                 self.update_status(False, "Not authenticated. Configure Microsoft Graph credentials.")
             elif "Module" in error_msg or "ImportError" in error_msg or "No module" in error_msg:
                 self.update_status(False, "Required modules not installed. Check dependencies.")
             else:
                 # Truncate long error messages for display
-                display_msg = error_msg[:50] + "..." if len(error_msg) > 50 else error_msg
+                display_msg = error_msg[:100] + "..." if len(error_msg) > 100 else error_msg
                 self.update_status(False, display_msg)
             return False
     
