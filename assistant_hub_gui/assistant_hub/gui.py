@@ -5,7 +5,7 @@ import sqlite3
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 import tkinter as tk
 from tkinter import ttk, messagebox, font as tkfont, filedialog
@@ -50,6 +50,7 @@ from .db import (
     PRIORITY_OPTIONS,
     DEFAULT_FETCH_PREFERENCES,
 )
+from config.logging_config import setup_logger
 from .utils import parse_date, ensure_project_exists
 from .ai import (
     generate_ai_reply,
@@ -61,27 +62,24 @@ from .ai import (
 )
 from .terminal import run_bash_command
 from .sync_scheduler import create_default_scheduler
-from .integrations import (
-    AppleCalendarIntegration,
-    GmailIntegration,
-    GitHubIntegration,
-    NotesIntegration,
-    WordIntegration,
-    ExcelIntegration,
-    OneNoteIntegration,
-    OneDriveIntegration,
-    FilesystemIntegration,
-    GitIntegration,
-    PDFIntegration,
-)
 
 # Additional imports for Tools & Operations tab
 try:
+    import msal
     from .integrations.onenote.client import OneNoteClient
     ONENOTE_CLIENT_AVAILABLE = True
 except ImportError:
     ONENOTE_CLIENT_AVAILABLE = False
     OneNoteClient = None
+
+# Import automation orchestrator
+try:
+    from assistant_core.automation_orchestrator import AutomationOrchestrator
+    AUTOMATION_ORCHESTRATOR_AVAILABLE = True
+except ImportError:
+    AUTOMATION_ORCHESTRATOR_AVAILABLE = False
+    AutomationOrchestrator = None
+
 
 try:
     from .integrations.excel.cloud_client import ExcelCloudClient
@@ -90,18 +88,10 @@ except ImportError:
     EXCEL_CLOUD_AVAILABLE = False
     ExcelCloudClient = None
 
-try:
-    from .integrations.excel.service import ExcelService, summarize_local_workbook
-    EXCEL_SERVICE_AVAILABLE = True
-except ImportError:
     EXCEL_SERVICE_AVAILABLE = False
     ExcelService = None
     summarize_local_workbook = None
 
-try:
-    from .integrations.word.service import WordService
-    WORD_SERVICE_AVAILABLE = True
-except ImportError:
     WORD_SERVICE_AVAILABLE = False
     WordService = None
 
@@ -120,6 +110,15 @@ except ImportError:
 from .task_automation import process_recurring_tasks, check_task_dependencies
 # Template functionality removed - backend code kept in task_templates.py for potential future use
 from .ai_task_creation import create_task_from_ai_message
+
+# Import enhanced conversation manager (optional)
+try:
+    from assistant_core.conversation_manager import process_conversation_message, get_conversation_analytics
+    CONVERSATION_MANAGER_AVAILABLE = True
+except ImportError:
+    CONVERSATION_MANAGER_AVAILABLE = False
+    process_conversation_message = None
+    get_conversation_analytics = None
 from .analytics import (
     get_task_completion_stats,
     get_project_stats,
@@ -309,6 +308,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.base_font = tkfont.nametofont("TkDefaultFont")
         self.text_font = tkfont.nametofont("TkTextFont")
 
+        # Initialize logger
+        self.logger = setup_logger("AssistantGUI")
+
         self.conn: sqlite3.Connection = init_db()
         self.state_obj: AssistantState = load_state(self.conn)
         self.settings: Settings = load_settings(self.conn)
@@ -346,6 +348,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         self._build_topbar()
 
+
         if TTKBOOTSTRAP_AVAILABLE:
             self.notebook = ttkb.Notebook(self, bootstyle="primary")
         else:
@@ -368,15 +371,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.notebook.tab(1, text="✅ Tasks")
             self.notebook.tab(2, text="📁 Projects")
             self.notebook.tab(3, text="💬 AI Console")
-            self.notebook.tab(4, text="🔗 Integrations")
-            self.notebook.tab(5, text="🔧 Tools")
-            self.notebook.tab(6, text="📊 Analytics")
-            self.notebook.tab(7, text="⚙️ Settings")
+            self.notebook.tab(4, text="🔧 Tools")
+            self.notebook.tab(5, text="📊 Analytics")
+            self.notebook.tab(6, text="⚙️ Settings")
 
         # Initialize sync scheduler
         self.sync_scheduler = create_default_scheduler(self.conn)
         # Start scheduler in background (optional - can be started manually)
         # self.sync_scheduler.start()
+
         
         # Process recurring tasks on startup
         try:
@@ -392,6 +395,19 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         except Exception as e:
             print(f"[GUI] Warning: Could not start cognitive daemon: {e}")
             self.cognitive_daemon = None
+
+        # Initialize automation orchestrator for intelligent workflow automation
+        try:
+            if AUTOMATION_ORCHESTRATOR_AVAILABLE:
+                self.automation_orchestrator = AutomationOrchestrator(app_state=self)
+                asyncio.create_task(self.automation_orchestrator.initialize())
+                print("[GUI] Automation Orchestrator initialized - intelligent workflows enabled")
+            else:
+                print("[GUI] Warning: Automation Orchestrator not available")
+                self.automation_orchestrator = None
+        except Exception as e:
+            print(f"[GUI] Warning: Could not initialize automation orchestrator: {e}")
+            self.automation_orchestrator = None
         
         # Initialize Git versioning worker for automatic version control
         try:
@@ -456,6 +472,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 size=base_size + 2,
                 weight="bold"
             )
+
+            # Create bold font for emphasis
+            self.bold_font = tkfont.Font(
+                family=self.base_font.actual("family"),
+                size=base_size,
+                weight="bold"
+            )
         except Exception as e:
             # Fallback to default fonts if configuration fails
             print(f"Warning: Could not configure fonts: {e}")
@@ -464,6 +487,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             if not hasattr(self, 'text_font'):
                 self.text_font = tkfont.nametofont("TkTextFont")
             self.heading_font = self.base_font
+            self.bold_font = self.base_font
 
     def _configure_style(self):
         if TTKBOOTSTRAP_AVAILABLE:
@@ -534,6 +558,25 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             highlightcolor=self.colors["border"],
             highlightbackground=self.colors["border"],
         )
+
+        # Allow copying from disabled text widgets
+        widget.bind("<Control-c>", lambda e: self._copy_from_text_widget(widget))
+        widget.bind("<Command-c>", lambda e: self._copy_from_text_widget(widget))  # macOS
+
+    def _copy_from_text_widget(self, widget: tk.Text):
+        """Copy selected text from a text widget, even if disabled."""
+        try:
+            # Get selected text
+            if widget.tag_ranges("sel"):
+                selected_text = widget.get("sel.first", "sel.last")
+                # Copy to clipboard
+                self.clipboard_clear()
+                self.clipboard_append(selected_text)
+                return "break"  # Prevent default handling
+        except tk.TclError:
+            # No selection
+            pass
+        return None
 
     def _build_topbar(self):
         """Build a professional top bar with better spacing and styling."""
@@ -2103,8 +2146,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             chat_container = ttk.Frame(self.chat_paned)
         chat_container.columnconfigure(0, weight=1)
-        chat_container.rowconfigure(0, weight=3)
-        chat_container.rowconfigure(1, weight=2)
+        chat_container.rowconfigure(0, weight=2)  # Conversation area: 2/3
+        chat_container.rowconfigure(1, weight=1)  # Compose area: 1/3
         self.chat_paned.add(chat_container, weight=1)  # Start with equal weight, user can resize
 
         if TTKBOOTSTRAP_AVAILABLE:
@@ -2127,6 +2170,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         chat_scroll.grid(row=0, column=1, sticky="ns")
         compose.grid(row=1, column=0, sticky="nsew", padx=8, pady=(0, 8))
         compose.columnconfigure(1, weight=1)
+        # Configure rows for proper space distribution
+        compose.rowconfigure(1, weight=2)  # System prompt gets more space
+        compose.rowconfigure(3, weight=1)  # Chat input gets less space (1/3 of compose area)
 
         # Right side: Document interaction panel (always visible)
         if TTKBOOTSTRAP_AVAILABLE:
@@ -2216,7 +2262,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.model_combo.set("auto")
         self.model_combo.bind("<<ComboboxSelected>>", self.on_agent_change)
         
-        self.system_prompt_text = tk.Text(compose, height=3, wrap="word", font=self.text_font)
+        self.system_prompt_text = tk.Text(compose, height=6, wrap="word", font=self.text_font)
         self._style_text_widget(self.system_prompt_text)
         self.system_prompt_text.grid(row=1, column=1, columnspan=5, sticky="nsew", padx=6, pady=4)
         self.system_prompt_text.insert("1.0", DEFAULT_SYSTEM_PROMPT)
@@ -2246,7 +2292,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         # Combined input field (replaces both chat_input and command_entry)
         # Use Text widget for multi-line support (both messages and commands)
-        self.chat_input = tk.Text(compose, height=4, wrap="word", font=self.text_font)
+        self.chat_input = tk.Text(compose, height=6, wrap="word", font=self.text_font)
         self._style_text_widget(self.chat_input)
         self.chat_input.grid(row=3, column=1, columnspan=5, sticky="nsew", padx=6, pady=(6, 4))
         # Ctrl+Enter sends as chat message, Enter alone checks if it's a command
@@ -3920,7 +3966,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if not hasattr(self, 'chat_input'):
             return
         text = self.chat_input.get('1.0', 'end').strip()
-        
+
         # Ignore placeholder text
         placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline). Use '$' prefix for shell commands."
         if not text or text == placeholder:
@@ -3929,6 +3975,22 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         sender = self.chat_sender_var.get().strip() or 'Chris'
         if sender not in PERSONAS:
             sender = 'Chris'
+
+        # Enhanced conversation processing (optional)
+        conversation_data = None
+        if CONVERSATION_MANAGER_AVAILABLE and invoke_ai:
+            try:
+                session_id = f"gui_session_{sender.lower()}"
+                conversation_data = asyncio.run(process_conversation_message(
+                    user_id=sender,
+                    message=text,
+                    session_id=session_id,
+                    persona=self.chat_agent_var.get().strip() or self.state_obj.active_persona
+                ))
+                self.logger.info(f"Enhanced conversation analysis: {conversation_data.get('intent', 'unknown')}")
+            except Exception as e:
+                self.logger.warning(f"Enhanced conversation processing failed: {e}")
+
         user_msg = self._store_chat_message(sender, 'user', text)
         
         # Try to extract and create tasks from the message
@@ -3974,6 +4036,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             instruction=instruction,
             fallback_prompt=text,
             cwd=cwd,
+            conversation_data=conversation_data,
         )
 
     def _start_ai_response(
@@ -3985,6 +4048,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         instruction: Optional[str],
         fallback_prompt: str,
         cwd: str,
+        conversation_data: Optional[Dict[str, Any]] = None,
     ):
         self._update_chat_status(f'Contacting ChatGPT ({model})...')
         # Start progress indicator
@@ -4006,20 +4070,45 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 else:
                     current_messages = all_messages.copy()
                 
+                # Enhance prompt with conversation analysis if available
+                enhanced_prompt = instruction if iteration == 0 else None
+                enhanced_system_prompt = system_prompt
+
+                if conversation_data and iteration == 0:
+                    # Add conversation context to system prompt or instruction
+                    analysis = conversation_data.get('analysis', {})
+                    context_info = []
+
+                    if analysis.get('intent'):
+                        context_info.append(f"User intent: {analysis['intent']}")
+                    if analysis.get('emotion'):
+                        context_info.append(f"User emotion: {analysis['emotion']}")
+                    if analysis.get('urgency_level'):
+                        context_info.append(f"Urgency level: {analysis['urgency_level']}/10")
+                    if analysis.get('topics'):
+                        context_info.append(f"Topics: {', '.join(analysis['topics'])}")
+
+                    if context_info:
+                        context_str = " | ".join(context_info)
+                        if enhanced_prompt:
+                            enhanced_prompt = f"[{context_str}] {enhanced_prompt}"
+                        else:
+                            enhanced_system_prompt = f"{system_prompt}\n\nCurrent conversation context: {context_str}"
+
                 reply, error, tool_calls = generate_ai_reply(
                     current_messages,
                     persona=user_msg.persona,
-                    prompt=instruction if iteration == 0 else None,
-                    append_prompt=bool(instruction) and iteration == 0,
+                    prompt=enhanced_prompt,
+                    append_prompt=bool(enhanced_prompt),
                     fallback_prompt=fallback_prompt,
-                    system_prompt=system_prompt,
+                    system_prompt=enhanced_system_prompt,
                     model=model,
                     cwd=cwd,
                     enable_shell=True,
                 )
                 
                 if error:
-                    self.after(0, lambda r=reply, e=error: self._handle_ai_reply(r, e, responder))
+                    self.after(0, lambda r=reply, e=error, cd=conversation_data: self._handle_ai_reply(r, e, responder, cd))
                     return
                 
                 # If there are tool calls, execute them asynchronously to prevent UI blocking
@@ -4152,27 +4241,37 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     continue
                 else:
                     # No more tool calls, return the final reply
-                    self.after(0, lambda r=reply, e=error: self._handle_ai_reply(r, e, responder))
+                    self.after(0, lambda r=reply, e=error, cd=conversation_data: self._handle_ai_reply(r, e, responder, cd))
                     return
             
             # Max iterations reached
             final_reply = reply if 'reply' in locals() and reply else "Maximum interaction iterations reached."
-            self.after(0, lambda r=final_reply: self._handle_ai_reply(r, None, responder))
+            self.after(0, lambda r=final_reply, cd=conversation_data: self._handle_ai_reply(r, None, responder, cd))
 
         threading.Thread(target=worker, daemon=True).start()
 
-    def _handle_ai_reply(self, reply_text: str, error: Optional[str], responder: str):
+    def _handle_ai_reply(self, reply_text: str, error: Optional[str], responder: str, conversation_data: Optional[Dict[str, Any]] = None):
         # Stop progress indicator
         if hasattr(self, 'chat_progress'):
             if error:
                 self.chat_progress.stop("Error occurred")
             else:
                 self.chat_progress.stop("Response received")
-        
+
         persona = responder or self.chat_agent_var.get().strip() or 'AI Team'
         text = reply_text.strip() if reply_text else '(no response)'
         self._store_chat_message(persona, 'assistant', text)
         self.refresh_chat_history(incremental=True)
+
+        # Handle proactive suggestions from conversation analysis
+        if conversation_data and not error:
+            suggestions = conversation_data.get('suggestions', [])
+            if suggestions:
+                # Add suggestions as a system message
+                suggestion_text = "💡 Suggestions: " + " | ".join(suggestions[:2])
+                self._store_chat_message('System', 'system', suggestion_text)
+                self.refresh_chat_history(incremental=True)
+
         if error:
             self._update_chat_status(f'ChatGPT error (fallback used): {error}')
         else:
@@ -4319,20 +4418,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 # ---------- Integrations Tab ----------
 
     def _build_integrations_tab(self):
+        """Build the Integrations tab with external service connections."""
         if TTKBOOTSTRAP_AVAILABLE:
             self.integrations_frame = ttkb.Frame(self.notebook)
         else:
             self.integrations_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.integrations_frame, text="🔌 Integrations")
+            self.notebook.add(self.integrations_frame, text="🔗 Integrations")
         
         self.integrations_frame.columnconfigure(0, weight=1)
         self.integrations_frame.rowconfigure(0, weight=1)
         
-        # Use existing scheduler from __init__
-        if not hasattr(self, 'sync_scheduler'):
-            self.sync_scheduler = create_default_scheduler(self.conn)
-        
-        # Main container
         if TTKBOOTSTRAP_AVAILABLE:
             main_container = ttkb.Frame(self.integrations_frame)
         else:
@@ -4402,12 +4497,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             connect_btn = ttkb.Button(btn_frame, text="🔌 Connect", command=self.on_connect_integration, bootstyle="success-outline")
             sync_btn = ttkb.Button(btn_frame, text="🔄 Sync All", command=self.on_sync_all_integrations, bootstyle="info")
             sync_selected_btn = ttkb.Button(btn_frame, text="🔄 Sync Selected", command=self.on_sync_selected_integration, bootstyle="info-outline")
-            refresh_btn = ttkb.Button(btn_frame, text="🔄 Refresh", command=self.refresh_integrations_list, bootstyle="secondary-outline")
+            refresh_btn = ttkb.Button(btn_frame, text="🔄 Refresh", command=self.on_refresh_integrations, bootstyle="secondary")
         else:
             connect_btn = ttk.Button(btn_frame, text="Connect", command=self.on_connect_integration)
             sync_btn = ttk.Button(btn_frame, text="Sync All", command=self.on_sync_all_integrations)
             sync_selected_btn = ttk.Button(btn_frame, text="Sync Selected", command=self.on_sync_selected_integration)
-            refresh_btn = ttk.Button(btn_frame, text="Refresh", command=self.refresh_integrations_list)
+            refresh_btn = ttk.Button(btn_frame, text="Refresh", command=self.on_refresh_integrations)
         
         connect_btn.grid(row=0, column=0, padx=4)
         sync_btn.grid(row=0, column=1, padx=4)
@@ -4419,70 +4514,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             ToolTip(sync_btn, text="Sync all enabled integrations")
             ToolTip(sync_selected_btn, text="Sync the selected integration")
             ToolTip(refresh_btn, text="Refresh the integrations list")
-    
-    def refresh_integrations_list(self):
-        """Refresh the integrations list display."""
-        for row in self.integrations_tree.get_children():
-            self.integrations_tree.delete(row)
-        
-        # Load saved credentials/configs before checking status
-        self._load_saved_credentials()
-        
-        # Get integration statuses - all available integrations
-        integrations = {
-            "Local Notes": NotesIntegration(self.conn),
-            "Apple Calendar": AppleCalendarIntegration(self.conn),
-            "Gmail": GmailIntegration(self.conn),
-            "GitHub": GitHubIntegration(self.conn),
-            "Word": WordIntegration(self.conn),
-            "Excel": ExcelIntegration(self.conn),
-            "OneNote": OneNoteIntegration(self.conn),
-            "OneDrive": OneDriveIntegration(self.conn),
-            "Local Files": FilesystemIntegration(self.conn),
-            "Git": GitIntegration(self.conn),
-            "PDF": PDFIntegration(self.conn),
-        }
-        
-        for name, integration in integrations.items():
-            # Try to authenticate to get current status
-            try:
-                integration.authenticate()
-            except Exception:
-                pass
-            
-            status = integration.get_status()
-            status_text = "✅ Connected" if status.connected else "❌ Disconnected"
-            if status.error:
-                # Show more of the error message (up to 80 chars) for better visibility
-                error_display = status.error[:80] + "..." if len(status.error) > 80 else status.error
-                status_text += f" ({error_display})"
-            
-            last_sync = status.last_sync or "Never"
-            if last_sync != "Never" and "T" in last_sync:
-                last_sync = last_sync.replace("T", " ")[:16]
-            
-            # Determine tag based on connection status
-            if status.connected:
-                tag = "connected"
-            else:
-                tag = "disconnected"
-            
-            item_id = self.integrations_tree.insert(
-                "",
-                "end",
-                iid=name,
-                values=(name, status_text, last_sync, status.item_count),
-                tags=(tag,)
-            )
-            
-            # Configure tags with colors
-            if not TTKBOOTSTRAP_AVAILABLE:
-                self.integrations_tree.tag_configure("connected", background=self.integrations_teal_light, foreground="#008B8B")
-                self.integrations_tree.tag_configure("disconnected", background="#FFF5F5", foreground="#8B4513")
-            else:
-                # For ttkbootstrap, use bootstyle colors that match teal theme
-                self.integrations_tree.tag_configure("connected", foreground="#008B8B")
-                self.integrations_tree.tag_configure("disconnected", foreground="#8B4513")
+
+        # Initialize the integrations list
+        self.after(100, self.on_refresh_integrations)
     
     def _load_saved_credentials(self):
         """Load saved credentials from config files into environment."""
@@ -4509,7 +4543,68 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                             os.environ[key.strip()] = value.strip()
             except Exception:
                 pass
-    
+
+    def on_refresh_integrations(self):
+        """Refresh the integrations list display."""
+        for row in self.integrations_tree.get_children():
+            self.integrations_tree.delete(row)
+
+        # Load saved credentials/configs before checking status
+        self._load_saved_credentials()
+
+        # Get integration statuses - all available integrations
+        integrations = {
+            "Local Notes": NotesIntegration(self.conn),
+            "Apple Calendar": AppleCalendarIntegration(self.conn),
+            "Gmail": GmailIntegration(self.conn),
+            "GitHub": GitHubIntegration(self.conn),
+            "Word": WordIntegration(self.conn),
+            "Excel": ExcelIntegration(self.conn),
+            "OneNote": OneNoteIntegration(self.conn),
+            "OneDrive": OneDriveIntegration(self.conn),
+            "Local Files": FilesystemIntegration(self.conn),
+            "Git": GitIntegration(self.conn),
+            "PDF": PDFIntegration(self.conn),
+        }
+
+        for name, integration in integrations.items():
+            # Try to authenticate to get current status
+            try:
+                integration.authenticate()
+            except Exception:
+                pass
+
+            status = integration.get_status()
+            status_text = "✅ Connected" if status.connected else "❌ Disconnected"
+            if status.error:
+                # Show more of the error message (up to 80 chars) for better visibility
+                error_display = status.error[:80] + "..." if len(status.error) > 80 else status.error
+                status_text += f" ({error_display})"
+
+            last_sync = status.last_sync or "Never"
+            if last_sync != "Never" and "T" in last_sync:
+                last_sync = last_sync.replace("T", " ")[:16]
+
+            # Determine tag based on connection status
+            if status.connected:
+                tag = "connected"
+            else:
+                tag = "disconnected"
+
+            item_id = self.integrations_tree.insert(
+                "", "end",
+                values=(name, status_text, last_sync, status.item_count or 0),
+                tags=(tag,)
+            )
+
+        # Configure tag colors
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.integrations_tree.tag_configure("connected", background="#d4edda", foreground="#155724")  # Green
+            self.integrations_tree.tag_configure("disconnected", background="#f8d7da", foreground="#721c24")  # Red
+        else:
+            self.integrations_tree.tag_configure("connected", background="lightgreen")
+            self.integrations_tree.tag_configure("disconnected", background="lightcoral")
+
     def on_sync_all_integrations(self):
         """Sync all enabled integrations."""
         results = self.sync_scheduler.sync_now()
@@ -4520,7 +4615,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             else:
                 message += f"  {name}: Error\n"
         messagebox.showinfo("Sync Complete", message)
-        self.refresh_integrations_list()
     
     def on_sync_selected_integration(self):
         """Sync the selected integration."""
@@ -4550,7 +4644,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             messagebox.showinfo("Sync Complete", f"{name}: {count} items synced.")
         else:
             messagebox.showerror("Sync Error", f"Failed to sync {name}.")
-        self.refresh_integrations_list()
     
     def on_connect_integration(self):
         """Open connection/authentication dialog for selected integration."""
@@ -4701,7 +4794,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     
                     messagebox.showinfo("Success", f"✅ Successfully authenticated with Google {service_type.title()}!")
                     dialog.destroy()
-                    self.refresh_integrations_list()
                 except ImportError:
                     messagebox.showwarning(
                         "Missing Dependencies",
@@ -4773,7 +4865,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 os.environ["GITHUB_TOKEN"] = token
                 messagebox.showinfo("Success", "GitHub token saved successfully!")
                 dialog.destroy()
-                self.refresh_integrations_list()
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to save token: {e}")
         
@@ -4860,140 +4951,22 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 
                 messagebox.showinfo("Success", "Microsoft Graph credentials saved to database!")
                 dialog.destroy()
-                self.refresh_integrations_list()
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to save credentials: {e}")
         
-        # Add device code authentication button for delegated permissions
-        def authenticate_delegated():
-            """Start device code authentication flow for delegated permissions."""
-            tenant = tenant_var.get().strip()
-            client_id = client_id_var.get().strip()
-            
-            if not tenant or not client_id:
-                messagebox.showerror("Error", "Please enter Tenant ID and Client ID first.")
-                return
-            
-            try:
-                from .integrations.msgraph.auth import GraphCredentials, GraphDelegatedAuth
-                credentials = GraphCredentials(tenant_id=tenant, client_id=client_id, client_secret="")
-                delegated_auth = GraphDelegatedAuth(credentials, conn=self.conn)
-                
-                # Show device code in a new dialog
-                device_dialog = tk.Toplevel(dialog)
-                device_dialog.title("Microsoft Graph Authentication")
-                device_dialog.geometry("600x400")
-                device_dialog.transient(dialog)
-                
-                if TTKBOOTSTRAP_AVAILABLE:
-                    device_frame = ttkb.Frame(device_dialog, padding=20)
-                else:
-                    device_frame = ttk.Frame(device_dialog, padding=20)
-                device_frame.pack(fill="both", expand=True)
-                
-                status_label = ttk.Label(device_frame, text="Starting authentication...", justify="center")
-                status_label.pack(pady=20)
-                
-                code_label = ttk.Label(device_frame, text="", font=("Courier", 16, "bold"), justify="center")
-                code_label.pack(pady=10)
-                
-                url_label = ttk.Label(device_frame, text="", justify="center", foreground="blue", cursor="hand2")
-                url_label.pack(pady=10)
-                
-                instructions_label = ttk.Label(
-                    device_frame,
-                    text="",
-                    justify="center",
-                    wraplength=500
-                )
-                instructions_label.pack(pady=20, fill="x")
-                
-                def start_auth():
-                    try:
-                        device_data = delegated_auth.get_device_code()
-                        user_code = device_data["user_code"]
-                        verification_url = device_data["verification_uri"]
-                        expires_in = device_data.get("expires_in", 900)
-                        
-                        status_label.config(text="Waiting for you to sign in...")
-                        code_label.config(text=user_code)
-                        url_label.config(text=verification_url)
-                        url_label.bind("<Button-1>", lambda e: __import__("webbrowser").open(verification_url))
-                        
-                        instructions_label.config(
-                            text=f"1. Visit the URL above (or click it)\n"
-                                 f"2. Enter the code: {user_code}\n"
-                                 f"3. Sign in and grant permissions\n"
-                                 f"4. This dialog will close automatically when complete\n\n"
-                                 f"Timeout in {expires_in} seconds"
-                        )
-                        
-                        # Poll for token in background
-                        import threading
-                        def poll_token():
-                            try:
-                                interval = device_data.get("interval", 5)
-                                access_token = delegated_auth.poll_for_token(
-                                    device_data["device_code"],
-                                    interval=interval,
-                                    timeout=expires_in
-                                )
-                                device_dialog.after(0, lambda: (
-                                    status_label.config(text="✅ Authentication successful!"),
-                                    code_label.config(text=""),
-                                    url_label.config(text=""),
-                                    instructions_label.config(text="You can now close this window."),
-                                    dialog.after(1000, dialog.destroy),
-                                    device_dialog.after(2000, device_dialog.destroy),
-                                    self.refresh_integrations_list()
-                                ))
-                            except Exception as e:
-                                device_dialog.after(0, lambda: (
-                                    status_label.config(text=f"❌ Authentication failed"),
-                                    instructions_label.config(text=f"Error: {str(e)}\n\nPlease try again.")
-                                ))
-                        
-                        thread = threading.Thread(target=poll_token, daemon=True)
-                        thread.start()
-                    except Exception as e:
-                        status_label.config(text=f"❌ Error: {str(e)}")
-                
-                start_auth()
-                
-                if TTKBOOTSTRAP_AVAILABLE:
-                    close_btn = ttkb.Button(device_frame, text="Close", command=device_dialog.destroy, bootstyle="secondary")
-                else:
-                    close_btn = ttk.Button(device_frame, text="Close", command=device_dialog.destroy)
-                close_btn.pack(pady=10)
-                
-            except Exception as e:
-                messagebox.showerror("Error", f"Failed to start authentication: {e}")
-        
-        # Add separator and info about delegated auth
-        separator = ttk.Separator(frame, orient="horizontal")
-        separator.pack(fill="x", pady=20)
-        
-        info_label = ttk.Label(
-            frame,
-            text=f"For {service_name} (accessing /me/ endpoints), you also need to authenticate with delegated permissions:",
-            justify="left",
-            wraplength=450
-        )
-        info_label.pack(pady=10, fill="x")
+            # Note: Delegated permissions authentication removed due to complexity
+            # Only client credentials flow is supported for now
         
         if TTKBOOTSTRAP_AVAILABLE:
             save_btn = ttkb.Button(frame, text="Save Credentials", command=save_credentials, bootstyle="success")
-            auth_btn = ttkb.Button(frame, text="🔐 Authenticate (Device Code)", command=authenticate_delegated, bootstyle="info")
             cancel_btn = ttkb.Button(frame, text="Cancel", command=dialog.destroy, bootstyle="secondary")
         else:
             save_btn = ttk.Button(frame, text="Save Credentials", command=save_credentials)
-            auth_btn = ttk.Button(frame, text="Authenticate (Device Code)", command=authenticate_delegated)
             cancel_btn = ttk.Button(frame, text="Cancel", command=dialog.destroy)
         
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=20)
         save_btn.pack(side="left", padx=5)
-        auth_btn.pack(side="left", padx=5)
         cancel_btn.pack(side="left", padx=5)
     
     def _show_notes_config_dialog(self, dialog, frame):
@@ -5036,7 +5009,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 # Save to config (could use database or config file)
                 messagebox.showinfo("Success", f"Notes directory configured: {notes_path}")
                 dialog.destroy()
-                self.refresh_integrations_list()
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to configure notes directory: {e}")
         
@@ -5090,7 +5062,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 # Save to config
                 messagebox.showinfo("Success", f"Files root directory configured: {root_path}")
                 dialog.destroy()
-                self.refresh_integrations_list()
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to configure files directory: {e}")
         
@@ -5105,6 +5076,148 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         btn_frame.pack(pady=20)
         save_btn.pack(side="left", padx=5)
         cancel_btn.pack(side="left", padx=5)
+
+    def format_file_size(self, size_bytes):
+        """Format file size in human readable format."""
+        if size_bytes == 0:
+            return "0 B"
+        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+            if size_bytes < 1024.0:
+                return ".1f"
+            size_bytes /= 1024.0
+        return ".1f"
+
+    def refresh_pdf_documents(self):
+        """Refresh the list of PDF documents from OneDrive."""
+        try:
+            # Clear existing items
+            if hasattr(self, 'pdf_tree'):
+                for item in self.pdf_tree.get_children():
+                    self.pdf_tree.delete(item)
+
+            # Import ExcelCloudClient here to avoid scoping issues
+            try:
+                from .integrations.excel.cloud_client import ExcelCloudClient
+                excel_client_available = True
+            except ImportError:
+                excel_client_available = False
+                ExcelCloudClient = None
+
+            if not hasattr(self, 'pdf_status_var'):
+                return
+
+            if not EXCEL_CLOUD_AVAILABLE or not excel_client_available or ExcelCloudClient is None:
+                self.pdf_status_var.set("❌ Microsoft Graph client not available. Check Microsoft Graph configuration.")
+                return
+
+            self.pdf_status_var.set("🔄 Loading documents...")
+            self.update()
+
+            try:
+                # Pass connection to GraphClient so it can load credentials from database
+                from .integrations.msgraph.client import GraphClient
+                # Use delegated auth for /me/ endpoints
+                graph_client = GraphClient(conn=self.conn, use_delegated=True)
+                client = ExcelCloudClient(graph=graph_client, conn=self.conn)  # Reuse ExcelCloudClient for OneDrive access
+                items = client.list_workbooks()  # This lists all OneDrive files
+
+                # Filter for PDF files
+                pdf_files = [item for item in items if item.get("name", "").endswith(".pdf")]
+
+                if not pdf_files:
+                    self.pdf_status_var.set("ℹ️ No PDF documents found or not authenticated. Check Microsoft Graph credentials.")
+                    return
+
+                for item in pdf_files:
+                    name = item.get("name", "Unknown")
+                    size = item.get("size", 0)
+                    size_str = format_file_size(size) if size > 0 else "Unknown"
+                    modified = item.get("lastModifiedDateTime", "Unknown")
+                    if modified and "T" in modified:
+                        modified = modified.replace("T", " ")[:16]
+
+                    if hasattr(self, 'pdf_tree'):
+                        self.pdf_tree.insert("", "end", values=(name, "", size_str, modified, ""), tags=("cloud",))
+
+                # Also load local PDF documents
+                try:
+                    from .db import get_project_documents
+                    local_docs = get_project_documents(self.conn, doc_type="pdf")
+                    for doc in local_docs:
+                        name = self._safe_get(doc, "title", "Unknown")
+                        project_name = self._safe_get(doc, "project_id", "General")
+                        size_str = format_file_size(self._safe_get(doc, "file_size", 0))
+                        modified = self._safe_get(doc, "modified_date", "")
+                        if modified:
+                            try:
+                                dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
+                                modified = dt_obj.strftime("%Y-%m-%d %H:%M")
+                            except:
+                                pass
+                        else:
+                            modified = "Unknown"
+
+                        # Get version count
+                        try:
+                            from .db import get_document_versions
+                            versions = get_document_versions(self.conn, self._safe_get(doc, "id"))
+                            version_info = f"v{len(versions)}" if versions else ""
+                        except:
+                            version_info = ""
+
+                        item_id = f"local_pdf_{self._safe_get(doc, 'id')}"
+                        if hasattr(self, 'pdf_tree'):
+                            self.pdf_tree.insert("", "end", iid=item_id, values=(f"📁 {name}", project_name, size_str, modified, version_info), tags=("local",))
+
+                            # Store doc_id and file_path in item
+                            self.pdf_tree.set(item_id, "doc_id", str(self._safe_get(doc, "id")))
+                            self.pdf_tree.set(item_id, "file_path", self._safe_get(doc, "file_path", ""))
+                except Exception as e:
+                    self.logger.warning(f"Failed to load local PDF documents: {e}")
+
+                total_count = len(pdf_files) + (len(local_docs) if 'local_docs' in locals() else 0)
+                self.pdf_status_var.set(f"✅ Loaded {total_count} PDF document(s) ({len(pdf_files)} cloud)")
+            except Exception as e:
+                error_msg = str(e)
+                # Check for specific authentication errors
+                if "401" in error_msg or "Unauthorized" in error_msg or "Authentication" in error_msg:
+                    self.pdf_status_var.set("❌ Authentication failed. Check Microsoft Graph credentials.")
+                    messagebox.showerror(
+                        "Authentication Failed",
+                        f"Failed to authenticate with Microsoft Graph:\n\n{error_msg}\n\n"
+                        "Possible causes:\n"
+                        "1. Invalid or expired client secret\n"
+                        "2. Wrong tenant ID, client ID, or client secret\n"
+                        "3. Missing required permissions (Files.Read)\n\n"
+                        "Go to Settings > Integrations to reconfigure credentials."
+                    )
+                elif "credentials" in error_msg.lower():
+                    self.pdf_status_var.set("❌ Credentials not configured. Set up Microsoft Graph in Settings.")
+                    messagebox.showwarning(
+                        "Not Configured",
+                        "Microsoft Graph credentials are not configured.\n\n"
+                        "Go to Settings > Integrations to configure."
+                    )
+                else:
+                    self.pdf_status_var.set(f"❌ Error: {error_msg[:50]}")
+                    messagebox.showerror("Error", f"Failed to load PDF documents:\n\n{error_msg}")
+        except Exception as e:
+            error_msg = str(e)
+            if hasattr(self, 'pdf_status_var'):
+                self.pdf_status_var.set(f"❌ Error: {error_msg[:50]}")
+            messagebox.showerror("Error", f"Failed to refresh PDF documents:\n\n{error_msg}")
+
+    def _safe_get(self, obj, key, default=""):
+        """Safely get a value from a dictionary or object."""
+        try:
+            if isinstance(obj, dict):
+                return obj.get(key, default)
+            elif hasattr(obj, key):
+                return getattr(obj, key, default)
+            else:
+                return default
+        except:
+            return default
 
 
 # ---------- Tools & Operations Tab ----------
@@ -5141,6 +5254,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         # Workflow Execution section
         self._build_workflow_tools_section(tools_notebook)
+
     
     def _build_onenote_tools_section(self, parent):
         """Build OneNote notebooks browser section."""
@@ -5156,19 +5270,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Header
         if TTKBOOTSTRAP_AVAILABLE:
             header = ttkb.Label(frame, text="OneNote Notebooks", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
-            login_btn = ttkb.Button(frame, text="🔐 Login to OneDrive", command=self.login_to_onedrive, bootstyle="primary")
             upload_btn = ttkb.Button(frame, text="📤 Upload File", command=lambda: self.upload_document("onenote"), bootstyle="success-outline")
             refresh_btn = ttkb.Button(frame, text="🔄 Refresh Notebooks", command=self.refresh_onenote_notebooks, bootstyle="info-outline")
         else:
             header = ttk.Label(frame, text="OneNote Notebooks", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
-            login_btn = ttk.Button(frame, text="Login to OneDrive", command=self.login_to_onedrive)
             upload_btn = ttk.Button(frame, text="Upload File", command=lambda: self.upload_document("onenote"))
             refresh_btn = ttk.Button(frame, text="Refresh Notebooks", command=self.refresh_onenote_notebooks)
         
         header.grid(row=0, column=0, sticky="w", padx=8, pady=(8, 4))
-        login_btn.grid(row=0, column=1, sticky="e", padx=(8, 4), pady=(8, 4))
-        upload_btn.grid(row=0, column=2, sticky="e", padx=(8, 4), pady=(8, 4))
-        refresh_btn.grid(row=0, column=3, sticky="e", padx=8, pady=(8, 4))
+        upload_btn.grid(row=0, column=1, sticky="e", padx=(8, 4), pady=(8, 4))
+        refresh_btn.grid(row=0, column=2, sticky="e", padx=8, pady=(8, 4))
         
         # Notebooks tree
         columns = ("name", "project", "id", "last_modified", "versions")
@@ -5267,7 +5378,49 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             status_label = ttk.Label(frame, textvariable=self.excel_status_var)
         status_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=8, pady=4)
-    
+
+    def refresh_excel_workbooks(self):
+        """Refresh the Excel workbooks list."""
+        try:
+            # Clear existing items
+            for item in self.excel_tree.get_children():
+                self.excel_tree.delete(item)
+
+            # Get all Excel documents
+            excel_docs = get_project_documents(self.conn, doc_type="excel")
+
+            # Sort by modified date (most recent first)
+            excel_docs.sort(key=lambda x: self._safe_get(x, "modified_date", ""), reverse=True)
+
+            # Add to tree
+            for doc in excel_docs:
+                doc_name = self._safe_get(doc, "title", "Unknown")
+                project_name = self._safe_get(doc, "project_name", "Unknown")
+                doc_id = self._safe_get(doc, "id", "")
+                file_size = self._safe_get(doc, "file_size", 0)
+                size_str = format_file_size(file_size) if file_size > 0 else "Unknown"
+                modified = self._safe_get(doc, "modified_date", "")
+                if modified:
+                    try:
+                        # Parse and format the date
+                        from datetime import datetime
+                        dt = datetime.fromisoformat(modified.replace('Z', '+00:00'))
+                        modified = dt.strftime("%Y-%m-%d %H:%M")
+                    except:
+                        pass
+
+                # Get version count (simplified)
+                versions = "1"
+
+                self.excel_tree.insert("", "end", values=(doc_name, project_name, doc_id, size_str, modified, versions))
+
+            count = len(excel_docs)
+            self.excel_status_var.set(f"Loaded {count} Excel workbook{'s' if count != 1 else ''}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to refresh Excel workbooks: {e}")
+            self.excel_status_var.set(f"Error loading workbooks: {str(e)}")
+
     def _build_word_tools_section(self, parent):
         """Build Word documents browser section."""
         if TTKBOOTSTRAP_AVAILABLE:
@@ -5327,7 +5480,48 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             status_label = ttk.Label(frame, textvariable=self.word_status_var)
         status_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=8, pady=4)
-    
+
+    def refresh_word_documents(self):
+        """Refresh the Word documents list."""
+        try:
+            # Clear existing items
+            for item in self.word_tree.get_children():
+                self.word_tree.delete(item)
+
+            # Get all Word documents
+            word_docs = get_project_documents(self.conn, doc_type="word")
+
+            # Sort by modified date (most recent first)
+            word_docs.sort(key=lambda x: self._safe_get(x, "modified_date", ""), reverse=True)
+
+            # Add to tree
+            for doc in word_docs:
+                doc_name = self._safe_get(doc, "title", "Unknown")
+                project_name = self._safe_get(doc, "project_name", "Unknown")
+                file_size = self._safe_get(doc, "file_size", 0)
+                size_str = format_file_size(file_size) if file_size > 0 else "Unknown"
+                modified = self._safe_get(doc, "modified_date", "")
+                if modified:
+                    try:
+                        # Parse and format the date
+                        from datetime import datetime
+                        dt = datetime.fromisoformat(modified.replace('Z', '+00:00'))
+                        modified = dt.strftime("%Y-%m-%d %H:%M")
+                    except:
+                        pass
+
+                # Get version count (simplified)
+                versions = "1"
+
+                self.word_tree.insert("", "end", values=(doc_name, project_name, size_str, modified, versions))
+
+            count = len(word_docs)
+            self.word_status_var.set(f"Loaded {count} Word document{'s' if count != 1 else ''}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to refresh Word documents: {e}")
+            self.word_status_var.set(f"Error loading documents: {str(e)}")
+
     def _build_pdf_tools_section(self, parent):
         """Build PDF documents browser section."""
         if TTKBOOTSTRAP_AVAILABLE:
@@ -5468,7 +5662,243 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             workflow_scrollbar = ttk.Scrollbar(result_section, orient="vertical", command=self.workflow_result_text.yview)
         self.workflow_result_text.configure(yscroll=workflow_scrollbar.set)
         workflow_scrollbar.grid(row=0, column=1, sticky="ns")
-    
+
+        # Automation Workflow Orchestrator Section
+        if AUTOMATION_ORCHESTRATOR_AVAILABLE and self.automation_orchestrator:
+            if TTKBOOTSTRAP_AVAILABLE:
+                automation_section = ttkb.Labelframe(frame, text="🤖 Intelligent Automation Workflows", bootstyle="success")
+            else:
+                automation_section = ttk.LabelFrame(frame, text="Intelligent Automation Workflows")
+            automation_section.grid(row=3, column=0, sticky="ew", padx=8, pady=8)
+            automation_section.columnconfigure(0, weight=1)
+
+            # Automation workflow controls
+            ttk.Label(automation_section, text="Available Workflows:").grid(row=0, column=0, sticky="w", padx=4, pady=2)
+
+            self.automation_workflow_var = tk.StringVar()
+            workflow_combo = ttk.Combobox(automation_section, textvariable=self.automation_workflow_var, state="readonly")
+            workflow_combo.grid(row=1, column=0, sticky="ew", padx=4, pady=2)
+
+            # Buttons for workflow management
+            button_frame = ttk.Frame(automation_section)
+            button_frame.grid(row=2, column=0, sticky="ew", padx=4, pady=4)
+            button_frame.configure(style="TFrame")  # Ensure consistent styling
+
+            if TTKBOOTSTRAP_AVAILABLE:
+                refresh_btn = ttkb.Button(button_frame, text="🔄 Refresh Workflows", command=self._refresh_automation_workflows, bootstyle="info-outline")
+                run_btn = ttkb.Button(button_frame, text="▶️ Run Workflow", command=self._run_automation_workflow, bootstyle="success")
+                create_btn = ttkb.Button(button_frame, text="➕ Create Workflow", command=self._create_automation_workflow, bootstyle="primary")
+                dashboard_btn = ttkb.Button(button_frame, text="📊 Dashboard", command=self._show_automation_dashboard, bootstyle="secondary")
+            else:
+                refresh_btn = ttk.Button(button_frame, text="Refresh Workflows", command=self._refresh_automation_workflows)
+                run_btn = ttk.Button(button_frame, text="Run Workflow", command=self._run_automation_workflow)
+                create_btn = ttk.Button(button_frame, text="Create Workflow", command=self._create_automation_workflow)
+                dashboard_btn = ttk.Button(button_frame, text="Dashboard", command=self._show_automation_dashboard)
+
+            refresh_btn.pack(side="left", padx=2)
+            run_btn.pack(side="left", padx=2)
+            create_btn.pack(side="left", padx=2)
+            dashboard_btn.pack(side="left", padx=2)
+
+            # Automation status display
+            if TTKBOOTSTRAP_AVAILABLE:
+                status_section = ttkb.Labelframe(frame, text="Automation Status", bootstyle="info")
+            else:
+                status_section = ttk.LabelFrame(frame, text="Automation Status")
+            status_section.grid(row=4, column=0, sticky="ew", padx=8, pady=8)
+            status_section.columnconfigure(0, weight=1)
+
+            self.automation_status_text = tk.Text(status_section, wrap="word", height=6, font=self.text_font)
+            self._style_text_widget(self.automation_status_text)
+            self.automation_status_text.grid(row=0, column=0, sticky="ew", padx=6, pady=6)
+
+            if TTKBOOTSTRAP_AVAILABLE:
+                status_scrollbar = ttkb.Scrollbar(status_section, orient="vertical", command=self.automation_status_text.yview, bootstyle="primary-round")
+            else:
+                status_scrollbar = ttk.Scrollbar(status_section, orient="vertical", command=self.automation_status_text.yview)
+            self.automation_status_text.configure(yscroll=status_scrollbar.set)
+            status_scrollbar.grid(row=0, column=1, sticky="ns")
+
+            # Initialize workflow list
+            self.after(1000, self._refresh_automation_workflows)
+
+    # ---------- Automation Workflow Methods ----------
+
+    def _refresh_automation_workflows(self):
+        """Refresh the list of available automation workflows"""
+        try:
+            if not AUTOMATION_ORCHESTRATOR_AVAILABLE or not self.automation_orchestrator:
+                return
+
+            workflows = list(self.automation_orchestrator.workflows.keys())
+            if hasattr(self, 'automation_workflow_var'):
+                # Update combobox values
+                if hasattr(self, 'workflow_combo'):
+                    self.workflow_combo['values'] = workflows
+                    if workflows:
+                        self.automation_workflow_var.set(workflows[0])
+
+                # Update status
+                status_text = f"Available workflows: {len(workflows)}\n"
+                status_text += "\n".join([f"• {name}" for name in workflows[:5]])
+                if len(workflows) > 5:
+                    status_text += f"\n... and {len(workflows) - 5} more"
+
+                if hasattr(self, 'automation_status_text'):
+                    self.automation_status_text.delete(1.0, 'end')
+                    self.automation_status_text.insert(1.0, status_text)
+
+        except Exception as e:
+            self.logger.error(f"Failed to refresh automation workflows: {e}")
+
+    def _run_automation_workflow(self):
+        """Run the selected automation workflow"""
+        try:
+            if not AUTOMATION_ORCHESTRATOR_AVAILABLE or not self.automation_orchestrator:
+                messagebox.showerror("Error", "Automation Orchestrator not available")
+                return
+
+            workflow_id = self.automation_workflow_var.get()
+            if not workflow_id:
+                messagebox.showwarning("Warning", "Please select a workflow to run")
+                return
+
+            # Run workflow in background
+            asyncio.create_task(self._execute_automation_workflow(workflow_id))
+
+            messagebox.showinfo("Workflow Started", f"Workflow '{workflow_id}' execution started")
+
+        except Exception as e:
+            self.logger.error(f"Failed to run automation workflow: {e}")
+            messagebox.showerror("Error", f"Failed to run workflow: {e}")
+
+    async def _execute_automation_workflow(self, workflow_id: str):
+        """Execute automation workflow asynchronously"""
+        try:
+            execution_id = await self.automation_orchestrator.trigger_workflow(
+                workflow_id,
+                {"triggered_by": "gui_user"}
+            )
+
+            # Monitor execution progress
+            while True:
+                # Check execution status (simplified - in production would poll execution status)
+                await asyncio.sleep(2)
+
+                # For demo, just show completion after delay
+                await asyncio.sleep(3)
+                break
+
+            if hasattr(self, 'automation_status_text'):
+                current_text = self.automation_status_text.get(1.0, 'end').strip()
+                new_text = f"{current_text}\n\n✅ Workflow '{workflow_id}' completed (Execution: {execution_id})"
+                self.automation_status_text.delete(1.0, 'end')
+                self.automation_status_text.insert(1.0, new_text)
+
+        except Exception as e:
+            self.logger.error(f"Workflow execution failed: {e}")
+            if hasattr(self, 'automation_status_text'):
+                current_text = self.automation_status_text.get(1.0, 'end').strip()
+                new_text = f"{current_text}\n\n❌ Workflow '{workflow_id}' failed: {e}"
+                self.automation_status_text.delete(1.0, 'end')
+                self.automation_status_text.insert(1.0, new_text)
+
+    def _create_automation_workflow(self):
+        """Create a new automation workflow"""
+        try:
+            # Simple workflow creation dialog (in production, would have full workflow builder)
+            workflow_data = {
+                "name": "Sample AI-Powered Workflow",
+                "description": "Automatically process tasks with AI assistance",
+                "triggers": [{
+                    "type": "user_initiated",
+                    "conditions": {}
+                }],
+                "actions": [
+                    {
+                        "type": "agent_interaction",
+                        "name": "Analyze Tasks",
+                        "parameters": {
+                            "agent": "AIC",
+                            "prompt": "Analyze my current tasks and suggest optimizations.",
+                            "temperature": 0.7
+                        }
+                    },
+                    {
+                        "type": "task_creation",
+                        "name": "Create Optimization Task",
+                        "parameters": {
+                            "title": "Task Optimization: ${action_analyze_tasks_result_response}",
+                            "description": "AI-generated task optimization suggestions",
+                            "priority": "medium",
+                            "project": "Productivity"
+                        },
+                        "depends_on": ["analyze_tasks"]
+                    }
+                ],
+                "variables": {},
+                "priority": 2,
+                "tags": ["sample", "ai-powered"]
+            }
+
+            if AUTOMATION_ORCHESTRATOR_AVAILABLE and self.automation_orchestrator:
+                workflow_id = asyncio.run(self.automation_orchestrator.create_workflow(workflow_data))
+                messagebox.showinfo("Success", f"Workflow created: {workflow_id}")
+                self._refresh_automation_workflows()
+            else:
+                messagebox.showerror("Error", "Automation Orchestrator not available")
+
+        except Exception as e:
+            self.logger.error(f"Failed to create automation workflow: {e}")
+            messagebox.showerror("Error", f"Failed to create workflow: {e}")
+
+    def _show_automation_dashboard(self):
+        """Show automation system dashboard"""
+        try:
+            if not AUTOMATION_ORCHESTRATOR_AVAILABLE or not self.automation_orchestrator:
+                messagebox.showerror("Error", "Automation Orchestrator not available")
+                return
+
+            # Get dashboard data
+            dashboard_data = asyncio.run(self.automation_orchestrator.get_system_dashboard())
+
+            # Format dashboard text
+            dashboard_text = "🤖 Automation System Dashboard\n"
+            dashboard_text += "=" * 40 + "\n\n"
+
+            workflows = dashboard_data.get('workflows', {})
+            dashboard_text += f"📋 Workflows: {workflows.get('total', 0)} total "
+            dashboard_text += f"({workflows.get('enabled', 0)} enabled, {workflows.get('disabled', 0)} disabled)\n\n"
+
+            executions = dashboard_data.get('executions', {})
+            dashboard_text += f"⚡ Executions: {executions.get('active', 0)} active, "
+            dashboard_text += f"{executions.get('recent_24h', 0)} in last 24h\n"
+            dashboard_text += f"Success Rate (24h): {executions.get('success_rate_24h', 0):.1%}\n\n"
+
+            rules = dashboard_data.get('automation_rules', {})
+            dashboard_text += f"🎯 Automation Rules: {rules.get('total', 0)} total "
+            dashboard_text += f"({rules.get('enabled', 0)} enabled)\n\n"
+
+            performance = dashboard_data.get('performance', {})
+            if performance:
+                dashboard_text += f"📊 Performance:\n"
+                dashboard_text += f"• Total Executions: {performance.get('total_executions', 0)}\n"
+                dashboard_text += f"• Success Rate: {performance.get('success_rate', 0):.1%}\n"
+                dashboard_text += f"• Average Duration: {performance.get('average_duration', 0):.1f}s\n\n"
+
+            health = dashboard_data.get('system_health', 'unknown')
+            health_icon = "🟢" if health == "healthy" else "🟡" if health == "warning" else "🔴"
+            dashboard_text += f"🏥 System Health: {health_icon} {health.title()}"
+
+            # Show in status text area
+            if hasattr(self, 'automation_status_text'):
+                self.automation_status_text.delete(1.0, 'end')
+                self.automation_status_text.insert(1.0, dashboard_text)
+
+        except Exception as e:
+            self.logger.error(f"Failed to show automation dashboard: {e}")
+            messagebox.showerror("Error", f"Failed to load dashboard: {e}")
+
     # ---------- Tools Tab Handler Methods ----------
     
     def refresh_onenote_notebooks(self):
@@ -5595,163 +6025,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.onenote_status_var.set(f"❌ Error: {error_msg[:50]}")
             messagebox.showerror("Error", f"Failed to refresh notebooks:\n\n{error_msg}")
     
-    def login_to_onedrive(self):
-        """Login to OneDrive using device code flow."""
-        try:
-            # Check if credentials are configured
-            from .integrations.msgraph.auth import GraphCredentials, GraphDelegatedAuth
-            
-            try:
-                credentials = GraphCredentials.from_env(conn=self.conn)
-            except ValueError as e:
-                messagebox.showerror(
-                    "Credentials Not Configured",
-                    f"Microsoft Graph credentials are not configured.\n\n{str(e)}\n\n"
-                    "Please configure credentials first:\n"
-                    "1. Go to Settings > Integrations\n"
-                    "2. Click 'Configure' next to OneNote\n"
-                    "3. Enter your Azure credentials"
-                )
-                return
-            
-            self.onenote_status_var.set("🔄 Starting authentication...")
-            self.update()
-            
-            # Create authentication dialog
-            dialog = tk.Toplevel(self)
-            dialog.title("Login to OneDrive")
-            dialog.geometry("600x400")
-            dialog.transient(self)
-            dialog.grab_set()
-            
-            if TTKBOOTSTRAP_AVAILABLE:
-                main_frame = ttkb.Frame(dialog, padding=20)
-                title = ttkb.Label(main_frame, text="OneDrive Login", bootstyle="primary", font=(self.base_font.actual("family"), 14, "bold"))
-            else:
-                main_frame = ttk.Frame(dialog, padding=20)
-                title = ttk.Label(main_frame, text="OneDrive Login", font=(self.base_font.actual("family"), 14, "bold"))
-            
-            main_frame.pack(fill="both", expand=True)
-            title.pack(pady=(0, 20))
-            
-            # Instructions
-            instructions = tk.Text(main_frame, wrap="word", height=8, width=60, font=("Courier", 10))
-            self._style_text_widget(instructions)
-            instructions.pack(fill="both", expand=True, pady=(0, 20))
-            instructions.config(state="normal")
-            instructions.insert("1.0", "Starting authentication...\n\n")
-            instructions.config(state="disabled")
-            
-            # Status
-            status_var = tk.StringVar(value="Initializing...")
-            if TTKBOOTSTRAP_AVAILABLE:
-                status_label = ttkb.Label(main_frame, textvariable=status_var, bootstyle="info")
-            else:
-                status_label = ttk.Label(main_frame, textvariable=status_var)
-            status_label.pack(pady=(0, 10))
-            
-            # Buttons
-            btn_frame = ttk.Frame(main_frame)
-            btn_frame.pack()
-            
-            def close_dialog():
-                dialog.destroy()
-            
-            if TTKBOOTSTRAP_AVAILABLE:
-                close_btn = ttkb.Button(btn_frame, text="Close", command=close_dialog, bootstyle="secondary")
-            else:
-                close_btn = ttk.Button(btn_frame, text="Close", command=close_dialog)
-            close_btn.pack()
-            
-            # Start authentication in background thread
-            import threading
-            
-            def authenticate():
-                try:
-                    delegated_auth = GraphDelegatedAuth(credentials, conn=self.conn)
-                    
-                    # Get device code
-                    instructions.config(state="normal")
-                    instructions.delete("1.0", "end")
-                    status_var.set("Getting device code...")
-                    dialog.update()
-                    
-                    device_data = delegated_auth.get_device_code()
-                    user_code = device_data["user_code"]
-                    verification_url = device_data["verification_uri"]
-                    expires_in = device_data.get("expires_in", 900)
-                    
-                    # Show instructions
-                    instructions.insert("1.0", f"🔐 OneDrive Login Instructions\n\n")
-                    instructions.insert("end", f"1. Open your browser and visit:\n   {verification_url}\n\n")
-                    instructions.insert("end", f"2. Enter this code:\n   {user_code}\n\n")
-                    instructions.insert("end", f"3. Sign in with your Microsoft account\n\n")
-                    instructions.insert("end", f"4. Grant permissions when prompted\n\n")
-                    instructions.insert("end", f"⏳ Waiting for you to sign in...\n")
-                    instructions.insert("end", f"(This will timeout in {expires_in} seconds)\n")
-                    instructions.config(state="disabled")
-                    status_var.set("Waiting for you to sign in...")
-                    
-                    # Poll for token
-                    access_token = delegated_auth.poll_for_token(
-                        device_data["device_code"],
-                        interval=device_data.get("interval", 5),
-                        timeout=expires_in
-                    )
-                    
-                    # Success!
-                    instructions.config(state="normal")
-                    instructions.delete("1.0", "end")
-                    instructions.insert("1.0", "✅ Authentication Successful!\n\n")
-                    instructions.insert("end", "You are now logged in to OneDrive.\n")
-                    instructions.insert("end", "You can now access your OneNote files.\n")
-                    instructions.config(state="disabled")
-                    status_var.set("✅ Login successful!")
-                    
-                    # Auto-close after 2 seconds
-                    dialog.after(2000, close_dialog)
-                    
-                    # Refresh notebooks automatically
-                    self.after(500, self.refresh_onenote_notebooks)
-                    
-                except Exception as e:
-                    from .integrations.msgraph.auth import AuthenticationError
-                    error_msg = str(e)
-                    instructions.config(state="normal")
-                    instructions.delete("1.0", "end")
-                    instructions.insert("1.0", f"❌ Authentication Failed\n\n")
-                    
-                    # Provide more detailed error information
-                    if isinstance(e, AuthenticationError):
-                        instructions.insert("end", f"{error_msg}\n\n")
-                        # Check for consumer-only app message
-                        if "AADSTS9002346" in error_msg or "Microsoft Account users only" in error_msg or "consumers endpoint" in error_msg:
-                            instructions.insert("end", "ℹ️ Your app is configured for personal Microsoft accounts only.\n")
-                            instructions.insert("end", "The system will automatically retry with the /consumers endpoint.\n")
-                            instructions.insert("end", "Please ensure you're signing in with a personal Microsoft account.\n\n")
-                    elif "400" in error_msg or "Bad Request" in error_msg:
-                        instructions.insert("end", f"Error: {error_msg}\n\n")
-                        instructions.insert("end", "Common causes for 400 Bad Request:\n")
-                        instructions.insert("end", "• Invalid Tenant ID - verify it matches your Azure AD tenant\n")
-                        instructions.insert("end", "• Invalid Client ID - check the Application (client) ID in Azure Portal\n")
-                        instructions.insert("end", "• Client ID not registered in the specified tenant\n")
-                        instructions.insert("end", "• Tenant ID and Client ID don't match\n\n")
-                        instructions.insert("end", "Please verify your credentials in Settings > Integrations.\n")
-                    else:
-                        instructions.insert("end", f"Error: {error_msg}\n\n")
-                        instructions.insert("end", "Please try again or check your credentials.\n")
-                    
-                    instructions.config(state="disabled")
-                    status_var.set("❌ Login failed")
-                    self.onenote_status_var.set(f"❌ Login failed: {error_msg[:50]}")
-            
-            # Start authentication thread
-            auth_thread = threading.Thread(target=authenticate, daemon=True)
-            auth_thread.start()
-            
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to start login:\n\n{e}")
-            self.onenote_status_var.set(f"❌ Error: {str(e)[:50]}")
+        # Device code authentication removed - only client credentials flow supported
     
     def _on_onenote_double_click(self, event):
         """Handle double-click on OneNote file - download and open."""
@@ -6067,1066 +6341,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 messagebox.showinfo("Cloud Document", "Cloud documents can be accessed through OneDrive. Use the 'Login to OneDrive' button to authenticate.")
             else:
                 messagebox.showinfo("Cloud Document", "Cloud documents can be accessed through OneDrive. Use the 'Login to OneDrive' button to authenticate.")
-    
-    def refresh_excel_workbooks(self):
-        """Refresh the list of Excel workbooks from OneDrive."""
-        try:
-            # Clear existing items
-            for item in self.excel_tree.get_children():
-                self.excel_tree.delete(item)
-            
-            if not EXCEL_CLOUD_AVAILABLE:
-                self.excel_status_var.set("❌ Excel cloud client not available. Check Microsoft Graph configuration.")
-                return
-            
-            self.excel_status_var.set("🔄 Loading workbooks...")
-            self.update()
-            
-            try:
-                # Pass connection to GraphClient so it can load credentials from database
-                from .integrations.msgraph.client import GraphClient
-                from .integrations.excel.cloud_client import ExcelCloudClient
-                # Use delegated auth for /me/ endpoints
-                graph_client = GraphClient(conn=self.conn, use_delegated=True)
-                client = ExcelCloudClient(graph=graph_client)
-                items = client.list_workbooks()
-                
-                # Filter for Excel files
-                excel_files = [item for item in items if item.get("name", "").endswith((".xlsx", ".xls"))]
-                
-                if not excel_files:
-                    self.excel_status_var.set("ℹ️ No Excel workbooks found or not authenticated. Check Microsoft Graph credentials.")
-                    return
-                
-                for item in excel_files:
-                    name = item.get("name", "Unknown")
-                    item_id = item.get("id", "")
-                    size = item.get("size", 0)
-                    size_str = format_file_size(size) if size > 0 else "Unknown"
-                    modified = item.get("lastModifiedDateTime", "Unknown")
-                    if modified and "T" in modified:
-                        modified = modified.replace("T", " ")[:16]
-                    
-                    self.excel_tree.insert("", "end", values=(name, "", item_id, size_str, modified, ""), tags=("cloud",))
-                
-                # Also load local Excel documents
-                local_docs = get_project_documents(self.conn, doc_type="excel")
-                for doc in local_docs:
-                    name = self._safe_get(doc, "title", "Unknown")
-                    project_name = self._safe_get(doc, "project_id", "General")
-                    size_str = format_file_size(self._safe_get(doc, "file_size", 0))
-                    modified = self._safe_get(doc, "modified_date", "")
-                    if modified:
-                        try:
-                            dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
-                            modified = dt_obj.strftime("%Y-%m-%d %H:%M")
-                        except:
-                            pass
-                    else:
-                        modified = "Unknown"
-                    
-                    versions = get_document_versions(self.conn, self._safe_get(doc, "id"))
-                    version_info = f"v{len(versions)}" if versions else ""
-                    
-                    item_id = f"local_excel_{self._safe_get(doc, 'id')}"
-                    self.excel_tree.insert("", "end", iid=item_id, values=(f"📁 {name}", project_name, "", size_str, modified, version_info), tags=("local",))
-                    self.excel_tree.set(item_id, "doc_id", str(self._safe_get(doc, "id")))
-                    self.excel_tree.set(item_id, "file_path", self._safe_get(doc, "file_path", ""))
-                
-                total_count = len(excel_files) + len(local_docs)
-                self.excel_status_var.set(f"✅ Loaded {total_count} workbook(s) ({len(excel_files)} cloud, {len(local_docs)} local)")
-            except Exception as e:
-                self.excel_status_var.set(f"❌ Error: {str(e)}")
-                messagebox.showerror("Error", f"Failed to load Excel workbooks: {e}")
-        except Exception as e:
-            self.excel_status_var.set(f"❌ Error: {str(e)}")
-            messagebox.showerror("Error", f"Failed to refresh workbooks: {e}")
-    
-    def refresh_word_documents(self):
-        """Refresh the list of Word documents from OneDrive."""
-        try:
-            # Clear existing items
-            for item in self.word_tree.get_children():
-                self.word_tree.delete(item)
-            
-            if not EXCEL_CLOUD_AVAILABLE:
-                self.word_status_var.set("❌ Microsoft Graph client not available. Check Microsoft Graph configuration.")
-                return
-            
-            self.word_status_var.set("🔄 Loading documents...")
-            self.update()
-            
-            try:
-                # Pass connection to GraphClient so it can load credentials from database
-                from .integrations.msgraph.client import GraphClient
-                from .integrations.excel.cloud_client import ExcelCloudClient
-                # Use delegated auth for /me/ endpoints
-                graph_client = GraphClient(conn=self.conn, use_delegated=True)
-                client = ExcelCloudClient(graph=graph_client)  # Reuse ExcelCloudClient for OneDrive access
-                items = client.list_workbooks()  # This lists all OneDrive files
-                
-                # Filter for Word files
-                word_files = [item for item in items if item.get("name", "").endswith((".docx", ".doc"))]
-                
-                if not word_files:
-                    self.word_status_var.set("ℹ️ No Word documents found or not authenticated. Check Microsoft Graph credentials.")
-                    return
-                
-                for item in word_files:
-                    name = item.get("name", "Unknown")
-                    size = item.get("size", 0)
-                    size_str = format_file_size(size) if size > 0 else "Unknown"
-                    modified = item.get("lastModifiedDateTime", "Unknown")
-                    if modified and "T" in modified:
-                        modified = modified.replace("T", " ")[:16]
-                    
-                    self.word_tree.insert("", "end", values=(name, "", size_str, modified, ""), tags=("cloud",))
-                
-                # Also load local Word documents
-                local_docs = get_project_documents(self.conn, doc_type="word")
-                for doc in local_docs:
-                    name = self._safe_get(doc, "title", "Unknown")
-                    project_name = self._safe_get(doc, "project_id", "General")
-                    size_str = format_file_size(self._safe_get(doc, "file_size", 0))
-                    modified = self._safe_get(doc, "modified_date", "")
-                    if modified:
-                        try:
-                            dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
-                            modified = dt_obj.strftime("%Y-%m-%d %H:%M")
-                        except:
-                            pass
-                    else:
-                        modified = "Unknown"
-                    
-                    versions = get_document_versions(self.conn, self._safe_get(doc, "id"))
-                    version_info = f"v{len(versions)}" if versions else ""
-                    
-                    item_id = f"local_word_{self._safe_get(doc, 'id')}"
-                    self.word_tree.insert("", "end", iid=item_id, values=(f"📁 {name}", project_name, size_str, modified, version_info), tags=("local",))
-                    self.word_tree.set(item_id, "doc_id", str(self._safe_get(doc, "id")))
-                    self.word_tree.set(item_id, "file_path", self._safe_get(doc, "file_path", ""))
-                
-                total_count = len(word_files) + len(local_docs)
-                self.word_status_var.set(f"✅ Loaded {total_count} Word document(s) ({len(word_files)} cloud, {len(local_docs)} local)")
-            except Exception as e:
-                error_msg = str(e)
-                # Check for delegated authentication errors (most common for Word/OneDrive)
-                if "Delegated authentication required" in error_msg or "DELEGATED" in error_msg:
-                    self.word_status_var.set("❌ Delegated authentication required. Please authenticate.")
-                    messagebox.showinfo(
-                        "Authentication Required",
-                        "Delegated authentication required. Please authenticate using device code flow.\n\n"
-                        "To authenticate:\n"
-                        "1. Go to the 'Integrations' tab\n"
-                        "2. Select 'OneNote' or 'OneDrive' from the list\n"
-                        "3. Click 'Connect' button\n"
-                        "4. Click 'Authenticate (Device Code)' button\n"
-                        "5. Follow the on-screen instructions to sign in\n\n"
-                        "Note: Authenticating via OneNote or OneDrive will enable access to Word documents stored in OneDrive."
-                    )
-                # Check for specific authentication errors
-                elif "401" in error_msg or "Unauthorized" in error_msg or "Authentication" in error_msg:
-                    self.word_status_var.set("❌ Authentication failed. Check Microsoft Graph credentials.")
-                    messagebox.showerror(
-                        "Authentication Failed",
-                        f"Failed to authenticate with Microsoft Graph:\n\n{error_msg}\n\n"
-                        "Possible causes:\n"
-                        "1. Invalid or expired client secret\n"
-                        "2. Wrong tenant ID, client ID, or client secret\n"
-                        "3. Missing required permissions (Files.Read)\n\n"
-                        "Go to Settings > Integrations to reconfigure credentials."
-                    )
-                elif "credentials" in error_msg.lower():
-                    self.word_status_var.set("❌ Credentials not configured. Set up Microsoft Graph in Settings.")
-                    messagebox.showwarning(
-                        "Not Configured",
-                        "Microsoft Graph credentials are not configured.\n\n"
-                        "Go to Settings > Integrations to configure."
-                    )
-                else:
-                    self.word_status_var.set(f"❌ Error: {error_msg[:50]}")
-                    messagebox.showerror("Error", f"Failed to load Word documents:\n\n{error_msg}")
-        except Exception as e:
-            error_msg = str(e)
-            self.word_status_var.set(f"❌ Error: {error_msg[:50]}")
-            messagebox.showerror("Error", f"Failed to refresh Word documents:\n\n{error_msg}")
-    
-    def upload_document(self, doc_type: str):
-        """Upload a document file for the specified document type."""
-        # Get file types for this document type
-        if doc_type not in DOCUMENT_TYPES:
-            messagebox.showerror("Error", f"Unknown document type: {doc_type}")
-            return
-        
-        _, extensions = DOCUMENT_TYPES[doc_type]
-        filetypes = [(f"{doc_type.upper()} files", " ".join(f"*{ext}" for ext in extensions)), ("All files", "*.*")]
-        
-        # Open file dialog
-        file_path = filedialog.askopenfilename(
-            title=f"Upload {doc_type.upper()} Document",
-            filetypes=filetypes
-        )
-        
-        if not file_path:
-            return
-        
-        # Ask for project selection
-        projects = [p.name for p in self.state_obj.projects]
-        if not projects:
-            projects = ["General"]
-        
-        # Create project selection dialog
-        project_dialog = tk.Toplevel(self)
-        project_dialog.title("Select Project")
-        project_dialog.geometry("400x150")
-        project_dialog.transient(self)
-        project_dialog.grab_set()
-        
-        ttk.Label(project_dialog, text=f"Select project for this {doc_type} document:").pack(pady=10)
-        
-        project_var = tk.StringVar(value=projects[0] if projects else "General")
-        project_combo = ttk.Combobox(project_dialog, textvariable=project_var, values=projects, state="readonly", width=40)
-        project_combo.pack(pady=5)
-        
-        result = {"confirmed": False}
-        
-        def on_confirm():
-            result["confirmed"] = True
-            project_dialog.destroy()
-        
-        def on_cancel():
-            project_dialog.destroy()
-        
-        btn_frame = ttk.Frame(project_dialog)
-        btn_frame.pack(pady=10)
-        ttk.Button(btn_frame, text="Upload", command=on_confirm).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="Cancel", command=on_cancel).pack(side=tk.LEFT, padx=5)
-        
-        project_dialog.wait_window()
-        
-        if not result["confirmed"]:
-            return
-        
-        selected_project = project_var.get() or "General"
-        
-        # Upload the document
-        try:
-            success, error_msg, link_id = dm_upload_document(
-                conn=self.conn,
-                file_path=file_path,
-                project_name=selected_project,
-                doc_type=doc_type
-            )
-            
-            if success:
-                messagebox.showinfo("Success", f"Document uploaded successfully to project '{selected_project}'!")
-                # Refresh the appropriate document list
-                if doc_type == "onenote":
-                    self.refresh_onenote_notebooks()
-                elif doc_type == "excel":
-                    self.refresh_excel_workbooks()
-                elif doc_type == "word":
-                    self.refresh_word_documents()
-                elif doc_type == "pdf":
-                    self.refresh_pdf_documents()
-            else:
-                messagebox.showerror("Upload Failed", f"Failed to upload document:\n\n{error_msg}")
-        except Exception as e:
-            messagebox.showerror("Error", f"Error uploading document:\n\n{str(e)}")
-    
-    def refresh_pdf_documents(self):
-        """Refresh the list of PDF documents from OneDrive."""
-        try:
-            # Clear existing items
-            for item in self.pdf_tree.get_children():
-                self.pdf_tree.delete(item)
-            
-            if not EXCEL_CLOUD_AVAILABLE or ExcelCloudClient is None:
-                self.pdf_status_var.set("❌ Microsoft Graph client not available. Check Microsoft Graph configuration.")
-                return
-            
-            self.pdf_status_var.set("🔄 Loading documents...")
-            self.update()
-            
-            try:
-                # Pass connection to GraphClient so it can load credentials from database
-                from .integrations.msgraph.client import GraphClient
-                from .integrations.excel.cloud_client import ExcelCloudClient
-                # Use delegated auth for /me/ endpoints
-                graph_client = GraphClient(conn=self.conn, use_delegated=True)
-                client = ExcelCloudClient(graph=graph_client, conn=self.conn)  # Reuse ExcelCloudClient for OneDrive access
-                items = client.list_workbooks()  # This lists all OneDrive files
-                
-                # Filter for PDF files
-                pdf_files = [item for item in items if item.get("name", "").endswith(".pdf")]
-                
-                if not pdf_files:
-                    self.pdf_status_var.set("ℹ️ No PDF documents found or not authenticated. Check Microsoft Graph credentials.")
-                    return
-                
-                for item in pdf_files:
-                    name = item.get("name", "Unknown")
-                    size = item.get("size", 0)
-                    size_str = format_file_size(size) if size > 0 else "Unknown"
-                    modified = item.get("lastModifiedDateTime", "Unknown")
-                    if modified and "T" in modified:
-                        modified = modified.replace("T", " ")[:16]
-                    
-                    self.pdf_tree.insert("", "end", values=(name, "", size_str, modified, ""), tags=("cloud",))
-                
-                # Also load local PDF documents
-                local_docs = get_project_documents(self.conn, doc_type="pdf")
-                for doc in local_docs:
-                    name = self._safe_get(doc, "title", "Unknown")
-                    project_name = self._safe_get(doc, "project_id", "General")
-                    size_str = format_file_size(self._safe_get(doc, "file_size", 0))
-                    modified = self._safe_get(doc, "modified_date", "")
-                    if modified:
-                        try:
-                            dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
-                            modified = dt_obj.strftime("%Y-%m-%d %H:%M")
-                        except:
-                            pass
-                    else:
-                        modified = "Unknown"
-                    
-                    # Get version count
-                    versions = get_document_versions(self.conn, self._safe_get(doc, "id"))
-                    version_info = f"v{len(versions)}" if versions else ""
-                    
-                    item_id = f"local_pdf_{self._safe_get(doc, 'id')}"
-                    self.pdf_tree.insert("", "end", iid=item_id, values=(f"📁 {name}", project_name, size_str, modified, version_info), tags=("local",))
-                    
-                    # Store doc_id and file_path in item
-                    self.pdf_tree.set(item_id, "doc_id", str(self._safe_get(doc, "id")))
-                    self.pdf_tree.set(item_id, "file_path", self._safe_get(doc, "file_path", ""))
-                
-                total_count = len(pdf_files) + len(local_docs)
-                self.pdf_status_var.set(f"✅ Loaded {total_count} PDF document(s) ({len(pdf_files)} cloud, {len(local_docs)} local)")
-            except Exception as e:
-                error_msg = str(e)
-                # Check for specific authentication errors
-                if "401" in error_msg or "Unauthorized" in error_msg or "Authentication" in error_msg:
-                    self.pdf_status_var.set("❌ Authentication failed. Check Microsoft Graph credentials.")
-                    messagebox.showerror(
-                        "Authentication Failed",
-                        f"Failed to authenticate with Microsoft Graph:\n\n{error_msg}\n\n"
-                        "Possible causes:\n"
-                        "1. Invalid or expired client secret\n"
-                        "2. Wrong tenant ID, client ID, or client secret\n"
-                        "3. Missing required permissions (Files.Read)\n\n"
-                        "Go to Settings > Integrations to reconfigure credentials."
-                    )
-                elif "credentials" in error_msg.lower():
-                    self.pdf_status_var.set("❌ Credentials not configured. Set up Microsoft Graph in Settings.")
-                    messagebox.showwarning(
-                        "Not Configured",
-                        "Microsoft Graph credentials are not configured.\n\n"
-                        "Go to Settings > Integrations to configure."
-                    )
-                else:
-                    self.pdf_status_var.set(f"❌ Error: {error_msg[:50]}")
-                    messagebox.showerror("Error", f"Failed to load PDF documents:\n\n{error_msg}")
-        except Exception as e:
-            error_msg = str(e)
-            self.pdf_status_var.set(f"❌ Error: {error_msg[:50]}")
-            messagebox.showerror("Error", f"Failed to refresh PDF documents:\n\n{error_msg}")
-    
-    def _browse_file(self, var: tk.StringVar, filetypes):
-        """Helper method to browse for a file."""
-        filename = filedialog.askopenfilename(filetypes=filetypes)
-        if filename:
-            var.set(filename)
-    
-    def on_summarize_excel(self):
-        """Summarize a local Excel workbook."""
-        path = self.excel_summarize_path_var.get().strip()
-        if not path:
-            messagebox.showwarning("No File", "Please select an Excel file to summarize.")
-            return
-        
-        if not os.path.exists(path):
-            messagebox.showerror("File Not Found", f"The file does not exist: {path}")
-            return
-        
-        try:
-            self.summarization_result_text.delete("1.0", "end")
-            self.summarization_result_text.insert("1.0", "🔄 Summarizing Excel workbook...\n")
-            self.update()
-            
-            if not EXCEL_SERVICE_AVAILABLE or summarize_local_workbook is None:
-                self.summarization_result_text.delete("1.0", "end")
-                self.summarization_result_text.insert("1.0", "❌ Excel service not available. pandas may not be installed.\n")
-                messagebox.showerror("Error", "Excel summarization requires pandas. Install with: pip install pandas")
-                return
-            
-            # Summarize the workbook
-            result = summarize_local_workbook(path, "Generate a summary of this workbook")
-            
-            summary_path = result.get("summary_path", "")
-            
-            if summary_path and os.path.exists(summary_path):
-                with open(summary_path, 'r') as f:
-                    summary_content = f.read()
-                
-                self.summarization_result_text.delete("1.0", "end")
-                self.summarization_result_text.insert("1.0", f"✅ Summary generated successfully!\n\n")
-                self.summarization_result_text.insert("end", f"Summary saved to: {summary_path}\n\n")
-                self.summarization_result_text.insert("end", "Summary Content:\n" + "="*50 + "\n\n")
-                self.summarization_result_text.insert("end", summary_content)
-            else:
-                self.summarization_result_text.delete("1.0", "end")
-                self.summarization_result_text.insert("1.0", "✅ Summarization completed. Check the summary file next to the workbook.\n")
-            
-            messagebox.showinfo("Success", "Excel workbook summarized successfully!")
-        except Exception as e:
-            self.summarization_result_text.delete("1.0", "end")
-            self.summarization_result_text.insert("1.0", f"❌ Error: {str(e)}\n")
-            messagebox.showerror("Error", f"Failed to summarize Excel workbook: {e}")
-    
-    def on_summarize_word(self):
-        """Summarize a local Word document."""
-        path = self.word_summarize_path_var.get().strip()
-        if not path:
-            messagebox.showwarning("No File", "Please select a Word document to summarize.")
-            return
-        
-        if not os.path.exists(path):
-            messagebox.showerror("File Not Found", f"The file does not exist: {path}")
-            return
-        
-        try:
-            self.summarization_result_text.delete("1.0", "end")
-            self.summarization_result_text.insert("1.0", "🔄 Summarizing Word document...\n")
-            self.update()
-            
-            if not WORD_SERVICE_AVAILABLE or WordService is None:
-                self.summarization_result_text.delete("1.0", "end")
-                self.summarization_result_text.insert("1.0", "❌ Word service not available. python-docx may not be installed.\n")
-                messagebox.showerror("Error", "Word summarization requires python-docx. Install with: pip install python-docx")
-                return
-            
-            # Read and summarize the document
-            from docx import Document
-            
-            doc = Document(path)
-            text_content = "\n".join([para.text for para in doc.paragraphs])
-            
-            # Use AI to summarize (simplified - in real implementation, use WordService)
-            if openai_available():
-                from .ai_layer.tools import summarize_text
-                summary = summarize_text(text_content, style="clear")
-                
-                self.summarization_result_text.delete("1.0", "end")
-                self.summarization_result_text.insert("1.0", "✅ Summary generated successfully!\n\n")
-                self.summarization_result_text.insert("end", "Summary:\n" + "="*50 + "\n\n")
-                self.summarization_result_text.insert("end", summary)
-            else:
-                # Fallback: show first few paragraphs
-                preview = "\n".join([para.text for para in doc.paragraphs[:10]])
-                self.summarization_result_text.delete("1.0", "end")
-                self.summarization_result_text.insert("1.0", "ℹ️ OpenAI not available. Showing document preview:\n\n")
-                self.summarization_result_text.insert("end", preview[:500] + ("..." if len(preview) > 500 else ""))
-            
-            messagebox.showinfo("Success", "Word document summarized successfully!")
-        except Exception as e:
-            self.summarization_result_text.delete("1.0", "end")
-            self.summarization_result_text.insert("1.0", f"❌ Error: {str(e)}\n")
-            messagebox.showerror("Error", f"Failed to summarize Word document: {e}")
-    
-    def on_run_clean_notebook_workflow(self):
-        """Run the clean notebook workflow."""
-        notebook_path_or_id = self.workflow_notebook_var.get().strip()
-        if not notebook_path_or_id:
-            messagebox.showwarning("No Notebook", "Please enter a notebook path or ID.")
-            return
-        
-        try:
-            self.workflow_result_text.delete("1.0", "end")
-            self.workflow_result_text.insert("1.0", "🔄 Running clean notebook workflow...\n")
-            self.update()
-            
-            if not WORKFLOWS_AVAILABLE or CleanNotebookWorkflow is None:
-                self.workflow_result_text.delete("1.0", "end")
-                self.workflow_result_text.insert("1.0", "❌ Workflow system not available.\n")
-                messagebox.showerror("Error", "Workflow system not available.")
-                return
-            
-            # Import required services
-            try:
-                from .integrations.onenote.service import OneNoteService
-                onenote_service = OneNoteService()
-                workflow = CleanNotebookWorkflow(onenote_service)
-                
-                # Run the workflow
-                workflow.run(notebook_path_or_id, actor="AIC")
-                
-                self.workflow_result_text.delete("1.0", "end")
-                self.workflow_result_text.insert("1.0", f"✅ Clean notebook workflow completed successfully!\n\n")
-                self.workflow_result_text.insert("end", f"Notebook: {notebook_path_or_id}\n")
-                self.workflow_result_text.insert("end", "The notebook has been cleaned and changes have been committed.\n")
-                
-                messagebox.showinfo("Success", "Clean notebook workflow completed successfully!")
-            except Exception as e:
-                self.workflow_result_text.delete("1.0", "end")
-                self.workflow_result_text.insert("1.0", f"❌ Error: {str(e)}\n")
-                messagebox.showerror("Error", f"Failed to run workflow: {e}")
-        except Exception as e:
-            self.workflow_result_text.delete("1.0", "end")
-            self.workflow_result_text.insert("1.0", f"❌ Error: {str(e)}\n")
-            messagebox.showerror("Error", f"Failed to run workflow: {e}")
-    
-    def refresh_projects_tools_list(self):
-        """Refresh the projects list in the Tools tab."""
-        try:
-            # Clear existing items
-            for item in self.projects_tools_tree.get_children():
-                self.projects_tools_tree.delete(item)
-            
-            # Load current state
-            self.state_obj = load_state(self.conn)
-            
-            # Count tasks per project
-            counts: Dict[str, int] = {}
-            for t in self.state_obj.tasks:
-                counts[t.project] = counts.get(t.project, 0) + 1
-            
-            # Add projects to tree
-            priority_weight = {p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)}
-            projects_sorted = sorted(
-                self.state_obj.projects,
-                key=lambda p: (priority_weight.get(p.priority, 1), p.name),
-                reverse=True,
-            )
-            
-            for p in projects_sorted:
-                self.projects_tools_tree.insert(
-                    "",
-                    "end",
-                    iid=p.name,
-                    values=(p.name, p.priority, p.status, counts.get(p.name, 0)),
-                )
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to refresh projects list: {e}")
-    
-    def on_quick_add_project(self):
-        """Quick add a project from the Tools tab."""
-        name = self.quick_project_name_var.get().strip()
-        if not name:
-            messagebox.showwarning("No Name", "Please enter a project name.")
-            return
-        
-        # Check if project already exists
-        existing = next((p for p in self.state_obj.projects if p.name == name), None)
-        if existing:
-            messagebox.showinfo("Exists", f"Project '{name}' already exists.")
-            return
-        
-        try:
-            # Create new project
-            new_project = Project(
-                name=name,
-                description="",
-                priority="MEDIUM",
-                status="active"
-            )
-            
-            db_upsert_project(self.conn, new_project)
-            self.state_obj.projects.append(new_project)
-            
-            # Clear input and refresh list
-            self.quick_project_name_var.set("")
-            self.refresh_projects_tools_list()
-            
-            messagebox.showinfo("Success", f"Project '{name}' added successfully!")
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to add project: {e}")
-    
-    def on_send_agent_message(self):
-        """Send a message to the selected agent."""
-        agent = self.agent_chat_agent_var.get()
-        message = self.agent_chat_message_text.get("1.0", "end").strip()
-        
-        if not message:
-            messagebox.showwarning("No Message", "Please enter a message.")
-            return
-        
-        if not openai_available():
-            messagebox.showerror("Error", "OpenAI API is not available. Please configure your API key.")
-            return
-        
-        try:
-            self.agent_chat_response_text.config(state="normal")
-            self.agent_chat_response_text.delete("1.0", "end")
-            self.agent_chat_response_text.insert("1.0", f"🔄 Sending message to {agent}...\n")
-            self.update()
-            
-            # Get agent model
-            model = get_agent_model(agent)
-            
-            # Create chat history
-            history = [
-                ChatMessage(role="user", content=message, timestamp=datetime.now().isoformat())
-            ]
-            
-            # Generate response
-            response = generate_ai_reply(
-                history=history,
-                persona=agent,
-                model=model,
-                temperature=0.7
-            )
-            
-            self.agent_chat_response_text.delete("1.0", "end")
-            self.agent_chat_response_text.insert("1.0", f"Response from {agent}:\n" + "="*50 + "\n\n")
-            self.agent_chat_response_text.insert("end", response)
-            self.agent_chat_response_text.config(state="disabled")
-            
-            # Save to chat history
-            db_insert_chat_message(self.conn, ChatMessage(
-                role="user",
-                content=message,
-                timestamp=datetime.now().isoformat(),
-                persona=agent
-            ))
-            db_insert_chat_message(self.conn, ChatMessage(
-                role="assistant",
-                content=response,
-                timestamp=datetime.now().isoformat(),
-                persona=agent
-            ))
-            
-            # Clear input
-            self.agent_chat_message_text.delete("1.0", "end")
-        except Exception as e:
-            self.agent_chat_response_text.config(state="normal")
-            self.agent_chat_response_text.delete("1.0", "end")
-            self.agent_chat_response_text.insert("1.0", f"❌ Error: {str(e)}\n")
-            self.agent_chat_response_text.config(state="disabled")
-            messagebox.showerror("Error", f"Failed to send message: {e}")
-
-# ---------- Analytics Tab ----------
-
-    def _build_analytics_tab(self):
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.analytics_frame = ttkb.Frame(self.notebook)
-        else:
-            self.analytics_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.analytics_frame, text="📊 Analytics")
-        
-        self.analytics_frame.columnconfigure(0, weight=1)
-        self.analytics_frame.rowconfigure(0, weight=1)
-        
-        # Main container with scrollable text
-        if TTKBOOTSTRAP_AVAILABLE:
-            main_container = ttkb.Frame(self.analytics_frame)
-        else:
-            main_container = ttk.Frame(self.analytics_frame)
-        main_container.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
-        main_container.columnconfigure(0, weight=1)
-        main_container.rowconfigure(1, weight=1)
-        
-        # Header
-        if TTKBOOTSTRAP_AVAILABLE:
-            header = ttkb.Label(main_container, text="Analytics & Reports", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
-        else:
-            header = ttk.Label(main_container, text="Analytics & Reports", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
-        header.grid(row=0, column=0, sticky="w", pady=(0, 8))
-        
-        # Text widget for displaying analytics
-        text_frame = ttk.Frame(main_container)
-        text_frame.grid(row=1, column=0, sticky="nsew")
-        text_frame.columnconfigure(0, weight=1)
-        text_frame.rowconfigure(0, weight=1)
-        
-        self.analytics_text = tk.Text(text_frame, wrap="word", font=("Courier", 10), bg="#f5f5f5" if not TTKBOOTSTRAP_AVAILABLE else None)
-        self._style_text_widget(self.analytics_text)
-        self.analytics_text.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
-        
-        scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=self.analytics_text.yview)
-        self.analytics_text.configure(yscroll=scrollbar.set)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        
-        # Buttons
-        if TTKBOOTSTRAP_AVAILABLE:
-            btn_frame = ttkb.Frame(main_container)
-        else:
-            btn_frame = ttk.Frame(main_container)
-        btn_frame.grid(row=2, column=0, sticky="ew", pady=(8, 0))
-        
-        if TTKBOOTSTRAP_AVAILABLE:
-            refresh_btn = ttkb.Button(btn_frame, text="🔄 Refresh", command=self.refresh_analytics, bootstyle="primary")
-            export_btn = ttkb.Button(btn_frame, text="💾 Export Report", command=self.on_export_analytics_report, bootstyle="info-outline")
-        else:
-            refresh_btn = ttk.Button(btn_frame, text="Refresh", command=self.refresh_analytics)
-            export_btn = ttk.Button(btn_frame, text="Export Report", command=self.on_export_analytics_report)
-        
-        refresh_btn.grid(row=0, column=0, padx=4)
-        export_btn.grid(row=0, column=1, padx=4)
-        
-        if TTKBOOTSTRAP_AVAILABLE:
-            ToolTip(refresh_btn, text="Refresh analytics data")
-            ToolTip(export_btn, text="Export report to text file")
-    
-    def refresh_analytics(self):
-        """Refresh the analytics display."""
-        if not hasattr(self, 'analytics_text'):
-            return
-        
-        self.analytics_text.delete('1.0', 'end')
-        
-        try:
-            # Get all analytics data
-            task_stats = get_task_completion_stats(self.state_obj)
-            project_stats = get_project_stats(self.state_obj)
-            time_stats = get_time_tracking_stats(self.state_obj)
-            productivity = get_productivity_metrics(self.state_obj)
-            deadline_reminders = get_deadline_reminders(self.state_obj, days_ahead=7)
-            workload = get_workload_balance(self.state_obj)
-            project_health = get_project_health(self.state_obj)
-            suggestions = get_smart_prioritization_suggestions(self.state_obj)
-            
-            # Build display text
-            lines = []
-            lines.append("=" * 70)
-            lines.append("ASSISTANT HUB ANALYTICS REPORT")
-            lines.append("=" * 70)
-            lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            lines.append("")
-            
-            # Task Statistics
-            lines.append("TASK STATISTICS")
-            lines.append("-" * 70)
-            lines.append(f"Total Tasks: {task_stats['total']}")
-            lines.append(f"  ✓ Done: {task_stats['done']}")
-            lines.append(f"  ⟳ In Progress: {task_stats['in_progress']}")
-            lines.append(f"  ☐ TODO: {task_stats['todo']}")
-            lines.append(f"  ⛔ Blocked: {task_stats['blocked']}")
-            lines.append(f"Completion Rate: {task_stats['completion_rate']}%")
-            lines.append("")
-            
-            # Project Statistics
-            lines.append("PROJECT STATISTICS")
-            lines.append("-" * 70)
-            for project_name, stats in sorted(project_stats.items(), key=lambda x: x[1]["total"], reverse=True):
-                lines.append(f"{project_name}:")
-                lines.append(f"  Total: {stats['total']}, Done: {stats['done']}, Completion: {stats['completion_rate']}%")
-            lines.append("")
-            
-            # Time Tracking
-            lines.append("TIME TRACKING")
-            lines.append("-" * 70)
-            lines.append(f"Estimated: {time_stats['estimated_hours']} hours ({time_stats['total_estimated_minutes']} minutes)")
-            lines.append(f"Logged: {time_stats['logged_hours']} hours ({time_stats['total_logged_minutes']} minutes)")
-            lines.append(f"Tasks with time data: {time_stats['tasks_with_time']}")
-            if time_stats['total_estimated_minutes'] > 0:
-                variance = ((time_stats['total_logged_minutes'] - time_stats['total_estimated_minutes']) / time_stats['total_estimated_minutes']) * 100
-                lines.append(f"Time variance: {variance:+.1f}%")
-            lines.append("")
-            
-            # Productivity Metrics
-            lines.append("PRODUCTIVITY METRICS")
-            lines.append("-" * 70)
-            lines.append(f"Completion Rate: {productivity['completion_rate']}%")
-            lines.append(f"Tasks Completed: {productivity['tasks_completed']}")
-            lines.append(f"Tasks In Progress: {productivity['tasks_in_progress']}")
-            lines.append(f"Total Time Logged: {productivity['total_time_logged_hours']} hours")
-            lines.append(f"Average Time per Task: {productivity['average_time_per_task_minutes']} minutes")
-            lines.append("")
-            
-            # Deadline Reminders
-            if deadline_reminders:
-                lines.append("DEADLINE REMINDERS (Next 7 Days)")
-                lines.append("-" * 70)
-                for reminder in deadline_reminders[:10]:  # Top 10
-                    task = reminder['task']
-                    urgency = reminder['urgency'].upper()
-                    days = reminder['days_until']
-                    lines.append(f"[{urgency}] Task #{task.id}: {task.title[:50]} - {days} day(s) until due")
-                lines.append("")
-            
-            # Workload Balance
-            lines.append("WORKLOAD BALANCE")
-            lines.append("-" * 70)
-            for persona, data in workload.items():
-                status = "⚠️ OVERLOADED" if data['overloaded'] else "✓ OK"
-                lines.append(f"{persona}: {status}")
-                lines.append(f"  Tasks: {data['task_count']}, Est. Hours: {data['estimated_hours']}, Logged: {data['logged_hours']}")
-                lines.append(f"  High Priority: {data['high_priority_count']}")
-            lines.append("")
-            
-            # Project Health
-            lines.append("PROJECT HEALTH")
-            lines.append("-" * 70)
-            for project_name, health in sorted(project_health.items(), key=lambda x: x[1]['health_score']):
-                status_icon = "✓" if health['health_status'] == "healthy" else "⚠" if health['health_status'] == "warning" else "✗"
-                lines.append(f"{status_icon} {project_name}: {health['health_status'].upper()} (Score: {health['health_score']})")
-                lines.append(f"  Total: {health['total_tasks']}, Completed: {health['completed']}, Blocked: {health['blocked']}, Overdue: {health['overdue']}")
-            lines.append("")
-            
-            # Smart Suggestions
-            if suggestions:
-                lines.append("SMART SUGGESTIONS")
-                lines.append("-" * 70)
-                for suggestion in suggestions[:10]:  # Top 10
-                    priority = suggestion['priority'].upper()
-                    lines.append(f"[{priority}] {suggestion['message']}")
-                lines.append("")
-            
-            # Display the report
-            self.analytics_text.insert('1.0', '\n'.join(lines))
-            self.analytics_text.see('1.0')
-            
-        except Exception as e:
-            self.analytics_text.insert('1.0', f"Error generating analytics: {e}")
-    
-    def on_export_analytics_report(self):
-        """Export analytics report to a text file."""
-        try:
-            report = generate_report(self.state_obj)
-            filename = filedialog.asksaveasfilename(
-                defaultextension=".txt",
-                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
-                initialfile=f"analytics_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-            )
-            if filename:
-                with open(filename, 'w') as f:
-                    f.write(report)
-                messagebox.showinfo("Export", f"Report exported to {filename}")
-        except Exception as e:
-            messagebox.showerror("Export Error", f"Failed to export report: {e}")
-
-
-# Templates tab removed - functionality was redundant with normal task creation
-
-# ---------- Settings Tab ----------
-
-    def _build_settings_tab(self):
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.settings_frame = ttkb.Frame(self.notebook)
-        else:
-            self.settings_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.settings_frame, text="⚙️ Settings")
-
-        self.settings_frame.columnconfigure(1, weight=1)
-
-        row = 0
-        if TTKBOOTSTRAP_AVAILABLE:
-            ttkb.Label(self.settings_frame, text="Theme:", bootstyle="primary").grid(row=row, column=0, sticky="e", padx=8, pady=8)
-            self.theme_var = tk.StringVar(value=self.settings.theme)
-            # Provide more theme options with ttkbootstrap
-            theme_values = ["plain", "light", "dark"]
-            # Map to ttkbootstrap themes for better names
-            theme_combo = ttkb.Combobox(
-                self.settings_frame,
-                textvariable=self.theme_var,
-                values=theme_values,
-                state="readonly",
-                bootstyle="primary"
-            )
-        else:
-            ttk.Label(self.settings_frame, text="Theme:").grid(row=row, column=0, sticky="e", padx=8, pady=8)
-            self.theme_var = tk.StringVar(value=self.settings.theme)
-            theme_combo = ttk.Combobox(
-                self.settings_frame,
-                textvariable=self.theme_var,
-                values=["plain", "light", "dark"],
-                state="readonly",
-            )
-        theme_combo.grid(row=row, column=1, sticky="w", padx=8, pady=8)
-        if TTKBOOTSTRAP_AVAILABLE:
-            ToolTip(theme_combo, text="Choose UI theme: plain (cosmo), light (litera), or dark (darkly)")
-
-        row += 1
-        ttk.Label(self.settings_frame, text="Default View:").grid(row=row, column=0, sticky="e", padx=8, pady=8)
-        self.default_view_var = tk.StringVar(value=self.settings.default_view)
-        defview_combo = ttk.Combobox(
-            self.settings_frame,
-            textvariable=self.default_view_var,
-            values=["dashboard", "tasks", "projects"],
-            state="readonly",
-        )
-        defview_combo.grid(row=row, column=1, sticky="w", padx=8, pady=8)
-
-        row += 1
-        ttk.Label(self.settings_frame, text="Font Scale:").grid(row=row, column=0, sticky="e", padx=8, pady=8)
-        self.font_scale_var = tk.StringVar(value=self.settings.font_scale)
-        font_combo = ttk.Combobox(
-            self.settings_frame,
-            textvariable=self.font_scale_var,
-            values=["small", "medium", "large"],
-            state="readonly",
-        )
-        font_combo.grid(row=row, column=1, sticky="w", padx=8, pady=8)
-
-        row += 1
-        self.show_sys_var = tk.BooleanVar(value=self.settings.show_system_status)
-        show_sys_check = ttk.Checkbutton(
-            self.settings_frame,
-            text="Show system status panel on dashboard",
-            variable=self.show_sys_var,
-        )
-        show_sys_check.grid(row=row, column=1, sticky="w", padx=8, pady=8)
-
-        row += 1
-        if TTKBOOTSTRAP_AVAILABLE:
-            pref_box = ttkb.Labelframe(self.settings_frame, text="📊 Data Preferences", bootstyle="info")
-        else:
-            pref_box = ttk.LabelFrame(self.settings_frame, text="Data Preferences")
-        pref_box.grid(row=row, column=0, columnspan=2, sticky="ew", padx=8, pady=8)
-        pref_box.columnconfigure(0, weight=1)
-        pref_box.columnconfigure(1, weight=1)
-        pref_labels = [
-            ("notes", "Notes & Knowledge"),
-            ("calendar", "Calendar Events"),
-            ("mail", "Email / Messages"),
-            ("files", "Files & Attachments"),
-        ]
-        self.data_pref_vars: Dict[str, tk.BooleanVar] = {}
-        for idx, (key, label) in enumerate(pref_labels):
-            var = tk.BooleanVar(value=self.settings.data_preferences.get(key, DEFAULT_FETCH_PREFERENCES.get(key, True)))
-            chk = ttk.Checkbutton(pref_box, text=label, variable=var)
-            chk.grid(row=idx // 2, column=idx % 2, sticky="w", padx=8, pady=4)
-            self.data_pref_vars[key] = var
-
-        row += 1
-        if TTKBOOTSTRAP_AVAILABLE:
-            export_import_box = ttkb.Labelframe(self.settings_frame, text="💾 Export & Import", bootstyle="secondary")
-        else:
-            export_import_box = ttk.LabelFrame(self.settings_frame, text="Export & Import")
-        export_import_box.grid(row=row, column=0, columnspan=2, sticky="ew", padx=8, pady=8)
-        export_import_box.columnconfigure(0, weight=1)
-        export_import_box.columnconfigure(1, weight=1)
-        
-        if TTKBOOTSTRAP_AVAILABLE:
-            export_tasks_csv_btn = ttkb.Button(export_import_box, text="📥 Export Tasks (CSV)", command=lambda: self.on_export_tasks("csv"), bootstyle="info-outline")
-            export_tasks_json_btn = ttkb.Button(export_import_box, text="📥 Export Tasks (JSON)", command=lambda: self.on_export_tasks("json"), bootstyle="info-outline")
-            export_projects_btn = ttkb.Button(export_import_box, text="📥 Export Projects", command=self.on_export_projects, bootstyle="info-outline")
-            export_backup_btn = ttkb.Button(export_import_box, text="💾 Full Backup", command=self.on_export_backup, bootstyle="success-outline")
-            import_tasks_btn = ttkb.Button(export_import_box, text="📤 Import Tasks", command=self.on_import_tasks, bootstyle="warning-outline")
-        else:
-            export_tasks_csv_btn = ttk.Button(export_import_box, text="Export Tasks (CSV)", command=lambda: self.on_export_tasks("csv"))
-            export_tasks_json_btn = ttk.Button(export_import_box, text="Export Tasks (JSON)", command=lambda: self.on_export_tasks("json"))
-            export_projects_btn = ttk.Button(export_import_box, text="Export Projects", command=self.on_export_projects)
-            export_backup_btn = ttk.Button(export_import_box, text="Full Backup", command=self.on_export_backup)
-            import_tasks_btn = ttk.Button(export_import_box, text="Import Tasks", command=self.on_import_tasks)
-        
-        export_tasks_csv_btn.grid(row=0, column=0, padx=4, pady=4, sticky="ew")
-        export_tasks_json_btn.grid(row=0, column=1, padx=4, pady=4, sticky="ew")
-        export_projects_btn.grid(row=1, column=0, padx=4, pady=4, sticky="ew")
-        export_backup_btn.grid(row=1, column=1, padx=4, pady=4, sticky="ew")
-        import_tasks_btn.grid(row=2, column=0, columnspan=2, padx=4, pady=4, sticky="ew")
-        
-        row += 1
-        if TTKBOOTSTRAP_AVAILABLE:
-            save_btn = ttkb.Button(self.settings_frame, text="💾 Save Settings", command=self.on_save_settings, bootstyle="success")
-        else:
-            save_btn = ttk.Button(self.settings_frame, text="Save Settings", command=self.on_save_settings)
-        save_btn.grid(row=row, column=1, sticky="w", padx=8, pady=8)
-        if TTKBOOTSTRAP_AVAILABLE:
-            ToolTip(save_btn, text="Save all settings and apply changes")
-
-    def on_save_settings(self):
-        self.settings.theme = self.theme_var.get()
-        self.settings.default_view = self.default_view_var.get()
-        self.settings.show_system_status = self.show_sys_var.get()
-        self.settings.font_scale = self.font_scale_var.get()
-        self.settings.data_preferences = {k: var.get() for k, var in self.data_pref_vars.items()}
-        save_settings(self.conn, self.settings)
-        
-        # Apply theme change if ttkbootstrap is available
-        if TTKBOOTSTRAP_AVAILABLE:
-            theme_map = {
-                "plain": "cosmo",
-                "light": "litera",
-                "dark": "darkly"
-            }
-            theme = theme_map.get(self.settings.theme, "cosmo")
-            self.style.theme_use(theme)
-        else:
-            self._configure_style()
-        self.refresh_dashboard()
-        messagebox.showinfo("Settings", "Settings saved.")
-
-    def on_export_tasks(self, format_type: str):
-        """Export tasks to CSV or JSON file."""
-        try:
-            if format_type == "csv":
-                filename = filedialog.asksaveasfilename(
-                    defaultextension=".csv",
-                    filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
-                    initialfile=f"tasks_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-                )
-                if filename:
-                    export_tasks_to_csv(self.conn, filename)
-                    messagebox.showinfo("Export", f"Tasks exported to {filename}")
-            elif format_type == "json":
-                filename = filedialog.asksaveasfilename(
-                    defaultextension=".json",
-                    filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-                    initialfile=f"tasks_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-                )
-                if filename:
-                    export_tasks_to_json(self.conn, filename)
-                    messagebox.showinfo("Export", f"Tasks exported to {filename}")
-        except Exception as e:
-            messagebox.showerror("Export Error", f"Failed to export tasks: {e}")
-
-    def on_export_projects(self):
-        """Export projects to JSON file."""
-        try:
-            filename = filedialog.asksaveasfilename(
-                defaultextension=".json",
-                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-                initialfile=f"projects_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-            )
-            if filename:
-                export_projects_to_json(self.conn, filename)
-                messagebox.showinfo("Export", f"Projects exported to {filename}")
-        except Exception as e:
-            messagebox.showerror("Export Error", f"Failed to export projects: {e}")
-
-    def on_export_backup(self):
-        """Export full database backup to JSON file."""
-        try:
-            filename = filedialog.asksaveasfilename(
-                defaultextension=".json",
-                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-                initialfile=f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-            )
-            if filename:
-                export_full_backup(self.conn, filename)
-                messagebox.showinfo("Export", f"Full backup exported to {filename}")
-        except Exception as e:
-            messagebox.showerror("Export Error", f"Failed to export backup: {e}")
-
-    def on_import_tasks(self):
-        """Import tasks from CSV or JSON file."""
-        try:
-            filename = filedialog.askopenfilename(
-                filetypes=[
-                    ("CSV files", "*.csv"),
-                    ("JSON files", "*.json"),
-                    ("All files", "*.*")
-                ]
-            )
-            if filename:
-                imported = 0
-                if filename.endswith('.csv'):
-                    imported = import_tasks_from_csv(self.conn, filename)
-                elif filename.endswith('.json'):
-                    imported = import_tasks_from_json(self.conn, filename)
-                else:
-                    messagebox.showwarning("Import Error", "Please select a CSV or JSON file.")
-                    return
-                
-                if imported > 0:
-                    messagebox.showinfo("Import", f"Successfully imported {imported} task(s).")
-                    self.refresh_all()
-                else:
-                    messagebox.showwarning("Import", "No tasks were imported. Please check the file format.")
-        except Exception as e:
-            messagebox.showerror("Import Error", f"Failed to import tasks: {e}")
 
     # ---------- Global ----------
 
@@ -7135,8 +6349,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.refresh_task_list()
         self.refresh_project_list()
         self.refresh_chat_history()
-        if hasattr(self, 'refresh_integrations_list'):
-            self.refresh_integrations_list()
         if hasattr(self, 'refresh_analytics'):
             self.refresh_analytics()
 

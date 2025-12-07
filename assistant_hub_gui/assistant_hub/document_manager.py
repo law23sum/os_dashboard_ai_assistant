@@ -18,6 +18,7 @@ from .db import (
     db_upsert_project,
     Project,
 )
+from .logging_config import get_logger
 from .versioning import enqueue_commit
 
 
@@ -30,6 +31,8 @@ DOCUMENT_TYPES = {
 }
 
 DOCUMENTS_BASE_DIR = DATA_DIR / "documents"
+
+logger = get_logger(__name__)
 
 
 def get_document_directory(project_name: str, doc_type: str) -> Path:
@@ -73,6 +76,90 @@ def sanitize_filename(filename: str) -> str:
     if not filename:
         filename = "unnamed_file"
     return filename
+
+
+def scan_and_import_existing_documents(
+    conn: sqlite3.Connection,
+    base_dir: Optional[Path] = None
+) -> Tuple[int, List[str]]:
+    """
+    Scan the documents directory and import any existing files that aren't in the database.
+
+    Returns:
+        (imported_count, errors)
+    """
+    if base_dir is None:
+        base_dir = DOCUMENTS_BASE_DIR
+
+    imported_count = 0
+    errors = []
+
+    try:
+        # Walk through all subdirectories
+        if base_dir.exists():
+            for project_dir in base_dir.iterdir():
+                if not project_dir.is_dir():
+                    continue
+
+                project_name = project_dir.name
+                for doc_type_dir in project_dir.iterdir():
+                    if not doc_type_dir.is_dir():
+                        continue
+
+                    doc_type_name = doc_type_dir.name
+
+                    # Check if this doc_type is supported
+                    if doc_type_name not in DOCUMENT_TYPES:
+                        continue
+
+                    for file_path in doc_type_dir.iterdir():
+                        if not file_path.is_file():
+                            continue
+
+                        try:
+                            # Check if file is already in database
+                            integration_type, _ = DOCUMENT_TYPES[doc_type_name]
+                            relative_path = f"{project_name}/{doc_type_name}/{file_path.name}"
+
+                            c = conn.cursor()
+                            c.execute(
+                                "SELECT id FROM note_links WHERE external_id = ? AND integration_type = ?",
+                                (relative_path, integration_type)
+                            )
+
+                            if c.fetchone():
+                                # Already exists in database, skip
+                                continue
+
+                            # File exists in filesystem but not in database - we need to create database entry
+                            # without moving/copying the file
+                            display_title = file_path.name
+                            file_size = file_path.stat().st_size
+                            modified_date = datetime.fromtimestamp(file_path.stat().st_mtime).isoformat()
+
+                            # Create new document link
+                            link_id = db_create_note_link(
+                                conn=conn,
+                                project_id=project_name,
+                                integration_type=integration_type,
+                                external_id=relative_path,
+                                title=display_title,
+                                description=f"Auto-imported existing file from {relative_path}",
+                            )
+
+                            if link_id:
+                                imported_count += 1
+                                logger.info(f"Imported existing document: {relative_path}")
+                            else:
+                                errors.append(f"Failed to create database entry for {relative_path}")
+
+                        except Exception as e:
+                            errors.append(f"Error processing {file_path}: {str(e)}")
+
+    except Exception as e:
+        errors.append(f"Error scanning directory: {str(e)}")
+
+    return imported_count, errors
 
 
 def upload_document(

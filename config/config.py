@@ -3,26 +3,15 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Iterable, Optional
 
-
-def load_dotenv(path: Path | str = ".env") -> None:
-    """Lightweight .env loader to avoid external dependency."""
-
-    env_path = Path(path)
-    if not env_path.exists():
-        return
-
-    for line in env_path.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        os.environ.setdefault(key.strip(), value.strip())
-
-
-# Load environment variables
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    # Load environment variables
+    load_dotenv()
+except ImportError:
+    # dotenv not available, continue with environment variables
+    pass
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
 PROJECT_ROOT = PACKAGE_ROOT.parent
@@ -73,50 +62,52 @@ def get_attachment_path(*parts: str) -> Path:
 
 @dataclass
 class APISettings:
-    """Configuration class for all API credentials and settings."""
+    """Configuration class for all API credentials and settings"""
 
     # OpenAI/ChatGPT Configuration
-    openai_api_key: Optional[str] = field(default=None)
-    openai_organization: Optional[str] = field(default=None)
-    openai_model: str = field(default="gpt-4")
+    openai_api_key: Optional[str] = None
+    openai_organization: Optional[str] = None
+    openai_model: str = "gpt-4"
 
     # Microsoft Graph API Configuration
-    microsoft_client_id: Optional[str] = field(default=None)
-    microsoft_client_secret: Optional[str] = field(default=None)
-    microsoft_tenant_id: Optional[str] = field(default=None)
-    microsoft_redirect_uri: str = field(default="http://localhost:8000/auth/callback")
+    microsoft_client_id: Optional[str] = None
+    microsoft_client_secret: Optional[str] = None
+    microsoft_tenant_id: Optional[str] = None
+    microsoft_redirect_uri: str = "http://localhost:8000/auth/callback"
 
     # Google APIs Configuration
-    google_credentials_file: Optional[str] = field(default="credentials.json")
-    google_token_file: str = field(default="token.json")
-    google_scopes: list = field(
-        default_factory=lambda: [
-            "https://www.googleapis.com/auth/gmail.readonly",
-            "https://www.googleapis.com/auth/gmail.send",
-            "https://www.googleapis.com/auth/calendar",
-        ]
-    )
+    google_credentials_file: Optional[str] = "credentials.json"
+    google_token_file: str = "token.json"
+    google_scopes: list = None
+
+    def __post_init__(self):
+        if self.google_scopes is None:
+            self.google_scopes = [
+                'https://www.googleapis.com/auth/gmail.readonly',
+                'https://www.googleapis.com/auth/gmail.send',
+                'https://www.googleapis.com/auth/calendar'
+            ]
 
     # GitHub Configuration
-    github_token: Optional[str] = field(default=None)
-    github_username: Optional[str] = field(default=None)
+    github_token: Optional[str] = None
+    github_username: Optional[str] = None
 
     # Adobe Configuration
-    adobe_client_id: Optional[str] = field(default=None)
-    adobe_client_secret: Optional[str] = field(default=None)
-    adobe_organization_id: Optional[str] = field(default=None)
-    adobe_account_id: Optional[str] = field(default=None)
-    adobe_private_key_file: Optional[str] = field(default="private.key")
+    adobe_client_id: Optional[str] = None
+    adobe_client_secret: Optional[str] = None
+    adobe_organization_id: Optional[str] = None
+    adobe_account_id: Optional[str] = None
+    adobe_private_key_file: Optional[str] = "private.key"
 
     # Apple Calendar (CalDAV) Configuration
-    caldav_url: Optional[str] = field(default=None)
-    caldav_username: Optional[str] = field(default=None)
-    caldav_password: Optional[str] = field(default=None)
+    caldav_url: Optional[str] = None
+    caldav_username: Optional[str] = None
+    caldav_password: Optional[str] = None
 
     # Application Settings
-    app_name: str = field(default="OS Dashboard AI Assistant")
-    log_level: str = field(default="INFO")
-    cache_ttl: int = field(default=3600)
+    app_name: str = "OS Dashboard AI Assistant"
+    log_level: str = "INFO"
+    cache_ttl: int = 3600  # 1 hour
 
     def __post_init__(self) -> None:
         # Populate from environment where present

@@ -24,4 +24,3 @@ database:
 # UI settings
 ui:
   theme: "dark"
-  port: 8080

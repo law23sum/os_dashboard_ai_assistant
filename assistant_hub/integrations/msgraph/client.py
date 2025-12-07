@@ -15,7 +15,7 @@ from msgraph.generated.models.workbook import Workbook
 from msgraph.generated.models.notebook import Notebook
 
 from config import get_api_config
-from logging_config import setup_logger
+from ..logging_config import setup_logger
 
 
 class MicrosoftClient:

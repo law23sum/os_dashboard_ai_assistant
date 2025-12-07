@@ -3,8 +3,13 @@ Logging configuration for OS Dashboard AI Assistant
 """
 
 import logging
-import colorlog
 from config import get_api_config
+
+try:
+    import colorlog
+    HAS_COLORLOG = True
+except ImportError:
+    HAS_COLORLOG = False
 
 def setup_logger(name: str = "assistant_hub") -> logging.Logger:
     """Setup colored logger with proper formatting"""
@@ -18,22 +23,28 @@ def setup_logger(name: str = "assistant_hub") -> logging.Logger:
     if logger.handlers:
         return logger
 
-    # Create console handler with color formatting
-    handler = colorlog.StreamHandler()
+    # Create console handler with color formatting (if available)
+    handler = logging.StreamHandler()
     handler.setLevel(getattr(logging, config.log_level.upper()))
 
     # Create formatter
-    formatter = colorlog.ColoredFormatter(
-        '%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        log_colors={
-            'DEBUG': 'cyan',
-            'INFO': 'green',
-            'WARNING': 'yellow',
-            'ERROR': 'red',
-            'CRITICAL': 'red,bg_white',
-        }
-    )
+    if HAS_COLORLOG:
+        formatter = colorlog.ColoredFormatter(
+            '%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S',
+            log_colors={
+                'DEBUG': 'cyan',
+                'INFO': 'green',
+                'WARNING': 'yellow',
+                'ERROR': 'red',
+                'CRITICAL': 'red,bg_white',
+            }
+        )
+    else:
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
 
     handler.setFormatter(formatter)
     logger.addHandler(handler)
@@ -55,3 +66,10 @@ def get_logger(name: str) -> logging.Logger:
 
 # Global logger instance
 logger = setup_logger()
+
+
+def configure_logging():
+    """Configure logging for the application."""
+    global logger
+    logger = setup_logger()
+    return logger

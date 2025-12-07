@@ -1,4 +1,4 @@
-"""Data Aggregator - Takes raw data from api_connectors and processes/normalizes it."""
+"""Data Aggregator - Processes and normalizes data from various sources."""
 
 from typing import Dict, List, Any, Optional
 from datetime import datetime
