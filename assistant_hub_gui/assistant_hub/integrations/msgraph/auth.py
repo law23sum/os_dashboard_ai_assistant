@@ -377,6 +377,7 @@ class GraphDelegatedAuth:
         self.scope_string = " ".join(self.scopes)
         self._access_token = None
         self._refresh_token = None
+        self._use_consumers_endpoint = False  # Track if we need to use /consumers endpoint
         self._load_refresh_token()
     
     def _load_refresh_token(self):
@@ -412,6 +413,8 @@ class GraphDelegatedAuth:
         """
         Initiate device code flow. Returns device_code and user_code.
         User should visit the verification_url and enter the user_code.
+        
+        Automatically handles consumer-only apps by retrying with /consumers endpoint if needed.
         """
         tenant_lower = self.credentials.tenant_id.lower()
         if tenant_lower in ["consumers", "common", "organizations"]:
@@ -424,14 +427,68 @@ class GraphDelegatedAuth:
             "scope": self.scope_string,
         }
         
-        response = requests.post(
-            device_code_url,
-            data=form_data,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            timeout=10,
-        )
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = requests.post(
+                device_code_url,
+                data=form_data,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                timeout=10,
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.HTTPError as e:
+            # Check if this is a consumer-only app error
+            error_details = ""
+            error_code = ""
+            try:
+                error_json = e.response.json()
+                error_details = error_json.get("error_description", error_json.get("error", str(e)))
+                error_code = error_json.get("error", "")
+            except:
+                error_details = str(e)
+            
+            # Check for AADSTS9002346 - consumer-only app error
+            if "AADSTS9002346" in error_details or "use by Microsoft Account users only" in error_details or "/consumers endpoint" in error_details:
+                # Retry with /consumers endpoint
+                self._use_consumers_endpoint = True  # Mark that we need to use consumers endpoint
+                device_code_url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode"
+                try:
+                    response = requests.post(
+                        device_code_url,
+                        data=form_data,
+                        headers={"Content-Type": "application/x-www-form-urlencoded"},
+                        timeout=10,
+                    )
+                    response.raise_for_status()
+                    return response.json()
+                except requests.exceptions.HTTPError as retry_e:
+                    error_details = ""
+                    try:
+                        error_json = retry_e.response.json()
+                        error_details = error_json.get("error_description", error_json.get("error", str(retry_e)))
+                    except:
+                        error_details = str(retry_e)
+                    raise AuthenticationError(
+                        f"Failed to get device code (even with /consumers endpoint): {error_details}\n\n"
+                        "Your app is configured for personal Microsoft accounts only.\n"
+                        "Please ensure you're using a personal Microsoft account to sign in."
+                    ) from retry_e
+            
+            # Provide more detailed error information for other errors
+            error_msg = f"Failed to get device code: {error_details}"
+            if "400" in str(e):
+                error_msg += (
+                    "\n\nCommon causes:\n"
+                    "1. Invalid tenant ID - check that it matches your Azure AD tenant\n"
+                    "2. Invalid client ID - verify the Application (client) ID in Azure Portal\n"
+                    "3. Client ID not registered in the specified tenant\n"
+                    "4. Missing or incorrect scope permissions\n"
+                    "\nPlease verify your credentials in Settings > Integrations."
+                )
+            
+            raise AuthenticationError(error_msg) from e
+        except requests.exceptions.RequestException as e:
+            raise AuthenticationError(f"Network error while getting device code: {str(e)}") from e
     
     def poll_for_token(self, device_code: str, interval: int = 5, timeout: int = 300) -> str:
         """
@@ -447,11 +504,15 @@ class GraphDelegatedAuth:
         """
         import time
         
-        tenant_lower = self.credentials.tenant_id.lower()
-        if tenant_lower in ["consumers", "common", "organizations"]:
-            token_url = f"https://login.microsoftonline.com/{tenant_lower}/oauth2/v2.0/token"
+        # Use consumers endpoint if we detected consumer-only app earlier
+        if self._use_consumers_endpoint:
+            token_url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
         else:
-            token_url = f"https://login.microsoftonline.com/{self.credentials.tenant_id}/oauth2/v2.0/token"
+            tenant_lower = self.credentials.tenant_id.lower()
+            if tenant_lower in ["consumers", "common", "organizations"]:
+                token_url = f"https://login.microsoftonline.com/{tenant_lower}/oauth2/v2.0/token"
+            else:
+                token_url = f"https://login.microsoftonline.com/{self.credentials.tenant_id}/oauth2/v2.0/token"
         
         form_data = {
             "client_id": self.credentials.client_id,
@@ -521,11 +582,15 @@ class GraphDelegatedAuth:
     
     def _refresh_access_token(self) -> str:
         """Refresh access token using refresh token."""
-        tenant_lower = self.credentials.tenant_id.lower()
-        if tenant_lower in ["consumers", "common", "organizations"]:
-            token_url = f"https://login.microsoftonline.com/{tenant_lower}/oauth2/v2.0/token"
+        # Use consumers endpoint if we detected consumer-only app earlier
+        if self._use_consumers_endpoint:
+            token_url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
         else:
-            token_url = f"https://login.microsoftonline.com/{self.credentials.tenant_id}/oauth2/v2.0/token"
+            tenant_lower = self.credentials.tenant_id.lower()
+            if tenant_lower in ["consumers", "common", "organizations"]:
+                token_url = f"https://login.microsoftonline.com/{tenant_lower}/oauth2/v2.0/token"
+            else:
+                token_url = f"https://login.microsoftonline.com/{self.credentials.tenant_id}/oauth2/v2.0/token"
         
         form_data = {
             "client_id": self.credentials.client_id,

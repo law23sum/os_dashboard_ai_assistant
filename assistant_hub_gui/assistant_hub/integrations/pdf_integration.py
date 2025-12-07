@@ -109,42 +109,64 @@ class PDFIntegration(BaseIntegration):
         if not file_path or not os.path.exists(file_path):
             return ""
         
+        # Try pdfplumber first (more robust with corrupted PDFs)
         try:
-            # Try PyPDF2 first
-            try:
-                import PyPDF2
-                with open(file_path, 'rb') as f:
-                    pdf_reader = PyPDF2.PdfReader(f)
-                    text_parts = []
-                    for page in pdf_reader.pages:
-                        try:
-                            text = page.extract_text()
-                            if text:
-                                text_parts.append(text)
-                        except Exception:
-                            continue
-                    return "\n\n".join(text_parts)
-            except ImportError:
-                pass
-            
-            # Fallback to pdfplumber
-            try:
-                import pdfplumber
-                text_parts = []
-                with pdfplumber.open(file_path) as pdf:
-                    for page in pdf.pages:
-                        try:
-                            text = page.extract_text()
-                            if text:
-                                text_parts.append(text)
-                        except Exception:
-                            continue
+            import pdfplumber
+            text_parts = []
+            with pdfplumber.open(file_path) as pdf:
+                for page in pdf.pages:
+                    try:
+                        text = page.extract_text()
+                        if text:
+                            text_parts.append(text)
+                    except Exception:
+                        continue
+            if text_parts:
                 return "\n\n".join(text_parts)
-            except ImportError:
-                pass
-            
-            # If no PDF libraries available, return empty
-            return ""
+        except ImportError:
+            pass
         except Exception as e:
-            return f"Error extracting PDF text: {str(e)}"
+            error_msg = str(e).lower()
+            # If pdfplumber fails with EOF or corruption error, try PyPDF2 with strict=False
+            if "eof" in error_msg or "corrupt" in error_msg or "invalid" in error_msg:
+                pass  # Will try PyPDF2 next
+            else:
+                # For other errors, try PyPDF2 as fallback
+                pass
+        
+        # Fallback to PyPDF2 with strict=False for corrupted PDFs
+        try:
+            import PyPDF2
+            with open(file_path, 'rb') as f:
+                # Try with strict=False first to handle corrupted PDFs
+                try:
+                    pdf_reader = PyPDF2.PdfReader(f, strict=False)
+                except Exception:
+                    # If that fails, try normal mode
+                    f.seek(0)
+                    pdf_reader = PyPDF2.PdfReader(f)
+                
+                text_parts = []
+                for page in pdf_reader.pages:
+                    try:
+                        text = page.extract_text()
+                        if text:
+                            text_parts.append(text)
+                    except Exception:
+                        continue
+                if text_parts:
+                    return "\n\n".join(text_parts)
+        except ImportError:
+            pass
+        except Exception as e:
+            error_msg = str(e).lower()
+            # Handle specific EOF marker error
+            if "eof marker" in error_msg:
+                return f"PDF appears to be corrupted or incomplete (EOF marker not found). The file may be truncated or damaged. File: {os.path.basename(file_path)}"
+            # Handle other PDF errors
+            elif "corrupt" in error_msg or "invalid" in error_msg:
+                return f"PDF file appears to be corrupted or invalid. File: {os.path.basename(file_path)}"
+        
+        # If all methods fail and no error message was returned, provide generic message
+        return f"Unable to extract text from PDF. The file may be corrupted, encrypted, or contain only images. File: {os.path.basename(file_path)}"
 
