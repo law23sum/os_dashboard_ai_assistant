@@ -14,7 +14,7 @@ except ImportError:
     CALDAV_AVAILABLE = False
 
 from config import get_api_config
-from logging_config import setup_logger
+from ..logging_config import setup_logger
 from .base import BaseIntegration, IntegrationStatus
 
 
