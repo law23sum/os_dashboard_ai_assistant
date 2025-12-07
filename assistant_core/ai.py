@@ -49,7 +49,7 @@ AGENT_MODEL_FALLBACKS = {
 DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-4o-mini")
 DEFAULT_SYSTEM_PROMPT = os.getenv(
     "ASSISTANT_HUB_SYSTEM_PROMPT",
-    "You are a cooperative team of AI agents (Aria, AIC, Sora) tasked with helping Chris manage"
+    "You are a cooperative team of AI agents (Aria, AIC, Sora, Data Science) tasked with helping Chris manage"
     " priorities, code, and research. Explain your thinking clearly, cite concrete next steps,"
     " and keep answers concise and actionable. You have access to a shell terminal and can execute"
     " commands when needed. You can also read files directly using the read_file function, or use"
@@ -216,9 +216,37 @@ def generate_ai_reply(
     if not model:
         model = get_agent_model(persona)
 
+    # Check for Data Science Agent routing
+    data_science_keywords = [
+        'machine learning', 'ml', 'dataset', 'model training', 'predict', 'classification',
+        'regression', 'clustering', 'feature', 'algorithm', 'hyperparameter', 'automl',
+        'data science', 'experiment', 'deploy model', 'train model', 'accuracy', 'precision',
+        'recall', 'f1 score', 'cross validation', 'feature importance', 'data drift'
+    ]
+
+    is_data_science_query = any(keyword in (prompt or "").lower() for keyword in data_science_keywords)
+
+    if is_data_science_query:
+        try:
+            from .ai_layer.agents import DataScienceAgent
+            agent = DataScienceAgent()
+
+            # Extract context from the conversation
+            context = {}
+            if file_paths:
+                context['file_paths'] = file_paths
+            if hasattr(history, 'cwd') or cwd:
+                context['cwd'] = cwd or getattr(history, 'cwd', None)
+
+            response = asyncio.run(agent.process_request(prompt or "", context))
+            return response, None, None
+        except Exception as e:
+            # If agent fails, fall back to regular OpenAI processing
+            pass
+
     try:
         client = get_openai_client()
-        
+
         # Prepare tools/functions for shell execution
         tools = None
         if enable_shell:

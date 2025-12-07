@@ -79,6 +79,14 @@ async def main_async():
         except ImportError as e:
             print(f"Computer Vision AI System: Not available ({e})")
 
+        # Try to initialize API integration gateway (optional)
+        try:
+            from api_connectors import IntegrationAPIGateway
+            api_gateway = IntegrationAPIGateway(db_connection=None, scheduler=None)
+            print("API Integration Gateway: Third-party service integrations ready")
+        except ImportError as e:
+            print(f"API Integration Gateway: Not available ({e})")
+
         print("\nFor the full GUI experience, run the assistant_hub_gui application.")
         print("AI assistant is ready for use by other components.")
 
