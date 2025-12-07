@@ -7,7 +7,7 @@ third-party services without needing to know their concrete implementations.
 
 from __future__ import annotations
 
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 import sqlite3
 
 from . import (
@@ -58,6 +58,35 @@ class IntegrationAPIGateway:
             integrations.setdefault(key, client)
 
         return integrations
+
+    def integration_actions(self) -> Dict[str, List[Dict[str, Any]]]:
+        """Return the supported actions for each integration.
+
+        Actions are described for UI/API consumers so they can present a dropdown
+        of valid operations instead of hard-coding strings.
+        """
+
+        base_actions = [
+            {"name": "status", "label": "Status", "description": "Check connection status"},
+            {"name": "sync", "label": "Sync", "description": "Synchronize new items"},
+        ]
+
+        specific_actions = {
+            "filesystem": [
+                {
+                    "name": "list_files",
+                    "label": "List Files",
+                    "description": "Preview tracked files (honors optional extension filter)",
+                    "options": {"extension": "Optional extension like .md", "limit": "Max items to return"},
+                }
+            ]
+        }
+
+        actions: Dict[str, List[Dict[str, Any]]] = {}
+        for name in self._ensure_clients().keys():
+            actions[name] = base_actions + specific_actions.get(name, [])
+        actions["all"] = base_actions
+        return actions
 
     def available_integrations(self) -> Dict[str, object]:
         """Return the integration client map keyed by slug."""
@@ -127,6 +156,18 @@ class IntegrationAPIGateway:
             attr = getattr(client, action)
             if callable(attr):
                 return attr(**options) if options else attr()
+
+        if action == "list_actions":
+            actions = self.integration_actions()
+            return actions if name == "all" else actions.get(name, [])
+
+        if name == "filesystem" and action == "list_files":
+            client = self._ensure_clients().get(name)
+            if not client:
+                raise ValueError("Filesystem integration is not available")
+            limit = int(options.get("limit", 50)) if isinstance(options, dict) else 50
+            extension = options.get("extension") if isinstance(options, dict) else None
+            return client.list_files(limit=limit, extension=extension)
 
         raise ValueError(f"Unsupported action '{action}' for integration API")
 
