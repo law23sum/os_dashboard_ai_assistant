@@ -140,6 +140,12 @@ from .export_import import (
     import_tasks_from_csv,
     import_tasks_from_json,
 )
+from .document_manager import (
+    upload_document as dm_upload_document,
+    get_project_documents,
+    format_file_size,
+    DOCUMENT_TYPES,
+)
 
 try:
     import psutil
@@ -152,7 +158,8 @@ try:
 except ImportError:
     CUSTOMTKINTER_AVAILABLE = False
 
-MAX_IMPORTED_FILE_CHARS = int(os.getenv("ASSISTANT_HUB_FILE_CHAR_LIMIT", "60000"))
+# No limit - show all content
+MAX_IMPORTED_FILE_CHARS = None  # Set to None to disable truncation
 
 
 # Animation helper class
@@ -1747,22 +1754,28 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.notebook.add(self.chat_frame, text="AI Console")
 
         # Support side-by-side layout: chat on left, document interaction on right
-        # Keep the layout evenly split so both areas are always visible
-        # Give more space to document frame (right side)
-        self.chat_frame.columnconfigure(0, weight=1)  # Chat column
-        self.chat_frame.columnconfigure(1, weight=2)  # Document column (2x larger)
-        self.chat_frame.rowconfigure(0, weight=3)
-        self.chat_frame.rowconfigure(1, weight=2)
+        # Use PanedWindow for resizable splitter (user can drag to resize)
+        # Note: ttkbootstrap may not have PanedWindow, so use ttk.PanedWindow for both
+        try:
+            if TTKBOOTSTRAP_AVAILABLE and hasattr(ttkb, 'PanedWindow'):
+                self.chat_paned = ttkb.PanedWindow(self.chat_frame, orient="horizontal", bootstyle="primary")
+            else:
+                self.chat_paned = ttk.PanedWindow(self.chat_frame, orient="horizontal")
+        except (AttributeError, TypeError):
+            # Fallback to standard ttk.PanedWindow
+            self.chat_paned = ttk.PanedWindow(self.chat_frame, orient="horizontal")
+        
+        self.chat_paned.pack(fill="both", expand=True, padx=8, pady=8)
 
         # Left side: Chat conversation and compose
         if TTKBOOTSTRAP_AVAILABLE:
-            chat_container = ttkb.Frame(self.chat_frame)
+            chat_container = ttkb.Frame(self.chat_paned)
         else:
-            chat_container = ttk.Frame(self.chat_frame)
-        chat_container.grid(row=0, column=0, rowspan=2, sticky="nsew", padx=(8, 4), pady=8)
+            chat_container = ttk.Frame(self.chat_paned)
         chat_container.columnconfigure(0, weight=1)
         chat_container.rowconfigure(0, weight=3)
         chat_container.rowconfigure(1, weight=2)
+        self.chat_paned.add(chat_container, weight=1)  # Start with equal weight, user can resize
 
         if TTKBOOTSTRAP_AVAILABLE:
             convo_frame = ttkb.Labelframe(chat_container, text="💬 Chat & Terminal", bootstyle="primary")
@@ -1786,13 +1799,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         # Right side: Document interaction panel (always visible)
         if TTKBOOTSTRAP_AVAILABLE:
-            self.document_frame = ttkb.Labelframe(self.chat_frame, text="📑 Document Interaction", bootstyle="success")
+            self.document_frame = ttkb.Labelframe(self.chat_paned, text="📑 Document Interaction", bootstyle="success")
         else:
-            self.document_frame = ttk.LabelFrame(self.chat_frame, text="Document Interaction")
-        self.document_frame.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=(4, 8), pady=8)
+            self.document_frame = ttk.LabelFrame(self.chat_paned, text="Document Interaction")
         self.document_frame.columnconfigure(0, weight=1)
         self.document_frame.rowconfigure(1, weight=1)
         self.document_frame.rowconfigure(2, weight=1)
+        self.chat_paned.add(self.document_frame, weight=2)  # Start with document panel 2x larger, user can resize
 
         # Track active file editing session
         self.active_file_session = None  # Dict with 'type', 'path', 'content', etc.
@@ -1908,7 +1921,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_input.bind("<Return>", lambda e: self.on_handle_combined_input_enter(e))
         
         # Placeholder hint
-        placeholder_text = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
+        placeholder_text = "Type a message for AI (Enter to send, Shift+Enter for newline). Use '$' prefix for shell commands."
         self.chat_input.insert("1.0", placeholder_text)
         self.chat_input.config(foreground="gray")
         self.chat_input.bind("<FocusIn>", self.on_input_focus_in)
@@ -2046,16 +2059,46 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         content_frame.columnconfigure(0, weight=1)
         content_frame.rowconfigure(0, weight=1)
 
+        # Use a notebook for different display modes (text, table, etc.)
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.file_preview_notebook = ttkb.Notebook(content_frame)
+        else:
+            self.file_preview_notebook = ttk.Notebook(content_frame)
+        self.file_preview_notebook.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+        
+        # Text view tab for general content
+        text_frame = ttk.Frame(self.file_preview_notebook)
+        self.file_preview_notebook.add(text_frame, text="Text View")
+        text_frame.columnconfigure(0, weight=1)
+        text_frame.rowconfigure(0, weight=1)
+        
         # Text widget for displaying file content
         # Make file preview editable and interactive
-        self.file_preview_text = tk.Text(content_frame, wrap="word", state="normal", font=self.text_font)
+        self.file_preview_text = tk.Text(text_frame, wrap="word", state="normal", font=self.text_font)
         self.file_preview_text.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+        
+        # Table view frame for Excel/CSV (will be populated when needed)
+        self.file_preview_table_frame = ttk.Frame(self.file_preview_notebook)
+        self.file_preview_table_frame.columnconfigure(0, weight=1)
+        self.file_preview_table_frame.rowconfigure(0, weight=1)
+        
+        # Treeview for table display (Excel, CSV)
+        table_columns = ("col0",)
+        self.file_preview_tree = ttk.Treeview(self.file_preview_table_frame, columns=table_columns, show="headings", selectmode="extended")
+        self.file_preview_tree.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+        
+        # Scrollbars for table
+        table_v_scroll = ttk.Scrollbar(self.file_preview_table_frame, orient="vertical", command=self.file_preview_tree.yview)
+        table_h_scroll = ttk.Scrollbar(self.file_preview_table_frame, orient="horizontal", command=self.file_preview_tree.xview)
+        self.file_preview_tree.configure(yscrollcommand=table_v_scroll.set, xscrollcommand=table_h_scroll.set)
+        table_v_scroll.grid(row=0, column=1, sticky="ns")
+        table_h_scroll.grid(row=1, column=0, sticky="ew")
         
         # Scrollbar for text widget
         if TTKBOOTSTRAP_AVAILABLE:
-            preview_scroll = ttkb.Scrollbar(content_frame, orient="vertical", command=self.file_preview_text.yview, bootstyle="success-round")
+            preview_scroll = ttkb.Scrollbar(text_frame, orient="vertical", command=self.file_preview_text.yview, bootstyle="success-round")
         else:
-            preview_scroll = ttk.Scrollbar(content_frame, orient="vertical", command=self.file_preview_text.yview)
+            preview_scroll = ttk.Scrollbar(text_frame, orient="vertical", command=self.file_preview_text.yview)
         self.file_preview_text.configure(yscrollcommand=preview_scroll.set)
         preview_scroll.grid(row=0, column=1, sticky="ns")
         
@@ -2144,10 +2187,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if hasattr(self, 'file_preview_title_var') and self.file_preview_title_var:
             self.file_preview_title_var.set(f"{file_type}: {file_name}")
         
-        # Show the panel and keep columns evenly split
+        # Show the panel (PanedWindow handles resizing automatically)
         self.file_preview_frame.grid()
-        self.chat_frame.columnconfigure(0, weight=1)
-        self.chat_frame.columnconfigure(1, weight=1)
         
 
         self._log_document_activity(f"Opened {file_type} document: {file_name}")
@@ -2168,6 +2209,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.file_preview_status_var.set("Loading...")
             self.file_preview_text.config(state="normal")
             self.file_preview_text.delete("1.0", "end")
+            
+            # Switch to text view by default (table view will be shown for Excel/CSV)
+            try:
+                if hasattr(self, 'file_preview_notebook'):
+                    self.file_preview_notebook.select(0)  # Text view tab
+            except:
+                pass
             
             if file_type == "OneNote":
                 content = self._load_onenote_preview(file_id)
@@ -2248,11 +2296,52 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 # Extract text from HTML content
                 import re
                 text = re.sub(r'<[^>]+>', '', page_content)
-                return text[:50000]  # Limit preview size
+                return text  # Show all content
             return "Page content not available"
         except Exception as e:
             return f"Error loading OneNote: {str(e)}"
 
+    def _populate_table_view(self, df, max_rows=500):
+        """Populate the Treeview with DataFrame data for better table display."""
+        if not hasattr(self, 'file_preview_tree'):
+            return
+        
+        # Clear existing items
+        for item in self.file_preview_tree.get_children():
+            self.file_preview_tree.delete(item)
+        
+        # Get columns from DataFrame
+        columns = list(df.columns)
+        if not columns:
+            return
+        
+        # Configure treeview columns
+        self.file_preview_tree['columns'] = columns
+        self.file_preview_tree.heading('#0', text='Index', anchor='w')
+        self.file_preview_tree.column('#0', width=80, minwidth=80)
+        
+        for col in columns:
+            self.file_preview_tree.heading(col, text=str(col), anchor='w')
+            self.file_preview_tree.column(col, width=120, minwidth=80)
+        
+        # Populate with data
+        for idx, row in df.head(max_rows).iterrows():
+            values = [str(val)[:100] if val is not None else '' for val in row.values]
+            self.file_preview_tree.insert('', 'end', text=str(idx), values=values)
+        
+        # Add table view tab if not already added
+        try:
+            # Check if table view tab exists
+            tab_exists = False
+            for i in range(self.file_preview_notebook.index('end')):
+                if self.file_preview_notebook.tab(i, 'text') == "Table View":
+                    tab_exists = True
+                    break
+            if not tab_exists:
+                self.file_preview_notebook.add(self.file_preview_table_frame, text="Table View")
+        except Exception:
+            pass
+    
     def _load_excel_preview(self, file_path: str) -> str:
         """Load Excel file content for preview with better formatting."""
         if not EXCEL_SERVICE_AVAILABLE or not file_path:
@@ -2262,31 +2351,42 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             if os.path.exists(file_path):
                 import pandas as pd
                 try:
-                    # Read all sheets
+                    # Read first sheet for table view
+                    df = pd.read_excel(file_path, sheet_name=0, nrows=500)
+                    
+                    # Populate table view
+                    self._populate_table_view(df, max_rows=500)
+                    
+                    # Also create text preview with all sheets info
                     excel_file = pd.ExcelFile(file_path)
                     preview_parts = [f"📊 Excel Workbook: {os.path.basename(file_path)}\n"]
+                    preview_parts.append(f"   Total Sheets: {len(excel_file.sheet_names)}\n")
                     preview_parts.append("=" * 100 + "\n")
                     
-                    for sheet_name in excel_file.sheet_names[:5]:  # Limit to first 5 sheets
-                        df = pd.read_excel(file_path, sheet_name=sheet_name, nrows=200)  # More rows for better display
+                    for sheet_name in excel_file.sheet_names[:3]:  # Show first 3 sheets in text
+                        df_sheet = pd.read_excel(file_path, sheet_name=sheet_name, nrows=50)
                         preview_parts.append(f"\n📋 Sheet: {sheet_name}")
-                        preview_parts.append(f"   Shape: {df.shape[0]} rows × {df.shape[1]} columns\n")
+                        preview_parts.append(f"   Shape: {df_sheet.shape[0]} rows × {df_sheet.shape[1]} columns\n")
                         preview_parts.append("-" * 100 + "\n")
                         
                         # Use tabulate for better table formatting if available
                         try:
                             from tabulate import tabulate
-                            # Format with tabulate for better readability
-                            table_str = tabulate(df.head(100), headers='keys', tablefmt='grid', showindex=True, maxcolwidths=30)
+                            table_str = tabulate(df_sheet.head(20), headers='keys', tablefmt='grid', showindex=True, maxcolwidths=30)
                             preview_parts.append(table_str)
                         except ImportError:
-                            # Fallback to pandas to_string with better formatting
-                            preview_parts.append(df.head(100).to_string(max_rows=100, max_cols=15))
+                            preview_parts.append(df_sheet.head(20).to_string(max_rows=20, max_cols=10))
                         
                         preview_parts.append("\n")
                     
-                    if len(excel_file.sheet_names) > 5:
-                        preview_parts.append(f"\n... and {len(excel_file.sheet_names) - 5} more sheets\n")
+                    if len(excel_file.sheet_names) > 3:
+                        preview_parts.append(f"\n... and {len(excel_file.sheet_names) - 3} more sheets (see Table View tab)\n")
+                    
+                    # Switch to table view tab
+                    try:
+                        self.file_preview_notebook.select(1)  # Switch to table view
+                    except:
+                        pass
                     
                     return "\n".join(preview_parts)
                 except Exception as e:
@@ -2305,19 +2405,30 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 import pandas as pd
                 try:
                     # Read CSV with pandas for better handling
-                    df = pd.read_csv(file_path, nrows=200)  # Read more rows
+                    df = pd.read_csv(file_path, nrows=500)  # Read more rows
+                    
+                    # Populate table view
+                    self._populate_table_view(df, max_rows=500)
+                    
                     preview_parts = [f"📊 CSV File: {os.path.basename(file_path)}\n"]
                     preview_parts.append(f"   Shape: {df.shape[0]} rows × {df.shape[1]} columns\n")
                     preview_parts.append("=" * 100 + "\n")
+                    preview_parts.append("See 'Table View' tab for full table display\n")
+                    preview_parts.append("-" * 100 + "\n")
                     
                     # Use tabulate for better table formatting if available
                     try:
                         from tabulate import tabulate
-                        table_str = tabulate(df.head(100), headers='keys', tablefmt='grid', showindex=True, maxcolwidths=30)
+                        table_str = tabulate(df.head(20), headers='keys', tablefmt='grid', showindex=True, maxcolwidths=30)
                         preview_parts.append(table_str)
                     except ImportError:
-                        # Fallback to pandas to_string
-                        preview_parts.append(df.head(100).to_string(max_rows=100, max_cols=15))
+                        preview_parts.append(df.head(20).to_string(max_rows=20, max_cols=10))
+                    
+                    # Switch to table view tab
+                    try:
+                        self.file_preview_notebook.select(1)  # Switch to table view
+                    except:
+                        pass
                     
                     return "\n".join(preview_parts)
                 except Exception as e:
@@ -2343,7 +2454,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         try:
             if os.path.exists(file_path):
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                    content = f.read(MAX_IMPORTED_FILE_CHARS)
+                    content = f.read()
                 return content
             return f"File not found: {file_path}"
         except Exception as e:
@@ -2366,10 +2477,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 # Add header
                 preview = f"📄 JSON File: {os.path.basename(file_path)}\n"
                 preview += "=" * 100 + "\n\n"
-                preview += formatted[:MAX_IMPORTED_FILE_CHARS]
-                
-                if len(formatted) > MAX_IMPORTED_FILE_CHARS:
-                    preview += f"\n\n... (truncated, showing first {MAX_IMPORTED_FILE_CHARS} characters)"
+                preview += formatted
                 
                 return preview
             return f"File not found: {file_path}"
@@ -2387,7 +2495,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 # Extract text content
                 content = service.extract_text(file_path)
                 if content:
-                    return content[:50000]  # Limit preview size
+                    return content  # Show all content
                 return "Word document loaded (content extraction not available)"
             return f"File not found: {file_path}"
         except Exception as e:
@@ -2420,10 +2528,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     try:
                         content = pdf_integration.extract_text(file_path)
                         if content and content.strip():
-                            # Limit to first 100KB for initial display
-                            preview_content = content[:100000]
-                            if len(content) > 100000:
-                                preview_content += f"\n\n[PDF truncated: showing first 100KB of {len(content)} characters. Use 'read_file' tool to read specific pages.]"
+                            # Show all content - no truncation
+                            preview_content = content
                             self.after(0, lambda c=preview_content: self._update_pdf_preview_content(c))
                         else:
                             self.after(0, lambda: self._update_pdf_preview_content(
@@ -2453,20 +2559,17 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     import pdfplumber
                     with pdfplumber.open(file_path) as pdf:
                         total_pages = len(pdf.pages)
-                        # Extract first 10 pages
+                        # Extract all pages - no limit
                         content_parts = [f"PDF: {os.path.basename(file_path)} ({total_pages} pages total)\n"]
                         content_parts.append("=" * 80 + "\n")
-                        content_parts.append(f"Showing first 10 pages of {total_pages}:\n\n")
+                        content_parts.append(f"Showing all {total_pages} pages:\n\n")
                         
-                        for i, page in enumerate(pdf.pages[:10]):
+                        for i, page in enumerate(pdf.pages):
                             text = page.extract_text()
                             if text:
                                 content_parts.append(f"\n--- Page {i+1} ---\n")
                                 content_parts.append(text)
                                 content_parts.append("\n")
-                        
-                        if total_pages > 10:
-                            content_parts.append(f"\n[Showing first 10 of {total_pages} pages. Use AI to read specific pages.]")
                         
                         return "".join(content_parts)
                 except ImportError:
@@ -2597,7 +2700,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
                 with open(file_path, 'r', encoding='utf-8', errors='replace') as fh:
                     content = fh.read()
-                return content[:MAX_IMPORTED_FILE_CHARS]
+                return content
             return f"File not found: {file_path}"
         except Exception as e:
             return f"Error loading text: {str(e)}"
@@ -2612,7 +2715,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 import json
                 with open(file_path, 'r', encoding='utf-8', errors='replace') as fh:
                     data = json.load(fh)
-                return json.dumps(data, indent=2)[:MAX_IMPORTED_FILE_CHARS]
+                return json.dumps(data, indent=2)
             return f"File not found: {file_path}"
         except Exception as e:
             return f"Error loading JSON: {str(e)}"
@@ -2866,12 +2969,61 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             self.chat_status_var.set('OpenAI key missing – offline fallback only.')
 
-    def refresh_chat_history(self):
+    def refresh_chat_history(self, incremental: bool = False):
+        """Refresh the chat history display.
+        
+        Args:
+            incremental: If True and there are new messages, only append new ones.
+                        If False, refresh the entire history.
+        """
         if not self.chat_text:
             return
+        
+        # Track the last message ID we've displayed for incremental updates
+        if not hasattr(self, '_last_displayed_message_id'):
+            self._last_displayed_message_id = -1
+            incremental = False  # Force full refresh on first call
+        
+        # For incremental updates, check if there are new messages
+        if incremental and self.state_obj.chat_messages:
+            last_msg = self.state_obj.chat_messages[-1]
+            if last_msg.id > self._last_displayed_message_id:
+                # Only append new messages
+                new_messages = [msg for msg in self.state_obj.chat_messages 
+                              if msg.id > self._last_displayed_message_id]
+                if new_messages:
+                    self.chat_text.config(state='normal')
+                    # Build all new content at once
+                    new_content = []
+                    for msg in new_messages:
+                        timestamp = msg.created_at.replace('T', ' ')
+                        if msg.kind == 'terminal':
+                            kind_label = ' [TERMINAL COMMAND]'
+                        elif msg.kind == 'terminal_result':
+                            kind_label = ' [TERMINAL OUTPUT]'
+                        elif msg.kind == 'file':
+                            kind_label = ' [FILE]'
+                        else:
+                            kind_label = ''
+                        new_content.append(f"[{timestamp}] {msg.persona}{kind_label}\n{msg.content}\n\n")
+                    
+                    # Insert all new content in one operation
+                    if new_content:
+                        self.chat_text.insert('end', ''.join(new_content))
+                        self._last_displayed_message_id = last_msg.id
+                        # Auto-scroll to bottom
+                        self.chat_text.see('end')
+                    self.chat_text.config(state='disabled')
+                    return
+        
+        # Full refresh - build entire content first, then insert once
         self.chat_text.config(state='normal')
-        self.chat_text.delete('1.0', 'end')
-        for msg in self.state_obj.chat_messages[-400:]:
+        
+        # Build all content as a single string first (do this before any widget operations)
+        messages_to_show = self.state_obj.chat_messages[-400:]  # Limit to last 400 messages
+        content_parts = []
+        
+        for msg in messages_to_show:
             timestamp = msg.created_at.replace('T', ' ')
             if msg.kind == 'terminal':
                 kind_label = ' [TERMINAL COMMAND]'
@@ -2881,8 +3033,40 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 kind_label = ' [FILE]'
             else:
                 kind_label = ''
-            self.chat_text.insert('end', f"[{timestamp}] {msg.persona}{kind_label}\n{msg.content}\n\n")
-        self.chat_text.config(state='disabled')
+            content_parts.append(f"[{timestamp}] {msg.persona}{kind_label}\n{msg.content}\n\n")
+        
+        # Join all content and prepare for insertion
+        if content_parts:
+            full_content = ''.join(content_parts)
+            # Limit content size to prevent UI freezing (max 500KB of text)
+            max_chars = 500000
+            if len(full_content) > max_chars:
+                # Truncate but keep recent messages
+                truncated = full_content[-max_chars:]
+                # Try to start at a message boundary
+                first_newline = truncated.find('\n')
+                if first_newline > 0:
+                    truncated = truncated[first_newline+1:]
+                full_content = f"... (showing last {max_chars:,} characters) ...\n\n" + truncated
+            
+            # Perform clear and insert in minimal operations
+            # Disable widget redraws during bulk operation
+            try:
+                # Temporarily disable widget updates for better performance
+                self.chat_text.config(state='normal')
+                self.chat_text.delete('1.0', 'end')
+                self.chat_text.insert('1.0', full_content)
+                # Track last displayed message ID
+                if messages_to_show:
+                    self._last_displayed_message_id = messages_to_show[-1].id
+                # Auto-scroll to bottom (do this after content is inserted)
+                self.chat_text.see('end')
+            finally:
+                self.chat_text.config(state='disabled')
+        else:
+            # No content, just clear
+            self.chat_text.delete('1.0', 'end')
+            self.chat_text.config(state='disabled')
 
     def on_import_chat_file(self):
         """Import file content into chat input."""
@@ -2898,26 +3082,18 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self._update_chat_status('Import failed.')
             return
 
-        truncated = False
-        raw_len = len(content)
-        if raw_len > MAX_IMPORTED_FILE_CHARS:
-            content = content[:MAX_IMPORTED_FILE_CHARS] + '\n... [truncated for length]'
-            truncated = True
-
         label = os.path.basename(path)
         block = f"\n[Imported file: {label}{descriptor}]\n{content}\n"
         
         # Clear placeholder if present
         current = self.chat_input.get('1.0', 'end').strip()
-        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
+        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline). Use '$' prefix for shell commands."
         if current == placeholder:
             self.chat_input.delete('1.0', 'end')
             self.chat_input.config(foreground="black")
 
         self.chat_input.insert('end', block)
-        if truncated:
-            self.chat_input.insert('end', '\n[Note: content truncated to fit limit]\n')
-        self._update_chat_status(f"Imported '{label}' ({'truncated' if truncated else 'full'}).")
+        self._update_chat_status(f"Imported '{label}' (full content).")
 
     def on_upload_file(self):
         """Upload file to OpenAI and attach to conversation."""
@@ -2952,7 +3128,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 f"File uploaded: {label} (OpenAI ID: {file_obj.id})",
                 kind='file'
             )
-            self.refresh_chat_history()
+            self.refresh_chat_history(incremental=True)
             
         except Exception as exc:
             messagebox.showerror('Upload File', f'Failed to upload file:\n{exc}')
@@ -3003,7 +3179,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         text = self.chat_input.get('1.0', 'end').strip()
         
         # Ignore placeholder text
-        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
+        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline). Use '$' prefix for shell commands."
         if not text or text == placeholder:
             messagebox.showinfo('Chat', 'Type a message first.')
             return
@@ -3029,7 +3205,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         self.chat_input.delete('1.0', 'end')
         self.on_input_focus_out()  # Restore placeholder if empty
-        self.refresh_chat_history()
+        self.refresh_chat_history(incremental=True)
         if not invoke_ai:
             self._update_chat_status('Message logged without contacting ChatGPT.')
             return
@@ -3110,8 +3286,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                         """Execute a tool call in a separate thread."""
                         try:
                             # Prepare GUI context for tools that need it (like read_displayed_file)
+                            # Capture active_file_session at the time of execution
+                            active_session = getattr(self, 'active_file_session', None)
                             gui_context = {
-                                'active_file_session': getattr(self, 'active_file_session', None),
+                                'active_file_session': active_session,
                                 'read_file_func': self._get_displayed_file_content if hasattr(self, '_get_displayed_file_content') else None
                             }
                             result = execute_tool_call(tc, cwd=cwd, gui_context=gui_context)
@@ -3149,6 +3327,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                             self.after(0, lambda: self._update_chat_status("Some tool executions are taking longer than expected..."))
                     
                     # Collect all results from queue
+                    messages_to_store = []  # Collect messages to store on main thread
                     while not result_queue.empty():
                         status, tc, result, file_op = result_queue.get()
                         tool_results.append(result)
@@ -3157,7 +3336,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                         if file_op:
                             self.after(0, lambda: self._refresh_file_preview())
                         
-                        # Store terminal command and result in chat immediately (on main thread)
+                        # Collect terminal command messages to store on main thread
                         if hasattr(tc, 'function') and tc.function.name == "execute_command":
                             import json
                             try:
@@ -3166,20 +3345,26 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                                 if cmd:
                                     header = f'$ {cmd}\n(cwd: {cwd})'
                                     result_content = result["content"]
-                                    # Schedule database operations on main thread
-                                    self.after(0, lambda h=header, rc=result_content: (
-                                        self._store_chat_message(responder, 'user', h, kind='terminal'),
-                                        self._store_chat_message(responder, 'assistant', rc, kind='terminal_result'),
-                                        self.refresh_chat_history()
-                                    ))
+                                    messages_to_store.append(('user', header, 'terminal'))
+                                    messages_to_store.append(('assistant', result_content, 'terminal_result'))
                             except:
                                 pass
                     
-                    # Store tool results in chat for next iteration (on main thread)
+                    # Collect tool result messages to store on main thread
                     for result in tool_results:
                         result_content = result.get("content", "")
-                        # Schedule database operation on main thread
-                        self.after(0, lambda rc=result_content: self._store_chat_message(responder, 'tool', rc, kind='tool_result'))
+                        tool_call_id = result.get("tool_call_id", "")
+                        # Store tool_call_id with content so it can be retrieved later
+                        # Format: JSON string with tool_call_id and content
+                        if tool_call_id:
+                            import json
+                            stored_content = json.dumps({
+                                "tool_call_id": tool_call_id,
+                                "content": result_content
+                            })
+                        else:
+                            stored_content = result_content
+                        messages_to_store.append(('tool', stored_content, 'tool_result'))
                         
                         # Check if tool result mentions a file
                         file_op = self._detect_file_in_message(result_content)
@@ -3188,7 +3373,30 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                                 op['type'], op['path'], op.get('id')
                             ))
                     
-                    self.after(0, self.refresh_chat_history)
+                    # Store all messages on main thread and wait for completion
+                    if messages_to_store:
+                        import threading
+                        store_event = threading.Event()
+                        
+                        def store_messages():
+                            """Store all messages on main thread."""
+                            try:
+                                for role, content, kind in messages_to_store:
+                                    if role == 'user':
+                                        self._store_chat_message(responder, 'user', content, kind=kind)
+                                    elif role == 'assistant':
+                                        self._store_chat_message(responder, 'assistant', content, kind=kind)
+                                    else:  # tool
+                                        self._store_chat_message(responder, 'tool', content, kind=kind)
+                                self.refresh_chat_history(incremental=True)
+                            finally:
+                                store_event.set()
+                        
+                        self.after(0, store_messages)
+                        # Wait for messages to be stored (with timeout)
+                        store_event.wait(timeout=2.0)
+                    
+                    self.after(0, lambda: self.refresh_chat_history(incremental=True))
                     iteration += 1
                     import time
                     time.sleep(0.5)  # Brief pause to allow UI update
@@ -3215,7 +3423,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         persona = responder or self.chat_agent_var.get().strip() or 'AI Team'
         text = reply_text.strip() if reply_text else '(no response)'
         self._store_chat_message(persona, 'assistant', text)
-        self.refresh_chat_history()
+        self.refresh_chat_history(incremental=True)
         if error:
             self._update_chat_status(f'ChatGPT error (fallback used): {error}')
         else:
@@ -3257,7 +3465,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self._store_chat_message('Terminal', 'assistant', body or '(no output)', kind='terminal_result')
 
         self.command_var.set('')
-        self.refresh_chat_history()
+        self.refresh_chat_history(incremental=True)
 
     def on_browse_cwd(self):
         initial = self.cwd_var.get().strip() or os.getcwd()
@@ -3267,7 +3475,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def on_input_focus_in(self, event=None):
         """Clear placeholder text when input gains focus."""
-        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
+        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline). Use '$' prefix for shell commands."
         current_text = self.chat_input.get('1.0', 'end').strip()
         if current_text == placeholder:
             self.chat_input.delete('1.0', 'end')
@@ -3276,7 +3484,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def on_input_focus_out(self, event=None):
         """Restore placeholder text if input is empty."""
         current_text = self.chat_input.get('1.0', 'end').strip()
-        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
+        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline). Use '$' prefix for shell commands."
         if not current_text:
             self.chat_input.insert("1.0", placeholder)
             self.chat_input.config(foreground="gray")
@@ -3287,7 +3495,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             return
         
         text = self.chat_input.get('1.0', 'end').strip()
-        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
+        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline). Use '$' prefix for shell commands."
         
         # Ignore placeholder text
         if not text or text == placeholder:
@@ -3303,12 +3511,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.on_input_focus_out()
 
     def on_handle_combined_input_enter(self, event):
-        """Handle Enter key in combined input - Enter sends to AI, $ prefix executes shell commands."""
+        """Handle Enter key in combined input - Enter sends to AI, Shift+Enter for newline, $ prefix for shell commands."""
         if not hasattr(self, 'chat_input'):
             return None
         
         text = self.chat_input.get('1.0', 'end').strip()
-        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline) or prefix with '$' for shell commands."
+        placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline). Use '$' prefix for shell commands."
         
         # Ignore placeholder text
         if not text or text == placeholder:
@@ -3356,7 +3564,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         # Store in chat
         self._store_chat_message('System', 'system', f"Command: {command}\n{output}", kind='terminal')
-        self.refresh_chat_history()
+        self.refresh_chat_history(incremental=True)
 
 
 # ---------- Integrations Tab ----------
@@ -3627,7 +3835,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         elif service_name == "GitHub":
             self._show_github_auth_dialog(dialog, main_frame)
         elif service_name == "OneNote":
-            self._show_msgraph_auth_dialog(dialog, main_frame)
+            self._show_msgraph_auth_dialog(dialog, main_frame, "OneNote")
+        elif service_name == "OneDrive":
+            self._show_msgraph_auth_dialog(dialog, main_frame, "OneDrive")
         elif service_name == "Local Notes":
             self._show_notes_config_dialog(dialog, main_frame)
         elif service_name == "Local Files":
@@ -3701,20 +3911,65 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             os.makedirs(cred_dir, exist_ok=True)
             
             target_path = os.path.join(cred_dir, f"google_{service_type}_credentials.json")
+            token_path = os.path.join(cred_dir, f"google_{service_type}_token.json")
+            
             try:
                 import shutil
                 shutil.copy2(cred_path, target_path)
-                messagebox.showinfo("Success", f"Credentials saved. Please complete OAuth2 flow in terminal.\n\nRun the authentication script to get your access token.")
-                dialog.destroy()
-                self.refresh_integrations_list()
+                
+                # Now perform OAuth2 flow
+                try:
+                    from google.auth.transport.requests import Request
+                    from google.oauth2.credentials import Credentials
+                    from google_auth_oauthlib.flow import InstalledAppFlow
+                    import json
+                    
+                    # Define scopes based on service type
+                    if service_type == "gmail":
+                        SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+                    elif service_type == "calendar":
+                        SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+                    else:
+                        SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+                    
+                    creds = None
+                    # Check if token already exists
+                    if os.path.exists(token_path):
+                        creds = Credentials.from_authorized_user_file(token_path, SCOPES)
+                    
+                    # If there are no (valid) credentials available, let the user log in.
+                    if not creds or not creds.valid:
+                        if creds and creds.expired and creds.refresh_token:
+                            creds.refresh(Request())
+                        else:
+                            flow = InstalledAppFlow.from_client_secrets_file(
+                                target_path, SCOPES)
+                            creds = flow.run_local_server(port=0)
+                        
+                        # Save the credentials for the next run
+                        with open(token_path, 'w') as token:
+                            token.write(creds.to_json())
+                    
+                    messagebox.showinfo("Success", f"✅ Successfully authenticated with Google {service_type.title()}!")
+                    dialog.destroy()
+                    self.refresh_integrations_list()
+                except ImportError:
+                    messagebox.showwarning(
+                        "Missing Dependencies",
+                        "Google OAuth libraries not installed.\n\n"
+                        "Please install:\n"
+                        "pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client"
+                    )
+                except Exception as e:
+                    messagebox.showerror("Authentication Error", f"Failed to complete OAuth2 flow:\n{str(e)}")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to save credentials: {e}")
         
         if TTKBOOTSTRAP_AVAILABLE:
-            save_btn = ttkb.Button(frame, text="Save Credentials", command=save_and_connect, bootstyle="success")
+            save_btn = ttkb.Button(frame, text="Save & Authenticate", command=save_and_connect, bootstyle="success")
             cancel_btn = ttkb.Button(frame, text="Cancel", command=dialog.destroy, bootstyle="secondary")
         else:
-            save_btn = ttk.Button(frame, text="Save Credentials", command=save_and_connect)
+            save_btn = ttk.Button(frame, text="Save & Authenticate", command=save_and_connect)
             cancel_btn = ttk.Button(frame, text="Cancel", command=dialog.destroy)
         
         btn_frame = ttk.Frame(frame)
@@ -3785,9 +4040,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         save_btn.pack(side="left", padx=5)
         cancel_btn.pack(side="left", padx=5)
     
-    def _show_msgraph_auth_dialog(self, dialog, frame):
+    def _show_msgraph_auth_dialog(self, dialog, frame, service_name: str = "OneNote"):
         """Show Microsoft Graph authentication dialog."""
-        title_label = ttk.Label(frame, text="Connect to OneNote (Microsoft Graph)", font=(self.base_font.actual("family"), 14, "bold"))
+        title_label = ttk.Label(frame, text=f"Connect to {service_name} (Microsoft Graph)", font=(self.base_font.actual("family"), 14, "bold"))
         title_label.pack(pady=(0, 20))
         
         instructions = ttk.Label(
@@ -3971,7 +4226,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         info_label = ttk.Label(
             frame,
-            text="For Excel, Word, and OneNote (accessing /me/ endpoints), you also need to authenticate with delegated permissions:",
+            text=f"For {service_name} (accessing /me/ endpoints), you also need to authenticate with delegated permissions:",
             justify="left",
             wraplength=450
         )
@@ -4152,13 +4407,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Header
         if TTKBOOTSTRAP_AVAILABLE:
             header = ttkb.Label(frame, text="OneNote Notebooks", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            upload_btn = ttkb.Button(frame, text="📤 Upload File", command=lambda: self.upload_document("onenote"), bootstyle="success-outline")
             refresh_btn = ttkb.Button(frame, text="🔄 Refresh Notebooks", command=self.refresh_onenote_notebooks, bootstyle="info-outline")
         else:
             header = ttk.Label(frame, text="OneNote Notebooks", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            upload_btn = ttk.Button(frame, text="Upload File", command=lambda: self.upload_document("onenote"))
             refresh_btn = ttk.Button(frame, text="Refresh Notebooks", command=self.refresh_onenote_notebooks)
         
         header.grid(row=0, column=0, sticky="w", padx=8, pady=(8, 4))
-        refresh_btn.grid(row=0, column=1, sticky="e", padx=8, pady=(8, 4))
+        upload_btn.grid(row=0, column=1, sticky="e", padx=(8, 4), pady=(8, 4))
+        refresh_btn.grid(row=0, column=2, sticky="e", padx=8, pady=(8, 4))
         
         # Notebooks tree
         columns = ("name", "id", "last_modified")
@@ -4202,13 +4460,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Header
         if TTKBOOTSTRAP_AVAILABLE:
             header = ttkb.Label(frame, text="Excel Workbooks", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            upload_btn = ttkb.Button(frame, text="📤 Upload File", command=lambda: self.upload_document("excel"), bootstyle="success-outline")
             refresh_btn = ttkb.Button(frame, text="🔄 Refresh Workbooks", command=self.refresh_excel_workbooks, bootstyle="info-outline")
         else:
             header = ttk.Label(frame, text="Excel Workbooks", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            upload_btn = ttk.Button(frame, text="Upload File", command=lambda: self.upload_document("excel"))
             refresh_btn = ttk.Button(frame, text="Refresh Workbooks", command=self.refresh_excel_workbooks)
         
         header.grid(row=0, column=0, sticky="w", padx=8, pady=(8, 4))
-        refresh_btn.grid(row=0, column=1, sticky="e", padx=8, pady=(8, 4))
+        upload_btn.grid(row=0, column=1, sticky="e", padx=(8, 4), pady=(8, 4))
+        refresh_btn.grid(row=0, column=2, sticky="e", padx=8, pady=(8, 4))
         
         # Workbooks tree
         columns = ("name", "id", "size", "modified")
@@ -4254,13 +4515,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Header
         if TTKBOOTSTRAP_AVAILABLE:
             header = ttkb.Label(frame, text="Word Documents", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            upload_btn = ttkb.Button(frame, text="📤 Upload File", command=lambda: self.upload_document("word"), bootstyle="success-outline")
             refresh_btn = ttkb.Button(frame, text="🔄 Refresh Documents", command=self.refresh_word_documents, bootstyle="info-outline")
         else:
             header = ttk.Label(frame, text="Word Documents", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            upload_btn = ttk.Button(frame, text="Upload File", command=lambda: self.upload_document("word"))
             refresh_btn = ttk.Button(frame, text="Refresh Documents", command=self.refresh_word_documents)
         
         header.grid(row=0, column=0, sticky="w", padx=8, pady=(8, 4))
-        refresh_btn.grid(row=0, column=1, sticky="e", padx=8, pady=(8, 4))
+        upload_btn.grid(row=0, column=1, sticky="e", padx=(8, 4), pady=(8, 4))
+        refresh_btn.grid(row=0, column=2, sticky="e", padx=8, pady=(8, 4))
         
         # Documents tree
         columns = ("name", "size", "modified")
@@ -4304,13 +4568,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Header
         if TTKBOOTSTRAP_AVAILABLE:
             header = ttkb.Label(frame, text="PDF Documents", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            upload_btn = ttkb.Button(frame, text="📤 Upload File", command=lambda: self.upload_document("pdf"), bootstyle="success-outline")
             refresh_btn = ttkb.Button(frame, text="🔄 Refresh Documents", command=self.refresh_pdf_documents, bootstyle="info-outline")
         else:
             header = ttk.Label(frame, text="PDF Documents", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            upload_btn = ttk.Button(frame, text="Upload File", command=lambda: self.upload_document("pdf"))
             refresh_btn = ttk.Button(frame, text="Refresh Documents", command=self.refresh_pdf_documents)
         
         header.grid(row=0, column=0, sticky="w", padx=8, pady=(8, 4))
-        refresh_btn.grid(row=0, column=1, sticky="e", padx=8, pady=(8, 4))
+        upload_btn.grid(row=0, column=1, sticky="e", padx=(8, 4), pady=(8, 4))
+        refresh_btn.grid(row=0, column=2, sticky="e", padx=8, pady=(8, 4))
         
         # Documents tree
         columns = ("name", "size", "modified")
@@ -4476,9 +4743,26 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     if last_modified and "T" in last_modified:
                         last_modified = last_modified.replace("T", " ")[:16]
                     
-                    self.onenote_tree.insert("", "end", values=(name, nb_id, last_modified))
+                    self.onenote_tree.insert("", "end", values=(name, nb_id, last_modified), tags=("cloud",))
                 
-                self.onenote_status_var.set(f"✅ Loaded {len(notebooks)} notebook(s)")
+                # Also load local OneNote documents
+                local_docs = get_project_documents(self.conn, doc_type="onenote")
+                for doc in local_docs:
+                    name = doc["title"]
+                    modified = doc["modified_date"]
+                    if modified:
+                        try:
+                            dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
+                            modified = dt_obj.strftime("%Y-%m-%d %H:%M")
+                        except:
+                            pass
+                    else:
+                        modified = "Unknown"
+                    
+                    self.onenote_tree.insert("", "end", values=(f"📁 {name}", "", modified), tags=("local",))
+                
+                total_count = len(notebooks) + len(local_docs)
+                self.onenote_status_var.set(f"✅ Loaded {total_count} notebook(s) ({len(notebooks)} cloud, {len(local_docs)} local)")
             except Exception as e:
                 error_msg = str(e)
                 # Check for specific authentication errors
@@ -4515,7 +4799,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             for item in self.excel_tree.get_children():
                 self.excel_tree.delete(item)
             
-            if not EXCEL_CLOUD_AVAILABLE or ExcelCloudClient is None:
+            if not EXCEL_CLOUD_AVAILABLE:
                 self.excel_status_var.set("❌ Excel cloud client not available. Check Microsoft Graph configuration.")
                 return
             
@@ -4528,7 +4812,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 from .integrations.excel.cloud_client import ExcelCloudClient
                 # Use delegated auth for /me/ endpoints
                 graph_client = GraphClient(conn=self.conn, use_delegated=True)
-                client = ExcelCloudClient(graph=graph_client, conn=self.conn)
+                client = ExcelCloudClient(graph=graph_client)
                 items = client.list_workbooks()
                 
                 # Filter for Excel files
@@ -4547,9 +4831,27 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     if modified and "T" in modified:
                         modified = modified.replace("T", " ")[:16]
                     
-                    self.excel_tree.insert("", "end", values=(name, item_id, size_str, modified))
+                    self.excel_tree.insert("", "end", values=(name, item_id, size_str, modified), tags=("cloud",))
                 
-                self.excel_status_var.set(f"✅ Loaded {len(excel_files)} workbook(s)")
+                # Also load local Excel documents
+                local_docs = get_project_documents(self.conn, doc_type="excel")
+                for doc in local_docs:
+                    name = doc["title"]
+                    size_str = format_file_size(doc["file_size"])
+                    modified = doc["modified_date"]
+                    if modified:
+                        try:
+                            dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
+                            modified = dt_obj.strftime("%Y-%m-%d %H:%M")
+                        except:
+                            pass
+                    else:
+                        modified = "Unknown"
+                    
+                    self.excel_tree.insert("", "end", values=(f"📁 {name}", "", size_str, modified), tags=("local",))
+                
+                total_count = len(excel_files) + len(local_docs)
+                self.excel_status_var.set(f"✅ Loaded {total_count} workbook(s) ({len(excel_files)} cloud, {len(local_docs)} local)")
             except Exception as e:
                 self.excel_status_var.set(f"❌ Error: {str(e)}")
                 messagebox.showerror("Error", f"Failed to load Excel workbooks: {e}")
@@ -4564,7 +4866,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             for item in self.word_tree.get_children():
                 self.word_tree.delete(item)
             
-            if not EXCEL_CLOUD_AVAILABLE or ExcelCloudClient is None:
+            if not EXCEL_CLOUD_AVAILABLE:
                 self.word_status_var.set("❌ Microsoft Graph client not available. Check Microsoft Graph configuration.")
                 return
             
@@ -4577,7 +4879,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 from .integrations.excel.cloud_client import ExcelCloudClient
                 # Use delegated auth for /me/ endpoints
                 graph_client = GraphClient(conn=self.conn, use_delegated=True)
-                client = ExcelCloudClient(graph=graph_client, conn=self.conn)  # Reuse ExcelCloudClient for OneDrive access
+                client = ExcelCloudClient(graph=graph_client)  # Reuse ExcelCloudClient for OneDrive access
                 items = client.list_workbooks()  # This lists all OneDrive files
                 
                 # Filter for Word files
@@ -4595,9 +4897,27 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     if modified and "T" in modified:
                         modified = modified.replace("T", " ")[:16]
                     
-                    self.word_tree.insert("", "end", values=(name, size_str, modified))
+                    self.word_tree.insert("", "end", values=(name, size_str, modified), tags=("cloud",))
                 
-                self.word_status_var.set(f"✅ Loaded {len(word_files)} Word document(s)")
+                # Also load local Word documents
+                local_docs = get_project_documents(self.conn, doc_type="word")
+                for doc in local_docs:
+                    name = doc["title"]
+                    size_str = format_file_size(doc["file_size"])
+                    modified = doc["modified_date"]
+                    if modified:
+                        try:
+                            dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
+                            modified = dt_obj.strftime("%Y-%m-%d %H:%M")
+                        except:
+                            pass
+                    else:
+                        modified = "Unknown"
+                    
+                    self.word_tree.insert("", "end", values=(f"📁 {name}", size_str, modified), tags=("local",))
+                
+                total_count = len(word_files) + len(local_docs)
+                self.word_status_var.set(f"✅ Loaded {total_count} Word document(s) ({len(word_files)} cloud, {len(local_docs)} local)")
             except Exception as e:
                 error_msg = str(e)
                 # Check for specific authentication errors
@@ -4626,6 +4946,89 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             error_msg = str(e)
             self.word_status_var.set(f"❌ Error: {error_msg[:50]}")
             messagebox.showerror("Error", f"Failed to refresh Word documents:\n\n{error_msg}")
+    
+    def upload_document(self, doc_type: str):
+        """Upload a document file for the specified document type."""
+        # Get file types for this document type
+        if doc_type not in DOCUMENT_TYPES:
+            messagebox.showerror("Error", f"Unknown document type: {doc_type}")
+            return
+        
+        _, extensions = DOCUMENT_TYPES[doc_type]
+        filetypes = [(f"{doc_type.upper()} files", " ".join(f"*{ext}" for ext in extensions)), ("All files", "*.*")]
+        
+        # Open file dialog
+        file_path = filedialog.askopenfilename(
+            title=f"Upload {doc_type.upper()} Document",
+            filetypes=filetypes
+        )
+        
+        if not file_path:
+            return
+        
+        # Ask for project selection
+        projects = [p.name for p in self.state_obj.projects]
+        if not projects:
+            projects = ["General"]
+        
+        # Create project selection dialog
+        project_dialog = tk.Toplevel(self)
+        project_dialog.title("Select Project")
+        project_dialog.geometry("400x150")
+        project_dialog.transient(self)
+        project_dialog.grab_set()
+        
+        ttk.Label(project_dialog, text=f"Select project for this {doc_type} document:").pack(pady=10)
+        
+        project_var = tk.StringVar(value=projects[0] if projects else "General")
+        project_combo = ttk.Combobox(project_dialog, textvariable=project_var, values=projects, state="readonly", width=40)
+        project_combo.pack(pady=5)
+        
+        result = {"confirmed": False}
+        
+        def on_confirm():
+            result["confirmed"] = True
+            project_dialog.destroy()
+        
+        def on_cancel():
+            project_dialog.destroy()
+        
+        btn_frame = ttk.Frame(project_dialog)
+        btn_frame.pack(pady=10)
+        ttk.Button(btn_frame, text="Upload", command=on_confirm).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Cancel", command=on_cancel).pack(side=tk.LEFT, padx=5)
+        
+        project_dialog.wait_window()
+        
+        if not result["confirmed"]:
+            return
+        
+        selected_project = project_var.get() or "General"
+        
+        # Upload the document
+        try:
+            success, error_msg, link_id = dm_upload_document(
+                conn=self.conn,
+                file_path=file_path,
+                project_name=selected_project,
+                doc_type=doc_type
+            )
+            
+            if success:
+                messagebox.showinfo("Success", f"Document uploaded successfully to project '{selected_project}'!")
+                # Refresh the appropriate document list
+                if doc_type == "onenote":
+                    self.refresh_onenote_notebooks()
+                elif doc_type == "excel":
+                    self.refresh_excel_workbooks()
+                elif doc_type == "word":
+                    self.refresh_word_documents()
+                elif doc_type == "pdf":
+                    self.refresh_pdf_documents()
+            else:
+                messagebox.showerror("Upload Failed", f"Failed to upload document:\n\n{error_msg}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error uploading document:\n\n{str(e)}")
     
     def refresh_pdf_documents(self):
         """Refresh the list of PDF documents from OneDrive."""
@@ -4665,9 +5068,27 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     if modified and "T" in modified:
                         modified = modified.replace("T", " ")[:16]
                     
-                    self.pdf_tree.insert("", "end", values=(name, size_str, modified))
+                    self.pdf_tree.insert("", "end", values=(name, size_str, modified), tags=("cloud",))
                 
-                self.pdf_status_var.set(f"✅ Loaded {len(pdf_files)} PDF document(s)")
+                # Also load local PDF documents
+                local_docs = get_project_documents(self.conn, doc_type="pdf")
+                for doc in local_docs:
+                    name = doc["title"]
+                    size_str = format_file_size(doc["file_size"])
+                    modified = doc["modified_date"]
+                    if modified:
+                        try:
+                            dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
+                            modified = dt_obj.strftime("%Y-%m-%d %H:%M")
+                        except:
+                            pass
+                    else:
+                        modified = "Unknown"
+                    
+                    self.pdf_tree.insert("", "end", values=(f"📁 {name}", size_str, modified), tags=("local",))
+                
+                total_count = len(pdf_files) + len(local_docs)
+                self.pdf_status_var.set(f"✅ Loaded {total_count} PDF document(s) ({len(pdf_files)} cloud, {len(local_docs)} local)")
             except Exception as e:
                 error_msg = str(e)
                 # Check for specific authentication errors

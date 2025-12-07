@@ -37,3 +37,4 @@ def handle_excel_command(args, conn: sqlite3.Connection) -> int:
         print(f"Unknown Excel subcommand: {args.subcommand}", file=sys.stderr)
         return 1
 
+

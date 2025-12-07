@@ -20,23 +20,43 @@ class GmailIntegration(BaseIntegration):
         if root_creds.exists():
             self.credentials_path = str(root_creds)
         else:
-            self.credentials_path = os.path.expanduser("~/.assistant_hub/gmail_credentials.json")
-        self.token_path = os.path.expanduser("~/.assistant_hub/gmail_token.json")
+            # Check both naming conventions
+            cred_dir = os.path.expanduser("~/.assistant_hub")
+            google_gmail_creds = os.path.join(cred_dir, "google_gmail_credentials.json")
+            gmail_creds = os.path.join(cred_dir, "gmail_credentials.json")
+            if os.path.exists(google_gmail_creds):
+                self.credentials_path = google_gmail_creds
+            else:
+                self.credentials_path = gmail_creds
+        self.token_path = os.path.expanduser("~/.assistant_hub/google_gmail_token.json")
     
     def authenticate(self) -> bool:
         """Authenticate with Gmail API."""
         try:
             if not os.path.exists(self.credentials_path):
-                self.update_status(False, "Credentials not configured. Set up OAuth2 in Tools & Operations.")
+                self.update_status(False, "Credentials not configured. Go to Integrations > Gmail > Connect to set up OAuth2.")
                 return False
             
             if not os.path.exists(self.token_path):
-                self.update_status(False, "Not authenticated. Complete OAuth2 flow in Tools & Operations.")
+                self.update_status(False, "Not authenticated. Go to Integrations > Gmail > Connect to complete OAuth2 flow.")
                 return False
             
-            # TODO: Verify token is valid
-            self.update_status(True)
-            return True
+            # Verify token is valid by trying to load it
+            try:
+                from google.oauth2.credentials import Credentials
+                creds = Credentials.from_authorized_user_file(self.token_path, ['https://www.googleapis.com/auth/gmail.readonly'])
+                if creds.expired and creds.refresh_token:
+                    from google.auth.transport.requests import Request
+                    creds.refresh(Request())
+                    # Save refreshed token
+                    with open(self.token_path, 'w') as token:
+                        token.write(creds.to_json())
+                self.update_status(True)
+                return True
+            except Exception as token_error:
+                # Token might be invalid, suggest re-authentication
+                self.update_status(False, f"Token invalid or expired. Go to Integrations > Gmail > Connect to re-authenticate.")
+                return False
         except Exception as e:
             self.update_status(False, f"Gmail auth error: {str(e)[:50]}")
             return False

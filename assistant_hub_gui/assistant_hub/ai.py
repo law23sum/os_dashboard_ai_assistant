@@ -76,28 +76,84 @@ def get_openai_client() -> OpenAI:
     return _client
 
 
-def build_message_payload(history: List[ChatMessage], max_messages: int = 30, include_tool_results: bool = True) -> List[Dict]:
+def build_message_payload(history: List[ChatMessage], max_messages: int = 100, include_tool_results: bool = True) -> List[Dict]:
     """Convert stored history into OpenAI chat messages, including terminal output and tool results."""
     payload: List[Dict] = []
     recent = history[-max_messages:] if max_messages else history
-    for msg in recent:
+    
+    # Track the previous message to ensure tool results follow assistant messages
+    prev_msg_dict = None
+    
+    for i, msg in enumerate(recent):
         role = msg.role if msg.role in CHAT_ROLES else "user"
         persona_marker = f"[{msg.persona}] " if msg.persona else ""
-        content = f"{persona_marker}{msg.content}".strip()
+        raw_content = msg.content
         
-        # Include terminal context in messages
-        if msg.kind in ("terminal", "terminal_result"):
-            content = f"[TERMINAL {msg.kind.upper()}]\n{content}"
-        
-        msg_dict = {"role": role, "content": content}
-        
-        # Handle tool results
+        # Handle tool results - they must follow an assistant message with tool_calls
+        # OpenAI API requires: tool messages must have tool_call_id and follow assistant messages with tool_calls
         if msg.kind == "tool_result" and include_tool_results:
-            # Tool results need tool_call_id - we'll extract from content if possible
-            # For now, just include as tool role
-            msg_dict["role"] = "tool"
+            # Only include as tool role if:
+            # 1. Previous message was an assistant message
+            # 2. We can extract or have a tool_call_id
+            if prev_msg_dict and prev_msg_dict.get("role") == "assistant":
+                # Try to extract tool_call_id from content if it was stored there
+                tool_call_id = None
+                extracted_content = None
+                
+                # Check if content contains tool_call_id (might be stored in various formats)
+                import json
+                try:
+                    # Try parsing as JSON first (new format)
+                    parsed = json.loads(raw_content)
+                    if isinstance(parsed, dict) and "tool_call_id" in parsed:
+                        tool_call_id = parsed["tool_call_id"]
+                        extracted_content = parsed.get("content", "")
+                except:
+                    # Not JSON, try text format like "tool_call_id: xxx\ncontent"
+                    if "tool_call_id" in raw_content:
+                        lines = raw_content.split('\n', 1)
+                        for line in lines:
+                            if line.startswith('tool_call_id:') or 'tool_call_id' in line.lower():
+                                parts = line.split(':', 1)
+                                if len(parts) > 1:
+                                    tool_call_id = parts[1].strip()
+                                    if len(lines) > 1:
+                                        extracted_content = lines[1]
+                                    break
+                
+                # Use extracted content if available, otherwise use raw content
+                final_content = extracted_content if extracted_content is not None else raw_content
+                
+                # If we have tool_call_id, include as proper tool message
+                if tool_call_id:
+                    msg_dict = {
+                        "role": "tool",
+                        "tool_call_id": tool_call_id,
+                        "content": final_content
+                    }
+                else:
+                    # Can't get tool_call_id - convert to assistant message to avoid API error
+                    # This is safer than skipping or including invalid tool message
+                    content_with_marker = f"{persona_marker}{raw_content}".strip()
+                    msg_dict = {"role": "assistant", "content": f"[Tool Result] {content_with_marker}"}
+            else:
+                # Tool result doesn't follow assistant message - convert to assistant message
+                # This prevents the "tool role must follow tool_calls" error
+                content_with_marker = f"{persona_marker}{raw_content}".strip()
+                msg_dict = {"role": "assistant", "content": f"[Tool Result] {content_with_marker}"}
+        else:
+            # Regular message handling
+            content = f"{persona_marker}{raw_content}".strip()
+            
+            # Include terminal context in messages
+            if msg.kind in ("terminal", "terminal_result"):
+                content = f"[TERMINAL {msg.kind.upper()}]\n{content}"
+            
+            msg_dict = {"role": role, "content": content}
         
         payload.append(msg_dict)
+        prev_msg_dict = msg_dict
+    
     return payload
 
 

@@ -82,12 +82,31 @@ class OneDriveIntegration(BaseIntegration):
                 raise
         except Exception as e:
             error_msg = str(e)
-            if "credentials" in error_msg.lower() or "auth" in error_msg.lower() or "401" in error_msg or "400" in error_msg:
-                self.update_status(False, "Not authenticated. Configure Microsoft Graph in Tools & Operations.")
+            # Provide more specific error messages
+            if "400" in error_msg and ("Bad Request" in error_msg or "/me/" in error_msg):
+                self.update_status(
+                    False,
+                    "Delegated authentication required. Go to Integrations > OneDrive > Connect > Authenticate (Device Code)"
+                )
+            elif "credentials" in error_msg.lower() or "auth" in error_msg.lower() or "401" in error_msg:
+                self.update_status(False, "Not authenticated. Go to Integrations > OneDrive > Connect to configure Microsoft Graph.")
+            elif "Delegated authentication required" in error_msg or "DELEGATED" in error_msg:
+                self.update_status(
+                    False,
+                    "Delegated authentication required. Go to Integrations > OneDrive > Connect > Authenticate (Device Code)"
+                )
             elif "Module" in error_msg or "ImportError" in error_msg or "No module" in error_msg:
                 self.update_status(False, "Required modules not installed. Check dependencies.")
             else:
-                display_msg = error_msg[:80] + "..." if len(error_msg) > 80 else error_msg
+                # Truncate long error messages but keep important parts
+                if len(error_msg) > 100:
+                    # Try to extract the most relevant part
+                    if "Error:" in error_msg:
+                        display_msg = error_msg.split("Error:")[-1][:100]
+                    else:
+                        display_msg = error_msg[:100] + "..."
+                else:
+                    display_msg = error_msg
                 self.update_status(False, display_msg)
             return False
     

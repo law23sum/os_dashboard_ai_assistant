@@ -40,3 +40,4 @@ def handle_word_command(args, conn: sqlite3.Connection) -> int:
         print(f"Unknown Word subcommand: {args.subcommand}", file=sys.stderr)
         return 1
 
+
