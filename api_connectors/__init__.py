@@ -27,6 +27,7 @@ from .universal_connector import (
     ResourceNotFoundException,
     UnsupportedOperationException,
 )
+from .apple_connector import AppleConnector
 from .git import GitConnector
 from .pdf import PDFConnector
 
@@ -34,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 __version__ = "1.1.0"
 __all__ = [
+    "AppleConnector",
     "AuthenticationException",
     "BaseConnector",
     "ConnectorCapability",
