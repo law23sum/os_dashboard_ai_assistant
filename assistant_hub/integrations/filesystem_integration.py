@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List, Optional
 import sqlite3
 
 from .base import BaseIntegration, IntegrationStatus
@@ -63,4 +63,42 @@ class FilesystemIntegration(BaseIntegration):
         if not hasattr(self, '_status') or not self._status:
             self._status = IntegrationStatus()
         return self._status
+
+    def list_files(self, limit: int = 50, extension: Optional[str] = None) -> List[Dict[str, object]]:
+        """Return a lightweight listing of tracked files for UI/API consumption.
+
+        Args:
+            limit: Maximum number of files to return to avoid UI overload.
+            extension: Optional file extension filter (e.g., ".md").
+
+        Returns:
+            A list of dictionaries describing the discovered files.
+        """
+
+        if not self.authenticate():
+            return []
+
+        root = Path(self.root_path)
+        files = discover_files(root, TRACKED_EXTENSIONS)
+
+        items: List[Dict[str, object]] = []
+        for file_path in files:
+            if extension and file_path.suffix != extension:
+                continue
+
+            stat = file_path.stat() if file_path.exists() else None
+            items.append(
+                {
+                    "name": file_path.name,
+                    "path": str(file_path),
+                    "extension": file_path.suffix,
+                    "size": stat.st_size if stat else 0,
+                    "modified": stat.st_mtime if stat else 0,
+                }
+            )
+
+            if len(items) >= limit:
+                break
+
+        return items
 
