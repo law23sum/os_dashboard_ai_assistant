@@ -314,6 +314,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_text = None
         self.command_var = tk.StringVar()
         self.cwd_var = tk.StringVar(value=os.getcwd())
+
+        # File preview state
+        self.preview_path_var = tk.StringVar()
+        self.preview_source_var = tk.StringVar(value="Auto")
         
         if not TTKBOOTSTRAP_AVAILABLE:
             self._configure_style()
@@ -1713,18 +1717,32 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.chat_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.chat_frame, text="AI Console")
 
-        # Support side-by-side layout: chat on left, file preview on right
-        self.chat_frame.columnconfigure(0, weight=2)  # Chat takes 2/3
-        self.chat_frame.columnconfigure(1, weight=1)  # File preview takes 1/3
+        # Support side-by-side layout: documents on the left, AI messaging on the right
+        self.chat_frame.columnconfigure(0, weight=1)  # File preview takes 1/3
+        self.chat_frame.columnconfigure(1, weight=2)  # Chat takes 2/3
         self.chat_frame.rowconfigure(0, weight=3)
         self.chat_frame.rowconfigure(1, weight=2)
 
-        # Left side: Chat conversation and compose
+        # Left side: File preview panel (initially hidden)
+        # Track active file editing session
+        self.active_file_session = None  # Dict with 'type', 'path', 'content', etc.
+
+        # Initialize file preview panel reference (will be created in _build_file_preview_panel)
+        self.file_preview_frame = None
+        self.file_preview_text = None
+        self.file_preview_title_var = None
+        self.file_preview_status_var = None
+
+        # Build the file preview panel
+        self._build_file_preview_panel()
+        self._close_file_preview()
+
+        # Right side: Chat conversation and compose
         if TTKBOOTSTRAP_AVAILABLE:
             chat_container = ttkb.Frame(self.chat_frame)
         else:
             chat_container = ttk.Frame(self.chat_frame)
-        chat_container.grid(row=0, column=0, rowspan=2, sticky="nsew", padx=(8, 4), pady=8)
+        chat_container.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=(4, 8), pady=8)
         chat_container.columnconfigure(0, weight=1)
         chat_container.rowconfigure(0, weight=3)
         chat_container.rowconfigure(1, weight=2)
@@ -1748,19 +1766,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         chat_scroll.grid(row=0, column=1, sticky="ns")
         compose.grid(row=1, column=0, sticky="nsew", padx=8, pady=(0, 8))
         compose.columnconfigure(1, weight=1)
-
-        # Right side: File preview panel (initially hidden)
-        # Track active file editing session
-        self.active_file_session = None  # Dict with 'type', 'path', 'content', etc.
-        
-        # Initialize file preview panel reference (will be created in _build_file_preview_panel)
-        self.file_preview_frame = None
-        self.file_preview_text = None
-        self.file_preview_title_var = None
-        self.file_preview_status_var = None
-        
-        # Build the file preview panel
-        self._build_file_preview_panel()
 
         if TTKBOOTSTRAP_AVAILABLE:
             ttkb.Label(compose, text="From:", bootstyle="secondary").grid(row=0, column=0, sticky="e", padx=4, pady=2)
@@ -1931,12 +1936,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.file_preview_frame = ttkb.Labelframe(self.chat_frame, text="📄 File Preview", bootstyle="success")
         else:
             self.file_preview_frame = ttk.LabelFrame(self.chat_frame, text="File Preview")
-        
+
         # Initially hidden - will be shown when file editing starts
-        self.file_preview_frame.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=(4, 8), pady=8)
+        self.file_preview_frame.grid(row=0, column=0, rowspan=2, sticky="nsew", padx=(8, 4), pady=8)
         self.file_preview_frame.grid_remove()  # Hidden by default
         self.file_preview_frame.columnconfigure(0, weight=1)
-        self.file_preview_frame.rowconfigure(1, weight=1)
+        self.file_preview_frame.rowconfigure(2, weight=1)
         
         # Header with file info and close button
         if TTKBOOTSTRAP_AVAILABLE:
@@ -1945,7 +1950,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             header_frame = ttk.Frame(self.file_preview_frame)
         header_frame.grid(row=0, column=0, sticky="ew", padx=4, pady=4)
         header_frame.columnconfigure(0, weight=1)
-        
+
         self.file_preview_title_var = tk.StringVar(value="No file open")
         if TTKBOOTSTRAP_AVAILABLE:
             title_label = ttkb.Label(header_frame, textvariable=self.file_preview_title_var, bootstyle="success", font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"))
@@ -1955,13 +1960,50 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             close_btn = ttk.Button(header_frame, text="✕", command=self._close_file_preview, width=3)
         title_label.grid(row=0, column=0, sticky="w", padx=4)
         close_btn.grid(row=0, column=1, sticky="e", padx=4)
-        
+
+        # File selection controls
+        if TTKBOOTSTRAP_AVAILABLE:
+            control_frame = ttkb.Frame(self.file_preview_frame)
+        else:
+            control_frame = ttk.Frame(self.file_preview_frame)
+        control_frame.grid(row=1, column=0, sticky="ew", padx=4, pady=(0, 4))
+        control_frame.columnconfigure(1, weight=1)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            source_combo = ttkb.Combobox(
+                control_frame,
+                textvariable=self.preview_source_var,
+                values=["Auto", "PDF", "Word", "Excel", "OneNote"],
+                state="readonly",
+                width=10,
+                bootstyle="success",
+            )
+            path_entry = ttkb.Entry(control_frame, textvariable=self.preview_path_var, bootstyle="info")
+            browse_btn = ttkb.Button(control_frame, text="📂", width=3, command=self._browse_file_for_preview, bootstyle="secondary-outline")
+            open_btn = ttkb.Button(control_frame, text="📑 Load", command=self._open_preview_from_path, bootstyle="success")
+        else:
+            source_combo = ttk.Combobox(
+                control_frame,
+                textvariable=self.preview_source_var,
+                values=["Auto", "PDF", "Word", "Excel", "OneNote"],
+                state="readonly",
+                width=10,
+            )
+            path_entry = ttk.Entry(control_frame, textvariable=self.preview_path_var)
+            browse_btn = ttk.Button(control_frame, text="📂", width=3, command=self._browse_file_for_preview)
+            open_btn = ttk.Button(control_frame, text="Load", command=self._open_preview_from_path)
+
+        source_combo.grid(row=0, column=0, sticky="w", padx=(0, 4))
+        path_entry.grid(row=0, column=1, sticky="ew", padx=(0, 4))
+        browse_btn.grid(row=0, column=2, sticky="e", padx=(0, 4))
+        open_btn.grid(row=0, column=3, sticky="e")
+
         # File content display area
         if TTKBOOTSTRAP_AVAILABLE:
             content_frame = ttkb.Frame(self.file_preview_frame)
         else:
             content_frame = ttk.Frame(self.file_preview_frame)
-        content_frame.grid(row=1, column=0, sticky="nsew", padx=4, pady=4)
+        content_frame.grid(row=2, column=0, sticky="nsew", padx=4, pady=4)
         content_frame.columnconfigure(0, weight=1)
         content_frame.rowconfigure(0, weight=1)
         
@@ -1983,14 +2025,67 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             self.file_preview_status_var = tk.StringVar(value="Ready")
             status_label = ttk.Label(self.file_preview_frame, textvariable=self.file_preview_status_var)
-        status_label.grid(row=2, column=0, sticky="w", padx=4, pady=(0, 4))
-        
+        status_label.grid(row=3, column=0, sticky="w", padx=4, pady=(0, 4))
+
         # Refresh button
         if TTKBOOTSTRAP_AVAILABLE:
             refresh_btn = ttkb.Button(self.file_preview_frame, text="🔄 Refresh", command=self._refresh_file_preview, bootstyle="info-outline")
         else:
             refresh_btn = ttk.Button(self.file_preview_frame, text="Refresh", command=self._refresh_file_preview)
-        refresh_btn.grid(row=2, column=0, sticky="e", padx=4, pady=(0, 4))
+        refresh_btn.grid(row=3, column=0, sticky="e", padx=4, pady=(0, 4))
+
+    def _browse_file_for_preview(self):
+        """Open a file dialog and immediately preview the chosen document on the left."""
+        initial_dir = (self.cwd_var.get() or os.getcwd()) if hasattr(self, "cwd_var") else os.getcwd()
+        filetypes = [
+            ("Office/PDF", "*.pdf *.doc *.docx *.xls *.xlsx *.csv *.one"),
+            ("PDF", "*.pdf"),
+            ("Word", "*.doc *.docx"),
+            ("Excel", "*.xls *.xlsx *.csv"),
+            ("OneNote", "*.one"),
+            ("All files", "*.*"),
+        ]
+        path = filedialog.askopenfilename(initialdir=initial_dir, filetypes=filetypes)
+        if not path:
+            return
+
+        self.preview_path_var.set(path)
+        file_type = self._guess_file_type(path, self.preview_source_var.get())
+        self.preview_source_var.set(file_type or "Auto")
+        self._show_file_preview(file_type, path)
+
+    def _open_preview_from_path(self):
+        """Load the document specified in the preview path entry."""
+        path = (self.preview_path_var.get() or "").strip()
+        if not path:
+            messagebox.showinfo("Document Preview", "Choose a OneNote, Word, Excel, or PDF file first.")
+            return
+
+        if not os.path.exists(path):
+            messagebox.showerror("Document Preview", f"File not found:\n{path}")
+            return
+
+        file_type = self._guess_file_type(path, self.preview_source_var.get())
+        self.preview_source_var.set(file_type or "Auto")
+        self._show_file_preview(file_type, path)
+
+    def _guess_file_type(self, path: str, preferred: Optional[str] = None) -> str:
+        """Determine the preview loader to use based on extension or dropdown value."""
+        preferred = (preferred or "").strip()
+        if preferred and preferred.lower() != "auto":
+            return preferred
+
+        ext = os.path.splitext(path)[1].lower()
+        mapping = {
+            ".pdf": "PDF",
+            ".doc": "Word",
+            ".docx": "Word",
+            ".xls": "Excel",
+            ".xlsx": "Excel",
+            ".csv": "Excel",
+            ".one": "OneNote",
+        }
+        return mapping.get(ext, "PDF")
 
     def _close_file_preview(self):
         """Close the file preview panel."""
@@ -2001,8 +2096,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.file_preview_title_var.set("No file open")
         # Adjust chat layout back to full width
         if hasattr(self, 'chat_frame'):
-            self.chat_frame.columnconfigure(0, weight=1)
-            self.chat_frame.columnconfigure(1, weight=0)
+            self.chat_frame.columnconfigure(0, weight=0)
+            self.chat_frame.columnconfigure(1, weight=1)
 
     def _show_file_preview(self, file_type: str, file_path: str, file_id: Optional[str] = None):
         """Show the file preview panel with the specified file."""
@@ -2015,16 +2110,20 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             'id': file_id,
             'last_update': datetime.now()
         }
+
+        if file_path:
+            self.preview_path_var.set(file_path)
         
         # Update title
         file_name = os.path.basename(file_path) if file_path and os.path.sep in file_path else (file_path or f"{file_type} Document")
         if hasattr(self, 'file_preview_title_var') and self.file_preview_title_var:
             self.file_preview_title_var.set(f"{file_type}: {file_name}")
-        
+        self.preview_source_var.set(file_type or "Auto")
+
         # Show the panel and adjust layout
         self.file_preview_frame.grid()
-        self.chat_frame.columnconfigure(0, weight=2)
-        self.chat_frame.columnconfigure(1, weight=1)
+        self.chat_frame.columnconfigure(0, weight=1)
+        self.chat_frame.columnconfigure(1, weight=2)
         
         # Load and display file content
         self._refresh_file_preview()
@@ -2037,7 +2136,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         file_type = self.active_file_session.get('type')
         file_path = self.active_file_session.get('path')
         file_id = self.active_file_session.get('id')
-        
+
+        if file_type in {"Excel", "Word", "PDF"}:
+            if not file_path or not os.path.exists(file_path):
+                self.file_preview_text.config(state="normal")
+                self.file_preview_text.delete("1.0", "end")
+                self.file_preview_text.insert("1.0", "File not found or unavailable for preview.")
+                self.file_preview_text.config(state="disabled")
+                self.file_preview_status_var.set("File missing")
+                return
+
         try:
             self.file_preview_status_var.set("Loading...")
             self.file_preview_text.config(state="normal")
