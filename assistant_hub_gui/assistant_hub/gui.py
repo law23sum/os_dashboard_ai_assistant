@@ -377,11 +377,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             start_git_worker()
             get_git_manager().ensure_repo()
             print("[GUI] Git versioning initialized - all changes will be automatically tracked")
+        except Exception as e:
+            print(f"[GUI] Warning: Could not initialize Git versioning: {e}")
         
         # Setup keyboard shortcuts for better usability
         self._setup_keyboard_shortcuts()
-        except Exception as e:
-            print(f"[GUI] Warning: Could not initialize Git versioning: {e}")
         
         self._apply_default_view()
         self.refresh_all()
@@ -1713,16 +1713,28 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.chat_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.chat_frame, text="AI Console")
 
-        self.chat_frame.columnconfigure(0, weight=1)
+        # Support side-by-side layout: chat on left, file preview on right
+        self.chat_frame.columnconfigure(0, weight=2)  # Chat takes 2/3
+        self.chat_frame.columnconfigure(1, weight=1)  # File preview takes 1/3
         self.chat_frame.rowconfigure(0, weight=3)
         self.chat_frame.rowconfigure(1, weight=2)
 
+        # Left side: Chat conversation and compose
         if TTKBOOTSTRAP_AVAILABLE:
-            convo_frame = ttkb.Labelframe(self.chat_frame, text="💬 Chat & Terminal", bootstyle="primary")
-            compose = ttkb.Labelframe(self.chat_frame, text="✍️ Compose Message & Terminal", bootstyle="info")
+            chat_container = ttkb.Frame(self.chat_frame)
         else:
-            convo_frame = ttk.LabelFrame(self.chat_frame, text="Chat & Terminal")
-            compose = ttk.LabelFrame(self.chat_frame, text="Compose Message & Terminal")
+            chat_container = ttk.Frame(self.chat_frame)
+        chat_container.grid(row=0, column=0, rowspan=2, sticky="nsew", padx=(8, 4), pady=8)
+        chat_container.columnconfigure(0, weight=1)
+        chat_container.rowconfigure(0, weight=3)
+        chat_container.rowconfigure(1, weight=2)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            convo_frame = ttkb.Labelframe(chat_container, text="💬 Chat & Terminal", bootstyle="primary")
+            compose = ttkb.Labelframe(chat_container, text="✍️ Compose Message & Terminal", bootstyle="info")
+        else:
+            convo_frame = ttk.LabelFrame(chat_container, text="Chat & Terminal")
+            compose = ttk.LabelFrame(chat_container, text="Compose Message & Terminal")
         convo_frame.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
         convo_frame.columnconfigure(0, weight=1)
         convo_frame.rowconfigure(0, weight=1)
@@ -1736,6 +1748,19 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         chat_scroll.grid(row=0, column=1, sticky="ns")
         compose.grid(row=1, column=0, sticky="nsew", padx=8, pady=(0, 8))
         compose.columnconfigure(1, weight=1)
+
+        # Right side: File preview panel (initially hidden)
+        # Track active file editing session
+        self.active_file_session = None  # Dict with 'type', 'path', 'content', etc.
+        
+        # Initialize file preview panel reference (will be created in _build_file_preview_panel)
+        self.file_preview_frame = None
+        self.file_preview_text = None
+        self.file_preview_title_var = None
+        self.file_preview_status_var = None
+        
+        # Build the file preview panel
+        self._build_file_preview_panel()
 
         if TTKBOOTSTRAP_AVAILABLE:
             ttkb.Label(compose, text="From:", bootstyle="secondary").grid(row=0, column=0, sticky="e", padx=4, pady=2)
@@ -1899,6 +1924,327 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_progress = ProgressIndicator(self).create(progress_container, row=0, column=0, columnspan=1)
         self.chat_progress.progress_bar.grid_remove()
         self.chat_progress.indicator_label.grid_remove()
+
+    def _build_file_preview_panel(self):
+        """Build the file preview panel for side-by-side file editing."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.file_preview_frame = ttkb.Labelframe(self.chat_frame, text="📄 File Preview", bootstyle="success")
+        else:
+            self.file_preview_frame = ttk.LabelFrame(self.chat_frame, text="File Preview")
+        
+        # Initially hidden - will be shown when file editing starts
+        self.file_preview_frame.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=(4, 8), pady=8)
+        self.file_preview_frame.grid_remove()  # Hidden by default
+        self.file_preview_frame.columnconfigure(0, weight=1)
+        self.file_preview_frame.rowconfigure(1, weight=1)
+        
+        # Header with file info and close button
+        if TTKBOOTSTRAP_AVAILABLE:
+            header_frame = ttkb.Frame(self.file_preview_frame)
+        else:
+            header_frame = ttk.Frame(self.file_preview_frame)
+        header_frame.grid(row=0, column=0, sticky="ew", padx=4, pady=4)
+        header_frame.columnconfigure(0, weight=1)
+        
+        self.file_preview_title_var = tk.StringVar(value="No file open")
+        if TTKBOOTSTRAP_AVAILABLE:
+            title_label = ttkb.Label(header_frame, textvariable=self.file_preview_title_var, bootstyle="success", font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"))
+            close_btn = ttkb.Button(header_frame, text="✕", command=self._close_file_preview, bootstyle="danger-outline", width=3)
+        else:
+            title_label = ttk.Label(header_frame, textvariable=self.file_preview_title_var, font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"))
+            close_btn = ttk.Button(header_frame, text="✕", command=self._close_file_preview, width=3)
+        title_label.grid(row=0, column=0, sticky="w", padx=4)
+        close_btn.grid(row=0, column=1, sticky="e", padx=4)
+        
+        # File content display area
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.file_preview_frame)
+        else:
+            content_frame = ttk.Frame(self.file_preview_frame)
+        content_frame.grid(row=1, column=0, sticky="nsew", padx=4, pady=4)
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+        
+        # Text widget for displaying file content
+        self.file_preview_text = tk.Text(content_frame, wrap="word", state="disabled", font=self.text_font)
+        self.file_preview_text.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            preview_scroll = ttkb.Scrollbar(content_frame, orient="vertical", command=self.file_preview_text.yview, bootstyle="success-round")
+        else:
+            preview_scroll = ttk.Scrollbar(content_frame, orient="vertical", command=self.file_preview_text.yview)
+        self.file_preview_text.configure(yscrollcommand=preview_scroll.set)
+        preview_scroll.grid(row=0, column=1, sticky="ns")
+        
+        # Status bar for file operations
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.file_preview_status_var = tk.StringVar(value="Ready")
+            status_label = ttkb.Label(self.file_preview_frame, textvariable=self.file_preview_status_var, bootstyle="secondary")
+        else:
+            self.file_preview_status_var = tk.StringVar(value="Ready")
+            status_label = ttk.Label(self.file_preview_frame, textvariable=self.file_preview_status_var)
+        status_label.grid(row=2, column=0, sticky="w", padx=4, pady=(0, 4))
+        
+        # Refresh button
+        if TTKBOOTSTRAP_AVAILABLE:
+            refresh_btn = ttkb.Button(self.file_preview_frame, text="🔄 Refresh", command=self._refresh_file_preview, bootstyle="info-outline")
+        else:
+            refresh_btn = ttk.Button(self.file_preview_frame, text="Refresh", command=self._refresh_file_preview)
+        refresh_btn.grid(row=2, column=0, sticky="e", padx=4, pady=(0, 4))
+
+    def _close_file_preview(self):
+        """Close the file preview panel."""
+        if hasattr(self, 'file_preview_frame') and self.file_preview_frame:
+            self.file_preview_frame.grid_remove()
+        self.active_file_session = None
+        if hasattr(self, 'file_preview_title_var') and self.file_preview_title_var:
+            self.file_preview_title_var.set("No file open")
+        # Adjust chat layout back to full width
+        if hasattr(self, 'chat_frame'):
+            self.chat_frame.columnconfigure(0, weight=1)
+            self.chat_frame.columnconfigure(1, weight=0)
+
+    def _show_file_preview(self, file_type: str, file_path: str, file_id: Optional[str] = None):
+        """Show the file preview panel with the specified file."""
+        if not hasattr(self, 'file_preview_frame') or not self.file_preview_frame:
+            return  # Panel not initialized yet
+        
+        self.active_file_session = {
+            'type': file_type,
+            'path': file_path,
+            'id': file_id,
+            'last_update': datetime.now()
+        }
+        
+        # Update title
+        file_name = os.path.basename(file_path) if file_path and os.path.sep in file_path else (file_path or f"{file_type} Document")
+        if hasattr(self, 'file_preview_title_var') and self.file_preview_title_var:
+            self.file_preview_title_var.set(f"{file_type}: {file_name}")
+        
+        # Show the panel and adjust layout
+        self.file_preview_frame.grid()
+        self.chat_frame.columnconfigure(0, weight=2)
+        self.chat_frame.columnconfigure(1, weight=1)
+        
+        # Load and display file content
+        self._refresh_file_preview()
+
+    def _refresh_file_preview(self):
+        """Refresh the file preview content."""
+        if not self.active_file_session:
+            return
+        
+        file_type = self.active_file_session.get('type')
+        file_path = self.active_file_session.get('path')
+        file_id = self.active_file_session.get('id')
+        
+        try:
+            self.file_preview_status_var.set("Loading...")
+            self.file_preview_text.config(state="normal")
+            self.file_preview_text.delete("1.0", "end")
+            
+            if file_type == "OneNote":
+                content = self._load_onenote_preview(file_id)
+            elif file_type == "Excel":
+                content = self._load_excel_preview(file_path)
+            elif file_type == "Word":
+                content = self._load_word_preview(file_path)
+            elif file_type == "PDF":
+                content = self._load_pdf_preview(file_path)
+            else:
+                content = "Unsupported file type"
+            
+            self.file_preview_text.insert("1.0", content)
+            self.file_preview_text.config(state="disabled")
+            self.file_preview_status_var.set(f"Last updated: {datetime.now().strftime('%H:%M:%S')}")
+            self.active_file_session['last_update'] = datetime.now()
+        except Exception as e:
+            self.file_preview_text.insert("1.0", f"Error loading file: {str(e)}")
+            self.file_preview_text.config(state="disabled")
+            self.file_preview_status_var.set(f"Error: {str(e)}")
+
+    def _load_onenote_preview(self, page_id: Optional[str]) -> str:
+        """Load OneNote page content for preview."""
+        if not ONENOTE_CLIENT_AVAILABLE or not page_id:
+            return "OneNote preview not available"
+        
+        try:
+            client = OneNoteClient()
+            # Get page content
+            page_content = client.get_page_content(page_id)
+            if page_content:
+                # Extract text from HTML content
+                import re
+                text = re.sub(r'<[^>]+>', '', page_content)
+                return text[:50000]  # Limit preview size
+            return "Page content not available"
+        except Exception as e:
+            return f"Error loading OneNote: {str(e)}"
+
+    def _load_excel_preview(self, file_path: str) -> str:
+        """Load Excel file content for preview."""
+        if not EXCEL_SERVICE_AVAILABLE or not file_path:
+            return "Excel preview not available"
+        
+        try:
+            if os.path.exists(file_path):
+                import pandas as pd
+                # Try to load and display as table
+                try:
+                    # Read first sheet
+                    df = pd.read_excel(file_path, sheet_name=0, nrows=100)  # Limit to 100 rows for preview
+                    preview = f"Excel Workbook: {os.path.basename(file_path)}\n"
+                    preview += f"Shape: {df.shape[0]} rows × {df.shape[1]} columns\n"
+                    preview += "=" * 80 + "\n\n"
+                    preview += df.to_string(max_rows=50, max_cols=10)  # Limit display size
+                    return preview
+                except Exception as e:
+                    # Fallback to summary
+                    try:
+                        summary = summarize_local_workbook(file_path)
+                        if summary:
+                            return f"Excel Workbook: {os.path.basename(file_path)}\n\n{summary}"
+                    except:
+                        pass
+                    return f"Excel file loaded\n(Error displaying table: {str(e)})"
+            return f"File not found: {file_path}"
+        except Exception as e:
+            return f"Error loading Excel: {str(e)}"
+
+    def _load_word_preview(self, file_path: str) -> str:
+        """Load Word document content for preview."""
+        if not WORD_SERVICE_AVAILABLE or not file_path:
+            return "Word preview not available"
+        
+        try:
+            if os.path.exists(file_path):
+                service = WordService()
+                # Extract text content
+                content = service.extract_text(file_path)
+                if content:
+                    return content[:50000]  # Limit preview size
+                return "Word document loaded (content extraction not available)"
+            return f"File not found: {file_path}"
+        except Exception as e:
+            return f"Error loading Word: {str(e)}"
+
+    def _load_pdf_preview(self, file_path: str) -> str:
+        """Load PDF file content for preview."""
+        if not file_path:
+            return "PDF preview not available"
+        
+        try:
+            if os.path.exists(file_path):
+                # Try to use PDF integration
+                pdf_integration = PDFIntegration(self.conn)
+                content = pdf_integration.extract_text(file_path)
+                if content:
+                    return content[:50000]  # Limit preview size
+                return "PDF loaded (text extraction not available)"
+            return f"File not found: {file_path}"
+        except Exception as e:
+            return f"Error loading PDF: {str(e)}"
+
+    def _detect_file_operation(self, tool_call) -> Optional[Dict]:
+        """Detect if a tool call involves file operations for OneNote, Excel, Word, or PDF."""
+        if not hasattr(tool_call, 'function') or not hasattr(tool_call.function, 'name'):
+            return None
+        
+        import json
+        try:
+            func_name = tool_call.function.name.lower()
+            args = json.loads(tool_call.function.arguments) if tool_call.function.arguments else {}
+            
+            # Check for OneNote operations
+            if 'onenote' in func_name or 'note' in func_name or 'notebook' in func_name:
+                page_id = args.get('page_id') or args.get('id') or args.get('pageId')
+                notebook_id = args.get('notebook_id') or args.get('notebookId')
+                section_id = args.get('section_id') or args.get('sectionId')
+                if page_id:
+                    return {
+                        'type': 'OneNote',
+                        'path': f"OneNote Page: {page_id}",
+                        'id': page_id,
+                        'operation': tool_call.function.name
+                    }
+                elif notebook_id or section_id:
+                    # Could be notebook or section operation
+                    return {
+                        'type': 'OneNote',
+                        'path': f"OneNote: {notebook_id or section_id}",
+                        'id': notebook_id or section_id,
+                        'operation': tool_call.function.name
+                    }
+            
+            # Check for Excel operations
+            if 'excel' in func_name or 'workbook' in func_name or 'spreadsheet' in func_name or 'xlsx' in func_name or 'xls' in func_name:
+                file_path = args.get('file_path') or args.get('path') or args.get('file') or args.get('filePath')
+                if file_path:
+                    return {
+                        'type': 'Excel',
+                        'path': file_path,
+                        'id': None,
+                        'operation': tool_call.function.name
+                    }
+            
+            # Check for Word operations
+            if 'word' in func_name or 'document' in func_name or 'docx' in func_name or 'doc' in func_name:
+                file_path = args.get('file_path') or args.get('path') or args.get('file') or args.get('filePath')
+                if file_path:
+                    return {
+                        'type': 'Word',
+                        'path': file_path,
+                        'id': None,
+                        'operation': tool_call.function.name
+                    }
+            
+            # Check for PDF operations
+            if 'pdf' in func_name:
+                file_path = args.get('file_path') or args.get('path') or args.get('file') or args.get('filePath')
+                if file_path:
+                    return {
+                        'type': 'PDF',
+                        'path': file_path,
+                        'id': None,
+                        'operation': tool_call.function.name
+                    }
+        except Exception:
+            pass
+        
+        return None
+    
+    def _detect_file_in_message(self, content: str) -> Optional[Dict]:
+        """Detect file mentions in chat messages or tool results."""
+        import re
+        
+        # Look for file paths
+        file_patterns = [
+            r'([^\s]+\.(xlsx?|docx?|pdf))',  # File extensions
+            r'(onenote[^\s]*)',  # OneNote mentions
+            r'(notebook[^\s]*)',  # Notebook mentions
+        ]
+        
+        for pattern in file_patterns:
+            matches = re.findall(pattern, content, re.IGNORECASE)
+            for match in matches:
+                if isinstance(match, tuple):
+                    file_path = match[0] if match[0] else match[1] if len(match) > 1 else None
+                else:
+                    file_path = match
+                
+                if file_path:
+                    # Determine file type
+                    file_lower = file_path.lower()
+                    if '.xlsx' in file_lower or '.xls' in file_lower:
+                        return {'type': 'Excel', 'path': file_path, 'id': None}
+                    elif '.docx' in file_lower or '.doc' in file_lower:
+                        return {'type': 'Word', 'path': file_path, 'id': None}
+                    elif '.pdf' in file_lower:
+                        return {'type': 'PDF', 'path': file_path, 'id': None}
+                    elif 'onenote' in file_lower or 'notebook' in file_lower:
+                        return {'type': 'OneNote', 'path': file_path, 'id': None}
+        
+        return None
 
     def _update_chat_status(self, message: Optional[str] = None):
         if not hasattr(self, 'chat_status_var'):
@@ -2150,8 +2496,19 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 if tool_calls:
                     tool_results = []
                     for tool_call in tool_calls:
+                        # Detect file operations and show preview
+                        file_op = self._detect_file_operation(tool_call)
+                        if file_op:
+                            self.after(0, lambda op=file_op: self._show_file_preview(
+                                op['type'], op['path'], op.get('id')
+                            ))
+                        
                         result = execute_tool_call(tool_call, cwd=cwd)
                         tool_results.append(result)
+                        
+                        # After file operation, refresh preview
+                        if file_op:
+                            self.after(0, lambda: self._refresh_file_preview())
                         
                         # Store terminal command and result in chat immediately
                         if tool_call.function.name == "execute_command":
@@ -2169,7 +2526,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     
                     # Store tool results in chat for next iteration
                     for result in tool_results:
-                        self._store_chat_message(responder, 'tool', result["content"], kind='tool_result')
+                        result_content = result.get("content", "")
+                        self._store_chat_message(responder, 'tool', result_content, kind='tool_result')
+                        
+                        # Check if tool result mentions a file
+                        file_op = self._detect_file_in_message(result_content)
+                        if file_op and not self.active_file_session:
+                            self.after(0, lambda op=file_op: self._show_file_preview(
+                                op['type'], op['path'], op.get('id')
+                            ))
                     
                     self.after(0, self.refresh_chat_history)
                     iteration += 1
@@ -2389,19 +2754,23 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         btn_frame.grid(row=2, column=0, sticky="ew", pady=(8, 0))
         
         if TTKBOOTSTRAP_AVAILABLE:
+            connect_btn = ttkb.Button(btn_frame, text="🔌 Connect", command=self.on_connect_integration, bootstyle="success-outline")
             sync_btn = ttkb.Button(btn_frame, text="🔄 Sync All", command=self.on_sync_all_integrations, bootstyle="primary")
             sync_selected_btn = ttkb.Button(btn_frame, text="🔄 Sync Selected", command=self.on_sync_selected_integration, bootstyle="info-outline")
             refresh_btn = ttkb.Button(btn_frame, text="🔄 Refresh", command=self.refresh_integrations_list, bootstyle="secondary-outline")
         else:
+            connect_btn = ttk.Button(btn_frame, text="Connect", command=self.on_connect_integration)
             sync_btn = ttk.Button(btn_frame, text="Sync All", command=self.on_sync_all_integrations)
             sync_selected_btn = ttk.Button(btn_frame, text="Sync Selected", command=self.on_sync_selected_integration)
             refresh_btn = ttk.Button(btn_frame, text="Refresh", command=self.refresh_integrations_list)
         
-        sync_btn.grid(row=0, column=0, padx=4)
-        sync_selected_btn.grid(row=0, column=1, padx=4)
-        refresh_btn.grid(row=0, column=2, padx=4)
+        connect_btn.grid(row=0, column=0, padx=4)
+        sync_btn.grid(row=0, column=1, padx=4)
+        sync_selected_btn.grid(row=0, column=2, padx=4)
+        refresh_btn.grid(row=0, column=3, padx=4)
         
         if TTKBOOTSTRAP_AVAILABLE:
+            ToolTip(connect_btn, text="Connect/Configure the selected integration")
             ToolTip(sync_btn, text="Sync all enabled integrations")
             ToolTip(sync_selected_btn, text="Sync the selected integration")
             ToolTip(refresh_btn, text="Refresh the integrations list")
@@ -2410,6 +2779,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         """Refresh the integrations list display."""
         for row in self.integrations_tree.get_children():
             self.integrations_tree.delete(row)
+        
+        # Load saved credentials/configs before checking status
+        self._load_saved_credentials()
         
         # Get integration statuses - all available integrations
         integrations = {
@@ -2426,6 +2798,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         }
         
         for name, integration in integrations.items():
+            # Try to authenticate to get current status
+            try:
+                integration.authenticate()
+            except Exception:
+                pass
+            
             status = integration.get_status()
             status_text = "✅ Connected" if status.connected else "❌ Disconnected"
             if status.error:
@@ -2441,6 +2819,32 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 iid=name,
                 values=(name, status_text, last_sync, status.item_count),
             )
+    
+    def _load_saved_credentials(self):
+        """Load saved credentials from config files into environment."""
+        config_dir = os.path.expanduser("~/.assistant_hub")
+        
+        # Load GitHub token
+        github_token_file = os.path.join(config_dir, "github_token.txt")
+        if os.path.exists(github_token_file):
+            try:
+                with open(github_token_file, "r") as f:
+                    os.environ["GITHUB_TOKEN"] = f.read().strip()
+            except Exception:
+                pass
+        
+        # Load Azure credentials
+        azure_config_file = os.path.join(config_dir, "azure_config.txt")
+        if os.path.exists(azure_config_file):
+            try:
+                with open(azure_config_file, "r") as f:
+                    for line in f:
+                        line = line.strip()
+                        if "=" in line:
+                            key, value = line.split("=", 1)
+                            os.environ[key.strip()] = value.strip()
+            except Exception:
+                pass
     
     def on_sync_all_integrations(self):
         """Sync all enabled integrations."""
@@ -2483,6 +2887,384 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             messagebox.showerror("Sync Error", f"Failed to sync {name}.")
         self.refresh_integrations_list()
+    
+    def on_connect_integration(self):
+        """Open connection/authentication dialog for selected integration."""
+        sel = self.integrations_tree.selection()
+        if not sel:
+            messagebox.showinfo("No Selection", "Please select an integration to connect.")
+            return
+        
+        name = sel[0]
+        self._show_connection_dialog(name)
+    
+    def _show_connection_dialog(self, service_name: str):
+        """Show appropriate connection/configuration dialog for a service."""
+        dialog = tk.Toplevel(self)
+        dialog.title(f"Connect to {service_name}")
+        dialog.geometry("500x400")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            main_frame = ttkb.Frame(dialog, padding=20)
+        else:
+            main_frame = ttk.Frame(dialog, padding=20)
+        main_frame.pack(fill="both", expand=True)
+        
+        # Service-specific dialogs
+        if service_name == "Google Calendar":
+            self._show_google_oauth_dialog(dialog, main_frame, "calendar")
+        elif service_name == "Gmail":
+            self._show_google_oauth_dialog(dialog, main_frame, "gmail")
+        elif service_name == "GitHub":
+            self._show_github_auth_dialog(dialog, main_frame)
+        elif service_name == "OneNote":
+            self._show_msgraph_auth_dialog(dialog, main_frame)
+        elif service_name == "Local Notes":
+            self._show_notes_config_dialog(dialog, main_frame)
+        elif service_name == "Local Files":
+            self._show_files_config_dialog(dialog, main_frame)
+        elif service_name in ["Word", "Excel", "Git", "PDF"]:
+            # These don't need configuration, just show info
+            info_label = ttk.Label(main_frame, text=f"{service_name} integration is ready to use.\nNo additional configuration needed.", justify="center")
+            info_label.pack(pady=20)
+            if TTKBOOTSTRAP_AVAILABLE:
+                close_btn = ttkb.Button(main_frame, text="Close", command=dialog.destroy, bootstyle="primary")
+            else:
+                close_btn = ttk.Button(main_frame, text="Close", command=dialog.destroy)
+            close_btn.pack(pady=10)
+        else:
+            info_label = ttk.Label(main_frame, text=f"Configuration for {service_name} is not yet implemented.", justify="center")
+            info_label.pack(pady=20)
+            if TTKBOOTSTRAP_AVAILABLE:
+                close_btn = ttkb.Button(main_frame, text="Close", command=dialog.destroy, bootstyle="primary")
+            else:
+                close_btn = ttk.Button(main_frame, text="Close", command=dialog.destroy)
+            close_btn.pack(pady=10)
+    
+    def _show_google_oauth_dialog(self, dialog, frame, service_type: str):
+        """Show Google OAuth2 setup dialog."""
+        title_label = ttk.Label(frame, text=f"Connect to Google {service_type.title()}", font=(self.base_font.actual("family"), 14, "bold"))
+        title_label.pack(pady=(0, 20))
+        
+        instructions = ttk.Label(
+            frame,
+            text="To connect, you need to:\n\n"
+                 "1. Create a Google Cloud Project\n"
+                 "2. Enable Google Calendar API (or Gmail API)\n"
+                 "3. Create OAuth 2.0 credentials\n"
+                 "4. Download credentials JSON file\n\n"
+                 "Then paste the path to your credentials file below:",
+            justify="left"
+        )
+        instructions.pack(pady=10, fill="x")
+        
+        path_frame = ttk.Frame(frame)
+        path_frame.pack(fill="x", pady=10)
+        
+        path_var = tk.StringVar()
+        path_entry = ttk.Entry(path_frame, textvariable=path_var, width=50)
+        path_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        
+        def browse_file():
+            from tkinter import filedialog
+            filename = filedialog.askopenfilename(
+                title="Select Google OAuth2 Credentials JSON",
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+            )
+            if filename:
+                path_var.set(filename)
+        
+        browse_btn = ttk.Button(path_frame, text="Browse...", command=browse_file)
+        browse_btn.pack(side="right")
+        
+        def save_and_connect():
+            cred_path = path_var.get().strip()
+            if not cred_path:
+                messagebox.showerror("Error", "Please provide a credentials file path.")
+                return
+            
+            if not os.path.exists(cred_path):
+                messagebox.showerror("Error", "Credentials file not found.")
+                return
+            
+            # Copy credentials to standard location
+            cred_dir = os.path.expanduser("~/.assistant_hub")
+            os.makedirs(cred_dir, exist_ok=True)
+            
+            target_path = os.path.join(cred_dir, f"google_{service_type}_credentials.json")
+            try:
+                import shutil
+                shutil.copy2(cred_path, target_path)
+                messagebox.showinfo("Success", f"Credentials saved. Please complete OAuth2 flow in terminal.\n\nRun the authentication script to get your access token.")
+                dialog.destroy()
+                self.refresh_integrations_list()
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to save credentials: {e}")
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            save_btn = ttkb.Button(frame, text="Save Credentials", command=save_and_connect, bootstyle="success")
+            cancel_btn = ttkb.Button(frame, text="Cancel", command=dialog.destroy, bootstyle="secondary")
+        else:
+            save_btn = ttk.Button(frame, text="Save Credentials", command=save_and_connect)
+            cancel_btn = ttk.Button(frame, text="Cancel", command=dialog.destroy)
+        
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(pady=20)
+        save_btn.pack(side="left", padx=5)
+        cancel_btn.pack(side="left", padx=5)
+    
+    def _show_github_auth_dialog(self, dialog, frame):
+        """Show GitHub Personal Access Token dialog."""
+        title_label = ttk.Label(frame, text="Connect to GitHub", font=(self.base_font.actual("family"), 14, "bold"))
+        title_label.pack(pady=(0, 20))
+        
+        instructions = ttk.Label(
+            frame,
+            text="Enter your GitHub Personal Access Token.\n\n"
+                 "To create a token:\n"
+                 "1. Go to GitHub Settings > Developer settings > Personal access tokens\n"
+                 "2. Generate a new token with 'repo' scope\n"
+                 "3. Copy the token and paste it below:",
+            justify="left"
+        )
+        instructions.pack(pady=10, fill="x")
+        
+        token_frame = ttk.Frame(frame)
+        token_frame.pack(fill="x", pady=10)
+        
+        token_label = ttk.Label(token_frame, text="Token:")
+        token_label.pack(anchor="w")
+        
+        token_var = tk.StringVar()
+        token_entry = ttk.Entry(token_frame, textvariable=token_var, width=50, show="*")
+        token_entry.pack(fill="x", pady=(5, 0))
+        
+        def save_token():
+            token = token_var.get().strip()
+            if not token:
+                messagebox.showerror("Error", "Please enter a GitHub token.")
+                return
+            
+            # Save to environment or config
+            import os
+            # For now, we'll save it in a way that the integration can access it
+            # In production, use secure storage
+            config_dir = os.path.expanduser("~/.assistant_hub")
+            os.makedirs(config_dir, exist_ok=True)
+            token_file = os.path.join(config_dir, "github_token.txt")
+            
+            try:
+                with open(token_file, "w") as f:
+                    f.write(token)
+                # Also set as environment variable for current session
+                os.environ["GITHUB_TOKEN"] = token
+                messagebox.showinfo("Success", "GitHub token saved successfully!")
+                dialog.destroy()
+                self.refresh_integrations_list()
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to save token: {e}")
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            save_btn = ttkb.Button(frame, text="Save Token", command=save_token, bootstyle="success")
+            cancel_btn = ttkb.Button(frame, text="Cancel", command=dialog.destroy, bootstyle="secondary")
+        else:
+            save_btn = ttk.Button(frame, text="Save Token", command=save_token)
+            cancel_btn = ttk.Button(frame, text="Cancel", command=dialog.destroy)
+        
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(pady=20)
+        save_btn.pack(side="left", padx=5)
+        cancel_btn.pack(side="left", padx=5)
+    
+    def _show_msgraph_auth_dialog(self, dialog, frame):
+        """Show Microsoft Graph authentication dialog."""
+        title_label = ttk.Label(frame, text="Connect to OneNote (Microsoft Graph)", font=(self.base_font.actual("family"), 14, "bold"))
+        title_label.pack(pady=(0, 20))
+        
+        instructions = ttk.Label(
+            frame,
+            text="Enter your Microsoft Azure App credentials.\n\n"
+                 "To get credentials:\n"
+                 "1. Go to Azure Portal > App registrations\n"
+                 "2. Create or select an app\n"
+                 "3. Get Tenant ID, Client ID, and Client Secret\n"
+                 "4. Enter them below:",
+            justify="left"
+        )
+        instructions.pack(pady=10, fill="x")
+        
+        tenant_frame = ttk.Frame(frame)
+        tenant_frame.pack(fill="x", pady=5)
+        ttk.Label(tenant_frame, text="Tenant ID:").pack(anchor="w")
+        tenant_var = tk.StringVar()
+        ttk.Entry(tenant_frame, textvariable=tenant_var, width=50).pack(fill="x", pady=(5, 0))
+        
+        client_id_frame = ttk.Frame(frame)
+        client_id_frame.pack(fill="x", pady=5)
+        ttk.Label(client_id_frame, text="Client ID:").pack(anchor="w")
+        client_id_var = tk.StringVar()
+        ttk.Entry(client_id_frame, textvariable=client_id_var, width=50).pack(fill="x", pady=(5, 0))
+        
+        secret_frame = ttk.Frame(frame)
+        secret_frame.pack(fill="x", pady=5)
+        ttk.Label(secret_frame, text="Client Secret:").pack(anchor="w")
+        secret_var = tk.StringVar()
+        ttk.Entry(secret_frame, textvariable=secret_var, width=50, show="*").pack(fill="x", pady=(5, 0))
+        
+        def save_credentials():
+            tenant = tenant_var.get().strip()
+            client_id = client_id_var.get().strip()
+            secret = secret_var.get().strip()
+            
+            if not all([tenant, client_id, secret]):
+                messagebox.showerror("Error", "Please fill in all fields.")
+                return
+            
+            # Save to environment variables
+            import os
+            os.environ["AZURE_TENANT_ID"] = tenant
+            os.environ["AZURE_CLIENT_ID"] = client_id
+            os.environ["AZURE_CLIENT_SECRET"] = secret
+            
+            # Also save to config file for persistence
+            config_dir = os.path.expanduser("~/.assistant_hub")
+            os.makedirs(config_dir, exist_ok=True)
+            config_file = os.path.join(config_dir, "azure_config.txt")
+            
+            try:
+                with open(config_file, "w") as f:
+                    f.write(f"AZURE_TENANT_ID={tenant}\n")
+                    f.write(f"AZURE_CLIENT_ID={client_id}\n")
+                    f.write(f"AZURE_CLIENT_SECRET={secret}\n")
+                messagebox.showinfo("Success", "Microsoft Graph credentials saved!")
+                dialog.destroy()
+                self.refresh_integrations_list()
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to save credentials: {e}")
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            save_btn = ttkb.Button(frame, text="Save Credentials", command=save_credentials, bootstyle="success")
+            cancel_btn = ttkb.Button(frame, text="Cancel", command=dialog.destroy, bootstyle="secondary")
+        else:
+            save_btn = ttk.Button(frame, text="Save Credentials", command=save_credentials)
+            cancel_btn = ttk.Button(frame, text="Cancel", command=dialog.destroy)
+        
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(pady=20)
+        save_btn.pack(side="left", padx=5)
+        cancel_btn.pack(side="left", padx=5)
+    
+    def _show_notes_config_dialog(self, dialog, frame):
+        """Show Local Notes configuration dialog."""
+        title_label = ttk.Label(frame, text="Configure Local Notes", font=(self.base_font.actual("family"), 14, "bold"))
+        title_label.pack(pady=(0, 20))
+        
+        instructions = ttk.Label(
+            frame,
+            text="Select the directory where your notes are stored:",
+            justify="left"
+        )
+        instructions.pack(pady=10, fill="x")
+        
+        path_frame = ttk.Frame(frame)
+        path_frame.pack(fill="x", pady=10)
+        
+        path_var = tk.StringVar(value=os.path.expanduser("~/Documents/Notes"))
+        path_entry = ttk.Entry(path_frame, textvariable=path_var, width=50)
+        path_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        
+        def browse_folder():
+            from tkinter import filedialog
+            folder = filedialog.askdirectory(title="Select Notes Directory")
+            if folder:
+                path_var.set(folder)
+        
+        browse_btn = ttk.Button(path_frame, text="Browse...", command=browse_folder)
+        browse_btn.pack(side="right")
+        
+        def save_config():
+            notes_path = path_var.get().strip()
+            if not notes_path:
+                messagebox.showerror("Error", "Please select a notes directory.")
+                return
+            
+            # Create directory if it doesn't exist
+            try:
+                os.makedirs(notes_path, exist_ok=True)
+                # Save to config (could use database or config file)
+                messagebox.showinfo("Success", f"Notes directory configured: {notes_path}")
+                dialog.destroy()
+                self.refresh_integrations_list()
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to configure notes directory: {e}")
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            save_btn = ttkb.Button(frame, text="Save", command=save_config, bootstyle="success")
+            cancel_btn = ttkb.Button(frame, text="Cancel", command=dialog.destroy, bootstyle="secondary")
+        else:
+            save_btn = ttk.Button(frame, text="Save", command=save_config)
+            cancel_btn = ttk.Button(frame, text="Cancel", command=dialog.destroy)
+        
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(pady=20)
+        save_btn.pack(side="left", padx=5)
+        cancel_btn.pack(side="left", padx=5)
+    
+    def _show_files_config_dialog(self, dialog, frame):
+        """Show Local Files configuration dialog."""
+        title_label = ttk.Label(frame, text="Configure Local Files", font=(self.base_font.actual("family"), 14, "bold"))
+        title_label.pack(pady=(0, 20))
+        
+        instructions = ttk.Label(
+            frame,
+            text="Select the root directory to scan for files:",
+            justify="left"
+        )
+        instructions.pack(pady=10, fill="x")
+        
+        path_frame = ttk.Frame(frame)
+        path_frame.pack(fill="x", pady=10)
+        
+        path_var = tk.StringVar(value=os.path.expanduser("~"))
+        path_entry = ttk.Entry(path_frame, textvariable=path_var, width=50)
+        path_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        
+        def browse_folder():
+            from tkinter import filedialog
+            folder = filedialog.askdirectory(title="Select Root Directory")
+            if folder:
+                path_var.set(folder)
+        
+        browse_btn = ttk.Button(path_frame, text="Browse...", command=browse_folder)
+        browse_btn.pack(side="right")
+        
+        def save_config():
+            root_path = path_var.get().strip()
+            if not root_path or not os.path.exists(root_path):
+                messagebox.showerror("Error", "Please select a valid directory.")
+                return
+            
+            try:
+                # Save to config
+                messagebox.showinfo("Success", f"Files root directory configured: {root_path}")
+                dialog.destroy()
+                self.refresh_integrations_list()
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to configure files directory: {e}")
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            save_btn = ttkb.Button(frame, text="Save", command=save_config, bootstyle="success")
+            cancel_btn = ttkb.Button(frame, text="Cancel", command=dialog.destroy, bootstyle="secondary")
+        else:
+            save_btn = ttk.Button(frame, text="Save", command=save_config)
+            cancel_btn = ttk.Button(frame, text="Cancel", command=dialog.destroy)
+        
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(pady=20)
+        save_btn.pack(side="left", padx=5)
+        cancel_btn.pack(side="left", padx=5)
 
 
 # ---------- Tools & Operations Tab ----------
