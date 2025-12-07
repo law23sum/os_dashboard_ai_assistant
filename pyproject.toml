@@ -9,15 +9,18 @@ description = "OS Dashboard AI Assistant with GUI, integrations, and analytics"
 requires-python = ">=3.9"
 dependencies = [
     "psutil",
-    "openai>=1.0.0",
+    "click>=8.1",
+    "rich>=13.0",
+    "pydantic>=2.0",
+    "pandas>=2.2.0",
+    "openpyxl>=3.1.0",
+    "requests>=2.31.0",
+    "openai>=1.30",
     "ttkbootstrap>=1.10.1",
     "pillow>=10.0.0",
     "customtkinter>=5.2.0",
     "tkinter-tooltip>=2.1.0",
-    "pandas>=2.2.0",
-    "openpyxl>=3.1.0",
     "python-docx>=1.1.0",
-    "requests>=2.31.0",
 ]
 
 [project.scripts]
