@@ -73,6 +73,49 @@ from .integrations import (
     GitIntegration,
     PDFIntegration,
 )
+
+# Additional imports for Tools & Operations tab
+try:
+    from .integrations.onenote.client import OneNoteClient
+    ONENOTE_CLIENT_AVAILABLE = True
+except ImportError:
+    ONENOTE_CLIENT_AVAILABLE = False
+    OneNoteClient = None
+
+try:
+    from .integrations.excel.cloud_client import ExcelCloudClient
+    EXCEL_CLOUD_AVAILABLE = True
+except ImportError:
+    EXCEL_CLOUD_AVAILABLE = False
+    ExcelCloudClient = None
+
+try:
+    from .integrations.excel.service import ExcelService, summarize_local_workbook
+    EXCEL_SERVICE_AVAILABLE = True
+except ImportError:
+    EXCEL_SERVICE_AVAILABLE = False
+    ExcelService = None
+    summarize_local_workbook = None
+
+try:
+    from .integrations.word.service import WordService
+    WORD_SERVICE_AVAILABLE = True
+except ImportError:
+    WORD_SERVICE_AVAILABLE = False
+    WordService = None
+
+try:
+    from .ai_layer.workflows import CleanNotebookWorkflow
+    WORKFLOWS_AVAILABLE = True
+except ImportError:
+    WORKFLOWS_AVAILABLE = False
+    CleanNotebookWorkflow = None
+
+try:
+    from .ai_layer.agents import plan_actions, prioritize_tasks, polish_text
+    AGENTS_AVAILABLE = True
+except ImportError:
+    AGENTS_AVAILABLE = False
 from .task_automation import process_recurring_tasks, check_task_dependencies
 from .task_templates import load_templates, save_template, delete_template, create_task_from_template, TaskTemplate
 from .ai_task_creation import create_task_from_ai_message
@@ -240,7 +283,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         if TTKBOOTSTRAP_AVAILABLE:
             super().__init__(themename=theme, title="Assistant Hub (GUI)", resizable=(True, True))
-            self.style = self.style  # ttkbootstrap's style
+            # ttkbootstrap's style is already available as self.style from parent class
         else:
             super().__init__()
             self.title("Assistant Hub (GUI)")
@@ -249,10 +292,17 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.geometry("1200x700")
         self.minsize(1150, 720)
 
+        # Initialize fonts immediately with defaults (needed before loading settings)
+        self.base_font = tkfont.nametofont("TkDefaultFont")
+        self.text_font = tkfont.nametofont("TkTextFont")
+
         self.conn: sqlite3.Connection = init_db()
         self.state_obj: AssistantState = load_state(self.conn)
         self.settings: Settings = load_settings(self.conn)
         self.security_status: SecurityStatus = load_security_status(self.conn)
+
+        # Configure fonts based on settings
+        self._initialize_fonts()
 
         self.chat_sender_var = tk.StringVar(value="Chris")
         self.chat_agent_var = tk.StringVar(value=self.state_obj.active_persona)
@@ -264,7 +314,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_text = None
         self.command_var = tk.StringVar()
         self.cwd_var = tk.StringVar(value=os.getcwd())
-
+        
         if not TTKBOOTSTRAP_AVAILABLE:
             self._configure_style()
 
@@ -284,6 +334,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self._build_projects_tab()
         self._build_chat_tab()
         self._build_integrations_tab()
+        self._build_tools_tab()
         self._build_analytics_tab()
         self._build_templates_tab()
         self._build_settings_tab()
@@ -294,6 +345,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.notebook.tab(1, text="✅ Tasks")
             self.notebook.tab(2, text="📁 Projects")
             self.notebook.tab(3, text="💬 AI Console")
+            self.notebook.tab(4, text="🔗 Integrations")
+            self.notebook.tab(5, text="🔧 Tools")
+            self.notebook.tab(6, text="📊 Analytics")
+            self.notebook.tab(7, text="📋 Templates")
+            self.notebook.tab(8, text="⚙️ Settings")
 
         # Initialize sync scheduler
         self.sync_scheduler = create_default_scheduler(self.conn)
@@ -305,6 +361,27 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             process_recurring_tasks(self.conn)
         except Exception:
             pass
+        
+        # Start cognitive daemon system for continuous background automation
+        try:
+            from .daemon import start_daemon_system
+            self.cognitive_daemon = start_daemon_system(self.conn, enabled=True)
+            print("[GUI] Cognitive daemon system started - active automation enabled")
+        except Exception as e:
+            print(f"[GUI] Warning: Could not start cognitive daemon: {e}")
+            self.cognitive_daemon = None
+        
+        # Initialize Git versioning worker for automatic version control
+        try:
+            from .versioning import start_git_worker, get_git_manager
+            start_git_worker()
+            get_git_manager().ensure_repo()
+            print("[GUI] Git versioning initialized - all changes will be automatically tracked")
+        
+        # Setup keyboard shortcuts for better usability
+        self._setup_keyboard_shortcuts()
+        except Exception as e:
+            print(f"[GUI] Warning: Could not initialize Git versioning: {e}")
         
         self._apply_default_view()
         self.refresh_all()
@@ -320,6 +397,32 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             pass
 
     # ---------- Top bar ----------
+
+    def _initialize_fonts(self):
+        """Configure fonts based on settings (fonts already initialized with defaults)."""
+        try:
+            scale_map = {"small": 10, "medium": 12, "large": 14}
+            base_size = scale_map.get(getattr(self.settings, 'font_scale', 'medium'), 12)
+
+            # Configure the already-initialized fonts
+            if hasattr(self, 'base_font'):
+                self.base_font.configure(size=base_size)
+            else:
+                self.base_font = tkfont.nametofont("TkDefaultFont")
+                self.base_font.configure(size=base_size)
+
+            if hasattr(self, 'text_font'):
+                self.text_font.configure(size=base_size)
+            else:
+                self.text_font = tkfont.nametofont("TkTextFont")
+                self.text_font.configure(size=base_size)
+        except Exception as e:
+            # Fallback to default fonts if configuration fails
+            print(f"Warning: Could not configure fonts: {e}")
+            if not hasattr(self, 'base_font'):
+                self.base_font = tkfont.nametofont("TkDefaultFont")
+            if not hasattr(self, 'text_font'):
+                self.text_font = tkfont.nametofont("TkTextFont")
 
     def _configure_style(self):
         if TTKBOOTSTRAP_AVAILABLE:
@@ -340,11 +443,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         scale_map = {"small": 10, "medium": 12, "large": 14}
         base_size = scale_map.get(self.settings.font_scale, 12)
 
-        self.base_font = tkfont.nametofont("TkDefaultFont")
-        self.base_font.configure(size=base_size)
-
-        self.text_font = tkfont.nametofont("TkTextFont")
-        self.text_font.configure(size=base_size)
+        # Fonts are already initialized by _initialize_fonts(), but we need heading_font
+        heading_font = tkfont.nametofont("TkHeadingFont")
+        heading_font.configure(size=base_size + 1, weight="bold")
 
         heading_font = tkfont.nametofont("TkHeadingFont")
         heading_font.configure(size=base_size + 1, weight="bold")
@@ -468,6 +569,70 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         """Refresh with visual feedback"""
         AnimationHelper.pulse_button(getattr(self, '_refresh_btn_ref', None))
         self.refresh_all()
+    
+    def _setup_keyboard_shortcuts(self):
+        """Setup global keyboard shortcuts for better usability."""
+        # Ctrl+S / Cmd+S - Save current item
+        self.bind_all("<Control-s>", lambda e: self._save_with_feedback())
+        self.bind_all("<Command-s>", lambda e: self._save_with_feedback())
+        
+        # Ctrl+N / Cmd+N - New item (context-aware)
+        self.bind_all("<Control-n>", lambda e: self._new_item_shortcut())
+        self.bind_all("<Command-n>", lambda e: self._new_item_shortcut())
+        
+        # Ctrl+R / Cmd+R - Refresh
+        self.bind_all("<Control-r>", lambda e: self._refresh_with_feedback())
+        self.bind_all("<Command-r>", lambda e: self._refresh_with_feedback())
+        
+        # Ctrl+W / Cmd+W - Close window (with confirmation)
+        self.bind_all("<Control-w>", lambda e: self._close_window())
+        self.bind_all("<Command-w>", lambda e: self._close_window())
+        
+        # Escape - Clear selection or close dialogs
+        self.bind_all("<Escape>", lambda e: self._escape_handler())
+        
+        # F5 - Refresh
+        self.bind_all("<F5>", lambda e: self._refresh_with_feedback())
+        
+        # Tab navigation shortcuts
+        # Ctrl+1-9 - Switch to tabs
+        for i in range(1, 10):
+            self.bind_all(f"<Control-{i}>", lambda e, idx=i-1: self._switch_tab(idx))
+            self.bind_all(f"<Command-{i}>", lambda e, idx=i-1: self._switch_tab(idx))
+    
+    def _new_item_shortcut(self):
+        """Context-aware new item creation based on current tab."""
+        current_tab = self.notebook.index(self.notebook.select())
+        if current_tab == 1:  # Tasks tab
+            self.on_new_task()
+        elif current_tab == 2:  # Projects tab
+            self.on_new_project()
+        elif current_tab == 7:  # Templates tab
+            self.on_new_template()
+        else:
+            # Default: show info
+            messagebox.showinfo("New Item", "Select Tasks, Projects, or Templates tab to create new items")
+    
+    def _switch_tab(self, index):
+        """Switch to tab by index."""
+        try:
+            if 0 <= index < self.notebook.index("end"):
+                self.notebook.select(index)
+        except:
+            pass
+    
+    def _close_window(self):
+        """Handle window close with optional confirmation."""
+        if messagebox.askokcancel("Quit", "Do you want to quit the application?"):
+            self.quit()
+    
+    def _escape_handler(self):
+        """Handle Escape key - clear selections or close dialogs."""
+        # Clear any text field focus
+        try:
+            self.focus_set()
+        except:
+            pass
 
     # ---------- Dashboard Tab ----------
 
@@ -1345,6 +1510,34 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             ToolTip(new_btn, text="Create a new project")
             ToolTip(save_btn, text="Save changes to the current project")
             ToolTip(delete_btn, text="Delete the selected project")
+        
+        # File Task Extraction Section
+        if TTKBOOTSTRAP_AVAILABLE:
+            extract_section = ttkb.Labelframe(detail, text="📄 Extract Tasks from File", bootstyle="info")
+        else:
+            extract_section = ttk.LabelFrame(detail, text="Extract Tasks from File")
+        extract_section.grid(row=row+2, column=0, columnspan=2, sticky="ew", padx=4, pady=(8, 4))
+        extract_section.columnconfigure(0, weight=1)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            extract_info = ttkb.Label(extract_section, text="Upload a file to automatically extract tasks using AI", bootstyle="secondary", wraplength=400)
+            extract_btn = ttkb.Button(extract_section, text="📁 Upload File & Extract Tasks", command=self.on_extract_tasks_from_file, bootstyle="info")
+        else:
+            extract_info = ttk.Label(extract_section, text="Upload a file to automatically extract tasks using AI", wraplength=400)
+            extract_btn = ttk.Button(extract_section, text="Upload File & Extract Tasks", command=self.on_extract_tasks_from_file)
+        extract_info.grid(row=0, column=0, sticky="w", padx=4, pady=4)
+        extract_btn.grid(row=1, column=0, sticky="ew", padx=4, pady=4)
+        
+        # Status label for extraction
+        self.extract_status_var = tk.StringVar(value="")
+        if TTKBOOTSTRAP_AVAILABLE:
+            extract_status = ttkb.Label(extract_section, textvariable=self.extract_status_var, bootstyle="secondary", wraplength=400)
+        else:
+            extract_status = ttk.Label(extract_section, textvariable=self.extract_status_var, wraplength=400)
+        extract_status.grid(row=2, column=0, sticky="w", padx=4, pady=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            ToolTip(extract_btn, text="Upload a file (txt, md, docx, pdf, etc.) and AI will extract tasks automatically")
 
     def refresh_project_list(self):
         for row in self.project_tree.get_children():
@@ -1445,6 +1638,71 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.state_obj.projects = [p for p in self.state_obj.projects if p.name != name]
         self.refresh_project_list()
         self.on_new_project()
+    
+    def on_extract_tasks_from_file(self):
+        """Extract tasks from an uploaded file for the selected project."""
+        # Check if a project is selected
+        sel = self.project_tree.selection()
+        if not sel:
+            messagebox.showwarning("No Project Selected", "Please select a project first to extract tasks into.")
+            return
+        
+        project_name = sel[0]
+        
+        # Open file dialog
+        file_path = filedialog.askopenfilename(
+            title="Select File to Extract Tasks From",
+            filetypes=[
+                ("All Supported", "*.txt *.md *.docx *.pdf *.rtf *.csv"),
+                ("Text Files", "*.txt"),
+                ("Markdown", "*.md"),
+                ("Word Documents", "*.docx"),
+                ("PDF Files", "*.pdf"),
+                ("Rich Text", "*.rtf"),
+                ("CSV Files", "*.csv"),
+                ("All Files", "*.*")
+            ]
+        )
+        
+        if not file_path:
+            return
+        
+        try:
+            # Update status
+            self.extract_status_var.set("🔄 Extracting tasks...")
+            self.update()
+            
+            # Import the extraction function
+            from .file_task_extraction import extract_and_create_tasks_from_file
+            
+            # Extract tasks
+            created_tasks = extract_and_create_tasks_from_file(
+                self.conn,
+                file_path,
+                project_name,
+                owner=self.state_obj.active_persona
+            )
+            
+            if created_tasks:
+                self.extract_status_var.set(f"✅ {len(created_tasks)} tasks extracted successfully!")
+                messagebox.showinfo(
+                    "Tasks Extracted",
+                    f"Successfully extracted {len(created_tasks)} tasks from the file.\n\n"
+                    f"Tasks have been added to project '{project_name}'.\n"
+                    f"View them in the Tasks tab."
+                )
+                # Refresh task list
+                self.refresh_all()
+            else:
+                self.extract_status_var.set("⚠️ No tasks found in file")
+                messagebox.showinfo(
+                    "No Tasks Found",
+                    "The file was processed but no tasks could be extracted.\n\n"
+                    "Make sure the file contains task-like items (bullet points, numbered lists, TODO items, etc.)"
+                )
+        except Exception as e:
+            self.extract_status_var.set(f"❌ Error: {str(e)}")
+            messagebox.showerror("Extraction Error", f"Failed to extract tasks from file:\n{e}")
 
     # ---------- AI Chat + Terminal Tab ----------
 
@@ -2227,6 +2485,768 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.refresh_integrations_list()
 
 
+# ---------- Tools & Operations Tab ----------
+
+    def _build_tools_tab(self):
+        """Build the Tools & Operations tab with GUI interfaces for CLI commands."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.tools_frame = ttkb.Frame(self.notebook)
+        else:
+            self.tools_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.tools_frame, text="🔧 Tools")
+        
+        self.tools_frame.columnconfigure(0, weight=1)
+        self.tools_frame.rowconfigure(0, weight=1)
+        
+        # Create notebook for different tool sections
+        if TTKBOOTSTRAP_AVAILABLE:
+            tools_notebook = ttkb.Notebook(self.tools_frame)
+        else:
+            tools_notebook = ttk.Notebook(self.tools_frame)
+        tools_notebook.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+        
+        # OneNote Notebooks section
+        self._build_onenote_tools_section(tools_notebook)
+        
+        # Excel Workbooks section
+        self._build_excel_tools_section(tools_notebook)
+        
+        # Document Summarization section
+        self._build_summarization_tools_section(tools_notebook)
+        
+        # Workflow Execution section
+        self._build_workflow_tools_section(tools_notebook)
+        
+        # Projects section (GUI for projects list/add)
+        self._build_projects_tools_section(tools_notebook)
+        
+        # Enhanced Chat with Agent Selection
+        self._build_agent_chat_section(tools_notebook)
+    
+    def _build_onenote_tools_section(self, parent):
+        """Build OneNote notebooks browser section."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(parent)
+        else:
+            frame = ttk.Frame(parent)
+        parent.add(frame, text="📓 OneNote Notebooks")
+        
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(1, weight=1)
+        
+        # Header
+        if TTKBOOTSTRAP_AVAILABLE:
+            header = ttkb.Label(frame, text="OneNote Notebooks", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            refresh_btn = ttkb.Button(frame, text="🔄 Refresh Notebooks", command=self.refresh_onenote_notebooks, bootstyle="info-outline")
+        else:
+            header = ttk.Label(frame, text="OneNote Notebooks", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            refresh_btn = ttk.Button(frame, text="Refresh Notebooks", command=self.refresh_onenote_notebooks)
+        
+        header.grid(row=0, column=0, sticky="w", padx=8, pady=(8, 4))
+        refresh_btn.grid(row=0, column=1, sticky="e", padx=8, pady=(8, 4))
+        
+        # Notebooks tree
+        columns = ("name", "id", "last_modified")
+        self.onenote_tree = ttk.Treeview(frame, columns=columns, show="headings", selectmode="browse")
+        self.onenote_tree.heading("name", text="Notebook Name")
+        self.onenote_tree.heading("id", text="ID")
+        self.onenote_tree.heading("last_modified", text="Last Modified")
+        
+        self.onenote_tree.column("name", width=300)
+        self.onenote_tree.column("id", width=200)
+        self.onenote_tree.column("last_modified", width=150)
+        
+        self.onenote_tree.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=8, pady=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            scrollbar = ttkb.Scrollbar(frame, orient="vertical", command=self.onenote_tree.yview, bootstyle="primary-round")
+        else:
+            scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.onenote_tree.yview)
+        self.onenote_tree.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=1, column=2, sticky="ns", pady=4)
+        
+        # Status label
+        self.onenote_status_var = tk.StringVar(value="Click 'Refresh Notebooks' to load OneNote notebooks")
+        if TTKBOOTSTRAP_AVAILABLE:
+            status_label = ttkb.Label(frame, textvariable=self.onenote_status_var, bootstyle="secondary")
+        else:
+            status_label = ttk.Label(frame, textvariable=self.onenote_status_var)
+        status_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=8, pady=4)
+    
+    def _build_excel_tools_section(self, parent):
+        """Build Excel workbooks browser section."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(parent)
+        else:
+            frame = ttk.Frame(parent)
+        parent.add(frame, text="📊 Excel Workbooks")
+        
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(1, weight=1)
+        
+        # Header
+        if TTKBOOTSTRAP_AVAILABLE:
+            header = ttkb.Label(frame, text="Excel Workbooks", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            refresh_btn = ttkb.Button(frame, text="🔄 Refresh Workbooks", command=self.refresh_excel_workbooks, bootstyle="info-outline")
+        else:
+            header = ttk.Label(frame, text="Excel Workbooks", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            refresh_btn = ttk.Button(frame, text="Refresh Workbooks", command=self.refresh_excel_workbooks)
+        
+        header.grid(row=0, column=0, sticky="w", padx=8, pady=(8, 4))
+        refresh_btn.grid(row=0, column=1, sticky="e", padx=8, pady=(8, 4))
+        
+        # Workbooks tree
+        columns = ("name", "id", "size", "modified")
+        self.excel_tree = ttk.Treeview(frame, columns=columns, show="headings", selectmode="browse")
+        self.excel_tree.heading("name", text="Workbook Name")
+        self.excel_tree.heading("id", text="ID")
+        self.excel_tree.heading("size", text="Size")
+        self.excel_tree.heading("modified", text="Modified")
+        
+        self.excel_tree.column("name", width=300)
+        self.excel_tree.column("id", width=200)
+        self.excel_tree.column("size", width=100)
+        self.excel_tree.column("modified", width=150)
+        
+        self.excel_tree.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=8, pady=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            scrollbar = ttkb.Scrollbar(frame, orient="vertical", command=self.excel_tree.yview, bootstyle="primary-round")
+        else:
+            scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.excel_tree.yview)
+        self.excel_tree.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=1, column=2, sticky="ns", pady=4)
+        
+        # Status label
+        self.excel_status_var = tk.StringVar(value="Click 'Refresh Workbooks' to load Excel workbooks from OneDrive")
+        if TTKBOOTSTRAP_AVAILABLE:
+            status_label = ttkb.Label(frame, textvariable=self.excel_status_var, bootstyle="secondary")
+        else:
+            status_label = ttk.Label(frame, textvariable=self.excel_status_var)
+        status_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=8, pady=4)
+    
+    def _build_summarization_tools_section(self, parent):
+        """Build document summarization section for Excel and Word."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(parent)
+        else:
+            frame = ttk.Frame(parent)
+        parent.add(frame, text="📝 Summarize Documents")
+        
+        frame.columnconfigure(0, weight=1)
+        
+        # Excel summarization
+        if TTKBOOTSTRAP_AVAILABLE:
+            excel_section = ttkb.Labelframe(frame, text="Excel Workbook Summarization", bootstyle="info")
+        else:
+            excel_section = ttk.LabelFrame(frame, text="Excel Workbook Summarization")
+        excel_section.grid(row=0, column=0, sticky="ew", padx=8, pady=8)
+        excel_section.columnconfigure(1, weight=1)
+        
+        ttk.Label(excel_section, text="File Path:").grid(row=0, column=0, sticky="w", padx=4, pady=4)
+        self.excel_summarize_path_var = tk.StringVar()
+        excel_path_entry = ttk.Entry(excel_section, textvariable=self.excel_summarize_path_var)
+        excel_path_entry.grid(row=0, column=1, sticky="ew", padx=4, pady=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            excel_browse_btn = ttkb.Button(excel_section, text="📂 Browse", command=lambda: self._browse_file(self.excel_summarize_path_var, [("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]), bootstyle="secondary-outline")
+            excel_summarize_btn = ttkb.Button(excel_section, text="📊 Summarize", command=self.on_summarize_excel, bootstyle="info")
+        else:
+            excel_browse_btn = ttk.Button(excel_section, text="Browse", command=lambda: self._browse_file(self.excel_summarize_path_var, [("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]))
+            excel_summarize_btn = ttk.Button(excel_section, text="Summarize", command=self.on_summarize_excel)
+        excel_browse_btn.grid(row=0, column=2, padx=4, pady=4)
+        excel_summarize_btn.grid(row=1, column=0, columnspan=3, sticky="ew", padx=4, pady=4)
+        
+        # Word summarization
+        if TTKBOOTSTRAP_AVAILABLE:
+            word_section = ttkb.Labelframe(frame, text="Word Document Summarization", bootstyle="info")
+        else:
+            word_section = ttk.LabelFrame(frame, text="Word Document Summarization")
+        word_section.grid(row=1, column=0, sticky="ew", padx=8, pady=8)
+        word_section.columnconfigure(1, weight=1)
+        
+        ttk.Label(word_section, text="File Path:").grid(row=0, column=0, sticky="w", padx=4, pady=4)
+        self.word_summarize_path_var = tk.StringVar()
+        word_path_entry = ttk.Entry(word_section, textvariable=self.word_summarize_path_var)
+        word_path_entry.grid(row=0, column=1, sticky="ew", padx=4, pady=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            word_browse_btn = ttkb.Button(word_section, text="📂 Browse", command=lambda: self._browse_file(self.word_summarize_path_var, [("Word files", "*.docx *.doc"), ("All files", "*.*")]), bootstyle="secondary-outline")
+            word_summarize_btn = ttkb.Button(word_section, text="📝 Summarize", command=self.on_summarize_word, bootstyle="info")
+        else:
+            word_browse_btn = ttk.Button(word_section, text="Browse", command=lambda: self._browse_file(self.word_summarize_path_var, [("Word files", "*.docx *.doc"), ("All files", "*.*")]))
+            word_summarize_btn = ttk.Button(word_section, text="Summarize", command=self.on_summarize_word)
+        word_browse_btn.grid(row=0, column=2, padx=4, pady=4)
+        word_summarize_btn.grid(row=1, column=0, columnspan=3, sticky="ew", padx=4, pady=4)
+        
+        # Result display
+        if TTKBOOTSTRAP_AVAILABLE:
+            result_section = ttkb.Labelframe(frame, text="Result", bootstyle="secondary")
+        else:
+            result_section = ttk.LabelFrame(frame, text="Result")
+        result_section.grid(row=2, column=0, sticky="nsew", padx=8, pady=8)
+        result_section.columnconfigure(0, weight=1)
+        result_section.rowconfigure(0, weight=1)
+        frame.rowconfigure(2, weight=1)
+        
+        self.summarization_result_text = tk.Text(result_section, wrap="word", height=10, font=self.text_font)
+        self.summarization_result_text.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            result_scrollbar = ttkb.Scrollbar(result_section, orient="vertical", command=self.summarization_result_text.yview, bootstyle="primary-round")
+        else:
+            result_scrollbar = ttk.Scrollbar(result_section, orient="vertical", command=self.summarization_result_text.yview)
+        self.summarization_result_text.configure(yscroll=result_scrollbar.set)
+        result_scrollbar.grid(row=0, column=1, sticky="ns")
+    
+    def _build_workflow_tools_section(self, parent):
+        """Build workflow execution section."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(parent)
+        else:
+            frame = ttk.Frame(parent)
+        parent.add(frame, text="⚙️ Workflows")
+        
+        frame.columnconfigure(0, weight=1)
+        
+        # Notebook cleanup workflow
+        if TTKBOOTSTRAP_AVAILABLE:
+            workflow_section = ttkb.Labelframe(frame, text="Clean OneNote Notebook Workflow", bootstyle="warning")
+        else:
+            workflow_section = ttk.LabelFrame(frame, text="Clean OneNote Notebook Workflow")
+        workflow_section.grid(row=0, column=0, sticky="ew", padx=8, pady=8)
+        workflow_section.columnconfigure(1, weight=1)
+        
+        ttk.Label(workflow_section, text="Notebook Path/ID:").grid(row=0, column=0, sticky="w", padx=4, pady=4)
+        self.workflow_notebook_var = tk.StringVar()
+        workflow_entry = ttk.Entry(workflow_section, textvariable=self.workflow_notebook_var)
+        workflow_entry.grid(row=0, column=1, sticky="ew", padx=4, pady=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            workflow_run_btn = ttkb.Button(workflow_section, text="🧹 Run Clean Notebook Workflow", command=self.on_run_clean_notebook_workflow, bootstyle="warning")
+        else:
+            workflow_run_btn = ttk.Button(workflow_section, text="Run Clean Notebook Workflow", command=self.on_run_clean_notebook_workflow)
+        workflow_run_btn.grid(row=1, column=0, columnspan=2, sticky="ew", padx=4, pady=4)
+        
+        # Workflow result display
+        if TTKBOOTSTRAP_AVAILABLE:
+            result_section = ttkb.Labelframe(frame, text="Workflow Result", bootstyle="secondary")
+        else:
+            result_section = ttk.LabelFrame(frame, text="Workflow Result")
+        result_section.grid(row=1, column=0, sticky="nsew", padx=8, pady=8)
+        result_section.columnconfigure(0, weight=1)
+        result_section.rowconfigure(0, weight=1)
+        frame.rowconfigure(1, weight=1)
+        
+        self.workflow_result_text = tk.Text(result_section, wrap="word", height=10, font=self.text_font)
+        self.workflow_result_text.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            workflow_scrollbar = ttkb.Scrollbar(result_section, orient="vertical", command=self.workflow_result_text.yview, bootstyle="primary-round")
+        else:
+            workflow_scrollbar = ttk.Scrollbar(result_section, orient="vertical", command=self.workflow_result_text.yview)
+        self.workflow_result_text.configure(yscroll=workflow_scrollbar.set)
+        workflow_scrollbar.grid(row=0, column=1, sticky="ns")
+    
+    def _build_projects_tools_section(self, parent):
+        """Build projects list/add GUI section."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(parent)
+        else:
+            frame = ttk.Frame(parent)
+        parent.add(frame, text="📁 Projects")
+        
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(0, weight=1)
+        
+        # Info message
+        if TTKBOOTSTRAP_AVAILABLE:
+            info_text = ttkb.Label(frame, text="💡 Tip: Use the 'Projects' tab for full project management. This is a quick access view.", bootstyle="info")
+        else:
+            info_text = ttk.Label(frame, text="Tip: Use the 'Projects' tab for full project management. This is a quick access view.")
+        info_text.grid(row=0, column=0, sticky="w", padx=8, pady=8)
+        
+        # Quick project list
+        if TTKBOOTSTRAP_AVAILABLE:
+            list_section = ttkb.Labelframe(frame, text="Known Projects", bootstyle="primary")
+        else:
+            list_section = ttk.LabelFrame(frame, text="Known Projects")
+        list_section.grid(row=1, column=0, sticky="nsew", padx=8, pady=8)
+        list_section.columnconfigure(0, weight=1)
+        list_section.rowconfigure(0, weight=1)
+        frame.rowconfigure(1, weight=1)
+        
+        columns = ("name", "priority", "status", "tasks")
+        self.projects_tools_tree = ttk.Treeview(list_section, columns=columns, show="headings", selectmode="browse")
+        self.projects_tools_tree.heading("name", text="Project Name")
+        self.projects_tools_tree.heading("priority", text="Priority")
+        self.projects_tools_tree.heading("status", text="Status")
+        self.projects_tools_tree.heading("tasks", text="# Tasks")
+        
+        self.projects_tools_tree.column("name", width=250)
+        self.projects_tools_tree.column("priority", width=100)
+        self.projects_tools_tree.column("status", width=100)
+        self.projects_tools_tree.column("tasks", width=80)
+        
+        self.projects_tools_tree.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            projects_scrollbar = ttkb.Scrollbar(list_section, orient="vertical", command=self.projects_tools_tree.yview, bootstyle="primary-round")
+        else:
+            projects_scrollbar = ttk.Scrollbar(list_section, orient="vertical", command=self.projects_tools_tree.yview)
+        self.projects_tools_tree.configure(yscroll=projects_scrollbar.set)
+        projects_scrollbar.grid(row=0, column=1, sticky="ns")
+        
+        # Quick add project
+        if TTKBOOTSTRAP_AVAILABLE:
+            add_section = ttkb.Labelframe(frame, text="Quick Add Project", bootstyle="success")
+        else:
+            add_section = ttk.LabelFrame(frame, text="Quick Add Project")
+        add_section.grid(row=2, column=0, sticky="ew", padx=8, pady=8)
+        add_section.columnconfigure(1, weight=1)
+        
+        ttk.Label(add_section, text="Project Name:").grid(row=0, column=0, sticky="w", padx=4, pady=4)
+        self.quick_project_name_var = tk.StringVar()
+        quick_name_entry = ttk.Entry(add_section, textvariable=self.quick_project_name_var)
+        quick_name_entry.grid(row=0, column=1, sticky="ew", padx=4, pady=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            quick_add_btn = ttkb.Button(add_section, text="➕ Add Project", command=self.on_quick_add_project, bootstyle="success")
+            refresh_projects_btn = ttkb.Button(add_section, text="🔄 Refresh", command=self.refresh_projects_tools_list, bootstyle="secondary-outline")
+        else:
+            quick_add_btn = ttk.Button(add_section, text="Add Project", command=self.on_quick_add_project)
+            refresh_projects_btn = ttk.Button(add_section, text="Refresh", command=self.refresh_projects_tools_list)
+        quick_add_btn.grid(row=0, column=2, padx=4, pady=4)
+        refresh_projects_btn.grid(row=1, column=0, columnspan=3, sticky="ew", padx=4, pady=4)
+        
+        # Bind Enter key to add project
+        quick_name_entry.bind("<Return>", lambda e: self.on_quick_add_project())
+        
+        # Initial refresh
+        self.refresh_projects_tools_list()
+    
+    def _build_agent_chat_section(self, parent):
+        """Build enhanced chat section with agent selection."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(parent)
+        else:
+            frame = ttk.Frame(parent)
+        parent.add(frame, text="💬 Agent Chat")
+        
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(1, weight=1)
+        
+        # Info message
+        if TTKBOOTSTRAP_AVAILABLE:
+            info_text = ttkb.Label(frame, text="💡 Tip: Use the 'Chat' tab for full chat interface. This is a quick agent chat interface.", bootstyle="info")
+        else:
+            info_text = ttk.Label(frame, text="Tip: Use the 'Chat' tab for full chat interface. This is a quick agent chat interface.")
+        info_text.grid(row=0, column=0, sticky="w", padx=8, pady=8)
+        
+        # Agent selection and input
+        if TTKBOOTSTRAP_AVAILABLE:
+            input_section = ttkb.Labelframe(frame, text="Send Message to Agent", bootstyle="primary")
+        else:
+            input_section = ttk.LabelFrame(frame, text="Send Message to Agent")
+        input_section.grid(row=1, column=0, sticky="ew", padx=8, pady=8)
+        input_section.columnconfigure(1, weight=1)
+        
+        ttk.Label(input_section, text="Agent:").grid(row=0, column=0, sticky="w", padx=4, pady=4)
+        self.agent_chat_agent_var = tk.StringVar(value="AIC")
+        if TTKBOOTSTRAP_AVAILABLE:
+            agent_combo = ttkb.Combobox(input_section, textvariable=self.agent_chat_agent_var, values=["AIC", "Aria", "Sora"], state="readonly", bootstyle="primary")
+        else:
+            agent_combo = ttk.Combobox(input_section, textvariable=self.agent_chat_agent_var, values=["AIC", "Aria", "Sora"], state="readonly")
+        agent_combo.grid(row=0, column=1, sticky="w", padx=4, pady=4)
+        
+        ttk.Label(input_section, text="Message:").grid(row=1, column=0, sticky="nw", padx=4, pady=4)
+        self.agent_chat_message_text = tk.Text(input_section, height=5, wrap="word", font=self.text_font)
+        self.agent_chat_message_text.grid(row=1, column=1, sticky="ew", padx=4, pady=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            agent_chat_send_btn = ttkb.Button(input_section, text="📤 Send to Agent", command=self.on_send_agent_message, bootstyle="primary")
+        else:
+            agent_chat_send_btn = ttk.Button(input_section, text="Send to Agent", command=self.on_send_agent_message)
+        agent_chat_send_btn.grid(row=2, column=0, columnspan=2, sticky="ew", padx=4, pady=4)
+        
+        # Response display
+        if TTKBOOTSTRAP_AVAILABLE:
+            response_section = ttkb.Labelframe(frame, text="Agent Response", bootstyle="secondary")
+        else:
+            response_section = ttk.LabelFrame(frame, text="Agent Response")
+        response_section.grid(row=2, column=0, sticky="nsew", padx=8, pady=8)
+        response_section.columnconfigure(0, weight=1)
+        response_section.rowconfigure(0, weight=1)
+        frame.rowconfigure(2, weight=1)
+        
+        self.agent_chat_response_text = tk.Text(response_section, wrap="word", height=10, font=self.text_font, state="disabled")
+        self.agent_chat_response_text.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            agent_chat_scrollbar = ttkb.Scrollbar(response_section, orient="vertical", command=self.agent_chat_response_text.yview, bootstyle="primary-round")
+        else:
+            agent_chat_scrollbar = ttk.Scrollbar(response_section, orient="vertical", command=self.agent_chat_response_text.yview)
+        self.agent_chat_response_text.configure(yscroll=agent_chat_scrollbar.set)
+        agent_chat_scrollbar.grid(row=0, column=1, sticky="ns")
+    
+    # ---------- Tools Tab Handler Methods ----------
+    
+    def refresh_onenote_notebooks(self):
+        """Refresh the list of OneNote notebooks."""
+        try:
+            # Clear existing items
+            for item in self.onenote_tree.get_children():
+                self.onenote_tree.delete(item)
+            
+            if not ONENOTE_CLIENT_AVAILABLE or OneNoteClient is None:
+                self.onenote_status_var.set("❌ OneNote client not available. Check Microsoft Graph configuration.")
+                return
+            
+            self.onenote_status_var.set("🔄 Loading notebooks...")
+            self.update()
+            
+            try:
+                client = OneNoteClient()
+                notebooks = client.list_notebooks()
+                
+                if not notebooks:
+                    self.onenote_status_var.set("ℹ️ No notebooks found or not authenticated. Check Microsoft Graph credentials.")
+                    return
+                
+                for nb in notebooks:
+                    name = nb.get("displayName", "Unknown")
+                    nb_id = nb.get("id", "")
+                    last_modified = nb.get("lastModifiedDateTime", "Unknown")
+                    if last_modified and "T" in last_modified:
+                        last_modified = last_modified.replace("T", " ")[:16]
+                    
+                    self.onenote_tree.insert("", "end", values=(name, nb_id, last_modified))
+                
+                self.onenote_status_var.set(f"✅ Loaded {len(notebooks)} notebook(s)")
+            except Exception as e:
+                self.onenote_status_var.set(f"❌ Error: {str(e)}")
+                messagebox.showerror("Error", f"Failed to load OneNote notebooks: {e}")
+        except Exception as e:
+            self.onenote_status_var.set(f"❌ Error: {str(e)}")
+            messagebox.showerror("Error", f"Failed to refresh notebooks: {e}")
+    
+    def refresh_excel_workbooks(self):
+        """Refresh the list of Excel workbooks from OneDrive."""
+        try:
+            # Clear existing items
+            for item in self.excel_tree.get_children():
+                self.excel_tree.delete(item)
+            
+            if not EXCEL_CLOUD_AVAILABLE or ExcelCloudClient is None:
+                self.excel_status_var.set("❌ Excel cloud client not available. Check Microsoft Graph configuration.")
+                return
+            
+            self.excel_status_var.set("🔄 Loading workbooks...")
+            self.update()
+            
+            try:
+                client = ExcelCloudClient()
+                items = client.list_workbooks()
+                
+                # Filter for Excel files
+                excel_files = [item for item in items if item.get("name", "").endswith((".xlsx", ".xls"))]
+                
+                if not excel_files:
+                    self.excel_status_var.set("ℹ️ No Excel workbooks found or not authenticated. Check Microsoft Graph credentials.")
+                    return
+                
+                for item in excel_files:
+                    name = item.get("name", "Unknown")
+                    item_id = item.get("id", "")
+                    size = item.get("size", 0)
+                    size_str = f"{size / 1024:.1f} KB" if size > 0 else "Unknown"
+                    modified = item.get("lastModifiedDateTime", "Unknown")
+                    if modified and "T" in modified:
+                        modified = modified.replace("T", " ")[:16]
+                    
+                    self.excel_tree.insert("", "end", values=(name, item_id, size_str, modified))
+                
+                self.excel_status_var.set(f"✅ Loaded {len(excel_files)} workbook(s)")
+            except Exception as e:
+                self.excel_status_var.set(f"❌ Error: {str(e)}")
+                messagebox.showerror("Error", f"Failed to load Excel workbooks: {e}")
+        except Exception as e:
+            self.excel_status_var.set(f"❌ Error: {str(e)}")
+            messagebox.showerror("Error", f"Failed to refresh workbooks: {e}")
+    
+    def _browse_file(self, var: tk.StringVar, filetypes):
+        """Helper method to browse for a file."""
+        filename = filedialog.askopenfilename(filetypes=filetypes)
+        if filename:
+            var.set(filename)
+    
+    def on_summarize_excel(self):
+        """Summarize a local Excel workbook."""
+        path = self.excel_summarize_path_var.get().strip()
+        if not path:
+            messagebox.showwarning("No File", "Please select an Excel file to summarize.")
+            return
+        
+        if not os.path.exists(path):
+            messagebox.showerror("File Not Found", f"The file does not exist: {path}")
+            return
+        
+        try:
+            self.summarization_result_text.delete("1.0", "end")
+            self.summarization_result_text.insert("1.0", "🔄 Summarizing Excel workbook...\n")
+            self.update()
+            
+            if not EXCEL_SERVICE_AVAILABLE or summarize_local_workbook is None:
+                self.summarization_result_text.delete("1.0", "end")
+                self.summarization_result_text.insert("1.0", "❌ Excel service not available. pandas may not be installed.\n")
+                messagebox.showerror("Error", "Excel summarization requires pandas. Install with: pip install pandas")
+                return
+            
+            # Summarize the workbook
+            result = summarize_local_workbook(path, "Generate a summary of this workbook")
+            
+            summary_path = result.get("summary_path", "")
+            
+            if summary_path and os.path.exists(summary_path):
+                with open(summary_path, 'r') as f:
+                    summary_content = f.read()
+                
+                self.summarization_result_text.delete("1.0", "end")
+                self.summarization_result_text.insert("1.0", f"✅ Summary generated successfully!\n\n")
+                self.summarization_result_text.insert("end", f"Summary saved to: {summary_path}\n\n")
+                self.summarization_result_text.insert("end", "Summary Content:\n" + "="*50 + "\n\n")
+                self.summarization_result_text.insert("end", summary_content)
+            else:
+                self.summarization_result_text.delete("1.0", "end")
+                self.summarization_result_text.insert("1.0", "✅ Summarization completed. Check the summary file next to the workbook.\n")
+            
+            messagebox.showinfo("Success", "Excel workbook summarized successfully!")
+        except Exception as e:
+            self.summarization_result_text.delete("1.0", "end")
+            self.summarization_result_text.insert("1.0", f"❌ Error: {str(e)}\n")
+            messagebox.showerror("Error", f"Failed to summarize Excel workbook: {e}")
+    
+    def on_summarize_word(self):
+        """Summarize a local Word document."""
+        path = self.word_summarize_path_var.get().strip()
+        if not path:
+            messagebox.showwarning("No File", "Please select a Word document to summarize.")
+            return
+        
+        if not os.path.exists(path):
+            messagebox.showerror("File Not Found", f"The file does not exist: {path}")
+            return
+        
+        try:
+            self.summarization_result_text.delete("1.0", "end")
+            self.summarization_result_text.insert("1.0", "🔄 Summarizing Word document...\n")
+            self.update()
+            
+            if not WORD_SERVICE_AVAILABLE or WordService is None:
+                self.summarization_result_text.delete("1.0", "end")
+                self.summarization_result_text.insert("1.0", "❌ Word service not available. python-docx may not be installed.\n")
+                messagebox.showerror("Error", "Word summarization requires python-docx. Install with: pip install python-docx")
+                return
+            
+            # Read and summarize the document
+            from docx import Document
+            
+            doc = Document(path)
+            text_content = "\n".join([para.text for para in doc.paragraphs])
+            
+            # Use AI to summarize (simplified - in real implementation, use WordService)
+            if openai_available():
+                from .ai_layer.tools import summarize_text
+                summary = summarize_text(text_content, style="clear")
+                
+                self.summarization_result_text.delete("1.0", "end")
+                self.summarization_result_text.insert("1.0", "✅ Summary generated successfully!\n\n")
+                self.summarization_result_text.insert("end", "Summary:\n" + "="*50 + "\n\n")
+                self.summarization_result_text.insert("end", summary)
+            else:
+                # Fallback: show first few paragraphs
+                preview = "\n".join([para.text for para in doc.paragraphs[:10]])
+                self.summarization_result_text.delete("1.0", "end")
+                self.summarization_result_text.insert("1.0", "ℹ️ OpenAI not available. Showing document preview:\n\n")
+                self.summarization_result_text.insert("end", preview[:500] + ("..." if len(preview) > 500 else ""))
+            
+            messagebox.showinfo("Success", "Word document summarized successfully!")
+        except Exception as e:
+            self.summarization_result_text.delete("1.0", "end")
+            self.summarization_result_text.insert("1.0", f"❌ Error: {str(e)}\n")
+            messagebox.showerror("Error", f"Failed to summarize Word document: {e}")
+    
+    def on_run_clean_notebook_workflow(self):
+        """Run the clean notebook workflow."""
+        notebook_path_or_id = self.workflow_notebook_var.get().strip()
+        if not notebook_path_or_id:
+            messagebox.showwarning("No Notebook", "Please enter a notebook path or ID.")
+            return
+        
+        try:
+            self.workflow_result_text.delete("1.0", "end")
+            self.workflow_result_text.insert("1.0", "🔄 Running clean notebook workflow...\n")
+            self.update()
+            
+            if not WORKFLOWS_AVAILABLE or CleanNotebookWorkflow is None:
+                self.workflow_result_text.delete("1.0", "end")
+                self.workflow_result_text.insert("1.0", "❌ Workflow system not available.\n")
+                messagebox.showerror("Error", "Workflow system not available.")
+                return
+            
+            # Import required services
+            try:
+                from .integrations.onenote.service import OneNoteService
+                onenote_service = OneNoteService()
+                workflow = CleanNotebookWorkflow(onenote_service)
+                
+                # Run the workflow
+                workflow.run(notebook_path_or_id, actor="AIC")
+                
+                self.workflow_result_text.delete("1.0", "end")
+                self.workflow_result_text.insert("1.0", f"✅ Clean notebook workflow completed successfully!\n\n")
+                self.workflow_result_text.insert("end", f"Notebook: {notebook_path_or_id}\n")
+                self.workflow_result_text.insert("end", "The notebook has been cleaned and changes have been committed.\n")
+                
+                messagebox.showinfo("Success", "Clean notebook workflow completed successfully!")
+            except Exception as e:
+                self.workflow_result_text.delete("1.0", "end")
+                self.workflow_result_text.insert("1.0", f"❌ Error: {str(e)}\n")
+                messagebox.showerror("Error", f"Failed to run workflow: {e}")
+        except Exception as e:
+            self.workflow_result_text.delete("1.0", "end")
+            self.workflow_result_text.insert("1.0", f"❌ Error: {str(e)}\n")
+            messagebox.showerror("Error", f"Failed to run workflow: {e}")
+    
+    def refresh_projects_tools_list(self):
+        """Refresh the projects list in the Tools tab."""
+        try:
+            # Clear existing items
+            for item in self.projects_tools_tree.get_children():
+                self.projects_tools_tree.delete(item)
+            
+            # Load current state
+            self.state_obj = load_state(self.conn)
+            
+            # Count tasks per project
+            counts: Dict[str, int] = {}
+            for t in self.state_obj.tasks:
+                counts[t.project] = counts.get(t.project, 0) + 1
+            
+            # Add projects to tree
+            priority_weight = {p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)}
+            projects_sorted = sorted(
+                self.state_obj.projects,
+                key=lambda p: (priority_weight.get(p.priority, 1), p.name),
+                reverse=True,
+            )
+            
+            for p in projects_sorted:
+                self.projects_tools_tree.insert(
+                    "",
+                    "end",
+                    iid=p.name,
+                    values=(p.name, p.priority, p.status, counts.get(p.name, 0)),
+                )
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to refresh projects list: {e}")
+    
+    def on_quick_add_project(self):
+        """Quick add a project from the Tools tab."""
+        name = self.quick_project_name_var.get().strip()
+        if not name:
+            messagebox.showwarning("No Name", "Please enter a project name.")
+            return
+        
+        # Check if project already exists
+        existing = next((p for p in self.state_obj.projects if p.name == name), None)
+        if existing:
+            messagebox.showinfo("Exists", f"Project '{name}' already exists.")
+            return
+        
+        try:
+            # Create new project
+            new_project = Project(
+                name=name,
+                description="",
+                priority="MEDIUM",
+                status="active"
+            )
+            
+            db_upsert_project(self.conn, new_project)
+            self.state_obj.projects.append(new_project)
+            
+            # Clear input and refresh list
+            self.quick_project_name_var.set("")
+            self.refresh_projects_tools_list()
+            
+            messagebox.showinfo("Success", f"Project '{name}' added successfully!")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to add project: {e}")
+    
+    def on_send_agent_message(self):
+        """Send a message to the selected agent."""
+        agent = self.agent_chat_agent_var.get()
+        message = self.agent_chat_message_text.get("1.0", "end").strip()
+        
+        if not message:
+            messagebox.showwarning("No Message", "Please enter a message.")
+            return
+        
+        if not openai_available():
+            messagebox.showerror("Error", "OpenAI API is not available. Please configure your API key.")
+            return
+        
+        try:
+            self.agent_chat_response_text.config(state="normal")
+            self.agent_chat_response_text.delete("1.0", "end")
+            self.agent_chat_response_text.insert("1.0", f"🔄 Sending message to {agent}...\n")
+            self.update()
+            
+            # Get agent model
+            model = get_agent_model(agent)
+            
+            # Create chat history
+            history = [
+                ChatMessage(role="user", content=message, timestamp=datetime.now().isoformat())
+            ]
+            
+            # Generate response
+            response = generate_ai_reply(
+                history=history,
+                persona=agent,
+                model=model,
+                temperature=0.7
+            )
+            
+            self.agent_chat_response_text.delete("1.0", "end")
+            self.agent_chat_response_text.insert("1.0", f"Response from {agent}:\n" + "="*50 + "\n\n")
+            self.agent_chat_response_text.insert("end", response)
+            self.agent_chat_response_text.config(state="disabled")
+            
+            # Save to chat history
+            db_insert_chat_message(self.conn, ChatMessage(
+                role="user",
+                content=message,
+                timestamp=datetime.now().isoformat(),
+                persona=agent
+            ))
+            db_insert_chat_message(self.conn, ChatMessage(
+                role="assistant",
+                content=response,
+                timestamp=datetime.now().isoformat(),
+                persona=agent
+            ))
+            
+            # Clear input
+            self.agent_chat_message_text.delete("1.0", "end")
+        except Exception as e:
+            self.agent_chat_response_text.config(state="normal")
+            self.agent_chat_response_text.delete("1.0", "end")
+            self.agent_chat_response_text.insert("1.0", f"❌ Error: {str(e)}\n")
+            self.agent_chat_response_text.config(state="disabled")
+            messagebox.showerror("Error", f"Failed to send message: {e}")
+
 # ---------- Analytics Tab ----------
 
     def _build_analytics_tab(self):
@@ -2909,6 +3929,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def on_close(self):
         save_active_persona(self.conn, self.state_obj)
         save_settings(self.conn, self.settings)
+        
+        # Stop cognitive daemon system
+        try:
+            from .daemon import stop_daemon_system
+            stop_daemon_system()
+            print("[GUI] Cognitive daemon system stopped")
+        except Exception:
+            pass
+        
         self.conn.close()
         self.destroy()
 
