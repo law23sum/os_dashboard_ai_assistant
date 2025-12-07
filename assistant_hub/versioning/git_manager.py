@@ -10,6 +10,10 @@ class GitManager:
     def __init__(self, repo_root: Path | None = None):
         self.repo_root = repo_root or Path.cwd()
 
+    @property
+    def is_repo(self) -> bool:
+        return (self.repo_root / ".git").exists()
+
     def run(self, *args: str) -> subprocess.CompletedProcess:
         return subprocess.run(["git", *args], cwd=self.repo_root, check=True, capture_output=True, text=True)
 

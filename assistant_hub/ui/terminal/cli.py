@@ -11,6 +11,7 @@ from assistant_hub.config import AppConfig
 from assistant_hub.core.models import AssistantState, Project, Task
 from assistant_hub.core.routing.router import AgentRouter
 from assistant_hub.core.state.json_store import JSONStateStore
+from assistant_hub.core.audit import AuditLogger
 from assistant_hub.ai.openai_client import OpenAIClient
 from assistant_hub.ai.agents.aic import AICAgent
 from assistant_hub.ai.agents.aria import AriaAgent
@@ -23,7 +24,8 @@ from assistant_hub.integrations.excel.service import ExcelService
 from assistant_hub.integrations.excel.cloud_client import ExcelCloudClient
 from assistant_hub.integrations.word.service import WordService
 from assistant_hub.integrations.software_locator import SoftwareLocator
-from assistant_hub.ai.workflows import clean_notebook_workflow
+from assistant_hub.ai.workflows import clean_notebook_workflow, knowledge_pipeline
+from assistant_hub.versioning.git_manager import GitManager
 
 console = Console()
 
@@ -46,6 +48,8 @@ def cli(ctx: click.Context) -> None:
     excel = ExcelService(ExcelCloudClient(graph_client))
     word = WordService()
     locator = SoftwareLocator()
+    git_manager = GitManager()
+    audit = AuditLogger(cfg.audit_log_file, git_manager=git_manager)
 
     ctx.obj = {
         "cfg": cfg,
@@ -56,6 +60,7 @@ def cli(ctx: click.Context) -> None:
         "excel": excel,
         "word": word,
         "locator": locator,
+        "audit": audit,
     }
 
 
@@ -198,6 +203,24 @@ def chat(ctx: click.Context, agent: str, message: str) -> None:
 @click.pass_context
 def workflow_clean_notebook(ctx: click.Context, path: str) -> None:  # noqa: ARG001
     console.print(clean_notebook_workflow(path))
+
+
+@cli.command("workflow-knowledge-pipeline")
+@click.argument("path")
+@click.option("--project", default="default", help="Project name for audit and context")
+@click.pass_context
+def workflow_knowledge_pipeline(ctx: click.Context, path: str, project: str) -> None:
+    """Transform raw notes into a structured deliverable and audit the run."""
+
+    cfg: AppConfig = ctx.obj["cfg"]
+    audit: AuditLogger = ctx.obj["audit"]
+    result = knowledge_pipeline(
+        notes_path=Path(path),
+        output_dir=cfg.deliverables_dir,
+        project=project,
+        audit=audit,
+    )
+    console.print_json(json.dumps(result))
 
 
 def main() -> None:
