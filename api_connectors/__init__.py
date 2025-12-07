@@ -6,9 +6,8 @@ import logging
 from .base import IntegrationAPIGateway
 from .microsoft_graph import MicrosoftGraphConnector, ResourceRef
 from .universal_connector import (
-    AppleNotesConnector,
+    AuthenticationException,
     BaseConnector,
-    CIRDocument,
     ConnectorCapability,
     ConnectorConfig,
     ConnectorManager,
@@ -18,25 +17,25 @@ from .universal_connector import (
     GitConnector,
     OfficeFileConnector,
     OpenAIConnector,
+    ConnectorException,
+    ConnectorHealthMonitor,
     OperationResult,
-    PDFConnector,
-    Section,
+    OperationStatus,
+    RateLimitException,
+    ResourceNotFoundException,
+    UnsupportedOperationException,
 )
 
 logger = logging.getLogger(__name__)
 
 __version__ = "1.1.0"
 __all__ = [
-    "AppleNotesConnector",
+    "AuthenticationException",
     "BaseConnector",
-    "CIRDocument",
     "ConnectorCapability",
     "ConnectorConfig",
-    "ConnectorManager",
-    "ConnectorRegistry",
-    "ContentBlock",
-    "ContentBlockType",
-    "GitConnector",
+    "ConnectorException",
+    "ConnectorHealthMonitor",
     "IntegrationAPIGateway",
     "MicrosoftGraphConnector",
     "OfficeFileConnector",
@@ -45,6 +44,11 @@ __all__ = [
     "PDFConnector",
     "ResourceRef",
     "Section",
+    "OperationResult",
+    "OperationStatus",
+    "RateLimitException",
+    "ResourceNotFoundException",
+    "UnsupportedOperationException",
     "get_connector",
     "list_available_connectors",
     "register_connector",
@@ -66,7 +70,7 @@ def list_available_connectors() -> Dict[str, Any]:
     return _connector_registry.copy()
 
 
-def register_connector(name: str, connector_class: Any):
+def register_connector(name: str, connector_class: Any) -> None:
     """Register a connector class."""
 
     _connector_registry[name] = connector_class
