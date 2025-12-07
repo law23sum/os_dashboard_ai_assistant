@@ -4,11 +4,19 @@ from typing import Any, Dict, Optional
 import logging
 
 from .base import IntegrationAPIGateway
+from .microsoft_graph import MicrosoftGraphConnector, ResourceRef
 from .universal_connector import (
     AuthenticationException,
     BaseConnector,
     ConnectorCapability,
     ConnectorConfig,
+    ConnectorManager,
+    ConnectorRegistry,
+    ContentBlock,
+    ContentBlockType,
+    GitConnector,
+    OfficeFileConnector,
+    OpenAIConnector,
     ConnectorException,
     ConnectorHealthMonitor,
     OperationResult,
@@ -29,6 +37,13 @@ __all__ = [
     "ConnectorException",
     "ConnectorHealthMonitor",
     "IntegrationAPIGateway",
+    "MicrosoftGraphConnector",
+    "OfficeFileConnector",
+    "OpenAIConnector",
+    "OperationResult",
+    "PDFConnector",
+    "ResourceRef",
+    "Section",
     "OperationResult",
     "OperationStatus",
     "RateLimitException",
