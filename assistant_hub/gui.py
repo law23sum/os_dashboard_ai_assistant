@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 import base64
+import json
 import os
 import sqlite3
+import subprocess
 import threading
 import uuid
 from datetime import datetime
 from typing import Dict, Optional
+from queue import Queue
 
 import tkinter as tk
 from tkinter import ttk, messagebox, font as tkfont, filedialog
@@ -74,6 +77,7 @@ from .integrations import (
     FilesystemIntegration,
     GitIntegration,
     PDFIntegration,
+    IntegrationAPIGateway,
 )
 from .task_automation import process_recurring_tasks, check_task_dependencies
 from .task_templates import load_templates, save_template, delete_template, create_task_from_template, TaskTemplate
@@ -265,6 +269,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_status_var = tk.StringVar()
         self.system_prompt_text = None
         self.chat_text = None
+        self.change_log_text = None
         self.command_var = tk.StringVar()
         self.cwd_var = tk.StringVar(value=os.getcwd())
 
@@ -310,6 +315,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         # Initialize sync scheduler
         self.sync_scheduler = create_default_scheduler(self.conn)
+        self.integration_api = IntegrationAPIGateway(self.conn, scheduler=self.sync_scheduler)
         # Start scheduler in background (optional - can be started manually)
         # self.sync_scheduler.start()
         
@@ -1493,16 +1499,74 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.notebook.add(self.chat_frame, text="AI Console")
 
         self.chat_frame.columnconfigure(0, weight=1)
-        self.chat_frame.rowconfigure(0, weight=3)
-        self.chat_frame.rowconfigure(1, weight=2)
+        self.chat_frame.rowconfigure(0, weight=1)
+
+        # Two-column layout: documents on the left, conversation on the right
+        chat_container = ttkb.Frame(self.chat_frame) if TTKBOOTSTRAP_AVAILABLE else ttk.Frame(self.chat_frame)
+        chat_container.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+        chat_container.columnconfigure(0, weight=1)
+        chat_container.columnconfigure(1, weight=2)
+        chat_container.rowconfigure(0, weight=3)
+        chat_container.rowconfigure(1, weight=1)
+
+        self._build_document_panel(chat_container)
+        self._build_conversation_panel(chat_container)
+        self._build_change_monitor(chat_container)
+
+    def _build_document_panel(self, parent):
+        if TTKBOOTSTRAP_AVAILABLE:
+            doc_frame = ttkb.Labelframe(parent, text="📁 Document Intake", bootstyle="info")
+        else:
+            doc_frame = ttk.LabelFrame(parent, text="Document Intake")
+        doc_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 8), pady=4)
+        doc_frame.columnconfigure(0, weight=1)
+
+        help_text = (
+            "Import snippets directly into the prompt or upload reference files for agents."
+        )
+        ttk.Label(doc_frame, text=help_text, wraplength=280, justify="left").grid(row=0, column=0, sticky="w", padx=6, pady=4)
+
+        btns = ttkb.Frame(doc_frame) if TTKBOOTSTRAP_AVAILABLE else ttk.Frame(doc_frame)
+        btns.grid(row=1, column=0, sticky="ew", padx=4, pady=4)
+        btns.columnconfigure((0, 1), weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            convo_frame = ttkb.Labelframe(self.chat_frame, text="💬 Chat & Terminal", bootstyle="primary")
-            compose = ttkb.Labelframe(self.chat_frame, text="✍️ Compose Message & Terminal", bootstyle="info")
+            import_btn = ttkb.Button(btns, text="📥 Import to Prompt", command=self.on_import_chat_file, bootstyle="secondary-outline")
+            upload_btn = ttkb.Button(btns, text="☁️ Upload to Agents", command=self._upload_file_with_feedback, bootstyle="primary")
         else:
-            convo_frame = ttk.LabelFrame(self.chat_frame, text="Chat & Terminal")
-            compose = ttk.LabelFrame(self.chat_frame, text="Compose Message & Terminal")
-        convo_frame.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+            import_btn = ttk.Button(btns, text="Import to Prompt", command=self.on_import_chat_file)
+            upload_btn = ttk.Button(btns, text="Upload to Agents", command=self._upload_file_with_feedback)
+        import_btn.grid(row=0, column=0, padx=4, pady=2, sticky="ew")
+        upload_btn.grid(row=0, column=1, padx=4, pady=2, sticky="ew")
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            ToolTip(import_btn, text="Load a file's content directly into the chat input")
+            ToolTip(upload_btn, text="Send a file to AI agents for reference")
+
+        # Uploaded file list
+        if TTKBOOTSTRAP_AVAILABLE:
+            list_label = ttkb.Label(doc_frame, text="Uploaded Files", bootstyle="secondary")
+        else:
+            list_label = ttk.Label(doc_frame, text="Uploaded Files")
+        list_label.grid(row=2, column=0, sticky="w", padx=6, pady=(6, 2))
+
+        self.upload_list = tk.Listbox(doc_frame, height=8)
+        self.upload_list.grid(row=3, column=0, sticky="nsew", padx=6, pady=(0, 6))
+        doc_frame.rowconfigure(3, weight=1)
+
+        clear_btn = ttkb.Button(doc_frame, text="🗑️ Clear List", command=self._clear_uploaded_files, bootstyle="danger-outline") if TTKBOOTSTRAP_AVAILABLE else ttk.Button(doc_frame, text="Clear List", command=self._clear_uploaded_files)
+        clear_btn.grid(row=4, column=0, sticky="ew", padx=6, pady=4)
+
+        self._refresh_upload_list()
+
+    def _build_conversation_panel(self, parent):
+        if TTKBOOTSTRAP_AVAILABLE:
+            convo_frame = ttkb.Labelframe(parent, text="💬 Chat & Terminal", bootstyle="primary")
+            compose = ttkb.Labelframe(parent, text="✍️ Compose Message & Terminal", bootstyle="info")
+        else:
+            convo_frame = ttk.LabelFrame(parent, text="Chat & Terminal")
+            compose = ttk.LabelFrame(parent, text="Compose Message & Terminal")
+        convo_frame.grid(row=0, column=1, sticky="nsew", padx=(0, 0), pady=4)
         convo_frame.columnconfigure(0, weight=1)
         convo_frame.rowconfigure(0, weight=1)
         self.chat_text = tk.Text(convo_frame, wrap="word", state="disabled", font=self.text_font)
@@ -1513,7 +1577,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             chat_scroll = ttk.Scrollbar(convo_frame, orient="vertical", command=self.chat_text.yview)
         self.chat_text.configure(yscrollcommand=chat_scroll.set)
         chat_scroll.grid(row=0, column=1, sticky="ns")
-        compose.grid(row=1, column=0, sticky="nsew", padx=8, pady=(0, 8))
+        compose.grid(row=1, column=1, sticky="nsew", padx=(0, 0), pady=(4, 4))
         compose.columnconfigure(1, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
@@ -1679,6 +1743,67 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_progress.progress_bar.grid_remove()
         self.chat_progress.indicator_label.grid_remove()
 
+    def _build_change_monitor(self, parent):
+        if TTKBOOTSTRAP_AVAILABLE:
+            change_frame = ttkb.Labelframe(parent, text="🛠️ Live Change Log", bootstyle="secondary")
+        else:
+            change_frame = ttk.LabelFrame(parent, text="Live Change Log")
+        change_frame.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=2, pady=(0, 4))
+        change_frame.columnconfigure(0, weight=1)
+        change_frame.rowconfigure(0, weight=1)
+
+        self.change_log_text = tk.Text(change_frame, height=8, wrap="word", state="disabled", font=self.text_font)
+        self.change_log_text.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
+        scrollbar = ttk.Scrollbar(change_frame, orient="vertical", command=self.change_log_text.yview)
+        self.change_log_text.configure(yscrollcommand=scrollbar.set)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+
+        refresh_btn = ttkb.Button(change_frame, text="🔄 Refresh", command=self.refresh_change_log, bootstyle="secondary-outline") if TTKBOOTSTRAP_AVAILABLE else ttk.Button(change_frame, text="Refresh", command=self.refresh_change_log)
+        refresh_btn.grid(row=1, column=0, columnspan=2, sticky="e", padx=4, pady=(0, 4))
+        self.after(50, self.refresh_change_log)
+
+    def _get_git_output(self, args):
+        try:
+            completed = subprocess.run(["git", *args], cwd=os.getcwd(), capture_output=True, text=True, check=False)
+            if completed.returncode != 0:
+                return None
+            return completed.stdout.strip()
+        except Exception:
+            return None
+
+    def _summarize_agent_activity(self) -> str:
+        recent_actions = [msg for msg in self.state_obj.chat_messages if msg.kind in ("terminal", "terminal_result")][-10:]
+        if not recent_actions:
+            return "No recent agent commands yet."
+        lines = []
+        for msg in recent_actions:
+            lines.append(f"[{msg.created_at}] {msg.persona}: {msg.content.splitlines()[0]}")
+        return "\n".join(lines)
+
+    def refresh_change_log(self):
+        if not self.change_log_text:
+            return
+        status_output = self._get_git_output(["status", "--short"])
+        log_output = self._get_git_output(["log", "-5", "--oneline"])
+
+        sections = []
+        if status_output:
+            sections.append("📂 Working Tree\n" + status_output)
+        else:
+            sections.append("📂 Working Tree\n(clean or unavailable)")
+
+        if log_output:
+            sections.append("📜 Recent Commits\n" + log_output)
+        else:
+            sections.append("📜 Recent Commits\n(unavailable)")
+
+        sections.append("🤖 Agent Activity\n" + self._summarize_agent_activity())
+
+        self.change_log_text.config(state="normal")
+        self.change_log_text.delete("1.0", "end")
+        self.change_log_text.insert("1.0", "\n\n".join(sections))
+        self.change_log_text.config(state="disabled")
+
     def _update_chat_status(self, message: Optional[str] = None):
         if not hasattr(self, 'chat_status_var'):
             return
@@ -1766,8 +1891,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     purpose='assistants'
                 )
             
-            self.uploaded_files.append(file_obj.id)
             label = os.path.basename(path)
+            self.uploaded_files.append({"name": label, "id": file_obj.id})
+            self._refresh_upload_list()
             
             # Add file reference to chat input
             self.chat_input.insert('end', f"\n[Uploaded file: {label} (ID: {file_obj.id})]\n")
@@ -1819,11 +1945,42 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def _upload_file_with_feedback(self):
         """Upload file with visual feedback"""
         self.on_upload_file()
-    
+
     def _run_terminal_with_feedback(self, event=None):
         """Run terminal command with visual feedback"""
         AnimationHelper.pulse_button(getattr(self, '_terminal_run_btn', None))
         self.on_run_terminal_command(event)
+
+    def _request_overwrite_permission(self, command: str, cwd: str) -> bool:
+        if self.settings.auto_overwrite:
+            return True
+
+        q: Queue = Queue()
+
+        def ask():
+            allowed = messagebox.askyesno(
+                "Allow AI change?",
+                f"The AI wants to run:\n{command}\n\nWorking directory: {cwd}\nProceed?",
+            )
+            q.put(allowed)
+
+        self.after(0, ask)
+        return q.get()
+
+    def _refresh_upload_list(self):
+        if not hasattr(self, "upload_list"):
+            return
+        self.upload_list.delete(0, tk.END)
+        for item in self.uploaded_files:
+            name = item.get("name", "(file)") if isinstance(item, dict) else str(item)
+            file_id = item.get("id") if isinstance(item, dict) else None
+            display = name if not file_id else f"{name} — {file_id}"
+            self.upload_list.insert(tk.END, display)
+
+    def _clear_uploaded_files(self):
+        self.uploaded_files = []
+        self._refresh_upload_list()
+        self._update_chat_status("Cleared uploaded file list.")
     
     def on_send_chat_message(self, invoke_ai: bool = True):
         if not hasattr(self, 'chat_input'):
@@ -1929,12 +2086,23 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 if tool_calls:
                     tool_results = []
                     for tool_call in tool_calls:
+                        command_preview = None
+                        if tool_call.function.name == "execute_command":
+                            try:
+                                args = json.loads(tool_call.function.arguments)
+                                command_preview = args.get("command", "")
+                            except Exception:
+                                command_preview = None
+
+                            if command_preview and not self._request_overwrite_permission(command_preview, cwd):
+                                self._store_chat_message(responder, 'assistant', f"Skipped command: {command_preview}", kind='terminal_result')
+                                continue
+
                         result = execute_tool_call(tool_call, cwd=cwd)
                         tool_results.append(result)
-                        
+
                         # Store terminal command and result in chat immediately
                         if tool_call.function.name == "execute_command":
-                            import json
                             try:
                                 args = json.loads(tool_call.function.arguments)
                                 cmd = args.get("command", "")
@@ -1943,7 +2111,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                                     self._store_chat_message(responder, 'user', header, kind='terminal')
                                     self._store_chat_message(responder, 'assistant', result["content"], kind='terminal_result')
                                     self.after(0, self.refresh_chat_history)
-                            except:
+                                    self.after(0, self.refresh_change_log)
+                            except Exception:
                                 pass
                     
                     # Store tool results in chat for next iteration
@@ -2020,6 +2189,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         self.command_var.set('')
         self.refresh_chat_history()
+        self.refresh_change_log()
 
     def on_browse_cwd(self):
         initial = self.cwd_var.get().strip() or os.getcwd()
@@ -2166,7 +2336,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             btn_frame = ttk.Frame(main_container)
         btn_frame.grid(row=2, column=0, sticky="ew", pady=(8, 0))
-        
+
         if TTKBOOTSTRAP_AVAILABLE:
             sync_btn = ttkb.Button(btn_frame, text="🔄 Sync All", command=self.on_sync_all_integrations, bootstyle="primary")
             sync_selected_btn = ttkb.Button(btn_frame, text="🔄 Sync Selected", command=self.on_sync_selected_integration, bootstyle="info-outline")
@@ -2175,11 +2345,37 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             sync_btn = ttk.Button(btn_frame, text="Sync All", command=self.on_sync_all_integrations)
             sync_selected_btn = ttk.Button(btn_frame, text="Sync Selected", command=self.on_sync_selected_integration)
             refresh_btn = ttk.Button(btn_frame, text="Refresh", command=self.refresh_integrations_list)
-        
+
         sync_btn.grid(row=0, column=0, padx=4)
         sync_selected_btn.grid(row=0, column=1, padx=4)
         refresh_btn.grid(row=0, column=2, padx=4)
-        
+
+        # API console to trigger integration actions programmatically
+        if TTKBOOTSTRAP_AVAILABLE:
+            api_box = ttkb.Labelframe(main_container, text="🛰️ Integration API", bootstyle="secondary")
+        else:
+            api_box = ttk.LabelFrame(main_container, text="Integration API")
+        api_box.grid(row=3, column=0, sticky="ew", pady=(12, 0))
+        api_box.columnconfigure(1, weight=1)
+
+        targets = ["all", *sorted(self.integration_api.available_integrations().keys())]
+        self.integration_api_target_var = tk.StringVar(value=targets[0])
+        self.integration_api_action_var = tk.StringVar(value="status")
+
+        ttk.Label(api_box, text="Target:").grid(row=0, column=0, sticky="e", padx=4, pady=4)
+        target_combo = ttk.Combobox(api_box, textvariable=self.integration_api_target_var, values=targets, state="readonly")
+        target_combo.grid(row=0, column=1, sticky="w", padx=4, pady=4)
+
+        ttk.Label(api_box, text="Action:").grid(row=1, column=0, sticky="e", padx=4, pady=4)
+        action_combo = ttk.Combobox(api_box, textvariable=self.integration_api_action_var, values=["status", "sync"], state="readonly")
+        action_combo.grid(row=1, column=1, sticky="w", padx=4, pady=4)
+
+        call_btn = ttkb.Button(api_box, text="Invoke", command=self.on_call_integration_api, bootstyle="success") if TTKBOOTSTRAP_AVAILABLE else ttk.Button(api_box, text="Invoke", command=self.on_call_integration_api)
+        call_btn.grid(row=0, column=2, rowspan=2, padx=4, pady=4, sticky="ns")
+
+        self.integration_api_output = tk.Text(api_box, height=4, wrap="word", state="disabled")
+        self.integration_api_output.grid(row=2, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 6))
+
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(sync_btn, text="Sync all enabled integrations")
             ToolTip(sync_selected_btn, text="Sync the selected integration")
@@ -2190,43 +2386,46 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         for row in self.integrations_tree.get_children():
             self.integrations_tree.delete(row)
 
-        # Get integration statuses - reuse scheduler instances when available
-        if not hasattr(self, "sync_scheduler") or self.sync_scheduler is None:
-            self.sync_scheduler = create_default_scheduler(self.conn)
+        # Get integration statuses via the API gateway
+        if not hasattr(self, "integration_api"):
+            self.integration_api = IntegrationAPIGateway(self.conn, scheduler=self.sync_scheduler)
 
-        integrations = {
-            "Local Notes": self.sync_scheduler.integrations.get("notes", NotesIntegration(self.conn)),
-            "Google Calendar": self.sync_scheduler.integrations.get("calendar", GoogleCalendarIntegration(self.conn)),
-            "Gmail": self.sync_scheduler.integrations.get("mail", GmailIntegration(self.conn)),
-            "GitHub": self.sync_scheduler.integrations.get("github", GitHubIntegration(self.conn)),
-            "Word": WordIntegration(self.conn),
-            "Excel": ExcelIntegration(self.conn),
-            "OneNote": OneNoteIntegration(self.conn),
-            "Local Files": FilesystemIntegration(self.conn),
-            "Git": GitIntegration(self.conn),
-            "PDF": PDFIntegration(self.conn),
+        display_map = {
+            "notes": "Local Notes",
+            "calendar": "Google Calendar",
+            "mail": "Gmail",
+            "github": "GitHub",
+            "word": "Word",
+            "excel": "Excel",
+            "onenote": "OneNote",
+            "filesystem": "Local Files",
+            "git": "Git",
+            "pdf": "PDF",
         }
-        
-        for name, integration in integrations.items():
-            status = integration.get_status()
-            status_text = "✅ Connected" if status.connected else "❌ Disconnected"
-            if status.error:
-                status_text += f" ({status.error[:30]})"
-            
-            last_sync = status.last_sync or "Never"
+
+        statuses = self.integration_api.list_statuses()
+        for slug, display in display_map.items():
+            status_data = statuses.get(slug)
+            if not status_data:
+                continue
+            status_text = "✅ Connected" if status_data.get("connected") else "❌ Disconnected"
+            if status_data.get("error"):
+                status_text += f" ({str(status_data.get('error'))[:30]})"
+
+            last_sync = status_data.get("last_sync") or "Never"
             if last_sync != "Never" and "T" in last_sync:
                 last_sync = last_sync.replace("T", " ")[:16]
-            
+
             self.integrations_tree.insert(
                 "",
                 "end",
-                iid=name,
-                values=(name, status_text, last_sync, status.item_count),
+                iid=display,
+                values=(display, status_text, last_sync, status_data.get("item_count", 0)),
             )
     
     def on_sync_all_integrations(self):
         """Sync all enabled integrations."""
-        results = self.sync_scheduler.sync_now()
+        results = self.integration_api.call_action("all", action="sync") if hasattr(self, "integration_api") else self.sync_scheduler.sync_now()
         message = "Sync completed:\n"
         for name, count in results.items():
             if count >= 0:
@@ -2258,13 +2457,32 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             "PDF": "pdf",
         }
         key = name_map.get(name, name.lower().replace(" ", "_"))
-        results = self.sync_scheduler.sync_now(key)
-        count = results.get(key, -1)
+        if hasattr(self, "integration_api"):
+            results = self.integration_api.call_action(key, action="sync")
+            count = results.get(key, -1)
+        else:
+            results = self.sync_scheduler.sync_now(key)
+            count = results.get(key, -1)
         if count >= 0:
             messagebox.showinfo("Sync Complete", f"{name}: {count} items synced.")
         else:
             messagebox.showerror("Sync Error", f"Failed to sync {name}.")
         self.refresh_integrations_list()
+
+    def on_call_integration_api(self):
+        target = self.integration_api_target_var.get()
+        action = self.integration_api_action_var.get()
+        try:
+            result = self.integration_api.call_action(target, action=action)
+            text = json.dumps(result, indent=2, ensure_ascii=False)
+        except Exception as exc:
+            text = f"Error: {exc}"
+
+        if hasattr(self, "integration_api_output"):
+            self.integration_api_output.config(state="normal")
+            self.integration_api_output.delete("1.0", "end")
+            self.integration_api_output.insert("1.0", text)
+            self.integration_api_output.config(state="disabled")
 
 
 # ---------- Analytics Tab ----------
@@ -2761,6 +2979,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         show_sys_check.grid(row=row, column=1, sticky="w", padx=8, pady=8)
 
         row += 1
+        self.auto_overwrite_var = tk.BooleanVar(value=self.settings.auto_overwrite)
+        overwrite_text = "Allow AI to overwrite files automatically (uncheck to require a yes/no prompt)"
+        overwrite_check = ttk.Checkbutton(
+            self.settings_frame,
+            text=overwrite_text,
+            variable=self.auto_overwrite_var,
+        )
+        overwrite_check.grid(row=row, column=1, sticky="w", padx=8, pady=8)
+
+        row += 1
         if TTKBOOTSTRAP_AVAILABLE:
             pref_box = ttkb.Labelframe(self.settings_frame, text="📊 Data Preferences", bootstyle="info")
         else:
@@ -2824,6 +3052,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.settings.show_system_status = self.show_sys_var.get()
         self.settings.font_scale = self.font_scale_var.get()
         self.settings.data_preferences = {k: var.get() for k, var in self.data_pref_vars.items()}
+        self.settings.auto_overwrite = self.auto_overwrite_var.get()
         save_settings(self.conn, self.settings)
         
         # Apply theme change if ttkbootstrap is available
@@ -2933,6 +3162,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.refresh_analytics()
         if hasattr(self, 'refresh_templates_list'):
             self.refresh_templates_list()
+        if hasattr(self, 'refresh_change_log'):
+            self.refresh_change_log()
 
     def _apply_default_view(self):
         mapping = {

@@ -85,6 +85,7 @@ class Settings:
     show_system_status: bool = True   # show CPU/RAM/Disk in dashboard
     font_scale: str = "medium"        # small | medium | large
     data_preferences: Dict[str, bool] = field(default_factory=lambda: DEFAULT_FETCH_PREFERENCES.copy())
+    auto_overwrite: bool = True       # allow AI to overwrite without prompt
 
 
 @dataclass
@@ -422,6 +423,8 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
     show_system_status = (show_system_status_raw == "1")
     font_scale = get_meta(conn, "setting.font_scale", "medium") or "medium"
     data_pref_raw = get_meta(conn, "setting.data_preferences", None)
+    auto_overwrite_raw = get_meta(conn, "setting.auto_overwrite", "1") or "1"
+    auto_overwrite = (auto_overwrite_raw == "1")
     data_preferences = DEFAULT_FETCH_PREFERENCES.copy()
     if data_pref_raw:
         try:
@@ -437,6 +440,7 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
         show_system_status=show_system_status,
         font_scale=font_scale,
         data_preferences=data_preferences,
+        auto_overwrite=auto_overwrite,
     )
 
 
@@ -446,6 +450,7 @@ def save_settings(conn: sqlite3.Connection, settings: Settings):
     set_meta(conn, "setting.show_system_status", "1" if settings.show_system_status else "0")
     set_meta(conn, "setting.font_scale", settings.font_scale)
     set_meta(conn, "setting.data_preferences", json.dumps(settings.data_preferences, ensure_ascii=False))
+    set_meta(conn, "setting.auto_overwrite", "1" if settings.auto_overwrite else "0")
 
 
 def save_active_persona(conn: sqlite3.Connection, state: AssistantState):
