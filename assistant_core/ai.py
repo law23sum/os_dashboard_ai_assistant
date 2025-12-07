@@ -403,8 +403,6 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
     }
 
 
-<<<<<<< HEAD
-=======
 class AIAssistant:
     """Lightweight AI assistant wrapper for tests and integrations."""
 
@@ -434,4 +432,3 @@ class AIAssistant:
         except Exception:
             # In constrained environments fall back to deterministic echo
             return f"[offline] {prompt}"
->>>>>>> a27d718 (Merge remote-tracking branch 'origin/develop' into develop)

@@ -4,8 +4,6 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
-<<<<<<< HEAD
-=======
 
 
 def load_dotenv(path: Path | str = ".env") -> None:
@@ -22,7 +20,22 @@ def load_dotenv(path: Path | str = ".env") -> None:
         key, value = line.split("=", 1)
         os.environ.setdefault(key.strip(), value.strip())
 
->>>>>>> a27d718 (Merge remote-tracking branch 'origin/develop' into develop)
+
+
+def load_dotenv(path: Path | str = ".env") -> None:
+    """Lightweight .env loader to avoid external dependency."""
+
+    env_path = Path(path)
+    if not env_path.exists():
+        return
+
+    for line in env_path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip())
+
 
 
 def load_dotenv(path: Path | str = ".env") -> None:
