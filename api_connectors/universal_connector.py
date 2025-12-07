@@ -88,6 +88,9 @@ class OperationResult:
     success: bool
     data: Any = None
     error: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    operation_id: Optional[str] = None
+    timestamp: Optional[datetime] = None
     error_code: Optional[str] = None
     metadata: Dict[str, Any] = None
     operation_id: Optional[str] = None
@@ -361,6 +364,42 @@ class BaseConnector(ABC):
             "connector_type": self.system_name,
         }
 
+    async def read_resource(self, resource_id: str, options: Dict[str, Any] = None) -> OperationResult:
+        try:
+            file_path = self.base_path / resource_id
+            if not file_path.exists():
+                return OperationResult(success=False, error="File not found")
+            processor = self.processors.get(file_path.suffix)
+            if not processor:
+                return OperationResult(success=False, error="Unsupported file type")
+            cir_document = await processor.process_file(file_path)
+            return OperationResult(success=True, data=cir_document)
+        except Exception as exc:
+            return OperationResult(success=False, error=str(exc))
+    async def write_resource(self, resource_id: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
+        file_path = self.base_path / resource_id
+        processor = self.processors.get(file_path.suffix)
+        if not processor:
+            return OperationResult(success=False, error="Unsupported file type")
+        try:
+            await processor.generate_file(cir_content, file_path)
+            return OperationResult(success=True, data={"path": str(file_path)})
+        except Exception as exc:
+            return OperationResult(success=False, error=str(exc))
+    async def create_resource(
+        self, resource_type: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
+    ) -> OperationResult:
+        filename = options.get("filename") if options else None
+        if not filename:
+            filename = f"new_document{self._default_extension(resource_type)}"
+
+        return await self.write_resource(filename, cir_content, options)
+    async def create_resource(self, resource_type: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
+        filename = options.get("filename") if options else None
+        suffix_map = {"word": ".docx", "excel": ".xlsx", "powerpoint": ".pptx"}
+        suffix = suffix_map.get(resource_type, ".docx")
+        file_id = filename or f"{cir_content.title}{suffix}"
+        return await self.write_resource(file_id, cir_content, options)
 
 class ConnectorException(Exception):
     """Base exception for connector operations."""
@@ -379,6 +418,212 @@ class RateLimitException(ConnectorException):
     """Rate limiting errors."""
 
 
+class PDFConnector(BaseConnector):
+    """Connector for PDF files with optional OCR support."""
+
+    def __init__(self, config: ConnectorConfig):
+        super().__init__(config)
+        self.base_path = Path(config.settings.get("base_path", "."))
+        self.base_path.mkdir(parents=True, exist_ok=True)
+
+    async def connect(self) -> OperationResult:
+        self.is_connected = True
+        return OperationResult(success=True, data={"status": "connected"})
+
+    async def disconnect(self) -> OperationResult:
+        self.is_connected = False
+        return OperationResult(success=True, data={"status": "disconnected"})
+
+    async def health_check(self) -> OperationResult:
+        exists = self.base_path.exists()
+        self.last_health_check = datetime.utcnow()
+        return OperationResult(success=exists, data={"path_exists": exists, "checked_at": self.last_health_check})
+
+    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
+        resources: List[Dict[str, Any]] = []
+        for file_path in self.base_path.rglob("*.pdf"):
+            if file_path.is_file():
+                stat = file_path.stat()
+                resources.append(
+                    {
+                        "id": str(file_path.relative_to(self.base_path)),
+                        "name": file_path.name,
+                        "type": "pdf",
+                        "size": stat.st_size,
+                        "modified": datetime.fromtimestamp(stat.st_mtime),
+                        "path": str(file_path),
+                    }
+                )
+
+        if filters:
+            resources = self._apply_filters(resources, filters)
+
+        return OperationResult(success=True, data=resources)
+
+    async def get_resource_metadata(self, resource_id: str) -> OperationResult:
+        file_path = self.base_path / resource_id
+        if not file_path.exists():
+            return OperationResult(success=False, error="File not found")
+
+        stat = file_path.stat()
+        return OperationResult(
+            success=True,
+            data={
+                "id": resource_id,
+                "name": file_path.name,
+                "type": "pdf",
+                "size": stat.st_size,
+                "modified": datetime.fromtimestamp(stat.st_mtime),
+                "suffix": file_path.suffix,
+            },
+        )
+
+    async def read_resource(self, resource_id: str, options: Optional[Dict[str, Any]] = None) -> OperationResult:
+        file_path = self.base_path / resource_id
+        if not file_path.exists():
+            return OperationResult(success=False, error="File not found")
+
+        try:
+            return OperationResult(
+                success=True,
+                data={"id": resource_id, "name": file_path.name, "path": str(file_path)},
+            )
+        except Exception as exc:  # pragma: no cover - depends on local files
+            return OperationResult(success=False, error=str(exc))
+
+    async def write_resource(
+        self, resource_id: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
+    ) -> OperationResult:
+        return OperationResult(success=False, error="PDF writing not implemented")
+
+    async def create_resource(
+        self, resource_type: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
+    ) -> OperationResult:
+        return OperationResult(success=False, error="Create operation not implemented")
+
+    async def delete_resource(self, resource_id: str) -> OperationResult:
+        file_path = self.base_path / resource_id
+        if not file_path.exists():
+            return OperationResult(success=False, error="File not found")
+
+        file_path.unlink()
+        return OperationResult(success=True, data={"path": str(file_path)})
+
+    async def search(self, query: str, filters: Dict[str, Any] = None, options: Dict[str, Any] = None) -> OperationResult:
+        list_result = await self.list_resources(filters=filters)
+        if not list_result.success:
+            return list_result
+        query_lower = query.lower()
+        matched = [res for res in list_result.data if query_lower in res.get("name", "").lower()]
+        return OperationResult(success=True, data=matched)
+        if not file_path.exists():
+            return OperationResult(success=False, error="File not found")
+        text_content = file_path.read_text(encoding="utf-8", errors="ignore")
+        section = Section(title="Page 1", content_blocks=[ContentBlock(ContentBlockType.TEXT, text_content)])
+        document = CIRDocument(title=file_path.stem, document_type="pdf", sections=[section])
+        return OperationResult(success=True, data=document)
+
+    async def write_resource(self, resource_id: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
+        file_path = self.base_path / resource_id
+        text_parts: List[str] = []
+        for section in cir_content.sections:
+            text_parts.append(section.title)
+            for block in section.content_blocks:
+                text_parts.append(str(block.content))
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.write_text("\n\n".join(text_parts), encoding="utf-8")
+        return OperationResult(success=True, data={"path": str(file_path)})
+
+    async def create_resource(self, resource_type: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
+        filename = options.get("filename") if options else f"{cir_content.title}.pdf"
+        return await self.write_resource(filename, cir_content, options)
+
+    async def delete_resource(self, resource_id: str) -> OperationResult:
+        file_path = self.base_path / resource_id
+        if not file_path.exists():
+            return OperationResult(success=False, error="File not found")
+        try:
+            file_path.unlink()
+            return OperationResult(success=True, data={"deleted": resource_id})
+        except Exception as exc:
+            return OperationResult(success=False, error=str(exc))
+
+    async def search(
+        self, query: str, filters: Optional[Dict[str, Any]] = None, options: Optional[Dict[str, Any]] = None
+    ) -> OperationResult:
+        resources = await self.list_resources(filters=filters)
+        if not resources.success:
+            return resources
+
+        matches = [res for res in resources.data if query.lower() in res.get("name", "").lower()]
+        return OperationResult(success=True, data=matches)
+
+    async def _perform_ocr(self, image: Any) -> str:
+        file_path.unlink()
+        return OperationResult(success=True, data={"path": str(file_path)})
+
+    async def search(self, query: str, filters: Dict[str, Any] = None, options: Dict[str, Any] = None) -> OperationResult:
+        list_result = await self.list_resources(filters=filters)
+        if not list_result.success:
+            return list_result
+        query_lower = query.lower()
+        matched = [res for res in list_result.data if query_lower in res.get("name", "").lower()]
+        return OperationResult(success=True, data=matched)
+
+    async def _perform_ocr(self, image) -> str:
+        if self.ocr_engine:
+            return self.ocr_engine.image_to_string(image)
+        return ""
+
+    def _initialize_ocr(self):
+        try:  # pragma: no cover - optional dependency
+            import pytesseract
+
+            return pytesseract
+        except Exception:
+            return None
+        if importlib.util.find_spec("pytesseract"):
+            import pytesseract  # type: ignore
+
+            return pytesseract
+        return None
+
+
+class GitConnector(BaseConnector):
+    """Connector for Git repositories using GitPython."""
+
+    def __init__(self, config: ConnectorConfig):
+        super().__init__(config)
+        self.repo_path = Path(config.settings.get("repo_path", "."))
+        self.repo: Optional[Repo] = None
+
+    async def connect(self) -> OperationResult:
+        if Repo is None:
+            return OperationResult(success=False, error="GitPython not installed")
+        try:
+            self.repo_path.mkdir(parents=True, exist_ok=True)
+            if (self.repo_path / ".git").exists():
+                self.repo = Repo(str(self.repo_path))
+            else:
+                self.repo = Repo.init(str(self.repo_path))
+            self.is_connected = True
+            return OperationResult(success=True, data={"status": "connected"})
+        except Exception as exc:  # pragma: no cover - git dependent
+            return OperationResult(success=False, error=str(exc))
+
+    async def disconnect(self) -> OperationResult:
+        self.repo = None
+        self.is_connected = False
+        return OperationResult(success=True, data={"status": "disconnected"})
+
+    async def health_check(self) -> OperationResult:
+        exists = self.repo_path.exists() and (self.repo_path / ".git").exists()
+        self.last_health_check = datetime.utcnow()
+        return OperationResult(success=exists, data={"repo_exists": exists, "checked_at": self.last_health_check})
+
+    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
+        if not self.repo:
+            return OperationResult(success=False, error="Repository not connected")
 class ResourceNotFoundException(ConnectorException):
     """Resource not found errors."""
 
@@ -413,6 +658,368 @@ class ConnectorHealthMonitor:
             self.connector_health[connector.config.instance_id] = health_info
             return health_info
 
+    async def get_resource_metadata(self, resource_id: str) -> OperationResult:
+        if not self.repo:
+            return OperationResult(success=False, error="Repository not connected")
+        try:
+            commits = list(self.repo.iter_commits(paths=resource_id))
+            history = [
+                {
+                    "hash": commit.hexsha,
+                    "message": commit.message.strip(),
+                    "author": str(commit.author),
+                    "date": commit.committed_datetime,
+                }
+                for commit in commits
+            ]
+            return OperationResult(success=True, data={"history": history})
+        except Exception as exc:  # pragma: no cover - git dependent
+            return OperationResult(success=False, error=str(exc))
+
+    async def read_resource(self, resource_id: str, options: Optional[Dict[str, Any]] = None) -> OperationResult:
+        file_path = self.repo_path / resource_id
+        if not file_path.exists():
+            return OperationResult(success=False, error="File not found")
+        try:
+            return OperationResult(success=True, data=file_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            return OperationResult(success=False, error=str(exc))
+
+    async def write_resource(self, resource_id: str, cir_content: Any, options: Optional[Dict[str, Any]] = None) -> OperationResult:
+        if not self.repo:
+            return OperationResult(success=False, error="Repository not connected")
+        file_path = self.repo_path / resource_id
+        try:
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.write_text(str(cir_content), encoding="utf-8")
+            self.repo.index.add([str(file_path.relative_to(self.repo_path))])
+            if options and options.get("commit_message"):
+                commit = self.repo.index.commit(options["commit_message"])
+                return OperationResult(success=True, data={"commit_hash": commit.hexsha})
+            return OperationResult(success=True, data={"path": str(file_path)})
+        except Exception as exc:  # pragma: no cover - git dependent
+            return OperationResult(success=False, error=str(exc))
+
+    async def create_resource(
+        self, resource_type: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
+    ) -> OperationResult:
+        return await self.write_resource(options.get("filename", "new_file"), cir_content, options or {})
+
+    async def disconnect(self) -> OperationResult:
+        self.repo = None
+        self.is_connected = False
+        return OperationResult(success=True, data={"status": "disconnected"})
+
+    async def health_check(self) -> OperationResult:
+        self.last_health_check = datetime.utcnow()
+        return OperationResult(success=self.repo is not None, data={"checked_at": self.last_health_check})
+
+    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
+        if not self.repo:
+            return OperationResult(success=False, error="Repository not connected")
+        resources: List[Dict[str, Any]] = []
+        for item in self.repo.index.entries:
+            file_path = Path(item[0])
+            full_path = self.repo_path / file_path
+            if full_path.exists():
+                stat = full_path.stat()
+                commits = list(self.repo.iter_commits(paths=str(file_path), max_count=1))
+                last_commit = commits[0] if commits else None
+                resources.append(
+                    {
+                        "id": str(file_path),
+                        "name": file_path.name,
+                        "type": "git_file",
+                        "size": stat.st_size,
+                        "modified": datetime.fromtimestamp(stat.st_mtime),
+                        "path": str(file_path),
+                        "last_commit": {
+                            "hash": last_commit.hexsha if last_commit else None,
+                            "message": last_commit.message if last_commit else None,
+                            "author": str(last_commit.author) if last_commit else None,
+                            "date": last_commit.committed_datetime if last_commit else None,
+                        },
+                    }
+                )
+        return OperationResult(success=True, data=self._apply_filters(resources, filters))
+
+    async def get_resource_metadata(self, resource_id: str) -> OperationResult:
+        return OperationResult(success=True, data={"id": resource_id, "type": "git_file"})
+
+    async def read_resource(self, resource_id: str, options: Dict[str, Any] = None) -> OperationResult:
+        file_path = self.repo_path / resource_id
+        if not file_path.exists():
+            return OperationResult(success=False, error="File not found")
+        content = file_path.read_text(encoding="utf-8", errors="ignore")
+        section = Section(title=file_path.name, content_blocks=[ContentBlock(ContentBlockType.TEXT, content)])
+        document = CIRDocument(title=file_path.stem, document_type="text", sections=[section])
+        return OperationResult(success=True, data=document)
+
+    async def write_resource(self, resource_id: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
+        file_path = self.repo_path / resource_id
+        content_lines: List[str] = []
+        for section in cir_content.sections:
+            content_lines.append(section.title)
+            for block in section.content_blocks:
+                content_lines.append(str(block.content))
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.write_text("\n\n".join(content_lines), encoding="utf-8")
+        if self.repo:
+            self.repo.index.add([str(resource_id)])
+            commit_message = options.get("commit_message", f"Update {resource_id}") if options else f"Update {resource_id}"
+            commit = self.repo.index.commit(commit_message)
+            return OperationResult(success=True, data={"path": str(file_path), "commit_hash": commit.hexsha})
+        return OperationResult(success=True, data={"path": str(file_path), "commit_hash": None})
+
+    async def create_resource(self, resource_type: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
+        filename = options.get("filename") if options else f"{cir_content.title}.md"
+        return await self.write_resource(filename, cir_content, options)
+
+    async def delete_resource(self, resource_id: str) -> OperationResult:
+        file_path = self.repo_path / resource_id
+        if not file_path.exists():
+            return OperationResult(success=False, error="File not found")
+        try:
+            file_path.unlink()
+            if self.repo:
+                self.repo.index.remove([resource_id], working_tree=True)
+            return OperationResult(success=True, data={"deleted": resource_id})
+        except Exception as exc:
+            return OperationResult(success=False, error=str(exc))
+
+    async def search(
+        self, query: str, filters: Optional[Dict[str, Any]] = None, options: Optional[Dict[str, Any]] = None
+    ) -> OperationResult:
+        if not self.repo:
+            return OperationResult(success=False, error="Repository not connected")
+
+        matching_files: List[Dict[str, Any]] = []
+        for file_path in self.repo_path.rglob("*"):
+            if file_path.is_file() and query.lower() in file_path.name.lower():
+                stat = file_path.stat()
+                matching_files.append(
+                    {
+                        "id": str(file_path.relative_to(self.repo_path)),
+                        "name": file_path.name,
+                        "type": "git_file",
+                        "size": stat.st_size,
+                        "modified": datetime.fromtimestamp(stat.st_mtime),
+                        "path": str(file_path),
+                    }
+                )
+        return OperationResult(success=True, data=matching_files)
+        file_path.unlink()
+        if self.repo:
+            self.repo.index.remove([str(resource_id)])
+            commit_message = f"Delete {resource_id}"
+            commit = self.repo.index.commit(commit_message)
+            return OperationResult(success=True, data={"commit_hash": commit.hexsha})
+        return OperationResult(success=True, data={"path": str(file_path)})
+
+    async def search(self, query: str, filters: Dict[str, Any] = None, options: Dict[str, Any] = None) -> OperationResult:
+        list_result = await self.list_resources(filters=filters)
+        if not list_result.success:
+            return list_result
+        query_lower = query.lower()
+        matched = [res for res in list_result.data if query_lower in res.get("name", "").lower()]
+        return OperationResult(success=True, data=matched)
+
+    async def get_version_history(self, resource_id: str) -> OperationResult:
+        if not self.repo:
+            return OperationResult(success=False, error="Repository not connected")
+        commits = list(self.repo.iter_commits(paths=resource_id))
+        history = []
+        for commit in commits:
+            history.append(
+                {
+                    "hash": commit.hexsha,
+                    "message": commit.message.strip(),
+                    "author": str(commit.author),
+                    "date": commit.committed_datetime,
+                    "changes": commit.stats.files.get(resource_id, {}),
+                }
+            )
+        return OperationResult(success=True, data=history)
+
+
+class OpenAIConnector(BaseConnector):
+    """Connector for OpenAI API integration."""
+
+    def __init__(self, config: ConnectorConfig):
+        super().__init__(config)
+        self.client: Optional[AsyncOpenAI] = None
+        self.model_config = config.settings.get(
+            "model_config", {"default_model": "gpt-4", "max_tokens": 4000, "temperature": 0.7}
+        )
+
+    async def connect(self) -> OperationResult:
+        if AsyncOpenAI is None:
+            return OperationResult(success=False, error="OpenAI client not installed")
+
+        try:
+            self.client = AsyncOpenAI(api_key=self.config.credentials.get("api_key"))
+            await self.client.models.list()
+            self.is_connected = True
+            return OperationResult(success=True, data={"status": "connected"})
+        except Exception as exc:  # pragma: no cover - network dependent
+            return OperationResult(success=False, error=str(exc))
+
+    async def disconnect(self) -> OperationResult:
+        self.is_connected = False
+        self.client = None
+        self.client = None
+        self.model_config = config.settings.get(
+            "model_config",
+            {"default_model": "gpt-4", "max_tokens": 4000, "temperature": 0.7},
+        )
+
+    async def connect(self) -> OperationResult:
+        if not importlib.util.find_spec("openai"):
+            return OperationResult(success=False, error="OpenAI SDK is not installed")
+        from openai import AsyncOpenAI  # type: ignore
+
+        self.client = AsyncOpenAI(api_key=self.config.credentials.get("api_key"))
+        self.is_connected = True
+        return OperationResult(success=True, data={"status": "connected"})
+
+    async def disconnect(self) -> OperationResult:
+        self.client = None
+        self.is_connected = False
+        return OperationResult(success=True, data={"status": "disconnected"})
+
+    async def health_check(self) -> OperationResult:
+        self.last_health_check = datetime.utcnow()
+        return OperationResult(success=self.is_connected, data={"connected": self.is_connected})
+
+    async def list_resources(
+        self, resource_type: Optional[str] = None, filters: Optional[Dict[str, Any]] = None
+    ) -> OperationResult:
+        return OperationResult(success=True, data=[])
+
+    async def get_resource_metadata(self, resource_id: str) -> OperationResult:
+        return OperationResult(success=False, error="Metadata retrieval not supported")
+
+    async def read_resource(self, resource_id: str, options: Optional[Dict[str, Any]] = None) -> OperationResult:
+        return OperationResult(success=False, error="Read operation not supported")
+
+    async def write_resource(self, resource_id: str, cir_content: Any, options: Optional[Dict[str, Any]] = None) -> OperationResult:
+        return OperationResult(success=False, error="Write operation not supported")
+
+    async def create_resource(
+        self, resource_type: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
+    ) -> OperationResult:
+        return OperationResult(success=False, error="Create operation not supported")
+
+    async def delete_resource(self, resource_id: str) -> OperationResult:
+        return OperationResult(success=False, error="Delete operation not supported")
+
+    async def search(
+        self, query: str, filters: Optional[Dict[str, Any]] = None, options: Optional[Dict[str, Any]] = None
+    ) -> OperationResult:
+        return OperationResult(success=False, error="Search operation not supported")
+
+    async def process_document(
+        self, cir_document: Any, operation: str, options: Optional[Dict[str, Any]] = None
+    ) -> OperationResult:
+        if not self.client:
+            return OperationResult(success=False, error="Client not connected")
+
+        options = options or {}
+        prompt = self._create_prompt(operation, str(cir_document), options)
+        try:
+            response = await self.client.chat.completions.create(
+                model=options.get("model", self.model_config["default_model"]),
+                messages=[
+                    {"role": "system", "content": "You are a helpful document processing assistant."},
+                    {"role": "user", "content": prompt},
+                ],
+                max_tokens=options.get("max_tokens", self.model_config["max_tokens"]),
+                temperature=options.get("temperature", self.model_config["temperature"]),
+            )
+            result_text = response.choices[0].message.content
+            return OperationResult(success=True, data=result_text)
+        except Exception as exc:  # pragma: no cover - network dependent
+            return OperationResult(success=False, error=str(exc))
+
+    def _create_prompt(self, operation: str, document_text: str, options: Optional[Dict[str, Any]] = None) -> str:
+        if not self.client:
+            return OperationResult(success=False, error="Client not initialized")
+        return OperationResult(success=True, data={"checked_at": self.last_health_check})
+
+    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
+        return OperationResult(success=True, data=[])
+
+    async def get_resource_metadata(self, resource_id: str) -> OperationResult:
+        return OperationResult(success=True, data={"id": resource_id})
+
+    async def read_resource(self, resource_id: str, options: Dict[str, Any] = None) -> OperationResult:
+        return OperationResult(success=False, error="Read not supported for OpenAIConnector")
+
+    async def write_resource(self, resource_id: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
+        return OperationResult(success=False, error="Write not supported for OpenAIConnector")
+
+    async def create_resource(self, resource_type: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
+        return OperationResult(success=False, error="Create not supported for OpenAIConnector")
+
+    async def delete_resource(self, resource_id: str) -> OperationResult:
+        return OperationResult(success=False, error="Delete not supported for OpenAIConnector")
+
+    async def search(self, query: str, filters: Dict[str, Any] = None, options: Dict[str, Any] = None) -> OperationResult:
+        return OperationResult(success=False, error="Search not supported for OpenAIConnector")
+
+    async def process_document(self, cir_document: CIRDocument, operation: str, options: Dict[str, Any] = None) -> OperationResult:
+        if not self.client:
+            return OperationResult(success=False, error="Client not initialized")
+
+        document_text = await self._cir_to_text(cir_document)
+        prompt = await self._create_prompt(operation, document_text, options or {})
+
+        response = await self.client.chat.completions.create(
+            model=(options or {}).get("model", self.model_config["default_model"]),
+            messages=[
+                {"role": "system", "content": "You are a helpful document processing assistant."},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=(options or {}).get("max_tokens", self.model_config["max_tokens"]),
+            temperature=(options or {}).get("temperature", self.model_config["temperature"]),
+        )
+        result_text = response.choices[0].message.content
+
+        if (options or {}).get("return_cir", False):
+            result_cir = await self._text_to_cir(result_text, cir_document.document_type)
+            return OperationResult(success=True, data=result_cir)
+        return OperationResult(success=True, data=result_text)
+
+    async def _cir_to_text(self, cir_document: CIRDocument) -> str:
+        parts: List[str] = [cir_document.title]
+        for section in cir_document.sections:
+            parts.append(section.title)
+            for block in section.content_blocks:
+                parts.append(str(block.content))
+        return "\n\n".join(parts)
+
+    async def _create_prompt(self, operation: str, document_text: str, options: Dict[str, Any] = None) -> str:
+        options = options or {}
+        prompts = {
+            "summarize": f"Please provide a concise summary of the following document:\n\n{document_text}",
+            "extract_key_points": f"Extract the key points from this document:\n\n{document_text}",
+            "translate": f"Translate this document to {options.get('target_language', 'English')}:\n\n{document_text}",
+            "improve_writing": f"Improve the writing quality of this document:\n\n{document_text}",
+            "generate_outline": f"Create an outline based on this document:\n\n{document_text}",
+        }
+        return prompts.get(operation, f"Process this document for {operation}:\n\n{document_text}")
+
+
+class ConnectorRegistry:
+    """Registry of available connector types and their configurations."""
+
+    def __init__(self):
+        self.connector_types = {
+            "microsoft_graph": MicrosoftGraphConnector,
+            "office_files": OfficeFileConnector,
+            "pdf": PDFConnector,
+            "git": GitConnector,
+            "openai": OpenAIConnector,
         except Exception as exc:
             health_info = {
                 "connector_id": connector.config.instance_id,
