@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "osdash"
+version = "0.1.0"
+description = "OS Dashboard assistant scaffold"
+authors = [{name = "OS Dashboard Team"}]
+requires-python = ">=3.10"
+dependencies = [
+  "click>=8.1",
+  "rich>=13.0",
+  "pydantic>=2.0",
+]
+
+[project.scripts]
+osdash = "assistant_hub.ui.terminal.cli:main"

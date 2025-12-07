@@ -104,6 +104,32 @@ class ExternalConnection:
     notes: str = ""
 
 
+@dataclass
+class NoteLink:
+    """Link between a project and an external integration resource."""
+    id: int
+    project_id: str  # References Project.name
+    integration_type: str  # "onenote" | "excel" | "word" | "filesystem" | ...
+    external_id: str  # Page ID, workbook ID, file path, etc.
+    title: str = ""
+    description: str = ""  # Additional description
+    created_at: str = datetime.now().isoformat(timespec="seconds")
+    last_synced: Optional[str] = None
+
+
+@dataclass
+class AgentRun:
+    """Record of an AI agent action/operation."""
+    id: int
+    agent: str  # "AIC" | "Sora" | "Aria" | "User"
+    action_type: str  # "ONENOTE_CLEANUP" | "EXCEL_SUMMARY" | "WORD_DRAFT" | ...
+    input_context: str = ""  # Serialized snippet or description
+    output_summary: str = ""
+    related_files: str = ""  # JSON array of file paths
+    git_commit_hash: Optional[str] = None
+    created_at: str = datetime.now().isoformat(timespec="seconds")
+
+
 def init_db() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
@@ -205,6 +231,39 @@ def init_db() -> sqlite3.Connection:
             role TEXT,
             kind TEXT,
             content TEXT,
+            created_at TEXT
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS note_links (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id TEXT NOT NULL,
+            integration_type TEXT NOT NULL,
+            external_id TEXT NOT NULL,
+            title TEXT,
+            description TEXT,
+            created_at TEXT,
+            last_synced TEXT,
+            FOREIGN KEY(project_id) REFERENCES projects(name)
+        )
+    """)
+    
+    # Add description column if it doesn't exist (for existing databases)
+    c.execute("PRAGMA table_info(note_links)")
+    columns = [row[1] for row in c.fetchall()]
+    if "description" not in columns:
+        c.execute("ALTER TABLE note_links ADD COLUMN description TEXT DEFAULT ''")
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS agent_runs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            agent TEXT NOT NULL,
+            action_type TEXT NOT NULL,
+            input_context TEXT,
+            output_summary TEXT,
+            related_files TEXT,
+            git_commit_hash TEXT,
             created_at TEXT
         )
     """)
