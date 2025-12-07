@@ -63,7 +63,7 @@ from .ai import (
 from .terminal import run_bash_command
 from .sync_scheduler import create_default_scheduler
 from .integrations import (
-    GoogleCalendarIntegration,
+    AppleCalendarIntegration,
     GmailIntegration,
     GitHubIntegration,
     NotesIntegration,
@@ -2638,7 +2638,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Get integration statuses - all available integrations
         integrations = {
             "Local Notes": NotesIntegration(self.conn),
-            "Google Calendar": GoogleCalendarIntegration(self.conn),
+            "Apple Calendar": AppleCalendarIntegration(self.conn),
             "Gmail": GmailIntegration(self.conn),
             "GitHub": GitHubIntegration(self.conn),
             "Word": WordIntegration(self.conn),
@@ -2689,7 +2689,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Map display names to scheduler keys
         name_map = {
             "Local Notes": "notes",
-            "Google Calendar": "calendar",
+            "Apple Calendar": "calendar",
             "Gmail": "mail",
             "GitHub": "github",
             "Word": "word",

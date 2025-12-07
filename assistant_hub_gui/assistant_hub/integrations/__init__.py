@@ -5,7 +5,7 @@ from .excel import CloudExcelClient, LocalWorkbook, export_cloud_range_to_csv, s
 from .filesystem import TRACKED_EXTENSIONS, discover_files
 from .gmail import GmailIntegration
 from .github import GitHubIntegration
-from .google_calendar import GoogleCalendarIntegration
+from .apple_calendar import AppleCalendarIntegration
 from .msgraph import GraphClient, GraphCredentials, load_credentials_from_env, request_access_token
 from .notes import NotesIntegration
 from .onenote.service import OneNoteService
@@ -25,7 +25,7 @@ from .pdf_integration import PDFIntegration
 __all__ = [
     "BaseIntegration",
     "IntegrationStatus",
-    "GoogleCalendarIntegration",
+    "AppleCalendarIntegration",
     "GmailIntegration",
     "GitHubIntegration",
     "NotesIntegration",

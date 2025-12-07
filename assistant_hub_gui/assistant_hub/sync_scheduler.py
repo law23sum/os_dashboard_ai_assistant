@@ -7,7 +7,7 @@ import sqlite3
 
 from .db import init_db, load_settings
 from .integrations import (
-    GoogleCalendarIntegration,
+    AppleCalendarIntegration,
     GmailIntegration,
     GitHubIntegration,
     NotesIntegration,
@@ -115,7 +115,7 @@ def create_default_scheduler(conn: sqlite3.Connection) -> SyncScheduler:
     
     # Register default integrations
     scheduler.register_integration("notes", NotesIntegration(conn))
-    scheduler.register_integration("calendar", GoogleCalendarIntegration(conn))
+    scheduler.register_integration("calendar", AppleCalendarIntegration(conn))
     scheduler.register_integration("mail", GmailIntegration(conn))
     scheduler.register_integration("github", GitHubIntegration(conn))
     
