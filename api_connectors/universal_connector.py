@@ -1,77 +1,24 @@
-"""Universal connector interfaces and reference implementations.
+"""Universal Connector Interface - The foundation for all software integrations.
 
-This module defines a high-level connector contract along with
-reference connectors for Microsoft Graph, Office files, PDF files,
-Git repositories, and OpenAI. The implementations are written to be
-safe to import even when optional third-party dependencies are not
-installed; operations that require missing packages will return
-informative :class:`OperationResult` errors instead of raising
-exceptions.
+Provides a standardized way to interact with any software system while
+maintaining flexibility for system-specific optimizations.
 """
 
 from __future__ import annotations
 
 import asyncio
+import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
 from typing import Any, AsyncIterator, Dict, List, Optional
 
-# Optional imports guarded to keep module importable without extras
-try:  # pragma: no cover - optional dependency
-    from microsoft.graph import GraphServiceClient  # type: ignore
-    from azure.identity import ClientSecretCredential  # type: ignore
-except Exception:  # pragma: no cover - optional dependency
-    GraphServiceClient = None
-    ClientSecretCredential = None
-
-try:  # pragma: no cover - optional dependency
-    import fitz  # type: ignore
-    from PIL import Image  # type: ignore
-except Exception:  # pragma: no cover - optional dependency
-    fitz = None
-    Image = None
-
-try:  # pragma: no cover - optional dependency
-    import git  # noqa: F401
-    from git import Repo  # type: ignore
-except Exception:  # pragma: no cover - optional dependency
-    Repo = None
-
-try:  # pragma: no cover - optional dependency
-    import openai  # noqa: F401
-    from openai import AsyncOpenAI  # type: ignore
-except Exception:  # pragma: no cover - optional dependency
-    AsyncOpenAI = None
+from assistant_core.cir import CIRDocument
 
 
 class ConnectorCapability(Enum):
     """Capabilities that connectors can support."""
-"""Comprehensive connector interface and reference implementations.
-
-This module defines a universal connector contract plus specialized
-connectors for Microsoft Graph, Office files, PDF documents, Git repositories,
-and OpenAI. The classes are written to match the specification provided for
-connector interoperability while remaining lightweight enough to run in the
-current offline development environment. Where external SDKs are optional or
-unavailable, connectors return informative errors rather than failing during
-import time.
-"""
-
-import asyncio
-import importlib.util
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from enum import Enum
-from pathlib import Path
-from typing import Any, AsyncIterator, Dict, Iterable, List, Optional
-
-
-class ConnectorCapability(Enum):
-    """Capabilities that connectors can support"""
 
     READ = "read"
     WRITE = "write"
@@ -83,13 +30,36 @@ class ConnectorCapability(Enum):
     VERSIONING = "versioning"  # Version control
     COLLABORATION = "collaboration"  # Multi-user features
     ENCRYPTION = "encryption"  # Data encryption support
-    WATCH = "watch"
-    BATCH = "batch"
-    STREAM = "stream"
-    METADATA = "metadata"
-    VERSIONING = "versioning"
-    COLLABORATION = "collaboration"
-    ENCRYPTION = "encryption"
+    ANNOTATIONS = "annotations"  # Comment/annotation support
+    DIFF = "diff"  # Change detection and diffing
+
+
+class OperationStatus(Enum):
+    """Status of connector operations."""
+
+    SUCCESS = "success"
+    FAILED = "failed"
+    PARTIAL = "partial"
+    PENDING = "pending"
+    CANCELLED = "cancelled"
+
+
+@dataclass
+class ResourceRef:
+    """Reference to a resource in an external system."""
+
+    id: str
+    name: str
+    path: Optional[str] = None
+    resource_type: Optional[str] = None
+    size: Optional[int] = None
+    modified_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    metadata: Dict[str, Any] = None
+
+    def __post_init__(self) -> None:
+        if self.metadata is None:
+            self.metadata = {}
 
 
 @dataclass
@@ -103,143 +73,105 @@ class ConnectorConfig:
     capabilities: List[ConnectorCapability]
     rate_limits: Dict[str, int]
     timeout_settings: Dict[str, int]
-    """Configuration for connector instances"""
 
-    connector_type: str
-    instance_id: str
-    credentials: Dict[str, Any] = field(default_factory=dict)
-    settings: Dict[str, Any] = field(default_factory=dict)
-    capabilities: List[ConnectorCapability] = field(default_factory=list)
-    rate_limits: Dict[str, int] = field(default_factory=dict)
-    timeout_settings: Dict[str, int] = field(default_factory=dict)
+    def __post_init__(self) -> None:
+        if not self.rate_limits:
+            self.rate_limits = {"requests_per_minute": 60}
+        if not self.timeout_settings:
+            self.timeout_settings = {"read_timeout": 30, "write_timeout": 60}
 
 
 @dataclass
 class OperationResult:
     """Standard result format for all connector operations."""
-    """Standard result format for all connector operations"""
 
     success: bool
     data: Any = None
     error: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
     operation_id: Optional[str] = None
     timestamp: Optional[datetime] = None
-
-    def __post_init__(self) -> None:
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    error_code: Optional[str] = None
+    metadata: Dict[str, Any] = None
     operation_id: Optional[str] = None
     timestamp: datetime = None
+    status: OperationStatus = OperationStatus.SUCCESS
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.timestamp is None:
             self.timestamp = datetime.utcnow()
+        if self.metadata is None:
+            self.metadata = {}
+        if self.operation_id is None:
+            self.operation_id = str(uuid.uuid4())
+        if not self.success:
+            self.status = OperationStatus.FAILED
 
 
-class _AsyncSemaphoreRateLimiter:
-    """Simple rate limiter using a semaphore to throttle concurrency."""
+class RateLimiter:
+    """Simple rate limiter for connector operations."""
 
-    def __init__(self, permits: int) -> None:
-        self._semaphore = asyncio.Semaphore(max(1, permits))
+    def __init__(self, requests_per_minute: int = 60) -> None:
+        self.requests_per_minute = requests_per_minute
+        self.requests: List[datetime] = []
 
     async def acquire(self) -> None:
-        await self._semaphore.acquire()
-        # Release immediately to behave as a concurrency limiter rather than a queue
-        self._semaphore.release()
+        """Acquire a rate limit token."""
+
+        now = datetime.utcnow()
+        self.requests = [req_time for req_time in self.requests if (now - req_time).total_seconds() < 60]
+
+        if len(self.requests) >= self.requests_per_minute:
+            oldest_request = min(self.requests)
+            wait_time = 60 - (now - oldest_request).total_seconds()
+            if wait_time > 0:
+                await asyncio.sleep(wait_time)
+
+        self.requests.append(now)
 
 
-class _PassthroughCircuitBreaker:
-    """Minimal circuit breaker placeholder."""
+class CircuitBreaker:
+    """Circuit breaker pattern for fault tolerance."""
+
+    def __init__(self, failure_threshold: int = 5, timeout: int = 60) -> None:
+        self.failure_threshold = failure_threshold
+        self.timeout = timeout
+        self.failure_count = 0
+        self.last_failure_time: Optional[datetime] = None
+        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
 
     async def call(self, func, *args, **kwargs):
-        return await func(*args, **kwargs)
-class ContentBlockType(Enum):
-    """Minimal CIR content block types used by specialized connectors"""
+        """Execute function with circuit breaker protection."""
 
-    TEXT = "text"
-    TABLE = "table"
-    IMAGE = "image"
-    UNKNOWN = "unknown"
-
-
-@dataclass
-class ContentBlock:
-    block_type: ContentBlockType
-    content: Any
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class Section:
-    title: str
-    content_blocks: List[ContentBlock] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class CIRDocument:
-    title: str
-    document_type: str
-    sections: List[Section] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
-class SimpleAsyncRateLimiter:
-    """Small sliding-window rate limiter suitable for async connectors."""
-
-    def __init__(self, rate_limits: Dict[str, int]):
-        self.per_second = rate_limits.get("requests_per_second")
-        self.per_minute = rate_limits.get("requests_per_minute", 60)
-        self._timestamps: List[datetime] = []
-
-    async def acquire(self):
-        while True:
-            now = datetime.utcnow()
-            self._timestamps = [t for t in self._timestamps if (now - t) < timedelta(minutes=1)]
-
-            if self.per_second:
-                second_count = sum(1 for t in self._timestamps if (now - t) < timedelta(seconds=1))
-                if second_count >= self.per_second:
-                    await asyncio.sleep(0.05)
-                    continue
-
-            if len(self._timestamps) >= self.per_minute:
-                await asyncio.sleep(0.1)
-                continue
-
-            self._timestamps.append(now)
-            break
-
-
-class SimpleCircuitBreaker:
-    """Basic circuit breaker implementation to wrap connector calls."""
-
-    def __init__(self, failure_threshold: int = 3, recovery_time_seconds: int = 30):
-        self.failure_threshold = failure_threshold
-        self.recovery_time = timedelta(seconds=recovery_time_seconds)
-        self.failure_count = 0
-        self.last_failure: Optional[datetime] = None
-
-    async def call(self, operation_func, *args, **kwargs):
-        if self.is_open():
-            raise RuntimeError("Circuit breaker is open; operation blocked.")
+        if self.state == "OPEN":
+            if self._should_attempt_reset():
+                self.state = "HALF_OPEN"
+            else:
+                raise Exception("Circuit breaker is open")
 
         try:
-            result = await operation_func(*args, **kwargs)
-            self.failure_count = 0
+            result = await func(*args, **kwargs)
+            await self._on_success()
             return result
-        except Exception:
-            self.failure_count += 1
-            self.last_failure = datetime.utcnow()
-            raise
+        except Exception as exc:  # pragma: no cover - passthrough
+            await self._on_failure()
+            raise exc
 
-    def is_open(self) -> bool:
-        if self.failure_count < self.failure_threshold:
+    async def _on_success(self) -> None:
+        self.failure_count = 0
+        self.state = "CLOSED"
+
+    async def _on_failure(self) -> None:
+        self.failure_count += 1
+        self.last_failure_time = datetime.utcnow()
+
+        if self.failure_count >= self.failure_threshold:
+            self.state = "OPEN"
+
+    def _should_attempt_reset(self) -> bool:
+        if not self.last_failure_time:
             return False
-        if self.last_failure and datetime.utcnow() - self.last_failure > self.recovery_time:
-            self.failure_count = 0
-            return False
-        return True
+        return (datetime.utcnow() - self.last_failure_time).total_seconds() >= self.timeout
 
 
 class BaseConnector(ABC):
@@ -247,11 +179,12 @@ class BaseConnector(ABC):
 
     def __init__(self, config: ConnectorConfig):
         self.config = config
-        self.is_connected: bool = False
+        self.system_name = config.connector_type
         self.is_connected = False
         self.last_health_check: Optional[datetime] = None
-        self.rate_limiter = self._create_rate_limiter()
-        self.circuit_breaker = self._create_circuit_breaker()
+        self.rate_limiter = RateLimiter(config.rate_limits.get("requests_per_minute", 60))
+        self.circuit_breaker = CircuitBreaker()
+        self.operation_history: List[Dict[str, Any]] = []
 
     # Core Interface Methods
     @abstractmethod
@@ -268,9 +201,7 @@ class BaseConnector(ABC):
 
     # Resource Discovery
     @abstractmethod
-    async def list_resources(
-        self, resource_type: Optional[str] = None, filters: Optional[Dict[str, Any]] = None
-    ) -> OperationResult:
+    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
         """List available resources (documents, files, etc.)."""
 
     @abstractmethod
@@ -279,19 +210,15 @@ class BaseConnector(ABC):
 
     # Content Operations
     @abstractmethod
-    async def read_resource(self, resource_id: str, options: Optional[Dict[str, Any]] = None) -> OperationResult:
+    async def read_resource(self, resource_id: str, options: Dict[str, Any] = None) -> OperationResult:
         """Read content from a resource and convert to CIR."""
 
     @abstractmethod
-    async def write_resource(
-        self, resource_id: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
-    ) -> OperationResult:
+    async def write_resource(self, resource_id: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
         """Write CIR content to a resource."""
 
     @abstractmethod
-    async def create_resource(
-        self, resource_type: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
-    ) -> OperationResult:
+    async def create_resource(self, resource_type: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
         """Create new resource from CIR content."""
 
     @abstractmethod
@@ -300,58 +227,12 @@ class BaseConnector(ABC):
 
     # Search Operations
     @abstractmethod
-    async def search(
-        self, query: str, filters: Optional[Dict[str, Any]] = None, options: Optional[Dict[str, Any]] = None
-    ) -> OperationResult:
+    async def search(self, query: str, filters: Dict[str, Any] = None, options: Dict[str, Any] = None) -> OperationResult:
         """Search for content across resources."""
 
     # Optional Advanced Operations
-    async def watch_changes(self, resource_id: Optional[str] = None) -> AsyncIterator[Dict[str, Any]]:
-        """Watch for real-time changes (if supported)."""
-        """Establish connection to the target software"""
-
-    @abstractmethod
-    async def disconnect(self) -> OperationResult:
-        """Close connection and cleanup resources"""
-
-    @abstractmethod
-    async def health_check(self) -> OperationResult:
-        """Check connector health and connectivity"""
-
-    # Resource Discovery
-    @abstractmethod
-    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
-        """List available resources (documents, files, etc.)"""
-
-    @abstractmethod
-    async def get_resource_metadata(self, resource_id: str) -> OperationResult:
-        """Get detailed metadata for a specific resource"""
-
-    # Content Operations
-    @abstractmethod
-    async def read_resource(self, resource_id: str, options: Dict[str, Any] = None) -> OperationResult:
-        """Read content from a resource and convert to CIR"""
-
-    @abstractmethod
-    async def write_resource(self, resource_id: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
-        """Write CIR content to a resource"""
-
-    @abstractmethod
-    async def create_resource(self, resource_type: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
-        """Create new resource from CIR content"""
-
-    @abstractmethod
-    async def delete_resource(self, resource_id: str) -> OperationResult:
-        """Delete a resource"""
-
-    # Search Operations
-    @abstractmethod
-    async def search(self, query: str, filters: Dict[str, Any] = None, options: Dict[str, Any] = None) -> OperationResult:
-        """Search for content across resources"""
-
-    # Optional Advanced Operations
     async def watch_changes(self, resource_id: str = None) -> AsyncIterator[Dict[str, Any]]:
-        """Watch for real-time changes (if supported)"""
+        """Watch for real-time changes (if supported)."""
 
         if ConnectorCapability.WATCH not in self.config.capabilities:
             raise NotImplementedError("Watch capability not supported")
@@ -372,6 +253,34 @@ class BaseConnector(ABC):
 
         return await self._execute_batch_operations(operations)
 
+    async def diff_resources(self, resource_id_1: str, resource_id_2: str) -> OperationResult:
+        """Compare two resources and return differences."""
+
+        if ConnectorCapability.DIFF not in self.config.capabilities:
+            return OperationResult(
+                success=False,
+                error="Diff capability not supported",
+                error_code="CAPABILITY_NOT_SUPPORTED",
+            )
+
+        result1 = await self.read_resource(resource_id_1)
+        result2 = await self.read_resource(resource_id_2)
+
+        if not (result1.success and result2.success):
+            return OperationResult(success=False, error="Failed to read one or both resources for comparison")
+
+        diff_data = await self._generate_diff(result1.data, result2.data)
+
+        return OperationResult(
+            success=True,
+            data=diff_data,
+            metadata={
+                "resource_1": resource_id_1,
+                "resource_2": resource_id_2,
+                "diff_type": "cir_comparison",
+            },
+        )
+
     # Utility Methods
     def supports_capability(self, capability: ConnectorCapability) -> bool:
         """Check if connector supports a specific capability."""
@@ -379,411 +288,81 @@ class BaseConnector(ABC):
         return capability in self.config.capabilities
 
     async def _execute_with_rate_limiting(self, operation_func, *args, **kwargs):
-        """Execute operation with rate limiting"""
+        """Execute operation with rate limiting and circuit breaker."""
 
         await self.rate_limiter.acquire()
         return await self.circuit_breaker.call(operation_func, *args, **kwargs)
 
-    def _create_rate_limiter(self):
-        limit = self.config.rate_limits.get("concurrent", 5)
-        return _AsyncSemaphoreRateLimiter(limit)
+    async def _log_operation(self, operation: str, result: OperationResult) -> None:
+        """Log operation for audit and monitoring."""
 
-    def _create_circuit_breaker(self):
-        return _PassthroughCircuitBreaker()
+        log_entry = {
+            "operation": operation,
+            "timestamp": datetime.utcnow(),
+            "success": result.success,
+            "operation_id": result.operation_id,
+            "error": result.error,
+            "connector": self.system_name,
+        }
+        self.operation_history.append(log_entry)
+
+        if len(self.operation_history) > 100:
+            self.operation_history = self.operation_history[-100:]
 
     async def _execute_single_operation(self, operation: Dict[str, Any]) -> OperationResult:
-        """Execute a single operation described by a dict."""
+        """Execute a single operation from a batch."""
 
-        operation_name = operation.get("name")
-        args = operation.get("args", [])
-        kwargs = operation.get("kwargs", {})
-        method = getattr(self, operation_name, None)
-        if not method:
-            return OperationResult(success=False, error=f"Operation not supported: {operation_name}")
-        return await method(*args, **kwargs)
+        op_type = operation.get("type")
+
+        if op_type == "read":
+            return await self.read_resource(operation["resource_id"], operation.get("options"))
+        if op_type == "write":
+            return await self.write_resource(operation["resource_id"], operation["content"], operation.get("options"))
+        if op_type == "create":
+            return await self.create_resource(operation["resource_type"], operation["content"], operation.get("options"))
+        if op_type == "delete":
+            return await self.delete_resource(operation["resource_id"])
+
+        return OperationResult(success=False, error=f"Unknown operation type: {op_type}", error_code="INVALID_OPERATION")
 
     async def _execute_batch_operations(self, operations: List[Dict[str, Any]]) -> List[OperationResult]:
-        """Placeholder batch execution to be overridden by connectors."""
+        """Execute batch operations - override in specific connectors."""
 
         results = []
         for op in operations:
-            results.append(await self._execute_single_operation(op))
+            result = await self._execute_single_operation(op)
+            results.append(result)
         return results
 
+    async def _generate_diff(self, cir1: CIRDocument, cir2: CIRDocument) -> Dict[str, Any]:
+        """Generate a simple diff between two CIR documents."""
 
-class _StubProcessor:
-    """Placeholder processor used when specific file processors are unavailable."""
-
-    async def process_file(self, path: Path) -> Any:  # pragma: no cover - trivial
-        raise NotImplementedError("File processor not implemented")
-
-    async def generate_file(self, cir_content: Any, path: Path) -> None:  # pragma: no cover - trivial
-        raise NotImplementedError("File processor not implemented")
-        """Create rate limiter based on config"""
-
-        return SimpleAsyncRateLimiter(self.config.rate_limits)
-
-    def _create_circuit_breaker(self):
-        """Create circuit breaker for fault tolerance"""
-
-        failure_threshold = self.config.timeout_settings.get("failure_threshold", 3)
-        recovery_time = self.config.timeout_settings.get("recovery_time_seconds", 30)
-        return SimpleCircuitBreaker(failure_threshold=failure_threshold, recovery_time_seconds=recovery_time)
-
-    async def _execute_single_operation(self, operation: Dict[str, Any]) -> OperationResult:
-        name = operation.get("name")
-        args = operation.get("args", [])
-        kwargs = operation.get("kwargs", {})
-        target = getattr(self, name, None)
-
-        if not callable(target):
-            return OperationResult(success=False, error=f"Unsupported operation: {name}")
-
-        return await target(*args, **kwargs)
-
-    async def _execute_batch_operations(self, operations: List[Dict[str, Any]]) -> List[OperationResult]:
-        return [await self._execute_single_operation(op) for op in operations]
-
-    def _apply_filters(self, resources: Iterable[Dict[str, Any]], filters: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        if not filters:
-            return list(resources)
-
-        filtered: List[Dict[str, Any]] = []
-        for resource in resources:
-            include = True
-            for key, expected in filters.items():
-                value = resource.get(key)
-                if isinstance(expected, str) and isinstance(value, str):
-                    if expected.lower() not in value.lower():
-                        include = False
-                        break
-                elif value != expected:
-                    include = False
-                    break
-            if include:
-                filtered.append(resource)
-        return filtered
-
-
-class MicrosoftGraphConnector(BaseConnector):
-    """Connector for Microsoft Graph API (Word, Excel, PowerPoint, OneDrive, OneNote)."""
-
-    def __init__(self, config: ConnectorConfig):
-        super().__init__(config)
-        self.graph_client = None
-        self.supported_types = {
-            "word": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "excel": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "powerpoint": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            "onenote": "application/onenote",
-            "pdf": "application/pdf",
+        return {
+            "title_changed": getattr(cir1, "title", None) != getattr(cir2, "title", None),
+            "content_changed": getattr(cir1, "get_all_text", lambda: None)() != getattr(cir2, "get_all_text", lambda: None)(),
+            "structure_changed": getattr(cir1, "get_structure_summary", lambda: None)()
+            != getattr(cir2, "get_structure_summary", lambda: None)(),
+            "metadata_changed": getattr(cir1, "metadata", None) != getattr(cir2, "metadata", None),
+            "timestamp": datetime.utcnow(),
         }
 
-    async def connect(self) -> OperationResult:
-        if GraphServiceClient is None or ClientSecretCredential is None:
-            return OperationResult(success=False, error="Microsoft Graph dependencies not installed")
+    def get_operation_stats(self) -> Dict[str, Any]:
+        """Get operation statistics for monitoring."""
 
-        try:
-            credential = ClientSecretCredential(
-                tenant_id=self.config.credentials.get("tenant_id"),
-                client_id=self.config.credentials.get("client_id"),
-                client_secret=self.config.credentials.get("client_secret"),
-            )
+        if not self.operation_history:
+            return {"total_operations": 0}
 
-            self.graph_client = GraphServiceClient(credentials=credential, scopes=["https://graph.microsoft.com/.default"])
-            await self.graph_client.me.get()
-            self.is_connected = True
-            return OperationResult(success=True, data={"status": "connected"})
-        except Exception as exc:  # pragma: no cover - network dependent
-            return OperationResult(success=False, error=str(exc))
+        total = len(self.operation_history)
+        successful = len([op for op in self.operation_history if op["success"]])
 
-    async def disconnect(self) -> OperationResult:
-        self.is_connected = False
-        self.graph_client = None
-        return OperationResult(success=True, data={"status": "disconnected"})
-
-    async def health_check(self) -> OperationResult:
-        if not self.is_connected:
-            return OperationResult(success=False, error="Not connected")
-
-        try:
-            await self.graph_client.me.get()
-            self.last_health_check = datetime.utcnow()
-            return OperationResult(success=True, data={"status": "healthy"})
-        except Exception as exc:  # pragma: no cover - network dependent
-            return OperationResult(success=False, error=str(exc))
-
-    async def list_resources(
-        self, resource_type: Optional[str] = None, filters: Optional[Dict[str, Any]] = None
-    ) -> OperationResult:
-        if not self.is_connected:
-            return OperationResult(success=False, error="Not connected")
-
-        if GraphServiceClient is None:
-            return OperationResult(success=False, error="Microsoft Graph dependencies not installed")
-
-        try:
-            resources: List[Dict[str, Any]] = []
-            if not resource_type or resource_type == "onedrive":
-                drive_items = await self.graph_client.me.drive.root.children.get()
-                for item in drive_items.value:
-                    resources.append(
-                        {
-                            "id": item.id,
-                            "name": item.name,
-                            "type": "onedrive",
-                            "mime_type": getattr(item.file, "mime_type", None) if getattr(item, "file", None) else None,
-                            "size": getattr(item, "size", None),
-                            "modified": getattr(item, "last_modified_date_time", None),
-                            "path": getattr(item, "web_url", None),
-                        }
-                    )
-
-            if not resource_type or resource_type == "onenote":
-                notebooks = await self.graph_client.me.onenote.notebooks.get()
-                for notebook in notebooks.value:
-                    resources.append(
-                        {
-                            "id": notebook.id,
-                            "name": notebook.display_name,
-                            "type": "onenote_notebook",
-                            "created": getattr(notebook, "created_date_time", None),
-                            "modified": getattr(notebook, "last_modified_date_time", None),
-                        }
-                    )
-
-            if filters:
-                resources = [res for res in resources if all(res.get(k) == v for k, v in filters.items())]
-
-            return OperationResult(success=True, data=resources)
-        except Exception as exc:  # pragma: no cover - network dependent
-            return OperationResult(success=False, error=str(exc))
-
-    async def get_resource_metadata(self, resource_id: str) -> OperationResult:
-        return OperationResult(success=False, error="Metadata retrieval not implemented")
-
-    async def read_resource(self, resource_id: str, options: Optional[Dict[str, Any]] = None) -> OperationResult:
-        if not self.is_connected:
-            return OperationResult(success=False, error="Not connected")
-        return OperationResult(success=False, error="Read operation not implemented")
-
-    async def write_resource(self, resource_id: str, cir_content: Any, options: Optional[Dict[str, Any]] = None) -> OperationResult:
-        if not self.is_connected:
-            return OperationResult(success=False, error="Not connected")
-        return OperationResult(success=False, error="Write operation not implemented")
-
-    async def create_resource(
-        self, resource_type: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
-    ) -> OperationResult:
-        return OperationResult(success=False, error="Create operation not implemented")
-
-    async def delete_resource(self, resource_id: str) -> OperationResult:
-        return OperationResult(success=False, error="Delete operation not implemented")
-
-    async def search(
-        self, query: str, filters: Optional[Dict[str, Any]] = None, options: Optional[Dict[str, Any]] = None
-    ) -> OperationResult:
-        if not self.is_connected:
-            return OperationResult(success=False, error="Not connected")
-        return OperationResult(success=False, error="Search operation not implemented")
-        if not self._dependencies_available(["microsoft.graph", "azure.identity"]):
-            return OperationResult(success=False, error="Microsoft Graph dependencies not installed")
-
-        # In an offline environment we skip actual authentication calls.
-        self.is_connected = True
-        return OperationResult(success=True, data={"status": "connected"})
-
-    async def disconnect(self) -> OperationResult:
-        self.graph_client = None
-        self.is_connected = False
-        return OperationResult(success=True, data={"status": "disconnected"})
-
-    async def health_check(self) -> OperationResult:
-        self.last_health_check = datetime.utcnow()
-        if not self.is_connected:
-            return OperationResult(success=False, error="Connector not connected")
-        return OperationResult(success=True, data={"status": "healthy", "checked_at": self.last_health_check})
-
-    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
-        if not self.is_connected:
-            return OperationResult(success=False, error="Connector not connected")
-
-        # Placeholder implementation; in production this would query Graph endpoints.
-        resources: List[Dict[str, Any]] = []
-        return OperationResult(success=True, data=self._apply_filters(resources, filters))
-
-    async def get_resource_metadata(self, resource_id: str) -> OperationResult:
-        if not self.is_connected:
-            return OperationResult(success=False, error="Connector not connected")
-
-        return OperationResult(success=True, data={"id": resource_id, "type": "graph_resource"})
-
-    async def read_resource(self, resource_id: str, options: Dict[str, Any] = None) -> OperationResult:
-        resource_info = await self._get_resource_info(resource_id)
-        document = CIRDocument(
-            title=f"Resource {resource_id}",
-            document_type=resource_info.get("type", "unknown"),
-            sections=[Section(title="Content", content_blocks=[ContentBlock(ContentBlockType.TEXT, "Placeholder content")])],
-        )
-        return OperationResult(success=True, data=document)
-
-    async def write_resource(self, resource_id: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
-        return OperationResult(success=True, data={"id": resource_id, "written": True, "title": cir_content.title})
-
-    async def create_resource(self, resource_type: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
-        new_id = options.get("new_id") if options else f"new-{resource_type}-{datetime.utcnow().timestamp()}"
-        return OperationResult(success=True, data={"id": new_id, "type": resource_type, "title": cir_content.title})
-
-    async def delete_resource(self, resource_id: str) -> OperationResult:
-        return OperationResult(success=True, data={"id": resource_id, "deleted": True})
-
-    async def search(self, query: str, filters: Dict[str, Any] = None, options: Dict[str, Any] = None) -> OperationResult:
-        results: List[Dict[str, Any]] = []
-        return OperationResult(success=True, data=results)
-
-    async def _get_resource_info(self, resource_id: str) -> Dict[str, Any]:
-        # Placeholder mapping to supported types based on extension when possible.
-        suffix = Path(resource_id).suffix.lower()
-        if suffix == ".docx":
-            resource_type = "word"
-        elif suffix == ".xlsx":
-            resource_type = "excel"
-        elif suffix == ".pptx":
-            resource_type = "powerpoint"
-        elif suffix in {".one", ".onenote"}:
-            resource_type = "onenote"
-        else:
-            resource_type = "generic"
-        return {"id": resource_id, "type": resource_type}
-
-    @staticmethod
-    def _dependencies_available(modules: List[str]) -> bool:
-        return all(importlib.util.find_spec(module) is not None for module in modules)
-
-
-class _PlainTextProcessor:
-    """Minimal processor to convert files to and from CIRDocument."""
-
-    async def process_file(self, file_path: Path) -> CIRDocument:
-        content = file_path.read_text(encoding="utf-8", errors="ignore") if file_path.exists() else ""
-        section = Section(title=file_path.name, content_blocks=[ContentBlock(ContentBlockType.TEXT, content)])
-        return CIRDocument(title=file_path.stem, document_type=file_path.suffix.lstrip("."), sections=[section])
-
-    async def generate_file(self, cir_content: CIRDocument, file_path: Path) -> None:
-        text_sections = []
-        for section in cir_content.sections:
-            text_sections.append(section.title)
-            for block in section.content_blocks:
-                text_sections.append(str(block.content))
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        file_path.write_text("\n\n".join(text_sections), encoding="utf-8")
-
-
-class OfficeFileConnector(BaseConnector):
-    """Direct file format connector for Office documents (DOCX, XLSX, PPTX)."""
-
-    def __init__(self, config: ConnectorConfig):
-        super().__init__(config)
-        self.base_path = Path(config.settings.get("base_path", "."))
-        self.processors = {
-            ".docx": _StubProcessor(),
-            ".xlsx": _StubProcessor(),
-            ".pptx": _StubProcessor(),
+        return {
+            "total_operations": total,
+            "successful_operations": successful,
+            "failed_operations": total - successful,
+            "success_rate": successful / total if total > 0 else 0,
+            "last_operation": self.operation_history[-1] if self.operation_history else None,
+            "connector_type": self.system_name,
         }
-        processor = _PlainTextProcessor()
-        self.processors = {".docx": processor, ".xlsx": processor, ".pptx": processor}
-
-    async def connect(self) -> OperationResult:
-        try:
-            self.base_path.mkdir(parents=True, exist_ok=True)
-            test_file = self.base_path / ".test_access"
-            test_file.write_text("test")
-            test_file.unlink()
-            self.is_connected = True
-            return OperationResult(success=True, data={"status": "connected"})
-        except Exception as exc:
-            return OperationResult(success=False, error=str(exc))
-
-    async def disconnect(self) -> OperationResult:
-        self.is_connected = False
-        return OperationResult(success=True, data={"status": "disconnected"})
-
-    async def health_check(self) -> OperationResult:
-        exists = self.base_path.exists()
-        self.last_health_check = datetime.utcnow()
-        return OperationResult(success=exists, data={"path_exists": exists})
-
-    async def list_resources(
-        self, resource_type: Optional[str] = None, filters: Optional[Dict[str, Any]] = None
-    ) -> OperationResult:
-        self.last_health_check = datetime.utcnow()
-        exists = self.base_path.exists()
-        return OperationResult(success=exists, data={"checked_at": self.last_health_check}, error=None if exists else "Base path missing")
-
-    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
-        try:
-            resources: List[Dict[str, Any]] = []
-            patterns = ["*.docx", "*.xlsx", "*.pptx"]
-            if resource_type:
-                type_patterns = {"word": ["*.docx"], "excel": ["*.xlsx"], "powerpoint": ["*.pptx"]}
-                patterns = type_patterns.get(resource_type, patterns)
-
-            for pattern in patterns:
-                for file_path in self.base_path.rglob(pattern):
-                    if file_path.is_file():
-                        stat = file_path.stat()
-                        resources.append(
-                            {
-                                "id": str(file_path.relative_to(self.base_path)),
-                                "name": file_path.name,
-                                "type": self._get_file_type(file_path.suffix),
-                                "size": stat.st_size,
-                                "modified": datetime.fromtimestamp(stat.st_mtime),
-                                "path": str(file_path),
-                            }
-                        )
-
-            if filters:
-                resources = [res for res in resources if all(res.get(k) == v for k, v in filters.items())]
-
-            return OperationResult(success=True, data=resources)
-            return OperationResult(success=True, data=self._apply_filters(resources, filters))
-        except Exception as exc:
-            return OperationResult(success=False, error=str(exc))
-
-    async def get_resource_metadata(self, resource_id: str) -> OperationResult:
-        file_path = self.base_path / resource_id
-        if not file_path.exists():
-            return OperationResult(success=False, error="File not found")
-
-        stat = file_path.stat()
-        metadata = {
-            "size": stat.st_size,
-            "modified": datetime.fromtimestamp(stat.st_mtime),
-            "created": datetime.fromtimestamp(stat.st_ctime),
-            "suffix": file_path.suffix,
-        }
-        return OperationResult(success=True, data=metadata)
-
-    async def read_resource(self, resource_id: str, options: Optional[Dict[str, Any]] = None) -> OperationResult:
-        file_path = self.base_path / resource_id
-        if not file_path.exists():
-            return OperationResult(success=False, error="File not found")
-
-        processor = self.processors.get(file_path.suffix)
-        if not processor:
-            return OperationResult(success=False, error="Unsupported file type")
-
-        try:
-        stat = file_path.stat()
-        metadata = {
-            "id": resource_id,
-            "name": file_path.name,
-            "type": self._get_file_type(file_path.suffix),
-            "size": stat.st_size,
-            "modified": datetime.fromtimestamp(stat.st_mtime),
-        }
-        return OperationResult(success=True, data=metadata)
 
     async def read_resource(self, resource_id: str, options: Dict[str, Any] = None) -> OperationResult:
         try:
@@ -822,62 +401,32 @@ class OfficeFileConnector(BaseConnector):
         file_id = filename or f"{cir_content.title}{suffix}"
         return await self.write_resource(file_id, cir_content, options)
 
-    async def delete_resource(self, resource_id: str) -> OperationResult:
-        file_path = self.base_path / resource_id
-        if not file_path.exists():
-            return OperationResult(success=False, error="File not found")
-        try:
-            file_path.unlink()
-            return OperationResult(success=True, data={"deleted": resource_id})
-        except Exception as exc:
-            return OperationResult(success=False, error=str(exc))
+class ConnectorException(Exception):
+    """Base exception for connector operations."""
 
-    async def search(
-        self, query: str, filters: Optional[Dict[str, Any]] = None, options: Optional[Dict[str, Any]] = None
-    ) -> OperationResult:
-        resources = await self.list_resources(filters=filters)
-        if not resources.success:
-            return resources
+    def __init__(self, message: str, error_code: str = None, connector: str = None):
+        super().__init__(message)
+        self.error_code = error_code
+        self.connector = connector
 
-        matches = [res for res in resources.data if query.lower() in res.get("name", "").lower()]
-        return OperationResult(success=True, data=matches)
 
-    def _get_file_type(self, suffix: str) -> str:
-        return {".docx": "word", ".xlsx": "excel", ".pptx": "powerpoint"}.get(suffix.lower(), "unknown")
+class AuthenticationException(ConnectorException):
+    """Authentication-related errors."""
 
-    def _default_extension(self, resource_type: str) -> str:
-        defaults = {"word": ".docx", "excel": ".xlsx", "powerpoint": ".pptx"}
-        return defaults.get(resource_type, ".docx")
+
+class RateLimitException(ConnectorException):
+    """Rate limiting errors."""
 
 
 class PDFConnector(BaseConnector):
     """Connector for PDF files with optional OCR support."""
-        file_path.unlink()
-        return OperationResult(success=True, data={"path": str(file_path)})
-
-    async def search(self, query: str, filters: Dict[str, Any] = None, options: Dict[str, Any] = None) -> OperationResult:
-        list_result = await self.list_resources(filters=filters)
-        if not list_result.success:
-            return list_result
-        query_lower = query.lower()
-        matched = [res for res in list_result.data if query_lower in res.get("name", "").lower()]
-        return OperationResult(success=True, data=matched)
-
-    def _get_file_type(self, suffix: str) -> str:
-        mapping = {".docx": "word", ".xlsx": "excel", ".pptx": "powerpoint"}
-        return mapping.get(suffix.lower(), "unknown")
-
-
-class PDFConnector(BaseConnector):
-    """Connector for PDF files with OCR and annotation support."""
 
     def __init__(self, config: ConnectorConfig):
         super().__init__(config)
         self.base_path = Path(config.settings.get("base_path", "."))
-        self.ocr_engine = self._initialize_ocr()
+        self.base_path.mkdir(parents=True, exist_ok=True)
 
     async def connect(self) -> OperationResult:
-        self.base_path.mkdir(parents=True, exist_ok=True)
         self.is_connected = True
         return OperationResult(success=True, data={"status": "connected"})
 
@@ -886,12 +435,11 @@ class PDFConnector(BaseConnector):
         return OperationResult(success=True, data={"status": "disconnected"})
 
     async def health_check(self) -> OperationResult:
+        exists = self.base_path.exists()
         self.last_health_check = datetime.utcnow()
-        return OperationResult(success=True, data={"status": "healthy"})
+        return OperationResult(success=exists, data={"path_exists": exists, "checked_at": self.last_health_check})
 
-    async def list_resources(
-        self, resource_type: Optional[str] = None, filters: Optional[Dict[str, Any]] = None
-    ) -> OperationResult:
+    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
         resources: List[Dict[str, Any]] = []
         for file_path in self.base_path.rglob("*.pdf"):
             if file_path.is_file():
@@ -908,27 +456,9 @@ class PDFConnector(BaseConnector):
                 )
 
         if filters:
-            resources = [res for res in resources if all(res.get(k) == v for k, v in filters.items())]
+            resources = self._apply_filters(resources, filters)
 
         return OperationResult(success=True, data=resources)
-        exists = self.base_path.exists()
-        return OperationResult(success=exists, data={"checked_at": self.last_health_check}, error=None if exists else "Base path missing")
-
-    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
-        resources: List[Dict[str, Any]] = []
-        for file_path in self.base_path.rglob("*.pdf"):
-            stat = file_path.stat()
-            resources.append(
-                {
-                    "id": str(file_path.relative_to(self.base_path)),
-                    "name": file_path.name,
-                    "type": "pdf",
-                    "size": stat.st_size,
-                    "modified": datetime.fromtimestamp(stat.st_mtime),
-                    "path": str(file_path),
-                }
-            )
-        return OperationResult(success=True, data=self._apply_filters(resources, filters))
 
     async def get_resource_metadata(self, resource_id: str) -> OperationResult:
         file_path = self.base_path / resource_id
@@ -938,52 +468,54 @@ class PDFConnector(BaseConnector):
         stat = file_path.stat()
         return OperationResult(
             success=True,
-            data={"size": stat.st_size, "modified": datetime.fromtimestamp(stat.st_mtime), "suffix": file_path.suffix},
+            data={
+                "id": resource_id,
+                "name": file_path.name,
+                "type": "pdf",
+                "size": stat.st_size,
+                "modified": datetime.fromtimestamp(stat.st_mtime),
+                "suffix": file_path.suffix,
+            },
         )
 
     async def read_resource(self, resource_id: str, options: Optional[Dict[str, Any]] = None) -> OperationResult:
-        if fitz is None:
-            return OperationResult(success=False, error="PyMuPDF is not installed")
-
         file_path = self.base_path / resource_id
         if not file_path.exists():
             return OperationResult(success=False, error="File not found")
 
         try:
-            pdf_document = fitz.open(str(file_path))
-            pages: List[str] = []
-            for page_num in range(pdf_document.page_count):
-                page = pdf_document[page_num]
-                text = page.get_text()
-                if not text.strip() and self.ocr_engine and Image is not None:
-                    pix = page.get_pixmap()
-                    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                    text = await self._perform_ocr(img)
-                pages.append(text)
-            pdf_document.close()
-            return OperationResult(success=True, data={"pages": pages, "title": file_path.stem})
+            return OperationResult(
+                success=True,
+                data={"id": resource_id, "name": file_path.name, "path": str(file_path)},
+            )
         except Exception as exc:  # pragma: no cover - depends on local files
             return OperationResult(success=False, error=str(exc))
 
-    async def write_resource(self, resource_id: str, cir_content: Any, options: Optional[Dict[str, Any]] = None) -> OperationResult:
+    async def write_resource(
+        self, resource_id: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
+    ) -> OperationResult:
         return OperationResult(success=False, error="PDF writing not implemented")
 
     async def create_resource(
         self, resource_type: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
     ) -> OperationResult:
         return OperationResult(success=False, error="Create operation not implemented")
-        stat = file_path.stat()
-        metadata = {
-            "id": resource_id,
-            "name": file_path.name,
-            "type": "pdf",
-            "size": stat.st_size,
-            "modified": datetime.fromtimestamp(stat.st_mtime),
-        }
-        return OperationResult(success=True, data=metadata)
 
-    async def read_resource(self, resource_id: str, options: Dict[str, Any] = None) -> OperationResult:
+    async def delete_resource(self, resource_id: str) -> OperationResult:
         file_path = self.base_path / resource_id
+        if not file_path.exists():
+            return OperationResult(success=False, error="File not found")
+
+        file_path.unlink()
+        return OperationResult(success=True, data={"path": str(file_path)})
+
+    async def search(self, query: str, filters: Dict[str, Any] = None, options: Dict[str, Any] = None) -> OperationResult:
+        list_result = await self.list_resources(filters=filters)
+        if not list_result.success:
+            return list_result
+        query_lower = query.lower()
+        matched = [res for res in list_result.data if query_lower in res.get("name", "").lower()]
+        return OperationResult(success=True, data=matched)
         if not file_path.exists():
             return OperationResult(success=False, error="File not found")
         text_content = file_path.read_text(encoding="utf-8", errors="ignore")
@@ -1058,7 +590,7 @@ class PDFConnector(BaseConnector):
 
 
 class GitConnector(BaseConnector):
-    """Connector for Git repositories with version control integration."""
+    """Connector for Git repositories using GitPython."""
 
     def __init__(self, config: ConnectorConfig):
         super().__init__(config)
@@ -1067,70 +599,64 @@ class GitConnector(BaseConnector):
 
     async def connect(self) -> OperationResult:
         if Repo is None:
-            return OperationResult(success=False, error="GitPython is not installed")
-
-        self.repo = None
-
-    async def connect(self) -> OperationResult:
-        if not importlib.util.find_spec("git"):
-            return OperationResult(success=False, error="GitPython is not installed")
-
-        from git import Repo  # type: ignore
-
+            return OperationResult(success=False, error="GitPython not installed")
         try:
-            if self.repo_path.exists() and (self.repo_path / ".git").exists():
+            self.repo_path.mkdir(parents=True, exist_ok=True)
+            if (self.repo_path / ".git").exists():
                 self.repo = Repo(str(self.repo_path))
             else:
                 self.repo = Repo.init(str(self.repo_path))
             self.is_connected = True
             return OperationResult(success=True, data={"status": "connected"})
-        except Exception as exc:  # pragma: no cover - filesystem dependent
+        except Exception as exc:  # pragma: no cover - git dependent
             return OperationResult(success=False, error=str(exc))
 
     async def disconnect(self) -> OperationResult:
-        self.is_connected = False
         self.repo = None
+        self.is_connected = False
         return OperationResult(success=True, data={"status": "disconnected"})
 
     async def health_check(self) -> OperationResult:
         exists = self.repo_path.exists() and (self.repo_path / ".git").exists()
         self.last_health_check = datetime.utcnow()
-        return OperationResult(success=exists, data={"repo_exists": exists})
+        return OperationResult(success=exists, data={"repo_exists": exists, "checked_at": self.last_health_check})
 
-    async def list_resources(
-        self, resource_type: Optional[str] = None, filters: Optional[Dict[str, Any]] = None
-    ) -> OperationResult:
+    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
         if not self.repo:
             return OperationResult(success=False, error="Repository not connected")
+class ResourceNotFoundException(ConnectorException):
+    """Resource not found errors."""
+
+
+class UnsupportedOperationException(ConnectorException):
+    """Unsupported operation errors."""
+
+
+class ConnectorHealthMonitor:
+    """Monitor health of connector instances."""
+
+    def __init__(self) -> None:
+        self.connector_health: Dict[str, Dict[str, Any]] = {}
+
+    async def check_connector_health(self, connector: BaseConnector) -> Dict[str, Any]:
+        """Check health of a specific connector."""
 
         try:
-            resources: List[Dict[str, Any]] = []
-            for item in self.repo.index.entries:
-                file_path = Path(item[0])
-                full_path = self.repo_path / file_path
-                if full_path.exists():
-                    stat = full_path.stat()
-                    commits = list(self.repo.iter_commits(paths=str(file_path), max_count=1))
-                    last_commit = commits[0] if commits else None
-                    resources.append(
-                        {
-                            "id": str(file_path),
-                            "name": file_path.name,
-                            "type": "git_file",
-                            "size": stat.st_size,
-                            "modified": datetime.fromtimestamp(stat.st_mtime),
-                            "path": str(file_path),
-                            "last_commit": {
-                                "hash": last_commit.hexsha if last_commit else None,
-                                "message": last_commit.message if last_commit else None,
-                                "author": str(last_commit.author) if last_commit else None,
-                                "date": last_commit.committed_datetime if last_commit else None,
-                            },
-                        }
-                    )
-            return OperationResult(success=True, data=resources)
-        except Exception as exc:  # pragma: no cover - git dependent
-            return OperationResult(success=False, error=str(exc))
+            health_result = await connector.health_check()
+            stats = connector.get_operation_stats()
+
+            health_info = {
+                "connector_id": connector.config.instance_id,
+                "connector_type": connector.system_name,
+                "is_healthy": health_result.success,
+                "last_check": datetime.utcnow(),
+                "error": health_result.error,
+                "stats": stats,
+                "capabilities": [cap.value for cap in connector.config.capabilities],
+            }
+
+            self.connector_health[connector.config.instance_id] = health_info
+            return health_info
 
     async def get_resource_metadata(self, resource_id: str) -> OperationResult:
         if not self.repo:
@@ -1178,12 +704,6 @@ class GitConnector(BaseConnector):
         self, resource_type: str, cir_content: Any, options: Optional[Dict[str, Any]] = None
     ) -> OperationResult:
         return await self.write_resource(options.get("filename", "new_file"), cir_content, options or {})
-                self.repo_path.mkdir(parents=True, exist_ok=True)
-                self.repo = Repo.init(str(self.repo_path))
-            self.is_connected = True
-            return OperationResult(success=True, data={"status": "connected"})
-        except Exception as exc:
-            return OperationResult(success=False, error=str(exc))
 
     async def disconnect(self) -> OperationResult:
         self.repo = None
@@ -1500,202 +1020,33 @@ class ConnectorRegistry:
             "pdf": PDFConnector,
             "git": GitConnector,
             "openai": OpenAIConnector,
-        }
-
-    def get_connector_class(self, connector_type: str) -> Optional[type]:
-        return self.connector_types.get(connector_type)
-
-    def create_connector(self, connector_type: str, config: ConnectorConfig) -> BaseConnector:
-        connector_class = self.get_connector_class(connector_type)
-        if not connector_class:
-            raise ValueError(f"Unknown connector type: {connector_type}")
-        return connector_class(config)
-    async def _text_to_cir(self, text: str, document_type: str) -> CIRDocument:
-        section = Section(title="AI Output", content_blocks=[ContentBlock(ContentBlockType.TEXT, text)])
-        return CIRDocument(title=f"Processed {document_type}", document_type=document_type, sections=[section])
-
-
-class AppleNotesConnector(BaseConnector):
-    """Placeholder for future Apple Notes connector."""
-
-    async def connect(self) -> OperationResult:
-        return OperationResult(success=False, error="AppleNotesConnector not implemented")
-
-    async def disconnect(self) -> OperationResult:
-        return OperationResult(success=True, data={"status": "disconnected"})
-
-    async def health_check(self) -> OperationResult:
-        return OperationResult(success=False, error="AppleNotesConnector not implemented")
-
-    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
-        return OperationResult(success=False, error="AppleNotesConnector not implemented")
-
-    async def get_resource_metadata(self, resource_id: str) -> OperationResult:
-        return OperationResult(success=False, error="AppleNotesConnector not implemented")
-
-    async def read_resource(self, resource_id: str, options: Dict[str, Any] = None) -> OperationResult:
-        return OperationResult(success=False, error="AppleNotesConnector not implemented")
-
-    async def write_resource(self, resource_id: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
-        return OperationResult(success=False, error="AppleNotesConnector not implemented")
-
-    async def create_resource(self, resource_type: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
-        return OperationResult(success=False, error="AppleNotesConnector not implemented")
-
-    async def delete_resource(self, resource_id: str) -> OperationResult:
-        return OperationResult(success=False, error="AppleNotesConnector not implemented")
-
-    async def search(self, query: str, filters: Dict[str, Any] = None, options: Dict[str, Any] = None) -> OperationResult:
-        return OperationResult(success=False, error="AppleNotesConnector not implemented")
-
-
-class SystemDaemonConnector(BaseConnector):
-    """Placeholder for future system daemon connector."""
-
-    async def connect(self) -> OperationResult:
-        return OperationResult(success=False, error="SystemDaemonConnector not implemented")
-
-    async def disconnect(self) -> OperationResult:
-        return OperationResult(success=True, data={"status": "disconnected"})
-
-    async def health_check(self) -> OperationResult:
-        return OperationResult(success=False, error="SystemDaemonConnector not implemented")
-
-    async def list_resources(self, resource_type: str = None, filters: Dict[str, Any] = None) -> OperationResult:
-        return OperationResult(success=False, error="SystemDaemonConnector not implemented")
-
-    async def get_resource_metadata(self, resource_id: str) -> OperationResult:
-        return OperationResult(success=False, error="SystemDaemonConnector not implemented")
-
-    async def read_resource(self, resource_id: str, options: Dict[str, Any] = None) -> OperationResult:
-        return OperationResult(success=False, error="SystemDaemonConnector not implemented")
-
-    async def write_resource(self, resource_id: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
-        return OperationResult(success=False, error="SystemDaemonConnector not implemented")
-
-    async def create_resource(self, resource_type: str, cir_content: CIRDocument, options: Dict[str, Any] = None) -> OperationResult:
-        return OperationResult(success=False, error="SystemDaemonConnector not implemented")
-
-    async def delete_resource(self, resource_id: str) -> OperationResult:
-        return OperationResult(success=False, error="SystemDaemonConnector not implemented")
-
-    async def search(self, query: str, filters: Dict[str, Any] = None, options: Dict[str, Any] = None) -> OperationResult:
-        return OperationResult(success=False, error="SystemDaemonConnector not implemented")
-
-
-class ConnectorManager:
-    """Manages all connector instances and provides unified interface."""
-
-    def __init__(self):
-        self.connectors: Dict[str, BaseConnector] = {}
-        self.connector_registry = ConnectorRegistry()
-
-    async def register_connector(self, connector_id: str, connector: BaseConnector):
-        self.connectors[connector_id] = connector
-        await connector.connect()
-
-    async def get_connector(self, connector_id: str) -> Optional[BaseConnector]:
-        return self.connectors.get(connector_id)
-
-    async def execute_operation(self, connector_id: str, operation: str, *args, **kwargs) -> OperationResult:
-        connector = await self.get_connector(connector_id)
-        if not connector:
-            return OperationResult(success=False, error="Connector not found")
-
-        if not connector.is_connected:
-            await connector.connect()
-
-        method = getattr(connector, operation, None)
-        if not method:
-            return OperationResult(success=False, error="Operation not supported")
-
-        return await method(*args, **kwargs)
-
-    async def search_across_connectors(
-        self, query: str, connector_ids: Optional[List[str]] = None
-    ) -> Dict[str, OperationResult]:
-        target_connectors = connector_ids or list(self.connectors.keys())
-        results: Dict[str, OperationResult] = {}
-
-        if not connector.is_connected:
-            await connector.connect()
-        method = getattr(connector, operation, None)
-        if not method:
-            return OperationResult(success=False, error="Operation not supported")
-        return await method(*args, **kwargs)
-
-    async def search_across_connectors(self, query: str, connector_ids: List[str] = None) -> Dict[str, OperationResult]:
-        target_connectors = connector_ids or list(self.connectors.keys())
-        results: Dict[str, OperationResult] = {}
-        tasks = []
-        for connector_id in target_connectors:
-            connector = self.connectors.get(connector_id)
-            if connector and connector.supports_capability(ConnectorCapability.SEARCH):
-                tasks.append(self._search_connector(connector_id, connector, query))
-
-        search_results = await asyncio.gather(*tasks, return_exceptions=True)
-
-        search_results = await asyncio.gather(*tasks, return_exceptions=True)
-        for i, result in enumerate(search_results):
-            connector_id = target_connectors[i]
-            if isinstance(result, Exception):
-                results[connector_id] = OperationResult(success=False, error=str(result))
-            else:
-                results[connector_id] = result
-
-        return results
-
-    async def _search_connector(self, connector_id: str, connector: BaseConnector, query: str) -> OperationResult:
-        try:
-            return await connector.search(query)
-        except Exception as exc:  # pragma: no cover - connector dependent
-            return OperationResult(success=False, error=str(exc))
         except Exception as exc:
-            return OperationResult(success=False, error=str(exc))
+            health_info = {
+                "connector_id": connector.config.instance_id,
+                "connector_type": connector.system_name,
+                "is_healthy": False,
+                "last_check": datetime.utcnow(),
+                "error": str(exc),
+                "stats": {},
+                "capabilities": [],
+            }
 
+            self.connector_health[connector.config.instance_id] = health_info
+            return health_info
 
-class ConnectorRegistry:
-    """Registry of available connector types and their configurations."""
+    def get_overall_health(self) -> Dict[str, Any]:
+        """Get overall health status of all connectors."""
 
-    def __init__(self):
-        self.connector_types = {
-            "microsoft_graph": MicrosoftGraphConnector,
-            "office_files": OfficeFileConnector,
-            "pdf": PDFConnector,
-            "git": GitConnector,
-            "openai": OpenAIConnector,
-            "apple_notes": AppleNotesConnector,
-            "system_daemon": SystemDaemonConnector,
+        if not self.connector_health:
+            return {"status": "no_connectors", "healthy_count": 0, "total_count": 0}
+
+        healthy_count = len([h for h in self.connector_health.values() if h["is_healthy"]])
+        total_count = len(self.connector_health)
+
+        return {
+            "status": "healthy" if healthy_count == total_count else "degraded",
+            "healthy_count": healthy_count,
+            "total_count": total_count,
+            "health_percentage": (healthy_count / total_count) * 100 if total_count > 0 else 0,
+            "connectors": self.connector_health,
         }
-
-    def get_connector_class(self, connector_type: str) -> Optional[type]:
-        return self.connector_types.get(connector_type)
-
-    def create_connector(self, connector_type: str, config: ConnectorConfig) -> BaseConnector:
-        connector_class = self.get_connector_class(connector_type)
-        if not connector_class:
-            raise ValueError(f"Unknown connector type: {connector_type}")
-        return connector_class(config)
-
-
-__all__ = [
-    "AppleNotesConnector",
-    "BaseConnector",
-    "CIRDocument",
-    "ConnectorCapability",
-    "ConnectorConfig",
-    "ConnectorManager",
-    "ConnectorRegistry",
-    "ContentBlock",
-    "ContentBlockType",
-    "GitConnector",
-    "MicrosoftGraphConnector",
-    "OfficeFileConnector",
-    "OpenAIConnector",
-    "OperationResult",
-    "PDFConnector",
-    "Section",
-    "SimpleAsyncRateLimiter",
-    "SimpleCircuitBreaker",
-    "SystemDaemonConnector",
-]
