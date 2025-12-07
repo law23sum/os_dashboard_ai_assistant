@@ -19,6 +19,21 @@ from .automators import (
     AutoSuggestService,
     WorkflowExecutor,
 )
+from .workflow_orchestration import (
+    WorkflowEngine,
+    WorkflowDefinition,
+    WorkflowExecution,
+    WorkflowAction,
+    WorkflowTrigger,
+    WorkflowStatus,
+    ActionType,
+    TriggerType,
+    WorkflowActionExecutor,
+    ReadResourceExecutor,
+    WriteResourceExecutor,
+    TransformDataExecutor,
+    ConditionalExecutor,
+)
 
 __all__ = [
     "CognitiveDaemon",
@@ -33,5 +48,18 @@ __all__ = [
     "AutoUpdateService",
     "AutoSuggestService",
     "WorkflowExecutor",
+    "WorkflowEngine",
+    "WorkflowDefinition",
+    "WorkflowExecution",
+    "WorkflowAction",
+    "WorkflowTrigger",
+    "WorkflowStatus",
+    "ActionType",
+    "TriggerType",
+    "WorkflowActionExecutor",
+    "ReadResourceExecutor",
+    "WriteResourceExecutor",
+    "TransformDataExecutor",
+    "ConditionalExecutor",
 ]
 

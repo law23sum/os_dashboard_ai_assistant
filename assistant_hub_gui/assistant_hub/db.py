@@ -459,7 +459,6 @@ def init_db() -> sqlite3.Connection:
     try:
         initialize_document_samples(conn)
     # Seed sample document operations so the AI Ops board is never empty
-    try:
         c.execute("SELECT COUNT(*) as count FROM document_operations")
         row = c.fetchone()
         op_count = row["count"] if row else 0

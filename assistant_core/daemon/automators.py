@@ -208,40 +208,102 @@ class AutoSuggestService(BaseAutomator):
 
 
 class WorkflowExecutor(BaseAutomator):
-    """Executes automated workflows."""
-    
+    """Executes automated workflows using the WorkflowEngine."""
+
+    def __init__(self, conn: sqlite3.Connection):
+        super().__init__(conn)
+        self.workflow_engine = None
+
+    def set_workflow_engine(self, engine):
+        """Set the workflow engine instance."""
+        self.workflow_engine = engine
+
     def process_findings(self, findings: Dict[str, List], state: AssistantState, settings: Settings) -> List[str]:
         """Execute workflows based on findings."""
         actions = []
-        
-        # Check for workflow triggers
-        # Example: If a project reaches certain completion, trigger review workflow
-        for project in state.projects:
-            if project.status == "active":
-                project_tasks = [t for t in state.tasks if t.project == project.name]
-                if len(project_tasks) > 0:
-                    completed = len([t for t in project_tasks if t.status == "DONE"])
-                    completion_ratio = completed / len(project_tasks)
-                    
-                    # Trigger milestone workflow at 50% completion
-                    if 0.49 < completion_ratio < 0.51:  # Just crossed 50%
-                        action = self._execute_milestone_workflow(project, state, settings)
-                        if action:
-                            actions.append(action)
-        
-        return actions
-    
-    def _execute_milestone_workflow(self, project: Project, state: AssistantState, settings: Settings) -> Optional[str]:
-        """Execute a milestone workflow for a project."""
+
+        if not self.workflow_engine:
+            return actions
+
         try:
-            # In full implementation, would:
-            # 1. Generate progress report
-            # 2. Update project status
-            # 3. Create summary document
-            # 4. Auto-commit everything
-            
-            return f"Executed milestone workflow for project: {project.name}"
+            # Check for workflow triggers from daemon findings
+            for finding_category, finding_list in findings.items():
+                for finding in finding_list:
+                    # Emit events to the workflow engine based on findings
+                    event = self._finding_to_event(finding_category, finding)
+                    if event:
+                        # Run in background to avoid blocking
+                        asyncio.create_task(self.workflow_engine.emit_event(event))
+
+            # Check for project milestone triggers (legacy behavior)
+            for project in state.projects:
+                if project.status == "active":
+                    project_tasks = [t for t in state.tasks if t.project == project.name]
+                    if len(project_tasks) > 0:
+                        completed = len([t for t in project_tasks if t.status == "DONE"])
+                        completion_ratio = completed / len(project_tasks)
+
+                        # Trigger milestone workflow at 50% completion
+                        if 0.49 < completion_ratio < 0.51:  # Just crossed 50%
+                            event = {
+                                'type': 'project_milestone',
+                                'project': project.name,
+                                'milestone': '50_percent_complete',
+                                'completion_ratio': completion_ratio,
+                                'total_tasks': len(project_tasks),
+                                'completed_tasks': completed
+                            }
+                            asyncio.create_task(self.workflow_engine.emit_event(event))
+
         except Exception as e:
-            print(f"[WorkflowExecutor] Error executing milestone workflow: {e}")
-            return None
+            print(f"[WorkflowExecutor] Error processing findings: {e}")
+
+        return actions
+
+    def _finding_to_event(self, category: str, finding: Dict) -> Optional[Dict]:
+        """Convert daemon findings to workflow events."""
+        try:
+            if category == "documents":
+                if finding.get("type") == "missing_document":
+                    return {
+                        'type': 'missing_document',
+                        'document_type': finding.get('document_type'),
+                        'suggested_path': finding.get('suggested_path'),
+                        'project': finding.get('project')
+                    }
+                elif finding.get("type") == "outdated_document":
+                    return {
+                        'type': 'outdated_document',
+                        'path': finding.get('path'),
+                        'last_modified': finding.get('last_modified')
+                    }
+
+            elif category == "tasks":
+                if finding.get("type") == "urgent_task":
+                    return {
+                        'type': 'urgent_task',
+                        'task_id': finding.get('task_id'),
+                        'task_title': finding.get('task_title'),
+                        'days_until_due': finding.get('days_until_due')
+                    }
+                elif finding.get("type") == "task_needs_documentation":
+                    return {
+                        'type': 'task_needs_documentation',
+                        'task_id': finding.get('task_id'),
+                        'task_title': finding.get('task_title')
+                    }
+
+            elif category == "filesystem":
+                if finding.get("type") == "new_uploaded_document":
+                    return {
+                        'type': 'new_uploaded_document',
+                        'path': finding.get('path'),
+                        'doc_type': finding.get('doc_type'),
+                        'project': finding.get('project')
+                    }
+
+        except Exception as e:
+            print(f"[WorkflowExecutor] Error converting finding to event: {e}")
+
+        return None
 
