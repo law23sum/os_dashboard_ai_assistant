@@ -340,6 +340,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.cwd_var = tk.StringVar(value=os.getcwd())
         self.project_docs_file_paths = {}  # Map item_id -> file_path for project documents
         self.project_docs_link_ids = {}  # Map item_id -> link_id for project documents
+        # Optional automation orchestrator instance (set when feature is available)
+        # Initialize to None so attribute lookups remain safe even if the feature
+        # isn't loaded, avoiding Tk's __getattr__ fallback from raising errors
+        # during GUI construction.
+        self.automation_orchestrator = None
 
         self._configure_style()
 
