@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import base64
+import importlib
 import os
 import sqlite3
 import threading
@@ -264,6 +265,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_text = None
         self.command_var = tk.StringVar()
         self.cwd_var = tk.StringVar(value=os.getcwd())
+        self.doc_preview_text = None
+        self.doc_status_var = tk.StringVar(value="Load a Word, Excel, OneNote, or PDF file to preview alongside the AI console.")
+        self.doc_source_var = tk.StringVar(value="PDF")
+        self.doc_path_var = tk.StringVar()
 
         if not TTKBOOTSTRAP_AVAILABLE:
             self._configure_style()
@@ -1456,15 +1461,101 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.notebook.add(self.chat_frame, text="AI Console")
 
         self.chat_frame.columnconfigure(0, weight=1)
-        self.chat_frame.rowconfigure(0, weight=3)
-        self.chat_frame.rowconfigure(1, weight=2)
+        self.chat_frame.rowconfigure(0, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            convo_frame = ttkb.Labelframe(self.chat_frame, text="💬 Chat & Terminal", bootstyle="primary")
-            compose = ttkb.Labelframe(self.chat_frame, text="✍️ Compose Message & Terminal", bootstyle="info")
+            paned = ttkb.Panedwindow(self.chat_frame, orient="horizontal", bootstyle="primary")
         else:
-            convo_frame = ttk.LabelFrame(self.chat_frame, text="Chat & Terminal")
-            compose = ttk.LabelFrame(self.chat_frame, text="Compose Message & Terminal")
+            paned = ttk.Panedwindow(self.chat_frame, orient="horizontal")
+        paned.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+
+        # Left: document/context viewer for Office/PDF work
+        if TTKBOOTSTRAP_AVAILABLE:
+            doc_frame = ttkb.Labelframe(paned, text="📄 Document Context", bootstyle="secondary")
+        else:
+            doc_frame = ttk.LabelFrame(paned, text="Document Context")
+        doc_frame.columnconfigure(0, weight=1)
+        doc_frame.rowconfigure(2, weight=1)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            doc_header = ttkb.Label(doc_frame, text="Preview Word, Excel, OneNote, and PDF files side-by-side while chatting.", bootstyle="info")
+        else:
+            doc_header = ttk.Label(doc_frame, text="Preview Word, Excel, OneNote, and PDF files side-by-side while chatting.")
+        doc_header.grid(row=0, column=0, sticky="w", padx=6, pady=(6, 4))
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            controls = ttkb.Frame(doc_frame)
+        else:
+            controls = ttk.Frame(doc_frame)
+        controls.grid(row=1, column=0, sticky="ew", padx=6)
+        controls.columnconfigure(1, weight=1)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            ttkb.Label(controls, text="Source:", bootstyle="secondary").grid(row=0, column=0, sticky="w", padx=(0, 4))
+            source_combo = ttkb.Combobox(controls, textvariable=self.doc_source_var, state="readonly", width=12, values=["OneNote", "Word", "Excel", "PDF"], bootstyle="primary")
+        else:
+            ttk.Label(controls, text="Source:").grid(row=0, column=0, sticky="w", padx=(0, 4))
+            source_combo = ttk.Combobox(controls, textvariable=self.doc_source_var, state="readonly", width=12, values=["OneNote", "Word", "Excel", "PDF"])
+        source_combo.grid(row=0, column=1, sticky="w")
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            path_entry = ttkb.Entry(controls, textvariable=self.doc_path_var, width=38, bootstyle="secondary")
+        else:
+            path_entry = ttk.Entry(controls, textvariable=self.doc_path_var, width=38)
+        path_entry.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(4, 0))
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            browse_btn = ttkb.Button(controls, text="📂 Browse", command=self.on_browse_document, bootstyle="info-outline")
+            load_btn = ttkb.Button(controls, text="📑 Load Preview", command=self.on_load_document_preview, bootstyle="success")
+        else:
+            browse_btn = ttk.Button(controls, text="Browse", command=self.on_browse_document)
+            load_btn = ttk.Button(controls, text="Load Preview", command=self.on_load_document_preview)
+        browse_btn.grid(row=1, column=2, padx=(6, 2))
+        load_btn.grid(row=1, column=3, padx=(2, 0))
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            preview_frame = ttkb.Frame(doc_frame)
+        else:
+            preview_frame = ttk.Frame(doc_frame)
+        preview_frame.grid(row=2, column=0, sticky="nsew", padx=6, pady=6)
+        preview_frame.columnconfigure(0, weight=1)
+        preview_frame.rowconfigure(0, weight=1)
+
+        self.doc_preview_text = tk.Text(preview_frame, wrap="word", font=self.text_font, height=10, bg="#f8f9fa" if not TTKBOOTSTRAP_AVAILABLE else None)
+        self.doc_preview_text.insert("1.0", "Document previews will appear here. Load a file to see its contents alongside the AI discussion.")
+        self.doc_preview_text.config(state="disabled")
+        self.doc_preview_text.grid(row=0, column=0, sticky="nsew")
+        if TTKBOOTSTRAP_AVAILABLE:
+            doc_scroll = ttkb.Scrollbar(preview_frame, orient="vertical", command=self.doc_preview_text.yview, bootstyle="secondary-round")
+        else:
+            doc_scroll = ttk.Scrollbar(preview_frame, orient="vertical", command=self.doc_preview_text.yview)
+        self.doc_preview_text.configure(yscrollcommand=doc_scroll.set)
+        doc_scroll.grid(row=0, column=1, sticky="ns")
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            status_label = ttkb.Label(doc_frame, textvariable=self.doc_status_var, bootstyle="secondary")
+        else:
+            status_label = ttk.Label(doc_frame, textvariable=self.doc_status_var)
+        status_label.grid(row=3, column=0, sticky="w", padx=6, pady=(0, 6))
+
+        # Right: existing chat + compose stack
+        if TTKBOOTSTRAP_AVAILABLE:
+            chat_container = ttkb.Frame(paned)
+        else:
+            chat_container = ttk.Frame(paned)
+        chat_container.columnconfigure(0, weight=1)
+        chat_container.rowconfigure(0, weight=3)
+        chat_container.rowconfigure(1, weight=2)
+
+        paned.add(doc_frame, weight=1)
+        paned.add(chat_container, weight=2)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            convo_frame = ttkb.Labelframe(chat_container, text="💬 Chat & Terminal", bootstyle="primary")
+            compose = ttkb.Labelframe(chat_container, text="✍️ Compose Message & Terminal", bootstyle="info")
+        else:
+            convo_frame = ttk.LabelFrame(chat_container, text="Chat & Terminal")
+            compose = ttk.LabelFrame(chat_container, text="Compose Message & Terminal")
         convo_frame.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
         convo_frame.columnconfigure(0, weight=1)
         convo_frame.rowconfigure(0, weight=1)
@@ -1704,12 +1795,146 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if current == placeholder:
             self.chat_input.delete('1.0', 'end')
             self.chat_input.config(foreground="black")
-        
+
         self.chat_input.insert('end', block)
         if truncated:
             self.chat_input.insert('end', '\n[Note: content truncated to fit limit]\n')
         self._update_chat_status(f"Imported '{label}' ({'truncated' if truncated else 'full'}).")
-    
+
+    def on_browse_document(self):
+        """Open a file dialog to choose a document for previewing alongside chat."""
+        filetypes = [
+            ("Office/PDF", "*.pdf *.doc *.docx *.xls *.xlsx *.csv *.one"),
+            ("PDF", "*.pdf"),
+            ("Word", "*.doc *.docx"),
+            ("Excel", "*.xls *.xlsx *.csv"),
+            ("OneNote", "*.one"),
+            ("All files", "*.*"),
+        ]
+        path = filedialog.askopenfilename(initialdir=self.cwd_var.get() or os.getcwd(), filetypes=filetypes)
+        if path:
+            self.doc_path_var.set(path)
+            guessed_source = self._guess_doc_source(path)
+            if guessed_source:
+                self.doc_source_var.set(guessed_source)
+            self.on_load_document_preview()
+
+    def on_load_document_preview(self):
+        """Load a document preview so it can be viewed side-by-side with the AI conversation."""
+        path = (self.doc_path_var.get() or '').strip()
+        if not path:
+            messagebox.showinfo('Document Preview', 'Choose a OneNote, Word, Excel, or PDF file first.')
+            return
+        if not os.path.exists(path):
+            messagebox.showerror('Document Preview', f'File not found:\n{path}')
+            return
+
+        source = self.doc_source_var.get() or self._guess_doc_source(path) or 'PDF'
+        preview_text, label = self._extract_document_preview(path, source)
+
+        if not self.doc_preview_text:
+            return
+
+        self.doc_preview_text.config(state="normal")
+        self.doc_preview_text.delete('1.0', 'end')
+        header = f"{label} — {os.path.basename(path)}\n{'=' * 80}\n\n"
+        self.doc_preview_text.insert('1.0', header + preview_text)
+        self.doc_preview_text.config(state="disabled")
+
+        status = f"Previewing {source} file: {os.path.basename(path)}"
+        self.doc_status_var.set(status)
+        self._store_chat_message('System', 'system', status, kind='file')
+        self.refresh_chat_history()
+
+    def _guess_doc_source(self, path: str) -> Optional[str]:
+        """Infer document source type from its extension."""
+        ext = os.path.splitext(path)[1].lower()
+        if ext in ['.doc', '.docx']:
+            return 'Word'
+        if ext in ['.xls', '.xlsx', '.csv']:
+            return 'Excel'
+        if ext == '.pdf':
+            return 'PDF'
+        if ext in ['.one', '.onetoc2']:
+            return 'OneNote'
+        return None
+
+    def _read_text_fallback(self, path: str, label: str):
+        """Gracefully load text content, falling back to base64 when needed."""
+        try:
+            with open(path, 'r', encoding='utf-8') as fh:
+                return fh.read(), label
+        except Exception:
+            content, descriptor = self._read_file_for_chat(path)
+            if descriptor:
+                label = f"{label}{descriptor}"
+            elif content.startswith('(base64)'):
+                label = f"{label} (base64)"
+            return content, label
+
+    def _extract_document_preview(self, path: str, source: str):
+        """Extract readable preview text for the supported Office/PDF formats."""
+        ext = os.path.splitext(path)[1].lower()
+
+        if source == 'Excel' or ext in ['.xls', '.xlsx', '.csv']:
+            pandas_spec = importlib.util.find_spec('pandas')
+            if pandas_spec:
+                pd = importlib.import_module('pandas')
+                try:
+                    df = pd.read_excel(path) if ext in ['.xls', '.xlsx'] else pd.read_csv(path)
+                    return df.head(25).to_string(index=False), 'Spreadsheet preview (first rows)'
+                except Exception as exc:
+                    return f"Unable to read spreadsheet: {exc}", 'Spreadsheet preview unavailable'
+            return self._read_text_fallback(path, 'Spreadsheet preview (raw text)')
+
+        if source == 'Word' or ext in ['.doc', '.docx']:
+            docx_spec = importlib.util.find_spec('docx')
+            if docx_spec:
+                Document = importlib.import_module('docx').Document
+                try:
+                    doc = Document(path)
+                    paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
+                    text = '\n\n'.join(paragraphs[:80]).strip()
+                    return text or '[No text content found in document]', 'Word preview'
+                except Exception as exc:
+                    return f"Unable to read Word document: {exc}", 'Word preview unavailable'
+            return self._read_text_fallback(path, 'Word preview (raw text)')
+
+        if source == 'PDF' or ext == '.pdf':
+            pypdf_spec = importlib.util.find_spec('PyPDF2')
+            if pypdf_spec:
+                PyPDF2 = importlib.import_module('PyPDF2')
+                try:
+                    with open(path, 'rb') as fh:
+                        reader = PyPDF2.PdfReader(fh)
+                        pages = []
+                        for page in reader.pages[:5]:
+                            text = page.extract_text() or ''
+                            pages.append(text.strip())
+                        combined = '\n\n'.join(pages).strip()
+                        return combined or '[No extractable text found in PDF]', 'PDF preview (first pages)'
+                except Exception as exc:
+                    return f"Unable to read PDF: {exc}", 'PDF preview unavailable'
+
+            pdfplumber_spec = importlib.util.find_spec('pdfplumber')
+            if pdfplumber_spec:
+                pdfplumber = importlib.import_module('pdfplumber')
+                try:
+                    with pdfplumber.open(path) as pdf:
+                        pages = []
+                        for page in pdf.pages[:5]:
+                            text = page.extract_text() or ''
+                            pages.append(text.strip())
+                        combined = '\n\n'.join(pages).strip()
+                        return combined or '[No extractable text found in PDF]', 'PDF preview (first pages)'
+                except Exception as exc:
+                    return f"Unable to read PDF: {exc}", 'PDF preview unavailable'
+
+            return self._read_text_fallback(path, 'PDF preview (raw text)')
+
+        # Treat any other source as OneNote/unknown text
+        return self._read_text_fallback(path, f'{source} preview')
+
     def on_upload_file(self):
         """Upload file to OpenAI and attach to conversation."""
         initial_dir = self.cwd_var.get().strip() if hasattr(self, 'cwd_var') else ''
