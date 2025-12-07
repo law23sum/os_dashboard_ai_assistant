@@ -1,12 +1,23 @@
-"""Local Word document helpers."""
+"""Local Word document helpers using python-docx."""
+
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
+
+from docx import Document
+
+
+def load_document(path: str) -> Document:
+    return Document(path)
+
+
+def save_document(doc: Document, path: str) -> None:
+    doc.save(path)
 
 
 class LocalDocument:
-    """Utility wrapper for a Word document on disk."""
+    """Utility wrapper for a Word document on disk (backwards compatibility)."""
 
     def __init__(self, path: str) -> None:
         self.path = Path(path)
