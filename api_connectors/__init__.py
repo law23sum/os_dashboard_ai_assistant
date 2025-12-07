@@ -38,6 +38,34 @@ __all__ = [
     "ContentBlockType",
     "GitConnector",
     "IntegrationAPIGateway",
+    "ConnectorCapability",
+    "ConnectorConfig",
+    "OperationResult",
+    "ConnectorManager",
+    "ConnectorRegistry",
+    "MicrosoftGraphConnector",
+    "OfficeFileConnector",
+    "PDFConnector",
+    "GitConnector",
+    "OpenAIConnector",
+    "get_connector",
+    "list_available_connectors",
+]
+
+from .base import IntegrationAPIGateway
+from .universal_connector import (
+    ConnectorCapability,
+    ConnectorConfig,
+    ConnectorManager,
+    ConnectorRegistry,
+    GitConnector,
+    MicrosoftGraphConnector,
+    OfficeFileConnector,
+    OpenAIConnector,
+    OperationResult,
+    PDFConnector,
+)
+
     "MicrosoftGraphConnector",
     "OfficeFileConnector",
     "OpenAIConnector",
