@@ -1,65 +1,40 @@
-"""Shared Microsoft Graph client utilities."""
+"""Shared Microsoft Graph client for OneNote, Excel, and Word."""
 
 from __future__ import annotations
-
-from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 import requests
 
-from .auth import request_access_token
-
-GRAPH_BASE_URL = "https://graph.microsoft.com/v1.0"
-
-
-@dataclass
-class GraphRequestContext:
-    """Context for Graph requests."""
-
-    access_token: Optional[str] = None
-
-    def ensure_token(self) -> str:
-        if not self.access_token:
-            self.access_token = request_access_token()
-        return self.access_token
+from .auth import GraphAuth, GraphCredentials
 
 
 class GraphClient:
-    """Minimal client wrapper to issue authenticated Graph requests."""
+    """Lightweight wrapper around Microsoft Graph REST calls."""
 
-    def __init__(self, context: Optional[GraphRequestContext] = None):
-        self.context = context or GraphRequestContext()
+    base_url = "https://graph.microsoft.com/v1.0"
 
-    def _headers(self, *, include_content_type: bool = True) -> Dict[str, str]:
-        headers = {"Authorization": f"Bearer {self.context.ensure_token()}"}
-        if include_content_type:
-            headers["Content-Type"] = "application/json"
-        return headers
+    def __init__(self, auth: Optional[GraphAuth] = None):
+        self.auth = auth or GraphAuth(GraphCredentials.from_env())
 
-    def get(self, relative_url: str, *, expect_json: bool = True) -> Any:
-        url = GRAPH_BASE_URL + relative_url
-        response = requests.get(url, headers=self._headers(), timeout=30)
-        response.raise_for_status()
-        return response.json() if expect_json else response.content
+    def _headers(self) -> Dict[str, str]:
+        token = self.auth.get_token()
+        return {"Authorization": f"Bearer {token}"}
 
-    def patch(self, relative_url: str, payload: Any) -> Dict[str, Any]:
-        url = GRAPH_BASE_URL + relative_url
-        response = requests.patch(url, headers=self._headers(), json=payload, timeout=30)
-        response.raise_for_status()
-        return response.json() if response.content else {}
-
-    def post(self, relative_url: str, payload: Any) -> Dict[str, Any]:
-        url = GRAPH_BASE_URL + relative_url
-        response = requests.post(url, headers=self._headers(), json=payload, timeout=30)
+    def get(self, path: str, **kwargs) -> Dict[str, Any]:
+        response = requests.get(f"{self.base_url}{path}", headers=self._headers(), timeout=10, **kwargs)
         response.raise_for_status()
         return response.json()
 
-    def put(self, relative_url: str, payload: Any) -> Dict[str, Any]:
-        url = GRAPH_BASE_URL + relative_url
-        if isinstance(payload, (bytes, bytearray)):
-            headers = self._headers(include_content_type=False)
-            response = requests.put(url, headers=headers, data=payload, timeout=30)
-        else:
-            response = requests.put(url, headers=self._headers(), json=payload, timeout=30)
+    def post(self, path: str, json: Optional[Dict[str, Any]] = None, **kwargs) -> Dict[str, Any]:
+        response = requests.post(
+            f"{self.base_url}{path}", headers=self._headers(), json=json, timeout=10, **kwargs
+        )
         response.raise_for_status()
-        return response.json() if response.content else {}
+        return response.json() if response.text else {}
+
+    def patch(self, path: str, json: Optional[Any] = None, **kwargs) -> Dict[str, Any]:
+        response = requests.patch(
+            f"{self.base_url}{path}", headers=self._headers(), json=json, timeout=10, **kwargs
+        )
+        response.raise_for_status()
+        return response.json() if response.text else {}
