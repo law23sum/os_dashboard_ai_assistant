@@ -1710,6 +1710,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.notebook.add(self.chat_frame, text="AI Console")
 
         # Support side-by-side layout: chat on left, document interaction on right
+        # Keep the layout evenly split so both areas are always visible
         self.chat_frame.columnconfigure(0, weight=1)
         self.chat_frame.columnconfigure(1, weight=1)
         self.chat_frame.rowconfigure(0, weight=3)
@@ -1937,6 +1938,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if TTKBOOTSTRAP_AVAILABLE:
             header_frame = ttkb.Frame(self.document_frame)
         else:
+            self.file_preview_frame = ttk.LabelFrame(self.chat_frame, text="File Preview")
+        
+        # Always visible so the AI and document panels stay side-by-side
+        self.file_preview_frame.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=(4, 8), pady=8)
+        self.file_preview_frame.columnconfigure(0, weight=1)
+        self.file_preview_frame.rowconfigure(2, weight=1)
+        
             header_frame = ttk.Frame(self.document_frame)
         header_frame.grid(row=0, column=0, sticky="ew", padx=4, pady=4)
         header_frame.columnconfigure(0, weight=1)
@@ -1976,13 +1984,40 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             close_btn = ttk.Button(file_header, text="✕", command=self._close_file_preview, width=3)
         title_label.grid(row=0, column=0, sticky="w", padx=4)
         close_btn.grid(row=0, column=1, sticky="e", padx=4)
+        
+        # Document picker for all supported formats
+        if TTKBOOTSTRAP_AVAILABLE:
+            picker_frame = ttkb.Frame(self.file_preview_frame)
+        else:
+            picker_frame = ttk.Frame(self.file_preview_frame)
+        picker_frame.grid(row=1, column=0, sticky="ew", padx=4, pady=(0, 6))
+        picker_frame.columnconfigure(1, weight=1)
+
+        self.document_path_var = tk.StringVar(value="")
+        picker_label = ttkb.Label(picker_frame, text="Load a document (PDF, Word, Excel, CSV, TXT, JSON, OneNote export)",
+                                   bootstyle="secondary") if TTKBOOTSTRAP_AVAILABLE else ttk.Label(
+            picker_frame, text="Load a document (PDF, Word, Excel, CSV, TXT, JSON, OneNote export)")
+        picker_label.grid(row=0, column=0, sticky="w", padx=(0, 4))
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            picker_entry = ttkb.Entry(picker_frame, textvariable=self.document_path_var, bootstyle="secondary")
+            browse_btn = ttkb.Button(picker_frame, text="📂 Browse", command=self._prompt_document_for_preview,
+                                     bootstyle="info-outline")
+        else:
+            picker_entry = ttk.Entry(picker_frame, textvariable=self.document_path_var)
+            browse_btn = ttk.Button(picker_frame, text="Browse", command=self._prompt_document_for_preview)
+        picker_entry.grid(row=1, column=0, sticky="ew", padx=(0, 6))
+        browse_btn.grid(row=1, column=1, sticky="e")
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            ToolTip(browse_btn, text="Open a local document for preview")
 
         # File content display area
         if TTKBOOTSTRAP_AVAILABLE:
             content_frame = ttkb.Frame(self.file_preview_frame)
         else:
             content_frame = ttk.Frame(self.file_preview_frame)
-        content_frame.grid(row=1, column=0, sticky="nsew", padx=4, pady=4)
+        content_frame.grid(row=2, column=0, sticky="nsew", padx=4, pady=4)
         content_frame.columnconfigure(0, weight=1)
         content_frame.rowconfigure(0, weight=1)
 
@@ -2004,6 +2039,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             self.file_preview_status_var = tk.StringVar(value="Ready")
             status_label = ttk.Label(self.file_preview_frame, textvariable=self.file_preview_status_var)
+        status_label.grid(row=3, column=0, sticky="w", padx=4, pady=(0, 4))
         status_label.grid(row=2, column=0, sticky="w", padx=4, pady=(0, 4))
 
         # Refresh button
@@ -2011,7 +2047,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             refresh_btn = ttkb.Button(self.file_preview_frame, text="🔄 Refresh", command=self._refresh_file_preview, bootstyle="info-outline")
         else:
             refresh_btn = ttk.Button(self.file_preview_frame, text="Refresh", command=self._refresh_file_preview)
-        refresh_btn.grid(row=2, column=0, sticky="e", padx=4, pady=(0, 4))
+        refresh_btn.grid(row=3, column=0, sticky="e", padx=4, pady=(0, 4))
+
+        # Start with helpful placeholder content
+        self._show_file_preview_placeholder()
 
     def _build_document_activity_panel(self):
         """Build activity log showing how AI is updating the document."""
@@ -2034,6 +2073,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def _close_file_preview(self):
         """Close the file preview panel."""
+        if hasattr(self, 'file_preview_frame') and self.file_preview_frame:
+            self.file_preview_frame.grid()
+        self.active_file_session = None
+        self._show_file_preview_placeholder()
         self.active_file_session = None
         if hasattr(self, 'file_preview_title_var') and self.file_preview_title_var:
             self.file_preview_title_var.set("No file open")
@@ -2062,6 +2105,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         file_name = os.path.basename(file_path) if file_path and os.path.sep in file_path else (file_path or f"{file_type} Document")
         if hasattr(self, 'file_preview_title_var') and self.file_preview_title_var:
             self.file_preview_title_var.set(f"{file_type}: {file_name}")
+        
+        # Show the panel and keep columns evenly split
+        self.file_preview_frame.grid()
+        self.chat_frame.columnconfigure(0, weight=1)
+        self.chat_frame.columnconfigure(1, weight=1)
+        
 
         self._log_document_activity(f"Opened {file_type} document: {file_name}")
 
@@ -2081,6 +2130,21 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.file_preview_status_var.set("Loading...")
             self.file_preview_text.config(state="normal")
             self.file_preview_text.delete("1.0", "end")
+            
+              if file_type == "OneNote":
+                  content = self._load_onenote_preview(file_id)
+              elif file_type == "Excel":
+                  content = self._load_excel_preview(file_path)
+              elif file_type == "Word":
+                  content = self._load_word_preview(file_path)
+              elif file_type == "PDF":
+                  content = self._load_pdf_preview(file_path)
+              elif file_type in ("CSV", "Text", "TXT"):
+                  content = self._load_text_like_preview(file_path)
+              elif file_type == "JSON":
+                  content = self._load_json_preview(file_path)
+              else:
+                  content = "Unsupported file type"
 
             if file_type == "OneNote":
                 content = self._load_onenote_preview(file_id)
@@ -2243,6 +2307,99 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         except Exception as e:
             return f"Error loading PDF: {str(e)}"
 
+    def _load_text_like_preview(self, file_path: str) -> str:
+        """Load plain text or CSV-style files for preview."""
+        if not file_path:
+            return "Text preview not available"
+
+        try:
+            if os.path.exists(file_path):
+                # For CSV, show a simple tabular view using pandas if available
+                if file_path.lower().endswith('.csv'):
+                    try:
+                        import pandas as pd
+                        df = pd.read_csv(file_path, nrows=100)
+                        preview = f"CSV File: {os.path.basename(file_path)}\n"
+                        preview += f"Shape: {df.shape[0]} rows × {df.shape[1]} columns\n"
+                        preview += "=" * 80 + "\n\n" + df.to_string(max_rows=50, max_cols=12)
+                        return preview
+                    except Exception:
+                        pass
+
+                with open(file_path, 'r', encoding='utf-8', errors='replace') as fh:
+                    content = fh.read()
+                return content[:MAX_IMPORTED_FILE_CHARS]
+            return f"File not found: {file_path}"
+        except Exception as e:
+            return f"Error loading text: {str(e)}"
+
+    def _load_json_preview(self, file_path: str) -> str:
+        """Load JSON content with pretty formatting."""
+        if not file_path:
+            return "JSON preview not available"
+
+        try:
+            if os.path.exists(file_path):
+                import json
+                with open(file_path, 'r', encoding='utf-8', errors='replace') as fh:
+                    data = json.load(fh)
+                return json.dumps(data, indent=2)[:MAX_IMPORTED_FILE_CHARS]
+            return f"File not found: {file_path}"
+        except Exception as e:
+            return f"Error loading JSON: {str(e)}"
+
+    def _show_file_preview_placeholder(self):
+        """Display guidance in the document panel when no file is loaded."""
+        if not hasattr(self, 'file_preview_text') or not self.file_preview_text:
+            return
+
+        if hasattr(self, 'file_preview_title_var') and self.file_preview_title_var:
+            self.file_preview_title_var.set("Document Preview")
+        placeholder = (
+            "Load a document to collaborate with the AI in real time.\n\n"
+            "Supported types: PDF, Word, Excel, CSV, TXT, JSON, and OneNote content.\n"
+            "Use the Browse button to open a local file or let the AI open cloud documents "
+            "via tool calls; updates will appear here automatically."
+        )
+        self.file_preview_text.config(state="normal")
+        self.file_preview_text.delete("1.0", "end")
+        self.file_preview_text.insert("1.0", placeholder)
+        self.file_preview_text.config(state="disabled")
+        if hasattr(self, 'file_preview_status_var') and self.file_preview_status_var:
+            self.file_preview_status_var.set("Waiting for document...")
+        self.active_file_session = None
+
+    def _prompt_document_for_preview(self):
+        """Prompt the user to select a document for side-by-side viewing."""
+        filetypes = [
+            ("Supported Documents", "*.pdf *.docx *.doc *.txt *.csv *.xlsx *.xls *.json"),
+            ("All Files", "*.*"),
+        ]
+        initial_dir = self.cwd_var.get().strip() if hasattr(self, 'cwd_var') else ''
+        path = filedialog.askopenfilename(initialdir=initial_dir or os.getcwd(), filetypes=filetypes)
+        if not path:
+            return
+
+        self.document_path_var.set(path)
+        file_type = self._infer_file_type(path)
+        self._show_file_preview(file_type, path)
+
+    def _infer_file_type(self, path: str) -> str:
+        """Infer a friendly file type label based on extension."""
+        ext = os.path.splitext(path)[1].lower()
+        if ext in ('.xlsx', '.xls'):
+            return 'Excel'
+        if ext in ('.docx', '.doc'):
+            return 'Word'
+        if ext == '.pdf':
+            return 'PDF'
+        if ext == '.csv':
+            return 'CSV'
+        if ext == '.json':
+            return 'JSON'
+        if ext in ('.txt', '.md'):
+            return 'Text'
+        return 'Document'
     def _infer_file_type(self, file_path: str) -> str:
         """Infer document type from extension for preview and logging."""
         ext = os.path.splitext(file_path)[1].lower()
@@ -2292,7 +2449,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.document_activity_text.config(state="disabled")
 
     def _detect_file_operation(self, tool_call) -> Optional[Dict]:
-        """Detect if a tool call involves file operations for OneNote, Excel, Word, or PDF."""
+        """Detect if a tool call involves file operations for OneNote, Excel, Word, PDF, or other documents."""
         if not hasattr(tool_call, 'function') or not hasattr(tool_call.function, 'name'):
             return None
         
@@ -2366,6 +2523,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                         'operation': tool_call.function.name
                     }
 
+            # Check for JSON / CSV / text operations
+            if 'csv' in func_name or 'json' in func_name or 'text' in func_name:
+                file_path = args.get('file_path') or args.get('path') or args.get('file') or args.get('filePath')
+                if file_path:
+                    return {
+                        'type': self._infer_file_type(file_path),
             # Generic text/JSON operations
             if 'json' in func_name or 'text' in func_name or 'file' in func_name:
                 file_path = args.get('file_path') or args.get('path') or args.get('file') or args.get('filePath')
@@ -2377,6 +2540,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                         'id': None,
                         'operation': tool_call.function.name
                     }
+
+            # Generic fallback: infer from file_path if provided
+            file_path = args.get('file_path') or args.get('path') or args.get('file') or args.get('filePath')
+            if file_path:
+                return {
+                    'type': self._infer_file_type(file_path),
+                    'path': file_path,
+                    'id': None,
+                    'operation': tool_call.function.name
+                }
         except Exception:
             pass
         
