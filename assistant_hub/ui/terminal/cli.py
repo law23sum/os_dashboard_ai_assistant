@@ -22,6 +22,7 @@ from assistant_hub.integrations.onenote.client import OneNoteClient
 from assistant_hub.integrations.excel.service import ExcelService
 from assistant_hub.integrations.excel.cloud_client import ExcelCloudClient
 from assistant_hub.integrations.word.service import WordService
+from assistant_hub.integrations.software_locator import SoftwareLocator
 from assistant_hub.ai.workflows import clean_notebook_workflow
 
 console = Console()
@@ -44,6 +45,7 @@ def cli(ctx: click.Context) -> None:
     onenote = OneNoteService(OneNoteClient(graph_client))
     excel = ExcelService(ExcelCloudClient(graph_client))
     word = WordService()
+    locator = SoftwareLocator()
 
     ctx.obj = {
         "cfg": cfg,
@@ -53,6 +55,7 @@ def cli(ctx: click.Context) -> None:
         "onenote": onenote,
         "excel": excel,
         "word": word,
+        "locator": locator,
     }
 
 
@@ -135,6 +138,50 @@ def word(ctx: click.Context) -> None:
 def word_summarize(ctx: click.Context, path: str) -> None:
     service: WordService = ctx.obj["word"]
     console.print(service.summarize_local(path))
+
+
+@cli.group()
+@click.pass_context
+def software(ctx: click.Context) -> None:  # noqa: ARG001
+    """Locate installed software such as git, Word, Excel, or a PDF viewer."""
+
+
+@software.command("locate")
+@click.argument("name")
+@click.option(
+    "--alias",
+    multiple=True,
+    help="Additional executable names to try (e.g. --alias winword --alias soffice)",
+)
+@click.pass_context
+def software_locate(ctx: click.Context, name: str, alias: tuple[str, ...]) -> None:
+    locator: SoftwareLocator = ctx.obj["locator"]
+    result = locator.locate(name, aliases=alias)
+    if result.found:
+        console.print(f"[green]{result.name}[/] found at {result.path}")
+    else:
+        console.print(
+            f"[red]{result.name}[/] not found. Tried: {result.tried}"
+            "\nTip: pass --alias to search alternate executable names."
+        )
+
+
+@software.command("defaults")
+@click.pass_context
+def software_defaults(ctx: click.Context) -> None:
+    """Check all default targets (git, word, excel, pdf)."""
+
+    locator: SoftwareLocator = ctx.obj["locator"]
+    table = Table(title="Default software locations")
+    table.add_column("Target")
+    table.add_column("Status")
+    table.add_column("Details")
+    for result in locator.scan_defaults():
+        status = "Found" if result.found else "Not found"
+        detail = result.path or f"Tried: {result.tried}"
+        style = "green" if result.found else "yellow"
+        table.add_row(result.name, f"[{style}]{status}[/]", detail)
+    console.print(table)
 
 
 @cli.command()
