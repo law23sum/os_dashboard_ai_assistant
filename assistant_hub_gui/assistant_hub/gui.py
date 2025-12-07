@@ -1477,14 +1477,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         list_frame.rowconfigure(0, weight=1)
         list_frame.columnconfigure(0, weight=1)
 
-        columns = ("name", "priority", "status", "tasks")
+        columns = ("order", "name", "priority", "status", "tasks")
         self.project_tree = ttk.Treeview(list_frame, columns=columns, show="headings", selectmode="browse")
+        self.project_tree.heading("order", text="ORDER #")
         self.project_tree.heading("name", text="NAME")
         self.project_tree.heading("priority", text="PRIORITY")
         self.project_tree.heading("status", text="STATUS")
         self.project_tree.heading("tasks", text="#TASKS")
 
-        self.project_tree.column("name", width=220)
+        self.project_tree.column("order", width=80, anchor="center")
+        self.project_tree.column("name", width=200)
         self.project_tree.column("priority", width=90, anchor="center")
         self.project_tree.column("status", width=100, anchor="center")
         self.project_tree.column("tasks", width=70, anchor="center")
@@ -1654,8 +1656,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         priority_weight = {p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)}
         projects_sorted = sorted(
             self.state_obj.projects,
-            key=lambda p: (priority_weight.get(p.priority, 1), p.name),
-            reverse=True,
+            key=lambda p: (p.order_num, priority_weight.get(p.priority, 1), p.name),
         )
 
         for p in projects_sorted:
@@ -1663,7 +1664,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 "",
                 "end",
                 iid=p.name,
-                values=(p.name, p.priority, p.status, counts.get(p.name, 0)),
+                values=(p.order_num, p.name, p.priority, p.status, counts.get(p.name, 0)),
             )
 
     def on_project_select(self, event=None):
@@ -6157,8 +6158,22 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 self.word_status_var.set(f"✅ Loaded {total_count} Word document(s) ({len(word_files)} cloud, {len(local_docs)} local)")
             except Exception as e:
                 error_msg = str(e)
+                # Check for delegated authentication errors (most common for Word/OneDrive)
+                if "Delegated authentication required" in error_msg or "DELEGATED" in error_msg:
+                    self.word_status_var.set("❌ Delegated authentication required. Please authenticate.")
+                    messagebox.showinfo(
+                        "Authentication Required",
+                        "Delegated authentication required. Please authenticate using device code flow.\n\n"
+                        "To authenticate:\n"
+                        "1. Go to the 'Integrations' tab\n"
+                        "2. Select 'OneNote' or 'OneDrive' from the list\n"
+                        "3. Click 'Connect' button\n"
+                        "4. Click 'Authenticate (Device Code)' button\n"
+                        "5. Follow the on-screen instructions to sign in\n\n"
+                        "Note: Authenticating via OneNote or OneDrive will enable access to Word documents stored in OneDrive."
+                    )
                 # Check for specific authentication errors
-                if "401" in error_msg or "Unauthorized" in error_msg or "Authentication" in error_msg:
+                elif "401" in error_msg or "Unauthorized" in error_msg or "Authentication" in error_msg:
                     self.word_status_var.set("❌ Authentication failed. Check Microsoft Graph credentials.")
                     messagebox.showerror(
                         "Authentication Failed",
