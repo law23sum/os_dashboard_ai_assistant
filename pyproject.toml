@@ -5,14 +5,21 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "osdash"
 version = "0.1.0"
-description = "OS Dashboard assistant scaffold"
-authors = [{name = "OS Dashboard Team"}]
-requires-python = ">=3.10"
+description = "OS Dashboard AI Assistant with GUI, integrations, and analytics"
+requires-python = ">=3.9"
 dependencies = [
-  "click>=8.1",
-  "rich>=13.0",
-  "pydantic>=2.0",
+    "psutil",
+    "openai>=1.0.0",
+    "ttkbootstrap>=1.10.1",
+    "pillow>=10.0.0",
+    "customtkinter>=5.2.0",
+    "tkinter-tooltip>=2.1.0",
+    "pandas>=2.2.0",
+    "openpyxl>=3.1.0",
+    "python-docx>=1.1.0",
+    "requests>=2.31.0",
 ]
 
 [project.scripts]
 osdash = "assistant_hub.ui.terminal.cli:main"
+osdash-gui = "assistant_hub.gui:run_gui"
