@@ -1,13 +1,11 @@
 """Task template management."""
 
 import sqlite3
-import json
-import uuid
 from datetime import datetime
-from typing import List, Optional, Dict
+from typing import List, Optional
 from dataclasses import dataclass
 
-from .db import Task, db_insert_task, DB_FILE
+from .db import Task, db_insert_task
 
 
 @dataclass

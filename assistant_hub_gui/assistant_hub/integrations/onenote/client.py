@@ -10,8 +10,9 @@ from ..msgraph.client import GraphClient
 class OneNoteClient:
     """Expose OneNote-specific Graph endpoints."""
 
-    def __init__(self, graph: GraphClient | None = None):
-        self.graph = graph or GraphClient()
+    def __init__(self, graph: GraphClient | None = None, use_delegated: bool = True):
+        # /me/ endpoints require delegated permissions, so default to True
+        self.graph = graph or GraphClient(use_delegated=use_delegated)
 
     def list_notebooks(self) -> List[Dict[str, Any]]:
         return self.graph.get("/me/onenote/notebooks").get("value", [])

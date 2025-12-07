@@ -3,7 +3,6 @@ import base64
 import os
 import sqlite3
 import threading
-import uuid
 from datetime import datetime
 from typing import Dict, Optional
 
@@ -274,24 +273,25 @@ class ProgressIndicator:
 
 class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def __init__(self):
-        # Determine theme based on settings
+        # Determine theme based on settings - use more professional modern themes
         theme_map = {
-            "plain": "cosmo",
-            "light": "litera",
-            "dark": "darkly"
+            "plain": "minty",  # Modern, clean, professional
+            "light": "litera",  # Clean light theme
+            "dark": "superhero"  # Modern dark theme
         }
-        theme = theme_map.get("plain", "cosmo")  # Default to cosmo
+        theme = theme_map.get("plain", "minty")  # Default to minty for professional look
         
         if TTKBOOTSTRAP_AVAILABLE:
-            super().__init__(themename=theme, title="Assistant Hub (GUI)", resizable=(True, True))
+            super().__init__(themename=theme, title="Assistant Hub", resizable=(True, True))
             # ttkbootstrap's style is already available as self.style from parent class
         else:
             super().__init__()
-            self.title("Assistant Hub (GUI)")
+            self.title("Assistant Hub")
             self.style = ttk.Style()
         
-        self.geometry("1200x700")
-        self.minsize(1150, 720)
+        # Larger default window size for better professional appearance
+        self.geometry("1400x800")
+        self.minsize(1200, 750)
 
         # Initialize fonts immediately with defaults (needed before loading settings)
         self.base_font = tkfont.nametofont("TkDefaultFont")
@@ -328,7 +328,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.notebook = ttkb.Notebook(self, bootstyle="primary")
         else:
             self.notebook = ttk.Notebook(self)
-        self.notebook.grid(row=1, column=0, sticky="nsew", padx=8, pady=8)
+        # Better spacing for professional look
+        self.notebook.grid(row=1, column=0, sticky="nsew", padx=12, pady=(4, 12))
 
         self._build_dashboard_tab()
         self._build_tasks_tab()
@@ -398,12 +399,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     # ---------- Top bar ----------
 
     def _initialize_fonts(self):
-        """Configure fonts based on settings (fonts already initialized with defaults)."""
+        """Configure fonts based on settings with professional typography."""
         try:
-            scale_map = {"small": 10, "medium": 12, "large": 14}
-            base_size = scale_map.get(getattr(self.settings, 'font_scale', 'medium'), 12)
+            scale_map = {"small": 11, "medium": 13, "large": 15}  # Slightly larger for better readability
+            base_size = scale_map.get(getattr(self.settings, 'font_scale', 'medium'), 13)
 
-            # Configure the already-initialized fonts
+            # Configure the already-initialized fonts with better typography
             if hasattr(self, 'base_font'):
                 self.base_font.configure(size=base_size)
             else:
@@ -415,6 +416,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             else:
                 self.text_font = tkfont.nametofont("TkTextFont")
                 self.text_font.configure(size=base_size)
+            
+            # Create heading font for better visual hierarchy
+            self.heading_font = tkfont.Font(
+                family=self.base_font.actual("family"),
+                size=base_size + 2,
+                weight="bold"
+            )
         except Exception as e:
             # Fallback to default fonts if configuration fails
             print(f"Warning: Could not configure fonts: {e}")
@@ -422,16 +430,17 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 self.base_font = tkfont.nametofont("TkDefaultFont")
             if not hasattr(self, 'text_font'):
                 self.text_font = tkfont.nametofont("TkTextFont")
+            self.heading_font = self.base_font
 
     def _configure_style(self):
         if TTKBOOTSTRAP_AVAILABLE:
-            # ttkbootstrap handles themes automatically
+            # ttkbootstrap handles themes automatically - use professional themes
             theme_map = {
-                "plain": "cosmo",
+                "plain": "minty",
                 "light": "litera", 
-                "dark": "darkly"
+                "dark": "superhero"
             }
-            theme = theme_map.get(self.settings.theme, "cosmo")
+            theme = theme_map.get(self.settings.theme, "minty")
             self.style.theme_use(theme)
         else:
             try:
@@ -439,28 +448,28 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             except tk.TclError:
                 pass
 
-        scale_map = {"small": 10, "medium": 12, "large": 14}
-        base_size = scale_map.get(self.settings.font_scale, 12)
+        scale_map = {"small": 11, "medium": 13, "large": 15}
+        base_size = scale_map.get(self.settings.font_scale, 13)
 
-        # Fonts are already initialized by _initialize_fonts(), but we need heading_font
+        # Fonts are already initialized by _initialize_fonts()
         heading_font = tkfont.nametofont("TkHeadingFont")
-        heading_font.configure(size=base_size + 1, weight="bold")
-
-        heading_font = tkfont.nametofont("TkHeadingFont")
-        heading_font.configure(size=base_size + 1, weight="bold")
+        heading_font.configure(size=base_size + 2, weight="bold")
 
         self.option_add("*Font", self.base_font)
-        self.style.configure("Treeview", rowheight=base_size + 12, font=(self.base_font.actual("family"), base_size))
-        self.style.configure("Treeview.Heading", font=(heading_font.actual("family"), base_size))
-        self.style.configure("TNotebook.Tab", padding=(18, 8))
-        self.style.configure("TLabel", padding=(4, 2))
-        self.style.configure("TButton", padding=(8, 6))
+        # Better row height for tables
+        self.style.configure("Treeview", rowheight=base_size + 16, font=(self.base_font.actual("family"), base_size))
+        self.style.configure("Treeview.Heading", font=(heading_font.actual("family"), base_size + 1), padding=(8, 6))
+        # More professional tab styling
+        self.style.configure("TNotebook.Tab", padding=(20, 10), font=(self.base_font.actual("family"), base_size))
+        self.style.configure("TLabel", padding=(6, 4))
+        # Better button styling with more padding
+        self.style.configure("TButton", padding=(12, 8), font=(self.base_font.actual("family"), base_size))
 
         if not TTKBOOTSTRAP_AVAILABLE:
             palette = {
-                "plain": {"bg": "#f4f4f4", "fg": "#202020"},
-                "light": {"bg": "#ffffff", "fg": "#202020"},
-                "dark": {"bg": "#1b1b1f", "fg": "#f2f2f2"},
+                "plain": {"bg": "#f8f9fa", "fg": "#212529"},  # Modern light gray
+                "light": {"bg": "#ffffff", "fg": "#212529"},
+                "dark": {"bg": "#1a1d29", "fg": "#e9ecef"},  # Modern dark
             }
             colors = palette.get(self.settings.theme, palette["plain"])
             self.configure(bg=colors["bg"])
@@ -468,18 +477,22 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 self.style.configure(style_name, background=colors["bg"], foreground=colors["fg"])
 
     def _build_topbar(self):
+        """Build a professional top bar with better spacing and styling."""
         if TTKBOOTSTRAP_AVAILABLE:
             top = ttkb.Frame(self)
         else:
             top = ttk.Frame(self)
-        top.grid(row=0, column=0, sticky="ew", padx=8, pady=(8, 0))
+        # Better padding for professional appearance
+        top.grid(row=0, column=0, sticky="ew", padx=12, pady=(12, 8))
         top.columnconfigure(1, weight=1)
+        top.columnconfigure(4, weight=1)  # Add spacing between left and right sections
 
+        # Left section - Persona controls
         if TTKBOOTSTRAP_AVAILABLE:
-            persona_label = ttkb.Label(top, text="Active Persona:", bootstyle="primary")
+            persona_label = ttkb.Label(top, text="Active Persona:", bootstyle="primary", font=self.heading_font)
         else:
-            persona_label = ttk.Label(top, text="Active Persona:")
-        persona_label.grid(row=0, column=0, sticky="w", padx=(0, 4))
+            persona_label = ttk.Label(top, text="Active Persona:", font=self.heading_font)
+        persona_label.grid(row=0, column=0, sticky="w", padx=(0, 8))
         
         self.persona_var = tk.StringVar(value=self.state_obj.active_persona)
         if TTKBOOTSTRAP_AVAILABLE:
@@ -488,7 +501,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 textvariable=self.persona_var,
                 values=PERSONAS,
                 state="readonly",
-                width=12,
+                width=14,
                 bootstyle="primary"
             )
         else:
@@ -497,9 +510,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 textvariable=self.persona_var,
                 values=PERSONAS,
                 state="readonly",
-                width=12,
+                width=14,
             )
-        self.persona_combo.grid(row=0, column=1, sticky="w", padx=4)
+        self.persona_combo.grid(row=0, column=1, sticky="w", padx=(0, 16))
         self.persona_combo.bind("<<ComboboxSelected>>", self.on_persona_change)
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(self.persona_combo, text="Select the active assistant persona")
@@ -508,24 +521,46 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             role_label = ttkb.Label(top, text="Role:", bootstyle="secondary")
         else:
             role_label = ttk.Label(top, text="Role:")
-        role_label.grid(row=0, column=2, sticky="e", padx=(10, 4))
+        role_label.grid(row=0, column=2, sticky="w", padx=(0, 8))
         self.persona_role_var = tk.StringVar(
             value=PERSONA_ROLES.get(self.state_obj.active_persona, "")
         )
         if TTKBOOTSTRAP_AVAILABLE:
-            self.persona_role_display = ttkb.Label(top, textvariable=self.persona_role_var, bootstyle="info")
+            self.persona_role_display = ttkb.Label(
+                top, 
+                textvariable=self.persona_role_var, 
+                bootstyle="info",
+                font=(self.base_font.actual("family"), self.base_font.actual("size"), "italic")
+            )
         else:
-            self.persona_role_display = ttk.Label(top, textvariable=self.persona_role_var)
-        self.persona_role_display.grid(row=0, column=3, sticky="w", padx=4)
+            self.persona_role_display = ttk.Label(
+                top, 
+                textvariable=self.persona_role_var,
+                font=(self.base_font.actual("family"), self.base_font.actual("size"), "italic")
+            )
+        self.persona_role_display.grid(row=0, column=3, sticky="w", padx=(0, 16))
 
+        # Right section - Action buttons
         if TTKBOOTSTRAP_AVAILABLE:
-            save_btn = ttkb.Button(top, text="💾 Save", command=self._save_with_feedback, bootstyle="success")
-            refresh_btn = ttkb.Button(top, text="🔄 Refresh", command=self._refresh_with_feedback, bootstyle="info")
+            save_btn = ttkb.Button(
+                top, 
+                text="💾 Save", 
+                command=self._save_with_feedback, 
+                bootstyle="success-outline",
+                width=12
+            )
+            refresh_btn = ttkb.Button(
+                top, 
+                text="🔄 Refresh", 
+                command=self._refresh_with_feedback, 
+                bootstyle="info-outline",
+                width=12
+            )
         else:
-            save_btn = ttk.Button(top, text="Save", command=self._save_with_feedback)
-            refresh_btn = ttk.Button(top, text="Refresh", command=self._refresh_with_feedback)
-        save_btn.grid(row=0, column=4, sticky="e", padx=(10, 5))
-        refresh_btn.grid(row=0, column=5, sticky="e", padx=(5, 0))
+            save_btn = ttk.Button(top, text="💾 Save", command=self._save_with_feedback, width=12)
+            refresh_btn = ttk.Button(top, text="🔄 Refresh", command=self._refresh_with_feedback, width=12)
+        save_btn.grid(row=0, column=5, sticky="e", padx=(0, 8))
+        refresh_btn.grid(row=0, column=6, sticky="e", padx=0)
         
         # Add hover effects
         AnimationHelper.add_hover_effect(save_btn)
@@ -659,22 +694,23 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.status_box = ttk.LabelFrame(self.dashboard_frame, text="Status Overview")
             self.load_box = ttk.LabelFrame(self.dashboard_frame, text="Load by Persona")
             self.cyber_box = ttk.LabelFrame(self.dashboard_frame, text="Cyber Defense Status")
-        self.today_box.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
-        self.today_text = tk.Text(self.today_box, height=10, wrap="word", font=self.text_font)
-        self.today_text.pack(fill="both", expand=True, padx=4, pady=4)
+        # Improved spacing for professional appearance
+        self.today_box.grid(row=0, column=0, sticky="nsew", padx=(12, 6), pady=(12, 6))
+        self.today_text = tk.Text(self.today_box, height=10, wrap="word", font=self.text_font, relief="flat", borderwidth=0)
+        self.today_text.pack(fill="both", expand=True, padx=8, pady=8)
 
-        self.upcoming_box.grid(row=0, column=1, sticky="nsew", padx=8, pady=8)
-        self.upcoming_text = tk.Text(self.upcoming_box, height=10, wrap="word", font=self.text_font)
-        self.upcoming_text.pack(fill="both", expand=True, padx=4, pady=4)
+        self.upcoming_box.grid(row=0, column=1, sticky="nsew", padx=(6, 12), pady=(12, 6))
+        self.upcoming_text = tk.Text(self.upcoming_box, height=10, wrap="word", font=self.text_font, relief="flat", borderwidth=0)
+        self.upcoming_text.pack(fill="both", expand=True, padx=8, pady=8)
 
-        self.status_box.grid(row=1, column=0, sticky="nsew", padx=8, pady=8)
-        self.status_text = tk.Text(self.status_box, height=8, wrap="word", font=self.text_font)
-        self.status_text.pack(fill="both", expand=True, padx=4, pady=4)
+        self.status_box.grid(row=1, column=0, sticky="nsew", padx=(12, 6), pady=6)
+        self.status_text = tk.Text(self.status_box, height=8, wrap="word", font=self.text_font, relief="flat", borderwidth=0)
+        self.status_text.pack(fill="both", expand=True, padx=8, pady=8)
 
-        self.load_box.grid(row=1, column=1, sticky="nsew", padx=8, pady=8)
-        self.load_text = tk.Text(self.load_box, height=8, wrap="word", font=self.text_font)
-        self.load_text.pack(fill="both", expand=True, padx=4, pady=4)
-        self.cyber_box.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=8, pady=(0, 8))
+        self.load_box.grid(row=1, column=1, sticky="nsew", padx=(6, 12), pady=6)
+        self.load_text = tk.Text(self.load_box, height=8, wrap="word", font=self.text_font, relief="flat", borderwidth=0)
+        self.load_text.pack(fill="both", expand=True, padx=8, pady=8)
+        self.cyber_box.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=12, pady=(6, 12))
         self.cyber_box.columnconfigure(0, weight=1)
 
         self.cyber_status_var = tk.StringVar(value="Status: offline")
@@ -691,7 +727,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 textvariable=self.cyber_status_var,
                 font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
             )
-        self.cyber_status_label.grid(row=0, column=0, sticky="w", padx=6, pady=(4, 2))
+        self.cyber_status_label.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
 
         self.cyber_message_var = tk.StringVar(value="Telemetry not available.")
         if TTKBOOTSTRAP_AVAILABLE:
@@ -709,7 +745,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 wraplength=800,
                 justify="left",
             )
-        self.cyber_message_label.grid(row=1, column=0, sticky="w", padx=6, pady=2)
+        self.cyber_message_label.grid(row=1, column=0, sticky="w", padx=10, pady=4)
 
         self.cyber_updated_var = tk.StringVar(value="Updated: n/a")
         if TTKBOOTSTRAP_AVAILABLE:
@@ -725,15 +761,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 textvariable=self.cyber_updated_var,
                 font=(self.base_font.actual("family"), self.base_font.actual("size") - 1),
             )
-        self.cyber_updated_label.grid(row=2, column=0, sticky="w", padx=6, pady=(0, 4))
+        self.cyber_updated_label.grid(row=2, column=0, sticky="w", padx=10, pady=(0, 8))
 
         if TTKBOOTSTRAP_AVAILABLE:
             self.sys_box = ttkb.Labelframe(self.dashboard_frame, text="💻 System Status (Optional)", bootstyle="secondary")
         else:
             self.sys_box = ttk.LabelFrame(self.dashboard_frame, text="System Status (Optional)")
-        self.sys_box.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=8, pady=(0, 8))
-        self.sys_text = tk.Text(self.sys_box, height=4, wrap="word", font=self.text_font)
-        self.sys_text.pack(fill="both", expand=True, padx=4, pady=4)
+        self.sys_box.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=12, pady=(0, 12))
+        self.sys_text = tk.Text(self.sys_box, height=4, wrap="word", font=self.text_font, relief="flat", borderwidth=0)
+        self.sys_text.pack(fill="both", expand=True, padx=8, pady=8)
 
     def refresh_dashboard(self):
         state = self.state_obj
@@ -942,10 +978,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         show_done_check.grid(row=0, column=4, padx=(0, 10))
 
         if TTKBOOTSTRAP_AVAILABLE:
-            refresh_btn = ttkb.Button(filters, text="🔍 Apply Filters", command=self.refresh_task_list, bootstyle="info-outline")
+            refresh_btn = ttkb.Button(filters, text="🔍 Apply Filters", command=self.refresh_task_list, bootstyle="info-outline", width=14)
         else:
-            refresh_btn = ttk.Button(filters, text="Apply Filters", command=self.refresh_task_list)
-        refresh_btn.grid(row=0, column=5, padx=(4, 0))
+            refresh_btn = ttk.Button(filters, text="Apply Filters", command=self.refresh_task_list, width=14)
+        refresh_btn.grid(row=0, column=5, padx=(8, 0), pady=2)
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(refresh_btn, text="Apply filters and refresh the task list")
 
@@ -1042,16 +1078,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         btns.columnconfigure(2, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            add_btn = ttkb.Button(btns, text="➕ New Task", command=self.on_new_task, bootstyle="primary-outline")
-            save_btn = ttkb.Button(btns, text="💾 Save Changes", command=self._save_task_with_feedback, bootstyle="success")
-            delete_btn = ttkb.Button(btns, text="🗑️ Delete Task", command=self._delete_task_with_feedback, bootstyle="danger-outline")
+            add_btn = ttkb.Button(btns, text="➕ New Task", command=self.on_new_task, bootstyle="primary-outline", width=15)
+            save_btn = ttkb.Button(btns, text="💾 Save Changes", command=self._save_task_with_feedback, bootstyle="success", width=15)
+            delete_btn = ttkb.Button(btns, text="🗑️ Delete Task", command=self._delete_task_with_feedback, bootstyle="danger-outline", width=15)
         else:
-            add_btn = ttk.Button(btns, text="New Task", command=self.on_new_task)
-            save_btn = ttk.Button(btns, text="Save Changes", command=self._save_task_with_feedback)
-            delete_btn = ttk.Button(btns, text="Delete Task", command=self._delete_task_with_feedback)
-        add_btn.grid(row=0, column=0, padx=4, sticky="ew")
-        save_btn.grid(row=0, column=1, padx=4, sticky="ew")
-        delete_btn.grid(row=0, column=2, padx=4, sticky="ew")
+            add_btn = ttk.Button(btns, text="New Task", command=self.on_new_task, width=15)
+            save_btn = ttk.Button(btns, text="Save Changes", command=self._save_task_with_feedback, width=15)
+            delete_btn = ttk.Button(btns, text="Delete Task", command=self._delete_task_with_feedback, width=15)
+        add_btn.grid(row=0, column=0, padx=(0, 6), pady=4, sticky="ew")
+        save_btn.grid(row=0, column=1, padx=3, pady=4, sticky="ew")
+        delete_btn.grid(row=0, column=2, padx=(6, 0), pady=4, sticky="ew")
         
         # Add hover effects and store references
         AnimationHelper.add_hover_effect(add_btn)
@@ -1485,16 +1521,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         btns.columnconfigure(2, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            new_btn = ttkb.Button(btns, text="➕ New Project", command=self.on_new_project, bootstyle="primary-outline")
-            save_btn = ttkb.Button(btns, text="💾 Save Project", command=self._save_project_with_feedback, bootstyle="success")
-            delete_btn = ttkb.Button(btns, text="🗑️ Delete Project", command=self._delete_project_with_feedback, bootstyle="danger-outline")
+            new_btn = ttkb.Button(btns, text="➕ New Project", command=self.on_new_project, bootstyle="primary-outline", width=15)
+            save_btn = ttkb.Button(btns, text="💾 Save Project", command=self._save_project_with_feedback, bootstyle="success", width=15)
+            delete_btn = ttkb.Button(btns, text="🗑️ Delete Project", command=self._delete_project_with_feedback, bootstyle="danger-outline", width=15)
         else:
-            new_btn = ttk.Button(btns, text="New Project", command=self.on_new_project)
-            save_btn = ttk.Button(btns, text="Save Project", command=self._save_project_with_feedback)
-            delete_btn = ttk.Button(btns, text="Delete Project", command=self._delete_project_with_feedback)
-        new_btn.grid(row=0, column=0, padx=4, sticky="ew")
-        save_btn.grid(row=0, column=1, padx=4, sticky="ew")
-        delete_btn.grid(row=0, column=2, padx=4, sticky="ew")
+            new_btn = ttk.Button(btns, text="New Project", command=self.on_new_project, width=15)
+            save_btn = ttk.Button(btns, text="Save Project", command=self._save_project_with_feedback, width=15)
+            delete_btn = ttk.Button(btns, text="Delete Project", command=self._delete_project_with_feedback, width=15)
+        new_btn.grid(row=0, column=0, padx=(0, 6), pady=4, sticky="ew")
+        save_btn.grid(row=0, column=1, padx=3, pady=4, sticky="ew")
+        delete_btn.grid(row=0, column=2, padx=(6, 0), pady=4, sticky="ew")
         
         # Add hover effects
         AnimationHelper.add_hover_effect(new_btn)
@@ -1936,16 +1972,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def _build_file_preview_panel(self):
         """Build the file preview panel for side-by-side file editing."""
+        # Header frame for document interaction panel
         if TTKBOOTSTRAP_AVAILABLE:
             header_frame = ttkb.Frame(self.document_frame)
         else:
-            self.file_preview_frame = ttk.LabelFrame(self.chat_frame, text="File Preview")
-        
-        # Always visible so the AI and document panels stay side-by-side
-        self.file_preview_frame.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=(4, 8), pady=8)
-        self.file_preview_frame.columnconfigure(0, weight=1)
-        self.file_preview_frame.rowconfigure(2, weight=1)
-        
             header_frame = ttk.Frame(self.document_frame)
         header_frame.grid(row=0, column=0, sticky="ew", padx=4, pady=4)
         header_frame.columnconfigure(0, weight=1)
@@ -2132,21 +2162,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.file_preview_text.config(state="normal")
             self.file_preview_text.delete("1.0", "end")
             
-              if file_type == "OneNote":
-                  content = self._load_onenote_preview(file_id)
-              elif file_type == "Excel":
-                  content = self._load_excel_preview(file_path)
-              elif file_type == "Word":
-                  content = self._load_word_preview(file_path)
-              elif file_type == "PDF":
-                  content = self._load_pdf_preview(file_path)
-              elif file_type in ("CSV", "Text", "TXT"):
-                  content = self._load_text_like_preview(file_path)
-              elif file_type == "JSON":
-                  content = self._load_json_preview(file_path)
-              else:
-                  content = "Unsupported file type"
-
             if file_type == "OneNote":
                 content = self._load_onenote_preview(file_id)
             elif file_type == "Excel":
@@ -2529,13 +2544,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     }
 
             # Check for JSON / CSV / text operations
-            if 'csv' in func_name or 'json' in func_name or 'text' in func_name:
-                file_path = args.get('file_path') or args.get('path') or args.get('file') or args.get('filePath')
-                if file_path:
-                    return {
-                        'type': self._infer_file_type(file_path),
-            # Generic text/JSON operations
-            if 'json' in func_name or 'text' in func_name or 'file' in func_name:
+            if 'csv' in func_name or 'json' in func_name or 'text' in func_name or 'file' in func_name:
                 file_path = args.get('file_path') or args.get('path') or args.get('file') or args.get('filePath')
                 if file_path:
                     inferred_type = self._infer_file_type(file_path)
@@ -3063,11 +3072,17 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         main_container.columnconfigure(0, weight=1)
         main_container.rowconfigure(1, weight=1)
         
-        # Header
+        # Header with teal color scheme
         if TTKBOOTSTRAP_AVAILABLE:
-            header = ttkb.Label(main_container, text="External Data Integrations", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            header = ttkb.Label(main_container, text="External Data Integrations", bootstyle="info", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
         else:
-            header = ttk.Label(main_container, text="External Data Integrations", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            try:
+                bg_color = main_container.cget("background")
+            except:
+                bg_color = "white"
+            header = tk.Label(main_container, text="External Data Integrations", 
+                            font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"),
+                            fg="#008B8B", bg=bg_color)
         header.grid(row=0, column=0, sticky="w", pady=(0, 8))
         
         # Integrations list
@@ -3084,9 +3099,23 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.integrations_tree.heading("items", text="ITEMS")
         
         self.integrations_tree.column("service", width=200)
-        self.integrations_tree.column("status", width=120)
+        self.integrations_tree.column("status", width=300)  # Wider to show full error messages
         self.integrations_tree.column("last_sync", width=150)
         self.integrations_tree.column("items", width=80)
+        
+        # Color scheme: Teal primary with coral secondary for contrast
+        self.integrations_teal = "#20B2AA"  # Light sea green (teal)
+        self.integrations_coral = "#FF7F50"  # Coral (secondary contrast)
+        self.integrations_teal_light = "#E0F7F6"  # Very light teal for backgrounds
+        self.integrations_teal_dark = "#008B8B"  # Darker teal for headers
+        
+        # Configure treeview tags for color styling
+        if not TTKBOOTSTRAP_AVAILABLE:
+            style = ttk.Style()
+            style.configure("Integrations.Treeview", background="#ffffff", foreground="#333333", rowheight=25)
+            style.configure("Integrations.Treeview.Heading", background=self.integrations_teal_dark, foreground="white", font=(self.base_font.actual("family"), self.base_font.actual("size"), "bold"))
+            style.map("Integrations.Treeview", background=[("selected", self.integrations_teal)])
+            self.integrations_tree.configure(style="Integrations.Treeview")
         
         self.integrations_tree.grid(row=0, column=0, sticky="nsew")
         scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.integrations_tree.yview)
@@ -3102,7 +3131,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         if TTKBOOTSTRAP_AVAILABLE:
             connect_btn = ttkb.Button(btn_frame, text="🔌 Connect", command=self.on_connect_integration, bootstyle="success-outline")
-            sync_btn = ttkb.Button(btn_frame, text="🔄 Sync All", command=self.on_sync_all_integrations, bootstyle="primary")
+            sync_btn = ttkb.Button(btn_frame, text="🔄 Sync All", command=self.on_sync_all_integrations, bootstyle="info")
             sync_selected_btn = ttkb.Button(btn_frame, text="🔄 Sync Selected", command=self.on_sync_selected_integration, bootstyle="info-outline")
             refresh_btn = ttkb.Button(btn_frame, text="🔄 Refresh", command=self.refresh_integrations_list, bootstyle="secondary-outline")
         else:
@@ -3155,18 +3184,36 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             status = integration.get_status()
             status_text = "✅ Connected" if status.connected else "❌ Disconnected"
             if status.error:
-                status_text += f" ({status.error[:30]})"
+                # Show more of the error message (up to 80 chars) for better visibility
+                error_display = status.error[:80] + "..." if len(status.error) > 80 else status.error
+                status_text += f" ({error_display})"
             
             last_sync = status.last_sync or "Never"
             if last_sync != "Never" and "T" in last_sync:
                 last_sync = last_sync.replace("T", " ")[:16]
             
-            self.integrations_tree.insert(
+            # Determine tag based on connection status
+            if status.connected:
+                tag = "connected"
+            else:
+                tag = "disconnected"
+            
+            item_id = self.integrations_tree.insert(
                 "",
                 "end",
                 iid=name,
                 values=(name, status_text, last_sync, status.item_count),
+                tags=(tag,)
             )
+            
+            # Configure tags with colors
+            if not TTKBOOTSTRAP_AVAILABLE:
+                self.integrations_tree.tag_configure("connected", background=self.integrations_teal_light, foreground="#008B8B")
+                self.integrations_tree.tag_configure("disconnected", background="#FFF5F5", foreground="#8B4513")
+            else:
+                # For ttkbootstrap, use bootstyle colors that match teal theme
+                self.integrations_tree.tag_configure("connected", foreground="#008B8B")
+                self.integrations_tree.tag_configure("disconnected", foreground="#8B4513")
     
     def _load_saved_credentials(self):
         """Load saved credentials from config files into environment."""
@@ -3650,17 +3697,14 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Excel Workbooks section
         self._build_excel_tools_section(tools_notebook)
         
-        # Document Summarization section
-        self._build_summarization_tools_section(tools_notebook)
+        # Word Documents section
+        self._build_word_tools_section(tools_notebook)
+        
+        # PDF Documents section
+        self._build_pdf_tools_section(tools_notebook)
         
         # Workflow Execution section
         self._build_workflow_tools_section(tools_notebook)
-        
-        # Projects section (GUI for projects list/add)
-        self._build_projects_tools_section(tools_notebook)
-        
-        # Enhanced Chat with Agent Selection
-        self._build_agent_chat_section(tools_notebook)
     
     def _build_onenote_tools_section(self, parent):
         """Build OneNote notebooks browser section."""
@@ -3764,82 +3808,116 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             status_label = ttk.Label(frame, textvariable=self.excel_status_var)
         status_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=8, pady=4)
     
-    def _build_summarization_tools_section(self, parent):
-        """Build document summarization section for Excel and Word."""
+    def _build_word_tools_section(self, parent):
+        """Build Word documents browser section."""
         if TTKBOOTSTRAP_AVAILABLE:
             frame = ttkb.Frame(parent)
         else:
             frame = ttk.Frame(parent)
-        parent.add(frame, text="📝 Summarize Documents")
+        parent.add(frame, text="📝 Word Documents")
         
         frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(1, weight=1)
         
-        # Excel summarization
+        # Header
         if TTKBOOTSTRAP_AVAILABLE:
-            excel_section = ttkb.Labelframe(frame, text="Excel Workbook Summarization", bootstyle="info")
+            header = ttkb.Label(frame, text="Word Documents", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            refresh_btn = ttkb.Button(frame, text="🔄 Refresh Documents", command=self.refresh_word_documents, bootstyle="info-outline")
         else:
-            excel_section = ttk.LabelFrame(frame, text="Excel Workbook Summarization")
-        excel_section.grid(row=0, column=0, sticky="ew", padx=8, pady=8)
-        excel_section.columnconfigure(1, weight=1)
+            header = ttk.Label(frame, text="Word Documents", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            refresh_btn = ttk.Button(frame, text="Refresh Documents", command=self.refresh_word_documents)
         
-        ttk.Label(excel_section, text="File Path:").grid(row=0, column=0, sticky="w", padx=4, pady=4)
-        self.excel_summarize_path_var = tk.StringVar()
-        excel_path_entry = ttk.Entry(excel_section, textvariable=self.excel_summarize_path_var)
-        excel_path_entry.grid(row=0, column=1, sticky="ew", padx=4, pady=4)
+        header.grid(row=0, column=0, sticky="w", padx=8, pady=(8, 4))
+        refresh_btn.grid(row=0, column=1, sticky="e", padx=8, pady=(8, 4))
         
-        if TTKBOOTSTRAP_AVAILABLE:
-            excel_browse_btn = ttkb.Button(excel_section, text="📂 Browse", command=lambda: self._browse_file(self.excel_summarize_path_var, [("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]), bootstyle="secondary-outline")
-            excel_summarize_btn = ttkb.Button(excel_section, text="📊 Summarize", command=self.on_summarize_excel, bootstyle="info")
-        else:
-            excel_browse_btn = ttk.Button(excel_section, text="Browse", command=lambda: self._browse_file(self.excel_summarize_path_var, [("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]))
-            excel_summarize_btn = ttk.Button(excel_section, text="Summarize", command=self.on_summarize_excel)
-        excel_browse_btn.grid(row=0, column=2, padx=4, pady=4)
-        excel_summarize_btn.grid(row=1, column=0, columnspan=3, sticky="ew", padx=4, pady=4)
+        # Documents tree
+        columns = ("name", "size", "modified")
+        self.word_tree = ttk.Treeview(frame, columns=columns, show="headings", selectmode="browse")
+        self.word_tree.heading("name", text="Document Name")
+        self.word_tree.heading("size", text="Size")
+        self.word_tree.heading("modified", text="Modified")
         
-        # Word summarization
-        if TTKBOOTSTRAP_AVAILABLE:
-            word_section = ttkb.Labelframe(frame, text="Word Document Summarization", bootstyle="info")
-        else:
-            word_section = ttk.LabelFrame(frame, text="Word Document Summarization")
-        word_section.grid(row=1, column=0, sticky="ew", padx=8, pady=8)
-        word_section.columnconfigure(1, weight=1)
+        self.word_tree.column("name", width=300)
+        self.word_tree.column("size", width=100)
+        self.word_tree.column("modified", width=150)
         
-        ttk.Label(word_section, text="File Path:").grid(row=0, column=0, sticky="w", padx=4, pady=4)
-        self.word_summarize_path_var = tk.StringVar()
-        word_path_entry = ttk.Entry(word_section, textvariable=self.word_summarize_path_var)
-        word_path_entry.grid(row=0, column=1, sticky="ew", padx=4, pady=4)
+        self.word_tree.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=8, pady=4)
         
         if TTKBOOTSTRAP_AVAILABLE:
-            word_browse_btn = ttkb.Button(word_section, text="📂 Browse", command=lambda: self._browse_file(self.word_summarize_path_var, [("Word files", "*.docx *.doc"), ("All files", "*.*")]), bootstyle="secondary-outline")
-            word_summarize_btn = ttkb.Button(word_section, text="📝 Summarize", command=self.on_summarize_word, bootstyle="info")
+            scrollbar = ttkb.Scrollbar(frame, orient="vertical", command=self.word_tree.yview, bootstyle="primary-round")
         else:
-            word_browse_btn = ttk.Button(word_section, text="Browse", command=lambda: self._browse_file(self.word_summarize_path_var, [("Word files", "*.docx *.doc"), ("All files", "*.*")]))
-            word_summarize_btn = ttk.Button(word_section, text="Summarize", command=self.on_summarize_word)
-        word_browse_btn.grid(row=0, column=2, padx=4, pady=4)
-        word_summarize_btn.grid(row=1, column=0, columnspan=3, sticky="ew", padx=4, pady=4)
+            scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.word_tree.yview)
+        self.word_tree.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=1, column=2, sticky="ns", pady=4)
         
-        # Result display
+        # Status label
+        self.word_status_var = tk.StringVar(value="Click 'Refresh Documents' to load Word documents from OneDrive")
         if TTKBOOTSTRAP_AVAILABLE:
-            result_section = ttkb.Labelframe(frame, text="Result", bootstyle="secondary")
+            status_label = ttkb.Label(frame, textvariable=self.word_status_var, bootstyle="secondary")
         else:
-            result_section = ttk.LabelFrame(frame, text="Result")
-        result_section.grid(row=2, column=0, sticky="nsew", padx=8, pady=8)
-        result_section.columnconfigure(0, weight=1)
-        result_section.rowconfigure(0, weight=1)
-        frame.rowconfigure(2, weight=1)
+            status_label = ttk.Label(frame, textvariable=self.word_status_var)
+        status_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=8, pady=4)
+    
+    def _build_pdf_tools_section(self, parent):
+        """Build PDF documents browser section."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(parent)
+        else:
+            frame = ttk.Frame(parent)
+        parent.add(frame, text="📄 PDF Documents")
         
-        self.summarization_result_text = tk.Text(result_section, wrap="word", height=10, font=self.text_font)
-        self.summarization_result_text.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(1, weight=1)
+        
+        # Header
+        if TTKBOOTSTRAP_AVAILABLE:
+            header = ttkb.Label(frame, text="PDF Documents", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            refresh_btn = ttkb.Button(frame, text="🔄 Refresh Documents", command=self.refresh_pdf_documents, bootstyle="info-outline")
+        else:
+            header = ttk.Label(frame, text="PDF Documents", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            refresh_btn = ttk.Button(frame, text="Refresh Documents", command=self.refresh_pdf_documents)
+        
+        header.grid(row=0, column=0, sticky="w", padx=8, pady=(8, 4))
+        refresh_btn.grid(row=0, column=1, sticky="e", padx=8, pady=(8, 4))
+        
+        # Documents tree
+        columns = ("name", "size", "modified")
+        self.pdf_tree = ttk.Treeview(frame, columns=columns, show="headings", selectmode="browse")
+        self.pdf_tree.heading("name", text="Document Name")
+        self.pdf_tree.heading("size", text="Size")
+        self.pdf_tree.heading("modified", text="Modified")
+        
+        self.pdf_tree.column("name", width=300)
+        self.pdf_tree.column("size", width=100)
+        self.pdf_tree.column("modified", width=150)
+        
+        self.pdf_tree.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=8, pady=4)
         
         if TTKBOOTSTRAP_AVAILABLE:
-            result_scrollbar = ttkb.Scrollbar(result_section, orient="vertical", command=self.summarization_result_text.yview, bootstyle="primary-round")
+            scrollbar = ttkb.Scrollbar(frame, orient="vertical", command=self.pdf_tree.yview, bootstyle="primary-round")
         else:
-            result_scrollbar = ttk.Scrollbar(result_section, orient="vertical", command=self.summarization_result_text.yview)
-        self.summarization_result_text.configure(yscroll=result_scrollbar.set)
-        result_scrollbar.grid(row=0, column=1, sticky="ns")
+            scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.pdf_tree.yview)
+        self.pdf_tree.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=1, column=2, sticky="ns", pady=4)
+        
+        # Status label
+        self.pdf_status_var = tk.StringVar(value="Click 'Refresh Documents' to load PDF documents from OneDrive")
+        if TTKBOOTSTRAP_AVAILABLE:
+            status_label = ttkb.Label(frame, textvariable=self.pdf_status_var, bootstyle="secondary")
+        else:
+            status_label = ttk.Label(frame, textvariable=self.pdf_status_var)
+        status_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=8, pady=4)
     
     def _build_workflow_tools_section(self, parent):
-        """Build workflow execution section."""
+        """Build workflow execution section.
+        
+        Workflows are automated processes that perform complex operations on documents.
+        The Clean Notebook Workflow specifically:
+        - Analyzes OneNote notebooks for structure and content
+        - Identifies and removes duplicate or redundant content
+        - Organizes sections and pages for better navigation
+        - Optimizes notebook structure for improved performance
+        """
         if TTKBOOTSTRAP_AVAILABLE:
             frame = ttkb.Frame(parent)
         else:
@@ -3848,12 +3926,35 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         frame.columnconfigure(0, weight=1)
         
+        # Explanation section
+        if TTKBOOTSTRAP_AVAILABLE:
+            info_section = ttkb.Labelframe(frame, text="About Workflows", bootstyle="info")
+        else:
+            info_section = ttk.LabelFrame(frame, text="About Workflows")
+        info_section.grid(row=0, column=0, sticky="ew", padx=8, pady=(8, 4))
+        info_section.columnconfigure(0, weight=1)
+        
+        explanation_text = (
+            "Workflows are automated processes that perform complex operations on documents.\n\n"
+            "Clean Notebook Workflow:\n"
+            "• Analyzes OneNote notebooks for structure and content\n"
+            "• Identifies and removes duplicate or redundant content\n"
+            "• Organizes sections and pages for better navigation\n"
+            "• Optimizes notebook structure for improved performance"
+        )
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            info_label = ttkb.Label(info_section, text=explanation_text, bootstyle="secondary", justify="left", wraplength=600)
+        else:
+            info_label = ttk.Label(info_section, text=explanation_text, justify="left", wraplength=600)
+        info_label.grid(row=0, column=0, sticky="w", padx=8, pady=8)
+        
         # Notebook cleanup workflow
         if TTKBOOTSTRAP_AVAILABLE:
             workflow_section = ttkb.Labelframe(frame, text="Clean OneNote Notebook Workflow", bootstyle="warning")
         else:
             workflow_section = ttk.LabelFrame(frame, text="Clean OneNote Notebook Workflow")
-        workflow_section.grid(row=0, column=0, sticky="ew", padx=8, pady=8)
+        workflow_section.grid(row=1, column=0, sticky="ew", padx=8, pady=8)
         workflow_section.columnconfigure(1, weight=1)
         
         ttk.Label(workflow_section, text="Notebook Path/ID:").grid(row=0, column=0, sticky="w", padx=4, pady=4)
@@ -3872,7 +3973,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             result_section = ttkb.Labelframe(frame, text="Workflow Result", bootstyle="secondary")
         else:
             result_section = ttk.LabelFrame(frame, text="Workflow Result")
-        result_section.grid(row=1, column=0, sticky="nsew", padx=8, pady=8)
+        result_section.grid(row=2, column=0, sticky="nsew", padx=8, pady=8)
         result_section.columnconfigure(0, weight=1)
         result_section.rowconfigure(0, weight=1)
         frame.rowconfigure(1, weight=1)
@@ -3886,147 +3987,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             workflow_scrollbar = ttk.Scrollbar(result_section, orient="vertical", command=self.workflow_result_text.yview)
         self.workflow_result_text.configure(yscroll=workflow_scrollbar.set)
         workflow_scrollbar.grid(row=0, column=1, sticky="ns")
-    
-    def _build_projects_tools_section(self, parent):
-        """Build projects list/add GUI section."""
-        if TTKBOOTSTRAP_AVAILABLE:
-            frame = ttkb.Frame(parent)
-        else:
-            frame = ttk.Frame(parent)
-        parent.add(frame, text="📁 Projects")
-        
-        frame.columnconfigure(0, weight=1)
-        frame.rowconfigure(0, weight=1)
-        
-        # Info message
-        if TTKBOOTSTRAP_AVAILABLE:
-            info_text = ttkb.Label(frame, text="💡 Tip: Use the 'Projects' tab for full project management. This is a quick access view.", bootstyle="info")
-        else:
-            info_text = ttk.Label(frame, text="Tip: Use the 'Projects' tab for full project management. This is a quick access view.")
-        info_text.grid(row=0, column=0, sticky="w", padx=8, pady=8)
-        
-        # Quick project list
-        if TTKBOOTSTRAP_AVAILABLE:
-            list_section = ttkb.Labelframe(frame, text="Known Projects", bootstyle="primary")
-        else:
-            list_section = ttk.LabelFrame(frame, text="Known Projects")
-        list_section.grid(row=1, column=0, sticky="nsew", padx=8, pady=8)
-        list_section.columnconfigure(0, weight=1)
-        list_section.rowconfigure(0, weight=1)
-        frame.rowconfigure(1, weight=1)
-        
-        columns = ("name", "priority", "status", "tasks")
-        self.projects_tools_tree = ttk.Treeview(list_section, columns=columns, show="headings", selectmode="browse")
-        self.projects_tools_tree.heading("name", text="Project Name")
-        self.projects_tools_tree.heading("priority", text="Priority")
-        self.projects_tools_tree.heading("status", text="Status")
-        self.projects_tools_tree.heading("tasks", text="# Tasks")
-        
-        self.projects_tools_tree.column("name", width=250)
-        self.projects_tools_tree.column("priority", width=100)
-        self.projects_tools_tree.column("status", width=100)
-        self.projects_tools_tree.column("tasks", width=80)
-        
-        self.projects_tools_tree.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
-        
-        if TTKBOOTSTRAP_AVAILABLE:
-            projects_scrollbar = ttkb.Scrollbar(list_section, orient="vertical", command=self.projects_tools_tree.yview, bootstyle="primary-round")
-        else:
-            projects_scrollbar = ttk.Scrollbar(list_section, orient="vertical", command=self.projects_tools_tree.yview)
-        self.projects_tools_tree.configure(yscroll=projects_scrollbar.set)
-        projects_scrollbar.grid(row=0, column=1, sticky="ns")
-        
-        # Quick add project
-        if TTKBOOTSTRAP_AVAILABLE:
-            add_section = ttkb.Labelframe(frame, text="Quick Add Project", bootstyle="success")
-        else:
-            add_section = ttk.LabelFrame(frame, text="Quick Add Project")
-        add_section.grid(row=2, column=0, sticky="ew", padx=8, pady=8)
-        add_section.columnconfigure(1, weight=1)
-        
-        ttk.Label(add_section, text="Project Name:").grid(row=0, column=0, sticky="w", padx=4, pady=4)
-        self.quick_project_name_var = tk.StringVar()
-        quick_name_entry = ttk.Entry(add_section, textvariable=self.quick_project_name_var)
-        quick_name_entry.grid(row=0, column=1, sticky="ew", padx=4, pady=4)
-        
-        if TTKBOOTSTRAP_AVAILABLE:
-            quick_add_btn = ttkb.Button(add_section, text="➕ Add Project", command=self.on_quick_add_project, bootstyle="success")
-            refresh_projects_btn = ttkb.Button(add_section, text="🔄 Refresh", command=self.refresh_projects_tools_list, bootstyle="secondary-outline")
-        else:
-            quick_add_btn = ttk.Button(add_section, text="Add Project", command=self.on_quick_add_project)
-            refresh_projects_btn = ttk.Button(add_section, text="Refresh", command=self.refresh_projects_tools_list)
-        quick_add_btn.grid(row=0, column=2, padx=4, pady=4)
-        refresh_projects_btn.grid(row=1, column=0, columnspan=3, sticky="ew", padx=4, pady=4)
-        
-        # Bind Enter key to add project
-        quick_name_entry.bind("<Return>", lambda e: self.on_quick_add_project())
-        
-        # Initial refresh
-        self.refresh_projects_tools_list()
-    
-    def _build_agent_chat_section(self, parent):
-        """Build enhanced chat section with agent selection."""
-        if TTKBOOTSTRAP_AVAILABLE:
-            frame = ttkb.Frame(parent)
-        else:
-            frame = ttk.Frame(parent)
-        parent.add(frame, text="💬 Agent Chat")
-        
-        frame.columnconfigure(0, weight=1)
-        frame.rowconfigure(1, weight=1)
-        
-        # Info message
-        if TTKBOOTSTRAP_AVAILABLE:
-            info_text = ttkb.Label(frame, text="💡 Tip: Use the 'Chat' tab for full chat interface. This is a quick agent chat interface.", bootstyle="info")
-        else:
-            info_text = ttk.Label(frame, text="Tip: Use the 'Chat' tab for full chat interface. This is a quick agent chat interface.")
-        info_text.grid(row=0, column=0, sticky="w", padx=8, pady=8)
-        
-        # Agent selection and input
-        if TTKBOOTSTRAP_AVAILABLE:
-            input_section = ttkb.Labelframe(frame, text="Send Message to Agent", bootstyle="primary")
-        else:
-            input_section = ttk.LabelFrame(frame, text="Send Message to Agent")
-        input_section.grid(row=1, column=0, sticky="ew", padx=8, pady=8)
-        input_section.columnconfigure(1, weight=1)
-        
-        ttk.Label(input_section, text="Agent:").grid(row=0, column=0, sticky="w", padx=4, pady=4)
-        self.agent_chat_agent_var = tk.StringVar(value="AIC")
-        if TTKBOOTSTRAP_AVAILABLE:
-            agent_combo = ttkb.Combobox(input_section, textvariable=self.agent_chat_agent_var, values=["AIC", "Aria", "Sora"], state="readonly", bootstyle="primary")
-        else:
-            agent_combo = ttk.Combobox(input_section, textvariable=self.agent_chat_agent_var, values=["AIC", "Aria", "Sora"], state="readonly")
-        agent_combo.grid(row=0, column=1, sticky="w", padx=4, pady=4)
-        
-        ttk.Label(input_section, text="Message:").grid(row=1, column=0, sticky="nw", padx=4, pady=4)
-        self.agent_chat_message_text = tk.Text(input_section, height=5, wrap="word", font=self.text_font)
-        self.agent_chat_message_text.grid(row=1, column=1, sticky="ew", padx=4, pady=4)
-        
-        if TTKBOOTSTRAP_AVAILABLE:
-            agent_chat_send_btn = ttkb.Button(input_section, text="📤 Send to Agent", command=self.on_send_agent_message, bootstyle="primary")
-        else:
-            agent_chat_send_btn = ttk.Button(input_section, text="Send to Agent", command=self.on_send_agent_message)
-        agent_chat_send_btn.grid(row=2, column=0, columnspan=2, sticky="ew", padx=4, pady=4)
-        
-        # Response display
-        if TTKBOOTSTRAP_AVAILABLE:
-            response_section = ttkb.Labelframe(frame, text="Agent Response", bootstyle="secondary")
-        else:
-            response_section = ttk.LabelFrame(frame, text="Agent Response")
-        response_section.grid(row=2, column=0, sticky="nsew", padx=8, pady=8)
-        response_section.columnconfigure(0, weight=1)
-        response_section.rowconfigure(0, weight=1)
-        frame.rowconfigure(2, weight=1)
-        
-        self.agent_chat_response_text = tk.Text(response_section, wrap="word", height=10, font=self.text_font, state="disabled")
-        self.agent_chat_response_text.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
-        
-        if TTKBOOTSTRAP_AVAILABLE:
-            agent_chat_scrollbar = ttkb.Scrollbar(response_section, orient="vertical", command=self.agent_chat_response_text.yview, bootstyle="primary-round")
-        else:
-            agent_chat_scrollbar = ttk.Scrollbar(response_section, orient="vertical", command=self.agent_chat_response_text.yview)
-        self.agent_chat_response_text.configure(yscroll=agent_chat_scrollbar.set)
-        agent_chat_scrollbar.grid(row=0, column=1, sticky="ns")
     
     # ---------- Tools Tab Handler Methods ----------
     
@@ -4132,8 +4092,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             try:
                 # Pass connection to GraphClient so it can load credentials from database
                 from .integrations.msgraph.client import GraphClient
-                graph_client = GraphClient(conn=self.conn)
-                client = ExcelCloudClient(graph_client)
+                graph_client = GraphClient(conn=self.conn, use_delegated=True)
+                client = ExcelCloudClient(graph_client, use_delegated=True)
                 items = client.list_workbooks()
                 
                 # Filter for Excel files
@@ -4161,6 +4121,142 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         except Exception as e:
             self.excel_status_var.set(f"❌ Error: {str(e)}")
             messagebox.showerror("Error", f"Failed to refresh workbooks: {e}")
+    
+    def refresh_word_documents(self):
+        """Refresh the list of Word documents from OneDrive."""
+        try:
+            # Clear existing items
+            for item in self.word_tree.get_children():
+                self.word_tree.delete(item)
+            
+            if not EXCEL_CLOUD_AVAILABLE or ExcelCloudClient is None:
+                self.word_status_var.set("❌ Microsoft Graph client not available. Check Microsoft Graph configuration.")
+                return
+            
+            self.word_status_var.set("🔄 Loading documents...")
+            self.update()
+            
+            try:
+                # Pass connection to GraphClient so it can load credentials from database
+                from .integrations.msgraph.client import GraphClient
+                graph_client = GraphClient(conn=self.conn, use_delegated=True)
+                client = ExcelCloudClient(graph_client, use_delegated=True)  # Reuse ExcelCloudClient for OneDrive access
+                items = client.list_workbooks()  # This lists all OneDrive files
+                
+                # Filter for Word files
+                word_files = [item for item in items if item.get("name", "").endswith((".docx", ".doc"))]
+                
+                if not word_files:
+                    self.word_status_var.set("ℹ️ No Word documents found or not authenticated. Check Microsoft Graph credentials.")
+                    return
+                
+                for item in word_files:
+                    name = item.get("name", "Unknown")
+                    size = item.get("size", 0)
+                    size_str = f"{size / 1024:.1f} KB" if size > 0 else "Unknown"
+                    modified = item.get("lastModifiedDateTime", "Unknown")
+                    if modified and "T" in modified:
+                        modified = modified.replace("T", " ")[:16]
+                    
+                    self.word_tree.insert("", "end", values=(name, size_str, modified))
+                
+                self.word_status_var.set(f"✅ Loaded {len(word_files)} Word document(s)")
+            except Exception as e:
+                error_msg = str(e)
+                # Check for specific authentication errors
+                if "401" in error_msg or "Unauthorized" in error_msg or "Authentication" in error_msg:
+                    self.word_status_var.set("❌ Authentication failed. Check Microsoft Graph credentials.")
+                    messagebox.showerror(
+                        "Authentication Failed",
+                        f"Failed to authenticate with Microsoft Graph:\n\n{error_msg}\n\n"
+                        "Possible causes:\n"
+                        "1. Invalid or expired client secret\n"
+                        "2. Wrong tenant ID, client ID, or client secret\n"
+                        "3. Missing required permissions (Files.Read)\n\n"
+                        "Go to Settings > Integrations to reconfigure credentials."
+                    )
+                elif "credentials" in error_msg.lower():
+                    self.word_status_var.set("❌ Credentials not configured. Set up Microsoft Graph in Settings.")
+                    messagebox.showwarning(
+                        "Not Configured",
+                        "Microsoft Graph credentials are not configured.\n\n"
+                        "Go to Settings > Integrations to configure."
+                    )
+                else:
+                    self.word_status_var.set(f"❌ Error: {error_msg[:50]}")
+                    messagebox.showerror("Error", f"Failed to load Word documents:\n\n{error_msg}")
+        except Exception as e:
+            error_msg = str(e)
+            self.word_status_var.set(f"❌ Error: {error_msg[:50]}")
+            messagebox.showerror("Error", f"Failed to refresh Word documents:\n\n{error_msg}")
+    
+    def refresh_pdf_documents(self):
+        """Refresh the list of PDF documents from OneDrive."""
+        try:
+            # Clear existing items
+            for item in self.pdf_tree.get_children():
+                self.pdf_tree.delete(item)
+            
+            if not EXCEL_CLOUD_AVAILABLE or ExcelCloudClient is None:
+                self.pdf_status_var.set("❌ Microsoft Graph client not available. Check Microsoft Graph configuration.")
+                return
+            
+            self.pdf_status_var.set("🔄 Loading documents...")
+            self.update()
+            
+            try:
+                # Pass connection to GraphClient so it can load credentials from database
+                from .integrations.msgraph.client import GraphClient
+                graph_client = GraphClient(conn=self.conn, use_delegated=True)
+                client = ExcelCloudClient(graph_client, use_delegated=True)  # Reuse ExcelCloudClient for OneDrive access
+                items = client.list_workbooks()  # This lists all OneDrive files
+                
+                # Filter for PDF files
+                pdf_files = [item for item in items if item.get("name", "").endswith(".pdf")]
+                
+                if not pdf_files:
+                    self.pdf_status_var.set("ℹ️ No PDF documents found or not authenticated. Check Microsoft Graph credentials.")
+                    return
+                
+                for item in pdf_files:
+                    name = item.get("name", "Unknown")
+                    size = item.get("size", 0)
+                    size_str = f"{size / 1024:.1f} KB" if size > 0 else "Unknown"
+                    modified = item.get("lastModifiedDateTime", "Unknown")
+                    if modified and "T" in modified:
+                        modified = modified.replace("T", " ")[:16]
+                    
+                    self.pdf_tree.insert("", "end", values=(name, size_str, modified))
+                
+                self.pdf_status_var.set(f"✅ Loaded {len(pdf_files)} PDF document(s)")
+            except Exception as e:
+                error_msg = str(e)
+                # Check for specific authentication errors
+                if "401" in error_msg or "Unauthorized" in error_msg or "Authentication" in error_msg:
+                    self.pdf_status_var.set("❌ Authentication failed. Check Microsoft Graph credentials.")
+                    messagebox.showerror(
+                        "Authentication Failed",
+                        f"Failed to authenticate with Microsoft Graph:\n\n{error_msg}\n\n"
+                        "Possible causes:\n"
+                        "1. Invalid or expired client secret\n"
+                        "2. Wrong tenant ID, client ID, or client secret\n"
+                        "3. Missing required permissions (Files.Read)\n\n"
+                        "Go to Settings > Integrations to reconfigure credentials."
+                    )
+                elif "credentials" in error_msg.lower():
+                    self.pdf_status_var.set("❌ Credentials not configured. Set up Microsoft Graph in Settings.")
+                    messagebox.showwarning(
+                        "Not Configured",
+                        "Microsoft Graph credentials are not configured.\n\n"
+                        "Go to Settings > Integrations to configure."
+                    )
+                else:
+                    self.pdf_status_var.set(f"❌ Error: {error_msg[:50]}")
+                    messagebox.showerror("Error", f"Failed to load PDF documents:\n\n{error_msg}")
+        except Exception as e:
+            error_msg = str(e)
+            self.pdf_status_var.set(f"❌ Error: {error_msg[:50]}")
+            messagebox.showerror("Error", f"Failed to refresh PDF documents:\n\n{error_msg}")
     
     def _browse_file(self, var: tk.StringVar, filetypes):
         """Helper method to browse for a file."""

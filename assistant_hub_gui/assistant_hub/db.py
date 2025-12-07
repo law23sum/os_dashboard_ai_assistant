@@ -268,35 +268,6 @@ def init_db() -> sqlite3.Connection:
         )
     """)
 
-    # Create comments table for tasks and projects
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS comments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            entity_type TEXT NOT NULL,
-            entity_id TEXT NOT NULL,
-            author TEXT NOT NULL,
-            content TEXT NOT NULL,
-            mentions TEXT,
-            created_at TEXT NOT NULL
-        )
-    """)
-    c.execute("""
-        CREATE INDEX IF NOT EXISTS idx_comments_entity 
-        ON comments(entity_type, entity_id)
-    """)
-
-    # Create document_templates table
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS document_templates (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            category TEXT NOT NULL,
-            content TEXT NOT NULL,
-            description TEXT,
-            placeholders TEXT,
-            created_at TEXT NOT NULL
-        )
-    """)
 
     conn.commit()
     return conn

@@ -6,9 +6,15 @@ from typing import Dict
 import sqlite3
 
 from .base import BaseIntegration, IntegrationStatus
-from .onedrive.service import OneDriveService
-from .onedrive import OneDriveClient
-from .msgraph import GraphClient
+
+# Optional imports - will be checked in authenticate()
+try:
+    from .onedrive.service import OneDriveService
+    from .onedrive import OneDriveClient
+    from .msgraph import GraphClient
+    ONEDRIVE_MODULES_AVAILABLE = True
+except ImportError:
+    ONEDRIVE_MODULES_AVAILABLE = False
 
 
 class OneDriveIntegration(BaseIntegration):
@@ -22,8 +28,25 @@ class OneDriveIntegration(BaseIntegration):
     
     def authenticate(self) -> bool:
         """Authenticate with Microsoft Graph for OneDrive."""
+        if not ONEDRIVE_MODULES_AVAILABLE:
+            self.update_status(False, "OneDrive modules not available. Install required dependencies.")
+            return False
+        
         try:
-            graph_client = GraphClient()
+            # Check if credentials are configured first
+            try:
+                from .msgraph.auth import GraphCredentials
+                creds = GraphCredentials.from_env(conn=self.conn)
+                if not creds.tenant_id or not creds.client_id or not creds.client_secret:
+                    self.update_status(False, "Not authenticated. Configure Microsoft Graph in Tools & Operations.")
+                    return False
+            except Exception as e:
+                self.update_status(False, f"Credentials error: {str(e)[:50]}")
+                return False
+            
+            # Pass connection to GraphClient so it can load credentials from database
+            # Use delegated auth for /me/ endpoints (OneDrive typically uses /me/drive)
+            graph_client = GraphClient(conn=self.conn, use_delegated=True)
             self.client = OneDriveClient(graph_client)
             self.service = OneDriveService(self.sync_root, self.client)
             
@@ -33,10 +56,16 @@ class OneDriveIntegration(BaseIntegration):
             return True
         except Exception as e:
             error_msg = str(e)
-            if "credentials" in error_msg.lower() or "auth" in error_msg.lower() or "401" in error_msg:
-                self.update_status(False, "Not authenticated. Please configure Microsoft Graph credentials.")
+            if "credentials" in error_msg.lower() or "auth" in error_msg.lower() or "401" in error_msg or "400" in error_msg:
+                if "delegated" in error_msg.lower() or "/me/" in error_msg.lower():
+                    self.update_status(False, "Run: python authenticate_azure_delegated.py to set up delegated auth.")
+                else:
+                    self.update_status(False, "Not authenticated. Configure Microsoft Graph in Tools & Operations.")
+            elif "Module" in error_msg or "ImportError" in error_msg or "No module" in error_msg:
+                self.update_status(False, "Required modules not installed. Check dependencies.")
             else:
-                self.update_status(False, error_msg)
+                display_msg = error_msg[:80] + "..." if len(error_msg) > 80 else error_msg
+                self.update_status(False, display_msg)
             return False
     
     def sync(self) -> int:

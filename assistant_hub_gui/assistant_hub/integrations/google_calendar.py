@@ -1,6 +1,7 @@
 """Google Calendar integration."""
 
 import os
+from pathlib import Path
 from typing import Dict, List
 import sqlite3
 
@@ -12,7 +13,14 @@ class GoogleCalendarIntegration(BaseIntegration):
     
     def __init__(self, conn: sqlite3.Connection):
         super().__init__(conn, "Google Calendar", "calendar")
-        self.credentials_path = os.path.expanduser("~/.assistant_hub/google_calendar_credentials.json")
+        # Check multiple locations for credentials
+        project_root = Path(__file__).parent.parent.parent.parent
+        root_creds = project_root / "client_secret_788356908604-ro9n0fq4p70q569237314n12u84jnren.apps.googleusercontent.com.json"
+        
+        if root_creds.exists():
+            self.credentials_path = str(root_creds)
+        else:
+            self.credentials_path = os.path.expanduser("~/.assistant_hub/google_calendar_credentials.json")
         self.token_path = os.path.expanduser("~/.assistant_hub/google_calendar_token.json")
     
     def authenticate(self) -> bool:
