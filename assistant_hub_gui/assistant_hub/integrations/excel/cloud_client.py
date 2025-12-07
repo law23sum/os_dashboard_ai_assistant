@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from ..msgraph.client import GraphClient
 
@@ -29,3 +29,16 @@ class ExcelCloudClient:
             f"/me/drive/items/{item_id}/workbook/worksheets/{worksheet_id}/range(address='{address}')",
             json={"values": values},
         )
+
+    def call_function(
+        self, item_id: str, function_name: str, arguments: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Call an Excel function via Graph API."""
+        return self.graph.post(
+            f"/me/drive/items/{item_id}/workbook/functions/{function_name}",
+            json=arguments or {},
+        )
+
+
+# Alias for backwards compatibility
+CloudExcelClient = ExcelCloudClient

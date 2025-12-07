@@ -28,3 +28,12 @@ class OneNoteClient:
     def update_page_html(self, page_id: str, html: str) -> None:
         payload = [{"target": "body", "action": "replace", "content": html}]
         self.graph.patch(f"/me/onenote/pages/{page_id}/content", json=payload)
+
+    # Backwards compatibility methods
+    def get_page_content(self, page_id: str) -> str:
+        """Get page content (backwards compatibility alias for get_page_html)."""
+        return self.get_page_html(page_id)
+
+    def update_page_content(self, page_id: str, html: str) -> None:
+        """Update page content (backwards compatibility alias for update_page_html)."""
+        self.update_page_html(page_id, html)
