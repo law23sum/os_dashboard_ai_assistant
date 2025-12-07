@@ -312,6 +312,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_status_var = tk.StringVar()
         self.system_prompt_text = None
         self.chat_text = None
+        self.doc_preview_text = None
+        self.doc_status_var = tk.StringVar(
+            value="Load a Word, Excel, OneNote, or PDF file to preview alongside the AI console."
+        )
+        self.doc_source_var = tk.StringVar(value="PDF")
+        self.doc_path_var = tk.StringVar()
         self.command_var = tk.StringVar()
         self.cwd_var = tk.StringVar(value=os.getcwd())
 
@@ -1738,14 +1744,120 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self._close_file_preview()
 
         # Right side: Chat conversation and compose
+        # Paned layout: document preview on the left, chat on the right
         if TTKBOOTSTRAP_AVAILABLE:
-            chat_container = ttkb.Frame(self.chat_frame)
+            paned = ttkb.Panedwindow(self.chat_frame, orient="horizontal", bootstyle="primary")
+        else:
+            paned = ttk.Panedwindow(self.chat_frame, orient="horizontal")
+        paned.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+        self.chat_frame.columnconfigure(0, weight=1)
+        self.chat_frame.rowconfigure(0, weight=1)
+
+        # Left pane: document/context viewer
+        if TTKBOOTSTRAP_AVAILABLE:
+            doc_frame = ttkb.Labelframe(paned, text="📄 Document Context", bootstyle="secondary")
+        else:
+            doc_frame = ttk.LabelFrame(paned, text="Document Context")
+        doc_frame.columnconfigure(0, weight=1)
+        doc_frame.rowconfigure(2, weight=1)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            doc_header = ttkb.Label(
+                doc_frame,
+                text="Preview Word, Excel, OneNote, and PDF files side-by-side while chatting.",
+                bootstyle="info",
+            )
         else:
             chat_container = ttk.Frame(self.chat_frame)
         chat_container.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=(4, 8), pady=8)
+            doc_header = ttk.Label(
+                doc_frame,
+                text="Preview Word, Excel, OneNote, and PDF files side-by-side while chatting.",
+            )
+        doc_header.grid(row=0, column=0, sticky="w", padx=6, pady=(6, 4))
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            controls = ttkb.Frame(doc_frame)
+        else:
+            controls = ttk.Frame(doc_frame)
+        controls.grid(row=1, column=0, sticky="ew", padx=6)
+        controls.columnconfigure(1, weight=1)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            ttkb.Label(controls, text="Source:", bootstyle="secondary").grid(row=0, column=0, sticky="w", padx=(0, 4))
+            source_combo = ttkb.Combobox(
+                controls,
+                textvariable=self.doc_source_var,
+                state="readonly",
+                width=12,
+                values=["OneNote", "Word", "Excel", "PDF"],
+                bootstyle="primary",
+            )
+        else:
+            ttk.Label(controls, text="Source:").grid(row=0, column=0, sticky="w", padx=(0, 4))
+            source_combo = ttk.Combobox(
+                controls,
+                textvariable=self.doc_source_var,
+                state="readonly",
+                width=12,
+                values=["OneNote", "Word", "Excel", "PDF"],
+            )
+        source_combo.grid(row=0, column=1, sticky="w")
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            path_entry = ttkb.Entry(controls, textvariable=self.doc_path_var, width=38, bootstyle="secondary")
+        else:
+            path_entry = ttk.Entry(controls, textvariable=self.doc_path_var, width=38)
+        path_entry.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(4, 0))
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            browse_btn = ttkb.Button(controls, text="📂 Browse", command=self.on_browse_document, bootstyle="info-outline")
+            load_btn = ttkb.Button(controls, text="📑 Load Preview", command=self.on_load_document_preview, bootstyle="success")
+        else:
+            browse_btn = ttk.Button(controls, text="Browse", command=self.on_browse_document)
+            load_btn = ttk.Button(controls, text="Load Preview", command=self.on_load_document_preview)
+        browse_btn.grid(row=1, column=2, padx=(6, 2))
+        load_btn.grid(row=1, column=3, padx=(2, 0))
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            preview_container = ttkb.Frame(doc_frame)
+        else:
+            preview_container = ttk.Frame(doc_frame)
+        preview_container.grid(row=2, column=0, sticky="nsew", padx=6, pady=6)
+        preview_container.columnconfigure(0, weight=1)
+        preview_container.rowconfigure(0, weight=1)
+
+        # Track active file editing session and references
+        self.active_file_session = None  # Dict with 'type', 'path', 'content', etc.
+        self.file_preview_frame = None
+        self.file_preview_text = None
+        self.file_preview_title_var = None
+        self.file_preview_status_var = None
+
+        # Build the reusable file preview panel inside the document frame
+        self._build_file_preview_panel(parent=preview_container)
+
+        # Ensure placeholder text is visible before any document is loaded
+        if self.file_preview_text:
+            self.file_preview_text.config(state="normal")
+            self.file_preview_text.delete("1.0", "end")
+            self.file_preview_text.insert(
+                "1.0",
+                "Document previews will appear here. Load a file to see its contents alongside the AI discussion.",
+            )
+            self.file_preview_text.config(state="disabled")
+
+        paned.add(doc_frame, weight=1)
+
+        # Right pane: Chat conversation and compose
+        if TTKBOOTSTRAP_AVAILABLE:
+            chat_container = ttkb.Frame(paned)
+        else:
+            chat_container = ttk.Frame(paned)
         chat_container.columnconfigure(0, weight=1)
         chat_container.rowconfigure(0, weight=3)
         chat_container.rowconfigure(1, weight=2)
+        paned.add(chat_container, weight=2)
 
         if TTKBOOTSTRAP_AVAILABLE:
             convo_frame = ttkb.Labelframe(chat_container, text="💬 Chat & Terminal", bootstyle="primary")
@@ -1930,16 +2042,20 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_progress.progress_bar.grid_remove()
         self.chat_progress.indicator_label.grid_remove()
 
-    def _build_file_preview_panel(self):
+    def _build_file_preview_panel(self, parent=None):
         """Build the file preview panel for side-by-side file editing."""
+        parent = parent or self.chat_frame
         if TTKBOOTSTRAP_AVAILABLE:
-            self.file_preview_frame = ttkb.Labelframe(self.chat_frame, text="📄 File Preview", bootstyle="success")
+            self.file_preview_frame = ttkb.Labelframe(parent, text="📄 File Preview", bootstyle="success")
         else:
             self.file_preview_frame = ttk.LabelFrame(self.chat_frame, text="File Preview")
 
         # Initially hidden - will be shown when file editing starts
         self.file_preview_frame.grid(row=0, column=0, rowspan=2, sticky="nsew", padx=(8, 4), pady=8)
         self.file_preview_frame.grid_remove()  # Hidden by default
+            self.file_preview_frame = ttk.LabelFrame(parent, text="File Preview")
+
+        self.file_preview_frame.grid(row=0, column=0, sticky="nsew")
         self.file_preview_frame.columnconfigure(0, weight=1)
         self.file_preview_frame.rowconfigure(2, weight=1)
         
@@ -2019,11 +2135,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         preview_scroll.grid(row=0, column=1, sticky="ns")
         
         # Status bar for file operations
+        status_var = getattr(self, "doc_status_var", None) or tk.StringVar(value="Ready")
+        self.file_preview_status_var = status_var
+        self.doc_status_var = status_var
         if TTKBOOTSTRAP_AVAILABLE:
-            self.file_preview_status_var = tk.StringVar(value="Ready")
             status_label = ttkb.Label(self.file_preview_frame, textvariable=self.file_preview_status_var, bootstyle="secondary")
         else:
-            self.file_preview_status_var = tk.StringVar(value="Ready")
             status_label = ttk.Label(self.file_preview_frame, textvariable=self.file_preview_status_var)
         status_label.grid(row=3, column=0, sticky="w", padx=4, pady=(0, 4))
 
@@ -2090,7 +2207,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def _close_file_preview(self):
         """Close the file preview panel."""
         if hasattr(self, 'file_preview_frame') and self.file_preview_frame:
-            self.file_preview_frame.grid_remove()
+            self.file_preview_frame.grid()
         self.active_file_session = None
         if hasattr(self, 'file_preview_title_var') and self.file_preview_title_var:
             self.file_preview_title_var.set("No file open")
@@ -2098,6 +2215,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if hasattr(self, 'chat_frame'):
             self.chat_frame.columnconfigure(0, weight=0)
             self.chat_frame.columnconfigure(1, weight=1)
+        if hasattr(self, 'file_preview_status_var'):
+            self.file_preview_status_var.set("Ready")
+        if hasattr(self, 'file_preview_text') and self.file_preview_text:
+            self.file_preview_text.config(state="normal")
+            self.file_preview_text.delete("1.0", "end")
+            self.file_preview_text.insert(
+                "1.0",
+                "Document previews will appear here. Load a file to see its contents alongside the AI discussion.",
+            )
+            self.file_preview_text.config(state="disabled")
 
     def _show_file_preview(self, file_type: str, file_path: str, file_id: Optional[str] = None):
         """Show the file preview panel with the specified file."""
@@ -2125,6 +2252,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_frame.columnconfigure(0, weight=1)
         self.chat_frame.columnconfigure(1, weight=2)
         
+
         # Load and display file content
         self._refresh_file_preview()
 
@@ -2460,6 +2588,56 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         except Exception as exc:
             messagebox.showerror('Upload File', f'Failed to upload file:\n{exc}')
             self._update_chat_status('File upload failed.')
+
+    def on_browse_document(self):
+        """Open a file dialog to choose a document for previewing alongside chat."""
+        filetypes = [
+            ("Office/PDF", "*.pdf *.doc *.docx *.xls *.xlsx *.csv *.one"),
+            ("PDF", "*.pdf"),
+            ("Word", "*.doc *.docx"),
+            ("Excel", "*.xls *.xlsx *.csv"),
+            ("OneNote", "*.one"),
+            ("All files", "*.*"),
+        ]
+        path = filedialog.askopenfilename(initialdir=self.cwd_var.get() or os.getcwd(), filetypes=filetypes)
+        if path:
+            self.doc_path_var.set(path)
+            guessed_source = self._guess_doc_source(path)
+            if guessed_source:
+                self.doc_source_var.set(guessed_source)
+            self.on_load_document_preview()
+
+    def on_load_document_preview(self):
+        """Load a document preview so it can be viewed side-by-side with the AI conversation."""
+        path = (self.doc_path_var.get() or '').strip()
+        if not path:
+            messagebox.showinfo('Document Preview', 'Choose a OneNote, Word, Excel, or PDF file first.')
+            return
+        if not os.path.exists(path):
+            messagebox.showerror('Document Preview', f'File not found:\n{path}')
+            return
+
+        source = self.doc_source_var.get() or self._guess_doc_source(path) or 'PDF'
+        self._show_file_preview(source, path)
+
+        status = f"Previewing {source} file: {os.path.basename(path)}"
+        if hasattr(self, 'doc_status_var') and self.doc_status_var:
+            self.doc_status_var.set(status)
+        self._store_chat_message('System', 'system', status, kind='file')
+        self.refresh_chat_history()
+
+    def _guess_doc_source(self, path: str) -> Optional[str]:
+        """Infer document source type from its extension."""
+        ext = os.path.splitext(path)[1].lower()
+        if ext in ['.doc', '.docx']:
+            return 'Word'
+        if ext in ['.xls', '.xlsx', '.csv']:
+            return 'Excel'
+        if ext == '.pdf':
+            return 'PDF'
+        if ext in ['.one', '.onetoc2']:
+            return 'OneNote'
+        return None
 
     def _read_file_for_chat(self, path: str):
         try:
