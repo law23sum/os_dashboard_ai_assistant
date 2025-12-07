@@ -22,6 +22,16 @@ from .filesystem_integration import FilesystemIntegration
 from .git_integration import GitIntegration
 from .pdf_integration import PDFIntegration
 from .api import IntegrationAPIGateway
+from .sample_data_preview import (
+    IntegrationPreviewError,
+    preview_adobe_assets,
+    preview_excel_data,
+    preview_for_integration,
+    preview_ical_events,
+    preview_onenote_notebooks,
+    preview_unread_gmail,
+    preview_word_document,
+)
 
 __all__ = [
     "BaseIntegration",
@@ -58,4 +68,12 @@ __all__ = [
     "upload_cloud_revision",
     "TRACKED_EXTENSIONS",
     "discover_files",
+    "IntegrationPreviewError",
+    "preview_for_integration",
+    "preview_excel_data",
+    "preview_word_document",
+    "preview_onenote_notebooks",
+    "preview_unread_gmail",
+    "preview_ical_events",
+    "preview_adobe_assets",
 ]

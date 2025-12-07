@@ -78,6 +78,8 @@ from .integrations import (
     GitIntegration,
     PDFIntegration,
     IntegrationAPIGateway,
+    IntegrationPreviewError,
+    preview_for_integration,
 )
 from .task_automation import process_recurring_tasks, check_task_dependencies
 from .task_templates import load_templates, save_template, delete_template, create_task_from_template, TaskTemplate
@@ -2527,14 +2529,17 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             sync_btn = ttkb.Button(btn_frame, text="🔄 Sync All", command=self.on_sync_all_integrations, bootstyle="primary")
             sync_selected_btn = ttkb.Button(btn_frame, text="🔄 Sync Selected", command=self.on_sync_selected_integration, bootstyle="info-outline")
             refresh_btn = ttkb.Button(btn_frame, text="🔄 Refresh", command=self.refresh_integrations_list, bootstyle="secondary-outline")
+            preview_btn = ttkb.Button(btn_frame, text="👁️ Preview Data", command=self.on_preview_integration_data, bootstyle="warning-outline")
         else:
             sync_btn = ttk.Button(btn_frame, text="Sync All", command=self.on_sync_all_integrations)
             sync_selected_btn = ttk.Button(btn_frame, text="Sync Selected", command=self.on_sync_selected_integration)
             refresh_btn = ttk.Button(btn_frame, text="Refresh", command=self.refresh_integrations_list)
+            preview_btn = ttk.Button(btn_frame, text="Preview Data", command=self.on_preview_integration_data)
 
         sync_btn.grid(row=0, column=0, padx=4)
         sync_selected_btn.grid(row=0, column=1, padx=4)
         refresh_btn.grid(row=0, column=2, padx=4)
+        preview_btn.grid(row=0, column=3, padx=4)
 
         # API console to trigger integration actions programmatically
         if TTKBOOTSTRAP_AVAILABLE:
@@ -2598,9 +2603,35 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             ToolTip(sync_btn, text="Sync all enabled integrations")
             ToolTip(sync_selected_btn, text="Sync the selected integration")
             ToolTip(refresh_btn, text="Refresh the integrations list")
+            ToolTip(preview_btn, text="Preview new data from the selected integration")
 
         target_combo.bind("<<ComboboxSelected>>", self.on_integration_target_change)
-    
+
+    def _write_integration_output(self, text: str):
+        """Populate the integration API output box with new content."""
+        if not hasattr(self, "integration_api_output"):
+            return
+        self.integration_api_output.config(state="normal")
+        self.integration_api_output.delete("1.0", "end")
+        self.integration_api_output.insert("1.0", text)
+        self.integration_api_output.config(state="disabled")
+
+    def _resolve_integration_slug(self, display_name: str) -> str:
+        """Map a human-friendly integration name to its slug."""
+        name_map = {
+            "Local Notes": "notes",
+            "Google Calendar": "calendar",
+            "Gmail": "mail",
+            "GitHub": "github",
+            "Word": "word",
+            "Excel": "excel",
+            "OneNote": "onenote",
+            "Local Files": "filesystem",
+            "Git": "git",
+            "PDF": "pdf",
+        }
+        return name_map.get(display_name, display_name.lower().replace(" ", "_"))
+
     def refresh_integrations_list(self):
         """Refresh the integrations list display."""
         for row in self.integrations_tree.get_children():
@@ -2653,6 +2684,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 message += f"  {name}: {count} items\n"
             else:
                 message += f"  {name}: Error\n"
+        try:
+            self._write_integration_output(json.dumps({"sync_results": results}, indent=2))
+        except Exception:
+            # Defensive: the GUI output box should not block sync notifications
+            pass
         messagebox.showinfo("Sync Complete", message)
         self.refresh_integrations_list()
     
@@ -2662,33 +2698,63 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if not sel:
             messagebox.showinfo("No Selection", "Please select an integration to sync.")
             return
-        
+
         name = sel[0]
-        # Map display names to scheduler keys
-        name_map = {
-            "Local Notes": "notes",
-            "Google Calendar": "calendar",
-            "Gmail": "mail",
-            "GitHub": "github",
-            "Word": "word",
-            "Excel": "excel",
-            "OneNote": "onenote",
-            "Local Files": "filesystem",
-            "Git": "git",
-            "PDF": "pdf",
-        }
-        key = name_map.get(name, name.lower().replace(" ", "_"))
+        key = self._resolve_integration_slug(name)
         if hasattr(self, "integration_api"):
             results = self.integration_api.call_action(key, action="sync")
             count = results.get(key, -1)
         else:
             results = self.sync_scheduler.sync_now(key)
             count = results.get(key, -1)
+        try:
+            self._write_integration_output(json.dumps({"sync_results": results}, indent=2))
+        except Exception:
+            pass
         if count >= 0:
             messagebox.showinfo("Sync Complete", f"{name}: {count} items synced.")
         else:
             messagebox.showerror("Sync Error", f"Failed to sync {name}.")
         self.refresh_integrations_list()
+
+    def on_preview_integration_data(self):
+        """Preview data from the selected integration and surface it in the GUI."""
+
+        sel = self.integrations_tree.selection()
+        if not sel:
+            messagebox.showinfo("No Selection", "Please select an integration to preview.")
+            return
+
+        display_name = sel[0]
+        slug = self._resolve_integration_slug(display_name)
+        file_path = None
+
+        if slug in {"excel", "word", "calendar"}:
+            filetypes = [("All files", "*.*")]
+            if slug == "excel":
+                filetypes = [("Excel", "*.xlsx *.xls")]
+            elif slug == "word":
+                filetypes = [("Word", "*.docx *.doc")]
+            elif slug == "calendar":
+                filetypes = [("iCalendar", "*.ics")]
+            file_path = filedialog.askopenfilename(
+                title="Select a file to preview",
+                filetypes=filetypes,
+            )
+            if not file_path:
+                return
+
+        try:
+            preview_text = preview_for_integration(slug, file_path=file_path)
+        except IntegrationPreviewError as exc:
+            messagebox.showerror("Preview Error", str(exc))
+            return
+        except Exception as exc:  # pragma: no cover - defensive for unexpected errors
+            messagebox.showerror("Preview Error", f"Unable to preview data: {exc}")
+            return
+
+        self._write_integration_output(preview_text)
+        messagebox.showinfo("Preview Complete", f"Updated preview for {display_name}.")
 
     def on_integration_target_change(self, event=None):
         """Refresh the available actions when the target changes."""
