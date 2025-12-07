@@ -265,11 +265,17 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_agent_var = tk.StringVar(value=self.state_obj.active_persona)
         self.chat_model_var = tk.StringVar(value="auto")
         self.uploaded_files = []  # Track uploaded files for current conversation
+        self.active_file_path: Optional[str] = None
+        self.active_file_mtime: Optional[float] = None
+        self.active_file_content: str = ""
+        self.active_file_watch_job: Optional[str] = None
+        self.active_file_status = tk.StringVar(value="No active file selected")
         self.model_combo = None  # Will be set in _build_chat_tab
         self.chat_status_var = tk.StringVar()
         self.system_prompt_text = None
         self.chat_text = None
         self.change_log_text = None
+        self.file_preview_text = None
         self.command_var = tk.StringVar()
         self.cwd_var = tk.StringVar(value=os.getcwd())
 
@@ -1506,11 +1512,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         chat_container.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
         chat_container.columnconfigure(0, weight=1)
         chat_container.columnconfigure(1, weight=2)
+        chat_container.columnconfigure(2, weight=2)
         chat_container.rowconfigure(0, weight=3)
         chat_container.rowconfigure(1, weight=1)
 
         self._build_document_panel(chat_container)
         self._build_conversation_panel(chat_container)
+        self._build_file_preview_panel(chat_container)
         self._build_change_monitor(chat_container)
 
     def _build_document_panel(self, parent):
@@ -1554,8 +1562,14 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.upload_list.grid(row=3, column=0, sticky="nsew", padx=6, pady=(0, 6))
         doc_frame.rowconfigure(3, weight=1)
 
-        clear_btn = ttkb.Button(doc_frame, text="🗑️ Clear List", command=self._clear_uploaded_files, bootstyle="danger-outline") if TTKBOOTSTRAP_AVAILABLE else ttk.Button(doc_frame, text="Clear List", command=self._clear_uploaded_files)
-        clear_btn.grid(row=4, column=0, sticky="ew", padx=6, pady=4)
+        if TTKBOOTSTRAP_AVAILABLE:
+            preview_btn = ttkb.Button(doc_frame, text="👁️ Preview Selected", command=self.on_preview_selected_upload, bootstyle="secondary-outline")
+            clear_btn = ttkb.Button(doc_frame, text="🗑️ Clear List", command=self._clear_uploaded_files, bootstyle="danger-outline")
+        else:
+            preview_btn = ttk.Button(doc_frame, text="Preview Selected", command=self.on_preview_selected_upload)
+            clear_btn = ttk.Button(doc_frame, text="Clear List", command=self._clear_uploaded_files)
+        preview_btn.grid(row=4, column=0, sticky="ew", padx=6, pady=(2, 2))
+        clear_btn.grid(row=5, column=0, sticky="ew", padx=6, pady=(0, 4))
 
         self._refresh_upload_list()
 
@@ -1590,15 +1604,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 width=12,
                 bootstyle="primary"
             )
-            ttkb.Label(compose, text="Respond As:", bootstyle="secondary").grid(row=0, column=2, sticky="e", padx=4, pady=2)
-            agent_combo = ttkb.Combobox(
-                compose,
-                textvariable=self.chat_agent_var,
-                values=PERSONAS,
-                state="readonly",
-                width=12,
-                bootstyle="info"
-            )
+            ttkb.Label(compose, text="AI Persona:", bootstyle="secondary").grid(row=0, column=2, sticky="e", padx=4, pady=2)
+            agent_label = ttkb.Label(compose, textvariable=self.chat_agent_var, bootstyle="info")
             ttkb.Label(compose, text="Model:", bootstyle="secondary").grid(row=0, column=4, sticky="e", padx=4, pady=2)
             self.model_combo = ttkb.Combobox(
                 compose,
@@ -1619,14 +1626,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 state="readonly",
                 width=12,
             )
-            ttk.Label(compose, text="Respond As:").grid(row=0, column=2, sticky="e", padx=4, pady=2)
-            agent_combo = ttk.Combobox(
-                compose,
-                textvariable=self.chat_agent_var,
-                values=PERSONAS,
-                state="readonly",
-                width=12,
-            )
+            ttk.Label(compose, text="AI Persona:").grid(row=0, column=2, sticky="e", padx=4, pady=2)
+            agent_label = ttk.Label(compose, textvariable=self.chat_agent_var)
             ttk.Label(compose, text="Model:").grid(row=0, column=4, sticky="e", padx=4, pady=2)
             self.model_combo = ttk.Combobox(
                 compose,
@@ -1638,8 +1639,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             ttk.Label(compose, text="System Prompt:").grid(row=1, column=0, sticky="ne", padx=4, pady=2)
             ttk.Label(compose, text="Input:").grid(row=2, column=0, sticky="ne", padx=4, pady=(4, 2))
         sender_combo.grid(row=0, column=1, sticky="w", padx=(0, 10), pady=2)
-        agent_combo.grid(row=0, column=3, sticky="w", padx=(0, 4), pady=2)
-        agent_combo.bind("<<ComboboxSelected>>", self.on_agent_change)
+        agent_label.grid(row=0, column=3, sticky="w", padx=(0, 4), pady=2)
         self.model_combo.grid(row=0, column=5, sticky="w", padx=(0, 4), pady=2)
         self.model_combo.set("auto")
         self.model_combo.bind("<<ComboboxSelected>>", self.on_agent_change)
@@ -1696,36 +1696,31 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             btns = ttk.Frame(compose)
         btns.grid(row=4, column=0, columnspan=6, sticky="ew", pady=(4, 0))
-        
+
         # Configure columns for buttons
-        for idx in range(4):
+        for idx in range(3):
             btns.columnconfigure(idx, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
             import_btn = ttkb.Button(btns, text="📁 Import", command=self.on_import_chat_file, bootstyle="info-outline")
-            upload_btn = ttkb.Button(btns, text="☁️ Upload", command=self._upload_file_with_feedback, bootstyle="secondary-outline")
             send_btn = ttkb.Button(btns, text="🚀 Send", command=lambda: self.on_handle_combined_input(chat_mode=True), bootstyle="primary")
             clear_btn = ttkb.Button(btns, text="🗑️ Clear", command=self.on_clear_chat_history, bootstyle="danger-outline")
         else:
             import_btn = ttk.Button(btns, text="Import", command=self.on_import_chat_file)
-            upload_btn = ttk.Button(btns, text="Upload", command=self._upload_file_with_feedback)
             send_btn = ttk.Button(btns, text="Send", command=lambda: self.on_handle_combined_input(chat_mode=True))
             clear_btn = ttk.Button(btns, text="Clear", command=self.on_clear_chat_history)
         import_btn.grid(row=0, column=0, padx=4, sticky="ew")
-        upload_btn.grid(row=0, column=1, padx=4, sticky="ew")
-        send_btn.grid(row=0, column=2, padx=4, sticky="ew")
-        clear_btn.grid(row=0, column=3, padx=4, sticky="ew")
+        send_btn.grid(row=0, column=1, padx=4, sticky="ew")
+        clear_btn.grid(row=0, column=2, padx=4, sticky="ew")
         
         # Add hover effects to chat buttons
         AnimationHelper.add_hover_effect(import_btn)
-        AnimationHelper.add_hover_effect(upload_btn)
         AnimationHelper.add_hover_effect(send_btn)
         AnimationHelper.add_hover_effect(clear_btn)
         self._chat_send_btn = send_btn
-        
+
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(import_btn, text="Import file content into input")
-            ToolTip(upload_btn, text="Upload file to OpenAI for AI analysis")
             ToolTip(send_btn, text="Send message (Ctrl+Enter) or run command (Enter for single-line, prefix with $)")
             ToolTip(clear_btn, text="Clear all chat history")
 
@@ -1743,12 +1738,52 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_progress.progress_bar.grid_remove()
         self.chat_progress.indicator_label.grid_remove()
 
+    def _build_file_preview_panel(self, parent):
+        if TTKBOOTSTRAP_AVAILABLE:
+            preview_frame = ttkb.Labelframe(parent, text="📄 Active File", bootstyle="secondary")
+        else:
+            preview_frame = ttk.LabelFrame(parent, text="Active File")
+        preview_frame.grid(row=0, column=2, sticky="nsew", padx=(6, 0), pady=4)
+        preview_frame.columnconfigure(0, weight=1)
+
+        status_row = ttkb.Frame(preview_frame) if TTKBOOTSTRAP_AVAILABLE else ttk.Frame(preview_frame)
+        status_row.grid(row=0, column=0, sticky="ew", padx=4, pady=(4, 0))
+        status_row.columnconfigure(0, weight=1)
+
+        status_label = ttkb.Label(status_row, textvariable=self.active_file_status, bootstyle="info") if TTKBOOTSTRAP_AVAILABLE else ttk.Label(status_row, textvariable=self.active_file_status)
+        status_label.grid(row=0, column=0, sticky="w")
+
+        btn_row = ttkb.Frame(preview_frame) if TTKBOOTSTRAP_AVAILABLE else ttk.Frame(preview_frame)
+        btn_row.grid(row=1, column=0, sticky="ew", padx=4, pady=2)
+        btn_row.columnconfigure((0, 1), weight=1)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            choose_btn = ttkb.Button(btn_row, text="🔍 Choose File", command=self.on_choose_active_file, bootstyle="info-outline")
+            refresh_btn = ttkb.Button(btn_row, text="🔄 Refresh", command=self._render_active_file_content, bootstyle="secondary-outline")
+        else:
+            choose_btn = ttk.Button(btn_row, text="Choose File", command=self.on_choose_active_file)
+            refresh_btn = ttk.Button(btn_row, text="Refresh", command=self._render_active_file_content)
+        choose_btn.grid(row=0, column=0, padx=2, sticky="ew")
+        refresh_btn.grid(row=0, column=1, padx=2, sticky="ew")
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            ToolTip(choose_btn, text="Pick a file to watch and share with the AI")
+            ToolTip(refresh_btn, text="Manually refresh the live preview")
+
+        self.file_preview_text = tk.Text(preview_frame, height=18, wrap="word", state="disabled", font=self.text_font)
+        self.file_preview_text.grid(row=2, column=0, sticky="nsew", padx=4, pady=(4, 6))
+        preview_frame.rowconfigure(2, weight=1)
+
+        scroll = ttk.Scrollbar(preview_frame, orient="vertical", command=self.file_preview_text.yview)
+        self.file_preview_text.configure(yscrollcommand=scroll.set)
+        scroll.grid(row=2, column=1, sticky="ns")
+
     def _build_change_monitor(self, parent):
         if TTKBOOTSTRAP_AVAILABLE:
             change_frame = ttkb.Labelframe(parent, text="🛠️ Live Change Log", bootstyle="secondary")
         else:
             change_frame = ttk.LabelFrame(parent, text="Live Change Log")
-        change_frame.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=2, pady=(0, 4))
+        change_frame.grid(row=1, column=0, columnspan=3, sticky="nsew", padx=2, pady=(0, 4))
         change_frame.columnconfigure(0, weight=1)
         change_frame.rowconfigure(0, weight=1)
 
@@ -1870,6 +1905,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_input.insert('end', block)
         if truncated:
             self.chat_input.insert('end', '\n[Note: content truncated to fit limit]\n')
+        self._set_active_file(path, reason="Imported to prompt")
         self._update_chat_status(f"Imported '{label}' ({'truncated' if truncated else 'full'}).")
     
     def on_upload_file(self):
@@ -1892,12 +1928,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 )
             
             label = os.path.basename(path)
-            self.uploaded_files.append({"name": label, "id": file_obj.id})
+            self.uploaded_files.append({"name": label, "id": file_obj.id, "path": path})
             self._refresh_upload_list()
-            
+
             # Add file reference to chat input
             self.chat_input.insert('end', f"\n[Uploaded file: {label} (ID: {file_obj.id})]\n")
             self._update_chat_status(f"Uploaded '{label}' to OpenAI (ID: {file_obj.id})")
+            self._set_active_file(path, reason="Uploaded to agents")
             
             # Store file info in chat
             self._store_chat_message(
@@ -1937,11 +1974,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         AnimationHelper.pulse_button(getattr(self, '_chat_send_btn', None))
         self.on_send_chat_message(invoke_ai)
     
-    def _send_chat_with_feedback(self, invoke_ai: bool = True):
-        """Send chat message with visual feedback"""
-        AnimationHelper.pulse_button(getattr(self, '_chat_send_btn', None))
-        self.on_send_chat_message(invoke_ai)
-    
     def _upload_file_with_feedback(self):
         """Upload file with visual feedback"""
         self.on_upload_file()
@@ -1951,8 +1983,28 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         AnimationHelper.pulse_button(getattr(self, '_terminal_run_btn', None))
         self.on_run_terminal_command(event)
 
+    def _is_command_low_risk(self, command: str) -> bool:
+        """Heuristic to decide if a command is safe enough to auto-approve."""
+        safe_prefixes = (
+            "ls",
+            "pwd",
+            "cat ",
+            "echo ",
+            "stat ",
+            "head ",
+            "tail ",
+            "git status",
+            "sed -n",
+        )
+        stripped = command.strip().lower()
+        return any(stripped.startswith(prefix) for prefix in safe_prefixes)
+
     def _request_overwrite_permission(self, command: str, cwd: str) -> bool:
-        if self.settings.auto_overwrite:
+        mode = getattr(self.settings, "change_permission_mode", "ask_when_unsure")
+        command_text = command or ""
+        if mode == "auto":
+            return True
+        if mode == "ask_when_unsure" and self._is_command_low_risk(command_text):
             return True
 
         q: Queue = Queue()
@@ -1960,7 +2012,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         def ask():
             allowed = messagebox.askyesno(
                 "Allow AI change?",
-                f"The AI wants to run:\n{command}\n\nWorking directory: {cwd}\nProceed?",
+                f"The AI wants to run:\n{command_text or '[no command provided]'}\n\nWorking directory: {cwd}\nProceed?",
             )
             q.put(allowed)
 
@@ -1974,13 +2026,147 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         for item in self.uploaded_files:
             name = item.get("name", "(file)") if isinstance(item, dict) else str(item)
             file_id = item.get("id") if isinstance(item, dict) else None
+            path = item.get("path") if isinstance(item, dict) else None
             display = name if not file_id else f"{name} — {file_id}"
+            if path:
+                display += f" ({os.path.basename(path)})"
             self.upload_list.insert(tk.END, display)
 
     def _clear_uploaded_files(self):
         self.uploaded_files = []
         self._refresh_upload_list()
         self._update_chat_status("Cleared uploaded file list.")
+
+    def on_preview_selected_upload(self):
+        selection = self.upload_list.curselection()
+        if not selection:
+            messagebox.showinfo("Preview", "Select an uploaded file with a known path to preview.")
+            return
+        idx = selection[0]
+        if idx >= len(self.uploaded_files):
+            return
+        entry = self.uploaded_files[idx]
+        path = entry.get("path") if isinstance(entry, dict) else None
+        if not path:
+            messagebox.showwarning("Preview", "This upload does not have a local path to watch.")
+            return
+        if not os.path.exists(path):
+            messagebox.showerror("Preview", f"File not found: {path}")
+            return
+        self._set_active_file(path, reason="Preview from uploads")
+
+    def on_choose_active_file(self):
+        """Let the user pick a file to preview and feed into AI context."""
+        initial_dir = self.cwd_var.get().strip() if hasattr(self, "cwd_var") else os.getcwd()
+        path = filedialog.askopenfilename(initialdir=initial_dir or os.getcwd())
+        if not path:
+            self.active_file_status.set("Active file selection cancelled")
+            return
+        self._set_active_file(path, reason="Manual selection")
+
+    def _set_active_file(self, path: str, reason: str = ""):
+        normalized = os.path.abspath(path)
+        self.active_file_path = normalized
+        try:
+            self.active_file_mtime = os.path.getmtime(normalized)
+        except OSError:
+            self.active_file_mtime = None
+        suffix = f" ({reason})" if reason else ""
+        self.active_file_status.set(f"Watching: {os.path.basename(normalized)}{suffix}")
+        self._load_active_file_content()
+        self._schedule_active_file_watch()
+        self._update_chat_status(f"Active file set: {os.path.basename(normalized)}")
+
+    def _load_active_file_content(self):
+        if not self.active_file_path:
+            self.active_file_content = ""
+            self._render_active_file_content()
+            return
+        try:
+            with open(self.active_file_path, "r", encoding="utf-8") as fh:
+                data = fh.read()
+        except UnicodeDecodeError:
+            with open(self.active_file_path, "rb") as fh:
+                data = fh.read().decode("utf-8", errors="replace")
+        except OSError as exc:
+            self.active_file_content = f"[Unable to read file: {exc}]"
+            self._render_active_file_content()
+            return
+
+        self.active_file_content = data
+        self._render_active_file_content()
+
+    def _render_active_file_content(self):
+        if not self.file_preview_text:
+            return
+        status_parts = []
+        if self.active_file_path:
+            status_parts.append(f"Watching {self.active_file_path}")
+            if self.active_file_mtime:
+                status_parts.append(f"updated {datetime.fromtimestamp(self.active_file_mtime).strftime('%Y-%m-%d %H:%M:%S')}")
+        else:
+            status_parts.append("No active file selected")
+        self.active_file_status.set(" — ".join(status_parts))
+
+        self.file_preview_text.config(state="normal")
+        self.file_preview_text.delete("1.0", "end")
+        if self.active_file_content:
+            self.file_preview_text.insert("1.0", self.active_file_content)
+        else:
+            self.file_preview_text.insert("1.0", "(empty file)")
+        self.file_preview_text.config(state="disabled")
+
+    def _schedule_active_file_watch(self):
+        if self.active_file_watch_job:
+            try:
+                self.after_cancel(self.active_file_watch_job)
+            except Exception:
+                pass
+        if self.active_file_path:
+            self.active_file_watch_job = self.after(1500, self._poll_active_file)
+        else:
+            self.active_file_watch_job = None
+
+    def _poll_active_file(self):
+        self.active_file_watch_job = None
+        if not self.active_file_path:
+            return
+        try:
+            current_mtime = os.path.getmtime(self.active_file_path)
+        except OSError as exc:
+            self.active_file_status.set(f"File unavailable: {exc}")
+            return
+
+        if self.active_file_mtime is None or current_mtime != self.active_file_mtime:
+            self.active_file_mtime = current_mtime
+            self._load_active_file_content()
+            self.after(0, self.refresh_chat_history)
+            self._update_chat_status(f"Active file changed: {os.path.basename(self.active_file_path)}")
+        self._schedule_active_file_watch()
+
+    def _append_active_file_context(self, messages):
+        """Inject active file context so the AI knows what the user is viewing."""
+        if not self.active_file_path:
+            return messages
+        preview_len = 2000
+        snippet = self.active_file_content[:preview_len]
+        updated = (
+            datetime.fromtimestamp(self.active_file_mtime).strftime("%Y-%m-%d %H:%M:%S")
+            if self.active_file_mtime
+            else "unknown"
+        )
+        context = ChatMessage(
+            id=0,
+            persona="System",
+            role="system",
+            kind="file",
+            content=(
+                f"Active file in UI: {self.active_file_path}\n"
+                f"Last updated: {updated}\n"
+                f"Preview (first {preview_len} chars):\n{snippet}"
+            ),
+        )
+        return messages + [context]
     
     def on_send_chat_message(self, invoke_ai: bool = True):
         if not hasattr(self, 'chat_input'):
@@ -2063,8 +2249,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             iteration = 0
             
             while iteration < max_iterations:
-                # Refresh messages from state for each iteration
-                current_messages = self.state_obj.chat_messages.copy()
+                # Refresh messages from state for each iteration and inject live context
+                current_messages = self._append_active_file_context(self.state_obj.chat_messages.copy())
                 
                 reply, error, tool_calls = generate_ai_reply(
                     current_messages,
@@ -2979,14 +3165,17 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         show_sys_check.grid(row=row, column=1, sticky="w", padx=8, pady=8)
 
         row += 1
-        self.auto_overwrite_var = tk.BooleanVar(value=self.settings.auto_overwrite)
-        overwrite_text = "Allow AI to overwrite files automatically (uncheck to require a yes/no prompt)"
-        overwrite_check = ttk.Checkbutton(
+        ttk.Label(self.settings_frame, text="AI change approvals:").grid(row=row, column=0, sticky="e", padx=8, pady=8)
+        self.approval_mode_var = tk.StringVar(value=self.settings.change_permission_mode)
+        approval_combo = ttk.Combobox(
             self.settings_frame,
-            text=overwrite_text,
-            variable=self.auto_overwrite_var,
+            textvariable=self.approval_mode_var,
+            values=["ask_when_unsure", "ask", "auto"],
+            state="readonly",
         )
-        overwrite_check.grid(row=row, column=1, sticky="w", padx=8, pady=8)
+        approval_combo.grid(row=row, column=1, sticky="w", padx=8, pady=8)
+        if TTKBOOTSTRAP_AVAILABLE:
+            ToolTip(approval_combo, text="Choose when the AI should pause for approval before running commands")
 
         row += 1
         if TTKBOOTSTRAP_AVAILABLE:
@@ -3052,7 +3241,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.settings.show_system_status = self.show_sys_var.get()
         self.settings.font_scale = self.font_scale_var.get()
         self.settings.data_preferences = {k: var.get() for k, var in self.data_pref_vars.items()}
-        self.settings.auto_overwrite = self.auto_overwrite_var.get()
+        self.settings.change_permission_mode = self.approval_mode_var.get()
+        self.settings.auto_overwrite = self.settings.change_permission_mode == "auto"
         save_settings(self.conn, self.settings)
         
         # Apply theme change if ttkbootstrap is available
