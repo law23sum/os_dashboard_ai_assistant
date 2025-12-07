@@ -2,6 +2,12 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["assistant_hub"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json", "*.txt", "*.md"]
+
 [project]
 name = "os-dashboard-ai-assistant"
 version = "0.1.0"
