@@ -365,10 +365,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self._build_tasks_tab()
         self._build_projects_tab()
         self._build_chat_tab()
-        self._build_integrations_tab()
         self._build_tools_tab()
-        self._build_analytics_tab()
-        self._build_settings_tab()
         
         # Update tab labels with icons if available
         if TTKBOOTSTRAP_AVAILABLE:
@@ -377,8 +374,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.notebook.tab(2, text="📁 Projects")
             self.notebook.tab(3, text="💬 AI Console")
             self.notebook.tab(4, text="🔧 Tools")
-            self.notebook.tab(5, text="📊 Analytics")
-            self.notebook.tab(6, text="⚙️ Settings")
 
         # Initialize sync scheduler
         self.sync_scheduler = create_default_scheduler(self.conn)
@@ -3974,7 +3969,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if not hasattr(self, 'chat_input'):
             return
         text = self.chat_input.get('1.0', 'end').strip()
-
+        
         # Ignore placeholder text
         placeholder = "Type a message for AI (Enter to send, Shift+Enter for newline). Use '$' prefix for shell commands."
         if not text or text == placeholder:
@@ -4102,7 +4097,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                             enhanced_prompt = f"[{context_str}] {enhanced_prompt}"
                         else:
                             enhanced_system_prompt = f"{system_prompt}\n\nCurrent conversation context: {context_str}"
-
+                
                 reply, error, tool_calls = generate_ai_reply(
                     current_messages,
                     persona=user_msg.persona,
@@ -4265,7 +4260,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 self.chat_progress.stop("Error occurred")
             else:
                 self.chat_progress.stop("Response received")
-
+        
         persona = responder or self.chat_agent_var.get().strip() or 'AI Team'
         text = reply_text.strip() if reply_text else '(no response)'
         self._store_chat_message(persona, 'assistant', text)
@@ -4522,7 +4517,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             ToolTip(sync_btn, text="Sync all enabled integrations")
             ToolTip(sync_selected_btn, text="Sync the selected integration")
             ToolTip(refresh_btn, text="Refresh the integrations list")
-
+    
         # Initialize the integrations list
         self.after(100, self.on_refresh_integrations)
     
@@ -4556,10 +4551,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         """Refresh the integrations list display."""
         for row in self.integrations_tree.get_children():
             self.integrations_tree.delete(row)
-
+        
         # Load saved credentials/configs before checking status
         self._load_saved_credentials()
-
+        
         # Get integration statuses - all available integrations
         integrations = {
             "Local Notes": NotesIntegration(self.conn),
@@ -4574,37 +4569,37 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             "Git": GitIntegration(self.conn),
             "PDF": PDFIntegration(self.conn),
         }
-
+        
         for name, integration in integrations.items():
             # Try to authenticate to get current status
             try:
                 integration.authenticate()
             except Exception:
                 pass
-
+            
             status = integration.get_status()
             status_text = "✅ Connected" if status.connected else "❌ Disconnected"
             if status.error:
                 # Show more of the error message (up to 80 chars) for better visibility
                 error_display = status.error[:80] + "..." if len(status.error) > 80 else status.error
                 status_text += f" ({error_display})"
-
+            
             last_sync = status.last_sync or "Never"
             if last_sync != "Never" and "T" in last_sync:
                 last_sync = last_sync.replace("T", " ")[:16]
-
+            
             # Determine tag based on connection status
             if status.connected:
                 tag = "connected"
             else:
                 tag = "disconnected"
-
+            
             item_id = self.integrations_tree.insert(
                 "", "end",
                 values=(name, status_text, last_sync, status.item_count or 0),
                 tags=(tag,)
             )
-
+            
         # Configure tag colors
         if TTKBOOTSTRAP_AVAILABLE:
             self.integrations_tree.tag_configure("connected", background="#d4edda", foreground="#155724")  # Green
@@ -4612,7 +4607,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             self.integrations_tree.tag_configure("connected", background="lightgreen")
             self.integrations_tree.tag_configure("disconnected", background="lightcoral")
-
+    
     def on_sync_all_integrations(self):
         """Sync all enabled integrations."""
         results = self.sync_scheduler.sync_now()
@@ -5386,7 +5381,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             status_label = ttk.Label(frame, textvariable=self.excel_status_var)
         status_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=8, pady=4)
-
+    
     def refresh_excel_workbooks(self):
         """Refresh the Excel workbooks list."""
         try:
@@ -5428,7 +5423,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         except Exception as e:
             self.logger.error(f"Failed to refresh Excel workbooks: {e}")
             self.excel_status_var.set(f"Error loading workbooks: {str(e)}")
-
+    
     def _build_word_tools_section(self, parent):
         """Build Word documents browser section."""
         if TTKBOOTSTRAP_AVAILABLE:
@@ -5488,7 +5483,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             status_label = ttk.Label(frame, textvariable=self.word_status_var)
         status_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=8, pady=4)
-
+    
     def refresh_word_documents(self):
         """Refresh the Word documents list."""
         try:
@@ -5529,7 +5524,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         except Exception as e:
             self.logger.error(f"Failed to refresh Word documents: {e}")
             self.word_status_var.set(f"Error loading documents: {str(e)}")
-
+    
     def _build_pdf_tools_section(self, parent):
         """Build PDF documents browser section."""
         if TTKBOOTSTRAP_AVAILABLE:
@@ -5649,7 +5644,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             workflow_run_btn = ttk.Button(workflow_section, text="Run Clean Notebook Workflow", command=self.on_run_clean_notebook_workflow)
         workflow_run_btn.grid(row=1, column=0, columnspan=2, sticky="ew", padx=4, pady=4)
-
+        
         # Workflow result display
         if TTKBOOTSTRAP_AVAILABLE:
             result_section = ttkb.Labelframe(frame, text="Workflow Result", bootstyle="secondary")
@@ -5670,7 +5665,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             workflow_scrollbar = ttk.Scrollbar(result_section, orient="vertical", command=self.workflow_result_text.yview)
         self.workflow_result_text.configure(yscroll=workflow_scrollbar.set)
         workflow_scrollbar.grid(row=0, column=1, sticky="ns")
-
+    
         # Automation Workflow Orchestrator Section
         if AUTOMATION_ORCHESTRATOR_AVAILABLE and self.automation_orchestrator:
             if TTKBOOTSTRAP_AVAILABLE:
@@ -5906,7 +5901,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         except Exception as e:
             self.logger.error(f"Failed to show automation dashboard: {e}")
             messagebox.showerror("Error", f"Failed to load dashboard: {e}")
-
+    
     # ---------- Tools Tab Handler Methods ----------
     
     def refresh_onenote_notebooks(self):
