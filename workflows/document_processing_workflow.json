@@ -1,0 +1,68 @@
+{
+  "workflow_id": "doc-processing-workflow",
+  "name": "Document Processing Workflow",
+  "description": "Automatically processes uploaded documents, extracts tasks, and generates summaries",
+  "enabled": true,
+  "variables": {
+    "processing_timeout": 300,
+    "summary_model": "gpt-4"
+  },
+  "triggers": [
+    {
+      "trigger_type": "connector_event",
+      "config": {
+        "connector": "filesystem",
+        "event_type": "new_uploaded_document"
+      },
+      "enabled": true
+    }
+  ],
+  "actions": [
+    {
+      "action_id": "read_document",
+      "action_type": "read_resource",
+      "config": {
+        "connector": "filesystem",
+        "resource_id": "${trigger_event.path}"
+      },
+      "depends_on": [],
+      "retry_count": 3,
+      "timeout_seconds": 60
+    },
+    {
+      "action_id": "extract_tasks",
+      "action_type": "transform_data",
+      "config": {
+        "transform_type": "extract_tasks",
+        "source_action": "read_document"
+      },
+      "depends_on": ["read_document"],
+      "retry_count": 2,
+      "timeout_seconds": 120
+    },
+    {
+      "action_id": "generate_summary",
+      "action_type": "transform_data",
+      "config": {
+        "transform_type": "format_template",
+        "template": "Document Summary: ${action_results.read_document.content.title}\n\nKey Points:\n- Type: ${action_results.read_document.content.document_type}\n- Tasks Extracted: ${action_results.extract_tasks.transformed_data.task_count}\n- Processing Time: ${execution_id}",
+        "source_action": "read_document"
+      },
+      "depends_on": ["read_document", "extract_tasks"],
+      "retry_count": 2,
+      "timeout_seconds": 180
+    },
+    {
+      "action_id": "save_summary",
+      "action_type": "write_resource",
+      "config": {
+        "connector": "filesystem",
+        "resource_id": "${trigger_event.path}.summary.txt",
+        "content_source": "generate_summary"
+      },
+      "depends_on": ["generate_summary"],
+      "retry_count": 3,
+      "timeout_seconds": 60
+    }
+  ]
+}

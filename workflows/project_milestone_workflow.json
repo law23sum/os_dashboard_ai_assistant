@@ -1,0 +1,72 @@
+{
+  "workflow_id": "project-milestone-workflow",
+  "name": "Project Milestone Workflow",
+  "description": "Triggers when projects reach milestone completion percentages",
+  "enabled": true,
+  "variables": {
+    "milestone_thresholds": [25, 50, 75, 90],
+    "notification_recipients": ["project_manager", "team_lead"]
+  },
+  "triggers": [
+    {
+      "trigger_type": "system_event",
+      "config": {
+        "event_type": "project_milestone"
+      },
+      "enabled": true
+    }
+  ],
+  "actions": [
+    {
+      "action_id": "check_milestone_type",
+      "action_type": "conditional",
+      "config": {
+        "condition_type": "simple",
+        "left": "${trigger_event.milestone}",
+        "operator": "in",
+        "right": ["50_percent_complete", "75_percent_complete", "90_percent_complete"]
+      },
+      "depends_on": [],
+      "retry_count": 1,
+      "timeout_seconds": 30
+    },
+    {
+      "action_id": "generate_progress_report",
+      "action_type": "transform_data",
+      "config": {
+        "transform_type": "format_template",
+        "template": "# Project Progress Report\n\n**Project:** ${trigger_event.project}\n**Milestone:** ${trigger_event.milestone}\n**Completion:** ${trigger_event.completion_ratio * 100}%\n**Total Tasks:** ${trigger_event.total_tasks}\n**Completed Tasks:** ${trigger_event.completed_tasks}\n\n**Generated:** ${execution_id}\n**Timestamp:** ${new Date().toISOString()}",
+        "source_action": "check_milestone_type"
+      },
+      "depends_on": ["check_milestone_type"],
+      "retry_count": 2,
+      "timeout_seconds": 60
+    },
+    {
+      "action_id": "save_progress_report",
+      "action_type": "write_resource",
+      "config": {
+        "connector": "filesystem",
+        "resource_id": "projects/${trigger_event.project}/progress_reports/${trigger_event.milestone}_${new Date().toISOString().split('T')[0]}.md",
+        "content_source": "generate_progress_report"
+      },
+      "depends_on": ["generate_progress_report"],
+      "retry_count": 3,
+      "timeout_seconds": 60
+    },
+    {
+      "action_id": "send_notification",
+      "action_type": "send_notification",
+      "config": {
+        "notification_type": "milestone_achieved",
+        "recipients": "${workflow_variables.notification_recipients}",
+        "subject": "Project Milestone Achieved: ${trigger_event.project}",
+        "message": "Project ${trigger_event.project} has reached ${trigger_event.milestone} with ${trigger_event.completion_ratio * 100}% completion.",
+        "priority": "normal"
+      },
+      "depends_on": ["save_progress_report"],
+      "retry_count": 2,
+      "timeout_seconds": 30
+    }
+  ]
+}
