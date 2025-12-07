@@ -11,7 +11,7 @@ from github import Github
 from github.GithubException import GithubException
 
 from config import get_api_config
-from logging_config import setup_logger
+from ..logging_config import setup_logger
 
 
 class GitClient:
