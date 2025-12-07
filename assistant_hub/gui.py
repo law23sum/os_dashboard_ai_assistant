@@ -241,7 +241,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         if TTKBOOTSTRAP_AVAILABLE:
             super().__init__(themename=theme, title="Assistant Hub (GUI)", resizable=(True, True))
-            self.style = self.style  # ttkbootstrap's style
+            # ttkbootstrap's style is already available as self.style (read-only property)
         else:
             super().__init__()
             self.title("Assistant Hub (GUI)")
@@ -265,6 +265,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_text = None
         self.command_var = tk.StringVar()
         self.cwd_var = tk.StringVar(value=os.getcwd())
+
+        # Initialize fonts before building tabs (needed by all tabs)
+        scale_map = {"small": 10, "medium": 12, "large": 14}
+        base_size = scale_map.get(self.settings.font_scale, 12)
+
+        self.base_font = tkfont.nametofont("TkDefaultFont")
+        self.base_font.configure(size=base_size)
+
+        self.text_font = tkfont.nametofont("TkTextFont")
+        self.text_font.configure(size=base_size)
 
         if not TTKBOOTSTRAP_AVAILABLE:
             self._configure_style()
@@ -356,15 +366,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             except tk.TclError:
                 pass
 
-        scale_map = {"small": 10, "medium": 12, "large": 14}
-        base_size = scale_map.get(self.settings.font_scale, 12)
-
-        self.base_font = tkfont.nametofont("TkDefaultFont")
-        self.base_font.configure(size=base_size)
-
-        self.text_font = tkfont.nametofont("TkTextFont")
-        self.text_font.configure(size=base_size)
-
+        # Fonts are already initialized in __init__, just configure style-specific settings
+        base_size = self.base_font.actual("size")
         heading_font = tkfont.nametofont("TkHeadingFont")
         heading_font.configure(size=base_size + 1, weight="bold")
 
