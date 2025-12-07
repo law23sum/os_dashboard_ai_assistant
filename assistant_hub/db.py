@@ -23,6 +23,7 @@ DATE_FORMAT = "%Y-%m-%d"
 CHAT_ROLES = ["user", "assistant", "system", "tool"]
 CHAT_MESSAGE_KINDS = ["chat", "terminal", "terminal_result", "file", "tool_result"]
 SECURITY_STATUS_CHOICES = ["secure", "vulnerable", "exploited", "offline"]
+CHANGE_PERMISSION_MODES = ["auto", "ask", "ask_when_unsure"]
 
 DEFAULT_FETCH_PREFERENCES = {
     "notes": True,
@@ -85,7 +86,8 @@ class Settings:
     show_system_status: bool = True   # show CPU/RAM/Disk in dashboard
     font_scale: str = "medium"        # small | medium | large
     data_preferences: Dict[str, bool] = field(default_factory=lambda: DEFAULT_FETCH_PREFERENCES.copy())
-    auto_overwrite: bool = True       # allow AI to overwrite without prompt
+    change_permission_mode: str = "ask_when_unsure"  # auto | ask | ask_when_unsure
+    auto_overwrite: bool = True       # legacy flag retained for backward compatibility
 
 
 @dataclass
@@ -423,8 +425,12 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
     show_system_status = (show_system_status_raw == "1")
     font_scale = get_meta(conn, "setting.font_scale", "medium") or "medium"
     data_pref_raw = get_meta(conn, "setting.data_preferences", None)
+    approval_mode = get_meta(conn, "setting.change_permission_mode", "ask_when_unsure") or "ask_when_unsure"
     auto_overwrite_raw = get_meta(conn, "setting.auto_overwrite", "1") or "1"
     auto_overwrite = (auto_overwrite_raw == "1")
+    if approval_mode not in CHANGE_PERMISSION_MODES:
+        approval_mode = "auto" if auto_overwrite else "ask"
+    auto_overwrite = approval_mode == "auto"
     data_preferences = DEFAULT_FETCH_PREFERENCES.copy()
     if data_pref_raw:
         try:
@@ -440,6 +446,7 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
         show_system_status=show_system_status,
         font_scale=font_scale,
         data_preferences=data_preferences,
+        change_permission_mode=approval_mode,
         auto_overwrite=auto_overwrite,
     )
 
@@ -450,7 +457,8 @@ def save_settings(conn: sqlite3.Connection, settings: Settings):
     set_meta(conn, "setting.show_system_status", "1" if settings.show_system_status else "0")
     set_meta(conn, "setting.font_scale", settings.font_scale)
     set_meta(conn, "setting.data_preferences", json.dumps(settings.data_preferences, ensure_ascii=False))
-    set_meta(conn, "setting.auto_overwrite", "1" if settings.auto_overwrite else "0")
+    set_meta(conn, "setting.change_permission_mode", settings.change_permission_mode)
+    set_meta(conn, "setting.auto_overwrite", "1" if settings.change_permission_mode == "auto" else "0")
 
 
 def save_active_persona(conn: sqlite3.Connection, state: AssistantState):
