@@ -313,7 +313,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.state_obj: AssistantState = load_state(self.conn)
         self.settings: Settings = load_settings(self.conn)
         self.security_status: SecurityStatus = load_security_status(self.conn)
-        
+
+        # Build palette before configuring styles so widgets share a cohesive look
+        self._build_color_palette()
         # Performance optimization: Resource limits and throttling
         self._ui_update_pending = False
         self._last_ui_update_time = 0
@@ -336,9 +338,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.cwd_var = tk.StringVar(value=os.getcwd())
         self.project_docs_file_paths = {}  # Map item_id -> file_path for project documents
         self.project_docs_link_ids = {}  # Map item_id -> link_id for project documents
-        
-        if not TTKBOOTSTRAP_AVAILABLE:
-            self._configure_style()
+
+        self._configure_style()
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
@@ -419,6 +420,17 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     # ---------- Top bar ----------
 
+    def _build_color_palette(self):
+        """Define a soft color palette used throughout the interface."""
+        # Neutral surfaces keep focus on content and reduce eye strain
+        self.colors = {
+            "background": "#f5f7fb" if self.settings.theme != "dark" else "#131722",
+            "surface": "#ffffff" if self.settings.theme != "dark" else "#1f2430",
+            "border": "#dfe3eb" if self.settings.theme != "dark" else "#2d3342",
+            "text": "#1f2532" if self.settings.theme != "dark" else "#e8edf7",
+            "muted": "#4f566b" if self.settings.theme != "dark" else "#b8c1d9",
+        }
+
     def _initialize_fonts(self):
         """Configure fonts based on settings with professional typography."""
         try:
@@ -458,7 +470,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             # ttkbootstrap handles themes automatically - use professional themes
             theme_map = {
                 "plain": "minty",
-                "light": "litera", 
+                "light": "litera",
                 "dark": "superhero"
             }
             theme = theme_map.get(self.settings.theme, "minty")
@@ -481,10 +493,14 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.style.configure("Treeview", rowheight=base_size + 16, font=(self.base_font.actual("family"), base_size))
         self.style.configure("Treeview.Heading", font=(heading_font.actual("family"), base_size + 1), padding=(8, 6))
         # More professional tab styling
-        self.style.configure("TNotebook.Tab", padding=(20, 10), font=(self.base_font.actual("family"), base_size))
+        self.style.configure("TNotebook.Tab", padding=(24, 12), font=(self.base_font.actual("family"), base_size))
         self.style.configure("TLabel", padding=(6, 4))
         # Better button styling with more padding
-        self.style.configure("TButton", padding=(12, 8), font=(self.base_font.actual("family"), base_size))
+        self.style.configure("TButton", padding=(14, 10), font=(self.base_font.actual("family"), base_size))
+        self.style.configure("Card.TFrame", background=self.colors["surface"], relief="flat")
+        self.style.configure("Card.TLabelframe", background=self.colors["surface"], relief="flat")
+        self.style.configure("Card.TLabelframe.Label", background=self.colors["surface"], foreground=self.colors["muted"], font=(self.base_font.actual("family"), base_size, "bold"))
+        self.configure(bg=self.colors["background"])
 
         if not TTKBOOTSTRAP_AVAILABLE:
             palette = {
@@ -496,6 +512,28 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.configure(bg=colors["bg"])
             for style_name in ["TFrame", "TLabelframe", "TLabelframe.Label", "TLabel"]:
                 self.style.configure(style_name, background=colors["bg"], foreground=colors["fg"])
+
+        # Apply background to root window for ttkbootstrap as well
+        if TTKBOOTSTRAP_AVAILABLE:
+            try:
+                self.configure(bg=self.colors["background"])
+            except tk.TclError:
+                pass
+
+    def _style_text_widget(self, widget: tk.Text):
+        """Apply consistent styling to text areas for better readability."""
+        widget.configure(
+            background=self.colors["surface"],
+            foreground=self.colors["text"],
+            insertbackground=self.colors["text"],
+            relief="flat",
+            borderwidth=0,
+            spacing1=4,
+            spacing3=6,
+            highlightthickness=1,
+            highlightcolor=self.colors["border"],
+            highlightbackground=self.colors["border"],
+        )
 
     def _build_topbar(self):
         """Build a professional top bar with better spacing and styling."""
@@ -691,9 +729,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def _build_dashboard_tab(self):
         if TTKBOOTSTRAP_AVAILABLE:
-            self.dashboard_frame = ttkb.Frame(self.notebook)
+            self.dashboard_frame = ttkb.Frame(self.notebook, padding=12)
         else:
-            self.dashboard_frame = ttk.Frame(self.notebook)
+            self.dashboard_frame = ttk.Frame(self.notebook, padding=12)
         self.notebook.add(self.dashboard_frame, text="Dashboard")
 
         self.dashboard_frame.columnconfigure(0, weight=1)
@@ -704,32 +742,36 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.dashboard_frame.rowconfigure(3, weight=0)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            self.today_box = ttkb.Labelframe(self.dashboard_frame, text="📋 Today's Focus", bootstyle="primary")
-            self.upcoming_box = ttkb.Labelframe(self.dashboard_frame, text="📅 Upcoming Deadlines", bootstyle="info")
-            self.status_box = ttkb.Labelframe(self.dashboard_frame, text="📊 Status Overview", bootstyle="success")
-            self.load_box = ttkb.Labelframe(self.dashboard_frame, text="👥 Load by Persona", bootstyle="secondary")
-            self.cyber_box = ttkb.Labelframe(self.dashboard_frame, text="🛡️ Cyber Defense Status", bootstyle="warning")
+            self.today_box = ttkb.Labelframe(self.dashboard_frame, text="📋 Today's Focus", bootstyle="primary", padding=10)
+            self.upcoming_box = ttkb.Labelframe(self.dashboard_frame, text="📅 Upcoming Deadlines", bootstyle="info", padding=10)
+            self.status_box = ttkb.Labelframe(self.dashboard_frame, text="📊 Status Overview", bootstyle="success", padding=10)
+            self.load_box = ttkb.Labelframe(self.dashboard_frame, text="👥 Load by Persona", bootstyle="secondary", padding=10)
+            self.cyber_box = ttkb.Labelframe(self.dashboard_frame, text="🛡️ Cyber Defense Status", bootstyle="warning", padding=10)
         else:
-            self.today_box = ttk.LabelFrame(self.dashboard_frame, text="Today's Focus")
-            self.upcoming_box = ttk.LabelFrame(self.dashboard_frame, text="Upcoming Deadlines")
-            self.status_box = ttk.LabelFrame(self.dashboard_frame, text="Status Overview")
-            self.load_box = ttk.LabelFrame(self.dashboard_frame, text="Load by Persona")
-            self.cyber_box = ttk.LabelFrame(self.dashboard_frame, text="Cyber Defense Status")
+            self.today_box = ttk.LabelFrame(self.dashboard_frame, text="Today's Focus", padding=10)
+            self.upcoming_box = ttk.LabelFrame(self.dashboard_frame, text="Upcoming Deadlines", padding=10)
+            self.status_box = ttk.LabelFrame(self.dashboard_frame, text="Status Overview", padding=10)
+            self.load_box = ttk.LabelFrame(self.dashboard_frame, text="Load by Persona", padding=10)
+            self.cyber_box = ttk.LabelFrame(self.dashboard_frame, text="Cyber Defense Status", padding=10)
         # Improved spacing for professional appearance
         self.today_box.grid(row=0, column=0, sticky="nsew", padx=(12, 6), pady=(12, 6))
         self.today_text = tk.Text(self.today_box, height=10, wrap="word", font=self.text_font, relief="flat", borderwidth=0)
+        self._style_text_widget(self.today_text)
         self.today_text.pack(fill="both", expand=True, padx=8, pady=8)
 
         self.upcoming_box.grid(row=0, column=1, sticky="nsew", padx=(6, 12), pady=(12, 6))
         self.upcoming_text = tk.Text(self.upcoming_box, height=10, wrap="word", font=self.text_font, relief="flat", borderwidth=0)
+        self._style_text_widget(self.upcoming_text)
         self.upcoming_text.pack(fill="both", expand=True, padx=8, pady=8)
 
         self.status_box.grid(row=1, column=0, sticky="nsew", padx=(12, 6), pady=6)
         self.status_text = tk.Text(self.status_box, height=8, wrap="word", font=self.text_font, relief="flat", borderwidth=0)
+        self._style_text_widget(self.status_text)
         self.status_text.pack(fill="both", expand=True, padx=8, pady=8)
 
         self.load_box.grid(row=1, column=1, sticky="nsew", padx=(6, 12), pady=6)
         self.load_text = tk.Text(self.load_box, height=8, wrap="word", font=self.text_font, relief="flat", borderwidth=0)
+        self._style_text_widget(self.load_text)
         self.load_text.pack(fill="both", expand=True, padx=8, pady=8)
         self.cyber_box.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=12, pady=(6, 12))
         self.cyber_box.columnconfigure(0, weight=1)
@@ -785,11 +827,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.cyber_updated_label.grid(row=2, column=0, sticky="w", padx=10, pady=(0, 8))
 
         if TTKBOOTSTRAP_AVAILABLE:
-            self.sys_box = ttkb.Labelframe(self.dashboard_frame, text="💻 System Status (Optional)", bootstyle="secondary")
+            self.sys_box = ttkb.Labelframe(self.dashboard_frame, text="💻 System Status (Optional)", bootstyle="secondary", padding=10)
         else:
-            self.sys_box = ttk.LabelFrame(self.dashboard_frame, text="System Status (Optional)")
+            self.sys_box = ttk.LabelFrame(self.dashboard_frame, text="System Status (Optional)", padding=10)
         self.sys_box.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=12, pady=(0, 12))
         self.sys_text = tk.Text(self.sys_box, height=4, wrap="word", font=self.text_font, relief="flat", borderwidth=0)
+        self._style_text_widget(self.sys_text)
         self.sys_text.pack(fill="both", expand=True, padx=8, pady=8)
 
     def refresh_dashboard(self):
@@ -950,9 +993,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def _build_tasks_tab(self):
         if TTKBOOTSTRAP_AVAILABLE:
-            self.tasks_frame = ttkb.Frame(self.notebook)
+            self.tasks_frame = ttkb.Frame(self.notebook, padding=12)
         else:
-            self.tasks_frame = ttk.Frame(self.notebook)
+            self.tasks_frame = ttk.Frame(self.notebook, padding=12)
         self.notebook.add(self.tasks_frame, text="Tasks")
 
         self.tasks_frame.columnconfigure(0, weight=3)
@@ -963,7 +1006,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             filters = ttkb.Frame(self.tasks_frame)
         else:
             filters = ttk.Frame(self.tasks_frame)
-        filters.grid(row=0, column=0, columnspan=2, sticky="ew", padx=8, pady=(8, 4))
+        filters.grid(row=0, column=0, columnspan=2, sticky="ew", padx=12, pady=(8, 6))
         filters.columnconfigure(3, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
@@ -1010,7 +1053,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             list_frame = ttkb.Frame(self.tasks_frame)
         else:
             list_frame = ttk.Frame(self.tasks_frame)
-        list_frame.grid(row=1, column=0, sticky="nsew", padx=8, pady=4)
+        list_frame.grid(row=1, column=0, sticky="nsew", padx=12, pady=6)
         list_frame.rowconfigure(0, weight=1)
         list_frame.columnconfigure(0, weight=1)
 
@@ -1044,7 +1087,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             detail = ttkb.Labelframe(self.tasks_frame, text="📝 Task Details", bootstyle="primary")
         else:
             detail = ttk.LabelFrame(self.tasks_frame, text="Task Details")
-        detail.grid(row=1, column=1, sticky="nsew", padx=8, pady=4)
+        detail.grid(row=1, column=1, sticky="nsew", padx=12, pady=6)
         for i in range(2):
             detail.columnconfigure(i, weight=1)
 
@@ -1086,7 +1129,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         row += 1
         ttk.Label(detail, text="Notes:").grid(row=row, column=0, sticky="ne", padx=4, pady=2)
         self.notes_text = tk.Text(detail, height=5, wrap="word", font=self.text_font)
-        self.notes_text.grid(row=row, column=1, sticky="nsew", padx=4, pady=2)
+        self._style_text_widget(self.notes_text)
+        self.notes_text.grid(row=row, column=1, sticky="nsew", padx=6, pady=4)
         detail.rowconfigure(row, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
@@ -1461,9 +1505,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def _build_projects_tab(self):
         if TTKBOOTSTRAP_AVAILABLE:
-            self.projects_frame = ttkb.Frame(self.notebook)
+            self.projects_frame = ttkb.Frame(self.notebook, padding=12)
         else:
-            self.projects_frame = ttk.Frame(self.notebook)
+            self.projects_frame = ttk.Frame(self.notebook, padding=12)
         self.notebook.add(self.projects_frame, text="Projects")
 
         self.projects_frame.columnconfigure(1, weight=1)
@@ -1473,7 +1517,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             list_frame = ttkb.Frame(self.projects_frame)
         else:
             list_frame = ttk.Frame(self.projects_frame)
-        list_frame.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+        list_frame.grid(row=0, column=0, sticky="nsew", padx=12, pady=8)
         list_frame.rowconfigure(0, weight=1)
         list_frame.columnconfigure(0, weight=1)
 
@@ -1509,7 +1553,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             detail = ttkb.Labelframe(self.projects_frame, text="📁 Project Details", bootstyle="primary")
         else:
             detail = ttk.LabelFrame(self.projects_frame, text="Project Details")
-        detail.grid(row=0, column=1, sticky="nsew", padx=8, pady=8)
+        detail.grid(row=0, column=1, sticky="nsew", padx=12, pady=8)
         for i in range(2):
             detail.columnconfigure(i, weight=1)
 
@@ -1531,7 +1575,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         row += 1
         ttk.Label(detail, text="Description:").grid(row=row, column=0, sticky="ne", padx=4, pady=4)
         self.proj_desc_text = tk.Text(detail, height=6, wrap="word", font=self.text_font)
-        self.proj_desc_text.grid(row=row, column=1, sticky="nsew", padx=4, pady=4)
+        self._style_text_widget(self.proj_desc_text)
+        self.proj_desc_text.grid(row=row, column=1, sticky="nsew", padx=6, pady=6)
         detail.rowconfigure(row, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
@@ -2033,9 +2078,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def _build_chat_tab(self):
         if TTKBOOTSTRAP_AVAILABLE:
-            self.chat_frame = ttkb.Frame(self.notebook)
+            self.chat_frame = ttkb.Frame(self.notebook, padding=12)
         else:
-            self.chat_frame = ttk.Frame(self.notebook)
+            self.chat_frame = ttk.Frame(self.notebook, padding=12)
         self.notebook.add(self.chat_frame, text="AI Console")
 
         # Support side-by-side layout: chat on left, document interaction on right
@@ -2063,16 +2108,17 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_paned.add(chat_container, weight=1)  # Start with equal weight, user can resize
 
         if TTKBOOTSTRAP_AVAILABLE:
-            convo_frame = ttkb.Labelframe(chat_container, text="💬 Chat & Terminal", bootstyle="primary")
-            compose = ttkb.Labelframe(chat_container, text="✍️ Compose Message & Terminal", bootstyle="info")
+            convo_frame = ttkb.Labelframe(chat_container, text="💬 Chat & Terminal", bootstyle="primary", padding=12)
+            compose = ttkb.Labelframe(chat_container, text="✍️ Compose Message & Terminal", bootstyle="info", padding=12)
         else:
-            convo_frame = ttk.LabelFrame(chat_container, text="Chat & Terminal")
-            compose = ttk.LabelFrame(chat_container, text="Compose Message & Terminal")
+            convo_frame = ttk.LabelFrame(chat_container, text="Chat & Terminal", padding=12)
+            compose = ttk.LabelFrame(chat_container, text="Compose Message & Terminal", padding=12)
         convo_frame.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
         convo_frame.columnconfigure(0, weight=1)
         convo_frame.rowconfigure(0, weight=1)
         self.chat_text = tk.Text(convo_frame, wrap="word", state="disabled", font=self.text_font)
-        self.chat_text.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
+        self._style_text_widget(self.chat_text)
+        self.chat_text.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
         if TTKBOOTSTRAP_AVAILABLE:
             chat_scroll = ttkb.Scrollbar(convo_frame, orient="vertical", command=self.chat_text.yview, bootstyle="primary-round")
         else:
@@ -2171,7 +2217,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.model_combo.bind("<<ComboboxSelected>>", self.on_agent_change)
         
         self.system_prompt_text = tk.Text(compose, height=3, wrap="word", font=self.text_font)
-        self.system_prompt_text.grid(row=1, column=1, columnspan=5, sticky="nsew", padx=4, pady=2)
+        self._style_text_widget(self.system_prompt_text)
+        self.system_prompt_text.grid(row=1, column=1, columnspan=5, sticky="nsew", padx=6, pady=4)
         self.system_prompt_text.insert("1.0", DEFAULT_SYSTEM_PROMPT)
         
         # Combined input section - CWD selector and unified input field
@@ -2179,7 +2226,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             input_meta_frame = ttkb.Frame(compose)
         else:
             input_meta_frame = ttk.Frame(compose)
-        input_meta_frame.grid(row=2, column=1, columnspan=5, sticky="ew", padx=4, pady=(4, 2))
+        input_meta_frame.grid(row=2, column=1, columnspan=5, sticky="ew", padx=6, pady=(6, 2))
         input_meta_frame.columnconfigure(1, weight=1)
         
         # CWD selector (compact, on same row as input hint)
@@ -2200,7 +2247,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Combined input field (replaces both chat_input and command_entry)
         # Use Text widget for multi-line support (both messages and commands)
         self.chat_input = tk.Text(compose, height=4, wrap="word", font=self.text_font)
-        self.chat_input.grid(row=3, column=1, columnspan=5, sticky="nsew", padx=4, pady=(4, 2))
+        self._style_text_widget(self.chat_input)
+        self.chat_input.grid(row=3, column=1, columnspan=5, sticky="nsew", padx=6, pady=(6, 4))
         # Ctrl+Enter sends as chat message, Enter alone checks if it's a command
         self.chat_input.bind("<Control-Return>", lambda e: (self.on_handle_combined_input(chat_mode=True), "break"))
         self.chat_input.bind("<Return>", lambda e: self.on_handle_combined_input_enter(e))
@@ -2224,7 +2272,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             btns = ttkb.Frame(compose)
         else:
             btns = ttk.Frame(compose)
-        btns.grid(row=4, column=0, columnspan=6, sticky="ew", pady=(4, 0))
+        btns.grid(row=4, column=0, columnspan=6, sticky="ew", pady=(6, 0))
         
         # Configure columns for buttons (2 buttons: Send and Clear)
         for idx in range(2):
@@ -2256,7 +2304,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         # Add progress indicator for AI responses
         progress_container = ttkb.Frame(compose) if TTKBOOTSTRAP_AVAILABLE else ttk.Frame(compose)
-        progress_container.grid(row=6, column=0, columnspan=6, sticky="ew", padx=4, pady=(2, 0))
+        progress_container.grid(row=6, column=0, columnspan=6, sticky="ew", padx=6, pady=(4, 0))
         progress_container.columnconfigure(0, weight=1)
         self.chat_progress = ProgressIndicator(self).create(progress_container, row=0, column=0, columnspan=1)
         self.chat_progress.progress_bar.grid_remove()
@@ -2286,7 +2334,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             self.file_preview_frame = ttk.LabelFrame(self.document_frame, text="Live File Preview")
 
-        self.file_preview_frame.grid(row=1, column=0, sticky="nsew", padx=4, pady=(0, 4))
+        self.file_preview_frame.grid(row=1, column=0, sticky="nsew", padx=8, pady=(0, 8))
         self.file_preview_frame.columnconfigure(0, weight=1)
         self.file_preview_frame.rowconfigure(1, weight=1)
 
@@ -2363,7 +2411,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Text widget for displaying file content
         # Make file preview editable and interactive
         self.file_preview_text = tk.Text(text_frame, wrap="word", state="normal", font=self.text_font)
-        self.file_preview_text.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+        self._style_text_widget(self.file_preview_text)
+        self.file_preview_text.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
         
         # Table view frame for Excel/CSV (will be populated when needed)
         self.file_preview_table_frame = ttk.Frame(self.file_preview_notebook)
@@ -2424,15 +2473,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def _build_document_activity_panel(self):
         """Build activity log showing how AI is updating the document."""
         if TTKBOOTSTRAP_AVAILABLE:
-            activity_frame = ttkb.Labelframe(self.document_frame, text="📡 Live Updates", bootstyle="info")
+            activity_frame = ttkb.Labelframe(self.document_frame, text="📡 Live Updates", bootstyle="info", padding=10)
         else:
-            activity_frame = ttk.LabelFrame(self.document_frame, text="Live Updates")
-        activity_frame.grid(row=2, column=0, sticky="nsew", padx=4, pady=(0, 4))
+            activity_frame = ttk.LabelFrame(self.document_frame, text="Live Updates", padding=10)
+        activity_frame.grid(row=2, column=0, sticky="nsew", padx=8, pady=(0, 8))
         activity_frame.columnconfigure(0, weight=1)
         activity_frame.rowconfigure(0, weight=1)
 
         self.document_activity_text = tk.Text(activity_frame, wrap="word", state="disabled", height=6, font=self.text_font)
-        self.document_activity_text.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+        self._style_text_widget(self.document_activity_text)
+        self.document_activity_text.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
         if TTKBOOTSTRAP_AVAILABLE:
             activity_scroll = ttkb.Scrollbar(activity_frame, orient="vertical", command=self.document_activity_text.yview, bootstyle="info-round")
         else:
@@ -5409,7 +5459,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         frame.rowconfigure(1, weight=1)
         
         self.workflow_result_text = tk.Text(result_section, wrap="word", height=10, font=self.text_font)
-        self.workflow_result_text.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
+        self._style_text_widget(self.workflow_result_text)
+        self.workflow_result_text.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
         
         if TTKBOOTSTRAP_AVAILABLE:
             workflow_scrollbar = ttkb.Scrollbar(result_section, orient="vertical", command=self.workflow_result_text.yview, bootstyle="primary-round")
@@ -5585,6 +5636,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             
             # Instructions
             instructions = tk.Text(main_frame, wrap="word", height=8, width=60, font=("Courier", 10))
+            self._style_text_widget(instructions)
             instructions.pack(fill="both", expand=True, pady=(0, 20))
             instructions.config(state="normal")
             instructions.insert("1.0", "Starting authentication...\n\n")
@@ -6688,7 +6740,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         text_frame.rowconfigure(0, weight=1)
         
         self.analytics_text = tk.Text(text_frame, wrap="word", font=("Courier", 10), bg="#f5f5f5" if not TTKBOOTSTRAP_AVAILABLE else None)
-        self.analytics_text.grid(row=0, column=0, sticky="nsew")
+        self._style_text_widget(self.analytics_text)
+        self.analytics_text.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
         
         scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=self.analytics_text.yview)
         self.analytics_text.configure(yscroll=scrollbar.set)
