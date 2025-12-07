@@ -125,7 +125,9 @@ from .analytics import (
     get_time_tracking_stats,
     get_productivity_metrics,
     generate_report,
+    get_recent_activity,
 )
+from .knowledge_graph import build_knowledge_graph
 from .suggestions import (
     get_deadline_reminders,
     get_workload_balance,
@@ -4421,6 +4423,236 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Store in chat
         self._store_chat_message('System', 'system', f"Command: {command}\n{output}", kind='terminal')
         self.refresh_chat_history(incremental=True)
+
+
+# ---------- Analytics Tab ----------
+
+    def _build_analytics_tab(self):
+        """Build analytics tab to visualize state, report insights, and surface knowledge graph."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.analytics_frame = ttkb.Frame(self.notebook)
+        else:
+            self.analytics_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.analytics_frame, text="📊 Analytics")
+
+        self.analytics_frame.columnconfigure(0, weight=1)
+        self.analytics_frame.columnconfigure(1, weight=1)
+        self.analytics_frame.rowconfigure(2, weight=1)
+
+        # Summary metrics
+        if TTKBOOTSTRAP_AVAILABLE:
+            summary = ttkb.Labelframe(self.analytics_frame, text="Task & Project Overview", bootstyle="info")
+        else:
+            summary = ttk.LabelFrame(self.analytics_frame, text="Task & Project Overview")
+        summary.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=10, pady=8)
+        summary.columnconfigure((0, 1, 2, 3), weight=1)
+
+        self.analytics_vars = {
+            "total": tk.StringVar(value="0"),
+            "done": tk.StringVar(value="0"),
+            "progress": tk.StringVar(value="0"),
+            "todo": tk.StringVar(value="0"),
+            "blocked": tk.StringVar(value="0"),
+            "completion": tk.StringVar(value="0%"),
+            "estimated": tk.StringVar(value="0h"),
+            "logged": tk.StringVar(value="0h"),
+        }
+
+        def _metric(label_text: str, var: tk.StringVar, col: int):
+            if TTKBOOTSTRAP_AVAILABLE:
+                ttkb.Label(summary, text=label_text, bootstyle="secondary").grid(row=0, column=col, sticky="w", padx=6, pady=(6, 2))
+                ttkb.Label(summary, textvariable=var, font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"), bootstyle="primary")\
+                    .grid(row=1, column=col, sticky="w", padx=6, pady=(0, 8))
+            else:
+                ttk.Label(summary, text=label_text).grid(row=0, column=col, sticky="w", padx=6, pady=(6, 2))
+                ttk.Label(summary, textvariable=var, font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))\
+                    .grid(row=1, column=col, sticky="w", padx=6, pady=(0, 8))
+
+        _metric("Total", self.analytics_vars["total"], 0)
+        _metric("Done", self.analytics_vars["done"], 1)
+        _metric("In Progress", self.analytics_vars["progress"], 2)
+        _metric("Blocked", self.analytics_vars["blocked"], 3)
+
+        _metric("Completion", self.analytics_vars["completion"], 0)
+        _metric("Estimated", self.analytics_vars["estimated"], 1)
+        _metric("Logged", self.analytics_vars["logged"], 2)
+        _metric("TODO", self.analytics_vars["todo"], 3)
+
+        # Project statistics
+        if TTKBOOTSTRAP_AVAILABLE:
+            project_frame = ttkb.Labelframe(self.analytics_frame, text="Project Health", bootstyle="secondary")
+        else:
+            project_frame = ttk.LabelFrame(self.analytics_frame, text="Project Health")
+        project_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=8)
+        project_frame.columnconfigure(0, weight=1)
+        project_frame.rowconfigure(0, weight=1)
+
+        columns = ("project", "total", "done", "in_progress", "todo", "completion")
+        self.analytics_project_tree = ttk.Treeview(project_frame, columns=columns, show="headings")
+        headings = {
+            "project": "Project",
+            "total": "Total",
+            "done": "Done",
+            "in_progress": "In Progress",
+            "todo": "To Do",
+            "completion": "Completion %",
+        }
+        for col, title in headings.items():
+            self.analytics_project_tree.heading(col, text=title)
+            self.analytics_project_tree.column(col, width=110 if col != "project" else 180, anchor="center")
+        self.analytics_project_tree.grid(row=0, column=0, sticky="nsew")
+        project_scroll = ttk.Scrollbar(project_frame, orient="vertical", command=self.analytics_project_tree.yview)
+        project_scroll.grid(row=0, column=1, sticky="ns")
+        self.analytics_project_tree.configure(yscroll=project_scroll.set)
+
+        # Knowledge graph and recent activity
+        if TTKBOOTSTRAP_AVAILABLE:
+            graph_frame = ttkb.Labelframe(self.analytics_frame, text="Knowledge Graph", bootstyle="warning")
+        else:
+            graph_frame = ttk.LabelFrame(self.analytics_frame, text="Knowledge Graph")
+        graph_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=8)
+        graph_frame.columnconfigure(0, weight=1)
+        graph_frame.rowconfigure(1, weight=1)
+
+        self.graph_stats_var = tk.StringVar(value="Graph has not been generated yet.")
+        self.critical_path_var = tk.StringVar(value="")
+        self.graph_status_var = tk.StringVar(value="")
+
+        ttk.Label(graph_frame, textvariable=self.graph_stats_var, wraplength=380, justify="left").grid(row=0, column=0, sticky="w", padx=6, pady=(6, 2))
+        ttk.Label(graph_frame, textvariable=self.critical_path_var, wraplength=380, justify="left", foreground="#336699").grid(row=1, column=0, sticky="w", padx=6)
+        ttk.Label(graph_frame, textvariable=self.graph_status_var, wraplength=380, justify="left", foreground="#4f566b").grid(row=2, column=0, sticky="w", padx=6, pady=(0, 6))
+
+        btn_frame = ttk.Frame(graph_frame)
+        btn_frame.grid(row=3, column=0, sticky="ew", padx=6, pady=4)
+        ttk.Button(btn_frame, text="🔄 Refresh Graph", command=self.refresh_analytics).pack(side="left", padx=(0, 6))
+        ttk.Button(btn_frame, text="📤 Export Graph JSON", command=self.on_export_graph_json).pack(side="left")
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            activity_frame = ttkb.Labelframe(self.analytics_frame, text="Recent Activity", bootstyle="secondary")
+        else:
+            activity_frame = ttk.LabelFrame(self.analytics_frame, text="Recent Activity")
+        activity_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=8)
+        activity_frame.columnconfigure(0, weight=1)
+        activity_frame.rowconfigure(0, weight=1)
+
+        self.recent_activity_list = tk.Listbox(activity_frame, height=8)
+        self.recent_activity_list.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
+        ttk.Scrollbar(activity_frame, orient="vertical", command=self.recent_activity_list.yview).grid(row=0, column=1, sticky="ns")
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            report_frame = ttkb.Labelframe(self.analytics_frame, text="Report", bootstyle="primary")
+        else:
+            report_frame = ttk.LabelFrame(self.analytics_frame, text="Report")
+        report_frame.grid(row=2, column=1, sticky="nsew", padx=10, pady=8)
+        report_frame.columnconfigure(0, weight=1)
+        report_frame.rowconfigure(1, weight=1)
+
+        ttk.Label(report_frame, text="Generate a snapshot of the current workspace.").grid(row=0, column=0, sticky="w", padx=6, pady=(6, 2))
+        ttk.Button(report_frame, text="Generate Report", command=self.on_generate_analytics_report).grid(row=0, column=1, sticky="e", padx=6, pady=(6, 2))
+        self.analytics_report_text = tk.Text(report_frame, height=10, wrap="word", font=self.text_font)
+        self._style_text_widget(self.analytics_report_text)
+        self.analytics_report_text.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=6, pady=6)
+
+        self.refresh_analytics()
+
+    def refresh_analytics(self):
+        """Refresh analytics UI using the latest database state."""
+        try:
+            self.state_obj = load_state(self.conn)
+            stats = get_task_completion_stats(self.state_obj)
+            time_stats = get_time_tracking_stats(self.state_obj)
+
+            self.analytics_vars["total"].set(str(stats.get("total", 0)))
+            self.analytics_vars["done"].set(str(stats.get("done", 0)))
+            self.analytics_vars["progress"].set(str(stats.get("in_progress", 0)))
+            self.analytics_vars["todo"].set(str(stats.get("todo", 0)))
+            self.analytics_vars["blocked"].set(str(stats.get("blocked", 0)))
+            self.analytics_vars["completion"].set(f"{stats.get('completion_rate', 0)}%")
+            self.analytics_vars["estimated"].set(f"{time_stats.get('estimated_hours', 0)}h")
+            self.analytics_vars["logged"].set(f"{time_stats.get('logged_hours', 0)}h")
+
+            # Project stats
+            for item in self.analytics_project_tree.get_children():
+                self.analytics_project_tree.delete(item)
+            for project_name, project_stats in get_project_stats(self.state_obj).items():
+                self.analytics_project_tree.insert(
+                    "",
+                    "end",
+                    values=(
+                        project_name,
+                        project_stats.get("total", 0),
+                        project_stats.get("done", 0),
+                        project_stats.get("in_progress", 0),
+                        project_stats.get("todo", 0),
+                        project_stats.get("completion_rate", 0),
+                    ),
+                )
+
+            # Recent activity
+            self.recent_activity_list.delete(0, tk.END)
+            for entry in get_recent_activity(self.state_obj, days=7):
+                created = entry.get("created_at", "")
+                if created and "T" in created:
+                    created = created.replace("T", " ")[:16]
+                summary = f"[{created}] {entry.get('title', 'Task')} ({entry.get('status', '')})"
+                self.recent_activity_list.insert(tk.END, summary)
+
+            # Knowledge graph
+            graph = build_knowledge_graph(self.state_obj)
+            self.knowledge_graph = graph
+            graph_stats = graph.get_statistics()
+            self.graph_stats_var.set(
+                f"Nodes: {graph_stats.get('total_nodes', 0)}, Edges: {graph_stats.get('total_edges', 0)} | "
+                f"Tasks: {graph_stats.get('node_types', {}).get('task', 0)}, Projects: {graph_stats.get('node_types', {}).get('project', 0)}"
+            )
+            critical_path = graph.find_critical_path()
+            if critical_path:
+                readable_path = " → ".join([node.replace("task:", "Task ").replace("project:", "Project ") for node in critical_path])
+                self.critical_path_var.set(f"Critical path: {readable_path}")
+            else:
+                self.critical_path_var.set("Critical path: Not enough dependency data yet.")
+            self.graph_status_var.set("Knowledge graph is generated from current tasks, projects, and dependencies stored in the database.")
+
+        except Exception as exc:
+            self.logger.error(f"Failed to refresh analytics: {exc}")
+            if hasattr(self, "graph_status_var"):
+                self.graph_status_var.set(f"Error refreshing analytics: {exc}")
+
+    def on_generate_analytics_report(self):
+        """Generate and display a text analytics report."""
+        try:
+            report = generate_report(self.state_obj)
+            self.analytics_report_text.delete("1.0", "end")
+            self.analytics_report_text.insert("1.0", report)
+        except Exception as exc:
+            messagebox.showerror("Report Error", f"Failed to generate report: {exc}")
+
+    def on_export_graph_json(self):
+        """Export the current knowledge graph to a JSON file for downstream use."""
+        if not hasattr(self, "knowledge_graph"):
+            messagebox.showwarning("No Graph", "Generate the graph first by refreshing analytics.")
+            return
+        graph = getattr(self, "knowledge_graph", None)
+        if graph is None:
+            messagebox.showwarning("No Graph", "Graph is not available yet.")
+            return
+
+        from tkinter import filedialog
+        filename = filedialog.asksaveasfilename(
+            title="Export Knowledge Graph",
+            defaultextension=".json",
+            filetypes=[("JSON Files", "*.json"), ("All Files", "*.*")],
+        )
+        if not filename:
+            return
+        try:
+            import json
+
+            with open(filename, "w", encoding="utf-8") as f:
+                json.dump(graph.to_json(), f, indent=2)
+            messagebox.showinfo("Export Complete", f"Knowledge graph saved to\n{filename}")
+        except Exception as exc:
+            messagebox.showerror("Export Error", f"Failed to export graph: {exc}")
 
 
 # ---------- Integrations Tab ----------
