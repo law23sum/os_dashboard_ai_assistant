@@ -2,7 +2,7 @@
 import os
 import sqlite3
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
@@ -31,6 +31,28 @@ DEFAULT_FETCH_PREFERENCES = {
     "mail": False,
     "files": False,
 }
+
+
+GOVERNANCE_BANNER = (
+    "every AI edit is tracked | every change is diffed | every document has a version "
+    "history | every operation has a timestamp | every action is reversible | every "
+    "output is accountable"
+)
+
+OPERATING_ROLES = (
+    "OneNote becomes the living structured memory; Word becomes the formatted deliverable "
+    "engine; Excel becomes the analytical substrate; Git becomes the brain stem holding the "
+    "lineage of every thought; ChatGPT becomes the reasoning center; Daemons become the "
+    "continuous active cortex; AIC/Sora/Aria become the interpretive personalities that guide "
+    "knowledge formation"
+)
+
+OPERATING_BEHAVIORS = (
+    "notices missing documents | drafts proposals | updates reports | summarizes notebooks | "
+    "analyzes spreadsheets | reorganizes folders | updates tasks | alerts the user when "
+    "something's outdated | tracks version history | suggests improvements | predicts next "
+    "steps | executes workflows"
+)
 
 
 @dataclass
@@ -130,6 +152,20 @@ class AgentRun:
     output_summary: str = ""
     related_files: str = ""  # JSON array of file paths
     git_commit_hash: Optional[str] = None
+    created_at: str = datetime.now().isoformat(timespec="seconds")
+
+
+@dataclass
+class DocumentSample:
+    """A materialized sample document definition for every supported file type."""
+
+    id: int
+    file_type: str
+    title: str
+    category: str
+    description: str
+    sample_content: str
+    governance: str
     created_at: str = datetime.now().isoformat(timespec="seconds")
 
 
@@ -285,6 +321,33 @@ def init_db() -> sqlite3.Connection:
             created_at TEXT
         )
     """)
+
+    # Document sample definitions for each file type
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS document_samples (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            file_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            category TEXT NOT NULL,
+            description TEXT,
+            sample_content TEXT,
+            governance TEXT,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_document_samples_file_type
+        ON document_samples(file_type, category)
+        """
+    )
+
+    try:
+        initialize_document_samples(conn)
+    except Exception:
+        pass
 
     conn.commit()
     return conn
@@ -680,3 +743,171 @@ def save_external_connections(
             "notes": conn_obj.notes,
         }
     set_meta(conn, "external.connections", json.dumps(payload, ensure_ascii=False))
+
+
+# ---------------- Document sample helpers -----------------
+
+DEFAULT_DOCUMENT_SAMPLES = [
+    {
+        "file_type": "csv",
+        "title": "Compliance Report Snapshot",
+        "category": "compliance reports",
+        "description": "CSV seed capturing auditable compliance metrics and lineage cues.",
+        "sample_content": (
+            "section,metric,value,owner,version,governance\n"
+            "Controls,Passed,24,Chris,v1,Every AI edit is tracked\n"
+            "Exceptions,Open,3,AIC,v1,Every change is diffed\n"
+            "Notes,Ledger,{governance},Sora,v1,{roles}"
+        ),
+    },
+    {
+        "file_type": "json",
+        "title": "Risk Assessment Outline",
+        "category": "risk assessments",
+        "description": "JSON blueprint for AI-led risk reviews with provenance and personas.",
+        "sample_content": (
+            "{{\n"
+            "  \"title\": \"Risk Assessment\",\n"
+            "  \"versioning\": \"{governance}\",\n"
+            "  \"operating_model\": \"{roles}\",\n"
+            "  \"behaviors\": \"{behaviors}\",\n"
+            "  \"sections\": [\"briefs\", \"proposals\", \"compliance reports\", \"patient summaries\", \"risk assessments\", \"regulatory filings\", \"engineering specs\", \"technical documents\", \"product updates\", \"operational manuals\"]\n"
+            "}}"
+        ),
+    },
+    {
+        "file_type": "pdf",
+        "title": "Regulatory Filing Shell",
+        "category": "regulatory filings",
+        "description": "Text payload ready to be exported as PDF with governance header.",
+        "sample_content": (
+            "Regulatory Filing (Sample)\n"
+            "Governance: {governance}\n"
+            "Roles: {roles}\n"
+            "Behaviors: {behaviors}\n"
+            "Sections covered: compliance reports, patient summaries, risk assessments, regulatory filings,\n"
+            "engineering specs, technical documents, product updates, operational manuals."
+        ),
+    },
+    {
+        "file_type": "xlsx",
+        "title": "Operational Metrics Workbook",
+        "category": "operational manuals",
+        "description": "Workbook-style text scaffold the AI can expand into XLSX.",
+        "sample_content": (
+            "Sheet: Executive Dashboard\n"
+            "Metric,Owner,Value,Last Updated\n"
+            "AI Drafted Proposals,Aria,7,Today\n"
+            "Notebook Summaries,Sora,12,Today\n"
+            "Workflow Executions,AIC,5,Today\n"
+            "Governance,{governance},{roles},Now\n"
+        ),
+    },
+    {
+        "file_type": "docx",
+        "title": "Governed Brief Template",
+        "category": "briefs",
+        "description": "Docx-style outline for briefs, proposals, and updates with AI accountability.",
+        "sample_content": (
+            "# Brief / Proposal / Update\n"
+            "Governance: {governance}\n"
+            "Operating Model: {roles}\n"
+            "Behaviors: {behaviors}\n\n"
+            "Use for: briefs, proposals, compliance reports, patient summaries, risk assessments, regulatory filings,\n"
+            "engineering specs, technical documents, product updates, operational manuals."
+        ),
+    },
+    {
+        "file_type": "txt",
+        "title": "Notes Inbox Seed",
+        "category": "notes",
+        "description": "Lightweight TXT starter for raw ideas that daemons will promote into formal docs.",
+        "sample_content": (
+            "Raw ideas captured here.\n"
+            "Governance: {governance}\n"
+            "Roles: {roles}\n"
+            "Behaviors: {behaviors}\n"
+            "The assistant notices missing documents, drafts proposals, updates reports, summarizes notebooks,"
+            " analyzes spreadsheets, reorganizes folders, updates tasks, alerts the user when something's outdated,"
+            " tracks version history, suggests improvements, predicts next steps, and executes workflows."
+        ),
+    },
+]
+
+
+def initialize_document_samples(conn: sqlite3.Connection):
+    """Seed the database with a sample definition for each supported file type."""
+
+    c = conn.cursor()
+    for sample in DEFAULT_DOCUMENT_SAMPLES:
+        c.execute(
+            "SELECT id FROM document_samples WHERE file_type = ? AND title = ?",
+            (sample["file_type"], sample["title"]),
+        )
+        if c.fetchone():
+            continue
+
+        payload = sample["sample_content"].format(
+            governance=GOVERNANCE_BANNER,
+            roles=OPERATING_ROLES,
+            behaviors=OPERATING_BEHAVIORS,
+        )
+
+        c.execute(
+            """
+            INSERT INTO document_samples (
+                file_type, title, category, description, sample_content, governance, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                sample["file_type"],
+                sample["title"],
+                sample["category"],
+                sample["description"],
+                payload,
+                GOVERNANCE_BANNER,
+                datetime.now().isoformat(timespec="seconds"),
+            ),
+        )
+
+    conn.commit()
+
+
+def db_get_document_samples(
+    conn: sqlite3.Connection, file_type: Optional[str] = None, category: Optional[str] = None
+) -> List[DocumentSample]:
+    """Return document sample definitions with optional filtering."""
+
+    c = conn.cursor()
+    query = "SELECT * FROM document_samples WHERE 1=1"
+    params: List[Any] = []
+    if file_type:
+        query += " AND file_type = ?"
+        params.append(file_type)
+    if category:
+        query += " AND category = ?"
+        params.append(category)
+    query += " ORDER BY file_type, title"
+    c.execute(query, params)
+    rows = c.fetchall()
+    samples: List[DocumentSample] = []
+    for row in rows:
+        samples.append(
+            DocumentSample(
+                id=row["id"],
+                file_type=row["file_type"],
+                title=row["title"],
+                category=row["category"],
+                description=row["description"] or "",
+                sample_content=row["sample_content"] or "",
+                governance=row["governance"] or GOVERNANCE_BANNER,
+                created_at=row["created_at"] or datetime.now().isoformat(timespec="seconds"),
+            )
+        )
+    return samples
+
+
+def db_document_samples_asdict(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
+    """Convenience helper for API responses."""
+
+    return [asdict(sample) for sample in db_get_document_samples(conn)]
