@@ -162,3 +162,23 @@ class GraphClient:
             )
         response.raise_for_status()
         return response.json() if response.text else {}
+    
+    def delete(self, path: str, **kwargs) -> None:
+        """Delete a resource via DELETE request."""
+        response = requests.delete(
+            f"{self.base_url}{path}", headers=self._headers(), timeout=10, **kwargs
+        )
+        if response.status_code == 400 and "/me/" in path:
+            error_detail = response.text
+            try:
+                error_json = response.json()
+                error_msg = error_json.get("error", {}).get("message", error_detail)
+            except:
+                error_msg = error_detail
+            raise requests.HTTPError(
+                f"400 Bad Request accessing {path}\n\n"
+                f"⚠️  The /me/ endpoints require DELEGATED permissions with user sign-in.\n"
+                f"   Client credentials (app-only authentication) cannot access user data.\n\n"
+                f"Error details: {error_msg}"
+            )
+        response.raise_for_status()

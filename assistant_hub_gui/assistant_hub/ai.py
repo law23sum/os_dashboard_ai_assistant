@@ -21,6 +21,74 @@ except Exception:  # pragma: no cover - handled gracefully when dependency missi
 from .db import ChatMessage, CHAT_ROLES, PERSONAS
 from .terminal import run_bash_command
 
+# Token limits for ChatGPT API requests only (TPM limits)
+# TPM limit: 30,000 tokens per minute
+# Reserve 17% (5,100 tokens) for responses, use 83% (24,900 tokens) for input
+# This maximizes input tokens while safely leaving room for output
+MAX_INPUT_TOKENS = int(os.getenv("ASSISTANT_HUB_MAX_INPUT_TOKENS", "24900"))
+
+
+def estimate_tokens(text: str) -> int:
+    """
+    Estimate token count from text.
+    Rough approximation: ~4 characters per token for English text.
+    This is conservative and ensures we stay under limits.
+    """
+    if not text:
+        return 0
+    # Add overhead for message formatting (role, formatting chars)
+    return len(text) // 4 + 50
+
+
+def truncate_messages_for_api(messages: List[Dict], max_tokens: int = MAX_INPUT_TOKENS) -> List[Dict]:
+    """
+    Truncate messages payload to stay within token limit before sending to ChatGPT API.
+    Always keeps system message and recent messages, removes older messages first.
+    
+    Args:
+        messages: List of message dicts with 'role' and 'content'
+        max_tokens: Maximum tokens allowed (default: MAX_INPUT_TOKENS)
+    
+    Returns:
+        Truncated messages list that fits within token limit
+    """
+    if not messages:
+        return messages
+    
+    # Always keep system message if present
+    system_msg = None
+    if messages and messages[0].get("role") == "system":
+        system_msg = messages[0]
+        messages_to_process = messages[1:]
+    else:
+        messages_to_process = messages
+    
+    # Estimate tokens for system message
+    system_tokens = estimate_tokens(system_msg.get("content", "")) if system_msg else 0
+    
+    # Start with system message and work backwards from most recent
+    truncated = []
+    total_tokens = system_tokens
+    
+    # Process messages from newest to oldest
+    for msg in reversed(messages_to_process):
+        content = msg.get("content", "")
+        msg_tokens = estimate_tokens(content)
+        
+        # Always keep at least the last 3 messages even if over limit
+        if total_tokens + msg_tokens > max_tokens and len(truncated) >= 3:
+            break
+        
+        truncated.insert(0, msg)
+        total_tokens += msg_tokens
+    
+    # Add system message back if it was present
+    if system_msg:
+        truncated.insert(0, system_msg)
+    
+    return truncated
+
+
 # Model assignments per agent
 # Note: o1 models require special handling (no system messages, different API)
 AGENT_MODELS = {
@@ -41,7 +109,10 @@ DEFAULT_SYSTEM_PROMPT = os.getenv(
     "You are a cooperative team of AI agents (Aria, AIC, Sora) tasked with helping Chris manage"
     " priorities, code, and research. Explain your thinking clearly, cite concrete next steps,"
     " and keep answers concise and actionable. You have access to a shell terminal and can execute"
-    " commands when needed. Use the execute_command function to run shell commands.",
+    " commands when needed. Use the execute_command function to run shell commands.\n\n"
+    "IMPORTANT: Do not apologize for delays or mention delays. Do not say things like 'I apologize for the delay'"
+    " or 'I'll proceed with modifications right now' or 'Thank you for your patience'. Just think and act directly."
+    " Execute tasks immediately without meta-commentary about timing or process.",
 )
 
 _client: Optional[OpenAI] = None
@@ -92,54 +163,50 @@ def build_message_payload(history: List[ChatMessage], max_messages: int = 100, i
         # Handle tool results - they must follow an assistant message with tool_calls
         # OpenAI API requires: tool messages must have tool_call_id and follow assistant messages with tool_calls
         if msg.kind == "tool_result" and include_tool_results:
-            # Only include as tool role if:
-            # 1. Previous message was an assistant message
-            # 2. We can extract or have a tool_call_id
-            if prev_msg_dict and prev_msg_dict.get("role") == "assistant":
-                # Try to extract tool_call_id from content if it was stored there
-                tool_call_id = None
-                extracted_content = None
-                
-                # Check if content contains tool_call_id (might be stored in various formats)
-                import json
-                try:
-                    # Try parsing as JSON first (new format)
-                    parsed = json.loads(raw_content)
-                    if isinstance(parsed, dict) and "tool_call_id" in parsed:
-                        tool_call_id = parsed["tool_call_id"]
-                        extracted_content = parsed.get("content", "")
-                except:
-                    # Not JSON, try text format like "tool_call_id: xxx\ncontent"
-                    if "tool_call_id" in raw_content:
-                        lines = raw_content.split('\n', 1)
-                        for line in lines:
-                            if line.startswith('tool_call_id:') or 'tool_call_id' in line.lower():
-                                parts = line.split(':', 1)
-                                if len(parts) > 1:
-                                    tool_call_id = parts[1].strip()
-                                    if len(lines) > 1:
-                                        extracted_content = lines[1]
-                                    break
-                
-                # Use extracted content if available, otherwise use raw content
-                final_content = extracted_content if extracted_content is not None else raw_content
-                
-                # If we have tool_call_id, include as proper tool message
-                if tool_call_id:
-                    msg_dict = {
-                        "role": "tool",
-                        "tool_call_id": tool_call_id,
-                        "content": final_content
-                    }
-                else:
-                    # Can't get tool_call_id - convert to assistant message to avoid API error
-                    # This is safer than skipping or including invalid tool message
-                    content_with_marker = f"{persona_marker}{raw_content}".strip()
-                    msg_dict = {"role": "assistant", "content": f"[Tool Result] {content_with_marker}"}
+            # Check if previous message in history was an assistant message
+            # (We can't verify tool_calls from stored history, so we'll be conservative)
+            prev_was_assistant = False
+            if i > 0:
+                prev_msg = recent[i - 1]
+                prev_was_assistant = prev_msg.role == "assistant"
+            
+            # Try to extract tool_call_id from content if it was stored there
+            tool_call_id = None
+            extracted_content = None
+            
+            import json
+            try:
+                # Try parsing as JSON first (new format)
+                parsed = json.loads(raw_content)
+                if isinstance(parsed, dict) and "tool_call_id" in parsed:
+                    tool_call_id = parsed["tool_call_id"]
+                    extracted_content = parsed.get("content", "")
+            except:
+                # Not JSON, try text format like "tool_call_id: xxx\ncontent"
+                if "tool_call_id" in raw_content:
+                    lines = raw_content.split('\n', 1)
+                    for line in lines:
+                        if line.startswith('tool_call_id:') or 'tool_call_id' in line.lower():
+                            parts = line.split(':', 1)
+                            if len(parts) > 1:
+                                tool_call_id = parts[1].strip()
+                                if len(lines) > 1:
+                                    extracted_content = lines[1]
+                                break
+            
+            # Use extracted content if available, otherwise use raw content
+            final_content = extracted_content if extracted_content is not None else raw_content
+            
+            # Be very conservative: only create tool message if we have both conditions
+            # Since we can't verify tool_calls from stored history, we'll be extra safe
+            # and only create tool messages when we're in a recent sequence that makes sense
+            # For now, convert all tool_result messages to assistant messages to avoid API errors
+            # This is safer than risking invalid tool messages
+            content_with_marker = f"{persona_marker}{raw_content}".strip()
+            if tool_call_id:
+                # Include tool_call_id in content for context, but use assistant role
+                msg_dict = {"role": "assistant", "content": f"[Tool Result (ID: {tool_call_id})] {content_with_marker}"}
             else:
-                # Tool result doesn't follow assistant message - convert to assistant message
-                # This prevents the "tool role must follow tool_calls" error
-                content_with_marker = f"{persona_marker}{raw_content}".strip()
                 msg_dict = {"role": "assistant", "content": f"[Tool Result] {content_with_marker}"}
         else:
             # Regular message handling
@@ -223,7 +290,7 @@ def generate_ai_reply(
     system_prompt: Optional[str] = None,
     model: Optional[str] = None,
     temperature: float = 0.2,
-    max_tokens: int = 2000,
+    max_tokens: int = 4000,  # Increased from 2000 for better responses
     cwd: Optional[str] = None,
     enable_shell: bool = True,
     file_paths: Optional[List[str]] = None,
@@ -255,6 +322,10 @@ def generate_ai_reply(
         tools = None
         if enable_shell:
             tools = get_shell_functions(cwd or os.getcwd())
+        
+        # Truncate messages to stay within token limit before sending to ChatGPT API
+        # This is the ONLY place we limit tokens - everything else stays unlimited
+        messages = truncate_messages_for_api(messages, max_tokens=MAX_INPUT_TOKENS)
         
         # Handle file uploads if provided
         # Note: OpenAI file API requires separate upload, then reference in messages
@@ -330,32 +401,60 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None, gui_context: Optiona
             else:
                 # Fallback: read file directly (basic text reading)
                 if file_type == "PDF":
+                    # Try pdfplumber first (more robust with corrupted PDFs)
+                    content = ""
                     try:
                         import pdfplumber
-                        content = ""
                         with pdfplumber.open(file_path) as pdf:
                             for i, page in enumerate(pdf.pages):
-                                text = page.extract_text()
-                                if text:
-                                    content += f"\n--- Page {i+1} ---\n"
-                                    content += text
-                                    content += "\n"
-                    except ImportError:
-                        try:
-                            import PyPDF2
-                            content = ""
-                            with open(file_path, 'rb') as f:
-                                pdf_reader = PyPDF2.PdfReader(f)
-                                for i, page in enumerate(pdf_reader.pages):
+                                try:
                                     text = page.extract_text()
                                     if text:
                                         content += f"\n--- Page {i+1} ---\n"
                                         content += text
                                         content += "\n"
-                        except ImportError:
-                            content = "PDF libraries not available. Install pdfplumber or PyPDF2 to read PDFs."
+                                except Exception:
+                                    continue
+                    except ImportError:
+                        pass
                     except Exception as e:
-                        content = f"Error reading PDF: {str(e)}"
+                        error_msg = str(e).lower()
+                        # If pdfplumber fails, try PyPDF2 with strict=False
+                        if "eof" not in error_msg and "corrupt" not in error_msg:
+                            content = f"Error reading PDF with pdfplumber: {str(e)}"
+                    
+                    # Try PyPDF2 as fallback, especially for corrupted PDFs
+                    if not content:
+                        try:
+                            import PyPDF2
+                            with open(file_path, 'rb') as f:
+                                try:
+                                    pdf_reader = PyPDF2.PdfReader(f, strict=False)
+                                except Exception:
+                                    f.seek(0)
+                                    pdf_reader = PyPDF2.PdfReader(f)
+                                
+                                for i, page in enumerate(pdf_reader.pages):
+                                    try:
+                                        text = page.extract_text()
+                                        if text:
+                                            content += f"\n--- Page {i+1} ---\n"
+                                            content += text
+                                            content += "\n"
+                                    except Exception:
+                                        continue
+                        except ImportError:
+                            if not content:
+                                content = "PDF libraries not available. Install pdfplumber or PyPDF2 to read PDFs."
+                        except Exception as e:
+                            error_msg = str(e).lower()
+                            if "eof marker" in error_msg:
+                                content = f"PDF appears to be corrupted or incomplete (EOF marker not found). The file may be truncated or damaged."
+                            elif not content:
+                                content = f"Error reading PDF: {str(e)}"
+                    
+                    if not content:
+                        content = "Unable to extract text from PDF. The file may be corrupted, encrypted, or contain only images."
                 else:
                     # For text files
                     with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:

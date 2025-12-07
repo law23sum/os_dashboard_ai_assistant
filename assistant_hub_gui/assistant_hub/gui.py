@@ -4,6 +4,7 @@ import os
 import sqlite3
 import threading
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, Optional
 
 import tkinter as tk
@@ -145,6 +146,10 @@ from .document_manager import (
     get_project_documents,
     format_file_size,
     DOCUMENT_TYPES,
+    DOCUMENTS_BASE_DIR,
+    get_document_versions,
+    restore_document_version,
+    get_document_version,
 )
 
 try:
@@ -308,6 +313,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.state_obj: AssistantState = load_state(self.conn)
         self.settings: Settings = load_settings(self.conn)
         self.security_status: SecurityStatus = load_security_status(self.conn)
+        
+        # Performance optimization: Resource limits and throttling
+        self._ui_update_pending = False
+        self._last_ui_update_time = 0
+        self._ui_update_throttle_ms = 100  # Minimum 100ms between UI updates
+        self._max_chat_messages_memory = 2000  # Keep max 2000 messages in memory
+        self._chat_history_chunk_size = 100  # Process chat in chunks
 
         # Configure fonts based on settings
         self._initialize_fonts()
@@ -322,6 +334,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_text = None
         self.command_var = tk.StringVar()
         self.cwd_var = tk.StringVar(value=os.getcwd())
+        self.project_docs_file_paths = {}  # Map item_id -> file_path for project documents
+        self.project_docs_link_ids = {}  # Map item_id -> link_id for project documents
         
         if not TTKBOOTSTRAP_AVAILABLE:
             self._configure_style()
@@ -1578,6 +1592,56 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(extract_btn, text="Upload a file (txt, md, docx, pdf, etc.) and AI will extract tasks automatically")
+        
+        # Project Documents Section
+        if TTKBOOTSTRAP_AVAILABLE:
+            docs_section = ttkb.Labelframe(detail, text="📚 Project Documents", bootstyle="primary")
+        else:
+            docs_section = ttk.LabelFrame(detail, text="Project Documents")
+        docs_section.grid(row=row+3, column=0, columnspan=2, sticky="nsew", padx=4, pady=(8, 4))
+        docs_section.columnconfigure(0, weight=1)
+        docs_section.rowconfigure(1, weight=1)
+        
+        # Documents header with upload button
+        docs_header = ttk.Frame(docs_section)
+        docs_header.grid(row=0, column=0, sticky="ew", padx=4, pady=4)
+        docs_header.columnconfigure(0, weight=1)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            docs_label = ttkb.Label(docs_header, text="Documents linked to this project:", bootstyle="secondary")
+            upload_doc_btn = ttkb.Button(docs_header, text="📤 Upload Document", command=self.on_upload_project_document, bootstyle="success-outline")
+        else:
+            docs_label = ttk.Label(docs_header, text="Documents linked to this project:")
+            upload_doc_btn = ttk.Button(docs_header, text="Upload Document", command=self.on_upload_project_document)
+        docs_label.grid(row=0, column=0, sticky="w")
+        upload_doc_btn.grid(row=0, column=1, sticky="e", padx=(8, 0))
+        
+        # Documents tree
+        doc_columns = ("name", "type", "size", "modified")
+        self.project_docs_tree = ttk.Treeview(docs_section, columns=doc_columns, show="headings", selectmode="browse", height=6)
+        self.project_docs_tree.heading("name", text="Document Name")
+        self.project_docs_tree.heading("type", text="Type")
+        self.project_docs_tree.heading("size", text="Size")
+        self.project_docs_tree.heading("modified", text="Modified")
+        
+        self.project_docs_tree.column("name", width=200)
+        self.project_docs_tree.column("type", width=80, anchor="center")
+        self.project_docs_tree.column("size", width=80, anchor="center")
+        self.project_docs_tree.column("modified", width=120, anchor="center")
+        
+        self.project_docs_tree.grid(row=1, column=0, sticky="nsew", padx=4, pady=4)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            docs_scrollbar = ttkb.Scrollbar(docs_section, orient="vertical", command=self.project_docs_tree.yview, bootstyle="primary-round")
+        else:
+            docs_scrollbar = ttk.Scrollbar(docs_section, orient="vertical", command=self.project_docs_tree.yview)
+        self.project_docs_tree.configure(yscroll=docs_scrollbar.set)
+        docs_scrollbar.grid(row=1, column=1, sticky="ns")
+        
+        # Bind double-click and Enter key to open document
+        self.project_docs_tree.bind("<Double-1>", self.on_project_document_open)
+        self.project_docs_tree.bind("<Return>", self.on_project_document_open)
+        self.project_docs_tree.bind("<Button-3>", self.on_project_document_right_click)
 
     def refresh_project_list(self):
         for row in self.project_tree.get_children():
@@ -1619,6 +1683,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.proj_desc_text.delete("1.0", "end")
         if proj.description:
             self.proj_desc_text.insert("1.0", proj.description)
+        
+        # Refresh project documents
+        self.refresh_project_documents(name)
 
     def on_new_project(self):
         self.project_tree.selection_remove(*self.project_tree.selection())
@@ -1626,6 +1693,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.proj_priority_combo.set("MEDIUM")
         self.proj_status_combo.set("active")
         self.proj_desc_text.delete("1.0", "end")
+        # Clear documents list
+        for item in self.project_docs_tree.get_children():
+            self.project_docs_tree.delete(item)
 
     def _save_project_with_feedback(self):
         """Save project with visual feedback"""
@@ -1743,6 +1813,220 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         except Exception as e:
             self.extract_status_var.set(f"❌ Error: {str(e)}")
             messagebox.showerror("Extraction Error", f"Failed to extract tasks from file:\n{e}")
+    
+    def _safe_get(self, obj, key, default=None):
+        """Safely get a value from either a dict or sqlite3.Row object."""
+        if isinstance(obj, dict):
+            return obj.get(key, default)
+        else:
+            # sqlite3.Row objects support dict-style access but not .get()
+            try:
+                return obj[key]
+            except (KeyError, IndexError, TypeError):
+                return default
+    
+    def refresh_project_documents(self, project_name: str):
+        """Refresh the documents list for a project."""
+        # Clear existing items
+        for item in self.project_docs_tree.get_children():
+            self.project_docs_tree.delete(item)
+        
+        # Clear the file path mappings
+        self.project_docs_file_paths.clear()
+        self.project_docs_link_ids.clear()
+        
+        if not project_name:
+            return
+        
+        # Get all documents for this project
+        all_docs = []
+        for doc_type in ["onenote", "excel", "word", "pdf"]:
+            docs = get_project_documents(self.conn, project_name=project_name, doc_type=doc_type)
+            all_docs.extend(docs)
+        
+        # Sort by modified date (most recent first)
+        all_docs.sort(key=lambda x: self._safe_get(x, "modified_date", ""), reverse=True)
+        
+        # Add to tree
+        for doc in all_docs:
+            doc_name = self._safe_get(doc, "title", "Unknown")
+            doc_type = self._safe_get(doc, "integration_type", "").replace("local_", "").upper()
+            file_size = self._safe_get(doc, "file_size", 0)
+            size_str = format_file_size(file_size) if file_size > 0 else "Unknown"
+            modified = self._safe_get(doc, "modified_date", "")
+            if modified:
+                try:
+                    dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
+                    modified = dt_obj.strftime("%Y-%m-%d %H:%M")
+                except:
+                    modified = "Unknown"
+            else:
+                modified = "Unknown"
+            
+            doc_id = self._safe_get(doc, "id")
+            file_path = self._safe_get(doc, "file_path", "")
+            
+            item_id = f"doc_{doc_id}"
+            self.project_docs_tree.insert("", "end", iid=item_id, values=(doc_name, doc_type, size_str, modified))
+            # Store file path and link ID in dictionaries for retrieval
+            self.project_docs_file_paths[item_id] = file_path
+            self.project_docs_link_ids[item_id] = doc_id
+    
+    def on_upload_project_document(self):
+        """Upload a document to the selected project."""
+        sel = self.project_tree.selection()
+        if not sel:
+            messagebox.showwarning("No Project Selected", "Please select a project first.")
+            return
+        
+        project_name = sel[0]
+        
+        # Open file dialog
+        file_path = filedialog.askopenfilename(
+            title="Select Document to Upload",
+            filetypes=[
+                ("All Documents", "*.one *.onepkg *.xlsx *.xls *.xlsm *.xlsb *.docx *.doc *.rtf *.pdf"),
+                ("OneNote", "*.one *.onepkg"),
+                ("Excel", "*.xlsx *.xls *.xlsm *.xlsb"),
+                ("Word", "*.docx *.doc *.rtf"),
+                ("PDF", "*.pdf"),
+                ("All Files", "*.*"),
+            ]
+        )
+        
+        if not file_path:
+            return
+        
+        # Determine document type from extension
+        ext = Path(file_path).suffix.lower()
+        doc_type = None
+        if ext in [".one", ".onepkg"]:
+            doc_type = "onenote"
+        elif ext in [".xlsx", ".xls", ".xlsm", ".xlsb"]:
+            doc_type = "excel"
+        elif ext in [".docx", ".doc", ".rtf"]:
+            doc_type = "word"
+        elif ext == ".pdf":
+            doc_type = "pdf"
+        else:
+            messagebox.showwarning("Unsupported File Type", f"File type '{ext}' is not supported. Please select a OneNote, Excel, Word, or PDF file.")
+            return
+        
+        # Upload document
+        try:
+            success, error_msg, link_id = dm_upload_document(
+                self.conn,
+                file_path,
+                project_name,
+                doc_type,
+                title=Path(file_path).stem,
+                overwrite=False
+            )
+            
+            if success:
+                messagebox.showinfo("Success", f"Document uploaded successfully to project '{project_name}'.")
+                self.refresh_project_documents(project_name)
+                # Refresh Tools section if it's visible
+                if hasattr(self, 'excel_tree'):
+                    self.refresh_excel_documents()
+                if hasattr(self, 'word_tree'):
+                    self.refresh_word_documents()
+                if hasattr(self, 'pdf_tree'):
+                    self.refresh_pdf_documents()
+                if hasattr(self, 'onenote_tree'):
+                    self.refresh_onenote_notebooks()
+            else:
+                messagebox.showerror("Upload Failed", f"Failed to upload document:\n{error_msg}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to upload document:\n{e}")
+    
+    def on_project_document_open(self, event):
+        """Open a project document with the default application."""
+        tree = event.widget
+        sel = tree.selection()
+        if not sel:
+            return
+        
+        item_id = sel[0]
+        file_path = self.project_docs_file_paths.get(item_id)
+        
+        if not file_path:
+            messagebox.showerror("File Not Found", "The document file path could not be found.")
+            return
+        
+        if not os.path.exists(file_path):
+            messagebox.showerror("File Not Found", f"The document file could not be found:\n{file_path}")
+            return
+        
+        self._open_file_with_default_app(file_path)
+    
+    def on_project_document_right_click(self, event):
+        """Show context menu for project documents."""
+        tree = event.widget
+        item_id = tree.identify_row(event.y)
+        if not item_id:
+            return
+        
+        tree.selection_set(item_id)
+        file_path = self.project_docs_file_paths.get(item_id)
+        doc_id = self.project_docs_link_ids.get(item_id)
+        
+        # Create context menu
+        menu = tk.Menu(self, tearoff=0)
+        menu.add_command(label="📂 Open File", command=lambda: self._open_file_with_default_app(file_path) if file_path and os.path.exists(file_path) else None)
+        menu.add_command(label="📋 Version History", command=lambda: self._show_document_versions_for_link(int(doc_id)) if doc_id else None)
+        menu.add_separator()
+        menu.add_command(label="🗑️ Remove from Project", command=lambda: self._remove_document_from_project(int(doc_id)) if doc_id else None)
+        
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+    
+    def _open_file_with_default_app(self, file_path: str):
+        """Open a file with the system's default application."""
+        import subprocess
+        import platform
+        
+        if not file_path or not os.path.exists(file_path):
+            messagebox.showerror("File Not Found", f"The file could not be found:\n{file_path}")
+            return
+        
+        try:
+            if platform.system() == 'Darwin':  # macOS
+                subprocess.run(['open', file_path], check=False)
+            elif platform.system() == 'Windows':
+                os.startfile(file_path)
+            else:  # Linux
+                subprocess.run(['xdg-open', file_path], check=False)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open file:\n{e}")
+    
+    def _remove_document_from_project(self, link_id: int):
+        """Remove a document link from the project (does not delete the file)."""
+        from .document_manager import delete_document
+        
+        if not messagebox.askyesno("Confirm Removal", "Remove this document from the project? (The file will not be deleted.)"):
+            return
+        
+        success, error_msg = delete_document(self.conn, link_id, delete_file=False)
+        
+        if success:
+            # Refresh documents list
+            sel = self.project_tree.selection()
+            if sel:
+                self.refresh_project_documents(sel[0])
+            # Refresh Tools section
+            if hasattr(self, 'excel_tree'):
+                self.refresh_excel_documents()
+            if hasattr(self, 'word_tree'):
+                self.refresh_word_documents()
+            if hasattr(self, 'pdf_tree'):
+                self.refresh_pdf_documents()
+            if hasattr(self, 'onenote_tree'):
+                self.refresh_onenote_notebooks()
+        else:
+            messagebox.showerror("Error", f"Failed to remove document:\n{error_msg}")
 
     # ---------- AI Chat + Terminal Tab ----------
 
@@ -2016,12 +2300,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.file_preview_title_var = tk.StringVar(value="No file open")
         if TTKBOOTSTRAP_AVAILABLE:
             title_label = ttkb.Label(file_header, textvariable=self.file_preview_title_var, bootstyle="success", font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"))
+            versions_btn = ttkb.Button(file_header, text="📚 Versions", command=self._show_document_versions, bootstyle="info-outline", width=10)
             close_btn = ttkb.Button(file_header, text="✕", command=self._close_file_preview, bootstyle="danger-outline", width=3)
         else:
             title_label = ttk.Label(file_header, textvariable=self.file_preview_title_var, font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"))
+            versions_btn = ttk.Button(file_header, text="Versions", command=self._show_document_versions, width=10)
             close_btn = ttk.Button(file_header, text="✕", command=self._close_file_preview, width=3)
         title_label.grid(row=0, column=0, sticky="w", padx=4)
-        close_btn.grid(row=0, column=1, sticky="e", padx=4)
+        versions_btn.grid(row=0, column=1, sticky="e", padx=4)
+        close_btn.grid(row=0, column=2, sticky="e", padx=4)
         
         # Document picker for all supported formats
         if TTKBOOTSTRAP_AVAILABLE:
@@ -2282,6 +2569,162 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         except Exception as e:
             messagebox.showerror("Save Error", f"Failed to save file: {str(e)}")
             self._log_document_activity(f"Error saving file: {str(e)}")
+
+    def _show_document_versions(self):
+        """Show a dialog with all versions of the current document."""
+        if not self.active_file_session:
+            messagebox.showinfo("No Document", "No document is currently open. Open a document first to view its versions.")
+            return
+        
+        file_path = self.active_file_session.get('path')
+        if not file_path:
+            messagebox.showinfo("No Document", "No document path available.")
+            return
+        
+        # Try to find the note_link_id for this document
+        # We need to match by file path
+        from .document_manager import DOCUMENTS_BASE_DIR, get_document_path
+        from .db import db_get_note_links
+        
+        # Get all note links and find the one matching this file
+        note_link_id = None
+        links = db_get_note_links(self.conn)
+        for link in links:
+            if link.integration_type.startswith("local_"):
+                link_path = DOCUMENTS_BASE_DIR / link.external_id
+                if str(link_path) == file_path or os.path.samefile(str(link_path), file_path):
+                    note_link_id = link.id
+                    break
+        
+        if not note_link_id:
+            messagebox.showinfo("No Versions", "This document is not tracked in the system. Upload it through the Projects tab to enable version tracking.")
+            return
+        
+        # Get all versions
+        versions = get_document_versions(self.conn, note_link_id)
+        if not versions:
+            messagebox.showinfo("No Versions", "No versions found for this document.")
+            return
+        
+        # Create dialog
+        dialog = tk.Toplevel(self)
+        dialog.title("Document Versions")
+        dialog.geometry("800x600")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            main_frame = ttkb.Frame(dialog, padding=20)
+        else:
+            main_frame = ttk.Frame(dialog, padding=20)
+        main_frame.pack(fill="both", expand=True)
+        
+        # Title
+        title_label = ttk.Label(main_frame, text=f"Versions for: {os.path.basename(file_path)}", 
+                                font=(self.base_font.actual("family"), 14, "bold"))
+        title_label.pack(pady=(0, 10))
+        
+        # Versions list
+        list_frame = ttk.Frame(main_frame)
+        list_frame.pack(fill="both", expand=True, pady=10)
+        list_frame.columnconfigure(0, weight=1)
+        list_frame.rowconfigure(0, weight=1)
+        
+        columns = ("version", "date", "size", "description", "created_by")
+        versions_tree = ttk.Treeview(list_frame, columns=columns, show="headings", selectmode="browse")
+        versions_tree.heading("version", text="Version")
+        versions_tree.heading("date", text="Created")
+        versions_tree.heading("size", text="Size")
+        versions_tree.heading("description", text="Description")
+        versions_tree.heading("created_by", text="Created By")
+        
+        versions_tree.column("version", width=80, anchor="center")
+        versions_tree.column("date", width=150)
+        versions_tree.column("size", width=100, anchor="e")
+        versions_tree.column("description", width=250)
+        versions_tree.column("created_by", width=120)
+        
+        versions_tree.grid(row=0, column=0, sticky="nsew")
+        
+        scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=versions_tree.yview)
+        versions_tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        
+        # Populate versions
+        for version in versions:
+            created_date = version["created_at"]
+            if "T" in created_date:
+                created_date = created_date.replace("T", " ")[:19]
+            
+            versions_tree.insert("", "end", iid=str(version["id"]), values=(
+                f"v{version['version_number']}",
+                created_date,
+                format_file_size(version["file_size"]),
+                version["description"] or "(no description)",
+                version["created_by"]
+            ))
+        
+        # Buttons
+        btn_frame = ttk.Frame(main_frame)
+        btn_frame.pack(pady=10)
+        
+        def restore_selected():
+            sel = versions_tree.selection()
+            if not sel:
+                messagebox.showwarning("No Selection", "Please select a version to restore.")
+                return
+            
+            version_id = int(sel[0])
+            if not messagebox.askyesno("Confirm Restore", 
+                "This will restore the selected version and create a new version from the current file.\n\nContinue?"):
+                return
+            
+            success, error = restore_document_version(self.conn, version_id, create_new_version=True)
+            if success:
+                messagebox.showinfo("Success", "Document restored successfully! Refreshing preview...")
+                self._refresh_file_preview()
+                dialog.destroy()
+            else:
+                messagebox.showerror("Error", f"Failed to restore version: {error}")
+        
+        def view_selected():
+            sel = versions_tree.selection()
+            if not sel:
+                messagebox.showwarning("No Selection", "Please select a version to view.")
+                return
+            
+            version_id = int(sel[0])
+            version = get_document_version(self.conn, version_id)
+            if not version:
+                messagebox.showerror("Error", "Version not found.")
+                return
+            
+            version_path = Path(version["file_path"])
+            if not version_path.exists():
+                messagebox.showerror("Error", f"Version file not found: {version_path}")
+                return
+            
+            # Open the version file in preview
+            file_type = self._infer_file_type(str(version_path))
+            self._show_file_preview(file_type, str(version_path))
+            dialog.destroy()
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            view_btn = ttkb.Button(btn_frame, text="👁️ View", command=view_selected, bootstyle="info-outline")
+            restore_btn = ttkb.Button(btn_frame, text="↩️ Restore", command=restore_selected, bootstyle="success")
+            close_btn = ttkb.Button(btn_frame, text="Close", command=dialog.destroy, bootstyle="secondary")
+        else:
+            view_btn = ttk.Button(btn_frame, text="View", command=view_selected)
+            restore_btn = ttk.Button(btn_frame, text="Restore", command=restore_selected)
+            close_btn = ttk.Button(btn_frame, text="Close", command=dialog.destroy)
+        
+        view_btn.pack(side="left", padx=5)
+        restore_btn.pack(side="left", padx=5)
+        close_btn.pack(side="left", padx=5)
+        
+        if TTKBOOTSTRAP_AVAILABLE:
+            ToolTip(view_btn, text="View the selected version in the preview panel")
+            ToolTip(restore_btn, text="Restore this version (current file will be saved as a new version first)")
 
     def _load_onenote_preview(self, page_id: Optional[str]) -> str:
         """Load OneNote page content for preview."""
@@ -2555,6 +2998,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             if hasattr(pdf_integration, 'extract_text'):
                 # For large PDFs, extract first few pages only
                 # Try to use pdfplumber or PyPDF2 directly for page-by-page extraction
+                content_parts = []
                 try:
                     import pdfplumber
                     with pdfplumber.open(file_path) as pdf:
@@ -2565,19 +3009,59 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                         content_parts.append(f"Showing all {total_pages} pages:\n\n")
                         
                         for i, page in enumerate(pdf.pages):
-                            text = page.extract_text()
-                            if text:
-                                content_parts.append(f"\n--- Page {i+1} ---\n")
-                                content_parts.append(text)
-                                content_parts.append("\n")
+                            try:
+                                text = page.extract_text()
+                                if text:
+                                    content_parts.append(f"\n--- Page {i+1} ---\n")
+                                    content_parts.append(text)
+                                    content_parts.append("\n")
+                            except Exception:
+                                continue
                         
                         return "".join(content_parts)
                 except ImportError:
                     # Fallback to full extraction but with warning
                     return f"Large PDF detected. Loading first portion...\n[Note: Install pdfplumber for better large PDF handling: pip install pdfplumber]"
+                except Exception as e:
+                    error_msg = str(e).lower()
+                    # Try PyPDF2 with strict=False for corrupted PDFs
+                    if "eof" in error_msg or "corrupt" in error_msg:
+                        try:
+                            import PyPDF2
+                            with open(file_path, 'rb') as f:
+                                try:
+                                    pdf_reader = PyPDF2.PdfReader(f, strict=False)
+                                except Exception:
+                                    f.seek(0)
+                                    pdf_reader = PyPDF2.PdfReader(f)
+                                
+                                total_pages = len(pdf_reader.pages)
+                                content_parts = [f"PDF: {os.path.basename(file_path)} ({total_pages} pages total)\n"]
+                                content_parts.append("=" * 80 + "\n")
+                                
+                                for i, page in enumerate(pdf_reader.pages):
+                                    try:
+                                        text = page.extract_text()
+                                        if text:
+                                            content_parts.append(f"\n--- Page {i+1} ---\n")
+                                            content_parts.append(text)
+                                            content_parts.append("\n")
+                                    except Exception:
+                                        continue
+                                
+                                return "".join(content_parts)
+                        except Exception as e2:
+                            if "eof marker" in str(e2).lower():
+                                return f"PDF appears to be corrupted or incomplete (EOF marker not found). The file '{os.path.basename(file_path)}' may be truncated or damaged."
+                            return f"Error loading PDF: {str(e2)}"
+                    else:
+                        return f"Error loading large PDF: {str(e)}"
             
             return "PDF preview not available"
         except Exception as e:
+            error_msg = str(e).lower()
+            if "eof marker" in error_msg:
+                return f"PDF appears to be corrupted or incomplete (EOF marker not found). The file '{os.path.basename(file_path)}' may be truncated or damaged."
             return f"Error loading large PDF: {str(e)}"
     
     def _update_pdf_preview_content(self, content: str):
@@ -2597,34 +3081,67 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         
         try:
             if file_type == "PDF":
-                # Extract full text from PDF
+                # Extract full text from PDF - try pdfplumber first
+                content = ""
                 try:
                     import pdfplumber
-                    content = ""
                     with pdfplumber.open(file_path) as pdf:
                         for i, page in enumerate(pdf.pages):
-                            text = page.extract_text()
-                            if text:
-                                content += f"\n--- Page {i+1} ---\n"
-                                content += text
-                                content += "\n"
-                    return content if content else "PDF loaded but no text could be extracted."
-                except ImportError:
-                    # Fallback: try PyPDF2
-                    try:
-                        import PyPDF2
-                        content = ""
-                        with open(file_path, 'rb') as f:
-                            pdf_reader = PyPDF2.PdfReader(f)
-                            for i, page in enumerate(pdf_reader.pages):
+                            try:
                                 text = page.extract_text()
                                 if text:
                                     content += f"\n--- Page {i+1} ---\n"
                                     content += text
                                     content += "\n"
-                        return content if content else "PDF loaded but no text could be extracted."
-                    except ImportError:
-                        return "PDF libraries not available. Install pdfplumber or PyPDF2 to read PDFs."
+                            except Exception:
+                                continue
+                    if content:
+                        return content
+                except ImportError:
+                    pass
+                except Exception as e:
+                    error_msg = str(e).lower()
+                    # If pdfplumber fails, try PyPDF2
+                    if "eof" in error_msg or "corrupt" in error_msg:
+                        pass  # Will try PyPDF2 next
+                    else:
+                        # For other errors, return message and try PyPDF2
+                        pass
+                
+                # Fallback: try PyPDF2 with strict=False for corrupted PDFs
+                try:
+                    import PyPDF2
+                    with open(file_path, 'rb') as f:
+                        try:
+                            pdf_reader = PyPDF2.PdfReader(f, strict=False)
+                        except Exception:
+                            f.seek(0)
+                            pdf_reader = PyPDF2.PdfReader(f)
+                        
+                        for i, page in enumerate(pdf_reader.pages):
+                            try:
+                                text = page.extract_text()
+                                if text:
+                                    content += f"\n--- Page {i+1} ---\n"
+                                    content += text
+                                    content += "\n"
+                            except Exception:
+                                continue
+                    if content:
+                        return content
+                except ImportError:
+                    return "PDF libraries not available. Install pdfplumber or PyPDF2 to read PDFs."
+                except Exception as e:
+                    error_msg = str(e).lower()
+                    if "eof marker" in error_msg:
+                        return f"PDF appears to be corrupted or incomplete (EOF marker not found). The file '{os.path.basename(file_path)}' may be truncated or damaged."
+                    elif "corrupt" in error_msg or "invalid" in error_msg:
+                        return f"PDF file appears to be corrupted or invalid: {os.path.basename(file_path)}"
+                    else:
+                        return f"Error reading PDF: {str(e)}"
+                
+                # If no content extracted, return helpful message
+                return "PDF loaded but no text could be extracted. The PDF may contain only images or be encrypted."
             
             elif file_type == "Excel":
                 # Read Excel file
@@ -2979,6 +3496,27 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if not self.chat_text:
             return
         
+        # Throttle UI updates to prevent excessive refreshes
+        import time
+        current_time = time.time() * 1000  # Convert to milliseconds
+        if incremental and self._ui_update_pending:
+            # Already have an update pending, skip this one
+            return
+        
+        if incremental and (current_time - self._last_ui_update_time) < self._ui_update_throttle_ms:
+            # Schedule update for later instead of doing it now
+            if not self._ui_update_pending:
+                self._ui_update_pending = True
+                delay_ms = self._ui_update_throttle_ms - (current_time - self._last_ui_update_time)
+                self.after(int(delay_ms), lambda: self._throttled_refresh(incremental))
+            return
+        
+        # Perform memory cleanup for very large chat histories
+        if len(self.state_obj.chat_messages) > self._max_chat_messages_memory:
+            # Keep only the most recent messages in memory
+            messages_to_keep = self.state_obj.chat_messages[-self._max_chat_messages_memory:]
+            self.state_obj.chat_messages = messages_to_keep
+        
         # Track the last message ID we've displayed for incremental updates
         if not hasattr(self, '_last_displayed_message_id'):
             self._last_displayed_message_id = -1
@@ -3014,32 +3552,50 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                         # Auto-scroll to bottom
                         self.chat_text.see('end')
                     self.chat_text.config(state='disabled')
+                    # Update throttling state
+                    import time
+                    self._last_ui_update_time = time.time() * 1000
+                    self._ui_update_pending = False
                     return
         
         # Full refresh - build entire content first, then insert once
+        # Use chunked processing for better performance with large histories
         self.chat_text.config(state='normal')
         
         # Build all content as a single string first (do this before any widget operations)
-        messages_to_show = self.state_obj.chat_messages[-400:]  # Limit to last 400 messages
+        # Increased limit but with chunked processing to prevent memory issues
+        max_messages_to_show = 1000  # Increased from 400
+        messages_to_show = self.state_obj.chat_messages[-max_messages_to_show:]
+        
+        # Process in chunks to avoid memory spikes
+        chunk_size = 100
         content_parts = []
         
-        for msg in messages_to_show:
-            timestamp = msg.created_at.replace('T', ' ')
-            if msg.kind == 'terminal':
-                kind_label = ' [TERMINAL COMMAND]'
-            elif msg.kind == 'terminal_result':
-                kind_label = ' [TERMINAL OUTPUT]'
-            elif msg.kind == 'file':
-                kind_label = ' [FILE]'
-            else:
-                kind_label = ''
-            content_parts.append(f"[{timestamp}] {msg.persona}{kind_label}\n{msg.content}\n\n")
+        # Process messages in chunks for better memory management
+        for i in range(0, len(messages_to_show), chunk_size):
+            chunk = messages_to_show[i:i+chunk_size]
+            for msg in chunk:
+                timestamp = msg.created_at.replace('T', ' ')
+                if msg.kind == 'terminal':
+                    kind_label = ' [TERMINAL COMMAND]'
+                elif msg.kind == 'terminal_result':
+                    kind_label = ' [TERMINAL OUTPUT]'
+                elif msg.kind == 'file':
+                    kind_label = ' [FILE]'
+                else:
+                    kind_label = ''
+                # Truncate very long messages to prevent UI freezing
+                msg_content = msg.content
+                max_msg_length = 10000  # Limit individual message display
+                if len(msg_content) > max_msg_length:
+                    msg_content = msg_content[:max_msg_length] + f"\n... (truncated, {len(msg.content)} chars total) ..."
+                content_parts.append(f"[{timestamp}] {msg.persona}{kind_label}\n{msg_content}\n\n")
         
         # Join all content and prepare for insertion
         if content_parts:
             full_content = ''.join(content_parts)
-            # Limit content size to prevent UI freezing (max 500KB of text)
-            max_chars = 500000
+            # Limit content size to prevent UI freezing (increased to 1MB for better performance)
+            max_chars = 1000000  # Increased from 500KB to 1MB
             if len(full_content) > max_chars:
                 # Truncate but keep recent messages
                 truncated = full_content[-max_chars:]
@@ -3047,15 +3603,31 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 first_newline = truncated.find('\n')
                 if first_newline > 0:
                     truncated = truncated[first_newline+1:]
-                full_content = f"... (showing last {max_chars:,} characters) ...\n\n" + truncated
+                full_content = f"... (showing last {max_chars:,} characters of {len(''.join(content_parts)):,} total) ...\n\n" + truncated
             
             # Perform clear and insert in minimal operations
             # Disable widget redraws during bulk operation
             try:
                 # Temporarily disable widget updates for better performance
                 self.chat_text.config(state='normal')
+                # Use update_idletasks sparingly to reduce UI blocking
+                self.chat_text.update_idletasks()
                 self.chat_text.delete('1.0', 'end')
-                self.chat_text.insert('1.0', full_content)
+                # Insert in chunks for very large content to prevent UI freezing
+                if len(full_content) > 500000:
+                    # Insert in 200KB chunks with small delays
+                    chunk_size = 200000
+                    for i in range(0, len(full_content), chunk_size):
+                        chunk = full_content[i:i+chunk_size]
+                        if i == 0:
+                            self.chat_text.insert('1.0', chunk)
+                        else:
+                            self.chat_text.insert('end', chunk)
+                        # Small delay to allow UI to process
+                        if i + chunk_size < len(full_content):
+                            self.chat_text.update_idletasks()
+                else:
+                    self.chat_text.insert('1.0', full_content)
                 # Track last displayed message ID
                 if messages_to_show:
                     self._last_displayed_message_id = messages_to_show[-1].id
@@ -3063,10 +3635,23 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 self.chat_text.see('end')
             finally:
                 self.chat_text.config(state='disabled')
+                # Update throttling state
+                import time
+                self._last_ui_update_time = time.time() * 1000
+                self._ui_update_pending = False
         else:
             # No content, just clear
             self.chat_text.delete('1.0', 'end')
             self.chat_text.config(state='disabled')
+            # Update throttling state
+            import time
+            self._last_ui_update_time = time.time() * 1000
+            self._ui_update_pending = False
+    
+    def _throttled_refresh(self, incremental: bool = False):
+        """Perform a throttled refresh of chat history."""
+        self._ui_update_pending = False
+        self.refresh_chat_history(incremental=incremental)
 
     def on_import_chat_file(self):
         """Import file content into chat input."""
@@ -3117,6 +3702,87 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.uploaded_files.append(file_obj.id)
             label = os.path.basename(path)
             
+            # Read file content to include in chat context
+            file_content = None
+            file_size = os.path.getsize(path)
+            max_file_size = 50000  # 50KB limit for automatic content reading
+            file_ext = os.path.splitext(path)[1].lower()
+            
+            # Try to read text-based files
+            if file_size <= max_file_size:
+                try:
+                    # Handle PDF files specially
+                    if file_ext == '.pdf':
+                        text_parts = []
+                        # Try pdfplumber first
+                        try:
+                            import pdfplumber
+                            with pdfplumber.open(path) as pdf:
+                                for page in pdf.pages[:10]:  # Limit to first 10 pages
+                                    try:
+                                        page_text = page.extract_text()
+                                        if page_text:
+                                            text_parts.append(page_text)
+                                    except Exception:
+                                        continue
+                                if text_parts:
+                                    file_content = '\n\n'.join(text_parts)
+                                    if len(pdf.pages) > 10:
+                                        file_content += f"\n\n[PDF truncated - showing first 10 pages of {len(pdf.pages)} total]"
+                        except ImportError:
+                            pass
+                        except Exception as e:
+                            error_msg = str(e).lower()
+                            # If pdfplumber fails, try PyPDF2 with strict=False
+                            if "eof" not in error_msg and "corrupt" not in error_msg:
+                                pass
+                        
+                        # Try PyPDF2 as fallback
+                        if not text_parts:
+                            try:
+                                import PyPDF2
+                                with open(path, 'rb') as f:
+                                    try:
+                                        pdf_reader = PyPDF2.PdfReader(f, strict=False)
+                                    except Exception:
+                                        f.seek(0)
+                                        pdf_reader = PyPDF2.PdfReader(f)
+                                    
+                                    for i, page in enumerate(pdf_reader.pages[:10]):  # Limit to first 10 pages
+                                        try:
+                                            text_parts.append(page.extract_text())
+                                        except Exception:
+                                            continue
+                                    
+                                    if text_parts:
+                                        file_content = '\n\n'.join(text_parts)
+                                        if len(pdf_reader.pages) > 10:
+                                            file_content += f"\n\n[PDF truncated - showing first 10 pages of {len(pdf_reader.pages)} total]"
+                            except ImportError:
+                                file_content = f"[PDF file: {label}, Size: {file_size:,} bytes - Install pdfplumber or PyPDF2 to extract text]"
+                            except Exception as e:
+                                error_msg = str(e).lower()
+                                if "eof marker" in error_msg:
+                                    file_content = f"[PDF file: {label} - PDF appears corrupted or incomplete (EOF marker not found). The file may be truncated or damaged.]"
+                                elif "corrupt" in error_msg or "invalid" in error_msg:
+                                    file_content = f"[PDF file: {label} - PDF appears corrupted or invalid.]"
+                                else:
+                                    file_content = f"[PDF file: {label}, Size: {file_size:,} bytes - Error extracting text: {str(e)}]"
+                        
+                        if not text_parts:
+                            file_content = f"[PDF file: {label}, Size: {file_size:,} bytes - Unable to extract text (may be encrypted, image-only, or corrupted)]"
+                    else:
+                        # Try reading as text first
+                        with open(path, 'r', encoding='utf-8') as f:
+                            file_content = f.read()
+                except (UnicodeDecodeError, Exception):
+                    # If not text, try to get file info instead
+                    try:
+                        # For binary files, just include metadata
+                        file_content = f"[Binary file: {label}, Size: {file_size:,} bytes, Type: {file_ext or 'unknown'}]"
+                    except Exception:
+                        pass
+            
             # Add file reference to chat input
             self.chat_input.insert('end', f"\n[Uploaded file: {label} (ID: {file_obj.id})]\n")
             self._update_chat_status(f"Uploaded '{label}' to OpenAI (ID: {file_obj.id})")
@@ -3128,6 +3794,32 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 f"File uploaded: {label} (OpenAI ID: {file_obj.id})",
                 kind='file'
             )
+            
+            # Automatically add file content to chat so AI knows about it
+            if file_content:
+                # Create a user message with file content
+                file_message = f"I've uploaded a file: {label}\n\nFile content:\n{file_content[:10000]}"  # Limit to 10K chars
+                if len(file_content) > 10000:
+                    file_message += f"\n\n[File content truncated - showing first 10,000 characters of {len(file_content):,} total]"
+                
+                # Store as user message so AI can see it
+                self._store_chat_message(
+                    'Chris',
+                    'user',
+                    file_message,
+                    kind='file'
+                )
+                self._update_chat_status(f"File content added to chat context ({len(file_content):,} characters)")
+            else:
+                # For large or binary files, just mention the file
+                file_info_msg = f"I've uploaded a file: {label} (OpenAI File ID: {file_obj.id}, Size: {file_size:,} bytes)"
+                self._store_chat_message(
+                    'Chris',
+                    'user',
+                    file_info_msg,
+                    kind='file'
+                )
+            
             self.refresh_chat_history(incremental=True)
             
         except Exception as exc:
@@ -3255,7 +3947,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             
             while iteration < max_iterations:
                 # Refresh messages from state for each iteration
-                current_messages = self.state_obj.chat_messages.copy()
+                # Limit message history to prevent memory issues (keep last 500 messages for context)
+                all_messages = self.state_obj.chat_messages
+                max_context_messages = 500
+                if len(all_messages) > max_context_messages:
+                    current_messages = all_messages[-max_context_messages:]
+                else:
+                    current_messages = all_messages.copy()
                 
                 reply, error, tool_calls = generate_ai_reply(
                     current_messages,
@@ -4407,29 +5105,40 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Header
         if TTKBOOTSTRAP_AVAILABLE:
             header = ttkb.Label(frame, text="OneNote Notebooks", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            login_btn = ttkb.Button(frame, text="🔐 Login to OneDrive", command=self.login_to_onedrive, bootstyle="primary")
             upload_btn = ttkb.Button(frame, text="📤 Upload File", command=lambda: self.upload_document("onenote"), bootstyle="success-outline")
             refresh_btn = ttkb.Button(frame, text="🔄 Refresh Notebooks", command=self.refresh_onenote_notebooks, bootstyle="info-outline")
         else:
             header = ttk.Label(frame, text="OneNote Notebooks", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            login_btn = ttk.Button(frame, text="Login to OneDrive", command=self.login_to_onedrive)
             upload_btn = ttk.Button(frame, text="Upload File", command=lambda: self.upload_document("onenote"))
             refresh_btn = ttk.Button(frame, text="Refresh Notebooks", command=self.refresh_onenote_notebooks)
         
         header.grid(row=0, column=0, sticky="w", padx=8, pady=(8, 4))
-        upload_btn.grid(row=0, column=1, sticky="e", padx=(8, 4), pady=(8, 4))
-        refresh_btn.grid(row=0, column=2, sticky="e", padx=8, pady=(8, 4))
+        login_btn.grid(row=0, column=1, sticky="e", padx=(8, 4), pady=(8, 4))
+        upload_btn.grid(row=0, column=2, sticky="e", padx=(8, 4), pady=(8, 4))
+        refresh_btn.grid(row=0, column=3, sticky="e", padx=8, pady=(8, 4))
         
         # Notebooks tree
-        columns = ("name", "id", "last_modified")
+        columns = ("name", "project", "id", "last_modified", "versions")
         self.onenote_tree = ttk.Treeview(frame, columns=columns, show="headings", selectmode="browse")
         self.onenote_tree.heading("name", text="Notebook Name")
+        self.onenote_tree.heading("project", text="Project")
         self.onenote_tree.heading("id", text="ID")
         self.onenote_tree.heading("last_modified", text="Last Modified")
+        self.onenote_tree.heading("versions", text="Versions")
         
-        self.onenote_tree.column("name", width=300)
-        self.onenote_tree.column("id", width=200)
-        self.onenote_tree.column("last_modified", width=150)
+        self.onenote_tree.column("name", width=200)
+        self.onenote_tree.column("project", width=150)
+        self.onenote_tree.column("id", width=120)
+        self.onenote_tree.column("last_modified", width=120)
+        self.onenote_tree.column("versions", width=70)
         
         self.onenote_tree.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=8, pady=4)
+        
+        # Bind double-click and right-click
+        self.onenote_tree.bind("<Double-1>", lambda e: self._on_onenote_double_click(e))
+        self.onenote_tree.bind("<Button-3>", lambda e: self._on_onenote_right_click(e))  # Right-click for context menu
         
         if TTKBOOTSTRAP_AVAILABLE:
             scrollbar = ttkb.Scrollbar(frame, orient="vertical", command=self.onenote_tree.yview, bootstyle="primary-round")
@@ -4472,19 +5181,26 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         refresh_btn.grid(row=0, column=2, sticky="e", padx=8, pady=(8, 4))
         
         # Workbooks tree
-        columns = ("name", "id", "size", "modified")
+        columns = ("name", "project", "id", "size", "modified", "versions")
         self.excel_tree = ttk.Treeview(frame, columns=columns, show="headings", selectmode="browse")
         self.excel_tree.heading("name", text="Workbook Name")
+        self.excel_tree.heading("project", text="Project")
         self.excel_tree.heading("id", text="ID")
         self.excel_tree.heading("size", text="Size")
         self.excel_tree.heading("modified", text="Modified")
+        self.excel_tree.heading("versions", text="Versions")
         
-        self.excel_tree.column("name", width=300)
-        self.excel_tree.column("id", width=200)
-        self.excel_tree.column("size", width=100)
-        self.excel_tree.column("modified", width=150)
+        self.excel_tree.column("name", width=200)
+        self.excel_tree.column("project", width=150)
+        self.excel_tree.column("id", width=120)
+        self.excel_tree.column("size", width=80)
+        self.excel_tree.column("modified", width=120)
+        self.excel_tree.column("versions", width=70)
         
         self.excel_tree.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=8, pady=4)
+        
+        # Bind double-click
+        self.excel_tree.bind("<Double-1>", lambda e: self._on_document_double_click(e, "excel"))
         
         if TTKBOOTSTRAP_AVAILABLE:
             scrollbar = ttkb.Scrollbar(frame, orient="vertical", command=self.excel_tree.yview, bootstyle="primary-round")
@@ -4527,17 +5243,24 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         refresh_btn.grid(row=0, column=2, sticky="e", padx=8, pady=(8, 4))
         
         # Documents tree
-        columns = ("name", "size", "modified")
+        columns = ("name", "project", "size", "modified", "versions")
         self.word_tree = ttk.Treeview(frame, columns=columns, show="headings", selectmode="browse")
         self.word_tree.heading("name", text="Document Name")
+        self.word_tree.heading("project", text="Project")
         self.word_tree.heading("size", text="Size")
         self.word_tree.heading("modified", text="Modified")
+        self.word_tree.heading("versions", text="Versions")
         
-        self.word_tree.column("name", width=300)
-        self.word_tree.column("size", width=100)
-        self.word_tree.column("modified", width=150)
+        self.word_tree.column("name", width=200)
+        self.word_tree.column("project", width=150)
+        self.word_tree.column("size", width=80)
+        self.word_tree.column("modified", width=120)
+        self.word_tree.column("versions", width=70)
         
         self.word_tree.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=8, pady=4)
+        
+        # Bind double-click
+        self.word_tree.bind("<Double-1>", lambda e: self._on_document_double_click(e, "word"))
         
         if TTKBOOTSTRAP_AVAILABLE:
             scrollbar = ttkb.Scrollbar(frame, orient="vertical", command=self.word_tree.yview, bootstyle="primary-round")
@@ -4580,17 +5303,24 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         refresh_btn.grid(row=0, column=2, sticky="e", padx=8, pady=(8, 4))
         
         # Documents tree
-        columns = ("name", "size", "modified")
+        columns = ("name", "project", "size", "modified", "versions")
         self.pdf_tree = ttk.Treeview(frame, columns=columns, show="headings", selectmode="browse")
         self.pdf_tree.heading("name", text="Document Name")
+        self.pdf_tree.heading("project", text="Project")
         self.pdf_tree.heading("size", text="Size")
         self.pdf_tree.heading("modified", text="Modified")
+        self.pdf_tree.heading("versions", text="Versions")
         
-        self.pdf_tree.column("name", width=300)
-        self.pdf_tree.column("size", width=100)
-        self.pdf_tree.column("modified", width=150)
+        self.pdf_tree.column("name", width=200)
+        self.pdf_tree.column("project", width=150)
+        self.pdf_tree.column("size", width=80)
+        self.pdf_tree.column("modified", width=120)
+        self.pdf_tree.column("versions", width=70)
         
         self.pdf_tree.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=8, pady=4)
+        
+        # Bind double-click to show versions
+        self.pdf_tree.bind("<Double-1>", lambda e: self._on_document_double_click(e, "pdf"))
         
         if TTKBOOTSTRAP_AVAILABLE:
             scrollbar = ttkb.Scrollbar(frame, orient="vertical", command=self.pdf_tree.yview, bootstyle="primary-round")
@@ -4690,66 +5420,81 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     # ---------- Tools Tab Handler Methods ----------
     
     def refresh_onenote_notebooks(self):
-        """Refresh the list of OneNote notebooks."""
+        """Refresh the list of OneNote notebooks from OneDrive."""
         try:
             # Clear existing items
             for item in self.onenote_tree.get_children():
                 self.onenote_tree.delete(item)
             
-            if not ONENOTE_CLIENT_AVAILABLE or OneNoteClient is None:
-                self.onenote_status_var.set("❌ OneNote client not available. Check Microsoft Graph configuration.")
+            if not EXCEL_CLOUD_AVAILABLE:
+                self.onenote_status_var.set("❌ Microsoft Graph client not available. Check Microsoft Graph configuration.")
                 return
             
-            # Check if credentials are configured
-            from .integrations import GraphCredentials
-            try:
-                creds = GraphCredentials.from_env()
-                if not creds.tenant_id or not creds.client_id or not creds.client_secret:
-                    self.onenote_status_var.set("❌ Not authenticated. Configure Microsoft Graph credentials in Settings > Integrations.")
-                    messagebox.showwarning(
-                        "Not Authenticated",
-                        "Microsoft Graph credentials are not configured.\n\n"
-                        "Please go to:\n"
-                        "1. Settings tab > Integrations\n"
-                        "2. Click 'Configure' next to OneNote\n"
-                        "3. Enter your Azure credentials\n\n"
-                        "Or run: python get_azure_credentials.py"
-                    )
-                    return
-            except Exception as e:
-                self.onenote_status_var.set("❌ Credentials error. Check Microsoft Graph configuration.")
-                messagebox.showwarning("Credentials Error", f"Failed to load credentials: {e}")
-                return
-            
-            self.onenote_status_var.set("🔄 Loading notebooks...")
+            self.onenote_status_var.set("🔄 Loading notebooks from OneDrive...")
             self.update()
             
             try:
-                # Pass connection to GraphClient so it can load credentials from database
+                # Use OneDrive to list OneNote files (same as Excel/Word/PDF)
                 from .integrations.msgraph.client import GraphClient
+                from .integrations.excel.cloud_client import ExcelCloudClient
                 # Use delegated auth for /me/ endpoints
                 graph_client = GraphClient(conn=self.conn, use_delegated=True)
-                client = OneNoteClient(graph_client)
-                notebooks = client.list_notebooks()
+                client = ExcelCloudClient(graph=graph_client)
+                items = client.list_workbooks()  # Lists all OneDrive files
                 
-                if not notebooks:
-                    self.onenote_status_var.set("ℹ️ No notebooks found. You may not have any OneNote notebooks.")
+                # Filter for OneNote files
+                onenote_files = [item for item in items if item.get("name", "").endswith((".one", ".onepkg"))]
+                
+                if not onenote_files:
+                    self.onenote_status_var.set("ℹ️ No OneNote files found in OneDrive or not authenticated.")
+                    # Still show local files
+                    local_docs = get_project_documents(self.conn, doc_type="onenote")
+                    for doc in local_docs:
+                        name = self._safe_get(doc, "title", "Unknown")
+                        project_name = self._safe_get(doc, "project_id", "General")
+                        modified = self._safe_get(doc, "modified_date", "")
+                        if modified:
+                            try:
+                                dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
+                                modified = dt_obj.strftime("%Y-%m-%d %H:%M")
+                            except:
+                                pass
+                        else:
+                            modified = "Unknown"
+                        
+                        versions = get_document_versions(self.conn, self._safe_get(doc, "id"))
+                        version_info = f"v{len(versions)}" if versions else ""
+                        
+                        item_id = f"local_onenote_{self._safe_get(doc, 'id')}"
+                        self.onenote_tree.insert("", "end", iid=item_id, values=(f"📁 {name}", project_name, "", modified, version_info), tags=("local",))
+                        self.onenote_tree.set(item_id, "doc_id", str(self._safe_get(doc, "id")))
+                        self.onenote_tree.set(item_id, "file_path", self._safe_get(doc, "file_path", ""))
+                    
+                    if local_docs:
+                        self.onenote_status_var.set(f"✅ Loaded {len(local_docs)} local notebook(s)")
                     return
                 
-                for nb in notebooks:
-                    name = nb.get("displayName", "Unknown")
-                    nb_id = nb.get("id", "")
-                    last_modified = nb.get("lastModifiedDateTime", "Unknown")
-                    if last_modified and "T" in last_modified:
-                        last_modified = last_modified.replace("T", " ")[:16]
+                for item in onenote_files:
+                    name = item.get("name", "Unknown")
+                    item_id = item.get("id", "")
+                    size = item.get("size", 0)
+                    size_str = format_file_size(size) if size > 0 else "Unknown"
+                    modified = item.get("lastModifiedDateTime", "Unknown")
+                    if modified and "T" in modified:
+                        modified = modified.replace("T", " ")[:16]
                     
-                    self.onenote_tree.insert("", "end", values=(name, nb_id, last_modified), tags=("cloud",))
+                    # Store item_id for actions
+                    tree_item_id = f"cloud_onenote_{item_id}"
+                    self.onenote_tree.insert("", "end", iid=tree_item_id, values=(name, "", item_id, modified, ""), tags=("cloud",))
+                    self.onenote_tree.set(tree_item_id, "drive_item_id", item_id)
+                    self.onenote_tree.set(tree_item_id, "file_name", name)
                 
                 # Also load local OneNote documents
                 local_docs = get_project_documents(self.conn, doc_type="onenote")
                 for doc in local_docs:
-                    name = doc["title"]
-                    modified = doc["modified_date"]
+                    name = self._safe_get(doc, "title", "Unknown")
+                    project_name = self._safe_get(doc, "project_id", "General")
+                    modified = self._safe_get(doc, "modified_date", "")
                     if modified:
                         try:
                             dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
@@ -4759,10 +5504,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     else:
                         modified = "Unknown"
                     
-                    self.onenote_tree.insert("", "end", values=(f"📁 {name}", "", modified), tags=("local",))
+                    versions = get_document_versions(self.conn, self._safe_get(doc, "id"))
+                    version_info = f"v{len(versions)}" if versions else ""
+                    
+                    item_id = f"local_onenote_{self._safe_get(doc, 'id')}"
+                    self.onenote_tree.insert("", "end", iid=item_id, values=(f"📁 {name}", project_name, "", modified, version_info), tags=("local",))
+                    self.onenote_tree.set(item_id, "doc_id", str(self._safe_get(doc, "id")))
+                    self.onenote_tree.set(item_id, "file_path", self._safe_get(doc, "file_path", ""))
                 
-                total_count = len(notebooks) + len(local_docs)
-                self.onenote_status_var.set(f"✅ Loaded {total_count} notebook(s) ({len(notebooks)} cloud, {len(local_docs)} local)")
+                total_count = len(onenote_files) + len(local_docs)
+                self.onenote_status_var.set(f"✅ Loaded {total_count} notebook(s) ({len(onenote_files)} from OneDrive, {len(local_docs)} local)")
             except Exception as e:
                 error_msg = str(e)
                 # Check for specific authentication errors
@@ -4774,23 +5525,495 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                         "Possible causes:\n"
                         "1. Invalid or expired client secret\n"
                         "2. Wrong tenant ID, client ID, or client secret\n"
-                        "3. Missing required permissions (Notes.ReadWrite)\n\n"
+                        "3. Missing required permissions (Files.Read)\n\n"
                         "Go to Settings > Integrations to reconfigure credentials."
                     )
-                elif "credentials" in error_msg.lower():
+                elif "credentials" in error_msg.lower() or "Delegated authentication" in error_msg:
                     self.onenote_status_var.set("❌ Credentials not configured. Set up Microsoft Graph in Settings.")
                     messagebox.showwarning(
                         "Not Configured",
                         "Microsoft Graph credentials are not configured.\n\n"
-                        "Go to Settings > Integrations to configure."
+                        "Go to Settings > Integrations to configure and authenticate."
                     )
                 else:
                     self.onenote_status_var.set(f"❌ Error: {error_msg[:50]}")
-                    messagebox.showerror("Error", f"Failed to load OneNote notebooks:\n\n{error_msg}")
+                    messagebox.showerror("Error", f"Failed to load OneNote files from OneDrive:\n\n{error_msg}")
         except Exception as e:
             error_msg = str(e)
             self.onenote_status_var.set(f"❌ Error: {error_msg[:50]}")
             messagebox.showerror("Error", f"Failed to refresh notebooks:\n\n{error_msg}")
+    
+    def login_to_onedrive(self):
+        """Login to OneDrive using device code flow."""
+        try:
+            # Check if credentials are configured
+            from .integrations.msgraph.auth import GraphCredentials, GraphDelegatedAuth
+            
+            try:
+                credentials = GraphCredentials.from_env(conn=self.conn)
+            except ValueError as e:
+                messagebox.showerror(
+                    "Credentials Not Configured",
+                    f"Microsoft Graph credentials are not configured.\n\n{str(e)}\n\n"
+                    "Please configure credentials first:\n"
+                    "1. Go to Settings > Integrations\n"
+                    "2. Click 'Configure' next to OneNote\n"
+                    "3. Enter your Azure credentials"
+                )
+                return
+            
+            self.onenote_status_var.set("🔄 Starting authentication...")
+            self.update()
+            
+            # Create authentication dialog
+            dialog = tk.Toplevel(self)
+            dialog.title("Login to OneDrive")
+            dialog.geometry("600x400")
+            dialog.transient(self)
+            dialog.grab_set()
+            
+            if TTKBOOTSTRAP_AVAILABLE:
+                main_frame = ttkb.Frame(dialog, padding=20)
+                title = ttkb.Label(main_frame, text="OneDrive Login", bootstyle="primary", font=(self.base_font.actual("family"), 14, "bold"))
+            else:
+                main_frame = ttk.Frame(dialog, padding=20)
+                title = ttk.Label(main_frame, text="OneDrive Login", font=(self.base_font.actual("family"), 14, "bold"))
+            
+            main_frame.pack(fill="both", expand=True)
+            title.pack(pady=(0, 20))
+            
+            # Instructions
+            instructions = tk.Text(main_frame, wrap="word", height=8, width=60, font=("Courier", 10))
+            instructions.pack(fill="both", expand=True, pady=(0, 20))
+            instructions.config(state="normal")
+            instructions.insert("1.0", "Starting authentication...\n\n")
+            instructions.config(state="disabled")
+            
+            # Status
+            status_var = tk.StringVar(value="Initializing...")
+            if TTKBOOTSTRAP_AVAILABLE:
+                status_label = ttkb.Label(main_frame, textvariable=status_var, bootstyle="info")
+            else:
+                status_label = ttk.Label(main_frame, textvariable=status_var)
+            status_label.pack(pady=(0, 10))
+            
+            # Buttons
+            btn_frame = ttk.Frame(main_frame)
+            btn_frame.pack()
+            
+            def close_dialog():
+                dialog.destroy()
+            
+            if TTKBOOTSTRAP_AVAILABLE:
+                close_btn = ttkb.Button(btn_frame, text="Close", command=close_dialog, bootstyle="secondary")
+            else:
+                close_btn = ttk.Button(btn_frame, text="Close", command=close_dialog)
+            close_btn.pack()
+            
+            # Start authentication in background thread
+            import threading
+            
+            def authenticate():
+                try:
+                    delegated_auth = GraphDelegatedAuth(credentials, conn=self.conn)
+                    
+                    # Get device code
+                    instructions.config(state="normal")
+                    instructions.delete("1.0", "end")
+                    status_var.set("Getting device code...")
+                    dialog.update()
+                    
+                    device_data = delegated_auth.get_device_code()
+                    user_code = device_data["user_code"]
+                    verification_url = device_data["verification_uri"]
+                    expires_in = device_data.get("expires_in", 900)
+                    
+                    # Show instructions
+                    instructions.insert("1.0", f"🔐 OneDrive Login Instructions\n\n")
+                    instructions.insert("end", f"1. Open your browser and visit:\n   {verification_url}\n\n")
+                    instructions.insert("end", f"2. Enter this code:\n   {user_code}\n\n")
+                    instructions.insert("end", f"3. Sign in with your Microsoft account\n\n")
+                    instructions.insert("end", f"4. Grant permissions when prompted\n\n")
+                    instructions.insert("end", f"⏳ Waiting for you to sign in...\n")
+                    instructions.insert("end", f"(This will timeout in {expires_in} seconds)\n")
+                    instructions.config(state="disabled")
+                    status_var.set("Waiting for you to sign in...")
+                    
+                    # Poll for token
+                    access_token = delegated_auth.poll_for_token(
+                        device_data["device_code"],
+                        interval=device_data.get("interval", 5),
+                        timeout=expires_in
+                    )
+                    
+                    # Success!
+                    instructions.config(state="normal")
+                    instructions.delete("1.0", "end")
+                    instructions.insert("1.0", "✅ Authentication Successful!\n\n")
+                    instructions.insert("end", "You are now logged in to OneDrive.\n")
+                    instructions.insert("end", "You can now access your OneNote files.\n")
+                    instructions.config(state="disabled")
+                    status_var.set("✅ Login successful!")
+                    
+                    # Auto-close after 2 seconds
+                    dialog.after(2000, close_dialog)
+                    
+                    # Refresh notebooks automatically
+                    self.after(500, self.refresh_onenote_notebooks)
+                    
+                except Exception as e:
+                    from .integrations.msgraph.auth import AuthenticationError
+                    error_msg = str(e)
+                    instructions.config(state="normal")
+                    instructions.delete("1.0", "end")
+                    instructions.insert("1.0", f"❌ Authentication Failed\n\n")
+                    
+                    # Provide more detailed error information
+                    if isinstance(e, AuthenticationError):
+                        instructions.insert("end", f"{error_msg}\n\n")
+                        # Check for consumer-only app message
+                        if "AADSTS9002346" in error_msg or "Microsoft Account users only" in error_msg or "consumers endpoint" in error_msg:
+                            instructions.insert("end", "ℹ️ Your app is configured for personal Microsoft accounts only.\n")
+                            instructions.insert("end", "The system will automatically retry with the /consumers endpoint.\n")
+                            instructions.insert("end", "Please ensure you're signing in with a personal Microsoft account.\n\n")
+                    elif "400" in error_msg or "Bad Request" in error_msg:
+                        instructions.insert("end", f"Error: {error_msg}\n\n")
+                        instructions.insert("end", "Common causes for 400 Bad Request:\n")
+                        instructions.insert("end", "• Invalid Tenant ID - verify it matches your Azure AD tenant\n")
+                        instructions.insert("end", "• Invalid Client ID - check the Application (client) ID in Azure Portal\n")
+                        instructions.insert("end", "• Client ID not registered in the specified tenant\n")
+                        instructions.insert("end", "• Tenant ID and Client ID don't match\n\n")
+                        instructions.insert("end", "Please verify your credentials in Settings > Integrations.\n")
+                    else:
+                        instructions.insert("end", f"Error: {error_msg}\n\n")
+                        instructions.insert("end", "Please try again or check your credentials.\n")
+                    
+                    instructions.config(state="disabled")
+                    status_var.set("❌ Login failed")
+                    self.onenote_status_var.set(f"❌ Login failed: {error_msg[:50]}")
+            
+            # Start authentication thread
+            auth_thread = threading.Thread(target=authenticate, daemon=True)
+            auth_thread.start()
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to start login:\n\n{e}")
+            self.onenote_status_var.set(f"❌ Error: {str(e)[:50]}")
+    
+    def _on_onenote_double_click(self, event):
+        """Handle double-click on OneNote file - download and open."""
+        tree = event.widget
+        sel = tree.selection()
+        if not sel:
+            return
+        
+        item_id = sel[0]
+        tags = tree.item(item_id, "tags")
+        
+        if "local" in tags:
+            # Local file - show versions
+            try:
+                doc_id_str = tree.set(item_id, "doc_id")
+                if doc_id_str:
+                    doc_id = int(doc_id_str)
+                    self._show_document_versions_for_link(doc_id)
+            except (ValueError, KeyError):
+                pass
+        elif "cloud" in tags:
+            # Cloud file - download and open
+            self._download_and_open_onenote(item_id)
+    
+    def _on_onenote_right_click(self, event):
+        """Show context menu for OneNote files."""
+        tree = event.widget
+        item_id = tree.identify_row(event.y)
+        if not item_id:
+            return
+        
+        tree.selection_set(item_id)
+        tags = tree.item(item_id, "tags")
+        
+        # Create context menu
+        menu = tk.Menu(self, tearoff=0)
+        
+        if "cloud" in tags:
+            menu.add_command(label="📥 Download & Open", command=lambda: self._download_and_open_onenote(item_id))
+            menu.add_command(label="👁️ View in Browser", command=lambda: self._view_onenote_in_browser(item_id))
+            menu.add_command(label="🗑️ Delete from OneDrive", command=lambda: self._delete_onenote_from_onedrive(item_id))
+        elif "local" in tags:
+            menu.add_command(label="📋 Version History", command=lambda: self._show_local_onenote_versions(item_id))
+            menu.add_command(label="🗑️ Delete Local File", command=lambda: self._delete_local_onenote(item_id))
+        
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+    
+    def _download_and_open_onenote(self, item_id: str):
+        """Download OneNote file from OneDrive and open it."""
+        try:
+            drive_item_id = self.onenote_tree.set(item_id, "drive_item_id")
+            file_name = self.onenote_tree.set(item_id, "file_name")
+            
+            if not drive_item_id:
+                messagebox.showerror("Error", "Could not get file ID.")
+                return
+            
+            self.onenote_status_var.set("🔄 Downloading file...")
+            self.update()
+            
+            from .integrations.msgraph.client import GraphClient
+            import tempfile
+            import requests as req_lib
+            
+            graph_client = GraphClient(conn=self.conn, use_delegated=True)
+            
+            # Download file content
+            download_url = f"{graph_client.base_url}/me/drive/items/{drive_item_id}/content"
+            headers = graph_client._headers()
+            
+            response = req_lib.get(download_url, headers=headers, stream=True, timeout=30)
+            response.raise_for_status()
+            
+            # Save to temp directory
+            temp_dir = tempfile.gettempdir()
+            local_path = os.path.join(temp_dir, file_name)
+            
+            with open(local_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+            
+            # Open file with default application
+            import subprocess
+            import platform
+            try:
+                if platform.system() == 'Darwin':  # macOS
+                    subprocess.run(['open', local_path], check=False)
+                elif platform.system() == 'Windows':
+                    os.startfile(local_path)
+                else:  # Linux
+                    subprocess.run(['xdg-open', local_path], check=False)
+            except Exception:
+                pass
+            
+            self.onenote_status_var.set(f"✅ Downloaded and opened: {file_name}")
+            messagebox.showinfo("Success", f"File downloaded and opened:\n{local_path}")
+            
+        except Exception as e:
+            error_msg = str(e)
+            self.onenote_status_var.set(f"❌ Error: {error_msg[:50]}")
+            messagebox.showerror("Error", f"Failed to download file:\n\n{error_msg}")
+    
+    def _view_onenote_in_browser(self, item_id: str):
+        """Open OneNote file in browser (OneDrive web view)."""
+        try:
+            drive_item_id = self.onenote_tree.set(item_id, "drive_item_id")
+            if not drive_item_id:
+                messagebox.showerror("Error", "Could not get file ID.")
+                return
+            
+            # Get web URL for the file
+            from .integrations.msgraph.client import GraphClient
+            graph_client = GraphClient(conn=self.conn, use_delegated=True)
+            
+            # Get file metadata to get webUrl
+            file_info = graph_client.get(f"/me/drive/items/{drive_item_id}")
+            web_url = file_info.get("webUrl")
+            
+            if web_url:
+                import webbrowser
+                webbrowser.open(web_url)
+                self.onenote_status_var.set("✅ Opened in browser")
+            else:
+                messagebox.showerror("Error", "Could not get web URL for file.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open in browser:\n\n{e}")
+    
+    def _delete_onenote_from_onedrive(self, item_id: str):
+        """Delete OneNote file from OneDrive."""
+        try:
+            drive_item_id = self.onenote_tree.set(item_id, "drive_item_id")
+            file_name = self.onenote_tree.set(item_id, "file_name")
+            
+            if not drive_item_id:
+                messagebox.showerror("Error", "Could not get file ID.")
+                return
+            
+            if not messagebox.askyesno("Confirm Delete", f"Delete '{file_name}' from OneDrive?\n\nThis action cannot be undone."):
+                return
+            
+            from .integrations.msgraph.client import GraphClient
+            graph_client = GraphClient(conn=self.conn, use_delegated=True)
+            
+            # Delete file
+            graph_client.delete(f"/me/drive/items/{drive_item_id}")
+            
+            # Remove from tree
+            self.onenote_tree.delete(item_id)
+            
+            self.onenote_status_var.set(f"✅ Deleted: {file_name}")
+            messagebox.showinfo("Success", f"File deleted from OneDrive:\n{file_name}")
+            
+        except Exception as e:
+            error_msg = str(e)
+            self.onenote_status_var.set(f"❌ Error: {error_msg[:50]}")
+            messagebox.showerror("Error", f"Failed to delete file:\n\n{error_msg}")
+    
+    def _show_local_onenote_versions(self, item_id: str):
+        """Show version history for local OneNote file."""
+        try:
+            doc_id_str = self.onenote_tree.set(item_id, "doc_id")
+            if doc_id_str:
+                doc_id = int(doc_id_str)
+                self._show_document_versions_for_link(doc_id)
+        except (ValueError, KeyError):
+            messagebox.showwarning("Error", "Could not get document ID.")
+    
+    def _show_document_versions_for_link(self, link_id: int):
+        """Show version history dialog for a document link."""
+        try:
+            versions = get_document_versions(self.conn, link_id)
+            if not versions:
+                messagebox.showinfo("No Versions", "This document has no version history.")
+                return
+            
+            # Create version dialog (reuse existing _show_document_versions logic)
+            dialog = tk.Toplevel(self)
+            dialog.title("Version History")
+            dialog.geometry("800x500")
+            dialog.transient(self)
+            
+            if TTKBOOTSTRAP_AVAILABLE:
+                frame = ttkb.Frame(dialog)
+                header = ttkb.Label(frame, text=f"Version History ({len(versions)} versions)", bootstyle="primary", font=(self.base_font.actual("family"), 12, "bold"))
+            else:
+                frame = ttk.Frame(dialog)
+                header = ttk.Label(frame, text=f"Version History ({len(versions)} versions)", font=(self.base_font.actual("family"), 12, "bold"))
+            
+            frame.pack(fill="both", expand=True, padx=10, pady=10)
+            header.pack(pady=(0, 10))
+            
+            # Treeview for versions
+            columns = ("version", "date", "size", "created_by", "description")
+            tree = ttk.Treeview(frame, columns=columns, show="headings", selectmode="browse")
+            tree.heading("version", text="Version")
+            tree.heading("date", text="Date")
+            tree.heading("size", text="Size")
+            tree.heading("created_by", text="Created By")
+            tree.heading("description", text="Description")
+            
+            tree.column("version", width=80)
+            tree.column("date", width=180)
+            tree.column("size", width=100)
+            tree.column("created_by", width=120)
+            tree.column("description", width=300)
+            
+            # Add versions
+            for v in versions:
+                date_str = v["created_at"][:19].replace("T", " ") if v["created_at"] else "Unknown"
+                size_str = format_file_size(v["file_size"])
+                tree.insert("", "end", iid=str(v["id"]), values=(
+                    f"v{v['version_number']}",
+                    date_str,
+                    size_str,
+                    v["created_by"],
+                    v["description"][:50] + "..." if len(v["description"]) > 50 else v["description"]
+                ))
+            
+            tree.pack(fill="both", expand=True, pady=(0, 10))
+            
+            # Buttons
+            btn_frame = ttk.Frame(frame)
+            btn_frame.pack(fill="x")
+            
+            def restore_version():
+                sel = tree.selection()
+                if not sel:
+                    messagebox.showwarning("No Selection", "Please select a version to restore.")
+                    return
+                
+                version_id = int(sel[0])
+                if messagebox.askyesno("Restore Version", "Restore this version? Current version will be saved first."):
+                    success, error = restore_document_version(self.conn, version_id, create_new_version=True)
+                    if success:
+                        messagebox.showinfo("Success", "Version restored successfully!")
+                        dialog.destroy()
+                        self.refresh_onenote_notebooks()
+                    else:
+                        messagebox.showerror("Error", f"Failed to restore version: {error}")
+            
+            if TTKBOOTSTRAP_AVAILABLE:
+                restore_btn = ttkb.Button(btn_frame, text="Restore Selected Version", command=restore_version, bootstyle="warning")
+                close_btn = ttkb.Button(btn_frame, text="Close", command=dialog.destroy, bootstyle="secondary")
+            else:
+                restore_btn = ttk.Button(btn_frame, text="Restore Selected Version", command=restore_version)
+                close_btn = ttk.Button(btn_frame, text="Close", command=dialog.destroy)
+            
+            restore_btn.pack(side="left", padx=5)
+            close_btn.pack(side="right", padx=5)
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load version history: {e}")
+    
+    def _delete_local_onenote(self, item_id: str):
+        """Delete local OneNote file."""
+        try:
+            doc_id_str = self.onenote_tree.set(item_id, "doc_id")
+            if not doc_id_str:
+                messagebox.showerror("Error", "Could not get document ID.")
+                return
+            
+            doc_id = int(doc_id_str)
+            from .document_manager import delete_document, get_document_path
+            
+            file_path = get_document_path(doc_id, self.conn)
+            file_name = file_path.name if file_path else "Unknown"
+            
+            if not messagebox.askyesno("Confirm Delete", f"Delete '{file_name}'?\n\nThis will remove the file and all its versions."):
+                return
+            
+            success, error = delete_document(self.conn, doc_id, delete_file=True)
+            if success:
+                self.onenote_tree.delete(item_id)
+                self.onenote_status_var.set(f"✅ Deleted: {file_name}")
+                messagebox.showinfo("Success", f"File deleted:\n{file_name}")
+            else:
+                messagebox.showerror("Error", f"Failed to delete:\n{error}")
+                
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to delete file:\n\n{e}")
+    
+    def _on_document_double_click(self, event, doc_type: str):
+        """Handle double-click on document in Tools section - open with default app."""
+        tree = event.widget
+        sel = tree.selection()
+        if not sel:
+            return
+        
+        item_id = sel[0]
+        tags = tree.item(item_id, "tags")
+        
+        if "local" in tags:
+            # Local file - get file path and open
+            doc_id_str = tree.set(item_id, "doc_id")
+            if doc_id_str:
+                try:
+                    from .document_manager import get_document_path
+                    file_path = get_document_path(int(doc_id_str), self.conn)
+                    if file_path and file_path.exists():
+                        self._open_file_with_default_app(str(file_path))
+                    else:
+                        messagebox.showerror("File Not Found", "The document file could not be found.")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to open document:\n{e}")
+        elif "cloud" in tags:
+            # Cloud file - download and open (similar to OneNote)
+            if doc_type == "excel":
+                # For now, show message - could implement download later
+                messagebox.showinfo("Cloud Document", "Cloud documents can be accessed through OneDrive. Use the 'Login to OneDrive' button to authenticate.")
+            else:
+                messagebox.showinfo("Cloud Document", "Cloud documents can be accessed through OneDrive. Use the 'Login to OneDrive' button to authenticate.")
     
     def refresh_excel_workbooks(self):
         """Refresh the list of Excel workbooks from OneDrive."""
@@ -4826,19 +6049,20 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     name = item.get("name", "Unknown")
                     item_id = item.get("id", "")
                     size = item.get("size", 0)
-                    size_str = f"{size / 1024:.1f} KB" if size > 0 else "Unknown"
+                    size_str = format_file_size(size) if size > 0 else "Unknown"
                     modified = item.get("lastModifiedDateTime", "Unknown")
                     if modified and "T" in modified:
                         modified = modified.replace("T", " ")[:16]
                     
-                    self.excel_tree.insert("", "end", values=(name, item_id, size_str, modified), tags=("cloud",))
+                    self.excel_tree.insert("", "end", values=(name, "", item_id, size_str, modified, ""), tags=("cloud",))
                 
                 # Also load local Excel documents
                 local_docs = get_project_documents(self.conn, doc_type="excel")
                 for doc in local_docs:
-                    name = doc["title"]
-                    size_str = format_file_size(doc["file_size"])
-                    modified = doc["modified_date"]
+                    name = self._safe_get(doc, "title", "Unknown")
+                    project_name = self._safe_get(doc, "project_id", "General")
+                    size_str = format_file_size(self._safe_get(doc, "file_size", 0))
+                    modified = self._safe_get(doc, "modified_date", "")
                     if modified:
                         try:
                             dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
@@ -4848,7 +6072,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     else:
                         modified = "Unknown"
                     
-                    self.excel_tree.insert("", "end", values=(f"📁 {name}", "", size_str, modified), tags=("local",))
+                    versions = get_document_versions(self.conn, self._safe_get(doc, "id"))
+                    version_info = f"v{len(versions)}" if versions else ""
+                    
+                    item_id = f"local_excel_{self._safe_get(doc, 'id')}"
+                    self.excel_tree.insert("", "end", iid=item_id, values=(f"📁 {name}", project_name, "", size_str, modified, version_info), tags=("local",))
+                    self.excel_tree.set(item_id, "doc_id", str(self._safe_get(doc, "id")))
+                    self.excel_tree.set(item_id, "file_path", self._safe_get(doc, "file_path", ""))
                 
                 total_count = len(excel_files) + len(local_docs)
                 self.excel_status_var.set(f"✅ Loaded {total_count} workbook(s) ({len(excel_files)} cloud, {len(local_docs)} local)")
@@ -4892,19 +6122,20 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 for item in word_files:
                     name = item.get("name", "Unknown")
                     size = item.get("size", 0)
-                    size_str = f"{size / 1024:.1f} KB" if size > 0 else "Unknown"
+                    size_str = format_file_size(size) if size > 0 else "Unknown"
                     modified = item.get("lastModifiedDateTime", "Unknown")
                     if modified and "T" in modified:
                         modified = modified.replace("T", " ")[:16]
                     
-                    self.word_tree.insert("", "end", values=(name, size_str, modified), tags=("cloud",))
+                    self.word_tree.insert("", "end", values=(name, "", size_str, modified, ""), tags=("cloud",))
                 
                 # Also load local Word documents
                 local_docs = get_project_documents(self.conn, doc_type="word")
                 for doc in local_docs:
-                    name = doc["title"]
-                    size_str = format_file_size(doc["file_size"])
-                    modified = doc["modified_date"]
+                    name = self._safe_get(doc, "title", "Unknown")
+                    project_name = self._safe_get(doc, "project_id", "General")
+                    size_str = format_file_size(self._safe_get(doc, "file_size", 0))
+                    modified = self._safe_get(doc, "modified_date", "")
                     if modified:
                         try:
                             dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
@@ -4914,7 +6145,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     else:
                         modified = "Unknown"
                     
-                    self.word_tree.insert("", "end", values=(f"📁 {name}", size_str, modified), tags=("local",))
+                    versions = get_document_versions(self.conn, self._safe_get(doc, "id"))
+                    version_info = f"v{len(versions)}" if versions else ""
+                    
+                    item_id = f"local_word_{self._safe_get(doc, 'id')}"
+                    self.word_tree.insert("", "end", iid=item_id, values=(f"📁 {name}", project_name, size_str, modified, version_info), tags=("local",))
+                    self.word_tree.set(item_id, "doc_id", str(self._safe_get(doc, "id")))
+                    self.word_tree.set(item_id, "file_path", self._safe_get(doc, "file_path", ""))
                 
                 total_count = len(word_files) + len(local_docs)
                 self.word_status_var.set(f"✅ Loaded {total_count} Word document(s) ({len(word_files)} cloud, {len(local_docs)} local)")
@@ -5063,19 +6300,20 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 for item in pdf_files:
                     name = item.get("name", "Unknown")
                     size = item.get("size", 0)
-                    size_str = f"{size / 1024:.1f} KB" if size > 0 else "Unknown"
+                    size_str = format_file_size(size) if size > 0 else "Unknown"
                     modified = item.get("lastModifiedDateTime", "Unknown")
                     if modified and "T" in modified:
                         modified = modified.replace("T", " ")[:16]
                     
-                    self.pdf_tree.insert("", "end", values=(name, size_str, modified), tags=("cloud",))
+                    self.pdf_tree.insert("", "end", values=(name, "", size_str, modified, ""), tags=("cloud",))
                 
                 # Also load local PDF documents
                 local_docs = get_project_documents(self.conn, doc_type="pdf")
                 for doc in local_docs:
-                    name = doc["title"]
-                    size_str = format_file_size(doc["file_size"])
-                    modified = doc["modified_date"]
+                    name = self._safe_get(doc, "title", "Unknown")
+                    project_name = self._safe_get(doc, "project_id", "General")
+                    size_str = format_file_size(self._safe_get(doc, "file_size", 0))
+                    modified = self._safe_get(doc, "modified_date", "")
                     if modified:
                         try:
                             dt_obj = datetime.fromisoformat(modified.replace("Z", "+00:00"))
@@ -5085,7 +6323,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     else:
                         modified = "Unknown"
                     
-                    self.pdf_tree.insert("", "end", values=(f"📁 {name}", size_str, modified), tags=("local",))
+                    # Get version count
+                    versions = get_document_versions(self.conn, self._safe_get(doc, "id"))
+                    version_info = f"v{len(versions)}" if versions else ""
+                    
+                    item_id = f"local_pdf_{self._safe_get(doc, 'id')}"
+                    self.pdf_tree.insert("", "end", iid=item_id, values=(f"📁 {name}", project_name, size_str, modified, version_info), tags=("local",))
+                    
+                    # Store doc_id and file_path in item
+                    self.pdf_tree.set(item_id, "doc_id", str(self._safe_get(doc, "id")))
+                    self.pdf_tree.set(item_id, "file_path", self._safe_get(doc, "file_path", ""))
                 
                 total_count = len(pdf_files) + len(local_docs)
                 self.pdf_status_var.set(f"✅ Loaded {total_count} PDF document(s) ({len(pdf_files)} cloud, {len(local_docs)} local)")

@@ -267,6 +267,74 @@ def init_db() -> sqlite3.Connection:
             created_at TEXT
         )
     """)
+    
+    # Document versions table for tracking document history
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS document_versions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            note_link_id INTEGER NOT NULL,
+            version_number INTEGER NOT NULL,
+            file_path TEXT NOT NULL,
+            file_size INTEGER,
+            checksum TEXT,
+            created_at TEXT NOT NULL,
+            created_by TEXT,
+            description TEXT,
+            FOREIGN KEY(note_link_id) REFERENCES note_links(id) ON DELETE CASCADE,
+            UNIQUE(note_link_id, version_number)
+        )
+    """)
+    
+    # Create index for faster lookups
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_document_versions_link 
+        ON document_versions(note_link_id, version_number DESC)
+    """)
+    
+    # Comments table for tasks and projects
+    # Note: No FOREIGN KEY constraint since entity_id can reference either tasks(id) or projects(name)
+    # with different types (INTEGER vs TEXT). Application-level integrity is maintained.
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            entity_type TEXT NOT NULL,
+            entity_id TEXT NOT NULL,
+            author TEXT NOT NULL,
+            content TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+    
+    # Create index for faster comment lookups
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_comments_entity 
+        ON comments(entity_type, entity_id, created_at DESC)
+    """)
+    
+    # Document templates table
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS document_templates (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            category TEXT,
+            content TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT
+        )
+    """)
+    
+    # Create index for document templates
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_document_templates_category 
+        ON document_templates(category)
+    """)
+    
+    # Initialize default document templates
+    try:
+        from .document_templates import initialize_default_templates
+        initialize_default_templates(conn)
+    except Exception:
+        pass  # Don't fail if templates can't be initialized
 
 
     conn.commit()
@@ -742,7 +810,7 @@ def db_get_note_links(
                 title=r["title"] or "",
                 description=r["description"] or "",
                 created_at=r["created_at"] or datetime.now().isoformat(timespec="seconds"),
-                last_synced=r.get("last_synced"),
+                last_synced=r["last_synced"],
             )
         )
     return links
@@ -764,7 +832,7 @@ def db_get_note_link(conn: sqlite3.Connection, link_id: int) -> Optional[NoteLin
         title=row["title"] or "",
         description=row["description"] or "",
         created_at=row["created_at"] or datetime.now().isoformat(timespec="seconds"),
-        last_synced=row.get("last_synced"),
+        last_synced=row["last_synced"],
     )
 
 
