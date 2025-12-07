@@ -24,6 +24,7 @@ from . import (
 )
 from ..logging_config import get_logger
 from ..sync_scheduler import create_default_scheduler, SyncScheduler
+from ..db import db_document_samples_asdict
 
 
 class IntegrationAPIGateway:
@@ -69,6 +70,11 @@ class IntegrationAPIGateway:
         base_actions = [
             {"name": "status", "label": "Status", "description": "Check connection status"},
             {"name": "sync", "label": "Sync", "description": "Synchronize new items"},
+            {
+                "name": "document_samples",
+                "label": "Document Samples",
+                "description": "List template-backed sample files (csv/json/pdf/xlsx/docx/txt)",
+            },
         ]
 
         specific_actions = {
@@ -87,6 +93,14 @@ class IntegrationAPIGateway:
             actions[name] = base_actions + specific_actions.get(name, [])
         actions["all"] = base_actions
         return actions
+
+    def list_document_samples(self, file_type: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Expose governed document samples for API consumers."""
+
+        samples = db_document_samples_asdict(self.conn)
+        if file_type:
+            return [sample for sample in samples if sample.get("file_type") == file_type]
+        return samples
 
     def available_integrations(self) -> Dict[str, object]:
         """Return the integration client map keyed by slug."""
@@ -144,6 +158,8 @@ class IntegrationAPIGateway:
                 return self.list_statuses()
         if action == "actions":
             return self.list_actions(None if name == "all" else name)
+        if action == "document_samples":
+            return self.list_document_samples(options.get("file_type") if isinstance(options, dict) else None)
 
         client = self._ensure_clients().get(name)
         if not client:
