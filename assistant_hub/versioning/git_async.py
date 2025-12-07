@@ -1,25 +1,81 @@
-"""Background git queue placeholder."""
+"""Background queue for non-blocking git auto-commits.
+
+Long-running integrations (OneNote sync, Excel rewrites, etc.) can push
+work onto this queue to avoid blocking the UI or scheduler while git
+commands run.
+"""
+
 from __future__ import annotations
 
-from queue import Queue
-from threading import Thread
-from typing import Iterable
+import threading
+from queue import Empty, Queue
+from typing import Iterable, Optional
 
-from assistant_hub.versioning.git_manager import GitManager
+from .git_manager import get_git_manager
+
+_job_queue: "Queue[dict]" = Queue()
+_worker: Optional[threading.Thread] = None
 
 
-class GitAsyncQueue:
-    def __init__(self, manager: GitManager):
-        self.manager = manager
-        self.queue: Queue[tuple[str, Iterable[str] | None]] = Queue()
-        self.worker = Thread(target=self._loop, daemon=True)
-        self.worker.start()
+def _worker_loop():
+    manager = get_git_manager()
+    while True:
+        job = _job_queue.get()
+        if job is None:
+            break
+        manager.auto_commit(**job)
+        _job_queue.task_done()
 
-    def enqueue(self, message: str, paths: Iterable[str] | None = None) -> None:
-        self.queue.put((message, paths))
 
-    def _loop(self) -> None:
-        while True:
-            message, paths = self.queue.get()
-            self.manager.add_and_commit(message, paths)
-            self.queue.task_done()
+def start_worker() -> None:
+    global _worker
+    if _worker is None or not _worker.is_alive():
+        _worker = threading.Thread(target=_worker_loop, daemon=True)
+        _worker.start()
+
+
+def enqueue_commit(
+    paths: Iterable[str],
+    actor: str = "AIC",
+    reason: Optional[str] = None,
+    tag: Optional[str] = None,
+    email: str = "ai@local",
+) -> None:
+    """Place an auto-commit job on the queue."""
+
+    start_worker()
+    _job_queue.put(
+        {
+            "paths": list(paths),
+            "actor": actor,
+            "reason": reason,
+            "tag": tag,
+            "email": email,
+        }
+    )
+
+
+def shutdown_worker(timeout: float = 2.0) -> None:
+    """Signal the worker to stop after processing queued jobs."""
+
+    if _worker is not None and _worker.is_alive():
+        _job_queue.put(None)
+        try:
+            _job_queue.join()
+        except Empty:
+            return
+
+
+# Backwards compatibility
+start_git_worker = start_worker
+
+
+def enqueue_git_commit(
+    paths: Iterable[str],
+    *,
+    actor: str,
+    reason: str = "",
+    tag: str = "",
+) -> None:
+    """Schedule a git auto-commit without blocking UI threads (backwards compatibility)."""
+    enqueue_commit(paths, actor=actor, reason=reason or None, tag=tag or None)
