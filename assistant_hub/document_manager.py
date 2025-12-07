@@ -16,6 +16,7 @@ from .db import (
     db_delete_note_link,
     db_get_note_link,
     db_upsert_project,
+    db_get_document_samples,
     Project,
 )
 from .versioning import enqueue_commit
@@ -452,6 +453,46 @@ def restore_document_version(
         
     except Exception as e:
         return False, str(e)
+
+
+def materialize_document_samples(
+    conn: sqlite3.Connection, project_name: str = "Samples", base_dir: Optional[Path] = None
+) -> Tuple[List[str], List[str]]:
+    """Create sample files for each known file type so AI behaviors can demonstrate governance.
+
+    Returns:
+        A tuple of (created_paths, skipped_paths)
+    """
+
+    ensure_data_directories()
+    destination = base_dir or (DOCUMENTS_BASE_DIR / project_name)
+    destination.mkdir(parents=True, exist_ok=True)
+
+    extension_map = {
+        "csv": ".csv",
+        "json": ".json",
+        "pdf": ".pdf",
+        "xlsx": ".xlsx",
+        "docx": ".docx",
+        "txt": ".txt",
+    }
+
+    created: List[str] = []
+    skipped: List[str] = []
+    for sample in db_get_document_samples(conn):
+        ext = extension_map.get(sample.file_type.lower(), ".txt")
+        filename = sanitize_filename(f"{sample.title}{ext}")
+        dest_path = destination / filename
+
+        if dest_path.exists():
+            skipped.append(str(dest_path))
+            continue
+
+        payload = sample.sample_content or sample.description or sample.title
+        dest_path.write_text(payload, encoding="utf-8")
+        created.append(str(dest_path))
+
+    return created, skipped
 
 
 def delete_document_version(
