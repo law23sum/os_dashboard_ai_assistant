@@ -12,6 +12,7 @@ from .integrations import (
     GitHubIntegration,
     NotesIntegration,
 )
+from .logging_config import get_logger
 
 
 class SyncScheduler:
@@ -23,6 +24,7 @@ class SyncScheduler:
         self.running = False
         self.thread = None
         self.integrations: Dict[str, object] = {}
+        self.logger = get_logger(self.__class__.__name__)
     
     def register_integration(self, name: str, integration):
         """Register an integration for syncing."""
@@ -48,38 +50,35 @@ class SyncScheduler:
         while self.running:
             try:
                 settings = load_settings(self.conn)
-                
+
                 # Sync based on preferences
-                if settings.data_preferences.get("notes", False):
-                    if "notes" in self.integrations:
-                        try:
-                            self.integrations["notes"].sync()
-                        except Exception:
-                            pass
-                
-                if settings.data_preferences.get("calendar", False):
-                    if "calendar" in self.integrations:
-                        try:
-                            self.integrations["calendar"].sync()
-                        except Exception:
-                            pass
-                
-                if settings.data_preferences.get("mail", False):
-                    if "mail" in self.integrations:
-                        try:
-                            self.integrations["mail"].sync()
-                        except Exception:
-                            pass
-                
+                if settings.data_preferences.get("notes", False) and "notes" in self.integrations:
+                    try:
+                        self.integrations["notes"].sync()
+                    except Exception as exc:
+                        self.logger.error("Notes sync failed: %s", exc)
+
+                if settings.data_preferences.get("calendar", False) and "calendar" in self.integrations:
+                    try:
+                        self.integrations["calendar"].sync()
+                    except Exception as exc:
+                        self.logger.error("Calendar sync failed: %s", exc)
+
+                if settings.data_preferences.get("mail", False) and "mail" in self.integrations:
+                    try:
+                        self.integrations["mail"].sync()
+                    except Exception as exc:
+                        self.logger.error("Mail sync failed: %s", exc)
+
                 # GitHub doesn't have a preference yet, sync if registered
                 if "github" in self.integrations:
                     try:
                         self.integrations["github"].sync()
-                    except Exception:
-                        pass
-                
-            except Exception:
-                pass
+                    except Exception as exc:
+                        self.logger.error("GitHub sync failed in loop: %s", exc)
+
+            except Exception as exc:
+                self.logger.exception("Sync scheduler loop error: %s", exc)
             
             # Sleep for interval
             for _ in range(self.interval):

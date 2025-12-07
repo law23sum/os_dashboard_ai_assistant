@@ -43,16 +43,16 @@ class NotesIntegration(BaseIntegration):
                         try:
                             with open(file_path, 'r', encoding='utf-8') as f:
                                 content = f.read()
-                            
+
                             # Create relative path as external_id
                             rel_path = os.path.relpath(file_path, self.notes_path)
-                            
+
                             # Extract title from first line or filename
                             lines = content.split('\n')
                             title = lines[0].strip('#').strip() if lines else Path(file).stem
                             if not title:
                                 title = Path(file).stem
-                            
+
                             self.record_item(
                                 external_id=rel_path,
                                 item_kind="note",
@@ -66,12 +66,14 @@ class NotesIntegration(BaseIntegration):
                             )
                             count += 1
                         except Exception as e:
+                            self.logger.error("Failed to index note %s: %s", file_path, e)
                             continue
-            
+
             self.update_status(True, item_count=count)
             return count
         except Exception as e:
-            self.update_status(False, str(e))
+            self.logger.exception("Notes sync failed")
+            self.update_status(False, self._safe_truncate(str(e)))
             return 0
     
     def get_status(self) -> IntegrationStatus:
