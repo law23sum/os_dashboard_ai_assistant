@@ -8,7 +8,7 @@ commands run.
 from __future__ import annotations
 
 import threading
-from queue import Queue
+from queue import Empty, Queue
 from typing import Iterable, Optional
 
 from .git_manager import get_git_manager
@@ -55,8 +55,27 @@ def enqueue_commit(
     )
 
 
-def shutdown_worker() -> None:
+def shutdown_worker(timeout: float = 2.0) -> None:
     """Signal the worker to stop after processing queued jobs."""
 
     if _worker is not None and _worker.is_alive():
         _job_queue.put(None)
+        try:
+            _job_queue.join()
+        except Empty:
+            return
+
+
+# Backwards compatibility
+start_git_worker = start_worker
+
+
+def enqueue_git_commit(
+    paths: Iterable[str],
+    *,
+    actor: str,
+    reason: str = "",
+    tag: str = "",
+) -> None:
+    """Schedule a git auto-commit without blocking UI threads (backwards compatibility)."""
+    enqueue_commit(paths, actor=actor, reason=reason or None, tag=tag or None)

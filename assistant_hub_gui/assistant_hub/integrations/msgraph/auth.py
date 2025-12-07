@@ -46,3 +46,15 @@ class GraphAuth:
         )
         response.raise_for_status()
         return response.json()["access_token"]
+
+
+# Backwards compatibility functions
+def load_credentials_from_env() -> GraphCredentials:
+    """Load Graph credentials from environment variables (backwards compatibility)."""
+    return GraphCredentials.from_env()
+
+
+def request_access_token(credentials: GraphCredentials) -> str:
+    """Request a bearer token using the client credentials flow (backwards compatibility)."""
+    auth = GraphAuth(credentials)
+    return auth.get_token()
