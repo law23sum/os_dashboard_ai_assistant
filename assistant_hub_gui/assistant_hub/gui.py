@@ -4092,8 +4092,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             try:
                 # Pass connection to GraphClient so it can load credentials from database
                 from .integrations.msgraph.client import GraphClient
-                graph_client = GraphClient(conn=self.conn, use_delegated=True)
-                client = ExcelCloudClient(graph_client, use_delegated=True)
+                graph_client = GraphClient(conn=self.conn)
+                client = ExcelCloudClient(graph_client)
                 items = client.list_workbooks()
                 
                 # Filter for Excel files
@@ -4139,8 +4139,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             try:
                 # Pass connection to GraphClient so it can load credentials from database
                 from .integrations.msgraph.client import GraphClient
-                graph_client = GraphClient(conn=self.conn, use_delegated=True)
-                client = ExcelCloudClient(graph_client, use_delegated=True)  # Reuse ExcelCloudClient for OneDrive access
+                graph_client = GraphClient(conn=self.conn)
+                client = ExcelCloudClient(graph_client)  # Reuse ExcelCloudClient for OneDrive access
                 items = client.list_workbooks()  # This lists all OneDrive files
                 
                 # Filter for Word files
@@ -4207,8 +4207,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             try:
                 # Pass connection to GraphClient so it can load credentials from database
                 from .integrations.msgraph.client import GraphClient
-                graph_client = GraphClient(conn=self.conn, use_delegated=True)
-                client = ExcelCloudClient(graph_client, use_delegated=True)  # Reuse ExcelCloudClient for OneDrive access
+                graph_client = GraphClient(conn=self.conn)
+                client = ExcelCloudClient(graph_client)  # Reuse ExcelCloudClient for OneDrive access
                 items = client.list_workbooks()  # This lists all OneDrive files
                 
                 # Filter for PDF files

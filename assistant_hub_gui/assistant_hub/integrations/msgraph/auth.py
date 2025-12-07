@@ -176,32 +176,15 @@ class GraphCredentials:
 
 
 class GraphAuth:
-    """Acquire tokens for Microsoft Graph APIs using client credentials or delegated permissions."""
+    """Acquire tokens for Microsoft Graph APIs using client credentials."""
 
     scope: str = "https://graph.microsoft.com/.default"
 
-    def __init__(self, credentials: GraphCredentials, use_delegated: bool = False):
+    def __init__(self, credentials: GraphCredentials):
         self.credentials = credentials
-        self.use_delegated = use_delegated
-        self._delegated_auth = None
-        
-        if use_delegated:
-            try:
-                from .oauth_delegated import DelegatedAuth
-                self._delegated_auth = DelegatedAuth(credentials)
-            except ImportError:
-                pass
 
     def get_token(self) -> str:
-        """Get access token using client credentials or delegated permissions."""
-        # Try delegated permissions first if enabled
-        if self.use_delegated and self._delegated_auth:
-            try:
-                return self._delegated_auth.get_valid_token()
-            except Exception as e:
-                # Fall back to client credentials if delegated fails
-                print(f"⚠️  Delegated auth failed, trying client credentials: {e}")
-        
+        """Get access token using client credentials flow."""
         # Use client credentials flow (app-only)
         # Credentials are already cleaned by __post_init__, but validate they're not empty
         if not self.credentials.tenant_id:
@@ -248,9 +231,44 @@ class GraphAuth:
                 error_code = "bad_request"
                 error_description = error_detail
             
+            # Check for AADSTS9002346 - App configured for Microsoft Account users only
+            if "AADSTS9002346" in error_description and tenant_lower not in ["consumers", "common"]:
+                # Automatically retry with consumers endpoint
+                print("⚠️  Detected Microsoft Account-only app. Retrying with /consumers endpoint...")
+                token_url_retry = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
+                response_retry = requests.post(
+                    token_url_retry,
+                    data=form_data,
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                    timeout=10,
+                )
+                if response_retry.status_code == 200:
+                    print("✓ Successfully authenticated using /consumers endpoint")
+                    return response_retry.json()["access_token"]
+                else:
+                    # Retry also failed, provide guidance
+                    raise AuthenticationError(
+                        f"❌ Azure Authentication Failed\n\n"
+                        f"Your app is configured for Microsoft Account users only (personal accounts).\n"
+                        f"Please set your Tenant ID to 'consumers' in your configuration:\n\n"
+                        f"1. Go to Settings > Integrations > Configure Microsoft Graph\n"
+                        f"2. Set Tenant ID to: consumers\n"
+                        f"3. Save and try again\n\n"
+                        f"Or update ~/.assistant_hub/azure_config.txt:\n"
+                        f"   AZURE_TENANT_ID=consumers\n\n"
+                        f"Original error: {error_description}"
+                    )
+            
             # Provide specific guidance for common 400 errors
             guidance = ""
-            if "invalid_request" in error_code.lower():
+            if "AADSTS9002346" in error_description:
+                guidance = (
+                    "\n⚠️  LIKELY CAUSE: App is configured for Microsoft Account users only.\n"
+                    "   - Your app registration is set up for personal Microsoft accounts\n"
+                    "   - Set Tenant ID to 'consumers' in your configuration\n"
+                    "   - Go to Settings > Integrations > Configure Microsoft Graph\n"
+                )
+            elif "invalid_request" in error_code.lower():
                 guidance = (
                     "\n⚠️  LIKELY CAUSE: Malformed request or missing required parameters.\n"
                     "   - Check that all credentials are properly formatted\n"
@@ -281,12 +299,13 @@ class GraphAuth:
                 f"2. Check for extra spaces, newlines, or special characters in credentials\n"
                 f"3. Check Azure Portal > App registrations > Your app:\n"
                 f"   - Certificates & secrets: Is the secret expired? Use the VALUE, not the ID\n"
-                f"   - API permissions: Ensure delegated permissions are granted:\n"
+                f"   - API permissions: Ensure required permissions are granted:\n"
                 f"     • Notes.ReadWrite (for OneNote)\n"
                 f"     • Files.ReadWrite.All (for Excel/Word)\n"
                 f"     • User.Read\n"
-                f"4. Run: python get_azure_credentials.py --test to validate credentials\n"
-                f"5. Run: python get_azure_credentials.py --force to reconfigure\n"
+                f"4. If your app is for personal Microsoft accounts, set Tenant ID to 'consumers'\n"
+                f"5. Run: python get_azure_credentials.py --test to validate credentials\n"
+                f"6. Run: python get_azure_credentials.py --force to reconfigure\n"
             )
         
         if response.status_code == 401:

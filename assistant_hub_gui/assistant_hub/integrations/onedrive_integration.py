@@ -46,7 +46,7 @@ class OneDriveIntegration(BaseIntegration):
             
             # Pass connection to GraphClient so it can load credentials from database
             # Use delegated auth for /me/ endpoints (OneDrive typically uses /me/drive)
-            graph_client = GraphClient(conn=self.conn, use_delegated=True)
+            graph_client = GraphClient(conn=self.conn)
             self.client = OneDriveClient(graph_client)
             self.service = OneDriveService(self.sync_root, self.client)
             
@@ -57,10 +57,7 @@ class OneDriveIntegration(BaseIntegration):
         except Exception as e:
             error_msg = str(e)
             if "credentials" in error_msg.lower() or "auth" in error_msg.lower() or "401" in error_msg or "400" in error_msg:
-                if "delegated" in error_msg.lower() or "/me/" in error_msg.lower():
-                    self.update_status(False, "Run: python authenticate_azure_delegated.py to set up delegated auth.")
-                else:
-                    self.update_status(False, "Not authenticated. Configure Microsoft Graph in Tools & Operations.")
+                self.update_status(False, "Not authenticated. Configure Microsoft Graph in Tools & Operations.")
             elif "Module" in error_msg or "ImportError" in error_msg or "No module" in error_msg:
                 self.update_status(False, "Required modules not installed. Check dependencies.")
             else:

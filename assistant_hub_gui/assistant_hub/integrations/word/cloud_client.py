@@ -10,9 +10,8 @@ from ..msgraph.client import GraphClient
 class WordCloudClient:
     """Minimal client for working with cloud-hosted Word documents."""
 
-    def __init__(self, graph: GraphClient | None = None, use_delegated: bool = True):
-        # /me/ endpoints require delegated permissions, so default to True
-        self.graph = graph or GraphClient(use_delegated=use_delegated)
+    def __init__(self, graph: GraphClient | None = None):
+        self.graph = graph or GraphClient()
 
     def list_documents(self) -> List[Dict[str, Any]]:
         return self.graph.get("/me/drive/root/children").get("value", [])
