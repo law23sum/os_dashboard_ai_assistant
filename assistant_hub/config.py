@@ -9,6 +9,8 @@ from typing import Dict, Optional
 ROOT_DIR = Path(__file__).resolve().parent
 DATA_DIR = ROOT_DIR / "data"
 STATE_FILE = DATA_DIR / "state.json"
+AUDIT_LOG_FILE = DATA_DIR / "audit_log.jsonl"
+DELIVERABLES_DIR = DATA_DIR / "deliverables"
 
 
 @dataclass
@@ -32,6 +34,8 @@ class AppConfig:
     graph: GraphConfig = field(default_factory=GraphConfig)
     data_dir: Path = DATA_DIR
     state_file: Path = STATE_FILE
+    audit_log_file: Path = AUDIT_LOG_FILE
+    deliverables_dir: Path = DELIVERABLES_DIR
     extra: Dict[str, str] = field(default_factory=dict)
 
     @classmethod
