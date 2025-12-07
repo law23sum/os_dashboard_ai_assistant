@@ -1,14 +1,33 @@
-"""High-level Excel workflows used by the dashboard."""
+"""Excel service orchestrating local/cloud operations with AI."""
+
 from __future__ import annotations
 
+import pandas as pd
 from typing import Dict, List
 
-from assistant_hub.versioning import enqueue_git_commit
+from ...ai_layer.tools import excel_generate_pandas_code
+from ...versioning import enqueue_commit, enqueue_git_commit
+from .cloud_client import ExcelCloudClient, CloudExcelClient
+from .local_client import load_sheet, save_sheet, LocalWorkbook
 
-from .cloud_client import CloudExcelClient
-from .local_client import LocalWorkbook
+
+class ExcelService:
+    """Provide higher-level Excel actions for the assistant hub."""
+
+    def __init__(self, cloud: ExcelCloudClient | None = None):
+        self.cloud = cloud or ExcelCloudClient()
+
+    def summarize_sheet(self, workbook_path: str, sheet_name: str, instruction: str, actor: str = "AIC") -> List[str]:
+        df = load_sheet(workbook_path, sheet_name)
+        code = excel_generate_pandas_code(df.head(20).to_markdown(index=False), instruction)
+        local_vars: dict = {"df": df.copy()}
+        exec(code, {}, local_vars)
+        result_df: pd.DataFrame = local_vars.get("result_df", df)
+        save_sheet(workbook_path, "Summary", result_df)
+        return [workbook_path]
 
 
+# Backwards compatibility functions
 def summarize_local_workbook(path: str, instruction: str, *, actor: str = "AIC") -> Dict[str, str]:
     """Store a text summary alongside a local workbook and auto-commit it."""
     workbook = LocalWorkbook(path)
@@ -19,7 +38,7 @@ def summarize_local_workbook(path: str, instruction: str, *, actor: str = "AIC")
 
 
 def export_cloud_range_to_csv(
-    client: CloudExcelClient,
+    client: CloudExcelClient | ExcelCloudClient,
     drive_item_id: str,
     worksheet_id: str,
     address: str,
