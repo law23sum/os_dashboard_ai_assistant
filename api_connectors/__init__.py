@@ -4,10 +4,10 @@ from typing import Any, Dict, Optional
 import logging
 
 from .base import IntegrationAPIGateway
+from .microsoft_graph import MicrosoftGraphConnector, ResourceRef
 from .universal_connector import (
-    AppleNotesConnector,
+    AuthenticationException,
     BaseConnector,
-    CIRDocument,
     ConnectorCapability,
     ConnectorConfig,
     ConnectorManager,
@@ -15,10 +15,17 @@ from .universal_connector import (
     ContentBlock,
     ContentBlockType,
     MicrosoftGraphConnector,
+    GitConnector,
     OfficeFileConnector,
     OpenAIConnector,
+    ConnectorException,
+    ConnectorHealthMonitor,
     OperationResult,
     Section,
+    OperationStatus,
+    RateLimitException,
+    ResourceNotFoundException,
+    UnsupportedOperationException,
 )
 from .git import GitConnector
 from .pdf import PDFConnector
@@ -27,23 +34,30 @@ logger = logging.getLogger(__name__)
 
 __version__ = "1.1.0"
 __all__ = [
-    "AppleNotesConnector",
+    "AuthenticationException",
     "BaseConnector",
-    "CIRDocument",
     "ConnectorCapability",
     "ConnectorConfig",
-    "ConnectorManager",
-    "ConnectorRegistry",
-    "ContentBlock",
-    "ContentBlockType",
-    "GitConnector",
+    "ConnectorException",
+    "ConnectorHealthMonitor",
     "IntegrationAPIGateway",
     "OperationResult",
     "MicrosoftGraphConnector",
     "OfficeFileConnector",
     "PDFConnector",
     "OpenAIConnector",
+    "MicrosoftGraphConnector",
+    "OfficeFileConnector",
+    "OpenAIConnector",
+    "OperationResult",
+    "PDFConnector",
+    "ResourceRef",
     "Section",
+    "OperationResult",
+    "OperationStatus",
+    "RateLimitException",
+    "ResourceNotFoundException",
+    "UnsupportedOperationException",
     "get_connector",
     "list_available_connectors",
     "register_connector",
@@ -63,7 +77,7 @@ def list_available_connectors() -> Dict[str, Any]:
     return _connector_registry.copy()
 
 
-def register_connector(name: str, connector_class: Any):
+def register_connector(name: str, connector_class: Any) -> None:
     """Register a connector class."""
     _connector_registry[name] = connector_class
     logger.info(f"Registered connector: {name}")
