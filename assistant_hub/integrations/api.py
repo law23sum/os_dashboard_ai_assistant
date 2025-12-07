@@ -92,6 +92,26 @@ class IntegrationAPIGateway:
         """Return the integration client map keyed by slug."""
         return self._ensure_clients()
 
+    def list_actions(self, name: Optional[str] = None) -> Dict[str, Any]:
+        """Return action metadata for integrations.
+
+        Args:
+            name: Optional integration name. When provided we only return actions
+                for that integration; otherwise we return a map for all.
+        """
+
+        integrations = self._ensure_clients()
+        if name:
+            client = integrations.get(name)
+            if not client:
+                raise ValueError(f"Integration '{name}' is not available")
+            return client.available_actions() if hasattr(client, "available_actions") else {}
+
+        return {
+            key: (client.available_actions() if hasattr(client, "available_actions") else {})
+            for key, client in integrations.items()
+        }
+
     def list_statuses(self) -> Dict[str, Any]:
         """Return status dictionaries for all integrations."""
         statuses = {}
@@ -111,26 +131,31 @@ class IntegrationAPIGateway:
 
     def call_action(self, name: str, action: str = "status", options: Optional[Dict[str, Any]] = None) -> Any:
         """Call a supported action on an integration or all integrations."""
+
         name = name or "all"
         action = action or "status"
         options = options or {}
 
+        # Special dispatcher actions
         if action == "sync":
             return self.scheduler.sync_now(None if name == "all" else name)
-
         if action == "status":
             if name == "all":
                 return self.list_statuses()
-            client = self._ensure_clients().get(name)
-            if not client:
-                raise ValueError(f"Integration '{name}' is not available")
-            status = client.get_status()
-            return {
-                "connected": status.connected,
-                "last_sync": status.last_sync,
-                "error": status.error,
-                "item_count": status.item_count,
-            }
+        if action == "actions":
+            return self.list_actions(None if name == "all" else name)
+
+        client = self._ensure_clients().get(name)
+        if not client:
+            raise ValueError(f"Integration '{name}' is not available")
+
+        if hasattr(client, "invoke_action"):
+            return client.invoke_action(action, options)
+
+        if hasattr(client, action):
+            attr = getattr(client, action)
+            if callable(attr):
+                return attr(**options) if options else attr()
 
         if action == "list_actions":
             actions = self.integration_actions()
