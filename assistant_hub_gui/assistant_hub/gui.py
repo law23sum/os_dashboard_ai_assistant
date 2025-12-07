@@ -2782,6 +2782,86 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.refresh_dashboard()
         messagebox.showinfo("Settings", "Settings saved.")
 
+    def on_export_tasks(self, format_type: str):
+        """Export tasks to CSV or JSON file."""
+        try:
+            if format_type == "csv":
+                filename = filedialog.asksaveasfilename(
+                    defaultextension=".csv",
+                    filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+                    initialfile=f"tasks_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+                )
+                if filename:
+                    export_tasks_to_csv(self.conn, filename)
+                    messagebox.showinfo("Export", f"Tasks exported to {filename}")
+            elif format_type == "json":
+                filename = filedialog.asksaveasfilename(
+                    defaultextension=".json",
+                    filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+                    initialfile=f"tasks_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                )
+                if filename:
+                    export_tasks_to_json(self.conn, filename)
+                    messagebox.showinfo("Export", f"Tasks exported to {filename}")
+        except Exception as e:
+            messagebox.showerror("Export Error", f"Failed to export tasks: {e}")
+
+    def on_export_projects(self):
+        """Export projects to JSON file."""
+        try:
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".json",
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+                initialfile=f"projects_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            )
+            if filename:
+                export_projects_to_json(self.conn, filename)
+                messagebox.showinfo("Export", f"Projects exported to {filename}")
+        except Exception as e:
+            messagebox.showerror("Export Error", f"Failed to export projects: {e}")
+
+    def on_export_backup(self):
+        """Export full database backup to JSON file."""
+        try:
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".json",
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+                initialfile=f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            )
+            if filename:
+                export_full_backup(self.conn, filename)
+                messagebox.showinfo("Export", f"Full backup exported to {filename}")
+        except Exception as e:
+            messagebox.showerror("Export Error", f"Failed to export backup: {e}")
+
+    def on_import_tasks(self):
+        """Import tasks from CSV or JSON file."""
+        try:
+            filename = filedialog.askopenfilename(
+                filetypes=[
+                    ("CSV files", "*.csv"),
+                    ("JSON files", "*.json"),
+                    ("All files", "*.*")
+                ]
+            )
+            if filename:
+                imported = 0
+                if filename.endswith('.csv'):
+                    imported = import_tasks_from_csv(self.conn, filename)
+                elif filename.endswith('.json'):
+                    imported = import_tasks_from_json(self.conn, filename)
+                else:
+                    messagebox.showwarning("Import Error", "Please select a CSV or JSON file.")
+                    return
+                
+                if imported > 0:
+                    messagebox.showinfo("Import", f"Successfully imported {imported} task(s).")
+                    self.refresh_all()
+                else:
+                    messagebox.showwarning("Import", "No tasks were imported. Please check the file format.")
+        except Exception as e:
+            messagebox.showerror("Import Error", f"Failed to import tasks: {e}")
+
     # ---------- Global ----------
 
     def refresh_all(self):
