@@ -1,6 +1,7 @@
 """Gmail integration."""
 
 import os
+from pathlib import Path
 from typing import Dict, List
 import sqlite3
 
@@ -12,22 +13,33 @@ class GmailIntegration(BaseIntegration):
     
     def __init__(self, conn: sqlite3.Connection):
         super().__init__(conn, "Gmail", "mail")
-        self.credentials_path = os.path.expanduser("~/.assistant_hub/gmail_credentials.json")
+        # Check multiple locations for credentials
+        project_root = Path(__file__).parent.parent.parent.parent
+        root_creds = project_root / "client_secret_788356908604-ro9n0fq4p70q569237314n12u84jnren.apps.googleusercontent.com.json"
+        
+        if root_creds.exists():
+            self.credentials_path = str(root_creds)
+        else:
+            self.credentials_path = os.path.expanduser("~/.assistant_hub/gmail_credentials.json")
         self.token_path = os.path.expanduser("~/.assistant_hub/gmail_token.json")
     
     def authenticate(self) -> bool:
         """Authenticate with Gmail API."""
-        if not os.path.exists(self.credentials_path):
-            self.update_status(False, "Credentials not configured. Please set up OAuth2.")
+        try:
+            if not os.path.exists(self.credentials_path):
+                self.update_status(False, "Credentials not configured. Set up OAuth2 in Tools & Operations.")
+                return False
+            
+            if not os.path.exists(self.token_path):
+                self.update_status(False, "Not authenticated. Complete OAuth2 flow in Tools & Operations.")
+                return False
+            
+            # TODO: Verify token is valid
+            self.update_status(True)
+            return True
+        except Exception as e:
+            self.update_status(False, f"Gmail auth error: {str(e)[:50]}")
             return False
-        
-        if not os.path.exists(self.token_path):
-            self.update_status(False, "Not authenticated. Please complete OAuth2 flow.")
-            return False
-        
-        # TODO: Verify token is valid
-        self.update_status(True)
-        return True
     
     def sync(self) -> int:
         """Sync emails."""

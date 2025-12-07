@@ -14,7 +14,7 @@ class GraphClient:
 
     base_url = "https://graph.microsoft.com/v1.0"
 
-    def __init__(self, auth: Optional[GraphAuth] = None, token_provider: Optional[Callable[[], str]] = None, conn: Optional[sqlite3.Connection] = None):
+    def __init__(self, auth: Optional[GraphAuth] = None, token_provider: Optional[Callable[[], str]] = None, conn: Optional[sqlite3.Connection] = None, use_delegated: bool = False):
         if token_provider:
             # Backwards compatibility: create a GraphAuth wrapper
             class TokenProviderAuth:
@@ -23,7 +23,9 @@ class GraphClient:
             self.auth = TokenProviderAuth()
         else:
             # Pass connection to from_env so it can load from database
-            self.auth = auth or GraphAuth(GraphCredentials.from_env(conn=conn))
+            # Try delegated auth if requested (useful for /me/ endpoints and personal accounts)
+            credentials = GraphCredentials.from_env(conn=conn)
+            self.auth = auth or GraphAuth(credentials, use_delegated=use_delegated)
 
     def _headers(self) -> Dict[str, str]:
         token = self.auth.get_token()
@@ -33,12 +35,20 @@ class GraphClient:
         response = requests.get(f"{self.base_url}{path}", headers=self._headers(), timeout=10, **kwargs)
         if response.status_code == 401:
             error_detail = response.text
-            raise requests.HTTPError(
-                f"401 Unauthorized accessing {path}\n"
-                f"This endpoint requires delegated permissions (user authentication).\n"
-                f"Client credentials flow (app-only) may not work for /me/ endpoints.\n"
-                f"Error: {error_detail}"
-            )
+            # Check if this is a /me/ endpoint that might need delegated permissions
+            if "/me/" in path:
+                raise requests.HTTPError(
+                    f"401 Unauthorized accessing {path}\n"
+                    f"This endpoint requires delegated permissions (user authentication).\n"
+                    f"Run: python authenticate_azure_delegated.py to set up delegated auth.\n"
+                    f"Then use GraphClient(use_delegated=True) or recreate with delegated auth.\n"
+                    f"Error: {error_detail}"
+                )
+            else:
+                raise requests.HTTPError(
+                    f"401 Unauthorized accessing {path}\n"
+                    f"Error: {error_detail}"
+                )
         response.raise_for_status()
         return response.json()
 

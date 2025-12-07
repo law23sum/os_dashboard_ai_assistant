@@ -18,12 +18,18 @@ class NotesIntegration(BaseIntegration):
     
     def authenticate(self) -> bool:
         """No authentication needed for local files."""
-        if not os.path.exists(self.notes_path):
-            try:
-                os.makedirs(self.notes_path, exist_ok=True)
-            except Exception:
-                return False
-        return True
+        try:
+            if not os.path.exists(self.notes_path):
+                try:
+                    os.makedirs(self.notes_path, exist_ok=True)
+                except Exception as e:
+                    self.update_status(False, f"Cannot create notes directory: {str(e)[:50]}")
+                    return False
+            self.update_status(True)
+            return True
+        except Exception as e:
+            self.update_status(False, f"Notes directory error: {str(e)[:50]}")
+            return False
     
     def sync(self) -> int:
         """Scan and index note files."""

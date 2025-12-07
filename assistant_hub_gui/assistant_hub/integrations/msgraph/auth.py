@@ -20,6 +20,27 @@ class GraphCredentials:
     tenant_id: str
     client_id: str
     client_secret: str
+    
+    def __post_init__(self):
+        """Automatically clean credentials when object is created."""
+        def clean_credential(value: str) -> str:
+            """Thoroughly clean a credential value."""
+            if not value:
+                return ""
+            # Remove all whitespace including newlines, tabs, carriage returns
+            cleaned = value.strip()
+            # Remove all types of whitespace characters
+            cleaned = "".join(cleaned.split())  # This removes all whitespace
+            # Also explicitly remove common problematic characters
+            cleaned = cleaned.replace("\n", "").replace("\r", "").replace("\t", "")
+            cleaned = cleaned.replace("\u200B", "")  # Zero-width space
+            cleaned = cleaned.replace("\uFEFF", "")  # BOM
+            return cleaned
+        
+        # Clean all fields
+        self.tenant_id = clean_credential(self.tenant_id)
+        self.client_id = clean_credential(self.client_id)
+        self.client_secret = clean_credential(self.client_secret)
 
     @classmethod
     def from_env(cls, conn=None) -> "GraphCredentials":
@@ -58,7 +79,8 @@ class GraphCredentials:
                             if "=" in line and not line.startswith("#"):
                                 key, value = line.split("=", 1)
                                 key = key.strip()
-                                value = value.strip()
+                                # Clean value: remove all whitespace, newlines, tabs
+                                value = value.strip().replace("\n", "").replace("\r", "").replace("\t", "")
                                 # Only set if not already loaded
                                 if key == "AZURE_TENANT_ID" and not tenant_id:
                                     tenant_id = value
@@ -69,6 +91,45 @@ class GraphCredentials:
                 except Exception:
                     # If file read fails, continue with what we have
                     pass
+        
+        # Priority 4: Try loading from Microsoft Graph JSON file (for client_id only)
+        if not client_id:
+            try:
+                # Try to find the JSON file in project root
+                current_file = Path(__file__)
+                # Navigate up from integrations/msgraph/auth.py to project root
+                project_root = current_file.parent.parent.parent.parent
+                ms_graph_json = project_root / "os_dashboard_ai_assistant(Microsoft Graph format).json"
+                
+                if ms_graph_json.exists():
+                    import json
+                    with open(ms_graph_json, 'r') as f:
+                        ms_data = json.load(f)
+                    # Extract app_id which is the client_id
+                    if ms_data.get("appId"):
+                        client_id = ms_data["appId"]
+            except Exception:
+                # If JSON parsing fails, continue with what we have
+                pass
+        
+        # Clean all credentials to remove any whitespace issues
+        def clean_credential(value: str) -> str:
+            """Thoroughly clean a credential value."""
+            if not value:
+                return ""
+            # Remove all whitespace including newlines, tabs, carriage returns
+            cleaned = value.strip()
+            # Remove all types of whitespace characters
+            cleaned = "".join(cleaned.split())  # This removes all whitespace
+            # Also explicitly remove common problematic characters
+            cleaned = cleaned.replace("\n", "").replace("\r", "").replace("\t", "")
+            cleaned = cleaned.replace("\u200B", "")  # Zero-width space
+            cleaned = cleaned.replace("\uFEFF", "")  # BOM
+            return cleaned
+        
+        tenant_id = clean_credential(tenant_id) if tenant_id else ""
+        client_id = clean_credential(client_id) if client_id else ""
+        client_secret = clean_credential(client_secret) if client_secret else ""
         
         # Validate that we have all credentials
         if not tenant_id or not client_id or not client_secret:
@@ -88,33 +149,146 @@ class GraphCredentials:
                 f"Run: python get_azure_credentials.py to configure."
             )
         
-        return cls(
+        # Create instance - __post_init__ will clean the values
+        instance = cls(
             tenant_id=tenant_id,
             client_id=client_id,
             client_secret=client_secret,
         )
+        
+        # Additional validation after cleaning
+        if not instance.tenant_id:
+            raise ValueError("Tenant ID is empty after cleaning")
+        if not instance.client_id:
+            raise ValueError("Client ID is empty after cleaning")
+        if not instance.client_secret:
+            raise ValueError("Client Secret is empty after cleaning")
+        
+        # Warn if client secret looks like a Secret ID (GUID) instead of Secret Value
+        if "-" in instance.client_secret and len(instance.client_secret) == 36:
+            raise ValueError(
+                "Client Secret appears to be a Secret ID (GUID) instead of Secret Value.\n"
+                "Please use the SECRET VALUE from Azure Portal (typically 40+ characters),\n"
+                "not the Secret ID (which is a GUID)."
+            )
+        
+        return instance
 
 
 class GraphAuth:
-    """Acquire tokens for Microsoft Graph APIs using client credentials."""
+    """Acquire tokens for Microsoft Graph APIs using client credentials or delegated permissions."""
 
     scope: str = "https://graph.microsoft.com/.default"
 
-    def __init__(self, credentials: GraphCredentials):
+    def __init__(self, credentials: GraphCredentials, use_delegated: bool = False):
         self.credentials = credentials
+        self.use_delegated = use_delegated
+        self._delegated_auth = None
+        
+        if use_delegated:
+            try:
+                from .oauth_delegated import DelegatedAuth
+                self._delegated_auth = DelegatedAuth(credentials)
+            except ImportError:
+                pass
 
     def get_token(self) -> str:
-        token_url = f"https://login.microsoftonline.com/{self.credentials.tenant_id}/oauth2/v2.0/token"
+        """Get access token using client credentials or delegated permissions."""
+        # Try delegated permissions first if enabled
+        if self.use_delegated and self._delegated_auth:
+            try:
+                return self._delegated_auth.get_valid_token()
+            except Exception as e:
+                # Fall back to client credentials if delegated fails
+                print(f"⚠️  Delegated auth failed, trying client credentials: {e}")
+        
+        # Use client credentials flow (app-only)
+        # Credentials are already cleaned by __post_init__, but validate they're not empty
+        if not self.credentials.tenant_id:
+            raise AuthenticationError("Tenant ID is empty")
+        if not self.credentials.client_id:
+            raise AuthenticationError("Client ID is empty")
+        if not self.credentials.client_secret:
+            raise AuthenticationError("Client Secret is empty")
+        
+        # Build token URL - credentials are already cleaned
+        tenant_lower = self.credentials.tenant_id.lower()
+        # Support special tenant values: "consumers" (personal accounts), "common" (both), or specific tenant ID
+        if tenant_lower in ["consumers", "common", "organizations"]:
+            # Use the special endpoint directly
+            token_url = f"https://login.microsoftonline.com/{tenant_lower}/oauth2/v2.0/token"
+        else:
+            # Use specific tenant ID (already cleaned)
+            token_url = f"https://login.microsoftonline.com/{self.credentials.tenant_id}/oauth2/v2.0/token"
+        
+        # Prepare form data - credentials are already cleaned by __post_init__
+        form_data = {
+            "client_id": self.credentials.client_id,
+            "client_secret": self.credentials.client_secret,
+            "scope": self.scope,
+            "grant_type": "client_credentials",
+        }
+        
+        # Make request with proper headers
         response = requests.post(
             token_url,
-            data={
-                "client_id": self.credentials.client_id,
-                "client_secret": self.credentials.client_secret,
-                "scope": self.scope,
-                "grant_type": "client_credentials",
-            },
+            data=form_data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
             timeout=10,
         )
+        
+        # Handle 400 Bad Request errors
+        if response.status_code == 400:
+            error_detail = response.text
+            try:
+                error_json = response.json()
+                error_code = error_json.get("error", "unknown")
+                error_description = error_json.get("error_description", error_detail)
+            except:
+                error_code = "bad_request"
+                error_description = error_detail
+            
+            # Provide specific guidance for common 400 errors
+            guidance = ""
+            if "invalid_request" in error_code.lower():
+                guidance = (
+                    "\n⚠️  LIKELY CAUSE: Malformed request or missing required parameters.\n"
+                    "   - Check that all credentials are properly formatted\n"
+                    "   - Verify Tenant ID, Client ID, and Client Secret are correct\n"
+                    "   - Ensure credentials don't have extra spaces or newlines\n"
+                )
+            elif "invalid_client" in error_code.lower() or "AADSTS7000215" in error_description:
+                guidance = (
+                    "\n⚠️  LIKELY CAUSE: Invalid client secret or expired secret.\n"
+                    "   - Check Azure Portal > App registrations > Your app > Certificates & secrets\n"
+                    "   - Make sure you're using the SECRET VALUE (not the Secret ID)\n"
+                    "   - Create a new secret if the current one has expired\n"
+                )
+            elif "invalid_scope" in error_code.lower():
+                guidance = (
+                    "\n⚠️  LIKELY CAUSE: Invalid scope or permissions not configured.\n"
+                    "   - Check Azure Portal > App registrations > Your app > API permissions\n"
+                    "   - Ensure required permissions are granted\n"
+                )
+            
+            raise AuthenticationError(
+                f"❌ Azure Authentication Failed (400 Bad Request)\n\n"
+                f"Error Code: {error_code}\n"
+                f"Error: {error_description}\n"
+                f"{guidance}"
+                f"\n📋 TROUBLESHOOTING STEPS:\n"
+                f"1. Verify credentials in ~/.assistant_hub/azure_config.txt or environment variables\n"
+                f"2. Check for extra spaces, newlines, or special characters in credentials\n"
+                f"3. Check Azure Portal > App registrations > Your app:\n"
+                f"   - Certificates & secrets: Is the secret expired? Use the VALUE, not the ID\n"
+                f"   - API permissions: Ensure delegated permissions are granted:\n"
+                f"     • Notes.ReadWrite (for OneNote)\n"
+                f"     • Files.ReadWrite.All (for Excel/Word)\n"
+                f"     • User.Read\n"
+                f"4. Run: python get_azure_credentials.py --test to validate credentials\n"
+                f"5. Run: python get_azure_credentials.py --force to reconfigure\n"
+            )
+        
         if response.status_code == 401:
             error_detail = response.text
             try:

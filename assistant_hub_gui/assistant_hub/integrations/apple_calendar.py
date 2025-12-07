@@ -32,11 +32,11 @@ class AppleCalendarIntegration(BaseIntegration):
     def authenticate(self) -> bool:
         """Check EventKit authorization status."""
         if not EVENTKIT_AVAILABLE:
-            self.update_status(False, "EventKit not available. Install PyObjC: pip install pyobjc-framework-EventKit")
+            self.update_status(False, "EventKit not available. Install: pip install pyobjc-framework-EventKit")
             return False
         
         if sys.platform != "darwin":
-            self.update_status(False, "Apple Calendar integration is only available on macOS")
+            self.update_status(False, "Apple Calendar only available on macOS")
             return False
         
         try:

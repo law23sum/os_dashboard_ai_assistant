@@ -6,9 +6,17 @@ from typing import Dict
 import sqlite3
 
 from .base import BaseIntegration, IntegrationStatus
-from .onenote.service import OneNoteService
-from .onenote import OneNoteClient
-from .msgraph import GraphClient
+
+# Optional imports - will be checked in authenticate()
+try:
+    from .onenote.service import OneNoteService
+    from .onenote import OneNoteClient
+    from .msgraph import GraphClient
+    from .msgraph.auth import GraphCredentials
+    ONENOTE_MODULES_AVAILABLE = True
+except ImportError:
+    ONENOTE_MODULES_AVAILABLE = False
+    GraphCredentials = None
 
 
 class OneNoteIntegration(BaseIntegration):
@@ -22,21 +30,34 @@ class OneNoteIntegration(BaseIntegration):
     
     def authenticate(self) -> bool:
         """Authenticate with Microsoft Graph for OneNote."""
+        if not ONENOTE_MODULES_AVAILABLE:
+            self.update_status(False, "OneNote modules not available. Install required dependencies.")
+            return False
+        
         try:
+            # GraphCredentials should be imported at module level, but check if available
+            if GraphCredentials is None:
+                try:
+                    from .msgraph.auth import GraphCredentials
+                except ImportError as e:
+                    module_name = str(e).split("'")[1] if "'" in str(e) else "msgraph.auth"
+                    self.update_status(False, f"Module not found: {module_name}. Install required dependencies.")
+                    return False
+            
             # Check if credentials are configured first (pass connection to load from DB)
-            from ..msgraph.auth import GraphCredentials
             try:
                 creds = GraphCredentials.from_env(conn=self.conn)
                 if not creds.tenant_id or not creds.client_id or not creds.client_secret:
                     self.update_status(False, "Not authenticated. Configure Microsoft Graph credentials.")
                     return False
             except Exception as e:
-                self.update_status(False, f"Credentials error: {str(e)}")
+                self.update_status(False, f"Credentials error: {str(e)[:50]}")
                 return False
             
             # Pass connection to GraphClient so it can load credentials from database
-            graph_client = GraphClient(conn=self.conn)
-            self.client = OneNoteClient(graph_client)
+            # Use delegated auth for /me/ endpoints
+            graph_client = GraphClient(conn=self.conn, use_delegated=True)
+            self.client = OneNoteClient(graph_client, use_delegated=True)
             self.service = OneNoteService(self.mirror_root, self.client)
             
             # Try to list notebooks to verify auth
@@ -49,10 +70,15 @@ class OneNoteIntegration(BaseIntegration):
             if "401" in error_msg or "Unauthorized" in error_msg:
                 self.update_status(False, "Authentication failed. Check credentials and permissions.")
             elif "credentials" in error_msg.lower() or "auth" in error_msg.lower() or "Authentication" in error_msg:
-                self.update_status(False, "Not authenticated. Configure Microsoft Graph credentials.")
+                if "delegated" in error_msg.lower() or "/me/" in error_msg.lower():
+                    self.update_status(False, "Run: python authenticate_azure_delegated.py to set up delegated auth.")
+                else:
+                    self.update_status(False, "Not authenticated. Configure Microsoft Graph credentials.")
+            elif "Module" in error_msg or "ImportError" in error_msg or "No module" in error_msg:
+                self.update_status(False, "Required modules not installed. Check dependencies.")
             else:
                 # Truncate long error messages for display
-                display_msg = error_msg[:100] + "..." if len(error_msg) > 100 else error_msg
+                display_msg = error_msg[:50] + "..." if len(error_msg) > 50 else error_msg
                 self.update_status(False, display_msg)
             return False
     
