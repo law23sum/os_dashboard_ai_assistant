@@ -44,4 +44,4 @@ This document captures the broader societal impact of the OS Dashboard AI Assist
 - Marks the shift toward AI-powered cognitive infrastructure that supports thinking itself.
 
 ## Next Steps
-If needed, we can extend this document into a white paper, investor-ready pitch section on "Cognitive Infrastructure," a visionary product manifesto, diagrams, or macroeconomic projections aligned with the capabilities above.
+Refer to [GLOBAL_IMPACT_WHITE_PAPER.md](GLOBAL_IMPACT_WHITE_PAPER.md) for an expanded narrative covering structural, societal, economic, and cognitive impacts. Additional collateral can include an investor-ready pitch section on "Cognitive Infrastructure," a visionary product manifesto, diagram packs, or macroeconomic projections aligned with the capabilities above.
