@@ -1,231 +1,110 @@
-"""Entry point for the osdash CLI."""
+"""Main CLI entrypoint for osdash command."""
+
 from __future__ import annotations
 
-import json
+import argparse
+import sys
 from pathlib import Path
-import click
-from rich.console import Console
-from rich.table import Table
 
-from assistant_hub.config import AppConfig
-from assistant_hub.core.models import AssistantState, Project, Task
-from assistant_hub.core.routing.router import AgentRouter
-from assistant_hub.core.state.json_store import JSONStateStore
-from assistant_hub.core.audit import AuditLogger
-from assistant_hub.ai.openai_client import OpenAIClient
-from assistant_hub.ai.agents.aic import AICAgent
-from assistant_hub.ai.agents.aria import AriaAgent
-from assistant_hub.ai.agents.sora import SoraAgent
-from assistant_hub.integrations.msgraph.auth import GraphAuthenticator
-from assistant_hub.integrations.msgraph.client import GraphClient
-from assistant_hub.integrations.onenote.service import OneNoteService
-from assistant_hub.integrations.onenote.client import OneNoteClient
-from assistant_hub.integrations.excel.service import ExcelService
-from assistant_hub.integrations.excel.cloud_client import ExcelCloudClient
-from assistant_hub.integrations.word.service import WordService
-from assistant_hub.integrations.software_locator import SoftwareLocator
-from assistant_hub.ai.workflows import clean_notebook_workflow, knowledge_pipeline
-from assistant_hub.versioning.git_manager import GitManager
-
-console = Console()
-
-
-@click.group()
-@click.pass_context
-def cli(ctx: click.Context) -> None:
-    cfg = AppConfig.from_env()
-    store = JSONStateStore(cfg.state_file)
-    state = store.load()
-    router = AgentRouter()
-    client = OpenAIClient(cfg.openai)
-    router.register(AICAgent(client))
-    router.register(AriaAgent(client))
-    router.register(SoraAgent(client))
-
-    auth = GraphAuthenticator(cfg.graph.tenant_id, cfg.graph.client_id, cfg.graph.client_secret)
-    graph_client = GraphClient(auth)
-    onenote = OneNoteService(OneNoteClient(graph_client))
-    excel = ExcelService(ExcelCloudClient(graph_client))
-    word = WordService()
-    locator = SoftwareLocator()
-    git_manager = GitManager()
-    audit = AuditLogger(cfg.audit_log_file, git_manager=git_manager)
-
-    ctx.obj = {
-        "cfg": cfg,
-        "store": store,
-        "state": state,
-        "router": router,
-        "onenote": onenote,
-        "excel": excel,
-        "word": word,
-        "locator": locator,
-        "audit": audit,
-    }
-
-
-@cli.group()
-@click.pass_context
-def projects(ctx: click.Context) -> None:
-    """Manage projects."""
-
-
-@projects.command("list")
-@click.pass_context
-def projects_list(ctx: click.Context) -> None:
-    state: AssistantState = ctx.obj["state"]
-    table = Table(title="Projects")
-    table.add_column("Name")
-    table.add_column("Description")
-    if not state.projects:
-        console.print("No projects yet. Use 'osdash projects add' to create one.")
-        return
-    for project in state.projects:
-        table.add_row(project.name, project.description)
-    console.print(table)
-
-
-@projects.command("add")
-@click.argument("name")
-@click.option("--description", default="", help="Project description")
-@click.pass_context
-def projects_add(ctx: click.Context, name: str, description: str) -> None:
-    state: AssistantState = ctx.obj["state"]
-    state.projects.append(Project(name=name, description=description))
-    ctx.obj["store"].save(state)
-    console.print(f"Added project '{name}'")
-
-
-@cli.group()
-@click.pass_context
-def onenote(ctx: click.Context) -> None:
-    """Interact with OneNote."""
-
-
-@onenote.command("notebooks")
-@click.pass_context
-def onenote_notebooks(ctx: click.Context) -> None:
-    service: OneNoteService = ctx.obj["onenote"]
-    data = service.notebooks()
-    console.print_json(json.dumps(data))
-
-
-@cli.group()
-@click.pass_context
-def excel(ctx: click.Context) -> None:
-    """Excel helpers."""
-
-
-@excel.command("workbooks")
-@click.pass_context
-def excel_workbooks(ctx: click.Context) -> None:
-    service: ExcelService = ctx.obj["excel"]
-    console.print_json(json.dumps(service.workbooks()))
-
-
-@excel.command("summarize-local")
-@click.argument("path")
-@click.pass_context
-def excel_summarize(ctx: click.Context, path: str) -> None:
-    service: ExcelService = ctx.obj["excel"]
-    console.print(service.summarize_local(path))
-
-
-@cli.group()
-@click.pass_context
-def word(ctx: click.Context) -> None:
-    """Word helpers."""
-
-
-@word.command("summarize-local")
-@click.argument("path")
-@click.pass_context
-def word_summarize(ctx: click.Context, path: str) -> None:
-    service: WordService = ctx.obj["word"]
-    console.print(service.summarize_local(path))
-
-
-@cli.group()
-@click.pass_context
-def software(ctx: click.Context) -> None:  # noqa: ARG001
-    """Locate installed software such as git, Word, Excel, or a PDF viewer."""
-
-
-@software.command("locate")
-@click.argument("name")
-@click.option(
-    "--alias",
-    multiple=True,
-    help="Additional executable names to try (e.g. --alias winword --alias soffice)",
+from ...config import init_db
+from ...db import init_db as db_init_db
+from .commands import (
+    handle_onenote_command,
+    handle_excel_command,
+    handle_word_command,
+    handle_projects_command,
+    handle_history_command,
 )
-@click.pass_context
-def software_locate(ctx: click.Context, name: str, alias: tuple[str, ...]) -> None:
-    locator: SoftwareLocator = ctx.obj["locator"]
-    result = locator.locate(name, aliases=alias)
-    if result.found:
-        console.print(f"[green]{result.name}[/] found at {result.path}")
-    else:
-        console.print(
-            f"[red]{result.name}[/] not found. Tried: {result.tried}"
-            "\nTip: pass --alias to search alternate executable names."
-        )
 
 
-@software.command("defaults")
-@click.pass_context
-def software_defaults(ctx: click.Context) -> None:
-    """Check all default targets (git, word, excel, pdf)."""
-
-    locator: SoftwareLocator = ctx.obj["locator"]
-    table = Table(title="Default software locations")
-    table.add_column("Target")
-    table.add_column("Status")
-    table.add_column("Details")
-    for result in locator.scan_defaults():
-        status = "Found" if result.found else "Not found"
-        detail = result.path or f"Tried: {result.tried}"
-        style = "green" if result.found else "yellow"
-        table.add_row(result.name, f"[{style}]{status}[/]", detail)
-    console.print(table)
-
-
-@cli.command()
-@click.argument("agent")
-@click.argument("message")
-@click.pass_context
-def chat(ctx: click.Context, agent: str, message: str) -> None:
-    router: AgentRouter = ctx.obj["router"]
-    console.print(router.route(agent, message))
-
-
-@cli.command("workflow-clean-notebook")
-@click.argument("path")
-@click.pass_context
-def workflow_clean_notebook(ctx: click.Context, path: str) -> None:  # noqa: ARG001
-    console.print(clean_notebook_workflow(path))
-
-
-@cli.command("workflow-knowledge-pipeline")
-@click.argument("path")
-@click.option("--project", default="default", help="Project name for audit and context")
-@click.pass_context
-def workflow_knowledge_pipeline(ctx: click.Context, path: str, project: str) -> None:
-    """Transform raw notes into a structured deliverable and audit the run."""
-
-    cfg: AppConfig = ctx.obj["cfg"]
-    audit: AuditLogger = ctx.obj["audit"]
-    result = knowledge_pipeline(
-        notes_path=Path(path),
-        output_dir=cfg.deliverables_dir,
-        project=project,
-        audit=audit,
+def create_cli_parser() -> argparse.ArgumentParser:
+    """Create the main CLI argument parser."""
+    parser = argparse.ArgumentParser(
+        prog="osdash",
+        description="OS Dashboard AI Assistant - Command Line Interface",
     )
-    console.print_json(json.dumps(result))
+
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # Projects command
+    projects_parser = subparsers.add_parser("projects", help="Manage projects")
+    projects_sub = projects_parser.add_subparsers(dest="subcommand")
+    projects_sub.add_parser("list", help="List all projects")
+    projects_sub.add_parser("view", help="View a project").add_argument("id", help="Project name or ID")
+    projects_sub.add_parser("create", help="Create a new project").add_argument("name", help="Project name")
+
+    # OneNote command
+    onenote_parser = subparsers.add_parser("onenote", help="OneNote operations")
+    onenote_sub = onenote_parser.add_subparsers(dest="subcommand")
+    onenote_sub.add_parser("list-notebooks", help="List all notebooks")
+    onenote_sub.add_parser("list-sections", help="List sections").add_argument("notebook_id", help="Notebook ID")
+    onenote_sub.add_parser("list-pages", help="List pages").add_argument("section_id", help="Section ID")
+    clean_parser = onenote_sub.add_parser("clean-section", help="Clean a section")
+    clean_parser.add_argument("section_id", help="Section ID")
+    clean_parser.add_argument("--agent", default="AIC", choices=["AIC", "Aria", "Sora"], help="Agent to use")
+    summarize_parser = onenote_sub.add_parser("summarize-page", help="Summarize a page")
+    summarize_parser.add_argument("page_id", help="Page ID")
+    summarize_parser.add_argument("--agent", default="AIC", choices=["AIC", "Aria", "Sora"], help="Agent to use")
+
+    # Excel command
+    excel_parser = subparsers.add_parser("excel", help="Excel operations")
+    excel_sub = excel_parser.add_subparsers(dest="subcommand")
+    summarize_excel = excel_sub.add_parser("summarize", help="Summarize a workbook")
+    summarize_excel.add_argument("path", help="Path to Excel file")
+    summarize_excel.add_argument("--sheet", help="Sheet name (optional)")
+    summarize_excel.add_argument("--agent", default="AIC", choices=["AIC", "Aria", "Sora"], help="Agent to use")
+
+    # Word command
+    word_parser = subparsers.add_parser("word", help="Word document operations")
+    word_sub = word_parser.add_subparsers(dest="subcommand")
+    draft_parser = word_sub.add_parser("draft", help="Draft a document")
+    draft_parser.add_argument("--project", help="Project ID")
+    draft_parser.add_argument("--template", help="Template name")
+    draft_parser.add_argument("--agent", default="Aria", choices=["AIC", "Aria", "Sora"], help="Agent to use")
+    rewrite_parser = word_sub.add_parser("rewrite", help="Rewrite a document")
+    rewrite_parser.add_argument("path", help="Path to Word document")
+    rewrite_parser.add_argument("--agent", default="Aria", choices=["AIC", "Aria", "Sora"], help="Agent to use")
+
+    # History command
+    history_parser = subparsers.add_parser("history", help="View action history")
+    history_parser.add_argument("--limit", type=int, default=20, help="Number of entries to show")
+    history_parser.add_argument("--agent", help="Filter by agent")
+    history_parser.add_argument("--tag", help="Filter by tag (onenote, excel, word, etc.)")
+
+    return parser
 
 
-def main() -> None:
-    cli()
+def main() -> int:
+    """Main CLI entrypoint."""
+    parser = create_cli_parser()
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        return 1
+
+    # Initialize database
+    conn = db_init_db()
+
+    try:
+        if args.command == "projects":
+            return handle_projects_command(args, conn)
+        elif args.command == "onenote":
+            return handle_onenote_command(args, conn)
+        elif args.command == "excel":
+            return handle_excel_command(args, conn)
+        elif args.command == "word":
+            return handle_word_command(args, conn)
+        elif args.command == "history":
+            return handle_history_command(args, conn)
+        else:
+            print(f"Unknown command: {args.command}")
+            return 1
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
+
