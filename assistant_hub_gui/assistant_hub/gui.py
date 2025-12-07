@@ -117,7 +117,7 @@ try:
 except ImportError:
     AGENTS_AVAILABLE = False
 from .task_automation import process_recurring_tasks, check_task_dependencies
-from .task_templates import load_templates, save_template, delete_template, create_task_from_template, TaskTemplate
+# Template functionality removed - backend code kept in task_templates.py for potential future use
 from .ai_task_creation import create_task_from_ai_message
 from .analytics import (
     get_task_completion_stats,
@@ -336,7 +336,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self._build_integrations_tab()
         self._build_tools_tab()
         self._build_analytics_tab()
-        self._build_templates_tab()
         self._build_settings_tab()
         
         # Update tab labels with icons if available
@@ -348,8 +347,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.notebook.tab(4, text="🔗 Integrations")
             self.notebook.tab(5, text="🔧 Tools")
             self.notebook.tab(6, text="📊 Analytics")
-            self.notebook.tab(7, text="📋 Templates")
-            self.notebook.tab(8, text="⚙️ Settings")
+            self.notebook.tab(7, text="⚙️ Settings")
 
         # Initialize sync scheduler
         self.sync_scheduler = create_default_scheduler(self.conn)
@@ -607,11 +605,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.on_new_task()
         elif current_tab == 2:  # Projects tab
             self.on_new_project()
-        elif current_tab == 7:  # Templates tab
-            self.on_new_template()
         else:
             # Default: show info
-            messagebox.showinfo("New Item", "Select Tasks, Projects, or Templates tab to create new items")
+            messagebox.showinfo("New Item", "Select Tasks or Projects tab to create new items")
     
     def _switch_tab(self, index):
         """Switch to tab by index."""
@@ -2308,12 +2304,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if current == placeholder:
             self.chat_input.delete('1.0', 'end')
             self.chat_input.config(foreground="black")
-        
+
         self.chat_input.insert('end', block)
         if truncated:
             self.chat_input.insert('end', '\n[Note: content truncated to fit limit]\n')
         self._update_chat_status(f"Imported '{label}' ({'truncated' if truncated else 'full'}).")
-    
+
     def on_upload_file(self):
         """Upload file to OpenAI and attach to conversation."""
         initial_dir = self.cwd_var.get().strip() if hasattr(self, 'cwd_var') else ''
@@ -4220,238 +4216,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             messagebox.showerror("Export Error", f"Failed to export report: {e}")
 
 
-# ---------- Templates Tab ----------
-
-    def _build_templates_tab(self):
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.templates_frame = ttkb.Frame(self.notebook)
-        else:
-            self.templates_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.templates_frame, text="📋 Templates")
-        
-        self.templates_frame.columnconfigure(0, weight=1)
-        self.templates_frame.rowconfigure(0, weight=1)
-        
-        # Main container
-        if TTKBOOTSTRAP_AVAILABLE:
-            main_container = ttkb.Frame(self.templates_frame)
-        else:
-            main_container = ttk.Frame(self.templates_frame)
-        main_container.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
-        main_container.columnconfigure(0, weight=1)
-        main_container.columnconfigure(1, weight=2)
-        main_container.rowconfigure(1, weight=1)
-        
-        # Header
-        if TTKBOOTSTRAP_AVAILABLE:
-            header = ttkb.Label(main_container, text="Task Templates", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
-        else:
-            header = ttk.Label(main_container, text="Task Templates", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
-        header.grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 8))
-        
-        # Left: Template list
-        list_frame = ttk.Frame(main_container)
-        list_frame.grid(row=1, column=0, sticky="nsew", padx=(0, 4))
-        list_frame.columnconfigure(0, weight=1)
-        list_frame.rowconfigure(0, weight=1)
-        
-        columns = ("name", "project", "priority")
-        self.templates_tree = ttk.Treeview(list_frame, columns=columns, show="headings", selectmode="browse")
-        self.templates_tree.heading("name", text="TEMPLATE NAME")
-        self.templates_tree.heading("project", text="PROJECT")
-        self.templates_tree.heading("priority", text="PRIORITY")
-        
-        self.templates_tree.column("name", width=150)
-        self.templates_tree.column("project", width=100)
-        self.templates_tree.column("priority", width=80)
-        
-        self.templates_tree.grid(row=0, column=0, sticky="nsew")
-        self.templates_tree.bind("<<TreeviewSelect>>", self.on_template_select)
-        
-        scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.templates_tree.yview)
-        self.templates_tree.configure(yscroll=scrollbar.set)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        
-        # Right: Template details form
-        if TTKBOOTSTRAP_AVAILABLE:
-            form_frame = ttkb.Labelframe(main_container, text="Template Details", bootstyle="info")
-        else:
-            form_frame = ttk.LabelFrame(main_container, text="Template Details")
-        form_frame.grid(row=1, column=1, sticky="nsew", padx=(4, 0))
-        form_frame.columnconfigure(1, weight=1)
-        
-        row = 0
-        ttk.Label(form_frame, text="Name:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
-        self.template_name_var = tk.StringVar()
-        template_name_entry = ttk.Entry(form_frame, textvariable=self.template_name_var)
-        template_name_entry.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
-        
-        row += 1
-        ttk.Label(form_frame, text="Title:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
-        self.template_title_var = tk.StringVar()
-        template_title_entry = ttk.Entry(form_frame, textvariable=self.template_title_var)
-        template_title_entry.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
-        
-        row += 1
-        ttk.Label(form_frame, text="Project:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
-        self.template_project_var = tk.StringVar()
-        template_project_combo = ttk.Combobox(form_frame, textvariable=self.template_project_var, state="readonly")
-        template_project_combo.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
-        self.template_project_combo = template_project_combo
-        
-        row += 1
-        ttk.Label(form_frame, text="Priority:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
-        self.template_priority_var = tk.StringVar()
-        template_priority_combo = ttk.Combobox(form_frame, textvariable=self.template_priority_var, values=PRIORITY_OPTIONS, state="readonly")
-        template_priority_combo.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
-        
-        row += 1
-        ttk.Label(form_frame, text="Time Est. (min):").grid(row=row, column=0, sticky="e", padx=4, pady=4)
-        self.template_time_estimated_var = tk.StringVar()
-        template_time_entry = ttk.Entry(form_frame, textvariable=self.template_time_estimated_var)
-        template_time_entry.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
-        
-        row += 1
-        ttk.Label(form_frame, text="Notes:").grid(row=row, column=0, sticky="ne", padx=4, pady=4)
-        self.template_notes_text = tk.Text(form_frame, height=6, wrap="word")
-        self.template_notes_text.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
-        
-        # Buttons
-        if TTKBOOTSTRAP_AVAILABLE:
-            btn_frame = ttkb.Frame(main_container)
-        else:
-            btn_frame = ttk.Frame(main_container)
-        btn_frame.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(8, 0))
-        
-        if TTKBOOTSTRAP_AVAILABLE:
-            new_btn = ttkb.Button(btn_frame, text="➕ New", command=self.on_new_template, bootstyle="success-outline")
-            save_btn = ttkb.Button(btn_frame, text="💾 Save", command=self.on_save_template, bootstyle="primary")
-            delete_btn = ttkb.Button(btn_frame, text="🗑️ Delete", command=self.on_delete_template, bootstyle="danger-outline")
-            create_task_btn = ttkb.Button(btn_frame, text="✅ Create Task", command=self.on_create_task_from_template, bootstyle="info")
-            refresh_btn = ttkb.Button(btn_frame, text="🔄 Refresh", command=self.refresh_templates_list, bootstyle="secondary-outline")
-        else:
-            new_btn = ttk.Button(btn_frame, text="New", command=self.on_new_template)
-            save_btn = ttk.Button(btn_frame, text="Save", command=self.on_save_template)
-            delete_btn = ttk.Button(btn_frame, text="Delete", command=self.on_delete_template)
-            create_task_btn = ttk.Button(btn_frame, text="Create Task", command=self.on_create_task_from_template)
-            refresh_btn = ttk.Button(btn_frame, text="Refresh", command=self.refresh_templates_list)
-        
-        new_btn.grid(row=0, column=0, padx=4)
-        save_btn.grid(row=0, column=1, padx=4)
-        delete_btn.grid(row=0, column=2, padx=4)
-        create_task_btn.grid(row=0, column=3, padx=4)
-        refresh_btn.grid(row=0, column=4, padx=4)
-        
-        if TTKBOOTSTRAP_AVAILABLE:
-            ToolTip(new_btn, text="Create a new template")
-            ToolTip(save_btn, text="Save the current template")
-            ToolTip(delete_btn, text="Delete the selected template")
-            ToolTip(create_task_btn, text="Create a task from this template")
-            ToolTip(refresh_btn, text="Refresh the templates list")
-        
-        self.current_template_id = None
-    
-    def refresh_templates_list(self):
-        """Refresh the templates list display."""
-        if not hasattr(self, 'templates_tree'):
-            return
-        
-        for row in self.templates_tree.get_children():
-            self.templates_tree.delete(row)
-        
-        templates = load_templates(self.conn)
-        for template in templates:
-            self.templates_tree.insert(
-                "",
-                "end",
-                iid=template.id,
-                values=(template.name, template.project or "", template.priority or ""),
-            )
-        
-        # Update project combo
-        if hasattr(self, 'template_project_combo'):
-            projects = [p.name for p in self.state_obj.projects]
-            self.template_project_combo['values'] = projects
-    
-    def on_template_select(self, event=None):
-        """Handle template selection."""
-        sel = self.templates_tree.selection()
-        if not sel:
-            self.current_template_id = None
-            return
-        
-        template_id = sel[0]
-        templates = load_templates(self.conn)
-        template = next((t for t in templates if t.id == template_id), None)
-        
-        if template:
-            self.current_template_id = template.id
-            self.template_name_var.set(template.name)
-            self.template_title_var.set(template.title or "")
-            self.template_project_var.set(template.project or "")
-            self.template_priority_var.set(template.priority or "")
-            self.template_time_estimated_var.set(str(template.time_estimated or ""))
-            self.template_notes_text.delete('1.0', 'end')
-            self.template_notes_text.insert('1.0', template.notes or "")
-    
-    def on_new_template(self):
-        """Create a new template."""
-        self.current_template_id = None
-        self.template_name_var.set("")
-        self.template_title_var.set("")
-        self.template_project_var.set("")
-        self.template_priority_var.set("")
-        self.template_time_estimated_var.set("")
-        self.template_notes_text.delete('1.0', 'end')
-        self.templates_tree.selection_remove(self.templates_tree.selection())
-    
-    def on_save_template(self):
-        """Save the current template."""
-        name = self.template_name_var.get().strip()
-        if not name:
-            messagebox.showerror("Error", "Template name is required.")
-            return
-        
-        template = TaskTemplate(
-            id=self.current_template_id or str(uuid.uuid4()),
-            name=name,
-            title=self.template_title_var.get().strip() or None,
-            project=self.template_project_var.get().strip() or None,
-            priority=self.template_priority_var.get().strip() or None,
-            time_estimated=int(self.template_time_estimated_var.get()) if self.template_time_estimated_var.get().strip() else None,
-            notes=self.template_notes_text.get('1.0', 'end').strip() or None,
-        )
-        
-        save_template(self.conn, template)
-        self.refresh_templates_list()
-        messagebox.showinfo("Success", "Template saved.")
-    
-    def on_delete_template(self):
-        """Delete the selected template."""
-        if not self.current_template_id:
-            messagebox.showinfo("No Selection", "Please select a template to delete.")
-            return
-        
-        if messagebox.askyesno("Confirm", "Delete this template?"):
-            delete_template(self.conn, self.current_template_id)
-            self.on_new_template()
-            self.refresh_templates_list()
-            messagebox.showinfo("Success", "Template deleted.")
-    
-    def on_create_task_from_template(self):
-        """Create a task from the selected template."""
-        if not self.current_template_id:
-            messagebox.showinfo("No Selection", "Please select a template to create a task from.")
-            return
-        
-        try:
-            task = create_task_from_template(self.conn, self.current_template_id, owner=self.state_obj.active_persona)
-            self.refresh_task_list()
-            self.refresh_dashboard()
-            messagebox.showinfo("Success", f"Task created: {task.title}")
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to create task: {e}")
-
+# Templates tab removed - functionality was redundant with normal task creation
 
 # ---------- Settings Tab ----------
 
@@ -4693,8 +4458,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.refresh_integrations_list()
         if hasattr(self, 'refresh_analytics'):
             self.refresh_analytics()
-        if hasattr(self, 'refresh_templates_list'):
-            self.refresh_templates_list()
 
     def _apply_default_view(self):
         mapping = {
