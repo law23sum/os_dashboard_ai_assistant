@@ -117,3 +117,27 @@ def get_git_manager() -> GitManager:
     if _global_manager is None:
         _global_manager = init_git_manager(os.getcwd())
     return _global_manager
+
+
+# Backwards compatibility function
+def git_autocommit(
+    paths: Iterable[str],
+    *,
+    actor: str = "AIC",
+    reason: str = "",
+    tag: str = "",
+    timestamp: Optional[datetime] = None,
+) -> None:
+    """Stage and commit modified files with standardized metadata (backwards compatibility)."""
+    manager = get_git_manager()
+    existing_paths = [path for path in paths if os.path.exists(path)]
+    if not existing_paths:
+        return
+
+    manager.add(existing_paths)
+
+    ts = timestamp or datetime.now()
+    tag_prefix = f"[{tag}] " if tag else ""
+    reason_suffix = f" - {reason}" if reason else ""
+    message = f"{tag_prefix}{actor} auto-commit @ {ts.isoformat(timespec='seconds')}{reason_suffix}"
+    manager.commit(message, identity=GitIdentity(name=actor, email="ai@local"))
