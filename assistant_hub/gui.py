@@ -2152,13 +2152,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         """Refresh the integrations list display."""
         for row in self.integrations_tree.get_children():
             self.integrations_tree.delete(row)
-        
-        # Get integration statuses - all available integrations
+
+        # Get integration statuses - reuse scheduler instances when available
+        if not hasattr(self, "sync_scheduler") or self.sync_scheduler is None:
+            self.sync_scheduler = create_default_scheduler(self.conn)
+
         integrations = {
-            "Local Notes": NotesIntegration(self.conn),
-            "Google Calendar": GoogleCalendarIntegration(self.conn),
-            "Gmail": GmailIntegration(self.conn),
-            "GitHub": GitHubIntegration(self.conn),
+            "Local Notes": self.sync_scheduler.integrations.get("notes", NotesIntegration(self.conn)),
+            "Google Calendar": self.sync_scheduler.integrations.get("calendar", GoogleCalendarIntegration(self.conn)),
+            "Gmail": self.sync_scheduler.integrations.get("mail", GmailIntegration(self.conn)),
+            "GitHub": self.sync_scheduler.integrations.get("github", GitHubIntegration(self.conn)),
             "Word": WordIntegration(self.conn),
             "Excel": ExcelIntegration(self.conn),
             "OneNote": OneNoteIntegration(self.conn),
