@@ -1,52 +1,35 @@
-# OS Dashboard AI Assistant
+# OS Dashboard AI Assistant Scaffold
 
-This repository provides the evolving OS Dashboard AI assistant that coordinates
-multiple AI personas (AIC, Sora, Aria), integrations, and a GUI/terminal
-interface. The codebase now formalizes the architecture for connecting to
-OneNote, Excel, Word, and other services through a modular integrations layer
-backed by automatic git versioning.
+This repository now ships an installable scaffold for the "osdash" CLI and a minimal agent/integration architecture. The package is intentionally lightweight so you can extend each module at your own pace while still being able to run end-to-end commands.
 
-## Architecture at a Glance
+## Install
 
-- **Core OS**: projects, tasks, scheduler, and routing that keep agent runs
-  organized.
-- **Integrations Layer**: pluggable clients for Microsoft Graph (OneNote,
-  Excel, Word), local filesystem helpers, and existing calendar/email/github
-  connectors.
-- **AI Layer**: persona prompts and tool workflows (ready to be wired into the
-  new integrations for summarization, cleanup, and drafting).
-- **Versioning Layer**: background git helpers that stage and commit every
-  AI-driven mutation for a durable audit trail.
-- **Interface Layer**: GUI/TUI entry points in `assistant_hub_gui` that call
-  into the services above.
+```bash
+pip install .
+```
 
-## New Integration Skeletons
+## CLI usage
 
-The `assistant_hub/integrations` package now includes Microsoft Graph-ready
-clients and local fallbacks:
+Example commands after installation:
 
-- **OneNote** (`onenote/`): list notebooks/sections/pages, fetch or update page
-  HTML, mirror cloud pages to disk, and prepare placeholder cleanups/summaries.
-- **Excel** (`excel/`): Graph-based workbook/sheet/range helpers, lightweight
-  local workbook utilities, and helpers to export ranges or attach summary
-  files.
-- **Word** (`word/`): download/upload Word documents over Graph and create
-  local revision files for AI drafts.
-- **Filesystem** (`filesystem/`): discover tracked files across the workspace.
-- **Graph core** (`msgraph/`): shared auth + REST wrapper for Microsoft Graph.
+- `osdash projects list` – show known projects from the JSON state file.
+- `osdash projects add <name>` – add a project to the state file.
+- `osdash onenote notebooks` – list stub OneNote notebooks via the Graph stub.
+- `osdash excel workbooks` – show Graph stub workbook metadata.
+- `osdash excel summarize-local <path>` – summarize a local Excel workbook (pandas required).
+- `osdash word summarize-local <path>` – summarize a local Word document.
+- `osdash chat <agent> <message>` – send a message to one of the scaffolded agents (aic, aria, sora).
+- `osdash workflow-clean-notebook <path>` – run the example notebook cleaning workflow prompt.
 
-Each service is intentionally thin so UI commands or daemons can orchestrate
-AI prompts separately.
+## Package layout
 
-## Git Auto-Versioning
+- `assistant_hub/config.py` – environment-driven configuration for OpenAI and Microsoft Graph.
+- `assistant_hub/core/` – lightweight models, JSON state store, router, and scheduler stub.
+- `assistant_hub/ai/` – OpenAI wrapper, prompts, tool registry, agents, and a sample workflow.
+- `assistant_hub/integrations/` – stub clients/services for Graph, OneNote, Excel, Word, and filesystem helpers.
+- `assistant_hub/versioning/` – simple git helpers plus a background commit queue stub.
+- `assistant_hub/ui/terminal/cli.py` – `osdash` Click-based entry point exposing demo commands.
+- `assistant_hub/ui/gui/app.py` – temporary GUI shim that invokes the CLI.
+- `assistant_hub/data/state.json` – default JSON state used by the CLI.
 
-The new `assistant_hub/versioning` package provides:
-
-- `GitManager` for staging/committing with actor metadata.
-- `git_autocommit` helpers used by integrations after they write to disk.
-- `git_async` queue for non-blocking background commits so UI/agents remain
-  responsive.
-
-This makes it easy to log every AI-generated change—whether mirroring a cloud
-note or creating an Excel summary—directly into git with standardized commit
-messages.
+Use this baseline to plug in real API calls, prompt orchestration, and richer state handling.
