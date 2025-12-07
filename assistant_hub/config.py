@@ -1,57 +1,44 @@
-"""Shared configuration helpers for the OS Dashboard assistant scaffold."""
+#!/usr/bin/env python3
+"""Central configuration helpers for Assistant Hub."""
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import os
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Iterable
+
+PACKAGE_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = PACKAGE_ROOT.parent
+_DEFAULT_DATA_DIR = Path(os.getenv("ASSISTANT_HUB_HOME", PROJECT_ROOT)).expanduser()
 
 
-ROOT_DIR = Path(__file__).resolve().parent
-DATA_DIR = ROOT_DIR / "data"
-STATE_FILE = DATA_DIR / "state.json"
-AUDIT_LOG_FILE = DATA_DIR / "audit_log.jsonl"
-DELIVERABLES_DIR = DATA_DIR / "deliverables"
+def _path_from_env(key: str, fallback: Path) -> Path:
+    value = os.getenv(key)
+    return Path(value).expanduser() if value else fallback
 
 
-@dataclass
-class OpenAIConfig:
-    api_key: Optional[str] = None
-    model: str = "gpt-4.1"
-    temperature: float = 0.2
+default_data_dir = _path_from_env("ASSISTANT_HUB_DATA_DIR", _DEFAULT_DATA_DIR)
+DATA_DIR = default_data_dir
+DB_PATH = _path_from_env("ASSISTANT_HUB_DB", DATA_DIR / "assistant_hub.db")
+ATTACHMENTS_DIR = _path_from_env("ASSISTANT_HUB_ATTACHMENTS_DIR", DATA_DIR / "attachments")
+INTEGRATIONS_DIR = _path_from_env("ASSISTANT_HUB_INTEGRATIONS_DIR", DATA_DIR / "integrations")
+FILE_CACHE_DIR = _path_from_env("ASSISTANT_HUB_FILE_CACHE_DIR", DATA_DIR / "file_cache")
 
 
-@dataclass
-class GraphConfig:
-    tenant_id: Optional[str] = None
-    client_id: Optional[str] = None
-    client_secret: Optional[str] = None
-    scopes: tuple[str, ...] = ("User.Read",)
+def ensure_data_directories() -> None:
+    """Create the runtime data directories if they are missing."""
+    for path in (DATA_DIR, ATTACHMENTS_DIR, INTEGRATIONS_DIR, FILE_CACHE_DIR):
+        path.mkdir(parents=True, exist_ok=True)
 
 
-@dataclass
-class AppConfig:
-    openai: OpenAIConfig = field(default_factory=OpenAIConfig)
-    graph: GraphConfig = field(default_factory=GraphConfig)
-    data_dir: Path = DATA_DIR
-    state_file: Path = STATE_FILE
-    audit_log_file: Path = AUDIT_LOG_FILE
-    deliverables_dir: Path = DELIVERABLES_DIR
-    extra: Dict[str, str] = field(default_factory=dict)
+def get_integration_path(*parts: str) -> Path:
+    """Return a path under the integrations directory."""
+    ensure_data_directories()
+    return INTEGRATIONS_DIR.joinpath(*parts)
 
-    @classmethod
-    def from_env(cls) -> "AppConfig":
-        """Instantiate config from environment variables with safe defaults."""
-        import os
 
-        openai_cfg = OpenAIConfig(
-            api_key=os.getenv("OPENAI_API_KEY"),
-            model=os.getenv("OSDASH_MODEL", "gpt-4.1"),
-            temperature=float(os.getenv("OSDASH_TEMPERATURE", 0.2)),
-        )
-        graph_cfg = GraphConfig(
-            tenant_id=os.getenv("GRAPH_TENANT_ID"),
-            client_id=os.getenv("GRAPH_CLIENT_ID"),
-            client_secret=os.getenv("GRAPH_CLIENT_SECRET"),
-        )
-        extra = {k: v for k, v in os.environ.items() if k.startswith("OSDASH_")}
-        return cls(openai=openai_cfg, graph=graph_cfg, extra=extra)
+def get_attachment_path(*parts: str) -> Path:
+    """Return a path under the attachments directory."""
+    ensure_data_directories()
+    return ATTACHMENTS_DIR.joinpath(*parts)
+
