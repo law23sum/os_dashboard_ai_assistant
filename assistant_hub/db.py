@@ -259,6 +259,21 @@ def init_db() -> sqlite3.Connection:
         c.execute("ALTER TABLE note_links ADD COLUMN description TEXT DEFAULT ''")
 
     c.execute("""
+        CREATE TABLE IF NOT EXISTS document_versions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            note_link_id INTEGER NOT NULL,
+            version_number INTEGER NOT NULL,
+            file_path TEXT NOT NULL,
+            file_size INTEGER NOT NULL,
+            checksum TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            created_by TEXT,
+            description TEXT,
+            FOREIGN KEY(note_link_id) REFERENCES note_links(id)
+        )
+    """)
+
+    c.execute("""
         CREATE TABLE IF NOT EXISTS agent_runs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             agent TEXT NOT NULL,
