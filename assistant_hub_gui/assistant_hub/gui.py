@@ -1,4 +1,5 @@
 #!/Library/Frameworks/Python.framework/Versions/3.11/bin/python3
+import asyncio
 import base64
 import os
 import sqlite3
@@ -7877,52 +7878,83 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
             ToolTip(delete_btn, text="Delete the selected task (irreversible)")
 
     def refresh_task_filters(self):
-        projects = sorted(set(t.project for t in self.state_obj.tasks)) or ["(All)"]
-        projects = ["(All)"] + projects
-        self.filter_project_combo["values"] = projects
-        if not self.filter_project_var.get():
-            self.filter_project_var.set("(All)")
+        # Only refresh filters if the components exist (old UI style)
+        if hasattr(self, 'filter_project_combo') and self.filter_project_combo.winfo_exists():
+            projects = sorted(set(t.project for t in self.state_obj.tasks)) or ["(All)"]
+            projects = ["(All)"] + projects
+            self.filter_project_combo["values"] = projects
+            if hasattr(self, 'filter_project_var') and self.filter_project_var.get() == "":
+                self.filter_project_var.set("(All)")
 
-        owners = ["(All)"] + PERSONAS
-        self.filter_owner_combo["values"] = owners
-        if not self.filter_owner_var.get():
-            self.filter_owner_var.set("(All)")
+        if hasattr(self, 'filter_owner_combo') and self.filter_owner_combo.winfo_exists():
+            owners = ["(All)"] + PERSONAS
+            self.filter_owner_combo["values"] = owners
+            if hasattr(self, 'filter_owner_var') and self.filter_owner_var.get() == "":
+                self.filter_owner_var.set("(All)")
 
     def refresh_task_list(self):
         self.refresh_task_filters()
-        for row in self.task_tree.get_children():
-            self.task_tree.delete(row)
 
-        proj_filter = self.filter_project_var.get()
-        if proj_filter == "(All)" or not proj_filter:
-            proj_filter = None
-        owner_filter = self.filter_owner_var.get()
-        if owner_filter == "(All)" or not owner_filter:
-            owner_filter = None
-        show_done = self.show_done_var.get()
+        # Handle old tree view UI
+        if hasattr(self, 'task_tree') and self.task_tree.winfo_exists():
+            for row in self.task_tree.get_children():
+                self.task_tree.delete(row)
 
-        tasks = self.state_obj.tasks
-        if proj_filter:
-            tasks = [t for t in tasks if t.project == proj_filter]
-        if owner_filter:
-            tasks = [t for t in tasks if t.owner == owner_filter]
-        if not show_done:
+            proj_filter = self.filter_project_var.get() if hasattr(self, 'filter_project_var') else None
+            if proj_filter == "(All)" or not proj_filter:
+                proj_filter = None
+            owner_filter = self.filter_owner_var.get() if hasattr(self, 'filter_owner_var') else None
+            if owner_filter == "(All)" or not owner_filter:
+                owner_filter = None
+            show_done = self.show_done_var.get() if hasattr(self, 'show_done_var') else True
+
+            tasks = self.state_obj.tasks
+            if proj_filter:
+                tasks = [t for t in tasks if t.project == proj_filter]
+            if owner_filter:
+                tasks = [t for t in tasks if t.owner == owner_filter]
+            if not show_done:
+                tasks = [t for t in tasks if t.status != "DONE"]
+
+            priority_weight = {p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)}
+            tasks_sorted = sorted(
+                tasks,
+                key=lambda t: (priority_weight.get(t.priority, 1), t.due_date or "9999-99-99", t.id),
+                reverse=True,
+            )
+
+            for t in tasks_sorted:
+                self.task_tree.insert(
+                    "",
+                    "end",
+                    iid=str(t.id),
+                    values=(t.id, t.title, t.project, t.owner, t.status, t.priority, t.due_date or ""),
+                )
+
+        # Handle new simplified listbox UI
+        elif hasattr(self, 'tasks_listbox') and self.tasks_listbox.winfo_exists():
+            self.tasks_listbox.delete(0, tk.END)
+
+            tasks = self.state_obj.tasks
+            # For simplified UI, just show incomplete tasks sorted by priority
             tasks = [t for t in tasks if t.status != "DONE"]
 
-        priority_weight = {p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)}
-        tasks_sorted = sorted(
-            tasks,
-            key=lambda t: (priority_weight.get(t.priority, 1), t.due_date or "9999-99-99", t.id),
-            reverse=True,
-        )
-
-        for t in tasks_sorted:
-            self.task_tree.insert(
-                "",
-                "end",
-                iid=str(t.id),
-                values=(t.id, t.title, t.project, t.owner, t.status, t.priority, t.due_date or ""),
+            priority_weight = {p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)}
+            tasks_sorted = sorted(
+                tasks,
+                key=lambda t: (priority_weight.get(t.priority, 1), t.due_date or "9999-99-99", t.id),
+                reverse=True,
             )
+
+            status_icons = {"TODO": "⏳", "IN_PROGRESS": "🔄", "REVIEW": "👀", "DONE": "✅"}
+            priority_icons = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🟢"}
+
+            for t in tasks_sorted:
+                status_icon = status_icons.get(t.status, "❓")
+                priority_icon = priority_icons.get(t.priority, "⚪")
+                due_text = f" (Due: {t.due_date})" if t.due_date else ""
+                display_text = f"{status_icon} {priority_icon} #{t.id} {t.title} - {t.project}{due_text}"
+                self.tasks_listbox.insert(tk.END, display_text)
 
     def on_task_select(self, event=None):
         sel = self.task_tree.selection()
@@ -8400,26 +8432,47 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         self.project_docs_tree.bind("<Button-3>", self.on_project_document_right_click)
 
     def refresh_project_list(self):
-        for row in self.project_tree.get_children():
-            self.project_tree.delete(row)
+        # Check if using old treeview structure
+        if hasattr(self, 'project_tree') and self.project_tree:
+            for row in self.project_tree.get_children():
+                self.project_tree.delete(row)
 
-        counts: Dict[str, int] = {}
-        for t in self.state_obj.tasks:
-            counts[t.project] = counts.get(t.project, 0) + 1
+            counts: Dict[str, int] = {}
+            for t in self.state_obj.tasks:
+                counts[t.project] = counts.get(t.project, 0) + 1
 
-        priority_weight = {p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)}
-        projects_sorted = sorted(
-            self.state_obj.projects,
-            key=lambda p: (p.order_num, priority_weight.get(p.priority, 1), p.name),
-        )
-
-        for p in projects_sorted:
-            self.project_tree.insert(
-                "",
-                "end",
-                iid=p.name,
-                values=(p.order_num, p.name, p.priority, p.status, counts.get(p.name, 0)),
+            priority_weight = {p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)}
+            projects_sorted = sorted(
+                self.state_obj.projects,
+                key=lambda p: (p.order_num, priority_weight.get(p.priority, 1), p.name),
             )
+
+            for p in projects_sorted:
+                self.project_tree.insert(
+                    "",
+                    "end",
+                    iid=p.name,
+                    values=(p.order_num, p.name, p.priority, p.status, counts.get(p.name, 0)),
+                )
+        # Check if using new consolidated UI with projects_listbox
+        elif hasattr(self, 'projects_listbox') and self.projects_listbox:
+            self.projects_listbox.delete(0, tk.END)
+
+            counts: Dict[str, int] = {}
+            for t in self.state_obj.tasks:
+                counts[t.project] = counts.get(t.project, 0) + 1
+
+            priority_weight = {p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)}
+            projects_sorted = sorted(
+                self.state_obj.projects,
+                key=lambda p: (p.order_num, priority_weight.get(p.priority, 1), p.name),
+            )
+
+            for p in projects_sorted:
+                status_icon = "✅" if p.status == "completed" else "⏳" if p.status == "in_progress" else "📋"
+                task_count = counts.get(p.name, 0)
+                display_text = f"{status_icon} {p.name} - {p.priority} Priority ({task_count} tasks)"
+                self.projects_listbox.insert(tk.END, display_text)
 
     def on_project_select(self, event=None):
         sel = self.project_tree.selection()
@@ -13808,7 +13861,9 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
     def refresh_all(self):
         self.refresh_dashboard()
         self.refresh_task_list()
-        self.refresh_project_list()
+        # Only refresh project list if project UI components exist
+        if hasattr(self, 'project_tree') or hasattr(self, 'projects_listbox'):
+            self.refresh_project_list()
         self.refresh_chat_history()
         if hasattr(self, "refresh_ai_operations"):
             self.refresh_ai_operations()
