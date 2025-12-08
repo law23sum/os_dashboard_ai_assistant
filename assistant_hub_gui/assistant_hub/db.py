@@ -18,6 +18,7 @@ PERSONA_ROLES = {
 
 STATUS_OPTIONS = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE"]
 PRIORITY_OPTIONS = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+OPERATION_STATUS_OPTIONS = ["queued", "running", "succeeded", "failed", "needs_review"]
 DATE_FORMAT = "%Y-%m-%d"
 
 CHAT_ROLES = ["user", "assistant", "system", "tool"]
@@ -71,6 +72,26 @@ class ChatMessage:
     created_at: str = datetime.now().isoformat(timespec="seconds")
 
 
+
+
+@dataclass
+class DocumentOperation:
+    """Track AI-driven document operations with governance metadata."""
+
+    id: int
+    title: str
+    project_id: str
+    integration_type: str
+    external_id: str
+    operation: str
+    status: str = "queued"  # queued | running | succeeded | failed | needs_review
+    persona: str = "AIC"
+    version_tag: Optional[str] = None
+    diff_path: Optional[str] = None
+    external_company: Optional[str] = None
+    started_at: str = datetime.now().isoformat(timespec="seconds")
+    completed_at: Optional[str] = None
+    notes: str = ""
 @dataclass
 class AssistantState:
     tasks: List[Task]
@@ -278,6 +299,26 @@ def init_db() -> sqlite3.Connection:
             related_files TEXT,
             git_commit_hash TEXT,
             created_at TEXT
+        )
+    """)
+    
+    # Document operations table for AI-driven updates and external sync
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS document_operations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            project_id TEXT NOT NULL,
+            integration_type TEXT NOT NULL,
+            external_id TEXT NOT NULL,
+            operation TEXT NOT NULL,
+            status TEXT NOT NULL,
+            persona TEXT NOT NULL,
+            version_tag TEXT,
+            diff_path TEXT,
+            external_company TEXT,
+            started_at TEXT NOT NULL,
+            completed_at TEXT,
+            notes TEXT
         )
     """)
     
@@ -776,6 +817,148 @@ def save_external_connections(
             "notes": conn_obj.notes,
         }
     set_meta(conn, "external.connections", json.dumps(payload, ensure_ascii=False))
+
+
+# Document Operations (AI governance) Functions
+def db_record_document_operation(
+    conn: sqlite3.Connection,
+    *,
+    title: str,
+    project_id: str,
+    integration_type: str,
+    external_id: str,
+    operation: str,
+    status: str = "queued",
+    persona: str = "AIC",
+    version_tag: Optional[str] = None,
+    diff_path: Optional[str] = None,
+    external_company: Optional[str] = None,
+    notes: str = "",
+) -> int:
+    """Insert a new AI-driven document operation."""
+    if status not in OPERATION_STATUS_OPTIONS:
+        status = "queued"
+    started_at = datetime.now().isoformat(timespec="seconds")
+    c = conn.cursor()
+    c.execute(
+        """
+        INSERT INTO document_operations (
+            title, project_id, integration_type, external_id, operation,
+            status, persona, version_tag, diff_path, external_company,
+            started_at, notes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            title,
+            project_id,
+            integration_type,
+            external_id,
+            operation,
+            status,
+            persona,
+            version_tag,
+            diff_path,
+            external_company,
+            started_at,
+            notes,
+        ),
+    )
+    conn.commit()
+    return c.lastrowid
+
+
+def db_update_document_operation_status(
+    conn: sqlite3.Connection,
+    operation_id: int,
+    *,
+    status: Optional[str] = None,
+    version_tag: Optional[str] = None,
+    diff_path: Optional[str] = None,
+    external_company: Optional[str] = None,
+    notes: Optional[str] = None,
+    mark_complete: bool = False,
+):
+    """Update status/metadata for a document operation."""
+    if status and status not in OPERATION_STATUS_OPTIONS:
+        raise ValueError(f"Invalid status: {status}")
+
+    updates = []
+    params = []
+
+    if status:
+        updates.append("status = ?")
+        params.append(status)
+    if version_tag is not None:
+        updates.append("version_tag = ?")
+        params.append(version_tag)
+    if diff_path is not None:
+        updates.append("diff_path = ?")
+        params.append(diff_path)
+    if external_company is not None:
+        updates.append("external_company = ?")
+        params.append(external_company)
+    if notes is not None:
+        updates.append("notes = ?")
+        params.append(notes)
+    if mark_complete:
+        updates.append("completed_at = ?")
+        params.append(datetime.now().isoformat(timespec="seconds"))
+
+    if not updates:
+        return
+
+    params.append(operation_id)
+    query = f"UPDATE document_operations SET {', '.join(updates)} WHERE id = ?"
+    c = conn.cursor()
+    c.execute(query, params)
+    conn.commit()
+
+
+def db_list_document_operations(
+    conn: sqlite3.Connection,
+    limit: int = 50,
+    status: Optional[str] = None,
+    integration_type: Optional[str] = None,
+) -> List[DocumentOperation]:
+    """Return recent document operations for dashboards and APIs."""
+    c = conn.cursor()
+    query = "SELECT * FROM document_operations WHERE 1=1"
+    params = []
+
+    if status and status in OPERATION_STATUS_OPTIONS:
+        query += " AND status = ?"
+        params.append(status)
+    if integration_type:
+        query += " AND integration_type = ?"
+        params.append(integration_type)
+
+    query += " ORDER BY started_at DESC"
+    query += " LIMIT ?"
+    params.append(limit)
+
+    c.execute(query, params)
+    rows = c.fetchall()
+    operations: List[DocumentOperation] = []
+    for row in rows:
+        operations.append(
+            DocumentOperation(
+                id=row["id"],
+                title=row["title"],
+                project_id=row["project_id"],
+                integration_type=row["integration_type"],
+                external_id=row["external_id"],
+                operation=row["operation"],
+                status=row["status"],
+                persona=row["persona"],
+                version_tag=row["version_tag"],
+                diff_path=row["diff_path"],
+                external_company=row["external_company"],
+                started_at=row["started_at"],
+                completed_at=row["completed_at"],
+                notes=row["notes"] or "",
+            )
+        )
+    return operations
 
 
 # Note Links (Document Management) Functions
