@@ -1,0 +1,47 @@
+{
+  "family": "os-dashboard-task",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ECSTaskRole",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ECSTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "containerDefinitions": [
+    {
+      "name": "web",
+      "image": "ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/os-dashboard:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {"name": "ENVIRONMENT", "value": "production"},
+        {"name": "LOG_LEVEL", "value": "INFO"}
+      ],
+      "secrets": [
+        {"name": "DATABASE_URL", "valueFrom": "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/prod/db/url"},
+        {"name": "REDIS_URL", "valueFrom": "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/prod/redis/url"},
+        {"name": "OPENAI_API_KEY", "valueFrom": "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/prod/openai/key"},
+        {"name": "SECRET_KEY", "valueFrom": "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/prod/secret/key"}
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/prod-os-dashboard",
+          "awslogs-region": "REGION",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "python -c \"import requests; requests.get('http://localhost:8000/health')\""],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}

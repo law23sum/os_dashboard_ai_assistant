@@ -165,6 +165,19 @@ class Section:
 
 
 @dataclass
+class ResourceRef:
+    """Reference to a resource in a connector."""
+    id: str
+    name: str
+    resource_type: str
+    path: Optional[str] = None
+    size: Optional[int] = None
+    modified_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class CIRDocument:
     title: str
     document_type: str
