@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from config import get_api_config, validate_api_config
-from logging_config import setup_logger
+from ..logging_config import setup_logger
 
 # Import individual API clients
 from ai_layer.openai_client import OpenAIClient

@@ -1,0 +1,206 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        default: 'v1.0.0'
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build executable
+      run: python build-executable.py
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: os-dashboard-windows
+        path: dist/OS_Dashboard_AI_Assistant/
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build executable
+      run: python build-executable.py
+
+    - name: Create DMG
+      run: |
+        brew install create-dmg
+        create-dmg \
+          --volname "OS Dashboard AI Assistant" \
+          --window-pos 200 120 \
+          --window-size 800 400 \
+          --icon-size 100 \
+          --icon "OS_Dashboard_AI_Assistant.app" 200 190 \
+          --hide-extension "OS_Dashboard_AI_Assistant.app" \
+          --app-drop-link 600 185 \
+          "OS-Dashboard-AI-Assistant.dmg" \
+          "dist/OS_Dashboard_AI_Assistant/"
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: os-dashboard-macos
+        path: |
+          dist/OS_Dashboard_AI_Assistant/
+          OS-Dashboard-AI-Assistant.dmg
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          tk-dev \
+          libjpeg-dev \
+          libpng-dev \
+          libpoppler-cpp-dev \
+          tesseract-ocr \
+          libtesseract-dev \
+          libpq-dev \
+          libffi-dev \
+          libssl-dev \
+          git \
+          postgresql-client \
+          redis-tools
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build executable
+      run: python build-executable.py
+
+    - name: Create AppImage
+      run: |
+        # Install AppImage tools
+        sudo apt-get install -y fuse libfuse2
+
+        # Download appimagetool
+        wget -O appimagetool "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+        chmod +x appimagetool
+
+        # Create AppDir structure
+        mkdir -p AppDir/usr/bin AppDir/usr/lib AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/256x256/apps
+
+        # Copy executable and dependencies
+        cp -r dist/OS_Dashboard_AI_Assistant/* AppDir/usr/bin/
+        cp assistant_hub_gui/assistant_hub/templates/icon.png AppDir/usr/share/icons/hicolor/256x256/apps/os-dashboard.png 2>/dev/null || echo "No icon found"
+
+        # Create desktop file
+        cat > AppDir/usr/share/applications/os-dashboard.desktop << EOF
+[Desktop Entry]
+Name=OS Dashboard AI Assistant
+Exec=OS_Dashboard_AI_Assistant
+Icon=os-dashboard
+Type=Application
+Categories=Utility;Office;
+EOF
+
+        # Create AppRun script
+        cat > AppDir/AppRun << EOF
+#!/bin/bash
+HERE="\$(dirname "\$(readlink -f "\${0}")")"
+export PATH="\${HERE}/usr/bin:\${PATH}"
+export LD_LIBRARY_PATH="\${HERE}/usr/lib:\${LD_LIBRARY_PATH}"
+exec "\${HERE}/usr/bin/OS_Dashboard_AI_Assistant" "\$@"
+EOF
+        chmod +x AppDir/AppRun
+
+        # Build AppImage
+        ./appimagetool AppDir OS-Dashboard-AI-Assistant.AppImage
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: os-dashboard-linux
+        path: |
+          dist/OS_Dashboard_AI_Assistant/
+          OS-Dashboard-AI-Assistant.AppImage
+
+  release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Create release archives
+      run: |
+        # Create release directory
+        mkdir -p release
+
+        # Windows
+        cd os-dashboard-windows
+        zip -r ../release/OS-Dashboard-AI-Assistant-Windows.zip .
+        cd ..
+
+        # macOS
+        cd os-dashboard-macos
+        zip -r ../release/OS-Dashboard-AI-Assistant-macOS.zip .
+        cd ..
+
+        # Linux
+        cd os-dashboard-linux
+        cp OS-Dashboard-AI-Assistant.AppImage ../release/
+        zip -r ../release/OS-Dashboard-AI-Assistant-Linux.zip .
+        cd ..
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          release/OS-Dashboard-AI-Assistant-Windows.zip
+          release/OS-Dashboard-AI-Assistant-macOS.zip
+          release/OS-Dashboard-AI-Assistant-Linux.zip
+          release/OS-Dashboard-AI-Assistant.AppImage
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

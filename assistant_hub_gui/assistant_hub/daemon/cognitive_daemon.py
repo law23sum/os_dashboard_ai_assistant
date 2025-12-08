@@ -112,30 +112,30 @@ class CognitiveDaemon:
                 try:
                     cycle_start = datetime.now()
                     self.stats["cycles"] += 1
-                    
+
                     # Load current state using thread-local connection
                     state = load_state(conn)
                     settings = load_settings(conn)
-                
-                # Run all monitors to detect opportunities
-                findings = self._run_monitors(state, settings)
-                
-                # Execute automated actions based on findings
-                actions = self._execute_automations(findings, state, settings)
-                
-                # Update statistics
-                self.stats["actions_taken"] += len(actions)
-                self.stats["last_cycle"] = cycle_start.isoformat()
-                
-                # Log cycle completion
-                cycle_duration = (datetime.now() - cycle_start).total_seconds()
-                if cycle_duration > 1.0:  # Only log if cycle took significant time
-                    print(f"[CognitiveDaemon] Cycle {self.stats['cycles']} completed: "
-                          f"{len(findings)} findings, {len(actions)} actions in {cycle_duration:.2f}s")
-                
+
+                    # Run all monitors to detect opportunities
+                    findings = self._run_monitors(state, settings)
+
+                    # Execute automated actions based on findings
+                    actions = self._execute_automations(findings, state, settings)
+
+                    # Update statistics
+                    self.stats["actions_taken"] += len(actions)
+                    self.stats["last_cycle"] = cycle_start.isoformat()
+
+                    # Log cycle completion
+                    cycle_duration = (datetime.now() - cycle_start).total_seconds()
+                    if cycle_duration > 1.0:  # Only log if cycle took significant time
+                        print(f"[CognitiveDaemon] Cycle {self.stats['cycles']} completed: "
+                              f"{len(findings)} findings, {len(actions)} actions in {cycle_duration:.2f}s")
+
                 except Exception as e:
                     print(f"[CognitiveDaemon] Error in daemon cycle: {e}")
-                
+
                 # Sleep until next cycle
                 for _ in range(cycle_interval):
                     if not self.running:

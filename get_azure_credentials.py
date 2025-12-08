@@ -46,7 +46,7 @@ def print_instructions():
     print("16. Click 'Grant admin consent' (if you have admin rights)")
     print("\n17. Go to 'Authentication' in the left menu")
     print("18. Under 'Platform configurations', click 'Add a platform' > 'Web'")
-    print("19. Add redirect URI: http://localhost:8080")
+    print("19. Add redirect URI: http://localhost:8080 (or your preferred redirect URI)")
     print("20. Click 'Configure'")
     print("\n" + "="*70)
     print("\nOnce you have the credentials, you can:")

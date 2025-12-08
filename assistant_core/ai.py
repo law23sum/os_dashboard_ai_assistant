@@ -20,6 +20,17 @@ except Exception:  # pragma: no cover - handled gracefully when dependency missi
 
 from .db import ChatMessage, CHAT_ROLES, PERSONAS
 from .terminal import run_bash_command
+from typing import Any, Optional
+
+
+
+class AIAssistant:
+    """Main AI Assistant class that coordinates all AI functionality."""
+
+    def __init__(self, app_state: Any):
+        """Initialize the AI assistant with application state."""
+        self.app_state = app_state
+        self.openai_available = openai_available()
 
 # Model assignments per agent
 # Note: o1 models require special handling (no system messages, different API)
@@ -38,7 +49,7 @@ AGENT_MODEL_FALLBACKS = {
 DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-4o-mini")
 DEFAULT_SYSTEM_PROMPT = os.getenv(
     "ASSISTANT_HUB_SYSTEM_PROMPT",
-    "You are a cooperative team of AI agents (Aria, AIC, Sora) tasked with helping Chris manage"
+    "You are a cooperative team of AI agents (Aria, AIC, Sora, Data Science) tasked with helping Chris manage"
     " priorities, code, and research. Explain your thinking clearly, cite concrete next steps,"
     " and keep answers concise and actionable. You have access to a shell terminal and can execute"
     " commands when needed. You can also read files directly using the read_file function, or use"
@@ -205,9 +216,37 @@ def generate_ai_reply(
     if not model:
         model = get_agent_model(persona)
 
+    # Check for Data Science Agent routing
+    data_science_keywords = [
+        'machine learning', 'ml', 'dataset', 'model training', 'predict', 'classification',
+        'regression', 'clustering', 'feature', 'algorithm', 'hyperparameter', 'automl',
+        'data science', 'experiment', 'deploy model', 'train model', 'accuracy', 'precision',
+        'recall', 'f1 score', 'cross validation', 'feature importance', 'data drift'
+    ]
+
+    is_data_science_query = any(keyword in (prompt or "").lower() for keyword in data_science_keywords)
+
+    if is_data_science_query:
+        try:
+            from .ai_layer.agents import DataScienceAgent
+            agent = DataScienceAgent()
+
+            # Extract context from the conversation
+            context = {}
+            if file_paths:
+                context['file_paths'] = file_paths
+            if hasattr(history, 'cwd') or cwd:
+                context['cwd'] = cwd or getattr(history, 'cwd', None)
+
+            response = asyncio.run(agent.process_request(prompt or "", context))
+            return response, None, None
+        except Exception as e:
+            # If agent fails, fall back to regular OpenAI processing
+            pass
+
     try:
         client = get_openai_client()
-        
+
         # Prepare tools/functions for shell execution
         tools = None
         if enable_shell:
@@ -229,11 +268,12 @@ def generate_ai_reply(
             kwargs["tool_choice"] = "auto"
         
         response = client.chat.completions.create(**kwargs)
-        
+
         message = response.choices[0].message
         text = message.content or ""
         tool_calls = message.tool_calls if hasattr(message, 'tool_calls') and message.tool_calls else None
-        
+
+
         return text.strip(), None, tool_calls
     except (AuthenticationError, APIError, ValueError, RuntimeError) as exc:
         return _offline_reply(fallback_source or "(empty prompt)", exc), str(exc), None
@@ -263,7 +303,7 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                 file_path = os.path.join(work_dir, file_path)
             
             file_path = os.path.normpath(os.path.expanduser(file_path))
-            
+
             if not os.path.exists(file_path):
                 return {
                     "tool_call_id": tool_call.id,
@@ -271,7 +311,7 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                     "name": "read_file",
                     "content": f"Error: File not found: {file_path}"
                 }
-            
+
             if not os.path.isfile(file_path):
                 return {
                     "tool_call_id": tool_call.id,
@@ -279,19 +319,19 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                     "name": "read_file",
                     "content": f"Error: Path is not a file: {file_path}"
                 }
-            
+
             # Try to read as text
             try:
                 with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
                     lines = f.readlines()
                     total_lines = len(lines)
-                    
+
                     if total_lines > max_lines:
                         content = ''.join(lines[:max_lines])
                         content += f"\n\n[File truncated: showing first {max_lines} of {total_lines} total lines]"
                     else:
                         content = ''.join(lines)
-                    
+
                     return {
                         "tool_call_id": tool_call.id,
                         "role": "tool",
@@ -313,13 +353,13 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                 "name": "read_file",
                 "content": f"Error reading file: {str(e)}"
             }
-    
+
     elif tool_call.function.name == "execute_command":
         try:
             args = json.loads(tool_call.function.arguments)
             command = args.get("command", "")
             work_dir = args.get("working_directory", cwd) or cwd or os.getcwd()
-            
+
             if not command:
                 return {
                     "tool_call_id": tool_call.id,
@@ -327,9 +367,9 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                     "name": "execute_command",
                     "content": "Error: No command provided"
                 }
-            
+
             result = run_bash_command(command, cwd=work_dir)
-            
+
             output_parts = []
             if result.stdout:
                 output_parts.append(f"STDOUT:\n{result.stdout}")
@@ -337,10 +377,10 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                 output_parts.append(f"STDERR:\n{result.stderr}")
             if not output_parts:
                 output_parts.append("(no output)")
-            
+
             output_parts.append(f"\nExit code: {result.returncode}")
             content = "\n".join(output_parts)
-            
+
             return {
                 "tool_call_id": tool_call.id,
                 "role": "tool",
@@ -354,7 +394,7 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
                 "name": "execute_command",
                 "content": f"Error executing command: {str(e)}"
             }
-    
+
     return {
         "tool_call_id": tool_call.id,
         "role": "tool",

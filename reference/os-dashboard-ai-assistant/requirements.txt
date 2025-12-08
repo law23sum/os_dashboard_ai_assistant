@@ -1,0 +1,36 @@
+# Core dependencies
+requests>=2.31.0
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+aiohttp>=3.8.0
+asyncio-throttle>=1.0.0
+
+# OpenAI/ChatGPT
+openai>=1.0.0
+
+# Microsoft Graph API (Office 365)
+msal>=1.24.0
+msgraph-core>=0.2.2
+msgraph-sdk>=1.0.0
+
+# Google APIs (Gmail, Calendar)
+google-auth>=2.23.0
+google-auth-oauthlib>=1.0.0
+google-auth-httplib2>=0.1.0
+google-api-python-client>=2.100.0
+
+# Git integration
+GitPython>=3.1.0
+pygithub>=1.59.0
+
+# Adobe APIs
+adobe-pdfservices-sdk>=4.0.0
+
+# Apple Calendar (CalDAV)
+caldav>=1.3.0
+
+# Additional utilities
+keyring>=24.0.0
+cryptography>=41.0.0
+pyyaml>=6.0.0
+colorlog>=6.7.0

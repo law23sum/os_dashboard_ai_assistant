@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
-"""UI entrypoint for OS Dashboard AI Assistant."""
+"""UI entrypoint for OS Dashboard AI Assistant - DEPRECATED
+
+This UI has been removed. Use assistant_hub_gui/main.py for the full GUI experience.
+"""
 
 import sys
 import os
 
-# Add project root to path for proper imports
-_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if _project_root not in sys.path:
-    sys.path.insert(0, _project_root)
-
-from dashboard_app import run_ui
-from config.logging_config import configure_logging
-
-if __name__ == "__main__":
-    configure_logging()
-    run_ui()
+print("The web UI has been removed.")
+print("Please use assistant_hub_gui/main.py for the full GUI experience.")
+sys.exit(0)

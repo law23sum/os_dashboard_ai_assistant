@@ -1,9 +1,9 @@
 """Tests for Git client functionality."""
 
-import pytest
+import unittest
 
 
-class TestGitClient:
+class TestGitClient(unittest.TestCase):
     """Test cases for Git repository interactions."""
 
     def test_repository_initialization(self):

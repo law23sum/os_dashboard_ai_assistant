@@ -20,7 +20,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from config import get_api_config
-from logging_config import setup_logger
+from ..logging_config import setup_logger
 
 
 class GoogleClient:
