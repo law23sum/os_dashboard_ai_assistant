@@ -1214,12 +1214,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         message = self.security_status.message.strip() or "Telemetry not available."
         if hasattr(self, 'cyber_message_var'):
             self.cyber_message_var.set(message)
-        if self.security_status.updated_at:
-            human_ts = self.security_status.updated_at.replace("T", " ")
-        else:
-            human_ts = "n/a"
-        source = self.security_status.source or "mac_guard"
-        self.cyber_updated_var.set(f"Updated: {human_ts} via {source}")
+        if hasattr(self, 'cyber_updated_var') and self.cyber_updated_var.winfo_exists():
+            if self.security_status.updated_at:
+                human_ts = self.security_status.updated_at.replace("T", " ")
+            else:
+                human_ts = "n/a"
+            source = self.security_status.source or "mac_guard"
+            self.cyber_updated_var.set(f"Updated: {human_ts} via {source}")
 
     # ---------- Consolidated Tabs with Shared Pages ----------
 
