@@ -1,10 +1,10 @@
 """Tests for AI manager functionality."""
 
-import pytest
+import unittest
 from assistant_core.ai import AIAssistant
 
 
-class TestAIManager:
+class TestAIManager(unittest.TestCase):
     """Test cases for AI manager."""
 
     def test_initialization(self):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/Library/Frameworks/Python.framework/Versions/3.11/bin/python3
 """GUI entrypoint for OS Dashboard AI Assistant."""
 
 import sys

@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .section { margin-bottom: 30px; }
+        .doc-tree { margin-left: 20px; }
+        .popular-pages, .recent-updates { background: #f5f5f5; padding: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard AI Developer Portal</h1>
+
+    <div class="section">
+        <h2>Documentation</h2>
+        {% for type_name, pages in doc_tree.items() %}
+        <div class="doc-tree">
+            <h3>{{ type_name.replace('_', ' ').title() }}</h3>
+            <ul>
+            {% for page in pages %}
+                <li><a href="/docs/{{ page.slug }}">{{ page.title }}</a></li>
+                {% if page.children %}
+                <ul>
+                    {% for child in page.children %}
+                    <li><a href="/docs/{{ child.slug }}">{{ child.title }}</a></li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="section">
+        <div class="popular-pages">
+            <h2>Popular Pages</h2>
+            <ul>
+            {% for page in popular_pages %}
+                <li><a href="/docs/{{ page.slug }}">{{ page.title }}</a> ({{ page.views }} views)</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="recent-updates">
+            <h2>Recent Updates</h2>
+            <ul>
+            {% for page in recent_updates %}
+                <li><a href="/docs/{{ page.slug }}">{{ page.title }}</a> - {{ page.updated_at }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

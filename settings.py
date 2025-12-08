@@ -11,7 +11,6 @@ APP_AUTHOR = "OS Dashboard Team"
 # Directory paths
 PROJECT_ROOT = Path(__file__).parent
 ASSISTANT_CORE_DIR = PROJECT_ROOT / "assistant_core"
-API_CONNECTORS_DIR = PROJECT_ROOT / "api_connectors"
 UI_DIR = PROJECT_ROOT / "ui"
 CONFIG_DIR = PROJECT_ROOT / "config"
 TESTS_DIR = PROJECT_ROOT / "tests"
@@ -26,7 +25,6 @@ CONFIG_YAML = CONFIG_DIR / "config.yaml"
 CREDENTIALS_DIR = CONFIG_DIR / "credentials"
 
 # Default settings
-DEFAULT_UI_PORT = 8080
 DEFAULT_REFRESH_INTERVAL = 300  # seconds
 DEFAULT_LOG_LEVEL = "INFO"
 
