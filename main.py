@@ -61,6 +61,14 @@ async def main_async():
         except ImportError as e:
             print(f"Developer Portal System: Not available ({e})")
 
+        # Try to initialize AI services API (unified backend for all AI features)
+        try:
+            from assistant_core.ai_services_api import initialize_ai_services
+            await initialize_ai_services()
+            print("AI Services API: Unified backend for all 10 AI-powered features active")
+        except ImportError as e:
+            print(f"AI Services API: Not available ({e})")
+
         # Try to initialize predictive analytics system (optional)
         try:
             from assistant_core.predictive_analytics import AdvancedPredictiveAnalytics
@@ -78,6 +86,78 @@ async def main_async():
             print("Computer Vision AI System: Advanced image processing and multimodal understanding active")
         except ImportError as e:
             print(f"Computer Vision AI System: Not available ({e})")
+
+        # Try to initialize conversation manager (optional)
+        try:
+            from assistant_core.conversation_manager import ConversationManager
+            conversation_manager = ConversationManager()
+            await conversation_manager.initialize()
+            print("Conversation Manager: Advanced NLP and conversation AI active")
+        except ImportError as e:
+            print(f"Conversation Manager: Not available ({e})")
+
+        # Try to initialize automation orchestrator (optional)
+        try:
+            from assistant_core.automation_orchestrator import AutomationOrchestrator
+            automation_orchestrator = AutomationOrchestrator()
+            await automation_orchestrator.initialize()
+            print("Automation Orchestrator: Intelligent workflow automation active")
+        except ImportError as e:
+            print(f"Automation Orchestrator: Not available ({e})")
+
+        # Try to initialize AI security framework (optional)
+        try:
+            from assistant_core.security_framework import AISecurityFramework
+            ai_security = AISecurityFramework()
+            await ai_security.initialize()
+            print("AI Security Framework: Advanced threat detection and response active")
+        except ImportError as e:
+            print(f"AI Security Framework: Not available ({e})")
+
+        # Try to initialize edge computing AI (optional)
+        try:
+            from assistant_core.edge_computing_ai import EdgeComputingDistributedAI
+            edge_computing = EdgeComputingDistributedAI()
+            await edge_computing.initialize()
+            print("Edge Computing AI: Distributed AI processing and federated learning active")
+        except ImportError as e:
+            print(f"Edge Computing AI: Not available ({e})")
+
+        # Try to initialize personalization engine (optional)
+        try:
+            from assistant_core.personalization_engine import PersonalizationRecommendationEngine
+            personalization = PersonalizationRecommendationEngine()
+            await personalization.initialize()
+            print("Personalization Engine: Advanced recommendation systems active")
+        except ImportError as e:
+            print(f"Personalization Engine: Not available ({e})")
+
+        # Try to initialize collaboration intelligence (optional)
+        try:
+            from assistant_core.collaboration_intelligence import CollaborationIntelligence
+            collaboration = CollaborationIntelligence()
+            await collaboration.initialize()
+            print("Collaboration Intelligence: Real-time team intelligence active")
+        except ImportError as e:
+            print(f"Collaboration Intelligence: Not available ({e})")
+
+        # Try to initialize MLOps platform (optional)
+        try:
+            from assistant_core.mlops_platform import MLOpsPlatform
+            mlops = MLOpsPlatform()
+            await mlops.initialize()
+            print("MLOps Platform: Advanced ML operations and deployment active")
+        except ImportError as e:
+            print(f"MLOps Platform: Not available ({e})")
+
+        # Try to initialize intelligent monitoring (optional)
+        try:
+            from assistant_core.intelligent_monitoring import IntelligentMonitoringSystem
+            monitoring = IntelligentMonitoringSystem()
+            await monitoring.initialize()
+            print("Intelligent Monitoring: AI-powered system monitoring and self-healing active")
+        except ImportError as e:
+            print(f"Intelligent Monitoring: Not available ({e})")
 
         # Try to initialize API integration gateway (optional)
         try:

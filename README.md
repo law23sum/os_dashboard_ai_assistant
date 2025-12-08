@@ -1,6 +1,6 @@
 # OS Dashboard AI Assistant
 
-A comprehensive AI-powered operating system dashboard that integrates with external services to provide intelligent task management, document processing, and workflow automation.
+A comprehensive AI-powered **desktop application** that provides intelligent task management, document processing, and workflow automation with seamless integration to external services like Microsoft Office, Google Workspace, and Git.
 
 ## Project Structure
 
@@ -38,9 +38,29 @@ A comprehensive AI-powered operating system dashboard that integrates with exter
 └── requirements.txt          # Python dependencies
 ```
 
-## Install
+## Download & Install
+
+### Option 1: Download Pre-built Executable (Recommended)
+
+Visit the [releases page](https://github.com/yourusername/os-dashboard-ai-assistant/releases) and download the appropriate version for your operating system:
+
+- **Windows**: Download `OS-Dashboard-AI-Assistant-Windows.zip`
+- **macOS**: Download `OS-Dashboard-AI-Assistant-macOS.zip`
+- **Linux**: Download `OS-Dashboard-AI-Assistant.AppImage`
+
+No installation required - just extract and run!
+
+### Option 2: Install from Source
 
 ```bash
+# Clone the repository
+git clone https://github.com/yourusername/os-dashboard-ai-assistant.git
+cd os-dashboard-ai-assistant
+
+# Run the setup script
+python setup.py
+
+# Or install manually
 pip install -r requirements.txt
 ```
 
@@ -48,13 +68,27 @@ pip install -r requirements.txt
 
 ### Running the Application
 
+#### Option 1: Direct Execution
 ```bash
-# Start the main application
-python main.py
+# After setup, simply run:
+python run.py
 
-# Start the web dashboard
-python ui/main.py
+# Or double-click the executable you downloaded
 ```
+
+#### Option 2: Docker (Recommended for Development)
+```bash
+# Basic development environment
+docker-compose up -d
+
+# Full production stack with monitoring
+docker-compose --profile full up -d
+
+# Desktop GUI mode
+docker-compose --profile gui up -d
+```
+
+The application will open a desktop GUI where you can manage tasks, process documents, and configure integrations.
 
 ### Configuration
 
@@ -102,6 +136,27 @@ python ui/main.py
 - **Security Scanning**: Automatic security analysis of plugin code
 - **Plugin Management**: Install, enable, disable, and uninstall plugins
 - **Review System**: Community ratings and reviews for plugins
+
+## Building from Source
+
+### Creating Executables
+
+To build standalone executables for distribution:
+
+```bash
+# Simple build script (recommended)
+./build.sh
+
+# Or manually install PyInstaller and build
+pip install pyinstaller
+python build-executable.py
+```
+
+This creates executables in the `dist/` directory for Windows, macOS, and Linux.
+
+### Automated Builds
+
+The project includes GitHub Actions workflows (`.github/workflows/build-release.yml`) that automatically build executables for all platforms when you create a release tag.
 
 ## Development
 

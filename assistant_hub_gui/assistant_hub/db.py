@@ -168,6 +168,8 @@ class DocumentSample:
     sample_content: str
     governance: str
     created_at: str = datetime.now().isoformat(timespec="seconds")
+
+@dataclass
 class DocumentOperation:
     """Track AI-driven document operations with governance metadata."""
 

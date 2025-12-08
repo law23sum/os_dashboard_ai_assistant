@@ -260,7 +260,7 @@ class OSDashboard:
                     connector_config = self.config.get_connector_config(connector_name)
 
                     config = ConnectorConfig(
-                        connector_id=connector_name,
+                        instance_id=connector_name,
                         connector_type=connector_name,
                         settings=connector_config.get("settings", {})
                     )

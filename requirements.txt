@@ -108,6 +108,7 @@ icalendar>=4.0.0
 flask>=2.0.0
 flask-cors>=3.0.0
 fastapi>=0.110.0
+gunicorn>=21.2.0
 
 # Template engine for partner management
 jinja2>=3.0.0
