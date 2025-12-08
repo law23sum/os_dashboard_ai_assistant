@@ -18,7 +18,7 @@ except ImportError as e:
     print(f"✗ Failed to import Automation Orchestrator: {e}")
     sys.exit(1)
 
-async def test_basic_workflow_creation():
+async def _test_basic_workflow_creation_async():
     """Test basic workflow creation and execution"""
     print("\n=== Testing Basic Workflow Creation ===")
 
@@ -72,7 +72,7 @@ async def test_basic_workflow_creation():
         print(f"✗ Basic workflow test failed: {e}")
         return False
 
-async def test_ai_agent_integration():
+async def _test_ai_agent_integration_async():
     """Test AI agent integration within workflows"""
     print("\n=== Testing AI Agent Integration ===")
 
@@ -121,7 +121,7 @@ async def test_ai_agent_integration():
         print(f"✗ AI agent integration test failed: {e}")
         return False
 
-async def test_document_processing():
+async def _test_document_processing_async():
     """Test document processing workflow"""
     print("\n=== Testing Document Processing ===")
 
@@ -165,7 +165,7 @@ async def test_document_processing():
         print(f"✗ Document processing test failed: {e}")
         return False
 
-async def test_sample_workflows():
+async def _test_sample_workflows_async():
     """Test creation of sample workflows"""
     print("\n=== Testing Sample Workflows ===")
 
@@ -188,7 +188,7 @@ async def test_sample_workflows():
         print(f"✗ Sample workflows test failed: {e}")
         return False
 
-async def test_automation_rules():
+async def _test_automation_rules_async():
     """Test automation rules functionality"""
     print("\n=== Testing Automation Rules ===")
 
@@ -234,7 +234,7 @@ async def test_automation_rules():
         print(f"✗ Automation rules test failed: {e}")
         return False
 
-async def test_error_handling():
+async def _test_error_handling_async():
     """Test error handling and graceful degradation"""
     print("\n=== Testing Error Handling ===")
 
@@ -266,6 +266,30 @@ async def test_error_handling():
     except Exception as e:
         print(f"✗ Error handling test failed: {e}")
         return False
+
+
+def test_basic_workflow_creation():
+    return asyncio.run(_test_basic_workflow_creation_async())
+
+
+def test_ai_agent_integration():
+    return asyncio.run(_test_ai_agent_integration_async())
+
+
+def test_document_processing():
+    return asyncio.run(_test_document_processing_async())
+
+
+def test_sample_workflows():
+    return asyncio.run(_test_sample_workflows_async())
+
+
+def test_automation_rules():
+    return asyncio.run(_test_automation_rules_async())
+
+
+def test_error_handling():
+    return asyncio.run(_test_error_handling_async())
 
 async def main():
     """Run all automation integration tests"""

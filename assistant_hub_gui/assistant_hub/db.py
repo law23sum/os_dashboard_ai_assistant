@@ -458,6 +458,9 @@ def init_db() -> sqlite3.Connection:
 
     try:
         initialize_document_samples(conn)
+    except Exception:
+        # Continue if sample initialization fails to avoid blocking setup
+        pass
     # Seed sample document operations so the AI Ops board is never empty
     try:
         c.execute("SELECT COUNT(*) as count FROM document_operations")

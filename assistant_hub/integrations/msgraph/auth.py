@@ -7,8 +7,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict
 
-import requests
-
 
 @dataclass
 class GraphCredentials:
@@ -63,6 +61,8 @@ class GraphAuth:
         self.credentials = credentials
 
     def get_token(self) -> str:
+        import requests
+
         token_url = f"https://login.microsoftonline.com/{self.credentials.tenant_id}/oauth2/v2.0/token"
         response = requests.post(
             token_url,

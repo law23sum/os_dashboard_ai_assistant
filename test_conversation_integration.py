@@ -18,7 +18,7 @@ except ImportError as e:
     print(f"✗ Failed to import conversation manager: {e}")
     sys.exit(1)
 
-async def test_basic_conversation():
+async def _test_basic_conversation_async():
     """Test basic conversation processing"""
     print("\n=== Testing Basic Conversation Processing ===")
 
@@ -46,7 +46,7 @@ async def test_basic_conversation():
         print(f"✗ Basic conversation test failed: {e}")
         return False
 
-async def test_multiple_messages():
+async def _test_multiple_messages_async():
     """Test conversation context with multiple messages"""
     print("\n=== Testing Multi-Message Conversation Context ===")
 
@@ -77,7 +77,7 @@ async def test_multiple_messages():
         print(f"✗ Multi-message test failed: {e}")
         return False
 
-async def test_edge_cases():
+async def _test_edge_cases_async():
     """Test edge cases and error handling"""
     print("\n=== Testing Edge Cases ===")
 
@@ -108,7 +108,7 @@ async def test_edge_cases():
         print(f"✗ Edge case test failed: {e}")
         return False
 
-async def test_gui_integration_compatibility():
+async def _test_gui_integration_compatibility_async():
     """Test that the integration doesn't break existing functionality"""
     print("\n=== Testing GUI Integration Compatibility ===")
 
@@ -130,6 +130,22 @@ async def test_gui_integration_compatibility():
     except Exception as e:
         print(f"✗ GUI integration test failed: {e}")
         return False
+
+
+def test_basic_conversation():
+    return asyncio.run(_test_basic_conversation_async())
+
+
+def test_multiple_messages():
+    return asyncio.run(_test_multiple_messages_async())
+
+
+def test_edge_cases():
+    return asyncio.run(_test_edge_cases_async())
+
+
+def test_gui_integration_compatibility():
+    return asyncio.run(_test_gui_integration_compatibility_async())
 
 async def main():
     """Run all tests"""

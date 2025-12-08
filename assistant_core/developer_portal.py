@@ -7,13 +7,12 @@ Comprehensive developer portal with interactive documentation, code examples, an
 import asyncio
 import json
 import uuid
+import importlib.util
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
 from enum import Enum
 from pathlib import Path
-import markdown
-import jinja2
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
@@ -124,10 +123,17 @@ class DeveloperPortalSystem:
         # Template engine
         template_dir = Path(__file__).parent / "templates"
         template_dir.mkdir(exist_ok=True)
-        self.jinja_env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader(template_dir),
-            autoescape=jinja2.select_autoescape(['html', 'xml'])
-        )
+        self.jinja_env = None
+
+        if importlib.util.find_spec("jinja2") is not None:
+            import jinja2
+
+            self.jinja_env = jinja2.Environment(
+                loader=jinja2.FileSystemLoader(template_dir),
+                autoescape=jinja2.select_autoescape(['html', 'xml'])
+            )
+        else:
+            self.logger.warning("Jinja2 is not installed. Using basic HTML fallbacks.")
 
         # Configuration
         self.config = {
@@ -654,17 +660,18 @@ class DeveloperPortalSystem:
             # Get recent updates
             recent_updates = await self._get_recent_updates()
 
+            if not self.jinja_env:
+                return "<html><body><h1>Developer Portal - Dashboard AI</h1></body></html>"
+
             template = self.jinja_env.get_template("homepage.html")
 
-            html = template.render(
+            return template.render(
                 title="Developer Portal - Dashboard AI",
                 doc_tree=doc_tree,
                 popular_pages=popular_pages,
                 recent_updates=recent_updates,
                 config=self.config
             )
-
-            return html
 
         except Exception as e:
             self.logger.error(f"Homepage generation failed: {e}")
@@ -674,10 +681,15 @@ class DeveloperPortalSystem:
         """Generate HTML for documentation page"""
         try:
             # Convert markdown to HTML
-            html_content = markdown.markdown(
-                page.content,
-                extensions=['codehilite', 'toc', 'tables', 'fenced_code']
-            )
+            if importlib.util.find_spec("markdown") is not None:
+                import markdown
+
+                html_content = markdown.markdown(
+                    page.content,
+                    extensions=['codehilite', 'toc', 'tables', 'fenced_code']
+                )
+            else:
+                html_content = page.content
 
             # Get navigation
             doc_tree = await self.get_documentation_tree()
@@ -685,17 +697,18 @@ class DeveloperPortalSystem:
             # Track page view
             self.page_views[page.id] = self.page_views.get(page.id, 0) + 1
 
+            if not self.jinja_env:
+                return f"<html><body><h1>{page.title}</h1><div>{html_content}</div></body></html>"
+
             template = self.jinja_env.get_template("documentation_page.html")
 
-            html = template.render(
+            return template.render(
                 title=page.title,
                 content=html_content,
                 page=page,
                 doc_tree=doc_tree,
                 config=self.config
             )
-
-            return html
 
         except Exception as e:
             self.logger.error(f"Documentation page generation failed: {e}")

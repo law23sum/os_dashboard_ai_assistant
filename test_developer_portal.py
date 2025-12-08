@@ -14,7 +14,7 @@ if _current_dir not in sys.path:
 
 from assistant_core.developer_portal import DeveloperPortalSystem
 
-async def test_developer_portal():
+async def _test_developer_portal_async():
     """Test the developer portal system functionality"""
 
     print("🔧 Initializing Developer Portal System...")
@@ -112,5 +112,9 @@ async def test_developer_portal():
 
     print("\n🎉 All tests completed successfully!")
 
+def test_developer_portal():
+    return asyncio.run(_test_developer_portal_async())
+
+
 if __name__ == "__main__":
-    asyncio.run(test_developer_portal())
+    asyncio.run(_test_developer_portal_async())
