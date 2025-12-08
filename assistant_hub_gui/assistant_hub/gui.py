@@ -1214,7 +1214,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         message = self.security_status.message.strip() or "Telemetry not available."
         if hasattr(self, 'cyber_message_var'):
             self.cyber_message_var.set(message)
-<<<<<<< HEAD
         if hasattr(self, 'cyber_updated_var') and self.cyber_updated_var.winfo_exists():
             if self.security_status.updated_at:
                 human_ts = self.security_status.updated_at.replace("T", " ")
@@ -1229,8 +1228,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         """Build consolidated Dashboard & Analytics tab with sub-navigation"""
         if TTKBOOTSTRAP_AVAILABLE:
             self.dashboard_analytics_frame = ttkb.Frame(self.notebook)
-=======
->>>>>>> b614c3c (let it go)
         if self.security_status.updated_at:
             human_ts = self.security_status.updated_at.replace("T", " ")
         else:
