@@ -96,6 +96,26 @@ class ChatMessage:
     created_at: str = datetime.now().isoformat(timespec="seconds")
 
 
+
+
+@dataclass
+class DocumentOperation:
+    """Track AI-driven document operations with governance metadata."""
+
+    id: int
+    title: str
+    project_id: str
+    integration_type: str
+    external_id: str
+    operation: str
+    status: str = "queued"  # queued | running | succeeded | failed | needs_review
+    persona: str = "AIC"
+    version_tag: Optional[str] = None
+    diff_path: Optional[str] = None
+    external_company: Optional[str] = None
+    started_at: str = datetime.now().isoformat(timespec="seconds")
+    completed_at: Optional[str] = None
+    notes: str = ""
 @dataclass
 class AssistantState:
     tasks: List[Task]
@@ -367,6 +387,26 @@ def init_db() -> sqlite3.Connection:
         ON document_operations(status, started_at DESC)
         """
     )
+    
+    # Document operations table for AI-driven updates and external sync
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS document_operations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            project_id TEXT NOT NULL,
+            integration_type TEXT NOT NULL,
+            external_id TEXT NOT NULL,
+            operation TEXT NOT NULL,
+            status TEXT NOT NULL,
+            persona TEXT NOT NULL,
+            version_tag TEXT,
+            diff_path TEXT,
+            external_company TEXT,
+            started_at TEXT NOT NULL,
+            completed_at TEXT,
+            notes TEXT
+        )
+    """)
     
     # Document versions table for tracking document history
     c.execute("""
@@ -970,11 +1010,11 @@ def save_external_connections(
     set_meta(conn, "external.connections", json.dumps(payload, ensure_ascii=False))
 
 
-# Document Operation helpers -------------------------------------------------
 
-
+# Document Operations (AI governance) Functions
 def db_record_document_operation(
     conn: sqlite3.Connection,
+    *,
     title: str,
     project_id: str,
     integration_type: str,
@@ -992,7 +1032,7 @@ def db_record_document_operation(
     if status not in OPERATION_STATUS_OPTIONS:
         status = "queued"
 
-    now = datetime.now().isoformat(timespec="seconds")
+    started_at = datetime.now().isoformat(timespec="seconds")
     c = conn.cursor()
     c.execute(
         """
@@ -1013,7 +1053,7 @@ def db_record_document_operation(
             version_tag,
             diff_path,
             external_company,
-            now,
+            started_at,
             None,
             notes,
         ),
@@ -1025,16 +1065,17 @@ def db_record_document_operation(
 def db_update_document_operation_status(
     conn: sqlite3.Connection,
     operation_id: int,
+    *,
     status: Optional[str] = None,
-    diff_path: Optional[str] = None,
     version_tag: Optional[str] = None,
+    diff_path: Optional[str] = None,
     external_company: Optional[str] = None,
     notes: Optional[str] = None,
     mark_complete: bool = False,
 ):
     """Update status/metadata for a document operation."""
 
-    updates = []
+    updates: List[Any] = []
     params: List[Any] = []
 
     if status:
@@ -1043,13 +1084,13 @@ def db_update_document_operation_status(
         updates.append("status = ?")
         params.append(status)
 
-    if diff_path is not None:
-        updates.append("diff_path = ?")
-        params.append(diff_path)
-
     if version_tag is not None:
         updates.append("version_tag = ?")
         params.append(version_tag)
+
+    if diff_path is not None:
+        updates.append("diff_path = ?")
+        params.append(diff_path)
 
     if external_company is not None:
         updates.append("external_company = ?")
@@ -1123,6 +1164,7 @@ def db_list_document_operations(
     return operations
 
 
+# Note Links (Document Management) Functions
 # Note Links (Document Management) Functions
 def db_create_note_link(
     conn: sqlite3.Connection,
