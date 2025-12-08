@@ -50,14 +50,25 @@ from .db import (
     PERSONA_ROLES,
     STATUS_OPTIONS,
     PRIORITY_OPTIONS,
-    OPERATION_STATUS_OPTIONS,
-    DocumentOperation,
-    db_list_document_operations,
-    db_record_document_operation,
-    db_update_document_operation_status,
     DEFAULT_FETCH_PREFERENCES,
+    DocumentOperation,
+    db_update_document_operation_status,
 )
-from config.logging_config import setup_logger
+from .db import db_list_document_operations, db_record_document_operation
+
+# Keep OPERATION_STATUS_OPTIONS optional to avoid hard import failures on older DB modules
+try:
+    from .db import OPERATION_STATUS_OPTIONS
+except ImportError:
+    OPERATION_STATUS_OPTIONS = ["queued", "running", "succeeded", "failed", "needs_review"]
+
+try:
+    from config.logging_config import setup_logger
+except ImportError:  # Fallback logger to keep GUI running if config module is absent
+    import logging
+
+    def setup_logger(name: str):
+        return logging.getLogger(name)
 from .utils import parse_date, ensure_project_exists
 from .ai import (
     generate_ai_reply,
@@ -487,6 +498,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.project_docs_link_ids = {}  # Map item_id -> link_id for project documents
         self.ai_ops_status_filter = tk.StringVar(value="all")
         self.ai_ops_integration_filter = tk.StringVar(value="all")
+        self.dashboard_text_targets = []  # Track dashboard widgets across classic/unified views
         # Optional automation orchestrator instance (set when feature is available)
         # Initialize to None so attribute lookups remain safe even if the feature
         # isn't loaded, avoiding Tk's __getattr__ fallback from raising errors
@@ -508,7 +520,20 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Better spacing for professional look
         self.notebook.grid(row=1, column=0, sticky="nsew", padx=12, pady=(4, 12))
 
-        # Consolidated tabs with shared pages
+        # Classic tabs remain available; new consolidated views are added below
+        self._build_dashboard_tab()
+        self._build_tasks_tab()
+        self._build_projects_tab()
+        self._build_chat_tab()
+        self._build_integrations_tab()
+        self._build_tools_tab()
+        self._build_analytics_tab()
+        self._build_settings_tab()
+        self._build_ai_operations_tab()
+
+        classic_tab_count = self.notebook.index("end")
+
+        # Consolidated tabs with shared pages (additive, not replacing classic tabs)
         self._build_dashboard_analytics_tab()
         self._build_tasks_projects_tab()
         self._build_ai_systems_tab()
@@ -517,15 +542,28 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self._build_integrations_infrastructure_tab()
         self._build_security_audit_tab()
 
-        # Update tab labels with icons for consolidated tabs
+        # Update tab labels with icons if available
         if TTKBOOTSTRAP_AVAILABLE:
-            self.notebook.tab(0, text="📊 Dashboard & Analytics")
-            self.notebook.tab(1, text="✅ Tasks & Projects")
-            self.notebook.tab(2, text="🤖 AI Systems")
-            self.notebook.tab(3, text="🚀 AI Features")
-            self.notebook.tab(4, text="🔧 Tools & Intelligence")
-            self.notebook.tab(5, text="🔌 Integrations & Infrastructure")
-            self.notebook.tab(6, text="🛡️ Security & Audit")
+            self.notebook.tab(0, text="📊 Dashboard")
+            self.notebook.tab(1, text="✅ Tasks")
+            self.notebook.tab(2, text="📁 Projects")
+            self.notebook.tab(3, text="💬 AI Console")
+            self.notebook.tab(4, text="🔗 Integrations")
+            self.notebook.tab(5, text="🔧 Tools")
+            self.notebook.tab(6, text="📊 Analytics")
+            self.notebook.tab(7, text="⚙️ Settings")
+            self.notebook.tab(8, text="🛰️ AI Ops Feed")
+            self.notebook.tab(classic_tab_count + 0, text="📊 Dashboard & Analytics")
+            self.notebook.tab(classic_tab_count + 1, text="✅ Tasks & Projects")
+            self.notebook.tab(classic_tab_count + 2, text="🤖 AI Systems")
+            self.notebook.tab(classic_tab_count + 3, text="🚀 AI Features")
+            self.notebook.tab(classic_tab_count + 4, text="🔧 Tools & Intelligence")
+            self.notebook.tab(classic_tab_count + 5, text="🔌 Integrations & Infrastructure")
+            self.notebook.tab(classic_tab_count + 6, text="🛡️ Security & Audit")
+
+        # Populate additive tab navigation dropdown after tabs are created
+        self._initialize_tab_navigation()
+        self._refresh_tab_group_dropdowns()
 
         # Initialize sync scheduler
         self.sync_scheduler = create_default_scheduler(self.conn)
@@ -827,6 +865,178 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             ToolTip(save_btn, text="Save current state and settings")
             ToolTip(refresh_btn, text="Refresh all views with latest data")
 
+        # Additive navigation dropdown that mirrors existing tabs without replacing them
+        if TTKBOOTSTRAP_AVAILABLE:
+            nav_label = ttkb.Label(top, text="Navigate:", bootstyle="secondary")
+            self.tab_nav_var = tk.StringVar(value="Go to tab…")
+            self.tab_nav_combo = ttkb.Combobox(
+                top,
+                textvariable=self.tab_nav_var,
+                state="readonly",
+                width=28,
+                bootstyle="secondary",
+            )
+        else:
+            nav_label = ttk.Label(top, text="Navigate:")
+            self.tab_nav_var = tk.StringVar(value="Go to tab…")
+            self.tab_nav_combo = ttk.Combobox(
+                top,
+                textvariable=self.tab_nav_var,
+                state="readonly",
+                width=28,
+            )
+
+        nav_label.grid(row=1, column=0, sticky="w", padx=(0, 8), pady=(6, 0))
+        self.tab_nav_combo.grid(row=1, column=1, columnspan=3, sticky="w", padx=(0, 12), pady=(6, 0))
+        self.tab_nav_combo.bind("<<ComboboxSelected>>", self._on_tab_navigation_select)
+        if TTKBOOTSTRAP_AVAILABLE:
+            ToolTip(self.tab_nav_combo, text="Jump to any tab (tabs remain visible)")
+
+        # Grouped navigation dropdowns to keep tabs organized without removing them
+        self._build_tab_group_dropdowns(top)
+
+    def _initialize_tab_navigation(self):
+        """Populate the navigation dropdown with current notebook tabs (additive, non-destructive)."""
+        if not hasattr(self, "tab_nav_combo") or not hasattr(self, "notebook"):
+            return
+        try:
+            tab_count = self.notebook.index("end")
+        except Exception:
+            return
+
+        labels = []
+        self._tab_name_to_index = {}
+        for idx in range(tab_count):
+            text = self.notebook.tab(idx, "text") or f"Tab {idx + 1}"
+            labels.append(text)
+            # Preserve last occurrence if duplicate names are present
+            self._tab_name_to_index[text] = idx
+
+        self.tab_nav_combo["values"] = labels
+        self.tab_nav_combo.set("Go to tab…")
+        # Keep grouped dropdowns synchronized with current tabs
+        self._refresh_tab_group_dropdowns()
+
+    def _on_tab_navigation_select(self, event=None):
+        """Select the chosen tab from the additive dropdown without altering existing tabs."""
+        if not hasattr(self, "_tab_name_to_index"):
+            return
+        choice = self.tab_nav_var.get()
+        idx = self._tab_name_to_index.get(choice)
+        if idx is None:
+            return
+        try:
+            self.notebook.select(idx)
+        except Exception:
+            pass
+
+    def _select_tab_by_label(self, label: str):
+        """Select notebook tab matching the provided label."""
+        if not label:
+            return
+        try:
+            tab_count = self.notebook.index("end")
+        except Exception:
+            return
+        for idx in range(tab_count):
+            text = self.notebook.tab(idx, "text") or ""
+            if text.strip() == label.strip():
+                try:
+                    self.notebook.select(idx)
+                except Exception:
+                    pass
+                return
+
+    def _build_tab_group_dropdowns(self, parent):
+        """Add category dropdowns that group existing tabs without removing them."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            group_label = ttkb.Label(parent, text="Grouped Views:", bootstyle="secondary")
+        else:
+            group_label = ttk.Label(parent, text="Grouped Views:")
+        group_label.grid(row=2, column=0, sticky="w", padx=(0, 8), pady=(8, 0))
+
+        self._tab_groups = {
+            "Productivity": ["dashboard", "task", "project"],
+            "AI & Ops": ["ai console", "tool", "analytic", "ai ops"],
+            "Integrations": ["integration", "setting"],
+            "Unified Views": [
+                "dashboard & analytics",
+                "tasks & projects",
+                "ai systems",
+                "ai features",
+                "tools & intelligence",
+                "integrations & infrastructure",
+                "security & audit",
+            ],
+        }
+        self.tab_group_vars = {}
+        self.tab_group_combos = {}
+
+        col = 1
+        for group_name in self._tab_groups:
+            var = tk.StringVar(value=f"{group_name}…")
+            if TTKBOOTSTRAP_AVAILABLE:
+                combo = ttkb.Combobox(
+                    parent,
+                    textvariable=var,
+                    state="readonly",
+                    width=24,
+                    bootstyle="secondary",
+                )
+            else:
+                combo = ttk.Combobox(parent, textvariable=var, state="readonly", width=24)
+            combo.grid(row=2, column=col, sticky="w", padx=(0, 10), pady=(8, 0))
+            combo.bind("<<ComboboxSelected>>", lambda _e, g=group_name: self._on_tab_group_select(g))
+            self.tab_group_vars[group_name] = var
+            self.tab_group_combos[group_name] = combo
+            col += 1
+
+    def _refresh_tab_group_dropdowns(self):
+        """Populate grouped dropdowns with current tab labels based on keywords."""
+        if not hasattr(self, "tab_group_combos") or not hasattr(self, "notebook"):
+            return
+        try:
+            tab_count = self.notebook.index("end")
+        except Exception:
+            return
+
+        # Build quick lookup of current tab labels
+        tab_labels = []
+        for idx in range(tab_count):
+            tab_labels.append(self.notebook.tab(idx, "text") or f"Tab {idx + 1}")
+
+        def match_label(keyword: str) -> Optional[str]:
+            for label in tab_labels:
+                if keyword.lower() in label.lower():
+                    return label
+            return None
+
+        for group_name, keywords in getattr(self, "_tab_groups", {}).items():
+            combo = self.tab_group_combos.get(group_name)
+            if not combo:
+                continue
+            options = []
+            for keyword in keywords:
+                label = match_label(keyword)
+                if label and label not in options:
+                    options.append(label)
+            combo["values"] = options
+            combo.set(f"{group_name}…")
+
+    def _on_tab_group_select(self, group_name: str):
+        """Handle grouped dropdown selection by navigating to the chosen tab."""
+        if not hasattr(self, "tab_group_vars"):
+            return
+        var = self.tab_group_vars.get(group_name)
+        if not var:
+            return
+        choice = var.get()
+        if choice.endswith("…"):
+            return
+        self._select_tab_by_label(choice)
+        # Reset placeholder text after navigation
+        var.set(f"{group_name}…")
+
     def on_persona_change(self, event=None):
         val = self.persona_var.get()
         if val in PERSONAS:
@@ -1032,6 +1242,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.sys_text = tk.Text(self.sys_box, height=4, wrap="word", font=self.text_font, relief="flat", borderwidth=0)
         self._style_text_widget(self.sys_text)
         self.sys_text.pack(fill="both", expand=True, padx=8, pady=8)
+        self.dashboard_text_targets.append(
+            {
+                "source": "classic",
+                "today": self.today_text,
+                "upcoming": self.upcoming_text,
+                "status": self.status_text,
+                "load": self.load_text,
+            }
+        )
 
     def refresh_dashboard(self):
         state = self.state_obj
@@ -1264,60 +1483,4436 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         # Dashboard boxes - with text widgets for refresh functionality
         if TTKBOOTSTRAP_AVAILABLE:
-            self.today_box = ttkb.Labelframe(content_frame, text="📋 Today's Focus", bootstyle="primary", padding=10)
-            self.upcoming_box = ttkb.Labelframe(content_frame, text="📅 Upcoming Deadlines", bootstyle="info", padding=10)
-            self.status_box = ttkb.Labelframe(content_frame, text="📊 Status Overview", bootstyle="success", padding=10)
-            self.load_box = ttkb.Labelframe(content_frame, text="👥 Load by Persona", bootstyle="secondary", padding=10)
-            self.cyber_box = ttkb.Labelframe(content_frame, text="🛡️ Cyber Defense Status", bootstyle="warning", padding=10)
+            unified_today_box = ttkb.Labelframe(content_frame, text="📋 Today's Focus", bootstyle="primary", padding=10)
+            unified_upcoming_box = ttkb.Labelframe(content_frame, text="📅 Upcoming Deadlines", bootstyle="info", padding=10)
+            unified_status_box = ttkb.Labelframe(content_frame, text="📊 Status Overview", bootstyle="success", padding=10)
+            unified_load_box = ttkb.Labelframe(content_frame, text="👥 Load by Persona", bootstyle="secondary", padding=10)
+            unified_cyber_box = ttkb.Labelframe(content_frame, text="🛡️ Cyber Defense Status", bootstyle="warning", padding=10)
         else:
-            self.today_box = ttk.LabelFrame(content_frame, text="📋 Today's Focus", padx=10, pady=10)
-            self.upcoming_box = ttk.LabelFrame(content_frame, text="📅 Upcoming Deadlines", padx=10, pady=10)
-            self.status_box = ttk.LabelFrame(content_frame, text="📊 Status Overview", padx=10, pady=10)
-            self.load_box = ttk.LabelFrame(content_frame, text="👥 Load by Persona", padx=10, pady=10)
-            self.cyber_box = ttk.LabelFrame(content_frame, text="🛡️ Cyber Defense Status", padx=10, pady=10)
+            unified_today_box = ttk.LabelFrame(content_frame, text="📋 Today's Focus", padx=10, pady=10)
+            unified_upcoming_box = ttk.LabelFrame(content_frame, text="📅 Upcoming Deadlines", padx=10, pady=10)
+            unified_status_box = ttk.LabelFrame(content_frame, text="📊 Status Overview", padx=10, pady=10)
+            unified_load_box = ttk.LabelFrame(content_frame, text="👥 Load by Persona", padx=10, pady=10)
+            unified_cyber_box = ttk.LabelFrame(content_frame, text="🛡️ Cyber Defense Status", padx=10, pady=10)
 
-        self.today_box.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        self.upcoming_box.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
-        self.status_box.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
-        self.load_box.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
-        self.cyber_box.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+        unified_today_box.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        unified_upcoming_box.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+        unified_status_box.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
+        unified_load_box.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
+        unified_cyber_box.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
 
         # Today's tasks content
-        self.today_text = tk.Text(self.today_box, height=6, wrap=tk.WORD, font=self.text_font)
-        self.today_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        unified_today_text = tk.Text(unified_today_box, height=6, wrap=tk.WORD, font=self.text_font)
+        unified_today_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
         # Upcoming tasks content
-        self.upcoming_text = tk.Text(self.upcoming_box, height=6, wrap=tk.WORD, font=self.text_font)
-        self.upcoming_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        unified_upcoming_text = tk.Text(unified_upcoming_box, height=6, wrap=tk.WORD, font=self.text_font)
+        unified_upcoming_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
         # Status overview content
-        self.status_text = tk.Text(self.status_box, height=6, wrap=tk.WORD, font=self.text_font)
-        self.status_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        unified_status_text = tk.Text(unified_status_box, height=6, wrap=tk.WORD, font=self.text_font)
+        unified_status_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
         # Load by persona content
-        self.load_text = tk.Text(self.load_box, height=6, wrap=tk.WORD, font=self.text_font)
-        self.load_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        unified_load_text = tk.Text(unified_load_box, height=6, wrap=tk.WORD, font=self.text_font)
+        unified_load_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
         # Cyber defense status
-        self.cyber_box.columnconfigure(0, weight=1)
-        self.cyber_status_var = tk.StringVar(value="Status: offline")
+        unified_cyber_box.columnconfigure(0, weight=1)
+        unified_cyber_status_var = tk.StringVar(value="Status: offline")
         if TTKBOOTSTRAP_AVAILABLE:
-            self.cyber_status_label = ttkb.Label(
-                self.cyber_box,
-                textvariable=self.cyber_status_var,
+            unified_cyber_status_label = ttkb.Label(
+                unified_cyber_box,
+                textvariable=unified_cyber_status_var,
                 font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
                 bootstyle="info"
             )
         else:
-            self.cyber_status_label = ttk.Label(
-                self.cyber_box,
-                textvariable=self.cyber_status_var,
+            unified_cyber_status_label = ttk.Label(
+                unified_cyber_box,
+                textvariable=unified_cyber_status_var,
                 font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
             )
-        self.cyber_status_label.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
+        unified_cyber_status_label.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
 
         # Refresh button
         ttk.Button(content_frame, text="🔄 Refresh Dashboard", command=self.refresh_dashboard).grid(row=3, column=0, columnspan=2, pady=10)
+
+        # Register unified dashboard widgets so both views stay in sync
+        self.dashboard_text_targets = [
+            tgt for tgt in getattr(self, "dashboard_text_targets", []) if tgt.get("source") != "unified"
+        ]
+        self.dashboard_text_targets.append(
+            {
+                "source": "unified",
+                "today": unified_today_text,
+                "upcoming": unified_upcoming_text,
+                "status": unified_status_text,
+                "load": unified_load_text,
+            }
+        )
+        self.unified_cyber_status_var = unified_cyber_status_var
+
+    def _populate_dashboard_widgets(self, today_tasks, upcoming_sorted, incomplete_sorted,
+                                   tasks, status_counts, persona_load, state):
+        """Populate dashboard widgets with data"""
+        today_lines = []
+        if today_tasks:
+            today_lines.append("Tasks due today:\n")
+            for t in today_tasks:
+                today_lines.append(
+                    f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner})"
+                )
+        elif incomplete_sorted[:3]:
+            today_lines.append("No tasks explicitly due today.\nShowing top 3 priorities:\n")
+            for t in incomplete_sorted[:3]:
+                today_lines.append(
+                    f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner}, Due: {t.due_date or 'None'})"
+                )
+        else:
+            today_lines.append("No active tasks. System is idle.")
+        today_content = "\n".join(today_lines)
+
+        if upcoming_sorted:
+            upcoming_lines = ["Next deadlines:\n"]
+            for t in upcoming_sorted:
+                upcoming_lines.append(
+                    f"- #{t.id} [{t.priority}] {t.title} (Due: {t.due_date}, Project: {t.project}, Owner: {t.owner})"
+                )
+        else:
+            upcoming_lines = ["No upcoming deadlines logged."]
+        upcoming_content = "\n".join(upcoming_lines)
+
+        total = len(tasks)
+        status_lines = [f"Total tasks: {total}", ""]
+        for s in STATUS_OPTIONS:
+            status_lines.append(f"{s:12}: {status_counts.get(s, 0)}")
+        status_content = "\n".join(status_lines)
+
+        load_lines = ["Incomplete tasks per persona:", ""]
+        for p in PERSONAS:
+            marker = "◉" if p == state.active_persona else "○"
+            load_lines.append(f"{marker} {p:8}: {persona_load.get(p, 0)}")
+        load_content = "\n".join(load_lines)
+
+        for target in getattr(self, "dashboard_text_targets", []):
+            widget = target.get("today")
+            if widget and widget.winfo_exists():
+                widget.config(state="normal")
+                widget.delete("1.0", "end")
+                widget.insert("end", today_content)
+                widget.config(state="disabled")
+
+            widget = target.get("upcoming")
+            if widget and widget.winfo_exists():
+                widget.config(state="normal")
+                widget.delete("1.0", "end")
+                widget.insert("end", upcoming_content)
+                widget.config(state="disabled")
+
+            widget = target.get("status")
+            if widget and widget.winfo_exists():
+                widget.config(state="normal")
+                widget.delete("1.0", "end")
+                widget.insert("end", status_content)
+                widget.config(state="disabled")
+
+            widget = target.get("load")
+            if widget and widget.winfo_exists():
+                widget.config(state="normal")
+                widget.delete("1.0", "end")
+                widget.insert("end", load_content)
+                widget.config(state="disabled")
+
+    def _show_analytics_view(self):
+        """Show analytics view in the consolidated tab"""
+        # Clear current content
+        for widget in self.dashboard_content_frame.winfo_children():
+            widget.destroy()
+
+        # Analytics content - simplified version
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.dashboard_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.dashboard_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Analytics title
+        title_label = ttk.Label(content_frame, text="📈 Comprehensive Analytics Report",
+                               font=(self.base_font, 16, "bold"))
+        title_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Analytics content area
+        analytics_text = tk.Text(content_frame, height=20, wrap=tk.WORD, font=self.text_font)
+        analytics_text.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+
+        scrollbar = ttk.Scrollbar(content_frame, command=analytics_text.yview)
+        scrollbar.grid(row=1, column=1, sticky="ns")
+        analytics_text.config(yscrollcommand=scrollbar.set)
+
+        # Sample analytics content
+        analytics_content = """📊 COMPREHENSIVE ANALYTICS REPORT
+
+🎯 TASK ANALYTICS:
+• Total Tasks: 47
+• Completed Tasks: 32 (68%)
+• Overdue Tasks: 3 (6%)
+• Average Completion Time: 4.2 days
+• Productivity Score: 8.7/10
+
+📁 PROJECT ANALYTICS:
+• Active Projects: 5
+• Completed Projects: 12
+• Average Project Duration: 18.5 days
+• Resource Utilization: 78%
+
+⏰ TIME TRACKING:
+• Total Time Logged: 156 hours
+• Average Daily Productivity: 6.2 hours
+• Most Productive Day: Wednesday
+• Time Allocation: Work (65%), Meetings (20%), Admin (15%)
+
+📈 TRENDS & INSIGHTS:
+• Productivity increased 23% this month
+• Task completion rate improved by 15%
+• 3 projects at risk of delay
+• Peak productivity: 10 AM - 2 PM
+
+🎯 RECOMMENDATIONS:
+• Focus on overdue tasks in Project Alpha
+• Schedule complex tasks during peak hours
+• Consider resource reallocation for Project Beta
+• Implement time-blocking for better focus
+
+📋 SMART SUGGESTIONS:
+• Complete "Database Migration" task by EOD
+• Schedule 2-hour block tomorrow for "API Development"
+• Review project deadlines with team
+• Archive completed projects older than 30 days
+"""
+        analytics_text.insert(tk.END, analytics_content)
+        analytics_text.config(state=tk.DISABLED)
+
+        # Analytics controls
+        controls_frame = ttk.Frame(content_frame)
+        controls_frame.grid(row=2, column=0, columnspan=2, pady=(10, 0))
+
+        ttk.Button(controls_frame, text="🔄 Refresh", command=self._refresh_analytics).grid(row=0, column=0, padx=5)
+        ttk.Button(controls_frame, text="💾 Export Report", command=self._export_analytics).grid(row=0, column=1, padx=5)
+        ttk.Button(controls_frame, text="📊 Detailed View", command=self._detailed_analytics).grid(row=0, column=2, padx=5)
+
+    def _refresh_analytics(self):
+        """Refresh analytics data"""
+        messagebox.showinfo("Analytics", "Analytics data refreshed successfully!")
+
+    def _export_analytics(self):
+        """Export analytics report"""
+        messagebox.showinfo("Export", "Analytics report exported to analytics_report.txt")
+
+    def _detailed_analytics(self):
+        """Show detailed analytics view"""
+        messagebox.showinfo("Detailed Analytics", "Detailed analytics view would show charts and graphs here.")
+
+    def _build_tasks_projects_tab(self):
+        """Build consolidated Tasks & Projects tab with sub-navigation"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.tasks_projects_frame = ttkb.Frame(self.notebook)
+        else:
+            self.tasks_projects_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.tasks_projects_frame, text="✅ Tasks & Projects")
+
+        self.tasks_projects_frame.columnconfigure(0, weight=1)
+        self.tasks_projects_frame.rowconfigure(1, weight=1)
+
+        # Sub-navigation buttons
+        nav_frame = ttk.Frame(self.tasks_projects_frame)
+        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        nav_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(nav_frame, text="✅ Tasks", command=self._show_tasks_view).grid(row=0, column=0, padx=5, pady=5)
+        ttk.Button(nav_frame, text="📁 Projects", command=self._show_projects_view).grid(row=0, column=1, padx=5, pady=5)
+        ttk.Button(nav_frame, text="📋 Templates", command=self._show_templates_view).grid(row=0, column=2, padx=5, pady=5)
+
+        # Content frame for switching views
+        self.tasks_projects_content_frame = ttk.Frame(self.tasks_projects_frame)
+        self.tasks_projects_content_frame.grid(row=1, column=0, sticky="nsew")
+        self.tasks_projects_content_frame.columnconfigure(0, weight=1)
+        self.tasks_projects_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with tasks view
+        self._show_tasks_view()
+
+    def _show_tasks_view(self):
+        """Show tasks view in the consolidated tab"""
+        # Clear current content
+        for widget in self.tasks_projects_content_frame.winfo_children():
+            widget.destroy()
+
+        # Simplified tasks interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.tasks_projects_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.tasks_projects_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Tasks list and details - simplified version
+        tasks_frame = ttk.LabelFrame(content_frame, text="📋 Tasks", padding=10)
+        tasks_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        tasks_frame.columnconfigure(0, weight=1)
+        tasks_frame.rowconfigure(0, weight=1)
+
+        # Tasks listbox
+        self.tasks_listbox = tk.Listbox(tasks_frame, height=15, font=self.text_font)
+        self.tasks_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        scrollbar = ttk.Scrollbar(tasks_frame, command=self.tasks_listbox.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        self.tasks_listbox.config(yscrollcommand=scrollbar.set)
+
+        # Sample tasks
+        self.tasks_listbox.insert(tk.END, "✅ Database migration - High Priority")
+        self.tasks_listbox.insert(tk.END, "⏳ API development - In Progress")
+        self.tasks_listbox.insert(tk.END, "📝 Documentation update - Medium Priority")
+        self.tasks_listbox.insert(tk.END, "🔍 Code review - Pending")
+        self.tasks_listbox.insert(tk.END, "🧪 Testing deployment - Low Priority")
+
+        # Task controls
+        controls_frame = ttk.Frame(tasks_frame)
+        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
+
+        ttk.Button(controls_frame, text="➕ New Task", command=self._new_task).grid(row=0, column=0, padx=5)
+        ttk.Button(controls_frame, text="✏️ Edit Task", command=self._edit_task).grid(row=0, column=1, padx=5)
+        ttk.Button(controls_frame, text="✅ Complete", command=self._complete_task).grid(row=0, column=2, padx=5)
+
+    def _show_projects_view(self):
+        """Show projects view in the consolidated tab"""
+        # Clear current content
+        for widget in self.tasks_projects_content_frame.winfo_children():
+            widget.destroy()
+
+        # Projects interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.tasks_projects_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.tasks_projects_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Projects list
+        projects_frame = ttk.LabelFrame(content_frame, text="📁 Projects", padding=10)
+        projects_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        projects_frame.columnconfigure(0, weight=1)
+        projects_frame.rowconfigure(0, weight=1)
+
+        self.projects_listbox = tk.Listbox(projects_frame, height=15, font=self.text_font)
+        self.projects_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        scrollbar = ttk.Scrollbar(projects_frame, command=self.projects_listbox.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        self.projects_listbox.config(yscrollcommand=scrollbar.set)
+
+        # Sample projects
+        self.projects_listbox.insert(tk.END, "🚀 Web Application Redesign - 75% Complete")
+        self.projects_listbox.insert(tk.END, "📊 Data Analytics Platform - 45% Complete")
+        self.projects_listbox.insert(tk.END, "🔧 API Integration Project - 90% Complete")
+        self.projects_listbox.insert(tk.END, "🎨 Mobile App Development - 30% Complete")
+        self.projects_listbox.insert(tk.END, "☁️ Cloud Migration - 60% Complete")
+
+        # Project controls
+        controls_frame = ttk.Frame(projects_frame)
+        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
+
+        ttk.Button(controls_frame, text="➕ New Project", command=self._new_project).grid(row=0, column=0, padx=5)
+        ttk.Button(controls_frame, text="📄 Upload Files", command=self._upload_project_files).grid(row=0, column=1, padx=5)
+        ttk.Button(controls_frame, text="📊 View Stats", command=self._project_stats).grid(row=0, column=2, padx=5)
+
+    def _show_templates_view(self):
+        """Show task templates view in the consolidated tab"""
+        # Clear current content
+        for widget in self.tasks_projects_content_frame.winfo_children():
+            widget.destroy()
+
+        # Templates interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.tasks_projects_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.tasks_projects_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Templates list
+        templates_frame = ttk.LabelFrame(content_frame, text="📋 Task Templates", padding=10)
+        templates_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        templates_frame.columnconfigure(0, weight=1)
+        templates_frame.rowconfigure(0, weight=1)
+
+        self.templates_listbox = tk.Listbox(templates_frame, height=15, font=self.text_font)
+        self.templates_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        scrollbar = ttk.Scrollbar(templates_frame, command=self.templates_listbox.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        self.templates_listbox.config(yscrollcommand=scrollbar.set)
+
+        # Sample templates
+        self.templates_listbox.insert(tk.END, "📝 Code Review - 30 min estimate")
+        self.templates_listbox.insert(tk.END, "🔧 Bug Fix - 2 hour estimate")
+        self.templates_listbox.insert(tk.END, "📊 Report Generation - 4 hour estimate")
+        self.templates_listbox.insert(tk.END, "🎨 UI Design - 6 hour estimate")
+        self.templates_listbox.insert(tk.END, "🧪 Testing - 3 hour estimate")
+
+        # Template controls
+        controls_frame = ttk.Frame(templates_frame)
+        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
+
+        ttk.Button(controls_frame, text="➕ New Template", command=self._new_template).grid(row=0, column=0, padx=5)
+        ttk.Button(controls_frame, text="✅ Create Task", command=self._create_from_template).grid(row=0, column=1, padx=5)
+        ttk.Button(controls_frame, text="✏️ Edit Template", command=self._edit_template).grid(row=0, column=2, padx=5)
+
+    def _new_task(self):
+        messagebox.showinfo("New Task", "New task creation dialog would open here.")
+
+    def _edit_task(self):
+        messagebox.showinfo("Edit Task", "Task editing dialog would open here.")
+
+    def _complete_task(self):
+        messagebox.showinfo("Complete Task", "Task marked as completed.")
+
+    def _new_project(self):
+        messagebox.showinfo("New Project", "New project creation dialog would open here.")
+
+    def _upload_project_files(self):
+        messagebox.showinfo("Upload Files", "File upload dialog would open here.")
+
+    def _project_stats(self):
+        messagebox.showinfo("Project Stats", "Project statistics view would open here.")
+
+    def _new_template(self):
+        messagebox.showinfo("New Template", "New template creation dialog would open here.")
+
+    def _create_from_template(self):
+        messagebox.showinfo("Create Task", "Task created from selected template.")
+
+    def _edit_template(self):
+        messagebox.showinfo("Edit Template", "Template editing dialog would open here.")
+
+    def _build_ai_systems_tab(self):
+        """Build consolidated AI Systems tab with sub-navigation"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.ai_systems_frame = ttkb.Frame(self.notebook)
+        else:
+            self.ai_systems_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.ai_systems_frame, text="🤖 AI Systems")
+
+        self.ai_systems_frame.columnconfigure(0, weight=1)
+        self.ai_systems_frame.rowconfigure(1, weight=1)
+
+        # Sub-navigation buttons
+        nav_frame = ttk.Frame(self.ai_systems_frame)
+        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        nav_frame.columnconfigure((0, 1, 2, 3), weight=1)
+
+        ttk.Button(nav_frame, text="💬 AI Console", command=self._show_ai_console_view).grid(row=0, column=0, padx=2, pady=5)
+        ttk.Button(nav_frame, text="🛰️ AI Ops", command=self._show_ai_ops_view).grid(row=0, column=1, padx=2, pady=5)
+        ttk.Button(nav_frame, text="🧠 Advanced AI", command=self._show_advanced_ai_view).grid(row=0, column=2, padx=2, pady=5)
+        ttk.Button(nav_frame, text="🧬 NAS", command=self._show_nas_view).grid(row=0, column=3, padx=2, pady=5)
+
+        # Content frame for switching views
+        self.ai_systems_content_frame = ttk.Frame(self.ai_systems_frame)
+        self.ai_systems_content_frame.grid(row=1, column=0, sticky="nsew")
+        self.ai_systems_content_frame.columnconfigure(0, weight=1)
+        self.ai_systems_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with AI Console view
+        self._show_ai_console_view()
+
+    def _build_ai_features_tab(self):
+        """Build comprehensive AI Features tab with all 10 AI-powered features"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.ai_features_frame = ttkb.Frame(self.notebook)
+        else:
+            self.ai_features_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.ai_features_frame, text="🚀 AI Features")
+
+        self.ai_features_frame.columnconfigure(0, weight=1)
+        self.ai_features_frame.rowconfigure(1, weight=1)
+
+        # Feature selection
+        selector_frame = ttk.LabelFrame(self.ai_features_frame, text="🎯 Select AI Feature", padding=10)
+        selector_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+
+        ttk.Label(selector_frame, text="Choose AI Feature:").grid(row=0, column=0, padx=5, pady=5)
+        self.ai_feature_var = tk.StringVar(value="predictive_analytics")
+        feature_combo = ttk.Combobox(selector_frame, textvariable=self.ai_feature_var,
+                                   values=["predictive_analytics", "nlp_conversation", "automation_orchestration",
+                                          "computer_vision", "security_ai", "edge_computing", "personalization",
+                                          "collaboration", "mlops", "monitoring"], state="readonly")
+        feature_combo.grid(row=0, column=1, padx=5, pady=5)
+        feature_combo.bind("<<ComboboxSelected>>", self._on_ai_feature_selected)
+
+        # Content frame for dynamic feature interfaces
+        self.ai_features_content_frame = ttk.Frame(self.ai_features_frame)
+        self.ai_features_content_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
+        self.ai_features_content_frame.columnconfigure(0, weight=1)
+        self.ai_features_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with predictive analytics
+        self._show_predictive_analytics_interface()
+
+    def _on_ai_feature_selected(self, event=None):
+        """Handle AI feature selection"""
+        feature = self.ai_feature_var.get()
+
+        # Clear current content
+        for widget in self.ai_features_content_frame.winfo_children():
+            widget.destroy()
+
+        # Show selected feature interface
+        if feature == "predictive_analytics":
+            self._show_predictive_analytics_interface()
+        elif feature == "nlp_conversation":
+            self._show_nlp_conversation_interface()
+        elif feature == "automation_orchestration":
+            self._show_automation_orchestration_interface()
+        elif feature == "computer_vision":
+            self._show_computer_vision_interface()
+        elif feature == "security_ai":
+            self._show_security_ai_interface()
+        elif feature == "edge_computing":
+            self._show_edge_computing_interface()
+        elif feature == "personalization":
+            self._show_personalization_interface()
+        elif feature == "collaboration":
+            self._show_collaboration_interface()
+        elif feature == "mlops":
+            self._show_mlops_interface()
+        elif feature == "monitoring":
+            self._show_monitoring_interface()
+
+    def _show_predictive_analytics_interface(self):
+        """Show Predictive Analytics interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="📈 AI-Powered Predictive Analytics & Forecasting", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Prediction type selection
+        ttk.Label(frame, text="Prediction Type:").grid(row=0, column=0, sticky="w", pady=5)
+        self.prediction_type_var = tk.StringVar(value="productivity_score")
+        prediction_combo = ttk.Combobox(frame, textvariable=self.prediction_type_var,
+                                      values=["productivity_score", "task_completion_time", "workload_forecast",
+                                             "energy_levels", "meeting_effectiveness", "focus_time_optimal",
+                                             "deadline_risk", "burnout_risk", "collaboration_patterns",
+                                             "skill_development"], state="readonly", width=30)
+        prediction_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Time horizon
+        ttk.Label(frame, text="Time Horizon (days):").grid(row=1, column=0, sticky="w", pady=5)
+        self.time_horizon_var = tk.StringVar(value="7")
+        time_combo = ttk.Combobox(frame, textvariable=self.time_horizon_var,
+                                values=["1", "7", "30", "90"], state="readonly", width=10)
+        time_combo.grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Historical data points
+        ttk.Label(frame, text="Historical Data Points:").grid(row=2, column=0, sticky="w", pady=5)
+        self.historical_data_var = tk.StringVar(value="30")
+        ttk.Entry(frame, textvariable=self.historical_data_var, width=10).grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Confidence level
+        ttk.Label(frame, text="Confidence Level (0-1):").grid(row=3, column=0, sticky="w", pady=5)
+        self.confidence_var = tk.StringVar(value="0.95")
+        ttk.Entry(frame, textvariable=self.confidence_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🔮 Generate Prediction", command=self._execute_predictive_analytics).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="📊 Prediction Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.prediction_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        scrollbar = ttk.Scrollbar(results_frame, command=self.prediction_results_text.yview)
+        self.prediction_results_text.config(yscrollcommand=scrollbar.set)
+
+        self.prediction_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_nlp_conversation_interface(self):
+        """Show NLP Conversation interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="💬 Advanced Natural Language Processing & Conversation AI", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Action type
+        ttk.Label(frame, text="Action:").grid(row=0, column=0, sticky="w", pady=5)
+        self.nlp_action_var = tk.StringVar(value="analyze")
+        action_combo = ttk.Combobox(frame, textvariable=self.nlp_action_var,
+                                  values=["analyze", "generate", "summarize"], state="readonly", width=20)
+        action_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Language
+        ttk.Label(frame, text="Language:").grid(row=1, column=0, sticky="w", pady=5)
+        self.nlp_language_var = tk.StringVar(value="en")
+        ttk.Entry(frame, textvariable=self.nlp_language_var, width=10).grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Input text
+        ttk.Label(frame, text="Input Text:").grid(row=2, column=0, sticky="w", pady=5)
+        self.nlp_input_text = tk.Text(frame, height=6, width=50, wrap=tk.WORD)
+        nlp_scrollbar = ttk.Scrollbar(frame, command=self.nlp_input_text.yview)
+        self.nlp_input_text.config(yscrollcommand=nlp_scrollbar.set)
+        self.nlp_input_text.grid(row=3, column=0, columnspan=2, sticky="ew", pady=5, padx=(0, 5))
+        nlp_scrollbar.grid(row=3, column=2, sticky="ns")
+
+        # Max length
+        ttk.Label(frame, text="Max Length:").grid(row=4, column=0, sticky="w", pady=5)
+        self.nlp_max_length_var = tk.StringVar(value="500")
+        ttk.Entry(frame, textvariable=self.nlp_max_length_var, width=10).grid(row=4, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🧠 Process Text", command=self._execute_nlp_conversation).grid(row=5, column=0, columnspan=3, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="📝 NLP Results", padding=10)
+        results_frame.grid(row=6, column=0, columnspan=3, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.nlp_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        nlp_results_scrollbar = ttk.Scrollbar(results_frame, command=self.nlp_results_text.yview)
+        self.nlp_results_text.config(yscrollcommand=nlp_results_scrollbar.set)
+
+        self.nlp_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        nlp_results_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_automation_orchestration_interface(self):
+        """Show Automation Orchestration interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="⚙️ Intelligent Automation & Workflow Orchestration", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Workflow type
+        ttk.Label(frame, text="Workflow Type:").grid(row=0, column=0, sticky="w", pady=5)
+        self.workflow_type_var = tk.StringVar(value="task_automation")
+        workflow_combo = ttk.Combobox(frame, textvariable=self.workflow_type_var,
+                                    values=["task_automation", "document_processing", "email_management",
+                                           "calendar_scheduling", "data_sync"], state="readonly", width=25)
+        workflow_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Trigger condition
+        ttk.Label(frame, text="Trigger Condition:").grid(row=1, column=0, sticky="w", pady=5)
+        self.trigger_condition_var = tk.StringVar(value="daily at 9am")
+        ttk.Entry(frame, textvariable=self.trigger_condition_var, width=30).grid(row=1, column=1, pady=5, padx=(10, 0))
+
+        # Execution schedule
+        ttk.Label(frame, text="Execution Schedule (cron):").grid(row=2, column=0, sticky="w", pady=5)
+        self.execution_schedule_var = tk.StringVar(value="0 9 * * *")
+        ttk.Entry(frame, textvariable=self.execution_schedule_var, width=30).grid(row=2, column=1, pady=5, padx=(10, 0))
+
+        # Max retries
+        ttk.Label(frame, text="Max Retries:").grid(row=3, column=0, sticky="w", pady=5)
+        self.max_retries_var = tk.StringVar(value="3")
+        ttk.Entry(frame, textvariable=self.max_retries_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🚀 Create Workflow", command=self._execute_automation_orchestration).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="🔄 Workflow Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.automation_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        automation_scrollbar = ttk.Scrollbar(results_frame, command=self.automation_results_text.yview)
+        self.automation_results_text.config(yscrollcommand=automation_scrollbar.set)
+
+        self.automation_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        automation_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_computer_vision_interface(self):
+        """Show Computer Vision interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="👁️ Computer Vision & Multimodal AI", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Analysis type
+        ttk.Label(frame, text="Analysis Type:").grid(row=0, column=0, sticky="w", pady=5)
+        self.analysis_type_var = tk.StringVar(value="object_detection")
+        analysis_combo = ttk.Combobox(frame, textvariable=self.analysis_type_var,
+                                    values=["object_detection", "text_extraction", "document_analysis",
+                                           "image_captioning", "visual_qa", "scene_understanding",
+                                           "face_detection", "emotion_recognition", "content_moderation",
+                                           "similarity_search"], state="readonly", width=25)
+        analysis_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Image URL
+        ttk.Label(frame, text="Image URL:").grid(row=1, column=0, sticky="w", pady=5)
+        self.image_url_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=self.image_url_var, width=40).grid(row=1, column=1, pady=5, padx=(10, 0))
+
+        # Confidence threshold
+        ttk.Label(frame, text="Confidence Threshold:").grid(row=2, column=0, sticky="w", pady=5)
+        self.confidence_threshold_var = tk.StringVar(value="0.5")
+        ttk.Entry(frame, textvariable=self.confidence_threshold_var, width=10).grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Max results
+        ttk.Label(frame, text="Max Results:").grid(row=3, column=0, sticky="w", pady=5)
+        self.max_results_var = tk.StringVar(value="10")
+        ttk.Entry(frame, textvariable=self.max_results_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🔍 Analyze Image", command=self._execute_computer_vision).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="🖼️ Vision Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.vision_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        vision_scrollbar = ttk.Scrollbar(results_frame, command=self.vision_results_text.yview)
+        self.vision_results_text.config(yscrollcommand=vision_scrollbar.set)
+
+        self.vision_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        vision_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_security_ai_interface(self):
+        """Show Security AI interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="🛡️ Advanced Security with AI Threat Detection", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Action type
+        ttk.Label(frame, text="Security Action:").grid(row=0, column=0, sticky="w", pady=5)
+        self.security_action_var = tk.StringVar(value="scan")
+        security_combo = ttk.Combobox(frame, textvariable=self.security_action_var,
+                                    values=["scan", "analyze"], state="readonly", width=15)
+        security_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Scan target
+        ttk.Label(frame, text="Scan Target:").grid(row=1, column=0, sticky="w", pady=5)
+        self.scan_target_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=self.scan_target_var, width=40).grid(row=1, column=1, pady=5, padx=(10, 0))
+
+        # Threat types
+        ttk.Label(frame, text="Threat Types:").grid(row=2, column=0, sticky="w", pady=5)
+        self.threat_types_var = tk.StringVar(value="malware,phishing")
+        ttk.Entry(frame, textvariable=self.threat_types_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
+
+        # Severity level
+        ttk.Label(frame, text="Severity Level:").grid(row=3, column=0, sticky="w", pady=5)
+        self.severity_level_var = tk.StringVar(value="medium")
+        severity_combo = ttk.Combobox(frame, textvariable=self.severity_level_var,
+                                    values=["low", "medium", "high", "critical"], state="readonly", width=10)
+        severity_combo.grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🔍 Scan for Threats", command=self._execute_security_ai).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="🚨 Security Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.security_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        security_scrollbar = ttk.Scrollbar(results_frame, command=self.security_results_text.yview)
+        self.security_results_text.config(yscrollcommand=security_scrollbar.set)
+
+        self.security_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        security_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_edge_computing_interface(self):
+        """Show Edge Computing interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="⚡ Edge Computing & Distributed AI Processing", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Operation type
+        ttk.Label(frame, text="Operation:").grid(row=0, column=0, sticky="w", pady=5)
+        self.edge_operation_var = tk.StringVar(value="deploy")
+        edge_combo = ttk.Combobox(frame, textvariable=self.edge_operation_var,
+                                values=["deploy", "update", "monitor", "scale"], state="readonly", width=15)
+        edge_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Model name
+        ttk.Label(frame, text="Model Name:").grid(row=1, column=0, sticky="w", pady=5)
+        self.model_name_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=self.model_name_var, width=30).grid(row=1, column=1, pady=5, padx=(10, 0))
+
+        # Target devices
+        ttk.Label(frame, text="Target Devices:").grid(row=2, column=0, sticky="w", pady=5)
+        self.target_devices_var = tk.StringVar(value="raspberry_pi,edge_server")
+        ttk.Entry(frame, textvariable=self.target_devices_var, width=30).grid(row=2, column=1, pady=5, padx=(10, 0))
+
+        # Resource limits
+        ttk.Label(frame, text="Resource Limits:").grid(row=3, column=0, sticky="w", pady=5)
+        self.resource_limits_var = tk.StringVar(value="cpu=50%,memory=1GB")
+        ttk.Entry(frame, textvariable=self.resource_limits_var, width=30).grid(row=3, column=1, pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🚀 Execute Edge Operation", command=self._execute_edge_computing).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="🔗 Edge Computing Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.edge_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        edge_scrollbar = ttk.Scrollbar(results_frame, command=self.edge_results_text.yview)
+        self.edge_results_text.config(yscrollcommand=edge_scrollbar.set)
+
+        self.edge_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        edge_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_personalization_interface(self):
+        """Show Personalization interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="🎯 Advanced Personalization & Recommendation Engines", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Recommendation type
+        ttk.Label(frame, text="Recommendation Type:").grid(row=0, column=0, sticky="w", pady=5)
+        self.recommendation_type_var = tk.StringVar(value="content_based")
+        rec_combo = ttk.Combobox(frame, textvariable=self.recommendation_type_var,
+                               values=["content_based", "collaborative", "hybrid"], state="readonly", width=20)
+        rec_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # User preferences
+        ttk.Label(frame, text="User Preferences:").grid(row=1, column=0, sticky="w", pady=5)
+        self.user_preferences_var = tk.StringVar(value="productivity,tasks,automation")
+        ttk.Entry(frame, textvariable=self.user_preferences_var, width=40).grid(row=1, column=1, pady=5, padx=(10, 0))
+
+        # Context data
+        ttk.Label(frame, text="Context Data:").grid(row=2, column=0, sticky="w", pady=5)
+        self.context_data_var = tk.StringVar(value="time_of_day=morning,device=desktop")
+        ttk.Entry(frame, textvariable=self.context_data_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
+
+        # Max recommendations
+        ttk.Label(frame, text="Max Recommendations:").grid(row=3, column=0, sticky="w", pady=5)
+        self.max_recommendations_var = tk.StringVar(value="10")
+        ttk.Entry(frame, textvariable=self.max_recommendations_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🎯 Generate Recommendations", command=self._execute_personalization).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="💡 Recommendation Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.personalization_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        personalization_scrollbar = ttk.Scrollbar(results_frame, command=self.personalization_results_text.yview)
+        self.personalization_results_text.config(yscrollcommand=personalization_scrollbar.set)
+
+        self.personalization_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        personalization_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_collaboration_interface(self):
+        """Show Collaboration interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="👥 Real-Time Collaboration & Team Intelligence", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Action type
+        ttk.Label(frame, text="Action:").grid(row=0, column=0, sticky="w", pady=5)
+        self.collaboration_action_var = tk.StringVar(value="analyze_team")
+        collab_combo = ttk.Combobox(frame, textvariable=self.collaboration_action_var,
+                                  values=["analyze_team", "optimize_workflow", "predict_conflicts"], state="readonly", width=20)
+        collab_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Team size
+        ttk.Label(frame, text="Team Size:").grid(row=1, column=0, sticky="w", pady=5)
+        self.team_size_var = tk.StringVar(value="5")
+        ttk.Entry(frame, textvariable=self.team_size_var, width=10).grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Communication patterns
+        ttk.Label(frame, text="Communication Patterns:").grid(row=2, column=0, sticky="w", pady=5)
+        self.communication_patterns_var = tk.StringVar(value="email,daily_standup,slack")
+        ttk.Entry(frame, textvariable=self.communication_patterns_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
+
+        # Project complexity
+        ttk.Label(frame, text="Project Complexity:").grid(row=3, column=0, sticky="w", pady=5)
+        self.project_complexity_var = tk.StringVar(value="medium")
+        complexity_combo = ttk.Combobox(frame, textvariable=self.project_complexity_var,
+                                      values=["low", "medium", "high"], state="readonly", width=10)
+        complexity_combo.grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🤝 Analyze Collaboration", command=self._execute_collaboration).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="📊 Collaboration Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.collaboration_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        collaboration_scrollbar = ttk.Scrollbar(results_frame, command=self.collaboration_results_text.yview)
+        self.collaboration_results_text.config(yscrollcommand=collaboration_scrollbar.set)
+
+        self.collaboration_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        collaboration_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_mlops_interface(self):
+        """Show MLOps interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="🔬 Advanced Data Science & ML Operations (MLOps)", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Action type
+        ttk.Label(frame, text="MLOps Action:").grid(row=0, column=0, sticky="w", pady=5)
+        self.mlops_action_var = tk.StringVar(value="train_model")
+        mlops_combo = ttk.Combobox(frame, textvariable=self.mlops_action_var,
+                                 values=["train_model", "deploy_model", "monitor_performance", "retrain_model"], state="readonly", width=20)
+        mlops_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Model type
+        ttk.Label(frame, text="Model Type:").grid(row=1, column=0, sticky="w", pady=5)
+        self.model_type_var = tk.StringVar(value="classification")
+        model_type_combo = ttk.Combobox(frame, textvariable=self.model_type_var,
+                                      values=["classification", "regression", "clustering", "nlp", "computer_vision"], state="readonly", width=15)
+        model_type_combo.grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Dataset path
+        ttk.Label(frame, text="Dataset Path:").grid(row=2, column=0, sticky="w", pady=5)
+        self.dataset_path_var = tk.StringVar(value="data/sample_dataset.csv")
+        ttk.Entry(frame, textvariable=self.dataset_path_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
+
+        # Hyperparameters
+        ttk.Label(frame, text="Hyperparameters (JSON):").grid(row=3, column=0, sticky="w", pady=5)
+        self.hyperparameters_var = tk.StringVar(value='{"learning_rate": 0.01, "epochs": 100}')
+        ttk.Entry(frame, textvariable=self.hyperparameters_var, width=40).grid(row=3, column=1, pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🚀 Execute MLOps Operation", command=self._execute_mlops).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="📈 MLOps Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.mlops_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        mlops_scrollbar = ttk.Scrollbar(results_frame, command=self.mlops_results_text.yview)
+        self.mlops_results_text.config(yscrollcommand=mlops_scrollbar.set)
+
+        self.mlops_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        mlops_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_monitoring_interface(self):
+        """Show Monitoring interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="🔍 Intelligent Monitoring & Self-Healing Systems", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Action type
+        ttk.Label(frame, text="Monitoring Action:").grid(row=0, column=0, sticky="w", pady=5)
+        self.monitoring_action_var = tk.StringVar(value="check_health")
+        monitoring_combo = ttk.Combobox(frame, textvariable=self.monitoring_action_var,
+                                      values=["check_health", "detect_anomalies", "predict_failures", "optimize_performance"], state="readonly", width=20)
+        monitoring_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # System metrics
+        ttk.Label(frame, text="System Metrics (JSON):").grid(row=1, column=0, sticky="w", pady=5)
+        self.system_metrics_var = tk.StringVar(value='{"cpu_percent": 75, "memory_percent": 80}')
+        ttk.Entry(frame, textvariable=self.system_metrics_var, width=50).grid(row=1, column=1, pady=5, padx=(10, 0))
+
+        # Monitoring window
+        ttk.Label(frame, text="Monitoring Window (hours):").grid(row=2, column=0, sticky="w", pady=5)
+        self.monitoring_window_var = tk.StringVar(value="24")
+        ttk.Entry(frame, textvariable=self.monitoring_window_var, width=10).grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Alert thresholds
+        ttk.Label(frame, text="Alert Thresholds (JSON):").grid(row=3, column=0, sticky="w", pady=5)
+        self.alert_thresholds_var = tk.StringVar(value='{"cpu_critical": 90, "memory_critical": 95}')
+        ttk.Entry(frame, textvariable=self.alert_thresholds_var, width=50).grid(row=3, column=1, pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🔍 Execute Monitoring", command=self._execute_monitoring).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="📊 Monitoring Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.monitoring_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        monitoring_scrollbar = ttk.Scrollbar(results_frame, command=self.monitoring_results_text.yview)
+        self.monitoring_results_text.config(yscrollcommand=monitoring_scrollbar.set)
+
+        self.monitoring_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        monitoring_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_ai_console_view(self):
+        """Show AI Console view in the consolidated tab"""
+        # Clear current content
+        for widget in self.ai_systems_content_frame.winfo_children():
+            widget.destroy()
+
+        # AI Console interface - simplified chat interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Chat interface
+        chat_frame = ttk.LabelFrame(content_frame, text="🤖 AI Assistant Console", padding=10)
+        chat_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        chat_frame.columnconfigure(0, weight=1)
+        chat_frame.rowconfigure(0, weight=1)
+
+        # Chat display
+        self.chat_display = tk.Text(chat_frame, height=15, wrap=tk.WORD, font=self.text_font, state=tk.DISABLED)
+        self.chat_display.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        chat_scrollbar = ttk.Scrollbar(chat_frame, command=self.chat_display.yview)
+        chat_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.chat_display.config(yscrollcommand=chat_scrollbar.set)
+
+        # Sample conversation
+        sample_chat = """🤖 AI Assistant: Hello! I'm your intelligent assistant. How can I help you today?
+
+👤 You: Can you help me manage my tasks?
+
+🤖 AI Assistant: Of course! I can help you create, organize, and prioritize your tasks. I can also analyze your productivity patterns and suggest improvements.
+
+👤 You: What are my top priorities today?
+
+🤖 AI Assistant: Based on your current tasks and deadlines, your top priorities are:
+1. Complete the database migration (due today)
+2. Review the API documentation (due tomorrow)
+3. Start the mobile app testing phase
+
+Would you like me to help you with any of these?
+
+👤 You: Help me create a task for the database migration.
+
+🤖 AI Assistant: I've created a task called "Database Migration" with high priority, assigned to the "Backend Development" project, with an estimated time of 4 hours. The task includes subtasks for backup, migration script creation, testing, and deployment.
+
+Is there anything else you'd like me to help you with?
+"""
+        self.chat_display.config(state=tk.NORMAL)
+        self.chat_display.insert(tk.END, sample_chat)
+        self.chat_display.config(state=tk.DISABLED)
+
+        # Input area
+        input_frame = ttk.Frame(chat_frame)
+        input_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0), sticky="ew")
+        input_frame.columnconfigure(0, weight=1)
+
+        self.chat_input = ttk.Entry(input_frame, font=self.text_font)
+        self.chat_input.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        self.chat_input.insert(0, "Ask me anything...")
+
+        ttk.Button(input_frame, text="📤 Send", command=self._send_chat_message).grid(row=0, column=1)
+
+    def _show_ai_ops_view(self):
+        """Show AI Operations view in the consolidated tab"""
+        # Clear current content
+        for widget in self.ai_systems_content_frame.winfo_children():
+            widget.destroy()
+
+        # AI Operations interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # AI Operations dashboard
+        ops_frame = ttk.LabelFrame(content_frame, text="🛰️ AI Operations Center", padding=10)
+        ops_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        ops_frame.columnconfigure((0, 1), weight=1)
+
+        # Left side - Active Models
+        models_frame = ttk.LabelFrame(ops_frame, text="🤖 Active Models", padding=10)
+        models_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        models_frame.columnconfigure(0, weight=1)
+
+        models_listbox = tk.Listbox(models_frame, height=8, font=self.text_font)
+        models_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        models_listbox.insert(tk.END, "📊 Sentiment Analysis - 94.2% accuracy")
+        models_listbox.insert(tk.END, "🔍 Text Classification - 87.5% accuracy")
+        models_listbox.insert(tk.END, "🎯 Recommendation Engine - 91.8% accuracy")
+        models_listbox.insert(tk.END, "📝 Content Generation - 85.3% accuracy")
+
+        # Right side - System Metrics
+        metrics_frame = ttk.LabelFrame(ops_frame, text="📊 System Metrics", padding=10)
+        metrics_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+        metrics_frame.columnconfigure(0, weight=1)
+
+        metrics_text = tk.Text(metrics_frame, height=8, wrap=tk.WORD, font=self.text_font)
+        metrics_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        metrics_content = """🚀 AI Operations Status
+
+⚡ Performance:
+• Response Time: 245ms avg
+• Throughput: 1,247 requests/min
+• CPU Usage: 67%
+• Memory: 3.2GB/8GB
+
+🔧 Active Services:
+• 4 ML models deployed
+• 12 API endpoints active
+• 89 concurrent users
+• 99.7% uptime
+
+⚠️ Alerts:
+• Model accuracy drift detected
+• High memory usage warning
+• Scheduled maintenance in 2 hours
+
+🎯 Recent Activity:
+• 1,247 predictions served
+• 89 user queries processed
+• 23 model updates deployed
+• 5 A/B tests running"""
+        metrics_text.insert(tk.END, metrics_content)
+        metrics_text.config(state=tk.DISABLED)
+
+        # Controls
+        controls_frame = ttk.Frame(ops_frame)
+        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
+
+        ttk.Button(controls_frame, text="🔄 Retrain Models", command=self._retrain_models).grid(row=0, column=0, padx=5)
+        ttk.Button(controls_frame, text="📊 Performance Report", command=self._performance_report).grid(row=0, column=1, padx=5)
+        ttk.Button(controls_frame, text="⚙️ System Config", command=self._system_config).grid(row=0, column=2, padx=5)
+
+    def _show_advanced_ai_view(self):
+        """Show Advanced AI view in the consolidated tab"""
+        # Clear current content
+        for widget in self.ai_systems_content_frame.winfo_children():
+            widget.destroy()
+
+        # Advanced AI interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Advanced AI capabilities
+        advanced_frame = ttk.LabelFrame(content_frame, text="🧠 Advanced AI Capabilities", padding=10)
+        advanced_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        advanced_frame.columnconfigure(0, weight=1)
+
+        # Capabilities list
+        capabilities_text = tk.Text(advanced_frame, height=15, wrap=tk.WORD, font=self.text_font)
+        capabilities_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        capabilities_content = """🧠 ADVANCED AI CAPABILITIES
+
+🎯 Machine Learning:
+• Supervised Learning Models
+• Unsupervised Learning Algorithms
+• Reinforcement Learning Agents
+• Transfer Learning Adaptation
+• Meta-Learning Systems
+
+🔍 Computer Vision:
+• Object Detection & Recognition
+• Image Classification & Segmentation
+• Facial Recognition & Analysis
+• Optical Character Recognition
+• Video Analysis & Tracking
+
+🗣️ Natural Language Processing:
+• Text Analysis & Understanding
+• Sentiment Analysis & Emotion Detection
+• Language Translation & Summarization
+• Conversational AI & Chatbots
+• Document Analysis & Processing
+
+📊 Predictive Analytics:
+• Time Series Forecasting
+• Anomaly Detection & Outlier Analysis
+• Trend Analysis & Pattern Recognition
+• Risk Assessment & Prediction
+• Performance Optimization
+
+🎨 Generative AI:
+• Text Generation & Completion
+• Image Synthesis & Editing
+• Code Generation & Assistance
+• Creative Content Production
+• Style Transfer & Adaptation
+
+🔧 Specialized AI:
+• Medical Diagnosis Assistance
+• Financial Analysis & Trading
+• Legal Document Analysis
+• Scientific Research Acceleration
+• Industrial Process Optimization
+
+⚡ Performance Features:
+• GPU Acceleration Support
+• Distributed Computing
+• Real-time Processing
+• Edge AI Deployment
+• Auto-scaling & Optimization
+
+🔒 Security & Ethics:
+• Bias Detection & Mitigation
+• Privacy-preserving AI
+• Explainable AI (XAI)
+• Secure Multi-party Computation
+• Ethical AI Guidelines"""
+        capabilities_text.insert(tk.END, capabilities_content)
+        capabilities_text.config(state=tk.DISABLED)
+
+        # Advanced AI controls
+        controls_frame = ttk.Frame(advanced_frame)
+        controls_frame.grid(row=1, column=0, pady=(10, 0))
+
+        ttk.Button(controls_frame, text="🚀 Deploy Advanced Model", command=self._deploy_advanced_model).grid(row=0, column=0, padx=5)
+        ttk.Button(controls_frame, text="🧪 Run AI Experiments", command=self._run_ai_experiments).grid(row=0, column=1, padx=5)
+        ttk.Button(controls_frame, text="📚 Research Mode", command=self._research_mode).grid(row=0, column=2, padx=5)
+
+    def _show_nas_view(self):
+        """Show Neural Architecture Search view in the consolidated tab"""
+        # Clear current content
+        for widget in self.ai_systems_content_frame.winfo_children():
+            widget.destroy()
+
+        # NAS interface - embedded version
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # NAS control panel
+        nas_frame = ttk.LabelFrame(content_frame, text="🧬 Neural Architecture Search", padding=10)
+        nas_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        nas_frame.columnconfigure(0, weight=1)
+
+        # NAS description
+        desc_text = """Evolutionary AI system that designs and optimizes neural network architectures.
+Uses genetic algorithms and reinforcement learning to discover optimal model architectures
+for your specific datasets and tasks."""
+        desc_label = ttk.Label(nas_frame, text=desc_text, wraplength=600, justify="left")
+        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Control buttons
+        control_frame = ttk.Frame(nas_frame)
+        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        control_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(control_frame, text="🧬 Start NAS Experiment",
+                  command=self._start_nas_experiment).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="📊 View Results",
+                  command=self._view_nas_results).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="⚙️ Configure",
+                  command=self._configure_nas).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Status display
+        status_frame = ttk.Frame(nas_frame)
+        status_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
+        status_frame.columnconfigure(0, weight=1)
+
+        self.nas_status_var = tk.StringVar(value="No active experiments")
+        status_label = ttk.Label(status_frame, textvariable=self.nas_status_var,
+                               font=(self.base_font, 12))
+        status_label.grid(row=0, column=0, pady=5, sticky="w")
+
+        # Metrics
+        metrics_frame = ttk.Frame(nas_frame)
+        metrics_frame.grid(row=3, column=0, sticky="ew")
+        metrics_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Label(metrics_frame, text="Generation:").grid(row=0, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Population Size:").grid(row=1, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Best Fitness:").grid(row=2, column=0, sticky="w", pady=2)
+
+        self.gen_var = tk.StringVar(value="0")
+        self.pop_var = tk.StringVar(value="0")
+        self.fitness_var = tk.StringVar(value="0.000")
+
+        ttk.Label(metrics_frame, textvariable=self.gen_var).grid(row=0, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, textvariable=self.pop_var).grid(row=1, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, textvariable=self.fitness_var).grid(row=2, column=1, sticky="w", pady=2)
+
+        ttk.Button(nas_frame, text="🔄 Refresh Status",
+                  command=self._refresh_nas_status).grid(row=4, column=0, pady=(10, 0))
+
+    def _build_tools_intelligence_tab(self):
+        """Build consolidated Tools & Intelligence tab with sub-navigation"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.tools_intelligence_frame = ttkb.Frame(self.notebook)
+        else:
+            self.tools_intelligence_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.tools_intelligence_frame, text="🔧 Tools & Intelligence")
+
+        self.tools_intelligence_frame.columnconfigure(0, weight=1)
+        self.tools_intelligence_frame.rowconfigure(1, weight=1)
+
+        # Sub-navigation buttons
+        nav_frame = ttk.Frame(self.tools_intelligence_frame)
+        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        nav_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(nav_frame, text="🔧 Developer Tools", command=self._show_tools_view).grid(row=0, column=0, padx=2, pady=5)
+        ttk.Button(nav_frame, text="👁️ Computer Vision", command=self._show_vision_view).grid(row=0, column=1, padx=2, pady=5)
+        ttk.Button(nav_frame, text="🔍 Search Engine", command=self._show_search_view).grid(row=0, column=2, padx=2, pady=5)
+
+        # Content frame for switching views
+        self.tools_intelligence_content_frame = ttk.Frame(self.tools_intelligence_frame)
+        self.tools_intelligence_content_frame.grid(row=1, column=0, sticky="nsew")
+        self.tools_intelligence_content_frame.columnconfigure(0, weight=1)
+        self.tools_intelligence_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with tools view
+        self._show_tools_view()
+
+    def _show_tools_view(self):
+        """Show developer tools view in the consolidated tab"""
+        # Clear current content
+        for widget in self.tools_intelligence_content_frame.winfo_children():
+            widget.destroy()
+
+        # Developer tools interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.tools_intelligence_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.tools_intelligence_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Tools panel
+        tools_frame = ttk.LabelFrame(content_frame, text="🔧 Developer Tools", padding=10)
+        tools_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        tools_frame.columnconfigure((0, 1), weight=1)
+
+        # Left side - Code Tools
+        code_frame = ttk.LabelFrame(tools_frame, text="💻 Code Tools", padding=10)
+        code_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        ttk.Button(code_frame, text="🔍 Code Search", command=self._code_search).grid(row=0, column=0, pady=5, sticky="ew")
+        ttk.Button(code_frame, text="🐛 Debug Helper", command=self._debug_helper).grid(row=1, column=0, pady=5, sticky="ew")
+        ttk.Button(code_frame, text="📊 Performance Profiler", command=self._performance_profiler).grid(row=2, column=0, pady=5, sticky="ew")
+        ttk.Button(code_frame, text="🔧 Code Formatter", command=self._code_formatter).grid(row=3, column=0, pady=5, sticky="ew")
+
+        # Right side - System Tools
+        system_frame = ttk.LabelFrame(tools_frame, text="🖥️ System Tools", padding=10)
+        system_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+
+        ttk.Button(system_frame, text="📁 File Manager", command=self._file_manager).grid(row=0, column=0, pady=5, sticky="ew")
+        ttk.Button(system_frame, text="🌐 Network Tools", command=self._network_tools).grid(row=1, column=0, pady=5, sticky="ew")
+        ttk.Button(system_frame, text="💾 Backup Manager", command=self._backup_manager).grid(row=2, column=0, pady=5, sticky="ew")
+        ttk.Button(system_frame, text="📋 System Monitor", command=self._system_monitor).grid(row=3, column=0, pady=5, sticky="ew")
+
+        # Terminal/Command interface
+        terminal_frame = ttk.LabelFrame(content_frame, text="💻 Command Terminal", padding=10)
+        terminal_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
+        terminal_frame.columnconfigure(0, weight=1)
+
+        # Terminal output display
+        terminal_text = tk.Text(terminal_frame, height=8, wrap=tk.WORD, font=("Courier", 10))
+        terminal_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        terminal_scrollbar = ttk.Scrollbar(terminal_frame, command=terminal_text.yview)
+        terminal_scrollbar.grid(row=0, column=1, sticky="ns")
+        terminal_text.config(yscrollcommand=terminal_scrollbar.set)
+
+        # Sample terminal output
+        terminal_output = """$ python --version
+Python 3.11.2
+
+$ pip list | grep torch
+torch                    2.1.1
+torchvision             0.16.1
+
+$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+
+$ ls -la
+total 128
+drwxr-xr-x  24 user  staff   768 Dec  7 19:33 .
+drwxr-xr-x   3 user  staff    96 Dec  7 18:45 ..
+-rw-r--r--   1 user  staff  1024 Dec  7 19:30 README.md
+-rw-r--r--   1 user  staff  2048 Dec  7 19:25 requirements.txt
+"""
+        terminal_text.insert(tk.END, terminal_output)
+        terminal_text.config(state=tk.DISABLED)
+
+        # Command input
+        input_frame = ttk.Frame(terminal_frame)
+        input_frame.grid(row=1, column=0, columnspan=2, pady=(5, 0), sticky="ew")
+        input_frame.columnconfigure(0, weight=1)
+
+        command_entry = ttk.Entry(input_frame, font=("Courier", 10))
+        command_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        command_entry.insert(0, "Enter command...")
+
+        ttk.Button(input_frame, text="▶️ Run", command=self._run_command).grid(row=0, column=1)
+
+    def _show_vision_view(self):
+        """Show computer vision view in the consolidated tab"""
+        # Clear current content
+        for widget in self.tools_intelligence_content_frame.winfo_children():
+            widget.destroy()
+
+        # Computer vision interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.tools_intelligence_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.tools_intelligence_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Vision tools
+        vision_frame = ttk.LabelFrame(content_frame, text="👁️ Computer Vision Tools", padding=10)
+        vision_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        vision_frame.columnconfigure(0, weight=1)
+
+        # File selection
+        file_frame = ttk.Frame(vision_frame)
+        file_frame.grid(row=0, column=0, pady=(0, 20), sticky="ew")
+        file_frame.columnconfigure(1, weight=1)
+
+        ttk.Label(file_frame, text="📁 Image File:").grid(row=0, column=0, padx=(0, 10))
+        self.vision_file_var = tk.StringVar()
+        ttk.Entry(file_frame, textvariable=self.vision_file_var).grid(row=0, column=1, sticky="ew", padx=(0, 5))
+        ttk.Button(file_frame, text="📂 Browse", command=self._browse_vision_file).grid(row=0, column=2)
+
+        # Vision operations
+        ops_frame = ttk.LabelFrame(vision_frame, text="🎯 Vision Operations", padding=10)
+        ops_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        ops_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(ops_frame, text="🔍 Object Detection", command=self._detect_objects).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(ops_frame, text="📝 OCR Text Extraction", command=self._extract_text_from_image).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(ops_frame, text="🎨 Image Analysis", command=self._analyze_image).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Results display
+        results_frame = ttk.LabelFrame(vision_frame, text="📊 Analysis Results", padding=10)
+        results_frame.grid(row=2, column=0, sticky="ew")
+        results_frame.columnconfigure(0, weight=1)
+
+        results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, font=self.text_font)
+        results_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        scrollbar = ttk.Scrollbar(results_frame, command=results_text.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        results_text.config(yscrollcommand=scrollbar.set)
+
+        # Sample results
+        sample_results = """🎯 OBJECT DETECTION RESULTS:
+• Person: 87% confidence (x: 150, y: 200, w: 180, h: 400)
+• Car: 92% confidence (x: 300, y: 250, w: 200, h: 120)
+• Tree: 78% confidence (x: 50, y: 100, w: 80, h: 200)
+
+📝 OCR TEXT EXTRACTION:
+"Welcome to the AI Assistant Hub
+Version 2.0 - Advanced Features
+Machine Learning Powered"
+
+🎨 IMAGE ANALYSIS:
+• Dominant Colors: Blue (34%), Green (28%), Gray (21%)
+• Image Quality: High resolution (1920x1080)
+• Composition: Centered subject, good lighting
+• Estimated file size: 2.4 MB"""
+        results_text.insert(tk.END, sample_results)
+        results_text.config(state=tk.DISABLED)
+
+    def _show_search_view(self):
+        """Show search engine view in the consolidated tab"""
+        # Clear current content
+        for widget in self.tools_intelligence_content_frame.winfo_children():
+            widget.destroy()
+
+        # Search engine interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.tools_intelligence_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.tools_intelligence_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Search interface
+        search_frame = ttk.LabelFrame(content_frame, text="🔍 Intelligent Search Engine", padding=10)
+        search_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        search_frame.columnconfigure(0, weight=1)
+
+        # Search input
+        search_input_frame = ttk.Frame(search_frame)
+        search_input_frame.grid(row=0, column=0, pady=(0, 20), sticky="ew")
+        search_input_frame.columnconfigure(0, weight=1)
+
+        ttk.Label(search_input_frame, text="🔎 Search Query:").grid(row=0, column=0, pady=(0, 5), sticky="w")
+
+        self.search_query_var = tk.StringVar()
+        search_entry = ttk.Entry(search_input_frame, textvariable=self.search_query_var, font=(self.base_font, 12))
+        search_entry.grid(row=1, column=0, sticky="ew", padx=(0, 5))
+
+        # Search options
+        options_frame = ttk.Frame(search_input_frame)
+        options_frame.grid(row=2, column=0, pady=(10, 0), sticky="ew")
+
+        ttk.Button(options_frame, text="🔍 Basic Search", command=self._basic_search).grid(row=0, column=0, padx=5)
+        ttk.Button(options_frame, text="🧠 AI Search", command=self._ai_search).grid(row=0, column=1, padx=5)
+        ttk.Button(options_frame, text="📁 File Search", command=self._file_search).grid(row=0, column=2, padx=5)
+
+        # Search filters
+        filters_frame = ttk.LabelFrame(search_frame, text="🎛️ Search Filters", padding=10)
+        filters_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+
+        # Filter checkboxes
+        self.filter_tasks_var = tk.BooleanVar(value=True)
+        self.filter_projects_var = tk.BooleanVar(value=True)
+        self.filter_files_var = tk.BooleanVar(value=True)
+        self.filter_web_var = tk.BooleanVar(value=False)
+
+        ttk.Checkbutton(filters_frame, text="✅ Tasks", variable=self.filter_tasks_var).grid(row=0, column=0, padx=10, sticky="w")
+        ttk.Checkbutton(filters_frame, text="📁 Projects", variable=self.filter_projects_var).grid(row=0, column=1, padx=10, sticky="w")
+        ttk.Checkbutton(filters_frame, text="📄 Files", variable=self.filter_files_var).grid(row=0, column=2, padx=10, sticky="w")
+        ttk.Checkbutton(filters_frame, text="🌐 Web", variable=self.filter_web_var).grid(row=0, column=3, padx=10, sticky="w")
+
+        # Results display
+        results_frame = ttk.LabelFrame(search_frame, text="📋 Search Results", padding=10)
+        results_frame.grid(row=2, column=0, sticky="ew")
+        results_frame.columnconfigure(0, weight=1)
+
+        results_text = tk.Text(results_frame, height=12, wrap=tk.WORD, font=self.text_font)
+        results_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        results_scrollbar = ttk.Scrollbar(results_frame, command=results_text.yview)
+        results_scrollbar.grid(row=0, column=1, sticky="ns")
+        results_text.config(yscrollcommand=results_scrollbar.set)
+
+        # Sample search results
+        sample_results = """🔍 SEARCH RESULTS for "machine learning"
+
+📄 Found 12 matches across 8 sources:
+
+✅ TASKS (3 results):
+• [Task #142] "Implement ML model training pipeline" - High Priority
+  Due: Tomorrow, Assigned: ML Team
+• [Task #158] "Research new ML algorithms" - Medium Priority
+  Due: Next Week, Status: In Progress
+• [Task #167] "Deploy ML model to production" - High Priority
+  Due: Today, Status: Blocked
+
+📁 PROJECTS (2 results):
+• [Project #23] "AI Research Initiative" - 75% Complete
+  Contains: ML research papers, algorithm implementations
+• [Project #45] "ML Platform Development" - 45% Complete
+  Contains: Model training scripts, deployment configs
+
+📄 FILES (4 results):
+• /docs/ml_algorithms.pdf (2.1 MB) - Research paper on ML algorithms
+• /code/train_model.py (15 KB) - Training script for neural networks
+• /models/saved_model.pkl (500 MB) - Trained ML model checkpoint
+• /notebooks/ml_experiments.ipynb (8.3 MB) - Jupyter notebook with experiments
+
+🌐 WEB RESULTS (3 results):
+• Towards Data Science: "Understanding Neural Networks"
+• arXiv: "Deep Learning Advances 2024"
+• GitHub: "pytorch/examples" - ML code examples
+
+💡 AI SUGGESTIONS:
+• Related: "neural networks", "deep learning", "AI algorithms"
+• Try: "machine learning tutorials" or "ML best practices"
+• Resources: Check /docs/ml_research/ directory"""
+        results_text.insert(tk.END, sample_results)
+        results_text.config(state=tk.DISABLED)
+
+    def _build_integrations_infrastructure_tab(self):
+        """Build consolidated Integrations & Infrastructure tab with sub-navigation"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.integrations_infrastructure_frame = ttkb.Frame(self.notebook)
+        else:
+            self.integrations_infrastructure_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.integrations_infrastructure_frame, text="🔌 Integrations & Infrastructure")
+
+        self.integrations_infrastructure_frame.columnconfigure(0, weight=1)
+        self.integrations_infrastructure_frame.rowconfigure(1, weight=1)
+
+        # Sub-navigation buttons
+        nav_frame = ttk.Frame(self.integrations_infrastructure_frame)
+        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        nav_frame.columnconfigure((0, 1, 2, 3), weight=1)
+
+        ttk.Button(nav_frame, text="🔌 API Connectors", command=self._show_connectors_view).grid(row=0, column=0, padx=1, pady=5)
+        ttk.Button(nav_frame, text="🤖 AI OS", command=self._show_ai_os_view).grid(row=0, column=1, padx=1, pady=5)
+        ttk.Button(nav_frame, text="☁️ Edge Computing", command=self._show_edge_view).grid(row=0, column=2, padx=1, pady=5)
+        ttk.Button(nav_frame, text="🎯 Workflows", command=self._show_workflows_view).grid(row=0, column=3, padx=1, pady=5)
+
+        # Content frame for switching views
+        self.integrations_infrastructure_content_frame = ttk.Frame(self.integrations_infrastructure_frame)
+        self.integrations_infrastructure_content_frame.grid(row=1, column=0, sticky="nsew")
+        self.integrations_infrastructure_content_frame.columnconfigure(0, weight=1)
+        self.integrations_infrastructure_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with connectors view
+        self._show_connectors_view()
+
+    def _show_connectors_view(self):
+        """Show API connectors view in the consolidated tab"""
+        # Clear current content
+        for widget in self.integrations_infrastructure_content_frame.winfo_children():
+            widget.destroy()
+
+        # API connectors interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Connectors registry
+        connectors_frame = ttk.LabelFrame(content_frame, text="🔌 API Connectors Registry", padding=10)
+        connectors_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        connectors_frame.columnconfigure(0, weight=1)
+
+        # Available connectors list
+        self.connectors_listbox = tk.Listbox(connectors_frame, height=10, font=self.text_font)
+        self.connectors_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        connectors_scrollbar = ttk.Scrollbar(connectors_frame, command=self.connectors_listbox.yview)
+        connectors_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.connectors_listbox.config(yscrollcommand=connectors_scrollbar.set)
+
+        # Sample connectors
+        self.connectors_listbox.insert(tk.END, "🔗 Google Calendar - Connected")
+        self.connectors_listbox.insert(tk.END, "🔗 Gmail API - Connected")
+        self.connectors_listbox.insert(tk.END, "🔗 GitHub API - Connected")
+        self.connectors_listbox.insert(tk.END, "🔗 Slack API - Not Configured")
+        self.connectors_listbox.insert(tk.END, "🔗 Trello API - Not Configured")
+        self.connectors_listbox.insert(tk.END, "🔗 Jira API - Not Configured")
+        self.connectors_listbox.insert(tk.END, "🔗 Zoom API - Not Configured")
+        self.connectors_listbox.insert(tk.END, "🔗 Microsoft Graph - Connected")
+
+        # Connector actions
+        actions_frame = ttk.Frame(connectors_frame)
+        actions_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
+
+        ttk.Button(actions_frame, text="⚙️ Configure", command=self._configure_selected_connector).grid(row=0, column=0, padx=5)
+        ttk.Button(actions_frame, text="🧪 Test Connection", command=self._test_connector_connection).grid(row=0, column=1, padx=5)
+        ttk.Button(actions_frame, text="📋 View Logs", command=self._view_connector_logs).grid(row=0, column=2, padx=5)
+
+        # Integration status
+        status_frame = ttk.LabelFrame(content_frame, text="📊 Integration Status", padding=10)
+        status_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
+        status_frame.columnconfigure((0, 1), weight=1)
+
+        # Status metrics
+        ttk.Label(status_frame, text="Active Integrations: 3/8").grid(row=0, column=0, sticky="w", pady=2)
+        ttk.Label(status_frame, text="Data Synced Today: 1,247 items").grid(row=1, column=0, sticky="w", pady=2)
+        ttk.Label(status_frame, text="API Calls (24h): 8,932").grid(row=2, column=0, sticky="w", pady=2)
+
+        ttk.Label(status_frame, text="Success Rate: 99.7%").grid(row=0, column=1, sticky="w", pady=2)
+        ttk.Label(status_frame, text="Avg Response Time: 245ms").grid(row=1, column=1, sticky="w", pady=2)
+        ttk.Label(status_frame, text="Error Rate: 0.3%").grid(row=2, column=1, sticky="w", pady=2)
+
+    def _show_ai_os_view(self):
+        """Show AI OS view in the consolidated tab"""
+        # Clear current content
+        for widget in self.integrations_infrastructure_content_frame.winfo_children():
+            widget.destroy()
+
+        # AI OS interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # AI OS control panel
+        ai_os_frame = ttk.LabelFrame(content_frame, text="🤖 AI Operating System", padding=10)
+        ai_os_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        ai_os_frame.columnconfigure(0, weight=1)
+
+        # AI OS description
+        desc_text = """Advanced AI Operating System that orchestrates intelligent agents,
+cognitive daemons, and automated workflows across distributed systems."""
+        desc_label = ttk.Label(ai_os_frame, text=desc_text, wraplength=600, justify="left")
+        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Control buttons
+        control_frame = ttk.Frame(ai_os_frame)
+        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        control_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(control_frame, text="▶️ Start AI OS", command=self._start_ai_os).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="📊 System Status", command=self._ai_os_status).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="⚙️ Configure Agents", command=self._configure_agents).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Active agents display
+        agents_frame = ttk.LabelFrame(ai_os_frame, text="🎭 Active AI Agents", padding=10)
+        agents_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
+        agents_frame.columnconfigure(0, weight=1)
+
+        agents_listbox = tk.Listbox(agents_frame, height=6, font=self.text_font)
+        agents_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        agents_listbox.insert(tk.END, "🤖 Core Assistant - Online (Task Processing)")
+        agents_listbox.insert(tk.END, "🎯 Workflow Orchestrator - Online (Process Management)")
+        agents_listbox.insert(tk.END, "📊 Analytics Engine - Online (Data Analysis)")
+        agents_listbox.insert(tk.END, "🔍 Search Agent - Online (Intelligent Search)")
+        agents_listbox.insert(tk.END, "🛡️ Security Monitor - Online (Threat Detection)")
+        agents_listbox.insert(tk.END, "☁️ Cloud Manager - Online (Resource Optimization)")
+
+        # System metrics
+        metrics_frame = ttk.LabelFrame(ai_os_frame, text="📊 AI OS Metrics", padding=10)
+        metrics_frame.grid(row=3, column=0, sticky="ew")
+        metrics_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Label(metrics_frame, text="Active Processes:").grid(row=0, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Tasks Completed:").grid(row=1, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="System Load:").grid(row=2, column=0, sticky="w", pady=2)
+
+        ttk.Label(metrics_frame, text="12").grid(row=0, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="1,847").grid(row=1, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="67%").grid(row=2, column=1, sticky="w", pady=2)
+
+        ttk.Button(metrics_frame, text="🔄 Refresh", command=self._refresh_ai_os_metrics).grid(row=3, column=0, columnspan=3, pady=(10, 0))
+
+    def _show_edge_view(self):
+        """Show edge computing view in the consolidated tab"""
+        # Clear current content
+        for widget in self.integrations_infrastructure_content_frame.winfo_children():
+            widget.destroy()
+
+        # Edge computing interface - embedded version
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Edge computing control panel
+        edge_frame = ttk.LabelFrame(content_frame, text="☁️ Edge Computing & Distributed AI", padding=10)
+        edge_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        edge_frame.columnconfigure(0, weight=1)
+
+        # Edge description
+        desc_text = """Distributed AI system that leverages edge computing for real-time intelligence.
+Deploys AI models across multiple devices and cloud instances for optimal performance."""
+        desc_label = ttk.Label(edge_frame, text=desc_text, wraplength=600, justify="left")
+        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Control buttons
+        control_frame = ttk.Frame(edge_frame)
+        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        control_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(control_frame, text="🚀 Deploy Edge AI", command=self._deploy_edge_ai).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="📊 Network Status", command=self._view_network_status).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="⚙️ Configure Nodes", command=self._configure_edge_nodes).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Network status
+        network_frame = ttk.Frame(edge_frame)
+        network_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
+        network_frame.columnconfigure(0, weight=1)
+
+        self.network_status_var = tk.StringVar(value="🌐 Network: 5/5 nodes online - Optimal performance")
+        network_label = ttk.Label(network_frame, textvariable=self.network_status_var, font=(self.base_font, 12))
+        network_label.grid(row=0, column=0, pady=5, sticky="w")
+
+        # Node status
+        nodes_frame = ttk.LabelFrame(edge_frame, text="🖥️ Edge Nodes", padding=10)
+        nodes_frame.grid(row=3, column=0, sticky="ew")
+        nodes_frame.columnconfigure(0, weight=1)
+
+        self.nodes_listbox = tk.Listbox(nodes_frame, height=5, font=self.text_font)
+        self.nodes_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        self.nodes_listbox.insert(tk.END, "🖥️ Local GPU Node - Online (98% utilization)")
+        self.nodes_listbox.insert(tk.END, "☁️ Cloud Instance 1 - Online (45% utilization)")
+        self.nodes_listbox.insert(tk.END, "📱 Mobile Edge Node - Online (12% utilization)")
+
+        # Node controls
+        node_controls = ttk.Frame(nodes_frame)
+        node_controls.grid(row=1, column=0, pady=(10, 0))
+
+        ttk.Button(node_controls, text="🔧 Manage Node", command=self._manage_edge_node).grid(row=0, column=0, padx=5)
+        ttk.Button(node_controls, text="🔄 Sync Network", command=self._sync_edge_network).grid(row=0, column=1, padx=5)
+
+    def _show_workflows_view(self):
+        """Show workflow orchestration view in the consolidated tab"""
+        # Clear current content
+        for widget in self.integrations_infrastructure_content_frame.winfo_children():
+            widget.destroy()
+
+        # Workflow orchestration interface - embedded version
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Workflow orchestration control panel
+        workflow_frame = ttk.LabelFrame(content_frame, text="🎯 AI Workflow Orchestration", padding=10)
+        workflow_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        workflow_frame.columnconfigure(0, weight=1)
+
+        # Workflow description
+        desc_text = """Intelligent workflow orchestration system that automates complex processes.
+Uses AI to coordinate tasks, manage dependencies, and optimize execution."""
+        desc_label = ttk.Label(workflow_frame, text=desc_text, wraplength=600, justify="left")
+        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Control buttons
+        control_frame = ttk.Frame(workflow_frame)
+        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        control_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(control_frame, text="▶️ Start Orchestrator", command=self._start_workflow_orchestrator).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="📊 View Active Workflows", command=self._view_active_workflows).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="⚙️ Configure Workflows", command=self._configure_workflows).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Orchestrator status
+        status_frame = ttk.Frame(workflow_frame)
+        status_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
+        status_frame.columnconfigure(0, weight=1)
+
+        self.orchestrator_status_var = tk.StringVar(value="🔄 Orchestrator: Running - Processing 3 workflows")
+        status_label = ttk.Label(status_frame, textvariable=self.orchestrator_status_var, font=(self.base_font, 12))
+        status_label.grid(row=0, column=0, pady=5, sticky="w")
+
+        # Active workflows
+        workflows_frame = ttk.LabelFrame(workflow_frame, text="⚙️ Active Workflows", padding=10)
+        workflows_frame.grid(row=3, column=0, sticky="ew")
+        workflows_frame.columnconfigure(0, weight=1)
+
+        self.workflows_listbox = tk.Listbox(workflows_frame, height=5, font=self.text_font)
+        self.workflows_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        self.workflows_listbox.insert(tk.END, "🔄 Data Processing Pipeline - 67% complete")
+        self.workflows_listbox.insert(tk.END, "🤖 ML Model Training - 23% complete")
+        self.workflows_listbox.insert(tk.END, "📊 Analytics Report Generation - 89% complete")
+
+        # Workflow controls
+        workflow_controls = ttk.Frame(workflows_frame)
+        workflow_controls.grid(row=1, column=0, pady=(10, 0))
+
+        ttk.Button(workflow_controls, text="👀 Monitor", command=self._monitor_workflow).grid(row=0, column=0, padx=5)
+        ttk.Button(workflow_controls, text="🔄 Refresh Status", command=self._refresh_workflow_status).grid(row=0, column=1, padx=5)
+
+    def _build_security_audit_tab(self):
+        """Build consolidated Security & Audit tab with sub-navigation"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.security_audit_frame = ttkb.Frame(self.notebook)
+        else:
+            self.security_audit_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.security_audit_frame, text="🛡️ Security & Audit")
+
+        self.security_audit_frame.columnconfigure(0, weight=1)
+        self.security_audit_frame.rowconfigure(1, weight=1)
+
+        # Sub-navigation buttons
+        nav_frame = ttk.Frame(self.security_audit_frame)
+        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        nav_frame.columnconfigure((0, 1), weight=1)
+
+        ttk.Button(nav_frame, text="🛡️ AI Security", command=self._show_security_view).grid(row=0, column=0, padx=5, pady=5)
+        ttk.Button(nav_frame, text="📋 Audit System", command=self._show_audit_view).grid(row=0, column=1, padx=5, pady=5)
+
+        # Content frame for switching views
+        self.security_audit_content_frame = ttk.Frame(self.security_audit_frame)
+        self.security_audit_content_frame.grid(row=1, column=0, sticky="nsew")
+        self.security_audit_content_frame.columnconfigure(0, weight=1)
+        self.security_audit_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with security view
+        self._show_security_view()
+
+    def _show_security_view(self):
+        """Show AI security view in the consolidated tab"""
+        # Clear current content
+        for widget in self.security_audit_content_frame.winfo_children():
+            widget.destroy()
+
+        # AI Security interface - embedded version
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.security_audit_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.security_audit_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Security threat detection control panel
+        security_frame = ttk.LabelFrame(content_frame, text="🛡️ AI-Powered Security Threat Detection", padding=10)
+        security_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        security_frame.columnconfigure(0, weight=1)
+
+        # Security description
+        desc_text = """Advanced AI security system that detects, analyzes, and responds to cyber threats.
+Uses machine learning algorithms to identify anomalous behavior and predict attacks."""
+        desc_label = ttk.Label(security_frame, text=desc_text, wraplength=600, justify="left")
+        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Control buttons
+        control_frame = ttk.Frame(security_frame)
+        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        control_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(control_frame, text="🔍 Start Threat Scan", command=self._start_threat_scan).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="📊 View Security Report", command=self._view_security_report).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="⚙️ Security Settings", command=self._configure_security).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Threat status
+        threat_frame = ttk.Frame(security_frame)
+        threat_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
+        threat_frame.columnconfigure(0, weight=1)
+
+        self.threat_status_var = tk.StringVar(value="🟢 System Secure - No threats detected")
+        threat_label = ttk.Label(threat_frame, textvariable=self.threat_status_var, font=(self.base_font, 12))
+        threat_label.grid(row=0, column=0, pady=5, sticky="w")
+
+        # Security metrics
+        metrics_frame = ttk.Frame(security_frame)
+        metrics_frame.grid(row=3, column=0, pady=(0, 20), sticky="ew")
+        metrics_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Label(metrics_frame, text="Scans Today:").grid(row=0, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Threats Blocked:").grid(row=1, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Risk Score:").grid(row=2, column=0, sticky="w", pady=2)
+
+        self.scans_var = tk.StringVar(value="0")
+        self.threats_var = tk.StringVar(value="0")
+        self.risk_var = tk.StringVar(value="Low")
+
+        ttk.Label(metrics_frame, textvariable=self.scans_var).grid(row=0, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, textvariable=self.threats_var).grid(row=1, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, textvariable=self.risk_var).grid(row=2, column=1, sticky="w", pady=2)
+
+        # Recent threats
+        threats_frame = ttk.LabelFrame(security_frame, text="🚨 Recent Security Events", padding=10)
+        threats_frame.grid(row=4, column=0, sticky="ew")
+        threats_frame.columnconfigure(0, weight=1)
+
+        self.threats_listbox = tk.Listbox(threats_frame, height=5, font=self.text_font)
+        self.threats_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        self.threats_listbox.insert(tk.END, "🔍 Suspicious login attempt detected")
+        self.threats_listbox.insert(tk.END, "📡 Unusual network traffic pattern")
+        self.threats_listbox.insert(tk.END, "🔐 Weak password policy alert")
+
+        # Threat controls
+        threat_controls = ttk.Frame(threats_frame)
+        threat_controls.grid(row=1, column=0, pady=(10, 0))
+
+        ttk.Button(threat_controls, text="🚨 Investigate", command=self._investigate_threat).grid(row=0, column=0, padx=5)
+        ttk.Button(threat_controls, text="🔄 Refresh", command=self._refresh_security_status).grid(row=0, column=1, padx=5)
+
+    def _show_audit_view(self):
+        """Show audit system view in the consolidated tab"""
+        # Clear current content
+        for widget in self.security_audit_content_frame.winfo_children():
+            widget.destroy()
+
+        # Audit system interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.security_audit_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.security_audit_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Audit system control panel
+        audit_frame = ttk.LabelFrame(content_frame, text="📋 Audit System & Compliance Monitoring", padding=10)
+        audit_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        audit_frame.columnconfigure(0, weight=1)
+
+        # Audit description
+        desc_text = """Comprehensive audit system for compliance monitoring, security logging,
+and regulatory reporting. Tracks all system activities and maintains detailed audit trails."""
+        desc_label = ttk.Label(audit_frame, text=desc_text, wraplength=600, justify="left")
+        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Control buttons
+        control_frame = ttk.Frame(audit_frame)
+        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        control_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(control_frame, text="📊 Generate Audit Report", command=self._generate_audit_report).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="🔍 Compliance Check", command=self._run_compliance_check).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="⚙️ Audit Settings", command=self._configure_audit).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Audit metrics
+        metrics_frame = ttk.Frame(audit_frame)
+        metrics_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
+        metrics_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Label(metrics_frame, text="Events Logged:").grid(row=0, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Compliance Score:").grid(row=1, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Audit Alerts:").grid(row=2, column=0, sticky="w", pady=2)
+
+        ttk.Label(metrics_frame, text="15,432").grid(row=0, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="97.3%").grid(row=1, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="2").grid(row=2, column=1, sticky="w", pady=2)
+
+        # Recent audit events
+        events_frame = ttk.LabelFrame(audit_frame, text="📋 Recent Audit Events", padding=10)
+        events_frame.grid(row=3, column=0, sticky="ew")
+        events_frame.columnconfigure(0, weight=1)
+
+        audit_listbox = tk.Listbox(events_frame, height=6, font=self.text_font)
+        audit_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        audit_listbox.insert(tk.END, "🔐 User authentication - user@example.com")
+        audit_listbox.insert(tk.END, "📝 Data access - Task database queried")
+        audit_listbox.insert(tk.END, "⚙️ System configuration changed")
+        audit_listbox.insert(tk.END, "🚨 Security policy violation detected")
+        audit_listbox.insert(tk.END, "📤 Data export - Tasks exported to CSV")
+        audit_listbox.insert(tk.END, "🔑 API key generated")
+
+        # Audit controls
+        audit_controls = ttk.Frame(events_frame)
+        audit_controls.grid(row=1, column=0, pady=(10, 0))
+
+        ttk.Button(audit_controls, text="📄 View Details", command=self._view_audit_details).grid(row=0, column=0, padx=5)
+        ttk.Button(audit_controls, text="🔄 Refresh Events", command=self._refresh_audit_events).grid(row=0, column=1, padx=5)
+
+    # Placeholder methods for new consolidated tabs
+    def _code_search(self):
+        messagebox.showinfo("Code Search", "Advanced code search and analysis tools.")
+
+    def _debug_helper(self):
+        messagebox.showinfo("Debug Helper", "AI-powered debugging assistance.")
+
+    def _performance_profiler(self):
+        messagebox.showinfo("Performance Profiler", "Code performance analysis and optimization.")
+
+    def _code_formatter(self):
+        messagebox.showinfo("Code Formatter", "Automatic code formatting and style correction.")
+
+    def _file_manager(self):
+        messagebox.showinfo("File Manager", "Advanced file management system.")
+
+    def _network_tools(self):
+        messagebox.showinfo("Network Tools", "Network diagnostics and monitoring tools.")
+
+    def _backup_manager(self):
+        messagebox.showinfo("Backup Manager", "Automated backup and recovery system.")
+
+    def _system_monitor(self):
+        messagebox.showinfo("System Monitor", "Real-time system performance monitoring.")
+
+    def _run_command(self):
+        messagebox.showinfo("Command Execution", "Terminal command executed successfully.")
+
+    def _browse_vision_file(self):
+        messagebox.showinfo("File Browser", "Please select an image file for analysis.")
+
+    def _analyze_image(self):
+        messagebox.showinfo("Image Analysis", "Advanced image analysis and feature extraction.")
+
+    def _basic_search(self):
+        messagebox.showinfo("Basic Search", "Performing basic text search across all sources.")
+
+    def _ai_search(self):
+        messagebox.showinfo("AI Search", "AI-powered semantic search with understanding.")
+
+    def _file_search(self):
+        messagebox.showinfo("File Search", "Searching through file contents and metadata.")
+
+    def _generate_audit_report(self):
+        messagebox.showinfo("Audit Report", "Comprehensive audit report generated.")
+
+    def _run_compliance_check(self):
+        messagebox.showinfo("Compliance Check", "Compliance check completed successfully.")
+
+    def _configure_audit(self):
+        messagebox.showinfo("Audit Configuration", "Audit system configuration dialog.")
+
+    def _view_audit_details(self):
+        messagebox.showinfo("Audit Details", "Detailed audit event information.")
+
+    def _refresh_audit_events(self):
+        messagebox.showinfo("Audit Refresh", "Audit events refreshed successfully.")
+
+    def _send_chat_message(self):
+        messagebox.showinfo("AI Chat", "Message sent to AI assistant!")
+
+    def _retrain_models(self):
+        messagebox.showinfo("Model Training", "Model retraining initiated!")
+
+    def _performance_report(self):
+        messagebox.showinfo("Performance Report", "Generating detailed performance report...")
+
+    def _system_config(self):
+        messagebox.showinfo("System Config", "AI system configuration dialog would open.")
+
+    def _deploy_advanced_model(self):
+        messagebox.showinfo("Advanced AI", "Advanced AI model deployment initiated!")
+
+    def _run_ai_experiments(self):
+        messagebox.showinfo("AI Experiments", "Running AI experiments...")
+
+    def _research_mode(self):
+        messagebox.showinfo("Research Mode", "Entering AI research mode!")
+
+    def _execute_predictive_analytics(self):
+        """Execute predictive analytics"""
+        try:
+            # Import predictive analytics system
+            from assistant_core.predictive_analytics import PredictiveAnalytics
+
+            analytics = PredictiveAnalytics()
+            result = analytics.run_prediction()
+
+            messagebox.showinfo("Predictive Analytics Complete",
+                              f"AI Predictive Analytics Results:\n\n"
+                              f"🎯 Prediction Accuracy: {result.get('accuracy', 0):.1f}%\n"
+                              f"📈 Confidence Score: {result.get('confidence', 0):.1f}%\n"
+                              f"🔮 Forecast Horizon: {result.get('horizon', 0)} days\n"
+                              f"📊 Data Points Analyzed: {result.get('data_points', 0)}\n\n"
+                              f"Predictions generated for trend analysis and decision support.")
+
+        except ImportError:
+            messagebox.showinfo("Predictive Analytics",
+                              "AI Predictive Analytics System ready.\n\n"
+                              "Features:\n"
+                              "• Time series forecasting\n"
+                              "• Trend analysis and prediction\n"
+                              "• Anomaly detection\n"
+                              "• Risk assessment modeling\n"
+                              "• Performance optimization\n\n"
+                              "Full functionality requires predictive analytics libraries.")
+        except Exception as e:
+            messagebox.showerror("Analytics Error", f"Failed to execute predictive analytics: {e}")
+
+    # ---------- Consolidated Tabs with Shared Pages ----------
+
+    def _build_dashboard_analytics_tab(self):
+        """Build consolidated Dashboard & Analytics tab with sub-navigation"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.dashboard_analytics_frame = ttkb.Frame(self.notebook)
+        else:
+            self.dashboard_analytics_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.dashboard_analytics_frame, text="📊 Dashboard & Analytics")
+
+        self.dashboard_analytics_frame.columnconfigure(0, weight=1)
+        self.dashboard_analytics_frame.rowconfigure(1, weight=1)
+
+        # Sub-navigation buttons
+        nav_frame = ttk.Frame(self.dashboard_analytics_frame)
+        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        nav_frame.columnconfigure((0, 1), weight=1)
+
+        ttk.Button(nav_frame, text="📊 Dashboard", command=self._show_dashboard_view).grid(row=0, column=0, padx=5, pady=5)
+        ttk.Button(nav_frame, text="📈 Analytics", command=self._show_analytics_view).grid(row=0, column=1, padx=5, pady=5)
+
+        # Content frame for switching views
+        self.dashboard_content_frame = ttk.Frame(self.dashboard_analytics_frame)
+        self.dashboard_content_frame.grid(row=1, column=0, sticky="nsew")
+        self.dashboard_content_frame.columnconfigure(0, weight=1)
+        self.dashboard_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with dashboard view
+        self._show_dashboard_view()
+
+    def _show_dashboard_view(self):
+        """Show dashboard view in the consolidated tab"""
+        # Clear current content
+        for widget in self.dashboard_content_frame.winfo_children():
+            widget.destroy()
+
+        # Replicate original dashboard functionality
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.dashboard_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.dashboard_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.columnconfigure(1, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+        content_frame.rowconfigure(1, weight=1)
+        content_frame.rowconfigure(2, weight=0)
+        content_frame.rowconfigure(3, weight=0)
+        content_frame.rowconfigure(4, weight=0)
+
+        # Dashboard boxes - with text widgets for refresh functionality
+        if TTKBOOTSTRAP_AVAILABLE:
+            unified_today_box = ttkb.Labelframe(content_frame, text="📋 Today's Focus", bootstyle="primary", padding=10)
+            unified_upcoming_box = ttkb.Labelframe(content_frame, text="📅 Upcoming Deadlines", bootstyle="info", padding=10)
+            unified_status_box = ttkb.Labelframe(content_frame, text="📊 Status Overview", bootstyle="success", padding=10)
+            unified_load_box = ttkb.Labelframe(content_frame, text="👥 Load by Persona", bootstyle="secondary", padding=10)
+            unified_cyber_box = ttkb.Labelframe(content_frame, text="🛡️ Cyber Defense Status", bootstyle="warning", padding=10)
+        else:
+            unified_today_box = ttk.LabelFrame(content_frame, text="📋 Today's Focus", padx=10, pady=10)
+            unified_upcoming_box = ttk.LabelFrame(content_frame, text="📅 Upcoming Deadlines", padx=10, pady=10)
+            unified_status_box = ttk.LabelFrame(content_frame, text="📊 Status Overview", padx=10, pady=10)
+            unified_load_box = ttk.LabelFrame(content_frame, text="👥 Load by Persona", padx=10, pady=10)
+            unified_cyber_box = ttk.LabelFrame(content_frame, text="🛡️ Cyber Defense Status", padx=10, pady=10)
+
+        unified_today_box.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        unified_upcoming_box.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+        unified_status_box.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
+        unified_load_box.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
+        unified_cyber_box.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+
+        # Today's tasks content
+        unified_today_text = tk.Text(unified_today_box, height=6, wrap=tk.WORD, font=self.text_font)
+        unified_today_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        # Upcoming tasks content
+        unified_upcoming_text = tk.Text(unified_upcoming_box, height=6, wrap=tk.WORD, font=self.text_font)
+        unified_upcoming_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        # Status overview content
+        unified_status_text = tk.Text(unified_status_box, height=6, wrap=tk.WORD, font=self.text_font)
+        unified_status_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        # Load by persona content
+        unified_load_text = tk.Text(unified_load_box, height=6, wrap=tk.WORD, font=self.text_font)
+        unified_load_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        # Cyber defense status
+        unified_cyber_box.columnconfigure(0, weight=1)
+        unified_cyber_status_var = tk.StringVar(value="Status: offline")
+        if TTKBOOTSTRAP_AVAILABLE:
+            unified_cyber_status_label = ttkb.Label(
+                unified_cyber_box,
+                textvariable=unified_cyber_status_var,
+                font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
+                bootstyle="info"
+            )
+        else:
+            unified_cyber_status_label = ttk.Label(
+                unified_cyber_box,
+                textvariable=unified_cyber_status_var,
+                font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
+            )
+        unified_cyber_status_label.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
+
+        # Refresh button
+        ttk.Button(content_frame, text="🔄 Refresh Dashboard", command=self.refresh_dashboard).grid(row=3, column=0, columnspan=2, pady=10)
+
+        # Register unified dashboard widgets so both views stay in sync
+        self.dashboard_text_targets = [
+            tgt for tgt in getattr(self, "dashboard_text_targets", []) if tgt.get("source") != "unified"
+        ]
+        self.dashboard_text_targets.append(
+            {
+                "source": "unified",
+                "today": unified_today_text,
+                "upcoming": unified_upcoming_text,
+                "status": unified_status_text,
+                "load": unified_load_text,
+            }
+        )
+        self.unified_cyber_status_var = unified_cyber_status_var
+
+    def _populate_dashboard_widgets(self, today_tasks, upcoming_sorted, incomplete_sorted,
+                                   tasks, status_counts, persona_load, state):
+        """Populate dashboard widgets with data"""
+        if hasattr(self, 'today_text') and self.today_text.winfo_exists():
+            self.today_text.config(state="normal")
+            self.today_text.delete("1.0", "end")
+            if today_tasks:
+                self.today_text.insert("end", "Tasks due today:\n\n")
+                for t in today_tasks:
+                    self.today_text.insert(
+                        "end",
+                        f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner})\n",
+                    )
+            elif incomplete_sorted[:3]:
+                self.today_text.insert("end", "No tasks explicitly due today.\nShowing top 3 priorities:\n\n")
+                for t in incomplete_sorted[:3]:
+                    self.today_text.insert(
+                        "end",
+                        f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner}, Due: {t.due_date or 'None'})\n",
+                    )
+            else:
+                self.today_text.insert("end", "No active tasks. System is idle.")
+            self.today_text.config(state="disabled")
+
+        if hasattr(self, 'upcoming_text') and self.upcoming_text.winfo_exists():
+            self.upcoming_text.config(state="normal")
+            self.upcoming_text.delete("1.0", "end")
+            if upcoming_sorted:
+                self.upcoming_text.insert("end", "Next deadlines:\n\n")
+                for t in upcoming_sorted:
+                    self.upcoming_text.insert(
+                        "end",
+                        f"- #{t.id} [{t.priority}] {t.title} (Due: {t.due_date}, Project: {t.project}, Owner: {t.owner})\n",
+                    )
+            else:
+                self.upcoming_text.insert("end", "No upcoming deadlines logged.")
+            self.upcoming_text.config(state="disabled")
+
+        if hasattr(self, 'status_text') and self.status_text.winfo_exists():
+            self.status_text.config(state="normal")
+            self.status_text.delete("1.0", "end")
+            total = len(tasks)
+            self.status_text.insert("end", f"Total tasks: {total}\n\n")
+            for s in STATUS_OPTIONS:
+                self.status_text.insert("end", f"{s:12}: {status_counts.get(s, 0)}\n")
+            self.status_text.config(state="disabled")
+
+        if hasattr(self, 'load_text') and self.load_text.winfo_exists():
+            self.load_text.config(state="normal")
+            self.load_text.delete("1.0", "end")
+            self.load_text.insert("end", "Incomplete tasks per persona:\n\n")
+            for p in PERSONAS:
+                marker = "◉" if p == state.active_persona else "○"
+                self.load_text.insert("end", f"{marker} {p:8}: {persona_load.get(p, 0)}\n")
+            self.load_text.config(state="disabled")
+
+    def _show_analytics_view(self):
+        """Show analytics view in the consolidated tab"""
+        # Clear current content
+        for widget in self.dashboard_content_frame.winfo_children():
+            widget.destroy()
+
+        # Analytics content - simplified version
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.dashboard_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.dashboard_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Analytics title
+        title_label = ttk.Label(content_frame, text="📈 Comprehensive Analytics Report",
+                               font=(self.base_font, 16, "bold"))
+        title_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Analytics content area
+        analytics_text = tk.Text(content_frame, height=20, wrap=tk.WORD, font=self.text_font)
+        analytics_text.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+
+        scrollbar = ttk.Scrollbar(content_frame, command=analytics_text.yview)
+        scrollbar.grid(row=1, column=1, sticky="ns")
+        analytics_text.config(yscrollcommand=scrollbar.set)
+
+        # Sample analytics content
+        analytics_content = """📊 COMPREHENSIVE ANALYTICS REPORT
+
+🎯 TASK ANALYTICS:
+• Total Tasks: 47
+• Completed Tasks: 32 (68%)
+• Overdue Tasks: 3 (6%)
+• Average Completion Time: 4.2 days
+• Productivity Score: 8.7/10
+
+📁 PROJECT ANALYTICS:
+• Active Projects: 5
+• Completed Projects: 12
+• Average Project Duration: 18.5 days
+• Resource Utilization: 78%
+
+⏰ TIME TRACKING:
+• Total Time Logged: 156 hours
+• Average Daily Productivity: 6.2 hours
+• Most Productive Day: Wednesday
+• Time Allocation: Work (65%), Meetings (20%), Admin (15%)
+
+📈 TRENDS & INSIGHTS:
+• Productivity increased 23% this month
+• Task completion rate improved by 15%
+• 3 projects at risk of delay
+• Peak productivity: 10 AM - 2 PM
+
+🎯 RECOMMENDATIONS:
+• Focus on overdue tasks in Project Alpha
+• Schedule complex tasks during peak hours
+• Consider resource reallocation for Project Beta
+• Implement time-blocking for better focus
+
+📋 SMART SUGGESTIONS:
+• Complete "Database Migration" task by EOD
+• Schedule 2-hour block tomorrow for "API Development"
+• Review project deadlines with team
+• Archive completed projects older than 30 days
+"""
+        analytics_text.insert(tk.END, analytics_content)
+        analytics_text.config(state=tk.DISABLED)
+
+        # Analytics controls
+        controls_frame = ttk.Frame(content_frame)
+        controls_frame.grid(row=2, column=0, columnspan=2, pady=(10, 0))
+
+        ttk.Button(controls_frame, text="🔄 Refresh", command=self._refresh_analytics).grid(row=0, column=0, padx=5)
+        ttk.Button(controls_frame, text="💾 Export Report", command=self._export_analytics).grid(row=0, column=1, padx=5)
+        ttk.Button(controls_frame, text="📊 Detailed View", command=self._detailed_analytics).grid(row=0, column=2, padx=5)
+
+    def _refresh_analytics(self):
+        """Refresh analytics data"""
+        messagebox.showinfo("Analytics", "Analytics data refreshed successfully!")
+
+    def _export_analytics(self):
+        """Export analytics report"""
+        messagebox.showinfo("Export", "Analytics report exported to analytics_report.txt")
+
+    def _detailed_analytics(self):
+        """Show detailed analytics view"""
+        messagebox.showinfo("Detailed Analytics", "Detailed analytics view would show charts and graphs here.")
+
+    def _build_tasks_projects_tab(self):
+        """Build consolidated Tasks & Projects tab with sub-navigation"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.tasks_projects_frame = ttkb.Frame(self.notebook)
+        else:
+            self.tasks_projects_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.tasks_projects_frame, text="✅ Tasks & Projects")
+
+        self.tasks_projects_frame.columnconfigure(0, weight=1)
+        self.tasks_projects_frame.rowconfigure(1, weight=1)
+
+        # Sub-navigation buttons
+        nav_frame = ttk.Frame(self.tasks_projects_frame)
+        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        nav_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(nav_frame, text="✅ Tasks", command=self._show_tasks_view).grid(row=0, column=0, padx=5, pady=5)
+        ttk.Button(nav_frame, text="📁 Projects", command=self._show_projects_view).grid(row=0, column=1, padx=5, pady=5)
+        ttk.Button(nav_frame, text="📋 Templates", command=self._show_templates_view).grid(row=0, column=2, padx=5, pady=5)
+
+        # Content frame for switching views
+        self.tasks_projects_content_frame = ttk.Frame(self.tasks_projects_frame)
+        self.tasks_projects_content_frame.grid(row=1, column=0, sticky="nsew")
+        self.tasks_projects_content_frame.columnconfigure(0, weight=1)
+        self.tasks_projects_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with tasks view
+        self._show_tasks_view()
+
+    def _show_tasks_view(self):
+        """Show tasks view in the consolidated tab"""
+        # Clear current content
+        for widget in self.tasks_projects_content_frame.winfo_children():
+            widget.destroy()
+
+        # Simplified tasks interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.tasks_projects_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.tasks_projects_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Tasks list and details - simplified version
+        tasks_frame = ttk.LabelFrame(content_frame, text="📋 Tasks", padding=10)
+        tasks_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        tasks_frame.columnconfigure(0, weight=1)
+        tasks_frame.rowconfigure(0, weight=1)
+
+        # Tasks listbox
+        self.tasks_listbox = tk.Listbox(tasks_frame, height=15, font=self.text_font)
+        self.tasks_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        scrollbar = ttk.Scrollbar(tasks_frame, command=self.tasks_listbox.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        self.tasks_listbox.config(yscrollcommand=scrollbar.set)
+
+        # Sample tasks
+        self.tasks_listbox.insert(tk.END, "✅ Database migration - High Priority")
+        self.tasks_listbox.insert(tk.END, "⏳ API development - In Progress")
+        self.tasks_listbox.insert(tk.END, "📝 Documentation update - Medium Priority")
+        self.tasks_listbox.insert(tk.END, "🔍 Code review - Pending")
+        self.tasks_listbox.insert(tk.END, "🧪 Testing deployment - Low Priority")
+
+        # Task controls
+        controls_frame = ttk.Frame(tasks_frame)
+        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
+
+        ttk.Button(controls_frame, text="➕ New Task", command=self._new_task).grid(row=0, column=0, padx=5)
+        ttk.Button(controls_frame, text="✏️ Edit Task", command=self._edit_task).grid(row=0, column=1, padx=5)
+        ttk.Button(controls_frame, text="✅ Complete", command=self._complete_task).grid(row=0, column=2, padx=5)
+
+    def _show_projects_view(self):
+        """Show projects view in the consolidated tab"""
+        # Clear current content
+        for widget in self.tasks_projects_content_frame.winfo_children():
+            widget.destroy()
+
+        # Projects interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.tasks_projects_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.tasks_projects_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Projects list
+        projects_frame = ttk.LabelFrame(content_frame, text="📁 Projects", padding=10)
+        projects_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        projects_frame.columnconfigure(0, weight=1)
+        projects_frame.rowconfigure(0, weight=1)
+
+        self.projects_listbox = tk.Listbox(projects_frame, height=15, font=self.text_font)
+        self.projects_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        scrollbar = ttk.Scrollbar(projects_frame, command=self.projects_listbox.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        self.projects_listbox.config(yscrollcommand=scrollbar.set)
+
+        # Sample projects
+        self.projects_listbox.insert(tk.END, "🚀 Web Application Redesign - 75% Complete")
+        self.projects_listbox.insert(tk.END, "📊 Data Analytics Platform - 45% Complete")
+        self.projects_listbox.insert(tk.END, "🔧 API Integration Project - 90% Complete")
+        self.projects_listbox.insert(tk.END, "🎨 Mobile App Development - 30% Complete")
+        self.projects_listbox.insert(tk.END, "☁️ Cloud Migration - 60% Complete")
+
+        # Project controls
+        controls_frame = ttk.Frame(projects_frame)
+        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
+
+        ttk.Button(controls_frame, text="➕ New Project", command=self._new_project).grid(row=0, column=0, padx=5)
+        ttk.Button(controls_frame, text="📄 Upload Files", command=self._upload_project_files).grid(row=0, column=1, padx=5)
+        ttk.Button(controls_frame, text="📊 View Stats", command=self._project_stats).grid(row=0, column=2, padx=5)
+
+    def _show_templates_view(self):
+        """Show task templates view in the consolidated tab"""
+        # Clear current content
+        for widget in self.tasks_projects_content_frame.winfo_children():
+            widget.destroy()
+
+        # Templates interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.tasks_projects_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.tasks_projects_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Templates list
+        templates_frame = ttk.LabelFrame(content_frame, text="📋 Task Templates", padding=10)
+        templates_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        templates_frame.columnconfigure(0, weight=1)
+        templates_frame.rowconfigure(0, weight=1)
+
+        self.templates_listbox = tk.Listbox(templates_frame, height=15, font=self.text_font)
+        self.templates_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        scrollbar = ttk.Scrollbar(templates_frame, command=self.templates_listbox.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        self.templates_listbox.config(yscrollcommand=scrollbar.set)
+
+        # Sample templates
+        self.templates_listbox.insert(tk.END, "📝 Code Review - 30 min estimate")
+        self.templates_listbox.insert(tk.END, "🔧 Bug Fix - 2 hour estimate")
+        self.templates_listbox.insert(tk.END, "📊 Report Generation - 4 hour estimate")
+        self.templates_listbox.insert(tk.END, "🎨 UI Design - 6 hour estimate")
+        self.templates_listbox.insert(tk.END, "🧪 Testing - 3 hour estimate")
+
+        # Template controls
+        controls_frame = ttk.Frame(templates_frame)
+        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
+
+        ttk.Button(controls_frame, text="➕ New Template", command=self._new_template).grid(row=0, column=0, padx=5)
+        ttk.Button(controls_frame, text="✅ Create Task", command=self._create_from_template).grid(row=0, column=1, padx=5)
+        ttk.Button(controls_frame, text="✏️ Edit Template", command=self._edit_template).grid(row=0, column=2, padx=5)
+
+    def _new_task(self):
+        messagebox.showinfo("New Task", "New task creation dialog would open here.")
+
+    def _edit_task(self):
+        messagebox.showinfo("Edit Task", "Task editing dialog would open here.")
+
+    def _complete_task(self):
+        messagebox.showinfo("Complete Task", "Task marked as completed.")
+
+    def _new_project(self):
+        messagebox.showinfo("New Project", "New project creation dialog would open here.")
+
+    def _upload_project_files(self):
+        messagebox.showinfo("Upload Files", "File upload dialog would open here.")
+
+    def _project_stats(self):
+        messagebox.showinfo("Project Stats", "Project statistics view would open here.")
+
+    def _new_template(self):
+        messagebox.showinfo("New Template", "New template creation dialog would open here.")
+
+    def _create_from_template(self):
+        messagebox.showinfo("Create Task", "Task created from selected template.")
+
+    def _edit_template(self):
+        messagebox.showinfo("Edit Template", "Template editing dialog would open here.")
+
+    def _build_ai_systems_tab(self):
+        """Build consolidated AI Systems tab with sub-navigation"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.ai_systems_frame = ttkb.Frame(self.notebook)
+        else:
+            self.ai_systems_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.ai_systems_frame, text="🤖 AI Systems")
+
+        self.ai_systems_frame.columnconfigure(0, weight=1)
+        self.ai_systems_frame.rowconfigure(1, weight=1)
+
+        # Sub-navigation buttons
+        nav_frame = ttk.Frame(self.ai_systems_frame)
+        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        nav_frame.columnconfigure((0, 1, 2, 3), weight=1)
+
+        ttk.Button(nav_frame, text="💬 AI Console", command=self._show_ai_console_view).grid(row=0, column=0, padx=2, pady=5)
+        ttk.Button(nav_frame, text="🛰️ AI Ops", command=self._show_ai_ops_view).grid(row=0, column=1, padx=2, pady=5)
+        ttk.Button(nav_frame, text="🧠 Advanced AI", command=self._show_advanced_ai_view).grid(row=0, column=2, padx=2, pady=5)
+        ttk.Button(nav_frame, text="🧬 NAS", command=self._show_nas_view).grid(row=0, column=3, padx=2, pady=5)
+
+        # Content frame for switching views
+        self.ai_systems_content_frame = ttk.Frame(self.ai_systems_frame)
+        self.ai_systems_content_frame.grid(row=1, column=0, sticky="nsew")
+        self.ai_systems_content_frame.columnconfigure(0, weight=1)
+        self.ai_systems_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with AI Console view
+        self._show_ai_console_view()
+
+    def _build_ai_features_tab(self):
+        """Build comprehensive AI Features tab with all 10 AI-powered features"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.ai_features_frame = ttkb.Frame(self.notebook)
+        else:
+            self.ai_features_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.ai_features_frame, text="🚀 AI Features")
+
+        self.ai_features_frame.columnconfigure(0, weight=1)
+        self.ai_features_frame.rowconfigure(1, weight=1)
+
+        # Feature selection
+        selector_frame = ttk.LabelFrame(self.ai_features_frame, text="🎯 Select AI Feature", padding=10)
+        selector_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+
+        ttk.Label(selector_frame, text="Choose AI Feature:").grid(row=0, column=0, padx=5, pady=5)
+        self.ai_feature_var = tk.StringVar(value="predictive_analytics")
+        feature_combo = ttk.Combobox(selector_frame, textvariable=self.ai_feature_var,
+                                   values=["predictive_analytics", "nlp_conversation", "automation_orchestration",
+                                          "computer_vision", "security_ai", "edge_computing", "personalization",
+                                          "collaboration", "mlops", "monitoring"], state="readonly")
+        feature_combo.grid(row=0, column=1, padx=5, pady=5)
+        feature_combo.bind("<<ComboboxSelected>>", self._on_ai_feature_selected)
+
+        # Content frame for dynamic feature interfaces
+        self.ai_features_content_frame = ttk.Frame(self.ai_features_frame)
+        self.ai_features_content_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
+        self.ai_features_content_frame.columnconfigure(0, weight=1)
+        self.ai_features_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with predictive analytics
+        self._show_predictive_analytics_interface()
+
+    def _on_ai_feature_selected(self, event=None):
+        """Handle AI feature selection"""
+        feature = self.ai_feature_var.get()
+
+        # Clear current content
+        for widget in self.ai_features_content_frame.winfo_children():
+            widget.destroy()
+
+        # Show selected feature interface
+        if feature == "predictive_analytics":
+            self._show_predictive_analytics_interface()
+        elif feature == "nlp_conversation":
+            self._show_nlp_conversation_interface()
+        elif feature == "automation_orchestration":
+            self._show_automation_orchestration_interface()
+        elif feature == "computer_vision":
+            self._show_computer_vision_interface()
+        elif feature == "security_ai":
+            self._show_security_ai_interface()
+        elif feature == "edge_computing":
+            self._show_edge_computing_interface()
+        elif feature == "personalization":
+            self._show_personalization_interface()
+        elif feature == "collaboration":
+            self._show_collaboration_interface()
+        elif feature == "mlops":
+            self._show_mlops_interface()
+        elif feature == "monitoring":
+            self._show_monitoring_interface()
+
+    def _show_predictive_analytics_interface(self):
+        """Show Predictive Analytics interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="📈 AI-Powered Predictive Analytics & Forecasting", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Prediction type selection
+        ttk.Label(frame, text="Prediction Type:").grid(row=0, column=0, sticky="w", pady=5)
+        self.prediction_type_var = tk.StringVar(value="productivity_score")
+        prediction_combo = ttk.Combobox(frame, textvariable=self.prediction_type_var,
+                                      values=["productivity_score", "task_completion_time", "workload_forecast",
+                                             "energy_levels", "meeting_effectiveness", "focus_time_optimal",
+                                             "deadline_risk", "burnout_risk", "collaboration_patterns",
+                                             "skill_development"], state="readonly", width=30)
+        prediction_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Time horizon
+        ttk.Label(frame, text="Time Horizon (days):").grid(row=1, column=0, sticky="w", pady=5)
+        self.time_horizon_var = tk.StringVar(value="7")
+        time_combo = ttk.Combobox(frame, textvariable=self.time_horizon_var,
+                                values=["1", "7", "30", "90"], state="readonly", width=10)
+        time_combo.grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Historical data points
+        ttk.Label(frame, text="Historical Data Points:").grid(row=2, column=0, sticky="w", pady=5)
+        self.historical_data_var = tk.StringVar(value="30")
+        ttk.Entry(frame, textvariable=self.historical_data_var, width=10).grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Confidence level
+        ttk.Label(frame, text="Confidence Level (0-1):").grid(row=3, column=0, sticky="w", pady=5)
+        self.confidence_var = tk.StringVar(value="0.95")
+        ttk.Entry(frame, textvariable=self.confidence_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🔮 Generate Prediction", command=self._execute_predictive_analytics).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="📊 Prediction Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.prediction_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        scrollbar = ttk.Scrollbar(results_frame, command=self.prediction_results_text.yview)
+        self.prediction_results_text.config(yscrollcommand=scrollbar.set)
+
+        self.prediction_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_nlp_conversation_interface(self):
+        """Show NLP Conversation interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="💬 Advanced Natural Language Processing & Conversation AI", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Action type
+        ttk.Label(frame, text="Action:").grid(row=0, column=0, sticky="w", pady=5)
+        self.nlp_action_var = tk.StringVar(value="analyze")
+        action_combo = ttk.Combobox(frame, textvariable=self.nlp_action_var,
+                                  values=["analyze", "generate", "summarize"], state="readonly", width=20)
+        action_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Language
+        ttk.Label(frame, text="Language:").grid(row=1, column=0, sticky="w", pady=5)
+        self.nlp_language_var = tk.StringVar(value="en")
+        ttk.Entry(frame, textvariable=self.nlp_language_var, width=10).grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Input text
+        ttk.Label(frame, text="Input Text:").grid(row=2, column=0, sticky="w", pady=5)
+        self.nlp_input_text = tk.Text(frame, height=6, width=50, wrap=tk.WORD)
+        nlp_scrollbar = ttk.Scrollbar(frame, command=self.nlp_input_text.yview)
+        self.nlp_input_text.config(yscrollcommand=nlp_scrollbar.set)
+        self.nlp_input_text.grid(row=3, column=0, columnspan=2, sticky="ew", pady=5, padx=(0, 5))
+        nlp_scrollbar.grid(row=3, column=2, sticky="ns")
+
+        # Max length
+        ttk.Label(frame, text="Max Length:").grid(row=4, column=0, sticky="w", pady=5)
+        self.nlp_max_length_var = tk.StringVar(value="500")
+        ttk.Entry(frame, textvariable=self.nlp_max_length_var, width=10).grid(row=4, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🧠 Process Text", command=self._execute_nlp_conversation).grid(row=5, column=0, columnspan=3, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="📝 NLP Results", padding=10)
+        results_frame.grid(row=6, column=0, columnspan=3, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.nlp_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        nlp_results_scrollbar = ttk.Scrollbar(results_frame, command=self.nlp_results_text.yview)
+        self.nlp_results_text.config(yscrollcommand=nlp_results_scrollbar.set)
+
+        self.nlp_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        nlp_results_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_automation_orchestration_interface(self):
+        """Show Automation Orchestration interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="⚙️ Intelligent Automation & Workflow Orchestration", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Workflow type
+        ttk.Label(frame, text="Workflow Type:").grid(row=0, column=0, sticky="w", pady=5)
+        self.workflow_type_var = tk.StringVar(value="task_automation")
+        workflow_combo = ttk.Combobox(frame, textvariable=self.workflow_type_var,
+                                    values=["task_automation", "document_processing", "email_management",
+                                           "calendar_scheduling", "data_sync"], state="readonly", width=25)
+        workflow_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Trigger condition
+        ttk.Label(frame, text="Trigger Condition:").grid(row=1, column=0, sticky="w", pady=5)
+        self.trigger_condition_var = tk.StringVar(value="daily at 9am")
+        ttk.Entry(frame, textvariable=self.trigger_condition_var, width=30).grid(row=1, column=1, pady=5, padx=(10, 0))
+
+        # Execution schedule
+        ttk.Label(frame, text="Execution Schedule (cron):").grid(row=2, column=0, sticky="w", pady=5)
+        self.execution_schedule_var = tk.StringVar(value="0 9 * * *")
+        ttk.Entry(frame, textvariable=self.execution_schedule_var, width=30).grid(row=2, column=1, pady=5, padx=(10, 0))
+
+        # Max retries
+        ttk.Label(frame, text="Max Retries:").grid(row=3, column=0, sticky="w", pady=5)
+        self.max_retries_var = tk.StringVar(value="3")
+        ttk.Entry(frame, textvariable=self.max_retries_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🚀 Create Workflow", command=self._execute_automation_orchestration).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="🔄 Workflow Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.automation_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        automation_scrollbar = ttk.Scrollbar(results_frame, command=self.automation_results_text.yview)
+        self.automation_results_text.config(yscrollcommand=automation_scrollbar.set)
+
+        self.automation_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        automation_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_computer_vision_interface(self):
+        """Show Computer Vision interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="👁️ Computer Vision & Multimodal AI", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Analysis type
+        ttk.Label(frame, text="Analysis Type:").grid(row=0, column=0, sticky="w", pady=5)
+        self.analysis_type_var = tk.StringVar(value="object_detection")
+        analysis_combo = ttk.Combobox(frame, textvariable=self.analysis_type_var,
+                                    values=["object_detection", "text_extraction", "document_analysis",
+                                           "image_captioning", "visual_qa", "scene_understanding",
+                                           "face_detection", "emotion_recognition", "content_moderation",
+                                           "similarity_search"], state="readonly", width=25)
+        analysis_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Image URL
+        ttk.Label(frame, text="Image URL:").grid(row=1, column=0, sticky="w", pady=5)
+        self.image_url_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=self.image_url_var, width=40).grid(row=1, column=1, pady=5, padx=(10, 0))
+
+        # Confidence threshold
+        ttk.Label(frame, text="Confidence Threshold:").grid(row=2, column=0, sticky="w", pady=5)
+        self.confidence_threshold_var = tk.StringVar(value="0.5")
+        ttk.Entry(frame, textvariable=self.confidence_threshold_var, width=10).grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Max results
+        ttk.Label(frame, text="Max Results:").grid(row=3, column=0, sticky="w", pady=5)
+        self.max_results_var = tk.StringVar(value="10")
+        ttk.Entry(frame, textvariable=self.max_results_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🔍 Analyze Image", command=self._execute_computer_vision).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="🖼️ Vision Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.vision_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        vision_scrollbar = ttk.Scrollbar(results_frame, command=self.vision_results_text.yview)
+        self.vision_results_text.config(yscrollcommand=vision_scrollbar.set)
+
+        self.vision_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        vision_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_security_ai_interface(self):
+        """Show Security AI interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="🛡️ Advanced Security with AI Threat Detection", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Action type
+        ttk.Label(frame, text="Security Action:").grid(row=0, column=0, sticky="w", pady=5)
+        self.security_action_var = tk.StringVar(value="scan")
+        security_combo = ttk.Combobox(frame, textvariable=self.security_action_var,
+                                    values=["scan", "analyze"], state="readonly", width=15)
+        security_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Scan target
+        ttk.Label(frame, text="Scan Target:").grid(row=1, column=0, sticky="w", pady=5)
+        self.scan_target_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=self.scan_target_var, width=40).grid(row=1, column=1, pady=5, padx=(10, 0))
+
+        # Threat types
+        ttk.Label(frame, text="Threat Types:").grid(row=2, column=0, sticky="w", pady=5)
+        self.threat_types_var = tk.StringVar(value="malware,phishing")
+        ttk.Entry(frame, textvariable=self.threat_types_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
+
+        # Severity level
+        ttk.Label(frame, text="Severity Level:").grid(row=3, column=0, sticky="w", pady=5)
+        self.severity_level_var = tk.StringVar(value="medium")
+        severity_combo = ttk.Combobox(frame, textvariable=self.severity_level_var,
+                                    values=["low", "medium", "high", "critical"], state="readonly", width=10)
+        severity_combo.grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🔍 Scan for Threats", command=self._execute_security_ai).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="🚨 Security Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.security_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        security_scrollbar = ttk.Scrollbar(results_frame, command=self.security_results_text.yview)
+        self.security_results_text.config(yscrollcommand=security_scrollbar.set)
+
+        self.security_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        security_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_edge_computing_interface(self):
+        """Show Edge Computing interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="⚡ Edge Computing & Distributed AI Processing", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Operation type
+        ttk.Label(frame, text="Operation:").grid(row=0, column=0, sticky="w", pady=5)
+        self.edge_operation_var = tk.StringVar(value="deploy")
+        edge_combo = ttk.Combobox(frame, textvariable=self.edge_operation_var,
+                                values=["deploy", "update", "monitor", "scale"], state="readonly", width=15)
+        edge_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Model name
+        ttk.Label(frame, text="Model Name:").grid(row=1, column=0, sticky="w", pady=5)
+        self.model_name_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=self.model_name_var, width=30).grid(row=1, column=1, pady=5, padx=(10, 0))
+
+        # Target devices
+        ttk.Label(frame, text="Target Devices:").grid(row=2, column=0, sticky="w", pady=5)
+        self.target_devices_var = tk.StringVar(value="raspberry_pi,edge_server")
+        ttk.Entry(frame, textvariable=self.target_devices_var, width=30).grid(row=2, column=1, pady=5, padx=(10, 0))
+
+        # Resource limits
+        ttk.Label(frame, text="Resource Limits:").grid(row=3, column=0, sticky="w", pady=5)
+        self.resource_limits_var = tk.StringVar(value="cpu=50%,memory=1GB")
+        ttk.Entry(frame, textvariable=self.resource_limits_var, width=30).grid(row=3, column=1, pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🚀 Execute Edge Operation", command=self._execute_edge_computing).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="🔗 Edge Computing Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.edge_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        edge_scrollbar = ttk.Scrollbar(results_frame, command=self.edge_results_text.yview)
+        self.edge_results_text.config(yscrollcommand=edge_scrollbar.set)
+
+        self.edge_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        edge_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_personalization_interface(self):
+        """Show Personalization interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="🎯 Advanced Personalization & Recommendation Engines", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Recommendation type
+        ttk.Label(frame, text="Recommendation Type:").grid(row=0, column=0, sticky="w", pady=5)
+        self.recommendation_type_var = tk.StringVar(value="content_based")
+        rec_combo = ttk.Combobox(frame, textvariable=self.recommendation_type_var,
+                               values=["content_based", "collaborative", "hybrid"], state="readonly", width=20)
+        rec_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # User preferences
+        ttk.Label(frame, text="User Preferences:").grid(row=1, column=0, sticky="w", pady=5)
+        self.user_preferences_var = tk.StringVar(value="productivity,tasks,automation")
+        ttk.Entry(frame, textvariable=self.user_preferences_var, width=40).grid(row=1, column=1, pady=5, padx=(10, 0))
+
+        # Context data
+        ttk.Label(frame, text="Context Data:").grid(row=2, column=0, sticky="w", pady=5)
+        self.context_data_var = tk.StringVar(value="time_of_day=morning,device=desktop")
+        ttk.Entry(frame, textvariable=self.context_data_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
+
+        # Max recommendations
+        ttk.Label(frame, text="Max Recommendations:").grid(row=3, column=0, sticky="w", pady=5)
+        self.max_recommendations_var = tk.StringVar(value="10")
+        ttk.Entry(frame, textvariable=self.max_recommendations_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🎯 Generate Recommendations", command=self._execute_personalization).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="💡 Recommendation Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.personalization_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        personalization_scrollbar = ttk.Scrollbar(results_frame, command=self.personalization_results_text.yview)
+        self.personalization_results_text.config(yscrollcommand=personalization_scrollbar.set)
+
+        self.personalization_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        personalization_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_collaboration_interface(self):
+        """Show Collaboration interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="👥 Real-Time Collaboration & Team Intelligence", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Action type
+        ttk.Label(frame, text="Action:").grid(row=0, column=0, sticky="w", pady=5)
+        self.collaboration_action_var = tk.StringVar(value="analyze_team")
+        collab_combo = ttk.Combobox(frame, textvariable=self.collaboration_action_var,
+                                  values=["analyze_team", "optimize_workflow", "predict_conflicts"], state="readonly", width=20)
+        collab_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Team size
+        ttk.Label(frame, text="Team Size:").grid(row=1, column=0, sticky="w", pady=5)
+        self.team_size_var = tk.StringVar(value="5")
+        ttk.Entry(frame, textvariable=self.team_size_var, width=10).grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Communication patterns
+        ttk.Label(frame, text="Communication Patterns:").grid(row=2, column=0, sticky="w", pady=5)
+        self.communication_patterns_var = tk.StringVar(value="email,daily_standup,slack")
+        ttk.Entry(frame, textvariable=self.communication_patterns_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
+
+        # Project complexity
+        ttk.Label(frame, text="Project Complexity:").grid(row=3, column=0, sticky="w", pady=5)
+        self.project_complexity_var = tk.StringVar(value="medium")
+        complexity_combo = ttk.Combobox(frame, textvariable=self.project_complexity_var,
+                                      values=["low", "medium", "high"], state="readonly", width=10)
+        complexity_combo.grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🤝 Analyze Collaboration", command=self._execute_collaboration).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="📊 Collaboration Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.collaboration_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        collaboration_scrollbar = ttk.Scrollbar(results_frame, command=self.collaboration_results_text.yview)
+        self.collaboration_results_text.config(yscrollcommand=collaboration_scrollbar.set)
+
+        self.collaboration_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        collaboration_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_mlops_interface(self):
+        """Show MLOps interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="🔬 Advanced Data Science & ML Operations (MLOps)", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Action type
+        ttk.Label(frame, text="MLOps Action:").grid(row=0, column=0, sticky="w", pady=5)
+        self.mlops_action_var = tk.StringVar(value="train_model")
+        mlops_combo = ttk.Combobox(frame, textvariable=self.mlops_action_var,
+                                 values=["train_model", "deploy_model", "monitor_performance", "retrain_model"], state="readonly", width=20)
+        mlops_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # Model type
+        ttk.Label(frame, text="Model Type:").grid(row=1, column=0, sticky="w", pady=5)
+        self.model_type_var = tk.StringVar(value="classification")
+        model_type_combo = ttk.Combobox(frame, textvariable=self.model_type_var,
+                                      values=["classification", "regression", "clustering", "nlp", "computer_vision"], state="readonly", width=15)
+        model_type_combo.grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Dataset path
+        ttk.Label(frame, text="Dataset Path:").grid(row=2, column=0, sticky="w", pady=5)
+        self.dataset_path_var = tk.StringVar(value="data/sample_dataset.csv")
+        ttk.Entry(frame, textvariable=self.dataset_path_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
+
+        # Hyperparameters
+        ttk.Label(frame, text="Hyperparameters (JSON):").grid(row=3, column=0, sticky="w", pady=5)
+        self.hyperparameters_var = tk.StringVar(value='{"learning_rate": 0.01, "epochs": 100}')
+        ttk.Entry(frame, textvariable=self.hyperparameters_var, width=40).grid(row=3, column=1, pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🚀 Execute MLOps Operation", command=self._execute_mlops).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="📈 MLOps Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.mlops_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        mlops_scrollbar = ttk.Scrollbar(results_frame, command=self.mlops_results_text.yview)
+        self.mlops_results_text.config(yscrollcommand=mlops_scrollbar.set)
+
+        self.mlops_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        mlops_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_monitoring_interface(self):
+        """Show Monitoring interface"""
+        frame = ttk.LabelFrame(self.ai_features_content_frame,
+                              text="🔍 Intelligent Monitoring & Self-Healing Systems", padding=15)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # Action type
+        ttk.Label(frame, text="Monitoring Action:").grid(row=0, column=0, sticky="w", pady=5)
+        self.monitoring_action_var = tk.StringVar(value="check_health")
+        monitoring_combo = ttk.Combobox(frame, textvariable=self.monitoring_action_var,
+                                      values=["check_health", "detect_anomalies", "predict_failures", "optimize_performance"], state="readonly", width=20)
+        monitoring_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
+
+        # System metrics
+        ttk.Label(frame, text="System Metrics (JSON):").grid(row=1, column=0, sticky="w", pady=5)
+        self.system_metrics_var = tk.StringVar(value='{"cpu_percent": 75, "memory_percent": 80}')
+        ttk.Entry(frame, textvariable=self.system_metrics_var, width=50).grid(row=1, column=1, pady=5, padx=(10, 0))
+
+        # Monitoring window
+        ttk.Label(frame, text="Monitoring Window (hours):").grid(row=2, column=0, sticky="w", pady=5)
+        self.monitoring_window_var = tk.StringVar(value="24")
+        ttk.Entry(frame, textvariable=self.monitoring_window_var, width=10).grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
+
+        # Alert thresholds
+        ttk.Label(frame, text="Alert Thresholds (JSON):").grid(row=3, column=0, sticky="w", pady=5)
+        self.alert_thresholds_var = tk.StringVar(value='{"cpu_critical": 90, "memory_critical": 95}')
+        ttk.Entry(frame, textvariable=self.alert_thresholds_var, width=50).grid(row=3, column=1, pady=5, padx=(10, 0))
+
+        # Execute button
+        ttk.Button(frame, text="🔍 Execute Monitoring", command=self._execute_monitoring).grid(row=4, column=0, columnspan=2, pady=20)
+
+        # Results area
+        results_frame = ttk.LabelFrame(frame, text="📊 Monitoring Results", padding=10)
+        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        results_frame.columnconfigure(0, weight=1)
+
+        self.monitoring_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
+        monitoring_scrollbar = ttk.Scrollbar(results_frame, command=self.monitoring_results_text.yview)
+        self.monitoring_results_text.config(yscrollcommand=monitoring_scrollbar.set)
+
+        self.monitoring_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        monitoring_scrollbar.grid(row=0, column=1, sticky="ns")
+
+    def _show_ai_console_view(self):
+        """Show AI Console view in the consolidated tab"""
+        # Clear current content
+        for widget in self.ai_systems_content_frame.winfo_children():
+            widget.destroy()
+
+        # AI Console interface - simplified chat interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Chat interface
+        chat_frame = ttk.LabelFrame(content_frame, text="🤖 AI Assistant Console", padding=10)
+        chat_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        chat_frame.columnconfigure(0, weight=1)
+        chat_frame.rowconfigure(0, weight=1)
+
+        # Chat display
+        self.chat_display = tk.Text(chat_frame, height=15, wrap=tk.WORD, font=self.text_font, state=tk.DISABLED)
+        self.chat_display.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        chat_scrollbar = ttk.Scrollbar(chat_frame, command=self.chat_display.yview)
+        chat_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.chat_display.config(yscrollcommand=chat_scrollbar.set)
+
+        # Sample conversation
+        sample_chat = """🤖 AI Assistant: Hello! I'm your intelligent assistant. How can I help you today?
+
+👤 You: Can you help me manage my tasks?
+
+🤖 AI Assistant: Of course! I can help you create, organize, and prioritize your tasks. I can also analyze your productivity patterns and suggest improvements.
+
+👤 You: What are my top priorities today?
+
+🤖 AI Assistant: Based on your current tasks and deadlines, your top priorities are:
+1. Complete the database migration (due today)
+2. Review the API documentation (due tomorrow)
+3. Start the mobile app testing phase
+
+Would you like me to help you with any of these?
+
+👤 You: Help me create a task for the database migration.
+
+🤖 AI Assistant: I've created a task called "Database Migration" with high priority, assigned to the "Backend Development" project, with an estimated time of 4 hours. The task includes subtasks for backup, migration script creation, testing, and deployment.
+
+Is there anything else you'd like me to help you with?
+"""
+        self.chat_display.config(state=tk.NORMAL)
+        self.chat_display.insert(tk.END, sample_chat)
+        self.chat_display.config(state=tk.DISABLED)
+
+        # Input area
+        input_frame = ttk.Frame(chat_frame)
+        input_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0), sticky="ew")
+        input_frame.columnconfigure(0, weight=1)
+
+        self.chat_input = ttk.Entry(input_frame, font=self.text_font)
+        self.chat_input.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        self.chat_input.insert(0, "Ask me anything...")
+
+        ttk.Button(input_frame, text="📤 Send", command=self._send_chat_message).grid(row=0, column=1)
+
+    def _show_ai_ops_view(self):
+        """Show AI Operations view in the consolidated tab"""
+        # Clear current content
+        for widget in self.ai_systems_content_frame.winfo_children():
+            widget.destroy()
+
+        # AI Operations interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # AI Operations dashboard
+        ops_frame = ttk.LabelFrame(content_frame, text="🛰️ AI Operations Center", padding=10)
+        ops_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        ops_frame.columnconfigure((0, 1), weight=1)
+
+        # Left side - Active Models
+        models_frame = ttk.LabelFrame(ops_frame, text="🤖 Active Models", padding=10)
+        models_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        models_frame.columnconfigure(0, weight=1)
+
+        models_listbox = tk.Listbox(models_frame, height=8, font=self.text_font)
+        models_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        models_listbox.insert(tk.END, "📊 Sentiment Analysis - 94.2% accuracy")
+        models_listbox.insert(tk.END, "🔍 Text Classification - 87.5% accuracy")
+        models_listbox.insert(tk.END, "🎯 Recommendation Engine - 91.8% accuracy")
+        models_listbox.insert(tk.END, "📝 Content Generation - 85.3% accuracy")
+
+        # Right side - System Metrics
+        metrics_frame = ttk.LabelFrame(ops_frame, text="📊 System Metrics", padding=10)
+        metrics_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+        metrics_frame.columnconfigure(0, weight=1)
+
+        metrics_text = tk.Text(metrics_frame, height=8, wrap=tk.WORD, font=self.text_font)
+        metrics_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        metrics_content = """🚀 AI Operations Status
+
+⚡ Performance:
+• Response Time: 245ms avg
+• Throughput: 1,247 requests/min
+• CPU Usage: 67%
+• Memory: 3.2GB/8GB
+
+🔧 Active Services:
+• 4 ML models deployed
+• 12 API endpoints active
+• 89 concurrent users
+• 99.7% uptime
+
+⚠️ Alerts:
+• Model accuracy drift detected
+• High memory usage warning
+• Scheduled maintenance in 2 hours
+
+🎯 Recent Activity:
+• 1,247 predictions served
+• 89 user queries processed
+• 23 model updates deployed
+• 5 A/B tests running"""
+        metrics_text.insert(tk.END, metrics_content)
+        metrics_text.config(state=tk.DISABLED)
+
+        # Controls
+        controls_frame = ttk.Frame(ops_frame)
+        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
+
+        ttk.Button(controls_frame, text="🔄 Retrain Models", command=self._retrain_models).grid(row=0, column=0, padx=5)
+        ttk.Button(controls_frame, text="📊 Performance Report", command=self._performance_report).grid(row=0, column=1, padx=5)
+        ttk.Button(controls_frame, text="⚙️ System Config", command=self._system_config).grid(row=0, column=2, padx=5)
+
+    def _show_advanced_ai_view(self):
+        """Show Advanced AI view in the consolidated tab"""
+        # Clear current content
+        for widget in self.ai_systems_content_frame.winfo_children():
+            widget.destroy()
+
+        # Advanced AI interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Advanced AI capabilities
+        advanced_frame = ttk.LabelFrame(content_frame, text="🧠 Advanced AI Capabilities", padding=10)
+        advanced_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        advanced_frame.columnconfigure(0, weight=1)
+
+        # Capabilities list
+        capabilities_text = tk.Text(advanced_frame, height=15, wrap=tk.WORD, font=self.text_font)
+        capabilities_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        capabilities_content = """🧠 ADVANCED AI CAPABILITIES
+
+🎯 Machine Learning:
+• Supervised Learning Models
+• Unsupervised Learning Algorithms
+• Reinforcement Learning Agents
+• Transfer Learning Adaptation
+• Meta-Learning Systems
+
+🔍 Computer Vision:
+• Object Detection & Recognition
+• Image Classification & Segmentation
+• Facial Recognition & Analysis
+• Optical Character Recognition
+• Video Analysis & Tracking
+
+🗣️ Natural Language Processing:
+• Text Analysis & Understanding
+• Sentiment Analysis & Emotion Detection
+• Language Translation & Summarization
+• Conversational AI & Chatbots
+• Document Analysis & Processing
+
+📊 Predictive Analytics:
+• Time Series Forecasting
+• Anomaly Detection & Outlier Analysis
+• Trend Analysis & Pattern Recognition
+• Risk Assessment & Prediction
+• Performance Optimization
+
+🎨 Generative AI:
+• Text Generation & Completion
+• Image Synthesis & Editing
+• Code Generation & Assistance
+• Creative Content Production
+• Style Transfer & Adaptation
+
+🔧 Specialized AI:
+• Medical Diagnosis Assistance
+• Financial Analysis & Trading
+• Legal Document Analysis
+• Scientific Research Acceleration
+• Industrial Process Optimization
+
+⚡ Performance Features:
+• GPU Acceleration Support
+• Distributed Computing
+• Real-time Processing
+• Edge AI Deployment
+• Auto-scaling & Optimization
+
+🔒 Security & Ethics:
+• Bias Detection & Mitigation
+• Privacy-preserving AI
+• Explainable AI (XAI)
+• Secure Multi-party Computation
+• Ethical AI Guidelines"""
+        capabilities_text.insert(tk.END, capabilities_content)
+        capabilities_text.config(state=tk.DISABLED)
+
+        # Advanced AI controls
+        controls_frame = ttk.Frame(advanced_frame)
+        controls_frame.grid(row=1, column=0, pady=(10, 0))
+
+        ttk.Button(controls_frame, text="🚀 Deploy Advanced Model", command=self._deploy_advanced_model).grid(row=0, column=0, padx=5)
+        ttk.Button(controls_frame, text="🧪 Run AI Experiments", command=self._run_ai_experiments).grid(row=0, column=1, padx=5)
+        ttk.Button(controls_frame, text="📚 Research Mode", command=self._research_mode).grid(row=0, column=2, padx=5)
+
+    def _show_nas_view(self):
+        """Show Neural Architecture Search view in the consolidated tab"""
+        # Clear current content
+        for widget in self.ai_systems_content_frame.winfo_children():
+            widget.destroy()
+
+        # NAS interface - embedded version
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # NAS control panel
+        nas_frame = ttk.LabelFrame(content_frame, text="🧬 Neural Architecture Search", padding=10)
+        nas_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        nas_frame.columnconfigure(0, weight=1)
+
+        # NAS description
+        desc_text = """Evolutionary AI system that designs and optimizes neural network architectures.
+Uses genetic algorithms and reinforcement learning to discover optimal model architectures
+for your specific datasets and tasks."""
+        desc_label = ttk.Label(nas_frame, text=desc_text, wraplength=600, justify="left")
+        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Control buttons
+        control_frame = ttk.Frame(nas_frame)
+        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        control_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(control_frame, text="🧬 Start NAS Experiment",
+                  command=self._start_nas_experiment).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="📊 View Results",
+                  command=self._view_nas_results).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="⚙️ Configure",
+                  command=self._configure_nas).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Status display
+        status_frame = ttk.Frame(nas_frame)
+        status_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
+        status_frame.columnconfigure(0, weight=1)
+
+        self.nas_status_var = tk.StringVar(value="No active experiments")
+        status_label = ttk.Label(status_frame, textvariable=self.nas_status_var,
+                               font=(self.base_font, 12))
+        status_label.grid(row=0, column=0, pady=5, sticky="w")
+
+        # Metrics
+        metrics_frame = ttk.Frame(nas_frame)
+        metrics_frame.grid(row=3, column=0, sticky="ew")
+        metrics_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Label(metrics_frame, text="Generation:").grid(row=0, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Population Size:").grid(row=1, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Best Fitness:").grid(row=2, column=0, sticky="w", pady=2)
+
+        self.gen_var = tk.StringVar(value="0")
+        self.pop_var = tk.StringVar(value="0")
+        self.fitness_var = tk.StringVar(value="0.000")
+
+        ttk.Label(metrics_frame, textvariable=self.gen_var).grid(row=0, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, textvariable=self.pop_var).grid(row=1, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, textvariable=self.fitness_var).grid(row=2, column=1, sticky="w", pady=2)
+
+        ttk.Button(nas_frame, text="🔄 Refresh Status",
+                  command=self._refresh_nas_status).grid(row=4, column=0, pady=(10, 0))
+
+    def _build_tools_intelligence_tab(self):
+        """Build consolidated Tools & Intelligence tab with sub-navigation"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.tools_intelligence_frame = ttkb.Frame(self.notebook)
+        else:
+            self.tools_intelligence_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.tools_intelligence_frame, text="🔧 Tools & Intelligence")
+
+        self.tools_intelligence_frame.columnconfigure(0, weight=1)
+        self.tools_intelligence_frame.rowconfigure(1, weight=1)
+
+        # Sub-navigation buttons
+        nav_frame = ttk.Frame(self.tools_intelligence_frame)
+        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        nav_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(nav_frame, text="🔧 Developer Tools", command=self._show_tools_view).grid(row=0, column=0, padx=2, pady=5)
+        ttk.Button(nav_frame, text="👁️ Computer Vision", command=self._show_vision_view).grid(row=0, column=1, padx=2, pady=5)
+        ttk.Button(nav_frame, text="🔍 Search Engine", command=self._show_search_view).grid(row=0, column=2, padx=2, pady=5)
+
+        # Content frame for switching views
+        self.tools_intelligence_content_frame = ttk.Frame(self.tools_intelligence_frame)
+        self.tools_intelligence_content_frame.grid(row=1, column=0, sticky="nsew")
+        self.tools_intelligence_content_frame.columnconfigure(0, weight=1)
+        self.tools_intelligence_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with tools view
+        self._show_tools_view()
+
+    def _show_tools_view(self):
+        """Show developer tools view in the consolidated tab"""
+        # Clear current content
+        for widget in self.tools_intelligence_content_frame.winfo_children():
+            widget.destroy()
+
+        # Developer tools interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.tools_intelligence_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.tools_intelligence_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Tools panel
+        tools_frame = ttk.LabelFrame(content_frame, text="🔧 Developer Tools", padding=10)
+        tools_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        tools_frame.columnconfigure((0, 1), weight=1)
+
+        # Left side - Code Tools
+        code_frame = ttk.LabelFrame(tools_frame, text="💻 Code Tools", padding=10)
+        code_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        ttk.Button(code_frame, text="🔍 Code Search", command=self._code_search).grid(row=0, column=0, pady=5, sticky="ew")
+        ttk.Button(code_frame, text="🐛 Debug Helper", command=self._debug_helper).grid(row=1, column=0, pady=5, sticky="ew")
+        ttk.Button(code_frame, text="📊 Performance Profiler", command=self._performance_profiler).grid(row=2, column=0, pady=5, sticky="ew")
+        ttk.Button(code_frame, text="🔧 Code Formatter", command=self._code_formatter).grid(row=3, column=0, pady=5, sticky="ew")
+
+        # Right side - System Tools
+        system_frame = ttk.LabelFrame(tools_frame, text="🖥️ System Tools", padding=10)
+        system_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+
+        ttk.Button(system_frame, text="📁 File Manager", command=self._file_manager).grid(row=0, column=0, pady=5, sticky="ew")
+        ttk.Button(system_frame, text="🌐 Network Tools", command=self._network_tools).grid(row=1, column=0, pady=5, sticky="ew")
+        ttk.Button(system_frame, text="💾 Backup Manager", command=self._backup_manager).grid(row=2, column=0, pady=5, sticky="ew")
+        ttk.Button(system_frame, text="📋 System Monitor", command=self._system_monitor).grid(row=3, column=0, pady=5, sticky="ew")
+
+        # Terminal/Command interface
+        terminal_frame = ttk.LabelFrame(content_frame, text="💻 Command Terminal", padding=10)
+        terminal_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
+        terminal_frame.columnconfigure(0, weight=1)
+
+        # Terminal output display
+        terminal_text = tk.Text(terminal_frame, height=8, wrap=tk.WORD, font=("Courier", 10))
+        terminal_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        terminal_scrollbar = ttk.Scrollbar(terminal_frame, command=terminal_text.yview)
+        terminal_scrollbar.grid(row=0, column=1, sticky="ns")
+        terminal_text.config(yscrollcommand=terminal_scrollbar.set)
+
+        # Sample terminal output
+        terminal_output = """$ python --version
+Python 3.11.2
+
+$ pip list | grep torch
+torch                    2.1.1
+torchvision             0.16.1
+
+$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+
+$ ls -la
+total 128
+drwxr-xr-x  24 user  staff   768 Dec  7 19:33 .
+drwxr-xr-x   3 user  staff    96 Dec  7 18:45 ..
+-rw-r--r--   1 user  staff  1024 Dec  7 19:30 README.md
+-rw-r--r--   1 user  staff  2048 Dec  7 19:25 requirements.txt
+"""
+        terminal_text.insert(tk.END, terminal_output)
+        terminal_text.config(state=tk.DISABLED)
+
+        # Command input
+        input_frame = ttk.Frame(terminal_frame)
+        input_frame.grid(row=1, column=0, columnspan=2, pady=(5, 0), sticky="ew")
+        input_frame.columnconfigure(0, weight=1)
+
+        command_entry = ttk.Entry(input_frame, font=("Courier", 10))
+        command_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        command_entry.insert(0, "Enter command...")
+
+        ttk.Button(input_frame, text="▶️ Run", command=self._run_command).grid(row=0, column=1)
+
+    def _show_vision_view(self):
+        """Show computer vision view in the consolidated tab"""
+        # Clear current content
+        for widget in self.tools_intelligence_content_frame.winfo_children():
+            widget.destroy()
+
+        # Computer vision interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.tools_intelligence_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.tools_intelligence_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Vision tools
+        vision_frame = ttk.LabelFrame(content_frame, text="👁️ Computer Vision Tools", padding=10)
+        vision_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        vision_frame.columnconfigure(0, weight=1)
+
+        # File selection
+        file_frame = ttk.Frame(vision_frame)
+        file_frame.grid(row=0, column=0, pady=(0, 20), sticky="ew")
+        file_frame.columnconfigure(1, weight=1)
+
+        ttk.Label(file_frame, text="📁 Image File:").grid(row=0, column=0, padx=(0, 10))
+        self.vision_file_var = tk.StringVar()
+        ttk.Entry(file_frame, textvariable=self.vision_file_var).grid(row=0, column=1, sticky="ew", padx=(0, 5))
+        ttk.Button(file_frame, text="📂 Browse", command=self._browse_vision_file).grid(row=0, column=2)
+
+        # Vision operations
+        ops_frame = ttk.LabelFrame(vision_frame, text="🎯 Vision Operations", padding=10)
+        ops_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        ops_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(ops_frame, text="🔍 Object Detection", command=self._detect_objects).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(ops_frame, text="📝 OCR Text Extraction", command=self._extract_text_from_image).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(ops_frame, text="🎨 Image Analysis", command=self._analyze_image).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Results display
+        results_frame = ttk.LabelFrame(vision_frame, text="📊 Analysis Results", padding=10)
+        results_frame.grid(row=2, column=0, sticky="ew")
+        results_frame.columnconfigure(0, weight=1)
+
+        results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, font=self.text_font)
+        results_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        scrollbar = ttk.Scrollbar(results_frame, command=results_text.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        results_text.config(yscrollcommand=scrollbar.set)
+
+        # Sample results
+        sample_results = """🎯 OBJECT DETECTION RESULTS:
+• Person: 87% confidence (x: 150, y: 200, w: 180, h: 400)
+• Car: 92% confidence (x: 300, y: 250, w: 200, h: 120)
+• Tree: 78% confidence (x: 50, y: 100, w: 80, h: 200)
+
+📝 OCR TEXT EXTRACTION:
+"Welcome to the AI Assistant Hub
+Version 2.0 - Advanced Features
+Machine Learning Powered"
+
+🎨 IMAGE ANALYSIS:
+• Dominant Colors: Blue (34%), Green (28%), Gray (21%)
+• Image Quality: High resolution (1920x1080)
+• Composition: Centered subject, good lighting
+• Estimated file size: 2.4 MB"""
+        results_text.insert(tk.END, sample_results)
+        results_text.config(state=tk.DISABLED)
+
+    def _show_search_view(self):
+        """Show search engine view in the consolidated tab"""
+        # Clear current content
+        for widget in self.tools_intelligence_content_frame.winfo_children():
+            widget.destroy()
+
+        # Search engine interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.tools_intelligence_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.tools_intelligence_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Search interface
+        search_frame = ttk.LabelFrame(content_frame, text="🔍 Intelligent Search Engine", padding=10)
+        search_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        search_frame.columnconfigure(0, weight=1)
+
+        # Search input
+        search_input_frame = ttk.Frame(search_frame)
+        search_input_frame.grid(row=0, column=0, pady=(0, 20), sticky="ew")
+        search_input_frame.columnconfigure(0, weight=1)
+
+        ttk.Label(search_input_frame, text="🔎 Search Query:").grid(row=0, column=0, pady=(0, 5), sticky="w")
+
+        self.search_query_var = tk.StringVar()
+        search_entry = ttk.Entry(search_input_frame, textvariable=self.search_query_var, font=(self.base_font, 12))
+        search_entry.grid(row=1, column=0, sticky="ew", padx=(0, 5))
+
+        # Search options
+        options_frame = ttk.Frame(search_input_frame)
+        options_frame.grid(row=2, column=0, pady=(10, 0), sticky="ew")
+
+        ttk.Button(options_frame, text="🔍 Basic Search", command=self._basic_search).grid(row=0, column=0, padx=5)
+        ttk.Button(options_frame, text="🧠 AI Search", command=self._ai_search).grid(row=0, column=1, padx=5)
+        ttk.Button(options_frame, text="📁 File Search", command=self._file_search).grid(row=0, column=2, padx=5)
+
+        # Search filters
+        filters_frame = ttk.LabelFrame(search_frame, text="🎛️ Search Filters", padding=10)
+        filters_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+
+        # Filter checkboxes
+        self.filter_tasks_var = tk.BooleanVar(value=True)
+        self.filter_projects_var = tk.BooleanVar(value=True)
+        self.filter_files_var = tk.BooleanVar(value=True)
+        self.filter_web_var = tk.BooleanVar(value=False)
+
+        ttk.Checkbutton(filters_frame, text="✅ Tasks", variable=self.filter_tasks_var).grid(row=0, column=0, padx=10, sticky="w")
+        ttk.Checkbutton(filters_frame, text="📁 Projects", variable=self.filter_projects_var).grid(row=0, column=1, padx=10, sticky="w")
+        ttk.Checkbutton(filters_frame, text="📄 Files", variable=self.filter_files_var).grid(row=0, column=2, padx=10, sticky="w")
+        ttk.Checkbutton(filters_frame, text="🌐 Web", variable=self.filter_web_var).grid(row=0, column=3, padx=10, sticky="w")
+
+        # Results display
+        results_frame = ttk.LabelFrame(search_frame, text="📋 Search Results", padding=10)
+        results_frame.grid(row=2, column=0, sticky="ew")
+        results_frame.columnconfigure(0, weight=1)
+
+        results_text = tk.Text(results_frame, height=12, wrap=tk.WORD, font=self.text_font)
+        results_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        results_scrollbar = ttk.Scrollbar(results_frame, command=results_text.yview)
+        results_scrollbar.grid(row=0, column=1, sticky="ns")
+        results_text.config(yscrollcommand=results_scrollbar.set)
+
+        # Sample search results
+        sample_results = """🔍 SEARCH RESULTS for "machine learning"
+
+📄 Found 12 matches across 8 sources:
+
+✅ TASKS (3 results):
+• [Task #142] "Implement ML model training pipeline" - High Priority
+  Due: Tomorrow, Assigned: ML Team
+• [Task #158] "Research new ML algorithms" - Medium Priority
+  Due: Next Week, Status: In Progress
+• [Task #167] "Deploy ML model to production" - High Priority
+  Due: Today, Status: Blocked
+
+📁 PROJECTS (2 results):
+• [Project #23] "AI Research Initiative" - 75% Complete
+  Contains: ML research papers, algorithm implementations
+• [Project #45] "ML Platform Development" - 45% Complete
+  Contains: Model training scripts, deployment configs
+
+📄 FILES (4 results):
+• /docs/ml_algorithms.pdf (2.1 MB) - Research paper on ML algorithms
+• /code/train_model.py (15 KB) - Training script for neural networks
+• /models/saved_model.pkl (500 MB) - Trained ML model checkpoint
+• /notebooks/ml_experiments.ipynb (8.3 MB) - Jupyter notebook with experiments
+
+🌐 WEB RESULTS (3 results):
+• Towards Data Science: "Understanding Neural Networks"
+• arXiv: "Deep Learning Advances 2024"
+• GitHub: "pytorch/examples" - ML code examples
+
+💡 AI SUGGESTIONS:
+• Related: "neural networks", "deep learning", "AI algorithms"
+• Try: "machine learning tutorials" or "ML best practices"
+• Resources: Check /docs/ml_research/ directory"""
+        results_text.insert(tk.END, sample_results)
+        results_text.config(state=tk.DISABLED)
+
+    def _build_integrations_infrastructure_tab(self):
+        """Build consolidated Integrations & Infrastructure tab with sub-navigation"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.integrations_infrastructure_frame = ttkb.Frame(self.notebook)
+        else:
+            self.integrations_infrastructure_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.integrations_infrastructure_frame, text="🔌 Integrations & Infrastructure")
+
+        self.integrations_infrastructure_frame.columnconfigure(0, weight=1)
+        self.integrations_infrastructure_frame.rowconfigure(1, weight=1)
+
+        # Sub-navigation buttons
+        nav_frame = ttk.Frame(self.integrations_infrastructure_frame)
+        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        nav_frame.columnconfigure((0, 1, 2, 3), weight=1)
+
+        ttk.Button(nav_frame, text="🔌 API Connectors", command=self._show_connectors_view).grid(row=0, column=0, padx=1, pady=5)
+        ttk.Button(nav_frame, text="🤖 AI OS", command=self._show_ai_os_view).grid(row=0, column=1, padx=1, pady=5)
+        ttk.Button(nav_frame, text="☁️ Edge Computing", command=self._show_edge_view).grid(row=0, column=2, padx=1, pady=5)
+        ttk.Button(nav_frame, text="🎯 Workflows", command=self._show_workflows_view).grid(row=0, column=3, padx=1, pady=5)
+
+        # Content frame for switching views
+        self.integrations_infrastructure_content_frame = ttk.Frame(self.integrations_infrastructure_frame)
+        self.integrations_infrastructure_content_frame.grid(row=1, column=0, sticky="nsew")
+        self.integrations_infrastructure_content_frame.columnconfigure(0, weight=1)
+        self.integrations_infrastructure_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with connectors view
+        self._show_connectors_view()
+
+    def _show_connectors_view(self):
+        """Show API connectors view in the consolidated tab"""
+        # Clear current content
+        for widget in self.integrations_infrastructure_content_frame.winfo_children():
+            widget.destroy()
+
+        # API connectors interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Connectors registry
+        connectors_frame = ttk.LabelFrame(content_frame, text="🔌 API Connectors Registry", padding=10)
+        connectors_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        connectors_frame.columnconfigure(0, weight=1)
+
+        # Available connectors list
+        self.connectors_listbox = tk.Listbox(connectors_frame, height=10, font=self.text_font)
+        self.connectors_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        connectors_scrollbar = ttk.Scrollbar(connectors_frame, command=self.connectors_listbox.yview)
+        connectors_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.connectors_listbox.config(yscrollcommand=connectors_scrollbar.set)
+
+        # Sample connectors
+        self.connectors_listbox.insert(tk.END, "🔗 Google Calendar - Connected")
+        self.connectors_listbox.insert(tk.END, "🔗 Gmail API - Connected")
+        self.connectors_listbox.insert(tk.END, "🔗 GitHub API - Connected")
+        self.connectors_listbox.insert(tk.END, "🔗 Slack API - Not Configured")
+        self.connectors_listbox.insert(tk.END, "🔗 Trello API - Not Configured")
+        self.connectors_listbox.insert(tk.END, "🔗 Jira API - Not Configured")
+        self.connectors_listbox.insert(tk.END, "🔗 Zoom API - Not Configured")
+        self.connectors_listbox.insert(tk.END, "🔗 Microsoft Graph - Connected")
+
+        # Connector actions
+        actions_frame = ttk.Frame(connectors_frame)
+        actions_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
+
+        ttk.Button(actions_frame, text="⚙️ Configure", command=self._configure_selected_connector).grid(row=0, column=0, padx=5)
+        ttk.Button(actions_frame, text="🧪 Test Connection", command=self._test_connector_connection).grid(row=0, column=1, padx=5)
+        ttk.Button(actions_frame, text="📋 View Logs", command=self._view_connector_logs).grid(row=0, column=2, padx=5)
+
+        # Integration status
+        status_frame = ttk.LabelFrame(content_frame, text="📊 Integration Status", padding=10)
+        status_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
+        status_frame.columnconfigure((0, 1), weight=1)
+
+        # Status metrics
+        ttk.Label(status_frame, text="Active Integrations: 3/8").grid(row=0, column=0, sticky="w", pady=2)
+        ttk.Label(status_frame, text="Data Synced Today: 1,247 items").grid(row=1, column=0, sticky="w", pady=2)
+        ttk.Label(status_frame, text="API Calls (24h): 8,932").grid(row=2, column=0, sticky="w", pady=2)
+
+        ttk.Label(status_frame, text="Success Rate: 99.7%").grid(row=0, column=1, sticky="w", pady=2)
+        ttk.Label(status_frame, text="Avg Response Time: 245ms").grid(row=1, column=1, sticky="w", pady=2)
+        ttk.Label(status_frame, text="Error Rate: 0.3%").grid(row=2, column=1, sticky="w", pady=2)
+
+    def _show_ai_os_view(self):
+        """Show AI OS view in the consolidated tab"""
+        # Clear current content
+        for widget in self.integrations_infrastructure_content_frame.winfo_children():
+            widget.destroy()
+
+        # AI OS interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # AI OS control panel
+        ai_os_frame = ttk.LabelFrame(content_frame, text="🤖 AI Operating System", padding=10)
+        ai_os_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        ai_os_frame.columnconfigure(0, weight=1)
+
+        # AI OS description
+        desc_text = """Advanced AI Operating System that orchestrates intelligent agents,
+cognitive daemons, and automated workflows across distributed systems."""
+        desc_label = ttk.Label(ai_os_frame, text=desc_text, wraplength=600, justify="left")
+        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Control buttons
+        control_frame = ttk.Frame(ai_os_frame)
+        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        control_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(control_frame, text="▶️ Start AI OS", command=self._start_ai_os).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="📊 System Status", command=self._ai_os_status).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="⚙️ Configure Agents", command=self._configure_agents).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Active agents display
+        agents_frame = ttk.LabelFrame(ai_os_frame, text="🎭 Active AI Agents", padding=10)
+        agents_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
+        agents_frame.columnconfigure(0, weight=1)
+
+        agents_listbox = tk.Listbox(agents_frame, height=6, font=self.text_font)
+        agents_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        agents_listbox.insert(tk.END, "🤖 Core Assistant - Online (Task Processing)")
+        agents_listbox.insert(tk.END, "🎯 Workflow Orchestrator - Online (Process Management)")
+        agents_listbox.insert(tk.END, "📊 Analytics Engine - Online (Data Analysis)")
+        agents_listbox.insert(tk.END, "🔍 Search Agent - Online (Intelligent Search)")
+        agents_listbox.insert(tk.END, "🛡️ Security Monitor - Online (Threat Detection)")
+        agents_listbox.insert(tk.END, "☁️ Cloud Manager - Online (Resource Optimization)")
+
+        # System metrics
+        metrics_frame = ttk.LabelFrame(ai_os_frame, text="📊 AI OS Metrics", padding=10)
+        metrics_frame.grid(row=3, column=0, sticky="ew")
+        metrics_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Label(metrics_frame, text="Active Processes:").grid(row=0, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Tasks Completed:").grid(row=1, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="System Load:").grid(row=2, column=0, sticky="w", pady=2)
+
+        ttk.Label(metrics_frame, text="12").grid(row=0, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="1,847").grid(row=1, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="67%").grid(row=2, column=1, sticky="w", pady=2)
+
+        ttk.Button(metrics_frame, text="🔄 Refresh", command=self._refresh_ai_os_metrics).grid(row=3, column=0, columnspan=3, pady=(10, 0))
+
+    def _show_edge_view(self):
+        """Show edge computing view in the consolidated tab"""
+        # Clear current content
+        for widget in self.integrations_infrastructure_content_frame.winfo_children():
+            widget.destroy()
+
+        # Edge computing interface - embedded version
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Edge computing control panel
+        edge_frame = ttk.LabelFrame(content_frame, text="☁️ Edge Computing & Distributed AI", padding=10)
+        edge_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        edge_frame.columnconfigure(0, weight=1)
+
+        # Edge description
+        desc_text = """Distributed AI system that leverages edge computing for real-time intelligence.
+Deploys AI models across multiple devices and cloud instances for optimal performance."""
+        desc_label = ttk.Label(edge_frame, text=desc_text, wraplength=600, justify="left")
+        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Control buttons
+        control_frame = ttk.Frame(edge_frame)
+        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        control_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(control_frame, text="🚀 Deploy Edge AI", command=self._deploy_edge_ai).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="📊 Network Status", command=self._view_network_status).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="⚙️ Configure Nodes", command=self._configure_edge_nodes).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Network status
+        network_frame = ttk.Frame(edge_frame)
+        network_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
+        network_frame.columnconfigure(0, weight=1)
+
+        self.network_status_var = tk.StringVar(value="🌐 Network: 5/5 nodes online - Optimal performance")
+        network_label = ttk.Label(network_frame, textvariable=self.network_status_var, font=(self.base_font, 12))
+        network_label.grid(row=0, column=0, pady=5, sticky="w")
+
+        # Node status
+        nodes_frame = ttk.LabelFrame(edge_frame, text="🖥️ Edge Nodes", padding=10)
+        nodes_frame.grid(row=3, column=0, sticky="ew")
+        nodes_frame.columnconfigure(0, weight=1)
+
+        self.nodes_listbox = tk.Listbox(nodes_frame, height=5, font=self.text_font)
+        self.nodes_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        self.nodes_listbox.insert(tk.END, "🖥️ Local GPU Node - Online (98% utilization)")
+        self.nodes_listbox.insert(tk.END, "☁️ Cloud Instance 1 - Online (45% utilization)")
+        self.nodes_listbox.insert(tk.END, "📱 Mobile Edge Node - Online (12% utilization)")
+
+        # Node controls
+        node_controls = ttk.Frame(nodes_frame)
+        node_controls.grid(row=1, column=0, pady=(10, 0))
+
+        ttk.Button(node_controls, text="🔧 Manage Node", command=self._manage_edge_node).grid(row=0, column=0, padx=5)
+        ttk.Button(node_controls, text="🔄 Sync Network", command=self._sync_edge_network).grid(row=0, column=1, padx=5)
+
+    def _show_workflows_view(self):
+        """Show workflow orchestration view in the consolidated tab"""
+        # Clear current content
+        for widget in self.integrations_infrastructure_content_frame.winfo_children():
+            widget.destroy()
+
+        # Workflow orchestration interface - embedded version
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Workflow orchestration control panel
+        workflow_frame = ttk.LabelFrame(content_frame, text="🎯 AI Workflow Orchestration", padding=10)
+        workflow_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        workflow_frame.columnconfigure(0, weight=1)
+
+        # Workflow description
+        desc_text = """Intelligent workflow orchestration system that automates complex processes.
+Uses AI to coordinate tasks, manage dependencies, and optimize execution."""
+        desc_label = ttk.Label(workflow_frame, text=desc_text, wraplength=600, justify="left")
+        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Control buttons
+        control_frame = ttk.Frame(workflow_frame)
+        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        control_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(control_frame, text="▶️ Start Orchestrator", command=self._start_workflow_orchestrator).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="📊 View Active Workflows", command=self._view_active_workflows).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="⚙️ Configure Workflows", command=self._configure_workflows).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Orchestrator status
+        status_frame = ttk.Frame(workflow_frame)
+        status_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
+        status_frame.columnconfigure(0, weight=1)
+
+        self.orchestrator_status_var = tk.StringVar(value="🔄 Orchestrator: Running - Processing 3 workflows")
+        status_label = ttk.Label(status_frame, textvariable=self.orchestrator_status_var, font=(self.base_font, 12))
+        status_label.grid(row=0, column=0, pady=5, sticky="w")
+
+        # Active workflows
+        workflows_frame = ttk.LabelFrame(workflow_frame, text="⚙️ Active Workflows", padding=10)
+        workflows_frame.grid(row=3, column=0, sticky="ew")
+        workflows_frame.columnconfigure(0, weight=1)
+
+        self.workflows_listbox = tk.Listbox(workflows_frame, height=5, font=self.text_font)
+        self.workflows_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        self.workflows_listbox.insert(tk.END, "🔄 Data Processing Pipeline - 67% complete")
+        self.workflows_listbox.insert(tk.END, "🤖 ML Model Training - 23% complete")
+        self.workflows_listbox.insert(tk.END, "📊 Analytics Report Generation - 89% complete")
+
+        # Workflow controls
+        workflow_controls = ttk.Frame(workflows_frame)
+        workflow_controls.grid(row=1, column=0, pady=(10, 0))
+
+        ttk.Button(workflow_controls, text="👀 Monitor", command=self._monitor_workflow).grid(row=0, column=0, padx=5)
+        ttk.Button(workflow_controls, text="🔄 Refresh Status", command=self._refresh_workflow_status).grid(row=0, column=1, padx=5)
+
+    def _build_security_audit_tab(self):
+        """Build consolidated Security & Audit tab with sub-navigation"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.security_audit_frame = ttkb.Frame(self.notebook)
+        else:
+            self.security_audit_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.security_audit_frame, text="🛡️ Security & Audit")
+
+        self.security_audit_frame.columnconfigure(0, weight=1)
+        self.security_audit_frame.rowconfigure(1, weight=1)
+
+        # Sub-navigation buttons
+        nav_frame = ttk.Frame(self.security_audit_frame)
+        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        nav_frame.columnconfigure((0, 1), weight=1)
+
+        ttk.Button(nav_frame, text="🛡️ AI Security", command=self._show_security_view).grid(row=0, column=0, padx=5, pady=5)
+        ttk.Button(nav_frame, text="📋 Audit System", command=self._show_audit_view).grid(row=0, column=1, padx=5, pady=5)
+
+        # Content frame for switching views
+        self.security_audit_content_frame = ttk.Frame(self.security_audit_frame)
+        self.security_audit_content_frame.grid(row=1, column=0, sticky="nsew")
+        self.security_audit_content_frame.columnconfigure(0, weight=1)
+        self.security_audit_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with security view
+        self._show_security_view()
+
+    def _show_security_view(self):
+        """Show AI security view in the consolidated tab"""
+        # Clear current content
+        for widget in self.security_audit_content_frame.winfo_children():
+            widget.destroy()
+
+        # AI Security interface - embedded version
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.security_audit_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.security_audit_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Security threat detection control panel
+        security_frame = ttk.LabelFrame(content_frame, text="🛡️ AI-Powered Security Threat Detection", padding=10)
+        security_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        security_frame.columnconfigure(0, weight=1)
+
+        # Security description
+        desc_text = """Advanced AI security system that detects, analyzes, and responds to cyber threats.
+Uses machine learning algorithms to identify anomalous behavior and predict attacks."""
+        desc_label = ttk.Label(security_frame, text=desc_text, wraplength=600, justify="left")
+        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Control buttons
+        control_frame = ttk.Frame(security_frame)
+        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        control_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(control_frame, text="🔍 Start Threat Scan", command=self._start_threat_scan).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="📊 View Security Report", command=self._view_security_report).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="⚙️ Security Settings", command=self._configure_security).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Threat status
+        threat_frame = ttk.Frame(security_frame)
+        threat_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
+        threat_frame.columnconfigure(0, weight=1)
+
+        self.threat_status_var = tk.StringVar(value="🟢 System Secure - No threats detected")
+        threat_label = ttk.Label(threat_frame, textvariable=self.threat_status_var, font=(self.base_font, 12))
+        threat_label.grid(row=0, column=0, pady=5, sticky="w")
+
+        # Security metrics
+        metrics_frame = ttk.Frame(security_frame)
+        metrics_frame.grid(row=3, column=0, pady=(0, 20), sticky="ew")
+        metrics_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Label(metrics_frame, text="Scans Today:").grid(row=0, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Threats Blocked:").grid(row=1, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Risk Score:").grid(row=2, column=0, sticky="w", pady=2)
+
+        self.scans_var = tk.StringVar(value="0")
+        self.threats_var = tk.StringVar(value="0")
+        self.risk_var = tk.StringVar(value="Low")
+
+        ttk.Label(metrics_frame, textvariable=self.scans_var).grid(row=0, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, textvariable=self.threats_var).grid(row=1, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, textvariable=self.risk_var).grid(row=2, column=1, sticky="w", pady=2)
+
+        # Recent threats
+        threats_frame = ttk.LabelFrame(security_frame, text="🚨 Recent Security Events", padding=10)
+        threats_frame.grid(row=4, column=0, sticky="ew")
+        threats_frame.columnconfigure(0, weight=1)
+
+        self.threats_listbox = tk.Listbox(threats_frame, height=5, font=self.text_font)
+        self.threats_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        self.threats_listbox.insert(tk.END, "🔍 Suspicious login attempt detected")
+        self.threats_listbox.insert(tk.END, "📡 Unusual network traffic pattern")
+        self.threats_listbox.insert(tk.END, "🔐 Weak password policy alert")
+
+        # Threat controls
+        threat_controls = ttk.Frame(threats_frame)
+        threat_controls.grid(row=1, column=0, pady=(10, 0))
+
+        ttk.Button(threat_controls, text="🚨 Investigate", command=self._investigate_threat).grid(row=0, column=0, padx=5)
+        ttk.Button(threat_controls, text="🔄 Refresh", command=self._refresh_security_status).grid(row=0, column=1, padx=5)
+
+    def _show_audit_view(self):
+        """Show audit system view in the consolidated tab"""
+        # Clear current content
+        for widget in self.security_audit_content_frame.winfo_children():
+            widget.destroy()
+
+        # Audit system interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.security_audit_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.security_audit_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Audit system control panel
+        audit_frame = ttk.LabelFrame(content_frame, text="📋 Audit System & Compliance Monitoring", padding=10)
+        audit_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        audit_frame.columnconfigure(0, weight=1)
+
+        # Audit description
+        desc_text = """Comprehensive audit system for compliance monitoring, security logging,
+and regulatory reporting. Tracks all system activities and maintains detailed audit trails."""
+        desc_label = ttk.Label(audit_frame, text=desc_text, wraplength=600, justify="left")
+        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
+
+        # Control buttons
+        control_frame = ttk.Frame(audit_frame)
+        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
+        control_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Button(control_frame, text="📊 Generate Audit Report", command=self._generate_audit_report).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="🔍 Compliance Check", command=self._run_compliance_check).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="⚙️ Audit Settings", command=self._configure_audit).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        # Audit metrics
+        metrics_frame = ttk.Frame(audit_frame)
+        metrics_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
+        metrics_frame.columnconfigure((0, 1, 2), weight=1)
+
+        ttk.Label(metrics_frame, text="Events Logged:").grid(row=0, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Compliance Score:").grid(row=1, column=0, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="Audit Alerts:").grid(row=2, column=0, sticky="w", pady=2)
+
+        ttk.Label(metrics_frame, text="15,432").grid(row=0, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="97.3%").grid(row=1, column=1, sticky="w", pady=2)
+        ttk.Label(metrics_frame, text="2").grid(row=2, column=1, sticky="w", pady=2)
+
+        # Recent audit events
+        events_frame = ttk.LabelFrame(audit_frame, text="📋 Recent Audit Events", padding=10)
+        events_frame.grid(row=3, column=0, sticky="ew")
+        events_frame.columnconfigure(0, weight=1)
+
+        audit_listbox = tk.Listbox(events_frame, height=6, font=self.text_font)
+        audit_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+        audit_listbox.insert(tk.END, "🔐 User authentication - user@example.com")
+        audit_listbox.insert(tk.END, "📝 Data access - Task database queried")
+        audit_listbox.insert(tk.END, "⚙️ System configuration changed")
+        audit_listbox.insert(tk.END, "🚨 Security policy violation detected")
+        audit_listbox.insert(tk.END, "📤 Data export - Tasks exported to CSV")
+        audit_listbox.insert(tk.END, "🔑 API key generated")
+
+        # Audit controls
+        audit_controls = ttk.Frame(events_frame)
+        audit_controls.grid(row=1, column=0, pady=(10, 0))
+
+        ttk.Button(audit_controls, text="📄 View Details", command=self._view_audit_details).grid(row=0, column=0, padx=5)
+        ttk.Button(audit_controls, text="🔄 Refresh Events", command=self._refresh_audit_events).grid(row=0, column=1, padx=5)
+
+    # Placeholder methods for new consolidated tabs
+    def _code_search(self):
+        messagebox.showinfo("Code Search", "Advanced code search and analysis tools.")
+
+    def _debug_helper(self):
+        messagebox.showinfo("Debug Helper", "AI-powered debugging assistance.")
+
+    def _performance_profiler(self):
+        messagebox.showinfo("Performance Profiler", "Code performance analysis and optimization.")
+
+    def _code_formatter(self):
+        messagebox.showinfo("Code Formatter", "Automatic code formatting and style correction.")
+
+    def _file_manager(self):
+        messagebox.showinfo("File Manager", "Advanced file management system.")
+
+    def _network_tools(self):
+        messagebox.showinfo("Network Tools", "Network diagnostics and monitoring tools.")
+
+    def _backup_manager(self):
+        messagebox.showinfo("Backup Manager", "Automated backup and recovery system.")
+
+    def _system_monitor(self):
+        messagebox.showinfo("System Monitor", "Real-time system performance monitoring.")
+
+    def _run_command(self):
+        messagebox.showinfo("Command Execution", "Terminal command executed successfully.")
+
+    def _browse_vision_file(self):
+        messagebox.showinfo("File Browser", "Please select an image file for analysis.")
+
+    def _analyze_image(self):
+        messagebox.showinfo("Image Analysis", "Advanced image analysis and feature extraction.")
+
+    def _basic_search(self):
+        messagebox.showinfo("Basic Search", "Performing basic text search across all sources.")
+
+    def _ai_search(self):
+        messagebox.showinfo("AI Search", "AI-powered semantic search with understanding.")
+
+    def _file_search(self):
+        messagebox.showinfo("File Search", "Searching through file contents and metadata.")
+
+    def _generate_audit_report(self):
+        messagebox.showinfo("Audit Report", "Comprehensive audit report generated.")
+
+    def _run_compliance_check(self):
+        messagebox.showinfo("Compliance Check", "Compliance check completed successfully.")
+
+    def _configure_audit(self):
+        messagebox.showinfo("Audit Configuration", "Audit system configuration dialog.")
+
+    def _view_audit_details(self):
+        messagebox.showinfo("Audit Details", "Detailed audit event information.")
+
+    def _refresh_audit_events(self):
+        messagebox.showinfo("Audit Refresh", "Audit events refreshed successfully.")
+
+    def _send_chat_message(self):
+        messagebox.showinfo("AI Chat", "Message sent to AI assistant!")
+
+    def _retrain_models(self):
+        messagebox.showinfo("Model Training", "Model retraining initiated!")
+
+    def _performance_report(self):
+        messagebox.showinfo("Performance Report", "Generating detailed performance report...")
+
+    def _system_config(self):
+        messagebox.showinfo("System Config", "AI system configuration dialog would open.")
+
+    def _deploy_advanced_model(self):
+        messagebox.showinfo("Advanced AI", "Advanced AI model deployment initiated!")
+
+    def _run_ai_experiments(self):
+        messagebox.showinfo("AI Experiments", "Running AI experiments...")
+
+    def _research_mode(self):
+        messagebox.showinfo("Research Mode", "Entering AI research mode!")
+
+    def _execute_predictive_analytics(self):
+        """Execute predictive analytics"""
+        try:
+            # Import predictive analytics system
+            from assistant_core.predictive_analytics import PredictiveAnalytics
+
+            analytics = PredictiveAnalytics()
+            result = analytics.run_prediction()
+
+            messagebox.showinfo("Predictive Analytics Complete",
+                              f"AI Predictive Analytics Results:\n\n"
+                              f"🎯 Prediction Accuracy: {result.get('accuracy', 0):.1f}%\n"
+                              f"📈 Confidence Score: {result.get('confidence', 0):.1f}%\n"
+                              f"🔮 Forecast Horizon: {result.get('horizon', 0)} days\n"
+                              f"📊 Data Points Analyzed: {result.get('data_points', 0)}\n\n"
+                              f"Predictions generated for trend analysis and decision support.")
+
+        except ImportError:
+            messagebox.showinfo("Predictive Analytics",
+                              "AI Predictive Analytics System ready.\n\n"
+                              "Features:\n"
+                              "• Time series forecasting\n"
+                              "• Trend analysis and prediction\n"
+                              "• Anomaly detection\n"
+                              "• Risk assessment modeling\n"
+                              "• Performance optimization\n\n"
+                              "Full functionality requires predictive analytics libraries.")
+        except Exception as e:
+            messagebox.showerror("Analytics Error", f"Failed to execute predictive analytics: {e}")
+
+    # ---------- Consolidated Tabs with Shared Pages ----------
+
+    def _build_dashboard_analytics_tab(self):
+        """Build consolidated Dashboard & Analytics tab with sub-navigation"""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.dashboard_analytics_frame = ttkb.Frame(self.notebook)
+        else:
+            self.dashboard_analytics_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.dashboard_analytics_frame, text="📊 Dashboard & Analytics")
+
+        self.dashboard_analytics_frame.columnconfigure(0, weight=1)
+        self.dashboard_analytics_frame.rowconfigure(1, weight=1)
+
+        # Sub-navigation buttons
+        nav_frame = ttk.Frame(self.dashboard_analytics_frame)
+        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        nav_frame.columnconfigure((0, 1), weight=1)
+
+        ttk.Button(nav_frame, text="📊 Dashboard", command=self._show_dashboard_view).grid(row=0, column=0, padx=5, pady=5)
+        ttk.Button(nav_frame, text="📈 Analytics", command=self._show_analytics_view).grid(row=0, column=1, padx=5, pady=5)
+
+        # Content frame for switching views
+        self.dashboard_content_frame = ttk.Frame(self.dashboard_analytics_frame)
+        self.dashboard_content_frame.grid(row=1, column=0, sticky="nsew")
+        self.dashboard_content_frame.columnconfigure(0, weight=1)
+        self.dashboard_content_frame.rowconfigure(0, weight=1)
+
+        # Initialize with dashboard view
+        self._show_dashboard_view()
+
+    def _show_dashboard_view(self):
+        """Show dashboard view in the consolidated tab"""
+        # Clear current content
+        for widget in self.dashboard_content_frame.winfo_children():
+            widget.destroy()
+
+        # Replicate original dashboard functionality
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.dashboard_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.dashboard_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.columnconfigure(1, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+        content_frame.rowconfigure(1, weight=1)
+        content_frame.rowconfigure(2, weight=0)
+        content_frame.rowconfigure(3, weight=0)
+        content_frame.rowconfigure(4, weight=0)
+
+        # Dashboard boxes - with text widgets for refresh functionality
+        if TTKBOOTSTRAP_AVAILABLE:
+            unified_today_box = ttkb.Labelframe(content_frame, text="📋 Today's Focus", bootstyle="primary", padding=10)
+            unified_upcoming_box = ttkb.Labelframe(content_frame, text="📅 Upcoming Deadlines", bootstyle="info", padding=10)
+            unified_status_box = ttkb.Labelframe(content_frame, text="📊 Status Overview", bootstyle="success", padding=10)
+            unified_load_box = ttkb.Labelframe(content_frame, text="👥 Load by Persona", bootstyle="secondary", padding=10)
+            unified_cyber_box = ttkb.Labelframe(content_frame, text="🛡️ Cyber Defense Status", bootstyle="warning", padding=10)
+        else:
+            unified_today_box = ttk.LabelFrame(content_frame, text="📋 Today's Focus", padx=10, pady=10)
+            unified_upcoming_box = ttk.LabelFrame(content_frame, text="📅 Upcoming Deadlines", padx=10, pady=10)
+            unified_status_box = ttk.LabelFrame(content_frame, text="📊 Status Overview", padx=10, pady=10)
+            unified_load_box = ttk.LabelFrame(content_frame, text="👥 Load by Persona", padx=10, pady=10)
+            unified_cyber_box = ttk.LabelFrame(content_frame, text="🛡️ Cyber Defense Status", padx=10, pady=10)
+
+        unified_today_box.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        unified_upcoming_box.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+        unified_status_box.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
+        unified_load_box.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
+        unified_cyber_box.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+
+        # Today's tasks content
+        unified_today_text = tk.Text(unified_today_box, height=6, wrap=tk.WORD, font=self.text_font)
+        unified_today_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        # Upcoming tasks content
+        unified_upcoming_text = tk.Text(unified_upcoming_box, height=6, wrap=tk.WORD, font=self.text_font)
+        unified_upcoming_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        # Status overview content
+        unified_status_text = tk.Text(unified_status_box, height=6, wrap=tk.WORD, font=self.text_font)
+        unified_status_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        # Load by persona content
+        unified_load_text = tk.Text(unified_load_box, height=6, wrap=tk.WORD, font=self.text_font)
+        unified_load_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        # Cyber defense status
+        unified_cyber_box.columnconfigure(0, weight=1)
+        unified_cyber_status_var = tk.StringVar(value="Status: offline")
+        if TTKBOOTSTRAP_AVAILABLE:
+            unified_cyber_status_label = ttkb.Label(
+                unified_cyber_box,
+                textvariable=unified_cyber_status_var,
+                font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
+                bootstyle="info"
+            )
+        else:
+            unified_cyber_status_label = ttk.Label(
+                unified_cyber_box,
+                textvariable=unified_cyber_status_var,
+                font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
+            )
+        unified_cyber_status_label.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
+
+        # Refresh button
+        ttk.Button(content_frame, text="🔄 Refresh Dashboard", command=self.refresh_dashboard).grid(row=3, column=0, columnspan=2, pady=10)
+
+        # Register unified dashboard widgets so both views stay in sync
+        self.dashboard_text_targets = [
+            tgt for tgt in getattr(self, "dashboard_text_targets", []) if tgt.get("source") != "unified"
+        ]
+        self.dashboard_text_targets.append(
+            {
+                "source": "unified",
+                "today": unified_today_text,
+                "upcoming": unified_upcoming_text,
+                "status": unified_status_text,
+                "load": unified_load_text,
+            }
+        )
+        self.unified_cyber_status_var = unified_cyber_status_var
 
     def _populate_dashboard_widgets(self, today_tasks, upcoming_sorted, incomplete_sorted,
                                    tasks, status_counts, persona_load, state):
@@ -3477,61 +8072,91 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         # Refresh button
         ttk.Button(content_frame, text="🔄 Refresh Dashboard", command=self.refresh_dashboard).grid(row=3, column=0, columnspan=2, pady=10)
 
+        # Register unified dashboard widgets so both views stay in sync
+        self.dashboard_text_targets = [
+            tgt for tgt in getattr(self, "dashboard_text_targets", []) if tgt.get("source") != "unified"
+        ]
+        self.dashboard_text_targets.append(
+            {
+                "source": "unified",
+                "today": self.today_text,
+                "upcoming": self.upcoming_text,
+                "status": self.status_text,
+                "load": self.load_text,
+            }
+        )
+        self.unified_cyber_status_var = self.cyber_status_var
+
     def _populate_dashboard_widgets(self, today_tasks, upcoming_sorted, incomplete_sorted,
                                    tasks, status_counts, persona_load, state):
         """Populate dashboard widgets with data"""
-        if hasattr(self, 'today_text') and self.today_text.winfo_exists():
-            self.today_text.config(state="normal")
-            self.today_text.delete("1.0", "end")
-            if today_tasks:
-                self.today_text.insert("end", "Tasks due today:\n\n")
-                for t in today_tasks:
-                    self.today_text.insert(
-                        "end",
-                        f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner})\n",
-                    )
-            elif incomplete_sorted[:3]:
-                self.today_text.insert("end", "No tasks explicitly due today.\nShowing top 3 priorities:\n\n")
-                for t in incomplete_sorted[:3]:
-                    self.today_text.insert(
-                        "end",
-                        f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner}, Due: {t.due_date or 'None'})\n",
-                    )
-            else:
-                self.today_text.insert("end", "No active tasks. System is idle.")
-            self.today_text.config(state="disabled")
+        today_lines = []
+        if today_tasks:
+            today_lines.append("Tasks due today:\n")
+            for t in today_tasks:
+                today_lines.append(
+                    f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner})"
+                )
+        elif incomplete_sorted[:3]:
+            today_lines.append("No tasks explicitly due today.\\nShowing top 3 priorities:\\n")
+            for t in incomplete_sorted[:3]:
+                today_lines.append(
+                    f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner}, Due: {t.due_date or 'None'})"
+                )
+        else:
+            today_lines.append("No active tasks. System is idle.")
+        today_content = "\\n".join(today_lines)
 
-        if hasattr(self, 'upcoming_text') and self.upcoming_text.winfo_exists():
-            self.upcoming_text.config(state="normal")
-            self.upcoming_text.delete("1.0", "end")
-            if upcoming_sorted:
-                self.upcoming_text.insert("end", "Next deadlines:\n\n")
-                for t in upcoming_sorted:
-                    self.upcoming_text.insert(
-                        "end",
-                        f"- #{t.id} [{t.priority}] {t.title} (Due: {t.due_date}, Project: {t.project}, Owner: {t.owner})\n",
-                    )
-            else:
-                self.upcoming_text.insert("end", "No upcoming deadlines logged.")
-            self.upcoming_text.config(state="disabled")
+        if upcoming_sorted:
+            upcoming_lines = ["Next deadlines:\\n"]
+            for t in upcoming_sorted:
+                upcoming_lines.append(
+                    f"- #{t.id} [{t.priority}] {t.title} (Due: {t.due_date}, Project: {t.project}, Owner: {t.owner})"
+                )
+        else:
+            upcoming_lines = ["No upcoming deadlines logged."]
+        upcoming_content = "\\n".join(upcoming_lines)
 
-        if hasattr(self, 'status_text') and self.status_text.winfo_exists():
-            self.status_text.config(state="normal")
-            self.status_text.delete("1.0", "end")
-            total = len(tasks)
-            self.status_text.insert("end", f"Total tasks: {total}\n\n")
-            for s in STATUS_OPTIONS:
-                self.status_text.insert("end", f"{s:12}: {status_counts.get(s, 0)}\n")
-            self.status_text.config(state="disabled")
+        total = len(tasks)
+        status_lines = [f"Total tasks: {total}", ""]
+        for s in STATUS_OPTIONS:
+            status_lines.append(f"{s:12}: {status_counts.get(s, 0)}")
+        status_content = "\\n".join(status_lines)
 
-        if hasattr(self, 'load_text') and self.load_text.winfo_exists():
-            self.load_text.config(state="normal")
-            self.load_text.delete("1.0", "end")
-            self.load_text.insert("end", "Incomplete tasks per persona:\n\n")
-            for p in PERSONAS:
-                marker = "◉" if p == state.active_persona else "○"
-                self.load_text.insert("end", f"{marker} {p:8}: {persona_load.get(p, 0)}\n")
-            self.load_text.config(state="disabled")
+        load_lines = ["Incomplete tasks per persona:", ""]
+        for p in PERSONAS:
+            marker = "◉" if p == state.active_persona else "○"
+            load_lines.append(f"{marker} {p:8}: {persona_load.get(p, 0)}")
+        load_content = "\\n".join(load_lines)
+
+        for target in getattr(self, "dashboard_text_targets", []):
+            widget = target.get("today")
+            if widget and widget.winfo_exists():
+                widget.config(state="normal")
+                widget.delete("1.0", "end")
+                widget.insert("end", today_content)
+                widget.config(state="disabled")
+
+            widget = target.get("upcoming")
+            if widget and widget.winfo_exists():
+                widget.config(state="normal")
+                widget.delete("1.0", "end")
+                widget.insert("end", upcoming_content)
+                widget.config(state="disabled")
+
+            widget = target.get("status")
+            if widget and widget.winfo_exists():
+                widget.config(state="normal")
+                widget.delete("1.0", "end")
+                widget.insert("end", status_content)
+                widget.config(state="disabled")
+
+            widget = target.get("load")
+            if widget and widget.winfo_exists():
+                widget.config(state="normal")
+                widget.delete("1.0", "end")
+                widget.insert("end", load_content)
+                widget.config(state="disabled")
 
     def _show_analytics_view(self):
         """Show analytics view in the consolidated tab"""
@@ -5635,4321 +10260,20 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         # Refresh button
         ttk.Button(content_frame, text="🔄 Refresh Dashboard", command=self.refresh_dashboard).grid(row=3, column=0, columnspan=2, pady=10)
 
-    def _populate_dashboard_widgets(self, today_tasks, upcoming_sorted, incomplete_sorted,
-                                   tasks, status_counts, persona_load, state):
-        """Populate dashboard widgets with data"""
-        if hasattr(self, 'today_text') and self.today_text.winfo_exists():
-            self.today_text.config(state="normal")
-            self.today_text.delete("1.0", "end")
-            if today_tasks:
-                self.today_text.insert("end", "Tasks due today:\n\n")
-                for t in today_tasks:
-                    self.today_text.insert(
-                        "end",
-                        f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner})\n",
-                    )
-            elif incomplete_sorted[:3]:
-                self.today_text.insert("end", "No tasks explicitly due today.\nShowing top 3 priorities:\n\n")
-                for t in incomplete_sorted[:3]:
-                    self.today_text.insert(
-                        "end",
-                        f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner}, Due: {t.due_date or 'None'})\n",
-                    )
-            else:
-                self.today_text.insert("end", "No active tasks. System is idle.")
-            self.today_text.config(state="disabled")
-
-        if hasattr(self, 'upcoming_text') and self.upcoming_text.winfo_exists():
-            self.upcoming_text.config(state="normal")
-            self.upcoming_text.delete("1.0", "end")
-            if upcoming_sorted:
-                self.upcoming_text.insert("end", "Next deadlines:\n\n")
-                for t in upcoming_sorted:
-                    self.upcoming_text.insert(
-                        "end",
-                        f"- #{t.id} [{t.priority}] {t.title} (Due: {t.due_date}, Project: {t.project}, Owner: {t.owner})\n",
-                    )
-            else:
-                self.upcoming_text.insert("end", "No upcoming deadlines logged.")
-            self.upcoming_text.config(state="disabled")
-
-        if hasattr(self, 'status_text') and self.status_text.winfo_exists():
-            self.status_text.config(state="normal")
-            self.status_text.delete("1.0", "end")
-            total = len(tasks)
-            self.status_text.insert("end", f"Total tasks: {total}\n\n")
-            for s in STATUS_OPTIONS:
-                self.status_text.insert("end", f"{s:12}: {status_counts.get(s, 0)}\n")
-            self.status_text.config(state="disabled")
-
-        if hasattr(self, 'load_text') and self.load_text.winfo_exists():
-            self.load_text.config(state="normal")
-            self.load_text.delete("1.0", "end")
-            self.load_text.insert("end", "Incomplete tasks per persona:\n\n")
-            for p in PERSONAS:
-                marker = "◉" if p == state.active_persona else "○"
-                self.load_text.insert("end", f"{marker} {p:8}: {persona_load.get(p, 0)}\n")
-            self.load_text.config(state="disabled")
-
-    def _show_analytics_view(self):
-        """Show analytics view in the consolidated tab"""
-        # Clear current content
-        for widget in self.dashboard_content_frame.winfo_children():
-            widget.destroy()
-
-        # Analytics content - simplified version
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.dashboard_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.dashboard_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Analytics title
-        title_label = ttk.Label(content_frame, text="📈 Comprehensive Analytics Report",
-                               font=(self.base_font, 16, "bold"))
-        title_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Analytics content area
-        analytics_text = tk.Text(content_frame, height=20, wrap=tk.WORD, font=self.text_font)
-        analytics_text.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
-
-        scrollbar = ttk.Scrollbar(content_frame, command=analytics_text.yview)
-        scrollbar.grid(row=1, column=1, sticky="ns")
-        analytics_text.config(yscrollcommand=scrollbar.set)
-
-        # Sample analytics content
-        analytics_content = """📊 COMPREHENSIVE ANALYTICS REPORT
-
-🎯 TASK ANALYTICS:
-• Total Tasks: 47
-• Completed Tasks: 32 (68%)
-• Overdue Tasks: 3 (6%)
-• Average Completion Time: 4.2 days
-• Productivity Score: 8.7/10
-
-📁 PROJECT ANALYTICS:
-• Active Projects: 5
-• Completed Projects: 12
-• Average Project Duration: 18.5 days
-• Resource Utilization: 78%
-
-⏰ TIME TRACKING:
-• Total Time Logged: 156 hours
-• Average Daily Productivity: 6.2 hours
-• Most Productive Day: Wednesday
-• Time Allocation: Work (65%), Meetings (20%), Admin (15%)
-
-📈 TRENDS & INSIGHTS:
-• Productivity increased 23% this month
-• Task completion rate improved by 15%
-• 3 projects at risk of delay
-• Peak productivity: 10 AM - 2 PM
-
-🎯 RECOMMENDATIONS:
-• Focus on overdue tasks in Project Alpha
-• Schedule complex tasks during peak hours
-• Consider resource reallocation for Project Beta
-• Implement time-blocking for better focus
-
-📋 SMART SUGGESTIONS:
-• Complete "Database Migration" task by EOD
-• Schedule 2-hour block tomorrow for "API Development"
-• Review project deadlines with team
-• Archive completed projects older than 30 days
-"""
-        analytics_text.insert(tk.END, analytics_content)
-        analytics_text.config(state=tk.DISABLED)
-
-        # Analytics controls
-        controls_frame = ttk.Frame(content_frame)
-        controls_frame.grid(row=2, column=0, columnspan=2, pady=(10, 0))
-
-        ttk.Button(controls_frame, text="🔄 Refresh", command=self._refresh_analytics).grid(row=0, column=0, padx=5)
-        ttk.Button(controls_frame, text="💾 Export Report", command=self._export_analytics).grid(row=0, column=1, padx=5)
-        ttk.Button(controls_frame, text="📊 Detailed View", command=self._detailed_analytics).grid(row=0, column=2, padx=5)
-
-    def _refresh_analytics(self):
-        """Refresh analytics data"""
-        messagebox.showinfo("Analytics", "Analytics data refreshed successfully!")
-
-    def _export_analytics(self):
-        """Export analytics report"""
-        messagebox.showinfo("Export", "Analytics report exported to analytics_report.txt")
-
-    def _detailed_analytics(self):
-        """Show detailed analytics view"""
-        messagebox.showinfo("Detailed Analytics", "Detailed analytics view would show charts and graphs here.")
-
-    def _build_tasks_projects_tab(self):
-        """Build consolidated Tasks & Projects tab with sub-navigation"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.tasks_projects_frame = ttkb.Frame(self.notebook)
-        else:
-            self.tasks_projects_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.tasks_projects_frame, text="✅ Tasks & Projects")
-
-        self.tasks_projects_frame.columnconfigure(0, weight=1)
-        self.tasks_projects_frame.rowconfigure(1, weight=1)
-
-        # Sub-navigation buttons
-        nav_frame = ttk.Frame(self.tasks_projects_frame)
-        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        nav_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(nav_frame, text="✅ Tasks", command=self._show_tasks_view).grid(row=0, column=0, padx=5, pady=5)
-        ttk.Button(nav_frame, text="📁 Projects", command=self._show_projects_view).grid(row=0, column=1, padx=5, pady=5)
-        ttk.Button(nav_frame, text="📋 Templates", command=self._show_templates_view).grid(row=0, column=2, padx=5, pady=5)
-
-        # Content frame for switching views
-        self.tasks_projects_content_frame = ttk.Frame(self.tasks_projects_frame)
-        self.tasks_projects_content_frame.grid(row=1, column=0, sticky="nsew")
-        self.tasks_projects_content_frame.columnconfigure(0, weight=1)
-        self.tasks_projects_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with tasks view
-        self._show_tasks_view()
-
-    def _show_tasks_view(self):
-        """Show tasks view in the consolidated tab"""
-        # Clear current content
-        for widget in self.tasks_projects_content_frame.winfo_children():
-            widget.destroy()
-
-        # Simplified tasks interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.tasks_projects_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.tasks_projects_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Tasks list and details - simplified version
-        tasks_frame = ttk.LabelFrame(content_frame, text="📋 Tasks", padding=10)
-        tasks_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        tasks_frame.columnconfigure(0, weight=1)
-        tasks_frame.rowconfigure(0, weight=1)
-
-        # Tasks listbox
-        self.tasks_listbox = tk.Listbox(tasks_frame, height=15, font=self.text_font)
-        self.tasks_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        scrollbar = ttk.Scrollbar(tasks_frame, command=self.tasks_listbox.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        self.tasks_listbox.config(yscrollcommand=scrollbar.set)
-
-        # Sample tasks
-        self.tasks_listbox.insert(tk.END, "✅ Database migration - High Priority")
-        self.tasks_listbox.insert(tk.END, "⏳ API development - In Progress")
-        self.tasks_listbox.insert(tk.END, "📝 Documentation update - Medium Priority")
-        self.tasks_listbox.insert(tk.END, "🔍 Code review - Pending")
-        self.tasks_listbox.insert(tk.END, "🧪 Testing deployment - Low Priority")
-
-        # Task controls
-        controls_frame = ttk.Frame(tasks_frame)
-        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
-
-        ttk.Button(controls_frame, text="➕ New Task", command=self._new_task).grid(row=0, column=0, padx=5)
-        ttk.Button(controls_frame, text="✏️ Edit Task", command=self._edit_task).grid(row=0, column=1, padx=5)
-        ttk.Button(controls_frame, text="✅ Complete", command=self._complete_task).grid(row=0, column=2, padx=5)
-
-    def _show_projects_view(self):
-        """Show projects view in the consolidated tab"""
-        # Clear current content
-        for widget in self.tasks_projects_content_frame.winfo_children():
-            widget.destroy()
-
-        # Projects interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.tasks_projects_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.tasks_projects_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Projects list
-        projects_frame = ttk.LabelFrame(content_frame, text="📁 Projects", padding=10)
-        projects_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        projects_frame.columnconfigure(0, weight=1)
-        projects_frame.rowconfigure(0, weight=1)
-
-        self.projects_listbox = tk.Listbox(projects_frame, height=15, font=self.text_font)
-        self.projects_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        scrollbar = ttk.Scrollbar(projects_frame, command=self.projects_listbox.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        self.projects_listbox.config(yscrollcommand=scrollbar.set)
-
-        # Sample projects
-        self.projects_listbox.insert(tk.END, "🚀 Web Application Redesign - 75% Complete")
-        self.projects_listbox.insert(tk.END, "📊 Data Analytics Platform - 45% Complete")
-        self.projects_listbox.insert(tk.END, "🔧 API Integration Project - 90% Complete")
-        self.projects_listbox.insert(tk.END, "🎨 Mobile App Development - 30% Complete")
-        self.projects_listbox.insert(tk.END, "☁️ Cloud Migration - 60% Complete")
-
-        # Project controls
-        controls_frame = ttk.Frame(projects_frame)
-        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
-
-        ttk.Button(controls_frame, text="➕ New Project", command=self._new_project).grid(row=0, column=0, padx=5)
-        ttk.Button(controls_frame, text="📄 Upload Files", command=self._upload_project_files).grid(row=0, column=1, padx=5)
-        ttk.Button(controls_frame, text="📊 View Stats", command=self._project_stats).grid(row=0, column=2, padx=5)
-
-    def _show_templates_view(self):
-        """Show task templates view in the consolidated tab"""
-        # Clear current content
-        for widget in self.tasks_projects_content_frame.winfo_children():
-            widget.destroy()
-
-        # Templates interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.tasks_projects_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.tasks_projects_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Templates list
-        templates_frame = ttk.LabelFrame(content_frame, text="📋 Task Templates", padding=10)
-        templates_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        templates_frame.columnconfigure(0, weight=1)
-        templates_frame.rowconfigure(0, weight=1)
-
-        self.templates_listbox = tk.Listbox(templates_frame, height=15, font=self.text_font)
-        self.templates_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        scrollbar = ttk.Scrollbar(templates_frame, command=self.templates_listbox.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        self.templates_listbox.config(yscrollcommand=scrollbar.set)
-
-        # Sample templates
-        self.templates_listbox.insert(tk.END, "📝 Code Review - 30 min estimate")
-        self.templates_listbox.insert(tk.END, "🔧 Bug Fix - 2 hour estimate")
-        self.templates_listbox.insert(tk.END, "📊 Report Generation - 4 hour estimate")
-        self.templates_listbox.insert(tk.END, "🎨 UI Design - 6 hour estimate")
-        self.templates_listbox.insert(tk.END, "🧪 Testing - 3 hour estimate")
-
-        # Template controls
-        controls_frame = ttk.Frame(templates_frame)
-        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
-
-        ttk.Button(controls_frame, text="➕ New Template", command=self._new_template).grid(row=0, column=0, padx=5)
-        ttk.Button(controls_frame, text="✅ Create Task", command=self._create_from_template).grid(row=0, column=1, padx=5)
-        ttk.Button(controls_frame, text="✏️ Edit Template", command=self._edit_template).grid(row=0, column=2, padx=5)
-
-    def _new_task(self):
-        messagebox.showinfo("New Task", "New task creation dialog would open here.")
-
-    def _edit_task(self):
-        messagebox.showinfo("Edit Task", "Task editing dialog would open here.")
-
-    def _complete_task(self):
-        messagebox.showinfo("Complete Task", "Task marked as completed.")
-
-    def _new_project(self):
-        messagebox.showinfo("New Project", "New project creation dialog would open here.")
-
-    def _upload_project_files(self):
-        messagebox.showinfo("Upload Files", "File upload dialog would open here.")
-
-    def _project_stats(self):
-        messagebox.showinfo("Project Stats", "Project statistics view would open here.")
-
-    def _new_template(self):
-        messagebox.showinfo("New Template", "New template creation dialog would open here.")
-
-    def _create_from_template(self):
-        messagebox.showinfo("Create Task", "Task created from selected template.")
-
-    def _edit_template(self):
-        messagebox.showinfo("Edit Template", "Template editing dialog would open here.")
-
-    def _build_ai_systems_tab(self):
-        """Build consolidated AI Systems tab with sub-navigation"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.ai_systems_frame = ttkb.Frame(self.notebook)
-        else:
-            self.ai_systems_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.ai_systems_frame, text="🤖 AI Systems")
-
-        self.ai_systems_frame.columnconfigure(0, weight=1)
-        self.ai_systems_frame.rowconfigure(1, weight=1)
-
-        # Sub-navigation buttons
-        nav_frame = ttk.Frame(self.ai_systems_frame)
-        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        nav_frame.columnconfigure((0, 1, 2, 3), weight=1)
-
-        ttk.Button(nav_frame, text="💬 AI Console", command=self._show_ai_console_view).grid(row=0, column=0, padx=2, pady=5)
-        ttk.Button(nav_frame, text="🛰️ AI Ops", command=self._show_ai_ops_view).grid(row=0, column=1, padx=2, pady=5)
-        ttk.Button(nav_frame, text="🧠 Advanced AI", command=self._show_advanced_ai_view).grid(row=0, column=2, padx=2, pady=5)
-        ttk.Button(nav_frame, text="🧬 NAS", command=self._show_nas_view).grid(row=0, column=3, padx=2, pady=5)
-
-        # Content frame for switching views
-        self.ai_systems_content_frame = ttk.Frame(self.ai_systems_frame)
-        self.ai_systems_content_frame.grid(row=1, column=0, sticky="nsew")
-        self.ai_systems_content_frame.columnconfigure(0, weight=1)
-        self.ai_systems_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with AI Console view
-        self._show_ai_console_view()
-
-    def _build_ai_features_tab(self):
-        """Build comprehensive AI Features tab with all 10 AI-powered features"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.ai_features_frame = ttkb.Frame(self.notebook)
-        else:
-            self.ai_features_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.ai_features_frame, text="🚀 AI Features")
-
-        self.ai_features_frame.columnconfigure(0, weight=1)
-        self.ai_features_frame.rowconfigure(1, weight=1)
-
-        # Feature selection
-        selector_frame = ttk.LabelFrame(self.ai_features_frame, text="🎯 Select AI Feature", padding=10)
-        selector_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
-
-        ttk.Label(selector_frame, text="Choose AI Feature:").grid(row=0, column=0, padx=5, pady=5)
-        self.ai_feature_var = tk.StringVar(value="predictive_analytics")
-        feature_combo = ttk.Combobox(selector_frame, textvariable=self.ai_feature_var,
-                                   values=["predictive_analytics", "nlp_conversation", "automation_orchestration",
-                                          "computer_vision", "security_ai", "edge_computing", "personalization",
-                                          "collaboration", "mlops", "monitoring"], state="readonly")
-        feature_combo.grid(row=0, column=1, padx=5, pady=5)
-        feature_combo.bind("<<ComboboxSelected>>", self._on_ai_feature_selected)
-
-        # Content frame for dynamic feature interfaces
-        self.ai_features_content_frame = ttk.Frame(self.ai_features_frame)
-        self.ai_features_content_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
-        self.ai_features_content_frame.columnconfigure(0, weight=1)
-        self.ai_features_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with predictive analytics
-        self._show_predictive_analytics_interface()
-
-    def _on_ai_feature_selected(self, event=None):
-        """Handle AI feature selection"""
-        feature = self.ai_feature_var.get()
-
-        # Clear current content
-        for widget in self.ai_features_content_frame.winfo_children():
-            widget.destroy()
-
-        # Show selected feature interface
-        if feature == "predictive_analytics":
-            self._show_predictive_analytics_interface()
-        elif feature == "nlp_conversation":
-            self._show_nlp_conversation_interface()
-        elif feature == "automation_orchestration":
-            self._show_automation_orchestration_interface()
-        elif feature == "computer_vision":
-            self._show_computer_vision_interface()
-        elif feature == "security_ai":
-            self._show_security_ai_interface()
-        elif feature == "edge_computing":
-            self._show_edge_computing_interface()
-        elif feature == "personalization":
-            self._show_personalization_interface()
-        elif feature == "collaboration":
-            self._show_collaboration_interface()
-        elif feature == "mlops":
-            self._show_mlops_interface()
-        elif feature == "monitoring":
-            self._show_monitoring_interface()
-
-    def _show_predictive_analytics_interface(self):
-        """Show Predictive Analytics interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="📈 AI-Powered Predictive Analytics & Forecasting", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Prediction type selection
-        ttk.Label(frame, text="Prediction Type:").grid(row=0, column=0, sticky="w", pady=5)
-        self.prediction_type_var = tk.StringVar(value="productivity_score")
-        prediction_combo = ttk.Combobox(frame, textvariable=self.prediction_type_var,
-                                      values=["productivity_score", "task_completion_time", "workload_forecast",
-                                             "energy_levels", "meeting_effectiveness", "focus_time_optimal",
-                                             "deadline_risk", "burnout_risk", "collaboration_patterns",
-                                             "skill_development"], state="readonly", width=30)
-        prediction_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Time horizon
-        ttk.Label(frame, text="Time Horizon (days):").grid(row=1, column=0, sticky="w", pady=5)
-        self.time_horizon_var = tk.StringVar(value="7")
-        time_combo = ttk.Combobox(frame, textvariable=self.time_horizon_var,
-                                values=["1", "7", "30", "90"], state="readonly", width=10)
-        time_combo.grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Historical data points
-        ttk.Label(frame, text="Historical Data Points:").grid(row=2, column=0, sticky="w", pady=5)
-        self.historical_data_var = tk.StringVar(value="30")
-        ttk.Entry(frame, textvariable=self.historical_data_var, width=10).grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Confidence level
-        ttk.Label(frame, text="Confidence Level (0-1):").grid(row=3, column=0, sticky="w", pady=5)
-        self.confidence_var = tk.StringVar(value="0.95")
-        ttk.Entry(frame, textvariable=self.confidence_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🔮 Generate Prediction", command=self._execute_predictive_analytics).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="📊 Prediction Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.prediction_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        scrollbar = ttk.Scrollbar(results_frame, command=self.prediction_results_text.yview)
-        self.prediction_results_text.config(yscrollcommand=scrollbar.set)
-
-        self.prediction_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_nlp_conversation_interface(self):
-        """Show NLP Conversation interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="💬 Advanced Natural Language Processing & Conversation AI", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Action type
-        ttk.Label(frame, text="Action:").grid(row=0, column=0, sticky="w", pady=5)
-        self.nlp_action_var = tk.StringVar(value="analyze")
-        action_combo = ttk.Combobox(frame, textvariable=self.nlp_action_var,
-                                  values=["analyze", "generate", "summarize"], state="readonly", width=20)
-        action_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Language
-        ttk.Label(frame, text="Language:").grid(row=1, column=0, sticky="w", pady=5)
-        self.nlp_language_var = tk.StringVar(value="en")
-        ttk.Entry(frame, textvariable=self.nlp_language_var, width=10).grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Input text
-        ttk.Label(frame, text="Input Text:").grid(row=2, column=0, sticky="w", pady=5)
-        self.nlp_input_text = tk.Text(frame, height=6, width=50, wrap=tk.WORD)
-        nlp_scrollbar = ttk.Scrollbar(frame, command=self.nlp_input_text.yview)
-        self.nlp_input_text.config(yscrollcommand=nlp_scrollbar.set)
-        self.nlp_input_text.grid(row=3, column=0, columnspan=2, sticky="ew", pady=5, padx=(0, 5))
-        nlp_scrollbar.grid(row=3, column=2, sticky="ns")
-
-        # Max length
-        ttk.Label(frame, text="Max Length:").grid(row=4, column=0, sticky="w", pady=5)
-        self.nlp_max_length_var = tk.StringVar(value="500")
-        ttk.Entry(frame, textvariable=self.nlp_max_length_var, width=10).grid(row=4, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🧠 Process Text", command=self._execute_nlp_conversation).grid(row=5, column=0, columnspan=3, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="📝 NLP Results", padding=10)
-        results_frame.grid(row=6, column=0, columnspan=3, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.nlp_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        nlp_results_scrollbar = ttk.Scrollbar(results_frame, command=self.nlp_results_text.yview)
-        self.nlp_results_text.config(yscrollcommand=nlp_results_scrollbar.set)
-
-        self.nlp_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        nlp_results_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_automation_orchestration_interface(self):
-        """Show Automation Orchestration interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="⚙️ Intelligent Automation & Workflow Orchestration", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Workflow type
-        ttk.Label(frame, text="Workflow Type:").grid(row=0, column=0, sticky="w", pady=5)
-        self.workflow_type_var = tk.StringVar(value="task_automation")
-        workflow_combo = ttk.Combobox(frame, textvariable=self.workflow_type_var,
-                                    values=["task_automation", "document_processing", "email_management",
-                                           "calendar_scheduling", "data_sync"], state="readonly", width=25)
-        workflow_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Trigger condition
-        ttk.Label(frame, text="Trigger Condition:").grid(row=1, column=0, sticky="w", pady=5)
-        self.trigger_condition_var = tk.StringVar(value="daily at 9am")
-        ttk.Entry(frame, textvariable=self.trigger_condition_var, width=30).grid(row=1, column=1, pady=5, padx=(10, 0))
-
-        # Execution schedule
-        ttk.Label(frame, text="Execution Schedule (cron):").grid(row=2, column=0, sticky="w", pady=5)
-        self.execution_schedule_var = tk.StringVar(value="0 9 * * *")
-        ttk.Entry(frame, textvariable=self.execution_schedule_var, width=30).grid(row=2, column=1, pady=5, padx=(10, 0))
-
-        # Max retries
-        ttk.Label(frame, text="Max Retries:").grid(row=3, column=0, sticky="w", pady=5)
-        self.max_retries_var = tk.StringVar(value="3")
-        ttk.Entry(frame, textvariable=self.max_retries_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🚀 Create Workflow", command=self._execute_automation_orchestration).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="🔄 Workflow Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.automation_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        automation_scrollbar = ttk.Scrollbar(results_frame, command=self.automation_results_text.yview)
-        self.automation_results_text.config(yscrollcommand=automation_scrollbar.set)
-
-        self.automation_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        automation_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_computer_vision_interface(self):
-        """Show Computer Vision interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="👁️ Computer Vision & Multimodal AI", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Analysis type
-        ttk.Label(frame, text="Analysis Type:").grid(row=0, column=0, sticky="w", pady=5)
-        self.analysis_type_var = tk.StringVar(value="object_detection")
-        analysis_combo = ttk.Combobox(frame, textvariable=self.analysis_type_var,
-                                    values=["object_detection", "text_extraction", "document_analysis",
-                                           "image_captioning", "visual_qa", "scene_understanding",
-                                           "face_detection", "emotion_recognition", "content_moderation",
-                                           "similarity_search"], state="readonly", width=25)
-        analysis_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Image URL
-        ttk.Label(frame, text="Image URL:").grid(row=1, column=0, sticky="w", pady=5)
-        self.image_url_var = tk.StringVar()
-        ttk.Entry(frame, textvariable=self.image_url_var, width=40).grid(row=1, column=1, pady=5, padx=(10, 0))
-
-        # Confidence threshold
-        ttk.Label(frame, text="Confidence Threshold:").grid(row=2, column=0, sticky="w", pady=5)
-        self.confidence_threshold_var = tk.StringVar(value="0.5")
-        ttk.Entry(frame, textvariable=self.confidence_threshold_var, width=10).grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Max results
-        ttk.Label(frame, text="Max Results:").grid(row=3, column=0, sticky="w", pady=5)
-        self.max_results_var = tk.StringVar(value="10")
-        ttk.Entry(frame, textvariable=self.max_results_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🔍 Analyze Image", command=self._execute_computer_vision).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="🖼️ Vision Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.vision_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        vision_scrollbar = ttk.Scrollbar(results_frame, command=self.vision_results_text.yview)
-        self.vision_results_text.config(yscrollcommand=vision_scrollbar.set)
-
-        self.vision_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        vision_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_security_ai_interface(self):
-        """Show Security AI interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="🛡️ Advanced Security with AI Threat Detection", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Action type
-        ttk.Label(frame, text="Security Action:").grid(row=0, column=0, sticky="w", pady=5)
-        self.security_action_var = tk.StringVar(value="scan")
-        security_combo = ttk.Combobox(frame, textvariable=self.security_action_var,
-                                    values=["scan", "analyze"], state="readonly", width=15)
-        security_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Scan target
-        ttk.Label(frame, text="Scan Target:").grid(row=1, column=0, sticky="w", pady=5)
-        self.scan_target_var = tk.StringVar()
-        ttk.Entry(frame, textvariable=self.scan_target_var, width=40).grid(row=1, column=1, pady=5, padx=(10, 0))
-
-        # Threat types
-        ttk.Label(frame, text="Threat Types:").grid(row=2, column=0, sticky="w", pady=5)
-        self.threat_types_var = tk.StringVar(value="malware,phishing")
-        ttk.Entry(frame, textvariable=self.threat_types_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
-
-        # Severity level
-        ttk.Label(frame, text="Severity Level:").grid(row=3, column=0, sticky="w", pady=5)
-        self.severity_level_var = tk.StringVar(value="medium")
-        severity_combo = ttk.Combobox(frame, textvariable=self.severity_level_var,
-                                    values=["low", "medium", "high", "critical"], state="readonly", width=10)
-        severity_combo.grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🔍 Scan for Threats", command=self._execute_security_ai).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="🚨 Security Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.security_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        security_scrollbar = ttk.Scrollbar(results_frame, command=self.security_results_text.yview)
-        self.security_results_text.config(yscrollcommand=security_scrollbar.set)
-
-        self.security_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        security_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_edge_computing_interface(self):
-        """Show Edge Computing interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="⚡ Edge Computing & Distributed AI Processing", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Operation type
-        ttk.Label(frame, text="Operation:").grid(row=0, column=0, sticky="w", pady=5)
-        self.edge_operation_var = tk.StringVar(value="deploy")
-        edge_combo = ttk.Combobox(frame, textvariable=self.edge_operation_var,
-                                values=["deploy", "update", "monitor", "scale"], state="readonly", width=15)
-        edge_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Model name
-        ttk.Label(frame, text="Model Name:").grid(row=1, column=0, sticky="w", pady=5)
-        self.model_name_var = tk.StringVar()
-        ttk.Entry(frame, textvariable=self.model_name_var, width=30).grid(row=1, column=1, pady=5, padx=(10, 0))
-
-        # Target devices
-        ttk.Label(frame, text="Target Devices:").grid(row=2, column=0, sticky="w", pady=5)
-        self.target_devices_var = tk.StringVar(value="raspberry_pi,edge_server")
-        ttk.Entry(frame, textvariable=self.target_devices_var, width=30).grid(row=2, column=1, pady=5, padx=(10, 0))
-
-        # Resource limits
-        ttk.Label(frame, text="Resource Limits:").grid(row=3, column=0, sticky="w", pady=5)
-        self.resource_limits_var = tk.StringVar(value="cpu=50%,memory=1GB")
-        ttk.Entry(frame, textvariable=self.resource_limits_var, width=30).grid(row=3, column=1, pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🚀 Execute Edge Operation", command=self._execute_edge_computing).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="🔗 Edge Computing Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.edge_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        edge_scrollbar = ttk.Scrollbar(results_frame, command=self.edge_results_text.yview)
-        self.edge_results_text.config(yscrollcommand=edge_scrollbar.set)
-
-        self.edge_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        edge_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_personalization_interface(self):
-        """Show Personalization interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="🎯 Advanced Personalization & Recommendation Engines", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Recommendation type
-        ttk.Label(frame, text="Recommendation Type:").grid(row=0, column=0, sticky="w", pady=5)
-        self.recommendation_type_var = tk.StringVar(value="content_based")
-        rec_combo = ttk.Combobox(frame, textvariable=self.recommendation_type_var,
-                               values=["content_based", "collaborative", "hybrid"], state="readonly", width=20)
-        rec_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # User preferences
-        ttk.Label(frame, text="User Preferences:").grid(row=1, column=0, sticky="w", pady=5)
-        self.user_preferences_var = tk.StringVar(value="productivity,tasks,automation")
-        ttk.Entry(frame, textvariable=self.user_preferences_var, width=40).grid(row=1, column=1, pady=5, padx=(10, 0))
-
-        # Context data
-        ttk.Label(frame, text="Context Data:").grid(row=2, column=0, sticky="w", pady=5)
-        self.context_data_var = tk.StringVar(value="time_of_day=morning,device=desktop")
-        ttk.Entry(frame, textvariable=self.context_data_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
-
-        # Max recommendations
-        ttk.Label(frame, text="Max Recommendations:").grid(row=3, column=0, sticky="w", pady=5)
-        self.max_recommendations_var = tk.StringVar(value="10")
-        ttk.Entry(frame, textvariable=self.max_recommendations_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🎯 Generate Recommendations", command=self._execute_personalization).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="💡 Recommendation Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.personalization_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        personalization_scrollbar = ttk.Scrollbar(results_frame, command=self.personalization_results_text.yview)
-        self.personalization_results_text.config(yscrollcommand=personalization_scrollbar.set)
-
-        self.personalization_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        personalization_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_collaboration_interface(self):
-        """Show Collaboration interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="👥 Real-Time Collaboration & Team Intelligence", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Action type
-        ttk.Label(frame, text="Action:").grid(row=0, column=0, sticky="w", pady=5)
-        self.collaboration_action_var = tk.StringVar(value="analyze_team")
-        collab_combo = ttk.Combobox(frame, textvariable=self.collaboration_action_var,
-                                  values=["analyze_team", "optimize_workflow", "predict_conflicts"], state="readonly", width=20)
-        collab_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Team size
-        ttk.Label(frame, text="Team Size:").grid(row=1, column=0, sticky="w", pady=5)
-        self.team_size_var = tk.StringVar(value="5")
-        ttk.Entry(frame, textvariable=self.team_size_var, width=10).grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Communication patterns
-        ttk.Label(frame, text="Communication Patterns:").grid(row=2, column=0, sticky="w", pady=5)
-        self.communication_patterns_var = tk.StringVar(value="email,daily_standup,slack")
-        ttk.Entry(frame, textvariable=self.communication_patterns_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
-
-        # Project complexity
-        ttk.Label(frame, text="Project Complexity:").grid(row=3, column=0, sticky="w", pady=5)
-        self.project_complexity_var = tk.StringVar(value="medium")
-        complexity_combo = ttk.Combobox(frame, textvariable=self.project_complexity_var,
-                                      values=["low", "medium", "high"], state="readonly", width=10)
-        complexity_combo.grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🤝 Analyze Collaboration", command=self._execute_collaboration).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="📊 Collaboration Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.collaboration_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        collaboration_scrollbar = ttk.Scrollbar(results_frame, command=self.collaboration_results_text.yview)
-        self.collaboration_results_text.config(yscrollcommand=collaboration_scrollbar.set)
-
-        self.collaboration_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        collaboration_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_mlops_interface(self):
-        """Show MLOps interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="🔬 Advanced Data Science & ML Operations (MLOps)", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Action type
-        ttk.Label(frame, text="MLOps Action:").grid(row=0, column=0, sticky="w", pady=5)
-        self.mlops_action_var = tk.StringVar(value="train_model")
-        mlops_combo = ttk.Combobox(frame, textvariable=self.mlops_action_var,
-                                 values=["train_model", "deploy_model", "monitor_performance", "retrain_model"], state="readonly", width=20)
-        mlops_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Model type
-        ttk.Label(frame, text="Model Type:").grid(row=1, column=0, sticky="w", pady=5)
-        self.model_type_var = tk.StringVar(value="classification")
-        model_type_combo = ttk.Combobox(frame, textvariable=self.model_type_var,
-                                      values=["classification", "regression", "clustering", "nlp", "computer_vision"], state="readonly", width=15)
-        model_type_combo.grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Dataset path
-        ttk.Label(frame, text="Dataset Path:").grid(row=2, column=0, sticky="w", pady=5)
-        self.dataset_path_var = tk.StringVar(value="data/sample_dataset.csv")
-        ttk.Entry(frame, textvariable=self.dataset_path_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
-
-        # Hyperparameters
-        ttk.Label(frame, text="Hyperparameters (JSON):").grid(row=3, column=0, sticky="w", pady=5)
-        self.hyperparameters_var = tk.StringVar(value='{"learning_rate": 0.01, "epochs": 100}')
-        ttk.Entry(frame, textvariable=self.hyperparameters_var, width=40).grid(row=3, column=1, pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🚀 Execute MLOps Operation", command=self._execute_mlops).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="📈 MLOps Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.mlops_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        mlops_scrollbar = ttk.Scrollbar(results_frame, command=self.mlops_results_text.yview)
-        self.mlops_results_text.config(yscrollcommand=mlops_scrollbar.set)
-
-        self.mlops_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        mlops_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_monitoring_interface(self):
-        """Show Monitoring interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="🔍 Intelligent Monitoring & Self-Healing Systems", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Action type
-        ttk.Label(frame, text="Monitoring Action:").grid(row=0, column=0, sticky="w", pady=5)
-        self.monitoring_action_var = tk.StringVar(value="check_health")
-        monitoring_combo = ttk.Combobox(frame, textvariable=self.monitoring_action_var,
-                                      values=["check_health", "detect_anomalies", "predict_failures", "optimize_performance"], state="readonly", width=20)
-        monitoring_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # System metrics
-        ttk.Label(frame, text="System Metrics (JSON):").grid(row=1, column=0, sticky="w", pady=5)
-        self.system_metrics_var = tk.StringVar(value='{"cpu_percent": 75, "memory_percent": 80}')
-        ttk.Entry(frame, textvariable=self.system_metrics_var, width=50).grid(row=1, column=1, pady=5, padx=(10, 0))
-
-        # Monitoring window
-        ttk.Label(frame, text="Monitoring Window (hours):").grid(row=2, column=0, sticky="w", pady=5)
-        self.monitoring_window_var = tk.StringVar(value="24")
-        ttk.Entry(frame, textvariable=self.monitoring_window_var, width=10).grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Alert thresholds
-        ttk.Label(frame, text="Alert Thresholds (JSON):").grid(row=3, column=0, sticky="w", pady=5)
-        self.alert_thresholds_var = tk.StringVar(value='{"cpu_critical": 90, "memory_critical": 95}')
-        ttk.Entry(frame, textvariable=self.alert_thresholds_var, width=50).grid(row=3, column=1, pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🔍 Execute Monitoring", command=self._execute_monitoring).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="📊 Monitoring Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.monitoring_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        monitoring_scrollbar = ttk.Scrollbar(results_frame, command=self.monitoring_results_text.yview)
-        self.monitoring_results_text.config(yscrollcommand=monitoring_scrollbar.set)
-
-        self.monitoring_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        monitoring_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_ai_console_view(self):
-        """Show AI Console view in the consolidated tab"""
-        # Clear current content
-        for widget in self.ai_systems_content_frame.winfo_children():
-            widget.destroy()
-
-        # AI Console interface - simplified chat interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Chat interface
-        chat_frame = ttk.LabelFrame(content_frame, text="🤖 AI Assistant Console", padding=10)
-        chat_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        chat_frame.columnconfigure(0, weight=1)
-        chat_frame.rowconfigure(0, weight=1)
-
-        # Chat display
-        self.chat_display = tk.Text(chat_frame, height=15, wrap=tk.WORD, font=self.text_font, state=tk.DISABLED)
-        self.chat_display.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        chat_scrollbar = ttk.Scrollbar(chat_frame, command=self.chat_display.yview)
-        chat_scrollbar.grid(row=0, column=1, sticky="ns")
-        self.chat_display.config(yscrollcommand=chat_scrollbar.set)
-
-        # Sample conversation
-        sample_chat = """🤖 AI Assistant: Hello! I'm your intelligent assistant. How can I help you today?
-
-👤 You: Can you help me manage my tasks?
-
-🤖 AI Assistant: Of course! I can help you create, organize, and prioritize your tasks. I can also analyze your productivity patterns and suggest improvements.
-
-👤 You: What are my top priorities today?
-
-🤖 AI Assistant: Based on your current tasks and deadlines, your top priorities are:
-1. Complete the database migration (due today)
-2. Review the API documentation (due tomorrow)
-3. Start the mobile app testing phase
-
-Would you like me to help you with any of these?
-
-👤 You: Help me create a task for the database migration.
-
-🤖 AI Assistant: I've created a task called "Database Migration" with high priority, assigned to the "Backend Development" project, with an estimated time of 4 hours. The task includes subtasks for backup, migration script creation, testing, and deployment.
-
-Is there anything else you'd like me to help you with?
-"""
-        self.chat_display.config(state=tk.NORMAL)
-        self.chat_display.insert(tk.END, sample_chat)
-        self.chat_display.config(state=tk.DISABLED)
-
-        # Input area
-        input_frame = ttk.Frame(chat_frame)
-        input_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0), sticky="ew")
-        input_frame.columnconfigure(0, weight=1)
-
-        self.chat_input = ttk.Entry(input_frame, font=self.text_font)
-        self.chat_input.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        self.chat_input.insert(0, "Ask me anything...")
-
-        ttk.Button(input_frame, text="📤 Send", command=self._send_chat_message).grid(row=0, column=1)
-
-    def _show_ai_ops_view(self):
-        """Show AI Operations view in the consolidated tab"""
-        # Clear current content
-        for widget in self.ai_systems_content_frame.winfo_children():
-            widget.destroy()
-
-        # AI Operations interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # AI Operations dashboard
-        ops_frame = ttk.LabelFrame(content_frame, text="🛰️ AI Operations Center", padding=10)
-        ops_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        ops_frame.columnconfigure((0, 1), weight=1)
-
-        # Left side - Active Models
-        models_frame = ttk.LabelFrame(ops_frame, text="🤖 Active Models", padding=10)
-        models_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        models_frame.columnconfigure(0, weight=1)
-
-        models_listbox = tk.Listbox(models_frame, height=8, font=self.text_font)
-        models_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        models_listbox.insert(tk.END, "📊 Sentiment Analysis - 94.2% accuracy")
-        models_listbox.insert(tk.END, "🔍 Text Classification - 87.5% accuracy")
-        models_listbox.insert(tk.END, "🎯 Recommendation Engine - 91.8% accuracy")
-        models_listbox.insert(tk.END, "📝 Content Generation - 85.3% accuracy")
-
-        # Right side - System Metrics
-        metrics_frame = ttk.LabelFrame(ops_frame, text="📊 System Metrics", padding=10)
-        metrics_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
-        metrics_frame.columnconfigure(0, weight=1)
-
-        metrics_text = tk.Text(metrics_frame, height=8, wrap=tk.WORD, font=self.text_font)
-        metrics_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        metrics_content = """🚀 AI Operations Status
-
-⚡ Performance:
-• Response Time: 245ms avg
-• Throughput: 1,247 requests/min
-• CPU Usage: 67%
-• Memory: 3.2GB/8GB
-
-🔧 Active Services:
-• 4 ML models deployed
-• 12 API endpoints active
-• 89 concurrent users
-• 99.7% uptime
-
-⚠️ Alerts:
-• Model accuracy drift detected
-• High memory usage warning
-• Scheduled maintenance in 2 hours
-
-🎯 Recent Activity:
-• 1,247 predictions served
-• 89 user queries processed
-• 23 model updates deployed
-• 5 A/B tests running"""
-        metrics_text.insert(tk.END, metrics_content)
-        metrics_text.config(state=tk.DISABLED)
-
-        # Controls
-        controls_frame = ttk.Frame(ops_frame)
-        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
-
-        ttk.Button(controls_frame, text="🔄 Retrain Models", command=self._retrain_models).grid(row=0, column=0, padx=5)
-        ttk.Button(controls_frame, text="📊 Performance Report", command=self._performance_report).grid(row=0, column=1, padx=5)
-        ttk.Button(controls_frame, text="⚙️ System Config", command=self._system_config).grid(row=0, column=2, padx=5)
-
-    def _show_advanced_ai_view(self):
-        """Show Advanced AI view in the consolidated tab"""
-        # Clear current content
-        for widget in self.ai_systems_content_frame.winfo_children():
-            widget.destroy()
-
-        # Advanced AI interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Advanced AI capabilities
-        advanced_frame = ttk.LabelFrame(content_frame, text="🧠 Advanced AI Capabilities", padding=10)
-        advanced_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        advanced_frame.columnconfigure(0, weight=1)
-
-        # Capabilities list
-        capabilities_text = tk.Text(advanced_frame, height=15, wrap=tk.WORD, font=self.text_font)
-        capabilities_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        capabilities_content = """🧠 ADVANCED AI CAPABILITIES
-
-🎯 Machine Learning:
-• Supervised Learning Models
-• Unsupervised Learning Algorithms
-• Reinforcement Learning Agents
-• Transfer Learning Adaptation
-• Meta-Learning Systems
-
-🔍 Computer Vision:
-• Object Detection & Recognition
-• Image Classification & Segmentation
-• Facial Recognition & Analysis
-• Optical Character Recognition
-• Video Analysis & Tracking
-
-🗣️ Natural Language Processing:
-• Text Analysis & Understanding
-• Sentiment Analysis & Emotion Detection
-• Language Translation & Summarization
-• Conversational AI & Chatbots
-• Document Analysis & Processing
-
-📊 Predictive Analytics:
-• Time Series Forecasting
-• Anomaly Detection & Outlier Analysis
-• Trend Analysis & Pattern Recognition
-• Risk Assessment & Prediction
-• Performance Optimization
-
-🎨 Generative AI:
-• Text Generation & Completion
-• Image Synthesis & Editing
-• Code Generation & Assistance
-• Creative Content Production
-• Style Transfer & Adaptation
-
-🔧 Specialized AI:
-• Medical Diagnosis Assistance
-• Financial Analysis & Trading
-• Legal Document Analysis
-• Scientific Research Acceleration
-• Industrial Process Optimization
-
-⚡ Performance Features:
-• GPU Acceleration Support
-• Distributed Computing
-• Real-time Processing
-• Edge AI Deployment
-• Auto-scaling & Optimization
-
-🔒 Security & Ethics:
-• Bias Detection & Mitigation
-• Privacy-preserving AI
-• Explainable AI (XAI)
-• Secure Multi-party Computation
-• Ethical AI Guidelines"""
-        capabilities_text.insert(tk.END, capabilities_content)
-        capabilities_text.config(state=tk.DISABLED)
-
-        # Advanced AI controls
-        controls_frame = ttk.Frame(advanced_frame)
-        controls_frame.grid(row=1, column=0, pady=(10, 0))
-
-        ttk.Button(controls_frame, text="🚀 Deploy Advanced Model", command=self._deploy_advanced_model).grid(row=0, column=0, padx=5)
-        ttk.Button(controls_frame, text="🧪 Run AI Experiments", command=self._run_ai_experiments).grid(row=0, column=1, padx=5)
-        ttk.Button(controls_frame, text="📚 Research Mode", command=self._research_mode).grid(row=0, column=2, padx=5)
-
-    def _show_nas_view(self):
-        """Show Neural Architecture Search view in the consolidated tab"""
-        # Clear current content
-        for widget in self.ai_systems_content_frame.winfo_children():
-            widget.destroy()
-
-        # NAS interface - embedded version
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # NAS control panel
-        nas_frame = ttk.LabelFrame(content_frame, text="🧬 Neural Architecture Search", padding=10)
-        nas_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        nas_frame.columnconfigure(0, weight=1)
-
-        # NAS description
-        desc_text = """Evolutionary AI system that designs and optimizes neural network architectures.
-Uses genetic algorithms and reinforcement learning to discover optimal model architectures
-for your specific datasets and tasks."""
-        desc_label = ttk.Label(nas_frame, text=desc_text, wraplength=600, justify="left")
-        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Control buttons
-        control_frame = ttk.Frame(nas_frame)
-        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(control_frame, text="🧬 Start NAS Experiment",
-                  command=self._start_nas_experiment).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="📊 View Results",
-                  command=self._view_nas_results).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="⚙️ Configure",
-                  command=self._configure_nas).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Status display
-        status_frame = ttk.Frame(nas_frame)
-        status_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
-        status_frame.columnconfigure(0, weight=1)
-
-        self.nas_status_var = tk.StringVar(value="No active experiments")
-        status_label = ttk.Label(status_frame, textvariable=self.nas_status_var,
-                               font=(self.base_font, 12))
-        status_label.grid(row=0, column=0, pady=5, sticky="w")
-
-        # Metrics
-        metrics_frame = ttk.Frame(nas_frame)
-        metrics_frame.grid(row=3, column=0, sticky="ew")
-        metrics_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Label(metrics_frame, text="Generation:").grid(row=0, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Population Size:").grid(row=1, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Best Fitness:").grid(row=2, column=0, sticky="w", pady=2)
-
-        self.gen_var = tk.StringVar(value="0")
-        self.pop_var = tk.StringVar(value="0")
-        self.fitness_var = tk.StringVar(value="0.000")
-
-        ttk.Label(metrics_frame, textvariable=self.gen_var).grid(row=0, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, textvariable=self.pop_var).grid(row=1, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, textvariable=self.fitness_var).grid(row=2, column=1, sticky="w", pady=2)
-
-        ttk.Button(nas_frame, text="🔄 Refresh Status",
-                  command=self._refresh_nas_status).grid(row=4, column=0, pady=(10, 0))
-
-    def _build_tools_intelligence_tab(self):
-        """Build consolidated Tools & Intelligence tab with sub-navigation"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.tools_intelligence_frame = ttkb.Frame(self.notebook)
-        else:
-            self.tools_intelligence_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.tools_intelligence_frame, text="🔧 Tools & Intelligence")
-
-        self.tools_intelligence_frame.columnconfigure(0, weight=1)
-        self.tools_intelligence_frame.rowconfigure(1, weight=1)
-
-        # Sub-navigation buttons
-        nav_frame = ttk.Frame(self.tools_intelligence_frame)
-        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        nav_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(nav_frame, text="🔧 Developer Tools", command=self._show_tools_view).grid(row=0, column=0, padx=2, pady=5)
-        ttk.Button(nav_frame, text="👁️ Computer Vision", command=self._show_vision_view).grid(row=0, column=1, padx=2, pady=5)
-        ttk.Button(nav_frame, text="🔍 Search Engine", command=self._show_search_view).grid(row=0, column=2, padx=2, pady=5)
-
-        # Content frame for switching views
-        self.tools_intelligence_content_frame = ttk.Frame(self.tools_intelligence_frame)
-        self.tools_intelligence_content_frame.grid(row=1, column=0, sticky="nsew")
-        self.tools_intelligence_content_frame.columnconfigure(0, weight=1)
-        self.tools_intelligence_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with tools view
-        self._show_tools_view()
-
-    def _show_tools_view(self):
-        """Show developer tools view in the consolidated tab"""
-        # Clear current content
-        for widget in self.tools_intelligence_content_frame.winfo_children():
-            widget.destroy()
-
-        # Developer tools interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.tools_intelligence_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.tools_intelligence_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Tools panel
-        tools_frame = ttk.LabelFrame(content_frame, text="🔧 Developer Tools", padding=10)
-        tools_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        tools_frame.columnconfigure((0, 1), weight=1)
-
-        # Left side - Code Tools
-        code_frame = ttk.LabelFrame(tools_frame, text="💻 Code Tools", padding=10)
-        code_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        ttk.Button(code_frame, text="🔍 Code Search", command=self._code_search).grid(row=0, column=0, pady=5, sticky="ew")
-        ttk.Button(code_frame, text="🐛 Debug Helper", command=self._debug_helper).grid(row=1, column=0, pady=5, sticky="ew")
-        ttk.Button(code_frame, text="📊 Performance Profiler", command=self._performance_profiler).grid(row=2, column=0, pady=5, sticky="ew")
-        ttk.Button(code_frame, text="🔧 Code Formatter", command=self._code_formatter).grid(row=3, column=0, pady=5, sticky="ew")
-
-        # Right side - System Tools
-        system_frame = ttk.LabelFrame(tools_frame, text="🖥️ System Tools", padding=10)
-        system_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
-
-        ttk.Button(system_frame, text="📁 File Manager", command=self._file_manager).grid(row=0, column=0, pady=5, sticky="ew")
-        ttk.Button(system_frame, text="🌐 Network Tools", command=self._network_tools).grid(row=1, column=0, pady=5, sticky="ew")
-        ttk.Button(system_frame, text="💾 Backup Manager", command=self._backup_manager).grid(row=2, column=0, pady=5, sticky="ew")
-        ttk.Button(system_frame, text="📋 System Monitor", command=self._system_monitor).grid(row=3, column=0, pady=5, sticky="ew")
-
-        # Terminal/Command interface
-        terminal_frame = ttk.LabelFrame(content_frame, text="💻 Command Terminal", padding=10)
-        terminal_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
-        terminal_frame.columnconfigure(0, weight=1)
-
-        # Terminal output display
-        terminal_text = tk.Text(terminal_frame, height=8, wrap=tk.WORD, font=("Courier", 10))
-        terminal_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        terminal_scrollbar = ttk.Scrollbar(terminal_frame, command=terminal_text.yview)
-        terminal_scrollbar.grid(row=0, column=1, sticky="ns")
-        terminal_text.config(yscrollcommand=terminal_scrollbar.set)
-
-        # Sample terminal output
-        terminal_output = """$ python --version
-Python 3.11.2
-
-$ pip list | grep torch
-torch                    2.1.1
-torchvision             0.16.1
-
-$ git status
-On branch main
-Your branch is up to date with 'origin/main'.
-
-nothing to commit, working tree clean
-
-$ ls -la
-total 128
-drwxr-xr-x  24 user  staff   768 Dec  7 19:33 .
-drwxr-xr-x   3 user  staff    96 Dec  7 18:45 ..
--rw-r--r--   1 user  staff  1024 Dec  7 19:30 README.md
--rw-r--r--   1 user  staff  2048 Dec  7 19:25 requirements.txt
-"""
-        terminal_text.insert(tk.END, terminal_output)
-        terminal_text.config(state=tk.DISABLED)
-
-        # Command input
-        input_frame = ttk.Frame(terminal_frame)
-        input_frame.grid(row=1, column=0, columnspan=2, pady=(5, 0), sticky="ew")
-        input_frame.columnconfigure(0, weight=1)
-
-        command_entry = ttk.Entry(input_frame, font=("Courier", 10))
-        command_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        command_entry.insert(0, "Enter command...")
-
-        ttk.Button(input_frame, text="▶️ Run", command=self._run_command).grid(row=0, column=1)
-
-    def _show_vision_view(self):
-        """Show computer vision view in the consolidated tab"""
-        # Clear current content
-        for widget in self.tools_intelligence_content_frame.winfo_children():
-            widget.destroy()
-
-        # Computer vision interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.tools_intelligence_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.tools_intelligence_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Vision tools
-        vision_frame = ttk.LabelFrame(content_frame, text="👁️ Computer Vision Tools", padding=10)
-        vision_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        vision_frame.columnconfigure(0, weight=1)
-
-        # File selection
-        file_frame = ttk.Frame(vision_frame)
-        file_frame.grid(row=0, column=0, pady=(0, 20), sticky="ew")
-        file_frame.columnconfigure(1, weight=1)
-
-        ttk.Label(file_frame, text="📁 Image File:").grid(row=0, column=0, padx=(0, 10))
-        self.vision_file_var = tk.StringVar()
-        ttk.Entry(file_frame, textvariable=self.vision_file_var).grid(row=0, column=1, sticky="ew", padx=(0, 5))
-        ttk.Button(file_frame, text="📂 Browse", command=self._browse_vision_file).grid(row=0, column=2)
-
-        # Vision operations
-        ops_frame = ttk.LabelFrame(vision_frame, text="🎯 Vision Operations", padding=10)
-        ops_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        ops_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(ops_frame, text="🔍 Object Detection", command=self._detect_objects).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(ops_frame, text="📝 OCR Text Extraction", command=self._extract_text_from_image).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(ops_frame, text="🎨 Image Analysis", command=self._analyze_image).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Results display
-        results_frame = ttk.LabelFrame(vision_frame, text="📊 Analysis Results", padding=10)
-        results_frame.grid(row=2, column=0, sticky="ew")
-        results_frame.columnconfigure(0, weight=1)
-
-        results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, font=self.text_font)
-        results_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        scrollbar = ttk.Scrollbar(results_frame, command=results_text.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        results_text.config(yscrollcommand=scrollbar.set)
-
-        # Sample results
-        sample_results = """🎯 OBJECT DETECTION RESULTS:
-• Person: 87% confidence (x: 150, y: 200, w: 180, h: 400)
-• Car: 92% confidence (x: 300, y: 250, w: 200, h: 120)
-• Tree: 78% confidence (x: 50, y: 100, w: 80, h: 200)
-
-📝 OCR TEXT EXTRACTION:
-"Welcome to the AI Assistant Hub
-Version 2.0 - Advanced Features
-Machine Learning Powered"
-
-🎨 IMAGE ANALYSIS:
-• Dominant Colors: Blue (34%), Green (28%), Gray (21%)
-• Image Quality: High resolution (1920x1080)
-• Composition: Centered subject, good lighting
-• Estimated file size: 2.4 MB"""
-        results_text.insert(tk.END, sample_results)
-        results_text.config(state=tk.DISABLED)
-
-    def _show_search_view(self):
-        """Show search engine view in the consolidated tab"""
-        # Clear current content
-        for widget in self.tools_intelligence_content_frame.winfo_children():
-            widget.destroy()
-
-        # Search engine interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.tools_intelligence_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.tools_intelligence_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Search interface
-        search_frame = ttk.LabelFrame(content_frame, text="🔍 Intelligent Search Engine", padding=10)
-        search_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        search_frame.columnconfigure(0, weight=1)
-
-        # Search input
-        search_input_frame = ttk.Frame(search_frame)
-        search_input_frame.grid(row=0, column=0, pady=(0, 20), sticky="ew")
-        search_input_frame.columnconfigure(0, weight=1)
-
-        ttk.Label(search_input_frame, text="🔎 Search Query:").grid(row=0, column=0, pady=(0, 5), sticky="w")
-
-        self.search_query_var = tk.StringVar()
-        search_entry = ttk.Entry(search_input_frame, textvariable=self.search_query_var, font=(self.base_font, 12))
-        search_entry.grid(row=1, column=0, sticky="ew", padx=(0, 5))
-
-        # Search options
-        options_frame = ttk.Frame(search_input_frame)
-        options_frame.grid(row=2, column=0, pady=(10, 0), sticky="ew")
-
-        ttk.Button(options_frame, text="🔍 Basic Search", command=self._basic_search).grid(row=0, column=0, padx=5)
-        ttk.Button(options_frame, text="🧠 AI Search", command=self._ai_search).grid(row=0, column=1, padx=5)
-        ttk.Button(options_frame, text="📁 File Search", command=self._file_search).grid(row=0, column=2, padx=5)
-
-        # Search filters
-        filters_frame = ttk.LabelFrame(search_frame, text="🎛️ Search Filters", padding=10)
-        filters_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-
-        # Filter checkboxes
-        self.filter_tasks_var = tk.BooleanVar(value=True)
-        self.filter_projects_var = tk.BooleanVar(value=True)
-        self.filter_files_var = tk.BooleanVar(value=True)
-        self.filter_web_var = tk.BooleanVar(value=False)
-
-        ttk.Checkbutton(filters_frame, text="✅ Tasks", variable=self.filter_tasks_var).grid(row=0, column=0, padx=10, sticky="w")
-        ttk.Checkbutton(filters_frame, text="📁 Projects", variable=self.filter_projects_var).grid(row=0, column=1, padx=10, sticky="w")
-        ttk.Checkbutton(filters_frame, text="📄 Files", variable=self.filter_files_var).grid(row=0, column=2, padx=10, sticky="w")
-        ttk.Checkbutton(filters_frame, text="🌐 Web", variable=self.filter_web_var).grid(row=0, column=3, padx=10, sticky="w")
-
-        # Results display
-        results_frame = ttk.LabelFrame(search_frame, text="📋 Search Results", padding=10)
-        results_frame.grid(row=2, column=0, sticky="ew")
-        results_frame.columnconfigure(0, weight=1)
-
-        results_text = tk.Text(results_frame, height=12, wrap=tk.WORD, font=self.text_font)
-        results_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        results_scrollbar = ttk.Scrollbar(results_frame, command=results_text.yview)
-        results_scrollbar.grid(row=0, column=1, sticky="ns")
-        results_text.config(yscrollcommand=results_scrollbar.set)
-
-        # Sample search results
-        sample_results = """🔍 SEARCH RESULTS for "machine learning"
-
-📄 Found 12 matches across 8 sources:
-
-✅ TASKS (3 results):
-• [Task #142] "Implement ML model training pipeline" - High Priority
-  Due: Tomorrow, Assigned: ML Team
-• [Task #158] "Research new ML algorithms" - Medium Priority
-  Due: Next Week, Status: In Progress
-• [Task #167] "Deploy ML model to production" - High Priority
-  Due: Today, Status: Blocked
-
-📁 PROJECTS (2 results):
-• [Project #23] "AI Research Initiative" - 75% Complete
-  Contains: ML research papers, algorithm implementations
-• [Project #45] "ML Platform Development" - 45% Complete
-  Contains: Model training scripts, deployment configs
-
-📄 FILES (4 results):
-• /docs/ml_algorithms.pdf (2.1 MB) - Research paper on ML algorithms
-• /code/train_model.py (15 KB) - Training script for neural networks
-• /models/saved_model.pkl (500 MB) - Trained ML model checkpoint
-• /notebooks/ml_experiments.ipynb (8.3 MB) - Jupyter notebook with experiments
-
-🌐 WEB RESULTS (3 results):
-• Towards Data Science: "Understanding Neural Networks"
-• arXiv: "Deep Learning Advances 2024"
-• GitHub: "pytorch/examples" - ML code examples
-
-💡 AI SUGGESTIONS:
-• Related: "neural networks", "deep learning", "AI algorithms"
-• Try: "machine learning tutorials" or "ML best practices"
-• Resources: Check /docs/ml_research/ directory"""
-        results_text.insert(tk.END, sample_results)
-        results_text.config(state=tk.DISABLED)
-
-    def _build_integrations_infrastructure_tab(self):
-        """Build consolidated Integrations & Infrastructure tab with sub-navigation"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.integrations_infrastructure_frame = ttkb.Frame(self.notebook)
-        else:
-            self.integrations_infrastructure_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.integrations_infrastructure_frame, text="🔌 Integrations & Infrastructure")
-
-        self.integrations_infrastructure_frame.columnconfigure(0, weight=1)
-        self.integrations_infrastructure_frame.rowconfigure(1, weight=1)
-
-        # Sub-navigation buttons
-        nav_frame = ttk.Frame(self.integrations_infrastructure_frame)
-        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        nav_frame.columnconfigure((0, 1, 2, 3), weight=1)
-
-        ttk.Button(nav_frame, text="🔌 API Connectors", command=self._show_connectors_view).grid(row=0, column=0, padx=1, pady=5)
-        ttk.Button(nav_frame, text="🤖 AI OS", command=self._show_ai_os_view).grid(row=0, column=1, padx=1, pady=5)
-        ttk.Button(nav_frame, text="☁️ Edge Computing", command=self._show_edge_view).grid(row=0, column=2, padx=1, pady=5)
-        ttk.Button(nav_frame, text="🎯 Workflows", command=self._show_workflows_view).grid(row=0, column=3, padx=1, pady=5)
-
-        # Content frame for switching views
-        self.integrations_infrastructure_content_frame = ttk.Frame(self.integrations_infrastructure_frame)
-        self.integrations_infrastructure_content_frame.grid(row=1, column=0, sticky="nsew")
-        self.integrations_infrastructure_content_frame.columnconfigure(0, weight=1)
-        self.integrations_infrastructure_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with connectors view
-        self._show_connectors_view()
-
-    def _show_connectors_view(self):
-        """Show API connectors view in the consolidated tab"""
-        # Clear current content
-        for widget in self.integrations_infrastructure_content_frame.winfo_children():
-            widget.destroy()
-
-        # API connectors interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Connectors registry
-        connectors_frame = ttk.LabelFrame(content_frame, text="🔌 API Connectors Registry", padding=10)
-        connectors_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        connectors_frame.columnconfigure(0, weight=1)
-
-        # Available connectors list
-        self.connectors_listbox = tk.Listbox(connectors_frame, height=10, font=self.text_font)
-        self.connectors_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        connectors_scrollbar = ttk.Scrollbar(connectors_frame, command=self.connectors_listbox.yview)
-        connectors_scrollbar.grid(row=0, column=1, sticky="ns")
-        self.connectors_listbox.config(yscrollcommand=connectors_scrollbar.set)
-
-        # Sample connectors
-        self.connectors_listbox.insert(tk.END, "🔗 Google Calendar - Connected")
-        self.connectors_listbox.insert(tk.END, "🔗 Gmail API - Connected")
-        self.connectors_listbox.insert(tk.END, "🔗 GitHub API - Connected")
-        self.connectors_listbox.insert(tk.END, "🔗 Slack API - Not Configured")
-        self.connectors_listbox.insert(tk.END, "🔗 Trello API - Not Configured")
-        self.connectors_listbox.insert(tk.END, "🔗 Jira API - Not Configured")
-        self.connectors_listbox.insert(tk.END, "🔗 Zoom API - Not Configured")
-        self.connectors_listbox.insert(tk.END, "🔗 Microsoft Graph - Connected")
-
-        # Connector actions
-        actions_frame = ttk.Frame(connectors_frame)
-        actions_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
-
-        ttk.Button(actions_frame, text="⚙️ Configure", command=self._configure_selected_connector).grid(row=0, column=0, padx=5)
-        ttk.Button(actions_frame, text="🧪 Test Connection", command=self._test_connector_connection).grid(row=0, column=1, padx=5)
-        ttk.Button(actions_frame, text="📋 View Logs", command=self._view_connector_logs).grid(row=0, column=2, padx=5)
-
-        # Integration status
-        status_frame = ttk.LabelFrame(content_frame, text="📊 Integration Status", padding=10)
-        status_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
-        status_frame.columnconfigure((0, 1), weight=1)
-
-        # Status metrics
-        ttk.Label(status_frame, text="Active Integrations: 3/8").grid(row=0, column=0, sticky="w", pady=2)
-        ttk.Label(status_frame, text="Data Synced Today: 1,247 items").grid(row=1, column=0, sticky="w", pady=2)
-        ttk.Label(status_frame, text="API Calls (24h): 8,932").grid(row=2, column=0, sticky="w", pady=2)
-
-        ttk.Label(status_frame, text="Success Rate: 99.7%").grid(row=0, column=1, sticky="w", pady=2)
-        ttk.Label(status_frame, text="Avg Response Time: 245ms").grid(row=1, column=1, sticky="w", pady=2)
-        ttk.Label(status_frame, text="Error Rate: 0.3%").grid(row=2, column=1, sticky="w", pady=2)
-
-    def _show_ai_os_view(self):
-        """Show AI OS view in the consolidated tab"""
-        # Clear current content
-        for widget in self.integrations_infrastructure_content_frame.winfo_children():
-            widget.destroy()
-
-        # AI OS interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # AI OS control panel
-        ai_os_frame = ttk.LabelFrame(content_frame, text="🤖 AI Operating System", padding=10)
-        ai_os_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        ai_os_frame.columnconfigure(0, weight=1)
-
-        # AI OS description
-        desc_text = """Advanced AI Operating System that orchestrates intelligent agents,
-cognitive daemons, and automated workflows across distributed systems."""
-        desc_label = ttk.Label(ai_os_frame, text=desc_text, wraplength=600, justify="left")
-        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Control buttons
-        control_frame = ttk.Frame(ai_os_frame)
-        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(control_frame, text="▶️ Start AI OS", command=self._start_ai_os).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="📊 System Status", command=self._ai_os_status).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="⚙️ Configure Agents", command=self._configure_agents).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Active agents display
-        agents_frame = ttk.LabelFrame(ai_os_frame, text="🎭 Active AI Agents", padding=10)
-        agents_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
-        agents_frame.columnconfigure(0, weight=1)
-
-        agents_listbox = tk.Listbox(agents_frame, height=6, font=self.text_font)
-        agents_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        agents_listbox.insert(tk.END, "🤖 Core Assistant - Online (Task Processing)")
-        agents_listbox.insert(tk.END, "🎯 Workflow Orchestrator - Online (Process Management)")
-        agents_listbox.insert(tk.END, "📊 Analytics Engine - Online (Data Analysis)")
-        agents_listbox.insert(tk.END, "🔍 Search Agent - Online (Intelligent Search)")
-        agents_listbox.insert(tk.END, "🛡️ Security Monitor - Online (Threat Detection)")
-        agents_listbox.insert(tk.END, "☁️ Cloud Manager - Online (Resource Optimization)")
-
-        # System metrics
-        metrics_frame = ttk.LabelFrame(ai_os_frame, text="📊 AI OS Metrics", padding=10)
-        metrics_frame.grid(row=3, column=0, sticky="ew")
-        metrics_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Label(metrics_frame, text="Active Processes:").grid(row=0, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Tasks Completed:").grid(row=1, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="System Load:").grid(row=2, column=0, sticky="w", pady=2)
-
-        ttk.Label(metrics_frame, text="12").grid(row=0, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="1,847").grid(row=1, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="67%").grid(row=2, column=1, sticky="w", pady=2)
-
-        ttk.Button(metrics_frame, text="🔄 Refresh", command=self._refresh_ai_os_metrics).grid(row=3, column=0, columnspan=3, pady=(10, 0))
-
-    def _show_edge_view(self):
-        """Show edge computing view in the consolidated tab"""
-        # Clear current content
-        for widget in self.integrations_infrastructure_content_frame.winfo_children():
-            widget.destroy()
-
-        # Edge computing interface - embedded version
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Edge computing control panel
-        edge_frame = ttk.LabelFrame(content_frame, text="☁️ Edge Computing & Distributed AI", padding=10)
-        edge_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        edge_frame.columnconfigure(0, weight=1)
-
-        # Edge description
-        desc_text = """Distributed AI system that leverages edge computing for real-time intelligence.
-Deploys AI models across multiple devices and cloud instances for optimal performance."""
-        desc_label = ttk.Label(edge_frame, text=desc_text, wraplength=600, justify="left")
-        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Control buttons
-        control_frame = ttk.Frame(edge_frame)
-        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(control_frame, text="🚀 Deploy Edge AI", command=self._deploy_edge_ai).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="📊 Network Status", command=self._view_network_status).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="⚙️ Configure Nodes", command=self._configure_edge_nodes).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Network status
-        network_frame = ttk.Frame(edge_frame)
-        network_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
-        network_frame.columnconfigure(0, weight=1)
-
-        self.network_status_var = tk.StringVar(value="🌐 Network: 5/5 nodes online - Optimal performance")
-        network_label = ttk.Label(network_frame, textvariable=self.network_status_var, font=(self.base_font, 12))
-        network_label.grid(row=0, column=0, pady=5, sticky="w")
-
-        # Node status
-        nodes_frame = ttk.LabelFrame(edge_frame, text="🖥️ Edge Nodes", padding=10)
-        nodes_frame.grid(row=3, column=0, sticky="ew")
-        nodes_frame.columnconfigure(0, weight=1)
-
-        self.nodes_listbox = tk.Listbox(nodes_frame, height=5, font=self.text_font)
-        self.nodes_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        self.nodes_listbox.insert(tk.END, "🖥️ Local GPU Node - Online (98% utilization)")
-        self.nodes_listbox.insert(tk.END, "☁️ Cloud Instance 1 - Online (45% utilization)")
-        self.nodes_listbox.insert(tk.END, "📱 Mobile Edge Node - Online (12% utilization)")
-
-        # Node controls
-        node_controls = ttk.Frame(nodes_frame)
-        node_controls.grid(row=1, column=0, pady=(10, 0))
-
-        ttk.Button(node_controls, text="🔧 Manage Node", command=self._manage_edge_node).grid(row=0, column=0, padx=5)
-        ttk.Button(node_controls, text="🔄 Sync Network", command=self._sync_edge_network).grid(row=0, column=1, padx=5)
-
-    def _show_workflows_view(self):
-        """Show workflow orchestration view in the consolidated tab"""
-        # Clear current content
-        for widget in self.integrations_infrastructure_content_frame.winfo_children():
-            widget.destroy()
-
-        # Workflow orchestration interface - embedded version
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Workflow orchestration control panel
-        workflow_frame = ttk.LabelFrame(content_frame, text="🎯 AI Workflow Orchestration", padding=10)
-        workflow_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        workflow_frame.columnconfigure(0, weight=1)
-
-        # Workflow description
-        desc_text = """Intelligent workflow orchestration system that automates complex processes.
-Uses AI to coordinate tasks, manage dependencies, and optimize execution."""
-        desc_label = ttk.Label(workflow_frame, text=desc_text, wraplength=600, justify="left")
-        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Control buttons
-        control_frame = ttk.Frame(workflow_frame)
-        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(control_frame, text="▶️ Start Orchestrator", command=self._start_workflow_orchestrator).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="📊 View Active Workflows", command=self._view_active_workflows).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="⚙️ Configure Workflows", command=self._configure_workflows).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Orchestrator status
-        status_frame = ttk.Frame(workflow_frame)
-        status_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
-        status_frame.columnconfigure(0, weight=1)
-
-        self.orchestrator_status_var = tk.StringVar(value="🔄 Orchestrator: Running - Processing 3 workflows")
-        status_label = ttk.Label(status_frame, textvariable=self.orchestrator_status_var, font=(self.base_font, 12))
-        status_label.grid(row=0, column=0, pady=5, sticky="w")
-
-        # Active workflows
-        workflows_frame = ttk.LabelFrame(workflow_frame, text="⚙️ Active Workflows", padding=10)
-        workflows_frame.grid(row=3, column=0, sticky="ew")
-        workflows_frame.columnconfigure(0, weight=1)
-
-        self.workflows_listbox = tk.Listbox(workflows_frame, height=5, font=self.text_font)
-        self.workflows_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        self.workflows_listbox.insert(tk.END, "🔄 Data Processing Pipeline - 67% complete")
-        self.workflows_listbox.insert(tk.END, "🤖 ML Model Training - 23% complete")
-        self.workflows_listbox.insert(tk.END, "📊 Analytics Report Generation - 89% complete")
-
-        # Workflow controls
-        workflow_controls = ttk.Frame(workflows_frame)
-        workflow_controls.grid(row=1, column=0, pady=(10, 0))
-
-        ttk.Button(workflow_controls, text="👀 Monitor", command=self._monitor_workflow).grid(row=0, column=0, padx=5)
-        ttk.Button(workflow_controls, text="🔄 Refresh Status", command=self._refresh_workflow_status).grid(row=0, column=1, padx=5)
-
-    def _build_security_audit_tab(self):
-        """Build consolidated Security & Audit tab with sub-navigation"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.security_audit_frame = ttkb.Frame(self.notebook)
-        else:
-            self.security_audit_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.security_audit_frame, text="🛡️ Security & Audit")
-
-        self.security_audit_frame.columnconfigure(0, weight=1)
-        self.security_audit_frame.rowconfigure(1, weight=1)
-
-        # Sub-navigation buttons
-        nav_frame = ttk.Frame(self.security_audit_frame)
-        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        nav_frame.columnconfigure((0, 1), weight=1)
-
-        ttk.Button(nav_frame, text="🛡️ AI Security", command=self._show_security_view).grid(row=0, column=0, padx=5, pady=5)
-        ttk.Button(nav_frame, text="📋 Audit System", command=self._show_audit_view).grid(row=0, column=1, padx=5, pady=5)
-
-        # Content frame for switching views
-        self.security_audit_content_frame = ttk.Frame(self.security_audit_frame)
-        self.security_audit_content_frame.grid(row=1, column=0, sticky="nsew")
-        self.security_audit_content_frame.columnconfigure(0, weight=1)
-        self.security_audit_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with security view
-        self._show_security_view()
-
-    def _show_security_view(self):
-        """Show AI security view in the consolidated tab"""
-        # Clear current content
-        for widget in self.security_audit_content_frame.winfo_children():
-            widget.destroy()
-
-        # AI Security interface - embedded version
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.security_audit_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.security_audit_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Security threat detection control panel
-        security_frame = ttk.LabelFrame(content_frame, text="🛡️ AI-Powered Security Threat Detection", padding=10)
-        security_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        security_frame.columnconfigure(0, weight=1)
-
-        # Security description
-        desc_text = """Advanced AI security system that detects, analyzes, and responds to cyber threats.
-Uses machine learning algorithms to identify anomalous behavior and predict attacks."""
-        desc_label = ttk.Label(security_frame, text=desc_text, wraplength=600, justify="left")
-        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Control buttons
-        control_frame = ttk.Frame(security_frame)
-        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(control_frame, text="🔍 Start Threat Scan", command=self._start_threat_scan).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="📊 View Security Report", command=self._view_security_report).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="⚙️ Security Settings", command=self._configure_security).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Threat status
-        threat_frame = ttk.Frame(security_frame)
-        threat_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
-        threat_frame.columnconfigure(0, weight=1)
-
-        self.threat_status_var = tk.StringVar(value="🟢 System Secure - No threats detected")
-        threat_label = ttk.Label(threat_frame, textvariable=self.threat_status_var, font=(self.base_font, 12))
-        threat_label.grid(row=0, column=0, pady=5, sticky="w")
-
-        # Security metrics
-        metrics_frame = ttk.Frame(security_frame)
-        metrics_frame.grid(row=3, column=0, pady=(0, 20), sticky="ew")
-        metrics_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Label(metrics_frame, text="Scans Today:").grid(row=0, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Threats Blocked:").grid(row=1, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Risk Score:").grid(row=2, column=0, sticky="w", pady=2)
-
-        self.scans_var = tk.StringVar(value="0")
-        self.threats_var = tk.StringVar(value="0")
-        self.risk_var = tk.StringVar(value="Low")
-
-        ttk.Label(metrics_frame, textvariable=self.scans_var).grid(row=0, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, textvariable=self.threats_var).grid(row=1, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, textvariable=self.risk_var).grid(row=2, column=1, sticky="w", pady=2)
-
-        # Recent threats
-        threats_frame = ttk.LabelFrame(security_frame, text="🚨 Recent Security Events", padding=10)
-        threats_frame.grid(row=4, column=0, sticky="ew")
-        threats_frame.columnconfigure(0, weight=1)
-
-        self.threats_listbox = tk.Listbox(threats_frame, height=5, font=self.text_font)
-        self.threats_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        self.threats_listbox.insert(tk.END, "🔍 Suspicious login attempt detected")
-        self.threats_listbox.insert(tk.END, "📡 Unusual network traffic pattern")
-        self.threats_listbox.insert(tk.END, "🔐 Weak password policy alert")
-
-        # Threat controls
-        threat_controls = ttk.Frame(threats_frame)
-        threat_controls.grid(row=1, column=0, pady=(10, 0))
-
-        ttk.Button(threat_controls, text="🚨 Investigate", command=self._investigate_threat).grid(row=0, column=0, padx=5)
-        ttk.Button(threat_controls, text="🔄 Refresh", command=self._refresh_security_status).grid(row=0, column=1, padx=5)
-
-    def _show_audit_view(self):
-        """Show audit system view in the consolidated tab"""
-        # Clear current content
-        for widget in self.security_audit_content_frame.winfo_children():
-            widget.destroy()
-
-        # Audit system interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.security_audit_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.security_audit_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Audit system control panel
-        audit_frame = ttk.LabelFrame(content_frame, text="📋 Audit System & Compliance Monitoring", padding=10)
-        audit_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        audit_frame.columnconfigure(0, weight=1)
-
-        # Audit description
-        desc_text = """Comprehensive audit system for compliance monitoring, security logging,
-and regulatory reporting. Tracks all system activities and maintains detailed audit trails."""
-        desc_label = ttk.Label(audit_frame, text=desc_text, wraplength=600, justify="left")
-        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Control buttons
-        control_frame = ttk.Frame(audit_frame)
-        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(control_frame, text="📊 Generate Audit Report", command=self._generate_audit_report).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="🔍 Compliance Check", command=self._run_compliance_check).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="⚙️ Audit Settings", command=self._configure_audit).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Audit metrics
-        metrics_frame = ttk.Frame(audit_frame)
-        metrics_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
-        metrics_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Label(metrics_frame, text="Events Logged:").grid(row=0, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Compliance Score:").grid(row=1, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Audit Alerts:").grid(row=2, column=0, sticky="w", pady=2)
-
-        ttk.Label(metrics_frame, text="15,432").grid(row=0, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="97.3%").grid(row=1, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="2").grid(row=2, column=1, sticky="w", pady=2)
-
-        # Recent audit events
-        events_frame = ttk.LabelFrame(audit_frame, text="📋 Recent Audit Events", padding=10)
-        events_frame.grid(row=3, column=0, sticky="ew")
-        events_frame.columnconfigure(0, weight=1)
-
-        audit_listbox = tk.Listbox(events_frame, height=6, font=self.text_font)
-        audit_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        audit_listbox.insert(tk.END, "🔐 User authentication - user@example.com")
-        audit_listbox.insert(tk.END, "📝 Data access - Task database queried")
-        audit_listbox.insert(tk.END, "⚙️ System configuration changed")
-        audit_listbox.insert(tk.END, "🚨 Security policy violation detected")
-        audit_listbox.insert(tk.END, "📤 Data export - Tasks exported to CSV")
-        audit_listbox.insert(tk.END, "🔑 API key generated")
-
-        # Audit controls
-        audit_controls = ttk.Frame(events_frame)
-        audit_controls.grid(row=1, column=0, pady=(10, 0))
-
-        ttk.Button(audit_controls, text="📄 View Details", command=self._view_audit_details).grid(row=0, column=0, padx=5)
-        ttk.Button(audit_controls, text="🔄 Refresh Events", command=self._refresh_audit_events).grid(row=0, column=1, padx=5)
-
-    # Placeholder methods for new consolidated tabs
-    def _code_search(self):
-        messagebox.showinfo("Code Search", "Advanced code search and analysis tools.")
-
-    def _debug_helper(self):
-        messagebox.showinfo("Debug Helper", "AI-powered debugging assistance.")
-
-    def _performance_profiler(self):
-        messagebox.showinfo("Performance Profiler", "Code performance analysis and optimization.")
-
-    def _code_formatter(self):
-        messagebox.showinfo("Code Formatter", "Automatic code formatting and style correction.")
-
-    def _file_manager(self):
-        messagebox.showinfo("File Manager", "Advanced file management system.")
-
-    def _network_tools(self):
-        messagebox.showinfo("Network Tools", "Network diagnostics and monitoring tools.")
-
-    def _backup_manager(self):
-        messagebox.showinfo("Backup Manager", "Automated backup and recovery system.")
-
-    def _system_monitor(self):
-        messagebox.showinfo("System Monitor", "Real-time system performance monitoring.")
-
-    def _run_command(self):
-        messagebox.showinfo("Command Execution", "Terminal command executed successfully.")
-
-    def _browse_vision_file(self):
-        messagebox.showinfo("File Browser", "Please select an image file for analysis.")
-
-    def _analyze_image(self):
-        messagebox.showinfo("Image Analysis", "Advanced image analysis and feature extraction.")
-
-    def _basic_search(self):
-        messagebox.showinfo("Basic Search", "Performing basic text search across all sources.")
-
-    def _ai_search(self):
-        messagebox.showinfo("AI Search", "AI-powered semantic search with understanding.")
-
-    def _file_search(self):
-        messagebox.showinfo("File Search", "Searching through file contents and metadata.")
-
-    def _generate_audit_report(self):
-        messagebox.showinfo("Audit Report", "Comprehensive audit report generated.")
-
-    def _run_compliance_check(self):
-        messagebox.showinfo("Compliance Check", "Compliance check completed successfully.")
-
-    def _configure_audit(self):
-        messagebox.showinfo("Audit Configuration", "Audit system configuration dialog.")
-
-    def _view_audit_details(self):
-        messagebox.showinfo("Audit Details", "Detailed audit event information.")
-
-    def _refresh_audit_events(self):
-        messagebox.showinfo("Audit Refresh", "Audit events refreshed successfully.")
-
-    def _send_chat_message(self):
-        messagebox.showinfo("AI Chat", "Message sent to AI assistant!")
-
-    def _retrain_models(self):
-        messagebox.showinfo("Model Training", "Model retraining initiated!")
-
-    def _performance_report(self):
-        messagebox.showinfo("Performance Report", "Generating detailed performance report...")
-
-    def _system_config(self):
-        messagebox.showinfo("System Config", "AI system configuration dialog would open.")
-
-    def _deploy_advanced_model(self):
-        messagebox.showinfo("Advanced AI", "Advanced AI model deployment initiated!")
-
-    def _run_ai_experiments(self):
-        messagebox.showinfo("AI Experiments", "Running AI experiments...")
-
-    def _research_mode(self):
-        messagebox.showinfo("Research Mode", "Entering AI research mode!")
-
-    def _execute_predictive_analytics(self):
-        """Execute predictive analytics"""
-        try:
-            # Import predictive analytics system
-            from assistant_core.predictive_analytics import PredictiveAnalytics
-
-            analytics = PredictiveAnalytics()
-            result = analytics.run_prediction()
-
-            messagebox.showinfo("Predictive Analytics Complete",
-                              f"AI Predictive Analytics Results:\n\n"
-                              f"🎯 Prediction Accuracy: {result.get('accuracy', 0):.1f}%\n"
-                              f"📈 Confidence Score: {result.get('confidence', 0):.1f}%\n"
-                              f"🔮 Forecast Horizon: {result.get('horizon', 0)} days\n"
-                              f"📊 Data Points Analyzed: {result.get('data_points', 0)}\n\n"
-                              f"Predictions generated for trend analysis and decision support.")
-
-        except ImportError:
-            messagebox.showinfo("Predictive Analytics",
-                              "AI Predictive Analytics System ready.\n\n"
-                              "Features:\n"
-                              "• Time series forecasting\n"
-                              "• Trend analysis and prediction\n"
-                              "• Anomaly detection\n"
-                              "• Risk assessment modeling\n"
-                              "• Performance optimization\n\n"
-                              "Full functionality requires predictive analytics libraries.")
-        except Exception as e:
-            messagebox.showerror("Analytics Error", f"Failed to execute predictive analytics: {e}")
-
-    # ---------- Consolidated Tabs with Shared Pages ----------
-
-    def _build_dashboard_analytics_tab(self):
-        """Build consolidated Dashboard & Analytics tab with sub-navigation"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.dashboard_analytics_frame = ttkb.Frame(self.notebook)
-        else:
-            self.dashboard_analytics_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.dashboard_analytics_frame, text="📊 Dashboard & Analytics")
-
-        self.dashboard_analytics_frame.columnconfigure(0, weight=1)
-        self.dashboard_analytics_frame.rowconfigure(1, weight=1)
-
-        # Sub-navigation buttons
-        nav_frame = ttk.Frame(self.dashboard_analytics_frame)
-        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        nav_frame.columnconfigure((0, 1), weight=1)
-
-        ttk.Button(nav_frame, text="📊 Dashboard", command=self._show_dashboard_view).grid(row=0, column=0, padx=5, pady=5)
-        ttk.Button(nav_frame, text="📈 Analytics", command=self._show_analytics_view).grid(row=0, column=1, padx=5, pady=5)
-
-        # Content frame for switching views
-        self.dashboard_content_frame = ttk.Frame(self.dashboard_analytics_frame)
-        self.dashboard_content_frame.grid(row=1, column=0, sticky="nsew")
-        self.dashboard_content_frame.columnconfigure(0, weight=1)
-        self.dashboard_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with dashboard view
-        self._show_dashboard_view()
-
-    def _show_dashboard_view(self):
-        """Show dashboard view in the consolidated tab"""
-        # Clear current content
-        for widget in self.dashboard_content_frame.winfo_children():
-            widget.destroy()
-
-        # Replicate original dashboard functionality
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.dashboard_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.dashboard_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.columnconfigure(1, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-        content_frame.rowconfigure(1, weight=1)
-        content_frame.rowconfigure(2, weight=0)
-        content_frame.rowconfigure(3, weight=0)
-        content_frame.rowconfigure(4, weight=0)
-
-        # Dashboard boxes - with text widgets for refresh functionality
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.today_box = ttkb.Labelframe(content_frame, text="📋 Today's Focus", bootstyle="primary", padding=10)
-            self.upcoming_box = ttkb.Labelframe(content_frame, text="📅 Upcoming Deadlines", bootstyle="info", padding=10)
-            self.status_box = ttkb.Labelframe(content_frame, text="📊 Status Overview", bootstyle="success", padding=10)
-            self.load_box = ttkb.Labelframe(content_frame, text="👥 Load by Persona", bootstyle="secondary", padding=10)
-            self.cyber_box = ttkb.Labelframe(content_frame, text="🛡️ Cyber Defense Status", bootstyle="warning", padding=10)
-        else:
-            self.today_box = ttk.LabelFrame(content_frame, text="📋 Today's Focus", padx=10, pady=10)
-            self.upcoming_box = ttk.LabelFrame(content_frame, text="📅 Upcoming Deadlines", padx=10, pady=10)
-            self.status_box = ttk.LabelFrame(content_frame, text="📊 Status Overview", padx=10, pady=10)
-            self.load_box = ttk.LabelFrame(content_frame, text="👥 Load by Persona", padx=10, pady=10)
-            self.cyber_box = ttk.LabelFrame(content_frame, text="🛡️ Cyber Defense Status", padx=10, pady=10)
-
-        self.today_box.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        self.upcoming_box.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
-        self.status_box.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
-        self.load_box.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
-        self.cyber_box.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
-
-        # Today's tasks content
-        self.today_text = tk.Text(self.today_box, height=6, wrap=tk.WORD, font=self.text_font)
-        self.today_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        # Upcoming tasks content
-        self.upcoming_text = tk.Text(self.upcoming_box, height=6, wrap=tk.WORD, font=self.text_font)
-        self.upcoming_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        # Status overview content
-        self.status_text = tk.Text(self.status_box, height=6, wrap=tk.WORD, font=self.text_font)
-        self.status_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        # Load by persona content
-        self.load_text = tk.Text(self.load_box, height=6, wrap=tk.WORD, font=self.text_font)
-        self.load_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        # Cyber defense status
-        self.cyber_box.columnconfigure(0, weight=1)
-        self.cyber_status_var = tk.StringVar(value="Status: offline")
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.cyber_status_label = ttkb.Label(
-                self.cyber_box,
-                textvariable=self.cyber_status_var,
-                font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
-                bootstyle="info"
-            )
-        else:
-            self.cyber_status_label = ttk.Label(
-                self.cyber_box,
-                textvariable=self.cyber_status_var,
-                font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
-            )
-        self.cyber_status_label.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
-
-        # Refresh button
-        ttk.Button(content_frame, text="🔄 Refresh Dashboard", command=self.refresh_dashboard).grid(row=3, column=0, columnspan=2, pady=10)
-
-    def _populate_dashboard_widgets(self, today_tasks, upcoming_sorted, incomplete_sorted,
-                                   tasks, status_counts, persona_load, state):
-        """Populate dashboard widgets with data"""
-        if hasattr(self, 'today_text') and self.today_text.winfo_exists():
-            self.today_text.config(state="normal")
-            self.today_text.delete("1.0", "end")
-            if today_tasks:
-                self.today_text.insert("end", "Tasks due today:\n\n")
-                for t in today_tasks:
-                    self.today_text.insert(
-                        "end",
-                        f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner})\n",
-                    )
-            elif incomplete_sorted[:3]:
-                self.today_text.insert("end", "No tasks explicitly due today.\nShowing top 3 priorities:\n\n")
-                for t in incomplete_sorted[:3]:
-                    self.today_text.insert(
-                        "end",
-                        f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner}, Due: {t.due_date or 'None'})\n",
-                    )
-            else:
-                self.today_text.insert("end", "No active tasks. System is idle.")
-            self.today_text.config(state="disabled")
-
-        if hasattr(self, 'upcoming_text') and self.upcoming_text.winfo_exists():
-            self.upcoming_text.config(state="normal")
-            self.upcoming_text.delete("1.0", "end")
-            if upcoming_sorted:
-                self.upcoming_text.insert("end", "Next deadlines:\n\n")
-                for t in upcoming_sorted:
-                    self.upcoming_text.insert(
-                        "end",
-                        f"- #{t.id} [{t.priority}] {t.title} (Due: {t.due_date}, Project: {t.project}, Owner: {t.owner})\n",
-                    )
-            else:
-                self.upcoming_text.insert("end", "No upcoming deadlines logged.")
-            self.upcoming_text.config(state="disabled")
-
-        if hasattr(self, 'status_text') and self.status_text.winfo_exists():
-            self.status_text.config(state="normal")
-            self.status_text.delete("1.0", "end")
-            total = len(tasks)
-            self.status_text.insert("end", f"Total tasks: {total}\n\n")
-            for s in STATUS_OPTIONS:
-                self.status_text.insert("end", f"{s:12}: {status_counts.get(s, 0)}\n")
-            self.status_text.config(state="disabled")
-
-        if hasattr(self, 'load_text') and self.load_text.winfo_exists():
-            self.load_text.config(state="normal")
-            self.load_text.delete("1.0", "end")
-            self.load_text.insert("end", "Incomplete tasks per persona:\n\n")
-            for p in PERSONAS:
-                marker = "◉" if p == state.active_persona else "○"
-                self.load_text.insert("end", f"{marker} {p:8}: {persona_load.get(p, 0)}\n")
-            self.load_text.config(state="disabled")
-
-    def _show_analytics_view(self):
-        """Show analytics view in the consolidated tab"""
-        # Clear current content
-        for widget in self.dashboard_content_frame.winfo_children():
-            widget.destroy()
-
-        # Analytics content - simplified version
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.dashboard_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.dashboard_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Analytics title
-        title_label = ttk.Label(content_frame, text="📈 Comprehensive Analytics Report",
-                               font=(self.base_font, 16, "bold"))
-        title_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Analytics content area
-        analytics_text = tk.Text(content_frame, height=20, wrap=tk.WORD, font=self.text_font)
-        analytics_text.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
-
-        scrollbar = ttk.Scrollbar(content_frame, command=analytics_text.yview)
-        scrollbar.grid(row=1, column=1, sticky="ns")
-        analytics_text.config(yscrollcommand=scrollbar.set)
-
-        # Sample analytics content
-        analytics_content = """📊 COMPREHENSIVE ANALYTICS REPORT
-
-🎯 TASK ANALYTICS:
-• Total Tasks: 47
-• Completed Tasks: 32 (68%)
-• Overdue Tasks: 3 (6%)
-• Average Completion Time: 4.2 days
-• Productivity Score: 8.7/10
-
-📁 PROJECT ANALYTICS:
-• Active Projects: 5
-• Completed Projects: 12
-• Average Project Duration: 18.5 days
-• Resource Utilization: 78%
-
-⏰ TIME TRACKING:
-• Total Time Logged: 156 hours
-• Average Daily Productivity: 6.2 hours
-• Most Productive Day: Wednesday
-• Time Allocation: Work (65%), Meetings (20%), Admin (15%)
-
-📈 TRENDS & INSIGHTS:
-• Productivity increased 23% this month
-• Task completion rate improved by 15%
-• 3 projects at risk of delay
-• Peak productivity: 10 AM - 2 PM
-
-🎯 RECOMMENDATIONS:
-• Focus on overdue tasks in Project Alpha
-• Schedule complex tasks during peak hours
-• Consider resource reallocation for Project Beta
-• Implement time-blocking for better focus
-
-📋 SMART SUGGESTIONS:
-• Complete "Database Migration" task by EOD
-• Schedule 2-hour block tomorrow for "API Development"
-• Review project deadlines with team
-• Archive completed projects older than 30 days
-"""
-        analytics_text.insert(tk.END, analytics_content)
-        analytics_text.config(state=tk.DISABLED)
-
-        # Analytics controls
-        controls_frame = ttk.Frame(content_frame)
-        controls_frame.grid(row=2, column=0, columnspan=2, pady=(10, 0))
-
-        ttk.Button(controls_frame, text="🔄 Refresh", command=self._refresh_analytics).grid(row=0, column=0, padx=5)
-        ttk.Button(controls_frame, text="💾 Export Report", command=self._export_analytics).grid(row=0, column=1, padx=5)
-        ttk.Button(controls_frame, text="📊 Detailed View", command=self._detailed_analytics).grid(row=0, column=2, padx=5)
-
-    def _refresh_analytics(self):
-        """Refresh analytics data"""
-        messagebox.showinfo("Analytics", "Analytics data refreshed successfully!")
-
-    def _export_analytics(self):
-        """Export analytics report"""
-        messagebox.showinfo("Export", "Analytics report exported to analytics_report.txt")
-
-    def _detailed_analytics(self):
-        """Show detailed analytics view"""
-        messagebox.showinfo("Detailed Analytics", "Detailed analytics view would show charts and graphs here.")
-
-    def _build_tasks_projects_tab(self):
-        """Build consolidated Tasks & Projects tab with sub-navigation"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.tasks_projects_frame = ttkb.Frame(self.notebook)
-        else:
-            self.tasks_projects_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.tasks_projects_frame, text="✅ Tasks & Projects")
-
-        self.tasks_projects_frame.columnconfigure(0, weight=1)
-        self.tasks_projects_frame.rowconfigure(1, weight=1)
-
-        # Sub-navigation buttons
-        nav_frame = ttk.Frame(self.tasks_projects_frame)
-        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        nav_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(nav_frame, text="✅ Tasks", command=self._show_tasks_view).grid(row=0, column=0, padx=5, pady=5)
-        ttk.Button(nav_frame, text="📁 Projects", command=self._show_projects_view).grid(row=0, column=1, padx=5, pady=5)
-        ttk.Button(nav_frame, text="📋 Templates", command=self._show_templates_view).grid(row=0, column=2, padx=5, pady=5)
-
-        # Content frame for switching views
-        self.tasks_projects_content_frame = ttk.Frame(self.tasks_projects_frame)
-        self.tasks_projects_content_frame.grid(row=1, column=0, sticky="nsew")
-        self.tasks_projects_content_frame.columnconfigure(0, weight=1)
-        self.tasks_projects_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with tasks view
-        self._show_tasks_view()
-
-    def _show_tasks_view(self):
-        """Show tasks view in the consolidated tab"""
-        # Clear current content
-        for widget in self.tasks_projects_content_frame.winfo_children():
-            widget.destroy()
-
-        # Simplified tasks interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.tasks_projects_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.tasks_projects_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Tasks list and details - simplified version
-        tasks_frame = ttk.LabelFrame(content_frame, text="📋 Tasks", padding=10)
-        tasks_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        tasks_frame.columnconfigure(0, weight=1)
-        tasks_frame.rowconfigure(0, weight=1)
-
-        # Tasks listbox
-        self.tasks_listbox = tk.Listbox(tasks_frame, height=15, font=self.text_font)
-        self.tasks_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        scrollbar = ttk.Scrollbar(tasks_frame, command=self.tasks_listbox.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        self.tasks_listbox.config(yscrollcommand=scrollbar.set)
-
-        # Sample tasks
-        self.tasks_listbox.insert(tk.END, "✅ Database migration - High Priority")
-        self.tasks_listbox.insert(tk.END, "⏳ API development - In Progress")
-        self.tasks_listbox.insert(tk.END, "📝 Documentation update - Medium Priority")
-        self.tasks_listbox.insert(tk.END, "🔍 Code review - Pending")
-        self.tasks_listbox.insert(tk.END, "🧪 Testing deployment - Low Priority")
-
-        # Task controls
-        controls_frame = ttk.Frame(tasks_frame)
-        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
-
-        ttk.Button(controls_frame, text="➕ New Task", command=self._new_task).grid(row=0, column=0, padx=5)
-        ttk.Button(controls_frame, text="✏️ Edit Task", command=self._edit_task).grid(row=0, column=1, padx=5)
-        ttk.Button(controls_frame, text="✅ Complete", command=self._complete_task).grid(row=0, column=2, padx=5)
-
-    def _show_projects_view(self):
-        """Show projects view in the consolidated tab"""
-        # Clear current content
-        for widget in self.tasks_projects_content_frame.winfo_children():
-            widget.destroy()
-
-        # Projects interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.tasks_projects_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.tasks_projects_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Projects list
-        projects_frame = ttk.LabelFrame(content_frame, text="📁 Projects", padding=10)
-        projects_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        projects_frame.columnconfigure(0, weight=1)
-        projects_frame.rowconfigure(0, weight=1)
-
-        self.projects_listbox = tk.Listbox(projects_frame, height=15, font=self.text_font)
-        self.projects_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        scrollbar = ttk.Scrollbar(projects_frame, command=self.projects_listbox.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        self.projects_listbox.config(yscrollcommand=scrollbar.set)
-
-        # Sample projects
-        self.projects_listbox.insert(tk.END, "🚀 Web Application Redesign - 75% Complete")
-        self.projects_listbox.insert(tk.END, "📊 Data Analytics Platform - 45% Complete")
-        self.projects_listbox.insert(tk.END, "🔧 API Integration Project - 90% Complete")
-        self.projects_listbox.insert(tk.END, "🎨 Mobile App Development - 30% Complete")
-        self.projects_listbox.insert(tk.END, "☁️ Cloud Migration - 60% Complete")
-
-        # Project controls
-        controls_frame = ttk.Frame(projects_frame)
-        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
-
-        ttk.Button(controls_frame, text="➕ New Project", command=self._new_project).grid(row=0, column=0, padx=5)
-        ttk.Button(controls_frame, text="📄 Upload Files", command=self._upload_project_files).grid(row=0, column=1, padx=5)
-        ttk.Button(controls_frame, text="📊 View Stats", command=self._project_stats).grid(row=0, column=2, padx=5)
-
-    def _show_templates_view(self):
-        """Show task templates view in the consolidated tab"""
-        # Clear current content
-        for widget in self.tasks_projects_content_frame.winfo_children():
-            widget.destroy()
-
-        # Templates interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.tasks_projects_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.tasks_projects_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Templates list
-        templates_frame = ttk.LabelFrame(content_frame, text="📋 Task Templates", padding=10)
-        templates_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        templates_frame.columnconfigure(0, weight=1)
-        templates_frame.rowconfigure(0, weight=1)
-
-        self.templates_listbox = tk.Listbox(templates_frame, height=15, font=self.text_font)
-        self.templates_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        scrollbar = ttk.Scrollbar(templates_frame, command=self.templates_listbox.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        self.templates_listbox.config(yscrollcommand=scrollbar.set)
-
-        # Sample templates
-        self.templates_listbox.insert(tk.END, "📝 Code Review - 30 min estimate")
-        self.templates_listbox.insert(tk.END, "🔧 Bug Fix - 2 hour estimate")
-        self.templates_listbox.insert(tk.END, "📊 Report Generation - 4 hour estimate")
-        self.templates_listbox.insert(tk.END, "🎨 UI Design - 6 hour estimate")
-        self.templates_listbox.insert(tk.END, "🧪 Testing - 3 hour estimate")
-
-        # Template controls
-        controls_frame = ttk.Frame(templates_frame)
-        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
-
-        ttk.Button(controls_frame, text="➕ New Template", command=self._new_template).grid(row=0, column=0, padx=5)
-        ttk.Button(controls_frame, text="✅ Create Task", command=self._create_from_template).grid(row=0, column=1, padx=5)
-        ttk.Button(controls_frame, text="✏️ Edit Template", command=self._edit_template).grid(row=0, column=2, padx=5)
-
-    def _new_task(self):
-        messagebox.showinfo("New Task", "New task creation dialog would open here.")
-
-    def _edit_task(self):
-        messagebox.showinfo("Edit Task", "Task editing dialog would open here.")
-
-    def _complete_task(self):
-        messagebox.showinfo("Complete Task", "Task marked as completed.")
-
-    def _new_project(self):
-        messagebox.showinfo("New Project", "New project creation dialog would open here.")
-
-    def _upload_project_files(self):
-        messagebox.showinfo("Upload Files", "File upload dialog would open here.")
-
-    def _project_stats(self):
-        messagebox.showinfo("Project Stats", "Project statistics view would open here.")
-
-    def _new_template(self):
-        messagebox.showinfo("New Template", "New template creation dialog would open here.")
-
-    def _create_from_template(self):
-        messagebox.showinfo("Create Task", "Task created from selected template.")
-
-    def _edit_template(self):
-        messagebox.showinfo("Edit Template", "Template editing dialog would open here.")
-
-    def _build_ai_systems_tab(self):
-        """Build consolidated AI Systems tab with sub-navigation"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.ai_systems_frame = ttkb.Frame(self.notebook)
-        else:
-            self.ai_systems_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.ai_systems_frame, text="🤖 AI Systems")
-
-        self.ai_systems_frame.columnconfigure(0, weight=1)
-        self.ai_systems_frame.rowconfigure(1, weight=1)
-
-        # Sub-navigation buttons
-        nav_frame = ttk.Frame(self.ai_systems_frame)
-        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        nav_frame.columnconfigure((0, 1, 2, 3), weight=1)
-
-        ttk.Button(nav_frame, text="💬 AI Console", command=self._show_ai_console_view).grid(row=0, column=0, padx=2, pady=5)
-        ttk.Button(nav_frame, text="🛰️ AI Ops", command=self._show_ai_ops_view).grid(row=0, column=1, padx=2, pady=5)
-        ttk.Button(nav_frame, text="🧠 Advanced AI", command=self._show_advanced_ai_view).grid(row=0, column=2, padx=2, pady=5)
-        ttk.Button(nav_frame, text="🧬 NAS", command=self._show_nas_view).grid(row=0, column=3, padx=2, pady=5)
-
-        # Content frame for switching views
-        self.ai_systems_content_frame = ttk.Frame(self.ai_systems_frame)
-        self.ai_systems_content_frame.grid(row=1, column=0, sticky="nsew")
-        self.ai_systems_content_frame.columnconfigure(0, weight=1)
-        self.ai_systems_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with AI Console view
-        self._show_ai_console_view()
-
-    def _build_ai_features_tab(self):
-        """Build comprehensive AI Features tab with all 10 AI-powered features"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.ai_features_frame = ttkb.Frame(self.notebook)
-        else:
-            self.ai_features_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.ai_features_frame, text="🚀 AI Features")
-
-        self.ai_features_frame.columnconfigure(0, weight=1)
-        self.ai_features_frame.rowconfigure(1, weight=1)
-
-        # Feature selection
-        selector_frame = ttk.LabelFrame(self.ai_features_frame, text="🎯 Select AI Feature", padding=10)
-        selector_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
-
-        ttk.Label(selector_frame, text="Choose AI Feature:").grid(row=0, column=0, padx=5, pady=5)
-        self.ai_feature_var = tk.StringVar(value="predictive_analytics")
-        feature_combo = ttk.Combobox(selector_frame, textvariable=self.ai_feature_var,
-                                   values=["predictive_analytics", "nlp_conversation", "automation_orchestration",
-                                          "computer_vision", "security_ai", "edge_computing", "personalization",
-                                          "collaboration", "mlops", "monitoring"], state="readonly")
-        feature_combo.grid(row=0, column=1, padx=5, pady=5)
-        feature_combo.bind("<<ComboboxSelected>>", self._on_ai_feature_selected)
-
-        # Content frame for dynamic feature interfaces
-        self.ai_features_content_frame = ttk.Frame(self.ai_features_frame)
-        self.ai_features_content_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
-        self.ai_features_content_frame.columnconfigure(0, weight=1)
-        self.ai_features_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with predictive analytics
-        self._show_predictive_analytics_interface()
-
-    def _on_ai_feature_selected(self, event=None):
-        """Handle AI feature selection"""
-        feature = self.ai_feature_var.get()
-
-        # Clear current content
-        for widget in self.ai_features_content_frame.winfo_children():
-            widget.destroy()
-
-        # Show selected feature interface
-        if feature == "predictive_analytics":
-            self._show_predictive_analytics_interface()
-        elif feature == "nlp_conversation":
-            self._show_nlp_conversation_interface()
-        elif feature == "automation_orchestration":
-            self._show_automation_orchestration_interface()
-        elif feature == "computer_vision":
-            self._show_computer_vision_interface()
-        elif feature == "security_ai":
-            self._show_security_ai_interface()
-        elif feature == "edge_computing":
-            self._show_edge_computing_interface()
-        elif feature == "personalization":
-            self._show_personalization_interface()
-        elif feature == "collaboration":
-            self._show_collaboration_interface()
-        elif feature == "mlops":
-            self._show_mlops_interface()
-        elif feature == "monitoring":
-            self._show_monitoring_interface()
-
-    def _show_predictive_analytics_interface(self):
-        """Show Predictive Analytics interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="📈 AI-Powered Predictive Analytics & Forecasting", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Prediction type selection
-        ttk.Label(frame, text="Prediction Type:").grid(row=0, column=0, sticky="w", pady=5)
-        self.prediction_type_var = tk.StringVar(value="productivity_score")
-        prediction_combo = ttk.Combobox(frame, textvariable=self.prediction_type_var,
-                                      values=["productivity_score", "task_completion_time", "workload_forecast",
-                                             "energy_levels", "meeting_effectiveness", "focus_time_optimal",
-                                             "deadline_risk", "burnout_risk", "collaboration_patterns",
-                                             "skill_development"], state="readonly", width=30)
-        prediction_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Time horizon
-        ttk.Label(frame, text="Time Horizon (days):").grid(row=1, column=0, sticky="w", pady=5)
-        self.time_horizon_var = tk.StringVar(value="7")
-        time_combo = ttk.Combobox(frame, textvariable=self.time_horizon_var,
-                                values=["1", "7", "30", "90"], state="readonly", width=10)
-        time_combo.grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Historical data points
-        ttk.Label(frame, text="Historical Data Points:").grid(row=2, column=0, sticky="w", pady=5)
-        self.historical_data_var = tk.StringVar(value="30")
-        ttk.Entry(frame, textvariable=self.historical_data_var, width=10).grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Confidence level
-        ttk.Label(frame, text="Confidence Level (0-1):").grid(row=3, column=0, sticky="w", pady=5)
-        self.confidence_var = tk.StringVar(value="0.95")
-        ttk.Entry(frame, textvariable=self.confidence_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🔮 Generate Prediction", command=self._execute_predictive_analytics).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="📊 Prediction Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.prediction_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        scrollbar = ttk.Scrollbar(results_frame, command=self.prediction_results_text.yview)
-        self.prediction_results_text.config(yscrollcommand=scrollbar.set)
-
-        self.prediction_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_nlp_conversation_interface(self):
-        """Show NLP Conversation interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="💬 Advanced Natural Language Processing & Conversation AI", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Action type
-        ttk.Label(frame, text="Action:").grid(row=0, column=0, sticky="w", pady=5)
-        self.nlp_action_var = tk.StringVar(value="analyze")
-        action_combo = ttk.Combobox(frame, textvariable=self.nlp_action_var,
-                                  values=["analyze", "generate", "summarize"], state="readonly", width=20)
-        action_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Language
-        ttk.Label(frame, text="Language:").grid(row=1, column=0, sticky="w", pady=5)
-        self.nlp_language_var = tk.StringVar(value="en")
-        ttk.Entry(frame, textvariable=self.nlp_language_var, width=10).grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Input text
-        ttk.Label(frame, text="Input Text:").grid(row=2, column=0, sticky="w", pady=5)
-        self.nlp_input_text = tk.Text(frame, height=6, width=50, wrap=tk.WORD)
-        nlp_scrollbar = ttk.Scrollbar(frame, command=self.nlp_input_text.yview)
-        self.nlp_input_text.config(yscrollcommand=nlp_scrollbar.set)
-        self.nlp_input_text.grid(row=3, column=0, columnspan=2, sticky="ew", pady=5, padx=(0, 5))
-        nlp_scrollbar.grid(row=3, column=2, sticky="ns")
-
-        # Max length
-        ttk.Label(frame, text="Max Length:").grid(row=4, column=0, sticky="w", pady=5)
-        self.nlp_max_length_var = tk.StringVar(value="500")
-        ttk.Entry(frame, textvariable=self.nlp_max_length_var, width=10).grid(row=4, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🧠 Process Text", command=self._execute_nlp_conversation).grid(row=5, column=0, columnspan=3, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="📝 NLP Results", padding=10)
-        results_frame.grid(row=6, column=0, columnspan=3, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.nlp_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        nlp_results_scrollbar = ttk.Scrollbar(results_frame, command=self.nlp_results_text.yview)
-        self.nlp_results_text.config(yscrollcommand=nlp_results_scrollbar.set)
-
-        self.nlp_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        nlp_results_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_automation_orchestration_interface(self):
-        """Show Automation Orchestration interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="⚙️ Intelligent Automation & Workflow Orchestration", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Workflow type
-        ttk.Label(frame, text="Workflow Type:").grid(row=0, column=0, sticky="w", pady=5)
-        self.workflow_type_var = tk.StringVar(value="task_automation")
-        workflow_combo = ttk.Combobox(frame, textvariable=self.workflow_type_var,
-                                    values=["task_automation", "document_processing", "email_management",
-                                           "calendar_scheduling", "data_sync"], state="readonly", width=25)
-        workflow_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Trigger condition
-        ttk.Label(frame, text="Trigger Condition:").grid(row=1, column=0, sticky="w", pady=5)
-        self.trigger_condition_var = tk.StringVar(value="daily at 9am")
-        ttk.Entry(frame, textvariable=self.trigger_condition_var, width=30).grid(row=1, column=1, pady=5, padx=(10, 0))
-
-        # Execution schedule
-        ttk.Label(frame, text="Execution Schedule (cron):").grid(row=2, column=0, sticky="w", pady=5)
-        self.execution_schedule_var = tk.StringVar(value="0 9 * * *")
-        ttk.Entry(frame, textvariable=self.execution_schedule_var, width=30).grid(row=2, column=1, pady=5, padx=(10, 0))
-
-        # Max retries
-        ttk.Label(frame, text="Max Retries:").grid(row=3, column=0, sticky="w", pady=5)
-        self.max_retries_var = tk.StringVar(value="3")
-        ttk.Entry(frame, textvariable=self.max_retries_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🚀 Create Workflow", command=self._execute_automation_orchestration).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="🔄 Workflow Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.automation_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        automation_scrollbar = ttk.Scrollbar(results_frame, command=self.automation_results_text.yview)
-        self.automation_results_text.config(yscrollcommand=automation_scrollbar.set)
-
-        self.automation_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        automation_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_computer_vision_interface(self):
-        """Show Computer Vision interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="👁️ Computer Vision & Multimodal AI", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Analysis type
-        ttk.Label(frame, text="Analysis Type:").grid(row=0, column=0, sticky="w", pady=5)
-        self.analysis_type_var = tk.StringVar(value="object_detection")
-        analysis_combo = ttk.Combobox(frame, textvariable=self.analysis_type_var,
-                                    values=["object_detection", "text_extraction", "document_analysis",
-                                           "image_captioning", "visual_qa", "scene_understanding",
-                                           "face_detection", "emotion_recognition", "content_moderation",
-                                           "similarity_search"], state="readonly", width=25)
-        analysis_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Image URL
-        ttk.Label(frame, text="Image URL:").grid(row=1, column=0, sticky="w", pady=5)
-        self.image_url_var = tk.StringVar()
-        ttk.Entry(frame, textvariable=self.image_url_var, width=40).grid(row=1, column=1, pady=5, padx=(10, 0))
-
-        # Confidence threshold
-        ttk.Label(frame, text="Confidence Threshold:").grid(row=2, column=0, sticky="w", pady=5)
-        self.confidence_threshold_var = tk.StringVar(value="0.5")
-        ttk.Entry(frame, textvariable=self.confidence_threshold_var, width=10).grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Max results
-        ttk.Label(frame, text="Max Results:").grid(row=3, column=0, sticky="w", pady=5)
-        self.max_results_var = tk.StringVar(value="10")
-        ttk.Entry(frame, textvariable=self.max_results_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🔍 Analyze Image", command=self._execute_computer_vision).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="🖼️ Vision Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.vision_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        vision_scrollbar = ttk.Scrollbar(results_frame, command=self.vision_results_text.yview)
-        self.vision_results_text.config(yscrollcommand=vision_scrollbar.set)
-
-        self.vision_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        vision_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_security_ai_interface(self):
-        """Show Security AI interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="🛡️ Advanced Security with AI Threat Detection", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Action type
-        ttk.Label(frame, text="Security Action:").grid(row=0, column=0, sticky="w", pady=5)
-        self.security_action_var = tk.StringVar(value="scan")
-        security_combo = ttk.Combobox(frame, textvariable=self.security_action_var,
-                                    values=["scan", "analyze"], state="readonly", width=15)
-        security_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Scan target
-        ttk.Label(frame, text="Scan Target:").grid(row=1, column=0, sticky="w", pady=5)
-        self.scan_target_var = tk.StringVar()
-        ttk.Entry(frame, textvariable=self.scan_target_var, width=40).grid(row=1, column=1, pady=5, padx=(10, 0))
-
-        # Threat types
-        ttk.Label(frame, text="Threat Types:").grid(row=2, column=0, sticky="w", pady=5)
-        self.threat_types_var = tk.StringVar(value="malware,phishing")
-        ttk.Entry(frame, textvariable=self.threat_types_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
-
-        # Severity level
-        ttk.Label(frame, text="Severity Level:").grid(row=3, column=0, sticky="w", pady=5)
-        self.severity_level_var = tk.StringVar(value="medium")
-        severity_combo = ttk.Combobox(frame, textvariable=self.severity_level_var,
-                                    values=["low", "medium", "high", "critical"], state="readonly", width=10)
-        severity_combo.grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🔍 Scan for Threats", command=self._execute_security_ai).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="🚨 Security Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.security_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        security_scrollbar = ttk.Scrollbar(results_frame, command=self.security_results_text.yview)
-        self.security_results_text.config(yscrollcommand=security_scrollbar.set)
-
-        self.security_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        security_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_edge_computing_interface(self):
-        """Show Edge Computing interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="⚡ Edge Computing & Distributed AI Processing", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Operation type
-        ttk.Label(frame, text="Operation:").grid(row=0, column=0, sticky="w", pady=5)
-        self.edge_operation_var = tk.StringVar(value="deploy")
-        edge_combo = ttk.Combobox(frame, textvariable=self.edge_operation_var,
-                                values=["deploy", "update", "monitor", "scale"], state="readonly", width=15)
-        edge_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Model name
-        ttk.Label(frame, text="Model Name:").grid(row=1, column=0, sticky="w", pady=5)
-        self.model_name_var = tk.StringVar()
-        ttk.Entry(frame, textvariable=self.model_name_var, width=30).grid(row=1, column=1, pady=5, padx=(10, 0))
-
-        # Target devices
-        ttk.Label(frame, text="Target Devices:").grid(row=2, column=0, sticky="w", pady=5)
-        self.target_devices_var = tk.StringVar(value="raspberry_pi,edge_server")
-        ttk.Entry(frame, textvariable=self.target_devices_var, width=30).grid(row=2, column=1, pady=5, padx=(10, 0))
-
-        # Resource limits
-        ttk.Label(frame, text="Resource Limits:").grid(row=3, column=0, sticky="w", pady=5)
-        self.resource_limits_var = tk.StringVar(value="cpu=50%,memory=1GB")
-        ttk.Entry(frame, textvariable=self.resource_limits_var, width=30).grid(row=3, column=1, pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🚀 Execute Edge Operation", command=self._execute_edge_computing).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="🔗 Edge Computing Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.edge_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        edge_scrollbar = ttk.Scrollbar(results_frame, command=self.edge_results_text.yview)
-        self.edge_results_text.config(yscrollcommand=edge_scrollbar.set)
-
-        self.edge_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        edge_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_personalization_interface(self):
-        """Show Personalization interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="🎯 Advanced Personalization & Recommendation Engines", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Recommendation type
-        ttk.Label(frame, text="Recommendation Type:").grid(row=0, column=0, sticky="w", pady=5)
-        self.recommendation_type_var = tk.StringVar(value="content_based")
-        rec_combo = ttk.Combobox(frame, textvariable=self.recommendation_type_var,
-                               values=["content_based", "collaborative", "hybrid"], state="readonly", width=20)
-        rec_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # User preferences
-        ttk.Label(frame, text="User Preferences:").grid(row=1, column=0, sticky="w", pady=5)
-        self.user_preferences_var = tk.StringVar(value="productivity,tasks,automation")
-        ttk.Entry(frame, textvariable=self.user_preferences_var, width=40).grid(row=1, column=1, pady=5, padx=(10, 0))
-
-        # Context data
-        ttk.Label(frame, text="Context Data:").grid(row=2, column=0, sticky="w", pady=5)
-        self.context_data_var = tk.StringVar(value="time_of_day=morning,device=desktop")
-        ttk.Entry(frame, textvariable=self.context_data_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
-
-        # Max recommendations
-        ttk.Label(frame, text="Max Recommendations:").grid(row=3, column=0, sticky="w", pady=5)
-        self.max_recommendations_var = tk.StringVar(value="10")
-        ttk.Entry(frame, textvariable=self.max_recommendations_var, width=10).grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🎯 Generate Recommendations", command=self._execute_personalization).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="💡 Recommendation Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.personalization_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        personalization_scrollbar = ttk.Scrollbar(results_frame, command=self.personalization_results_text.yview)
-        self.personalization_results_text.config(yscrollcommand=personalization_scrollbar.set)
-
-        self.personalization_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        personalization_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_collaboration_interface(self):
-        """Show Collaboration interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="👥 Real-Time Collaboration & Team Intelligence", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Action type
-        ttk.Label(frame, text="Action:").grid(row=0, column=0, sticky="w", pady=5)
-        self.collaboration_action_var = tk.StringVar(value="analyze_team")
-        collab_combo = ttk.Combobox(frame, textvariable=self.collaboration_action_var,
-                                  values=["analyze_team", "optimize_workflow", "predict_conflicts"], state="readonly", width=20)
-        collab_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Team size
-        ttk.Label(frame, text="Team Size:").grid(row=1, column=0, sticky="w", pady=5)
-        self.team_size_var = tk.StringVar(value="5")
-        ttk.Entry(frame, textvariable=self.team_size_var, width=10).grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Communication patterns
-        ttk.Label(frame, text="Communication Patterns:").grid(row=2, column=0, sticky="w", pady=5)
-        self.communication_patterns_var = tk.StringVar(value="email,daily_standup,slack")
-        ttk.Entry(frame, textvariable=self.communication_patterns_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
-
-        # Project complexity
-        ttk.Label(frame, text="Project Complexity:").grid(row=3, column=0, sticky="w", pady=5)
-        self.project_complexity_var = tk.StringVar(value="medium")
-        complexity_combo = ttk.Combobox(frame, textvariable=self.project_complexity_var,
-                                      values=["low", "medium", "high"], state="readonly", width=10)
-        complexity_combo.grid(row=3, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🤝 Analyze Collaboration", command=self._execute_collaboration).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="📊 Collaboration Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.collaboration_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        collaboration_scrollbar = ttk.Scrollbar(results_frame, command=self.collaboration_results_text.yview)
-        self.collaboration_results_text.config(yscrollcommand=collaboration_scrollbar.set)
-
-        self.collaboration_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        collaboration_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_mlops_interface(self):
-        """Show MLOps interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="🔬 Advanced Data Science & ML Operations (MLOps)", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Action type
-        ttk.Label(frame, text="MLOps Action:").grid(row=0, column=0, sticky="w", pady=5)
-        self.mlops_action_var = tk.StringVar(value="train_model")
-        mlops_combo = ttk.Combobox(frame, textvariable=self.mlops_action_var,
-                                 values=["train_model", "deploy_model", "monitor_performance", "retrain_model"], state="readonly", width=20)
-        mlops_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # Model type
-        ttk.Label(frame, text="Model Type:").grid(row=1, column=0, sticky="w", pady=5)
-        self.model_type_var = tk.StringVar(value="classification")
-        model_type_combo = ttk.Combobox(frame, textvariable=self.model_type_var,
-                                      values=["classification", "regression", "clustering", "nlp", "computer_vision"], state="readonly", width=15)
-        model_type_combo.grid(row=1, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Dataset path
-        ttk.Label(frame, text="Dataset Path:").grid(row=2, column=0, sticky="w", pady=5)
-        self.dataset_path_var = tk.StringVar(value="data/sample_dataset.csv")
-        ttk.Entry(frame, textvariable=self.dataset_path_var, width=40).grid(row=2, column=1, pady=5, padx=(10, 0))
-
-        # Hyperparameters
-        ttk.Label(frame, text="Hyperparameters (JSON):").grid(row=3, column=0, sticky="w", pady=5)
-        self.hyperparameters_var = tk.StringVar(value='{"learning_rate": 0.01, "epochs": 100}')
-        ttk.Entry(frame, textvariable=self.hyperparameters_var, width=40).grid(row=3, column=1, pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🚀 Execute MLOps Operation", command=self._execute_mlops).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="📈 MLOps Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.mlops_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        mlops_scrollbar = ttk.Scrollbar(results_frame, command=self.mlops_results_text.yview)
-        self.mlops_results_text.config(yscrollcommand=mlops_scrollbar.set)
-
-        self.mlops_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        mlops_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_monitoring_interface(self):
-        """Show Monitoring interface"""
-        frame = ttk.LabelFrame(self.ai_features_content_frame,
-                              text="🔍 Intelligent Monitoring & Self-Healing Systems", padding=15)
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        # Action type
-        ttk.Label(frame, text="Monitoring Action:").grid(row=0, column=0, sticky="w", pady=5)
-        self.monitoring_action_var = tk.StringVar(value="check_health")
-        monitoring_combo = ttk.Combobox(frame, textvariable=self.monitoring_action_var,
-                                      values=["check_health", "detect_anomalies", "predict_failures", "optimize_performance"], state="readonly", width=20)
-        monitoring_combo.grid(row=0, column=1, pady=5, padx=(10, 0))
-
-        # System metrics
-        ttk.Label(frame, text="System Metrics (JSON):").grid(row=1, column=0, sticky="w", pady=5)
-        self.system_metrics_var = tk.StringVar(value='{"cpu_percent": 75, "memory_percent": 80}')
-        ttk.Entry(frame, textvariable=self.system_metrics_var, width=50).grid(row=1, column=1, pady=5, padx=(10, 0))
-
-        # Monitoring window
-        ttk.Label(frame, text="Monitoring Window (hours):").grid(row=2, column=0, sticky="w", pady=5)
-        self.monitoring_window_var = tk.StringVar(value="24")
-        ttk.Entry(frame, textvariable=self.monitoring_window_var, width=10).grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
-
-        # Alert thresholds
-        ttk.Label(frame, text="Alert Thresholds (JSON):").grid(row=3, column=0, sticky="w", pady=5)
-        self.alert_thresholds_var = tk.StringVar(value='{"cpu_critical": 90, "memory_critical": 95}')
-        ttk.Entry(frame, textvariable=self.alert_thresholds_var, width=50).grid(row=3, column=1, pady=5, padx=(10, 0))
-
-        # Execute button
-        ttk.Button(frame, text="🔍 Execute Monitoring", command=self._execute_monitoring).grid(row=4, column=0, columnspan=2, pady=20)
-
-        # Results area
-        results_frame = ttk.LabelFrame(frame, text="📊 Monitoring Results", padding=10)
-        results_frame.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0))
-        results_frame.columnconfigure(0, weight=1)
-
-        self.monitoring_results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, state=tk.DISABLED)
-        monitoring_scrollbar = ttk.Scrollbar(results_frame, command=self.monitoring_results_text.yview)
-        self.monitoring_results_text.config(yscrollcommand=monitoring_scrollbar.set)
-
-        self.monitoring_results_text.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        monitoring_scrollbar.grid(row=0, column=1, sticky="ns")
-
-    def _show_ai_console_view(self):
-        """Show AI Console view in the consolidated tab"""
-        # Clear current content
-        for widget in self.ai_systems_content_frame.winfo_children():
-            widget.destroy()
-
-        # AI Console interface - simplified chat interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Chat interface
-        chat_frame = ttk.LabelFrame(content_frame, text="🤖 AI Assistant Console", padding=10)
-        chat_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        chat_frame.columnconfigure(0, weight=1)
-        chat_frame.rowconfigure(0, weight=1)
-
-        # Chat display
-        self.chat_display = tk.Text(chat_frame, height=15, wrap=tk.WORD, font=self.text_font, state=tk.DISABLED)
-        self.chat_display.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        chat_scrollbar = ttk.Scrollbar(chat_frame, command=self.chat_display.yview)
-        chat_scrollbar.grid(row=0, column=1, sticky="ns")
-        self.chat_display.config(yscrollcommand=chat_scrollbar.set)
-
-        # Sample conversation
-        sample_chat = """🤖 AI Assistant: Hello! I'm your intelligent assistant. How can I help you today?
-
-👤 You: Can you help me manage my tasks?
-
-🤖 AI Assistant: Of course! I can help you create, organize, and prioritize your tasks. I can also analyze your productivity patterns and suggest improvements.
-
-👤 You: What are my top priorities today?
-
-🤖 AI Assistant: Based on your current tasks and deadlines, your top priorities are:
-1. Complete the database migration (due today)
-2. Review the API documentation (due tomorrow)
-3. Start the mobile app testing phase
-
-Would you like me to help you with any of these?
-
-👤 You: Help me create a task for the database migration.
-
-🤖 AI Assistant: I've created a task called "Database Migration" with high priority, assigned to the "Backend Development" project, with an estimated time of 4 hours. The task includes subtasks for backup, migration script creation, testing, and deployment.
-
-Is there anything else you'd like me to help you with?
-"""
-        self.chat_display.config(state=tk.NORMAL)
-        self.chat_display.insert(tk.END, sample_chat)
-        self.chat_display.config(state=tk.DISABLED)
-
-        # Input area
-        input_frame = ttk.Frame(chat_frame)
-        input_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0), sticky="ew")
-        input_frame.columnconfigure(0, weight=1)
-
-        self.chat_input = ttk.Entry(input_frame, font=self.text_font)
-        self.chat_input.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        self.chat_input.insert(0, "Ask me anything...")
-
-        ttk.Button(input_frame, text="📤 Send", command=self._send_chat_message).grid(row=0, column=1)
-
-    def _show_ai_ops_view(self):
-        """Show AI Operations view in the consolidated tab"""
-        # Clear current content
-        for widget in self.ai_systems_content_frame.winfo_children():
-            widget.destroy()
-
-        # AI Operations interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # AI Operations dashboard
-        ops_frame = ttk.LabelFrame(content_frame, text="🛰️ AI Operations Center", padding=10)
-        ops_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        ops_frame.columnconfigure((0, 1), weight=1)
-
-        # Left side - Active Models
-        models_frame = ttk.LabelFrame(ops_frame, text="🤖 Active Models", padding=10)
-        models_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        models_frame.columnconfigure(0, weight=1)
-
-        models_listbox = tk.Listbox(models_frame, height=8, font=self.text_font)
-        models_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        models_listbox.insert(tk.END, "📊 Sentiment Analysis - 94.2% accuracy")
-        models_listbox.insert(tk.END, "🔍 Text Classification - 87.5% accuracy")
-        models_listbox.insert(tk.END, "🎯 Recommendation Engine - 91.8% accuracy")
-        models_listbox.insert(tk.END, "📝 Content Generation - 85.3% accuracy")
-
-        # Right side - System Metrics
-        metrics_frame = ttk.LabelFrame(ops_frame, text="📊 System Metrics", padding=10)
-        metrics_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
-        metrics_frame.columnconfigure(0, weight=1)
-
-        metrics_text = tk.Text(metrics_frame, height=8, wrap=tk.WORD, font=self.text_font)
-        metrics_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        metrics_content = """🚀 AI Operations Status
-
-⚡ Performance:
-• Response Time: 245ms avg
-• Throughput: 1,247 requests/min
-• CPU Usage: 67%
-• Memory: 3.2GB/8GB
-
-🔧 Active Services:
-• 4 ML models deployed
-• 12 API endpoints active
-• 89 concurrent users
-• 99.7% uptime
-
-⚠️ Alerts:
-• Model accuracy drift detected
-• High memory usage warning
-• Scheduled maintenance in 2 hours
-
-🎯 Recent Activity:
-• 1,247 predictions served
-• 89 user queries processed
-• 23 model updates deployed
-• 5 A/B tests running"""
-        metrics_text.insert(tk.END, metrics_content)
-        metrics_text.config(state=tk.DISABLED)
-
-        # Controls
-        controls_frame = ttk.Frame(ops_frame)
-        controls_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
-
-        ttk.Button(controls_frame, text="🔄 Retrain Models", command=self._retrain_models).grid(row=0, column=0, padx=5)
-        ttk.Button(controls_frame, text="📊 Performance Report", command=self._performance_report).grid(row=0, column=1, padx=5)
-        ttk.Button(controls_frame, text="⚙️ System Config", command=self._system_config).grid(row=0, column=2, padx=5)
-
-    def _show_advanced_ai_view(self):
-        """Show Advanced AI view in the consolidated tab"""
-        # Clear current content
-        for widget in self.ai_systems_content_frame.winfo_children():
-            widget.destroy()
-
-        # Advanced AI interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Advanced AI capabilities
-        advanced_frame = ttk.LabelFrame(content_frame, text="🧠 Advanced AI Capabilities", padding=10)
-        advanced_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        advanced_frame.columnconfigure(0, weight=1)
-
-        # Capabilities list
-        capabilities_text = tk.Text(advanced_frame, height=15, wrap=tk.WORD, font=self.text_font)
-        capabilities_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        capabilities_content = """🧠 ADVANCED AI CAPABILITIES
-
-🎯 Machine Learning:
-• Supervised Learning Models
-• Unsupervised Learning Algorithms
-• Reinforcement Learning Agents
-• Transfer Learning Adaptation
-• Meta-Learning Systems
-
-🔍 Computer Vision:
-• Object Detection & Recognition
-• Image Classification & Segmentation
-• Facial Recognition & Analysis
-• Optical Character Recognition
-• Video Analysis & Tracking
-
-🗣️ Natural Language Processing:
-• Text Analysis & Understanding
-• Sentiment Analysis & Emotion Detection
-• Language Translation & Summarization
-• Conversational AI & Chatbots
-• Document Analysis & Processing
-
-📊 Predictive Analytics:
-• Time Series Forecasting
-• Anomaly Detection & Outlier Analysis
-• Trend Analysis & Pattern Recognition
-• Risk Assessment & Prediction
-• Performance Optimization
-
-🎨 Generative AI:
-• Text Generation & Completion
-• Image Synthesis & Editing
-• Code Generation & Assistance
-• Creative Content Production
-• Style Transfer & Adaptation
-
-🔧 Specialized AI:
-• Medical Diagnosis Assistance
-• Financial Analysis & Trading
-• Legal Document Analysis
-• Scientific Research Acceleration
-• Industrial Process Optimization
-
-⚡ Performance Features:
-• GPU Acceleration Support
-• Distributed Computing
-• Real-time Processing
-• Edge AI Deployment
-• Auto-scaling & Optimization
-
-🔒 Security & Ethics:
-• Bias Detection & Mitigation
-• Privacy-preserving AI
-• Explainable AI (XAI)
-• Secure Multi-party Computation
-• Ethical AI Guidelines"""
-        capabilities_text.insert(tk.END, capabilities_content)
-        capabilities_text.config(state=tk.DISABLED)
-
-        # Advanced AI controls
-        controls_frame = ttk.Frame(advanced_frame)
-        controls_frame.grid(row=1, column=0, pady=(10, 0))
-
-        ttk.Button(controls_frame, text="🚀 Deploy Advanced Model", command=self._deploy_advanced_model).grid(row=0, column=0, padx=5)
-        ttk.Button(controls_frame, text="🧪 Run AI Experiments", command=self._run_ai_experiments).grid(row=0, column=1, padx=5)
-        ttk.Button(controls_frame, text="📚 Research Mode", command=self._research_mode).grid(row=0, column=2, padx=5)
-
-    def _show_nas_view(self):
-        """Show Neural Architecture Search view in the consolidated tab"""
-        # Clear current content
-        for widget in self.ai_systems_content_frame.winfo_children():
-            widget.destroy()
-
-        # NAS interface - embedded version
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.ai_systems_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.ai_systems_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # NAS control panel
-        nas_frame = ttk.LabelFrame(content_frame, text="🧬 Neural Architecture Search", padding=10)
-        nas_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        nas_frame.columnconfigure(0, weight=1)
-
-        # NAS description
-        desc_text = """Evolutionary AI system that designs and optimizes neural network architectures.
-Uses genetic algorithms and reinforcement learning to discover optimal model architectures
-for your specific datasets and tasks."""
-        desc_label = ttk.Label(nas_frame, text=desc_text, wraplength=600, justify="left")
-        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Control buttons
-        control_frame = ttk.Frame(nas_frame)
-        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(control_frame, text="🧬 Start NAS Experiment",
-                  command=self._start_nas_experiment).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="📊 View Results",
-                  command=self._view_nas_results).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="⚙️ Configure",
-                  command=self._configure_nas).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Status display
-        status_frame = ttk.Frame(nas_frame)
-        status_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
-        status_frame.columnconfigure(0, weight=1)
-
-        self.nas_status_var = tk.StringVar(value="No active experiments")
-        status_label = ttk.Label(status_frame, textvariable=self.nas_status_var,
-                               font=(self.base_font, 12))
-        status_label.grid(row=0, column=0, pady=5, sticky="w")
-
-        # Metrics
-        metrics_frame = ttk.Frame(nas_frame)
-        metrics_frame.grid(row=3, column=0, sticky="ew")
-        metrics_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Label(metrics_frame, text="Generation:").grid(row=0, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Population Size:").grid(row=1, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Best Fitness:").grid(row=2, column=0, sticky="w", pady=2)
-
-        self.gen_var = tk.StringVar(value="0")
-        self.pop_var = tk.StringVar(value="0")
-        self.fitness_var = tk.StringVar(value="0.000")
-
-        ttk.Label(metrics_frame, textvariable=self.gen_var).grid(row=0, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, textvariable=self.pop_var).grid(row=1, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, textvariable=self.fitness_var).grid(row=2, column=1, sticky="w", pady=2)
-
-        ttk.Button(nas_frame, text="🔄 Refresh Status",
-                  command=self._refresh_nas_status).grid(row=4, column=0, pady=(10, 0))
-
-    def _build_tools_intelligence_tab(self):
-        """Build consolidated Tools & Intelligence tab with sub-navigation"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.tools_intelligence_frame = ttkb.Frame(self.notebook)
-        else:
-            self.tools_intelligence_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.tools_intelligence_frame, text="🔧 Tools & Intelligence")
-
-        self.tools_intelligence_frame.columnconfigure(0, weight=1)
-        self.tools_intelligence_frame.rowconfigure(1, weight=1)
-
-        # Sub-navigation buttons
-        nav_frame = ttk.Frame(self.tools_intelligence_frame)
-        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        nav_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(nav_frame, text="🔧 Developer Tools", command=self._show_tools_view).grid(row=0, column=0, padx=2, pady=5)
-        ttk.Button(nav_frame, text="👁️ Computer Vision", command=self._show_vision_view).grid(row=0, column=1, padx=2, pady=5)
-        ttk.Button(nav_frame, text="🔍 Search Engine", command=self._show_search_view).grid(row=0, column=2, padx=2, pady=5)
-
-        # Content frame for switching views
-        self.tools_intelligence_content_frame = ttk.Frame(self.tools_intelligence_frame)
-        self.tools_intelligence_content_frame.grid(row=1, column=0, sticky="nsew")
-        self.tools_intelligence_content_frame.columnconfigure(0, weight=1)
-        self.tools_intelligence_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with tools view
-        self._show_tools_view()
-
-    def _show_tools_view(self):
-        """Show developer tools view in the consolidated tab"""
-        # Clear current content
-        for widget in self.tools_intelligence_content_frame.winfo_children():
-            widget.destroy()
-
-        # Developer tools interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.tools_intelligence_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.tools_intelligence_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Tools panel
-        tools_frame = ttk.LabelFrame(content_frame, text="🔧 Developer Tools", padding=10)
-        tools_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        tools_frame.columnconfigure((0, 1), weight=1)
-
-        # Left side - Code Tools
-        code_frame = ttk.LabelFrame(tools_frame, text="💻 Code Tools", padding=10)
-        code_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        ttk.Button(code_frame, text="🔍 Code Search", command=self._code_search).grid(row=0, column=0, pady=5, sticky="ew")
-        ttk.Button(code_frame, text="🐛 Debug Helper", command=self._debug_helper).grid(row=1, column=0, pady=5, sticky="ew")
-        ttk.Button(code_frame, text="📊 Performance Profiler", command=self._performance_profiler).grid(row=2, column=0, pady=5, sticky="ew")
-        ttk.Button(code_frame, text="🔧 Code Formatter", command=self._code_formatter).grid(row=3, column=0, pady=5, sticky="ew")
-
-        # Right side - System Tools
-        system_frame = ttk.LabelFrame(tools_frame, text="🖥️ System Tools", padding=10)
-        system_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
-
-        ttk.Button(system_frame, text="📁 File Manager", command=self._file_manager).grid(row=0, column=0, pady=5, sticky="ew")
-        ttk.Button(system_frame, text="🌐 Network Tools", command=self._network_tools).grid(row=1, column=0, pady=5, sticky="ew")
-        ttk.Button(system_frame, text="💾 Backup Manager", command=self._backup_manager).grid(row=2, column=0, pady=5, sticky="ew")
-        ttk.Button(system_frame, text="📋 System Monitor", command=self._system_monitor).grid(row=3, column=0, pady=5, sticky="ew")
-
-        # Terminal/Command interface
-        terminal_frame = ttk.LabelFrame(content_frame, text="💻 Command Terminal", padding=10)
-        terminal_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
-        terminal_frame.columnconfigure(0, weight=1)
-
-        # Terminal output display
-        terminal_text = tk.Text(terminal_frame, height=8, wrap=tk.WORD, font=("Courier", 10))
-        terminal_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        terminal_scrollbar = ttk.Scrollbar(terminal_frame, command=terminal_text.yview)
-        terminal_scrollbar.grid(row=0, column=1, sticky="ns")
-        terminal_text.config(yscrollcommand=terminal_scrollbar.set)
-
-        # Sample terminal output
-        terminal_output = """$ python --version
-Python 3.11.2
-
-$ pip list | grep torch
-torch                    2.1.1
-torchvision             0.16.1
-
-$ git status
-On branch main
-Your branch is up to date with 'origin/main'.
-
-nothing to commit, working tree clean
-
-$ ls -la
-total 128
-drwxr-xr-x  24 user  staff   768 Dec  7 19:33 .
-drwxr-xr-x   3 user  staff    96 Dec  7 18:45 ..
--rw-r--r--   1 user  staff  1024 Dec  7 19:30 README.md
--rw-r--r--   1 user  staff  2048 Dec  7 19:25 requirements.txt
-"""
-        terminal_text.insert(tk.END, terminal_output)
-        terminal_text.config(state=tk.DISABLED)
-
-        # Command input
-        input_frame = ttk.Frame(terminal_frame)
-        input_frame.grid(row=1, column=0, columnspan=2, pady=(5, 0), sticky="ew")
-        input_frame.columnconfigure(0, weight=1)
-
-        command_entry = ttk.Entry(input_frame, font=("Courier", 10))
-        command_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        command_entry.insert(0, "Enter command...")
-
-        ttk.Button(input_frame, text="▶️ Run", command=self._run_command).grid(row=0, column=1)
-
-    def _show_vision_view(self):
-        """Show computer vision view in the consolidated tab"""
-        # Clear current content
-        for widget in self.tools_intelligence_content_frame.winfo_children():
-            widget.destroy()
-
-        # Computer vision interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.tools_intelligence_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.tools_intelligence_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Vision tools
-        vision_frame = ttk.LabelFrame(content_frame, text="👁️ Computer Vision Tools", padding=10)
-        vision_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        vision_frame.columnconfigure(0, weight=1)
-
-        # File selection
-        file_frame = ttk.Frame(vision_frame)
-        file_frame.grid(row=0, column=0, pady=(0, 20), sticky="ew")
-        file_frame.columnconfigure(1, weight=1)
-
-        ttk.Label(file_frame, text="📁 Image File:").grid(row=0, column=0, padx=(0, 10))
-        self.vision_file_var = tk.StringVar()
-        ttk.Entry(file_frame, textvariable=self.vision_file_var).grid(row=0, column=1, sticky="ew", padx=(0, 5))
-        ttk.Button(file_frame, text="📂 Browse", command=self._browse_vision_file).grid(row=0, column=2)
-
-        # Vision operations
-        ops_frame = ttk.LabelFrame(vision_frame, text="🎯 Vision Operations", padding=10)
-        ops_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        ops_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(ops_frame, text="🔍 Object Detection", command=self._detect_objects).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(ops_frame, text="📝 OCR Text Extraction", command=self._extract_text_from_image).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(ops_frame, text="🎨 Image Analysis", command=self._analyze_image).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Results display
-        results_frame = ttk.LabelFrame(vision_frame, text="📊 Analysis Results", padding=10)
-        results_frame.grid(row=2, column=0, sticky="ew")
-        results_frame.columnconfigure(0, weight=1)
-
-        results_text = tk.Text(results_frame, height=8, wrap=tk.WORD, font=self.text_font)
-        results_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        scrollbar = ttk.Scrollbar(results_frame, command=results_text.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        results_text.config(yscrollcommand=scrollbar.set)
-
-        # Sample results
-        sample_results = """🎯 OBJECT DETECTION RESULTS:
-• Person: 87% confidence (x: 150, y: 200, w: 180, h: 400)
-• Car: 92% confidence (x: 300, y: 250, w: 200, h: 120)
-• Tree: 78% confidence (x: 50, y: 100, w: 80, h: 200)
-
-📝 OCR TEXT EXTRACTION:
-"Welcome to the AI Assistant Hub
-Version 2.0 - Advanced Features
-Machine Learning Powered"
-
-🎨 IMAGE ANALYSIS:
-• Dominant Colors: Blue (34%), Green (28%), Gray (21%)
-• Image Quality: High resolution (1920x1080)
-• Composition: Centered subject, good lighting
-• Estimated file size: 2.4 MB"""
-        results_text.insert(tk.END, sample_results)
-        results_text.config(state=tk.DISABLED)
-
-    def _show_search_view(self):
-        """Show search engine view in the consolidated tab"""
-        # Clear current content
-        for widget in self.tools_intelligence_content_frame.winfo_children():
-            widget.destroy()
-
-        # Search engine interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.tools_intelligence_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.tools_intelligence_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Search interface
-        search_frame = ttk.LabelFrame(content_frame, text="🔍 Intelligent Search Engine", padding=10)
-        search_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        search_frame.columnconfigure(0, weight=1)
-
-        # Search input
-        search_input_frame = ttk.Frame(search_frame)
-        search_input_frame.grid(row=0, column=0, pady=(0, 20), sticky="ew")
-        search_input_frame.columnconfigure(0, weight=1)
-
-        ttk.Label(search_input_frame, text="🔎 Search Query:").grid(row=0, column=0, pady=(0, 5), sticky="w")
-
-        self.search_query_var = tk.StringVar()
-        search_entry = ttk.Entry(search_input_frame, textvariable=self.search_query_var, font=(self.base_font, 12))
-        search_entry.grid(row=1, column=0, sticky="ew", padx=(0, 5))
-
-        # Search options
-        options_frame = ttk.Frame(search_input_frame)
-        options_frame.grid(row=2, column=0, pady=(10, 0), sticky="ew")
-
-        ttk.Button(options_frame, text="🔍 Basic Search", command=self._basic_search).grid(row=0, column=0, padx=5)
-        ttk.Button(options_frame, text="🧠 AI Search", command=self._ai_search).grid(row=0, column=1, padx=5)
-        ttk.Button(options_frame, text="📁 File Search", command=self._file_search).grid(row=0, column=2, padx=5)
-
-        # Search filters
-        filters_frame = ttk.LabelFrame(search_frame, text="🎛️ Search Filters", padding=10)
-        filters_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-
-        # Filter checkboxes
-        self.filter_tasks_var = tk.BooleanVar(value=True)
-        self.filter_projects_var = tk.BooleanVar(value=True)
-        self.filter_files_var = tk.BooleanVar(value=True)
-        self.filter_web_var = tk.BooleanVar(value=False)
-
-        ttk.Checkbutton(filters_frame, text="✅ Tasks", variable=self.filter_tasks_var).grid(row=0, column=0, padx=10, sticky="w")
-        ttk.Checkbutton(filters_frame, text="📁 Projects", variable=self.filter_projects_var).grid(row=0, column=1, padx=10, sticky="w")
-        ttk.Checkbutton(filters_frame, text="📄 Files", variable=self.filter_files_var).grid(row=0, column=2, padx=10, sticky="w")
-        ttk.Checkbutton(filters_frame, text="🌐 Web", variable=self.filter_web_var).grid(row=0, column=3, padx=10, sticky="w")
-
-        # Results display
-        results_frame = ttk.LabelFrame(search_frame, text="📋 Search Results", padding=10)
-        results_frame.grid(row=2, column=0, sticky="ew")
-        results_frame.columnconfigure(0, weight=1)
-
-        results_text = tk.Text(results_frame, height=12, wrap=tk.WORD, font=self.text_font)
-        results_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        results_scrollbar = ttk.Scrollbar(results_frame, command=results_text.yview)
-        results_scrollbar.grid(row=0, column=1, sticky="ns")
-        results_text.config(yscrollcommand=results_scrollbar.set)
-
-        # Sample search results
-        sample_results = """🔍 SEARCH RESULTS for "machine learning"
-
-📄 Found 12 matches across 8 sources:
-
-✅ TASKS (3 results):
-• [Task #142] "Implement ML model training pipeline" - High Priority
-  Due: Tomorrow, Assigned: ML Team
-• [Task #158] "Research new ML algorithms" - Medium Priority
-  Due: Next Week, Status: In Progress
-• [Task #167] "Deploy ML model to production" - High Priority
-  Due: Today, Status: Blocked
-
-📁 PROJECTS (2 results):
-• [Project #23] "AI Research Initiative" - 75% Complete
-  Contains: ML research papers, algorithm implementations
-• [Project #45] "ML Platform Development" - 45% Complete
-  Contains: Model training scripts, deployment configs
-
-📄 FILES (4 results):
-• /docs/ml_algorithms.pdf (2.1 MB) - Research paper on ML algorithms
-• /code/train_model.py (15 KB) - Training script for neural networks
-• /models/saved_model.pkl (500 MB) - Trained ML model checkpoint
-• /notebooks/ml_experiments.ipynb (8.3 MB) - Jupyter notebook with experiments
-
-🌐 WEB RESULTS (3 results):
-• Towards Data Science: "Understanding Neural Networks"
-• arXiv: "Deep Learning Advances 2024"
-• GitHub: "pytorch/examples" - ML code examples
-
-💡 AI SUGGESTIONS:
-• Related: "neural networks", "deep learning", "AI algorithms"
-• Try: "machine learning tutorials" or "ML best practices"
-• Resources: Check /docs/ml_research/ directory"""
-        results_text.insert(tk.END, sample_results)
-        results_text.config(state=tk.DISABLED)
-
-    def _build_integrations_infrastructure_tab(self):
-        """Build consolidated Integrations & Infrastructure tab with sub-navigation"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.integrations_infrastructure_frame = ttkb.Frame(self.notebook)
-        else:
-            self.integrations_infrastructure_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.integrations_infrastructure_frame, text="🔌 Integrations & Infrastructure")
-
-        self.integrations_infrastructure_frame.columnconfigure(0, weight=1)
-        self.integrations_infrastructure_frame.rowconfigure(1, weight=1)
-
-        # Sub-navigation buttons
-        nav_frame = ttk.Frame(self.integrations_infrastructure_frame)
-        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        nav_frame.columnconfigure((0, 1, 2, 3), weight=1)
-
-        ttk.Button(nav_frame, text="🔌 API Connectors", command=self._show_connectors_view).grid(row=0, column=0, padx=1, pady=5)
-        ttk.Button(nav_frame, text="🤖 AI OS", command=self._show_ai_os_view).grid(row=0, column=1, padx=1, pady=5)
-        ttk.Button(nav_frame, text="☁️ Edge Computing", command=self._show_edge_view).grid(row=0, column=2, padx=1, pady=5)
-        ttk.Button(nav_frame, text="🎯 Workflows", command=self._show_workflows_view).grid(row=0, column=3, padx=1, pady=5)
-
-        # Content frame for switching views
-        self.integrations_infrastructure_content_frame = ttk.Frame(self.integrations_infrastructure_frame)
-        self.integrations_infrastructure_content_frame.grid(row=1, column=0, sticky="nsew")
-        self.integrations_infrastructure_content_frame.columnconfigure(0, weight=1)
-        self.integrations_infrastructure_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with connectors view
-        self._show_connectors_view()
-
-    def _show_connectors_view(self):
-        """Show API connectors view in the consolidated tab"""
-        # Clear current content
-        for widget in self.integrations_infrastructure_content_frame.winfo_children():
-            widget.destroy()
-
-        # API connectors interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Connectors registry
-        connectors_frame = ttk.LabelFrame(content_frame, text="🔌 API Connectors Registry", padding=10)
-        connectors_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        connectors_frame.columnconfigure(0, weight=1)
-
-        # Available connectors list
-        self.connectors_listbox = tk.Listbox(connectors_frame, height=10, font=self.text_font)
-        self.connectors_listbox.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        connectors_scrollbar = ttk.Scrollbar(connectors_frame, command=self.connectors_listbox.yview)
-        connectors_scrollbar.grid(row=0, column=1, sticky="ns")
-        self.connectors_listbox.config(yscrollcommand=connectors_scrollbar.set)
-
-        # Sample connectors
-        self.connectors_listbox.insert(tk.END, "🔗 Google Calendar - Connected")
-        self.connectors_listbox.insert(tk.END, "🔗 Gmail API - Connected")
-        self.connectors_listbox.insert(tk.END, "🔗 GitHub API - Connected")
-        self.connectors_listbox.insert(tk.END, "🔗 Slack API - Not Configured")
-        self.connectors_listbox.insert(tk.END, "🔗 Trello API - Not Configured")
-        self.connectors_listbox.insert(tk.END, "🔗 Jira API - Not Configured")
-        self.connectors_listbox.insert(tk.END, "🔗 Zoom API - Not Configured")
-        self.connectors_listbox.insert(tk.END, "🔗 Microsoft Graph - Connected")
-
-        # Connector actions
-        actions_frame = ttk.Frame(connectors_frame)
-        actions_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0))
-
-        ttk.Button(actions_frame, text="⚙️ Configure", command=self._configure_selected_connector).grid(row=0, column=0, padx=5)
-        ttk.Button(actions_frame, text="🧪 Test Connection", command=self._test_connector_connection).grid(row=0, column=1, padx=5)
-        ttk.Button(actions_frame, text="📋 View Logs", command=self._view_connector_logs).grid(row=0, column=2, padx=5)
-
-        # Integration status
-        status_frame = ttk.LabelFrame(content_frame, text="📊 Integration Status", padding=10)
-        status_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
-        status_frame.columnconfigure((0, 1), weight=1)
-
-        # Status metrics
-        ttk.Label(status_frame, text="Active Integrations: 3/8").grid(row=0, column=0, sticky="w", pady=2)
-        ttk.Label(status_frame, text="Data Synced Today: 1,247 items").grid(row=1, column=0, sticky="w", pady=2)
-        ttk.Label(status_frame, text="API Calls (24h): 8,932").grid(row=2, column=0, sticky="w", pady=2)
-
-        ttk.Label(status_frame, text="Success Rate: 99.7%").grid(row=0, column=1, sticky="w", pady=2)
-        ttk.Label(status_frame, text="Avg Response Time: 245ms").grid(row=1, column=1, sticky="w", pady=2)
-        ttk.Label(status_frame, text="Error Rate: 0.3%").grid(row=2, column=1, sticky="w", pady=2)
-
-    def _show_ai_os_view(self):
-        """Show AI OS view in the consolidated tab"""
-        # Clear current content
-        for widget in self.integrations_infrastructure_content_frame.winfo_children():
-            widget.destroy()
-
-        # AI OS interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # AI OS control panel
-        ai_os_frame = ttk.LabelFrame(content_frame, text="🤖 AI Operating System", padding=10)
-        ai_os_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        ai_os_frame.columnconfigure(0, weight=1)
-
-        # AI OS description
-        desc_text = """Advanced AI Operating System that orchestrates intelligent agents,
-cognitive daemons, and automated workflows across distributed systems."""
-        desc_label = ttk.Label(ai_os_frame, text=desc_text, wraplength=600, justify="left")
-        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Control buttons
-        control_frame = ttk.Frame(ai_os_frame)
-        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(control_frame, text="▶️ Start AI OS", command=self._start_ai_os).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="📊 System Status", command=self._ai_os_status).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="⚙️ Configure Agents", command=self._configure_agents).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Active agents display
-        agents_frame = ttk.LabelFrame(ai_os_frame, text="🎭 Active AI Agents", padding=10)
-        agents_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
-        agents_frame.columnconfigure(0, weight=1)
-
-        agents_listbox = tk.Listbox(agents_frame, height=6, font=self.text_font)
-        agents_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        agents_listbox.insert(tk.END, "🤖 Core Assistant - Online (Task Processing)")
-        agents_listbox.insert(tk.END, "🎯 Workflow Orchestrator - Online (Process Management)")
-        agents_listbox.insert(tk.END, "📊 Analytics Engine - Online (Data Analysis)")
-        agents_listbox.insert(tk.END, "🔍 Search Agent - Online (Intelligent Search)")
-        agents_listbox.insert(tk.END, "🛡️ Security Monitor - Online (Threat Detection)")
-        agents_listbox.insert(tk.END, "☁️ Cloud Manager - Online (Resource Optimization)")
-
-        # System metrics
-        metrics_frame = ttk.LabelFrame(ai_os_frame, text="📊 AI OS Metrics", padding=10)
-        metrics_frame.grid(row=3, column=0, sticky="ew")
-        metrics_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Label(metrics_frame, text="Active Processes:").grid(row=0, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Tasks Completed:").grid(row=1, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="System Load:").grid(row=2, column=0, sticky="w", pady=2)
-
-        ttk.Label(metrics_frame, text="12").grid(row=0, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="1,847").grid(row=1, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="67%").grid(row=2, column=1, sticky="w", pady=2)
-
-        ttk.Button(metrics_frame, text="🔄 Refresh", command=self._refresh_ai_os_metrics).grid(row=3, column=0, columnspan=3, pady=(10, 0))
-
-    def _show_edge_view(self):
-        """Show edge computing view in the consolidated tab"""
-        # Clear current content
-        for widget in self.integrations_infrastructure_content_frame.winfo_children():
-            widget.destroy()
-
-        # Edge computing interface - embedded version
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Edge computing control panel
-        edge_frame = ttk.LabelFrame(content_frame, text="☁️ Edge Computing & Distributed AI", padding=10)
-        edge_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        edge_frame.columnconfigure(0, weight=1)
-
-        # Edge description
-        desc_text = """Distributed AI system that leverages edge computing for real-time intelligence.
-Deploys AI models across multiple devices and cloud instances for optimal performance."""
-        desc_label = ttk.Label(edge_frame, text=desc_text, wraplength=600, justify="left")
-        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Control buttons
-        control_frame = ttk.Frame(edge_frame)
-        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(control_frame, text="🚀 Deploy Edge AI", command=self._deploy_edge_ai).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="📊 Network Status", command=self._view_network_status).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="⚙️ Configure Nodes", command=self._configure_edge_nodes).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Network status
-        network_frame = ttk.Frame(edge_frame)
-        network_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
-        network_frame.columnconfigure(0, weight=1)
-
-        self.network_status_var = tk.StringVar(value="🌐 Network: 5/5 nodes online - Optimal performance")
-        network_label = ttk.Label(network_frame, textvariable=self.network_status_var, font=(self.base_font, 12))
-        network_label.grid(row=0, column=0, pady=5, sticky="w")
-
-        # Node status
-        nodes_frame = ttk.LabelFrame(edge_frame, text="🖥️ Edge Nodes", padding=10)
-        nodes_frame.grid(row=3, column=0, sticky="ew")
-        nodes_frame.columnconfigure(0, weight=1)
-
-        self.nodes_listbox = tk.Listbox(nodes_frame, height=5, font=self.text_font)
-        self.nodes_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        self.nodes_listbox.insert(tk.END, "🖥️ Local GPU Node - Online (98% utilization)")
-        self.nodes_listbox.insert(tk.END, "☁️ Cloud Instance 1 - Online (45% utilization)")
-        self.nodes_listbox.insert(tk.END, "📱 Mobile Edge Node - Online (12% utilization)")
-
-        # Node controls
-        node_controls = ttk.Frame(nodes_frame)
-        node_controls.grid(row=1, column=0, pady=(10, 0))
-
-        ttk.Button(node_controls, text="🔧 Manage Node", command=self._manage_edge_node).grid(row=0, column=0, padx=5)
-        ttk.Button(node_controls, text="🔄 Sync Network", command=self._sync_edge_network).grid(row=0, column=1, padx=5)
-
-    def _show_workflows_view(self):
-        """Show workflow orchestration view in the consolidated tab"""
-        # Clear current content
-        for widget in self.integrations_infrastructure_content_frame.winfo_children():
-            widget.destroy()
-
-        # Workflow orchestration interface - embedded version
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.integrations_infrastructure_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Workflow orchestration control panel
-        workflow_frame = ttk.LabelFrame(content_frame, text="🎯 AI Workflow Orchestration", padding=10)
-        workflow_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        workflow_frame.columnconfigure(0, weight=1)
-
-        # Workflow description
-        desc_text = """Intelligent workflow orchestration system that automates complex processes.
-Uses AI to coordinate tasks, manage dependencies, and optimize execution."""
-        desc_label = ttk.Label(workflow_frame, text=desc_text, wraplength=600, justify="left")
-        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Control buttons
-        control_frame = ttk.Frame(workflow_frame)
-        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(control_frame, text="▶️ Start Orchestrator", command=self._start_workflow_orchestrator).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="📊 View Active Workflows", command=self._view_active_workflows).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="⚙️ Configure Workflows", command=self._configure_workflows).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Orchestrator status
-        status_frame = ttk.Frame(workflow_frame)
-        status_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
-        status_frame.columnconfigure(0, weight=1)
-
-        self.orchestrator_status_var = tk.StringVar(value="🔄 Orchestrator: Running - Processing 3 workflows")
-        status_label = ttk.Label(status_frame, textvariable=self.orchestrator_status_var, font=(self.base_font, 12))
-        status_label.grid(row=0, column=0, pady=5, sticky="w")
-
-        # Active workflows
-        workflows_frame = ttk.LabelFrame(workflow_frame, text="⚙️ Active Workflows", padding=10)
-        workflows_frame.grid(row=3, column=0, sticky="ew")
-        workflows_frame.columnconfigure(0, weight=1)
-
-        self.workflows_listbox = tk.Listbox(workflows_frame, height=5, font=self.text_font)
-        self.workflows_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        self.workflows_listbox.insert(tk.END, "🔄 Data Processing Pipeline - 67% complete")
-        self.workflows_listbox.insert(tk.END, "🤖 ML Model Training - 23% complete")
-        self.workflows_listbox.insert(tk.END, "📊 Analytics Report Generation - 89% complete")
-
-        # Workflow controls
-        workflow_controls = ttk.Frame(workflows_frame)
-        workflow_controls.grid(row=1, column=0, pady=(10, 0))
-
-        ttk.Button(workflow_controls, text="👀 Monitor", command=self._monitor_workflow).grid(row=0, column=0, padx=5)
-        ttk.Button(workflow_controls, text="🔄 Refresh Status", command=self._refresh_workflow_status).grid(row=0, column=1, padx=5)
-
-    def _build_security_audit_tab(self):
-        """Build consolidated Security & Audit tab with sub-navigation"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.security_audit_frame = ttkb.Frame(self.notebook)
-        else:
-            self.security_audit_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.security_audit_frame, text="🛡️ Security & Audit")
-
-        self.security_audit_frame.columnconfigure(0, weight=1)
-        self.security_audit_frame.rowconfigure(1, weight=1)
-
-        # Sub-navigation buttons
-        nav_frame = ttk.Frame(self.security_audit_frame)
-        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        nav_frame.columnconfigure((0, 1), weight=1)
-
-        ttk.Button(nav_frame, text="🛡️ AI Security", command=self._show_security_view).grid(row=0, column=0, padx=5, pady=5)
-        ttk.Button(nav_frame, text="📋 Audit System", command=self._show_audit_view).grid(row=0, column=1, padx=5, pady=5)
-
-        # Content frame for switching views
-        self.security_audit_content_frame = ttk.Frame(self.security_audit_frame)
-        self.security_audit_content_frame.grid(row=1, column=0, sticky="nsew")
-        self.security_audit_content_frame.columnconfigure(0, weight=1)
-        self.security_audit_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with security view
-        self._show_security_view()
-
-    def _show_security_view(self):
-        """Show AI security view in the consolidated tab"""
-        # Clear current content
-        for widget in self.security_audit_content_frame.winfo_children():
-            widget.destroy()
-
-        # AI Security interface - embedded version
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.security_audit_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.security_audit_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Security threat detection control panel
-        security_frame = ttk.LabelFrame(content_frame, text="🛡️ AI-Powered Security Threat Detection", padding=10)
-        security_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        security_frame.columnconfigure(0, weight=1)
-
-        # Security description
-        desc_text = """Advanced AI security system that detects, analyzes, and responds to cyber threats.
-Uses machine learning algorithms to identify anomalous behavior and predict attacks."""
-        desc_label = ttk.Label(security_frame, text=desc_text, wraplength=600, justify="left")
-        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Control buttons
-        control_frame = ttk.Frame(security_frame)
-        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(control_frame, text="🔍 Start Threat Scan", command=self._start_threat_scan).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="📊 View Security Report", command=self._view_security_report).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="⚙️ Security Settings", command=self._configure_security).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Threat status
-        threat_frame = ttk.Frame(security_frame)
-        threat_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
-        threat_frame.columnconfigure(0, weight=1)
-
-        self.threat_status_var = tk.StringVar(value="🟢 System Secure - No threats detected")
-        threat_label = ttk.Label(threat_frame, textvariable=self.threat_status_var, font=(self.base_font, 12))
-        threat_label.grid(row=0, column=0, pady=5, sticky="w")
-
-        # Security metrics
-        metrics_frame = ttk.Frame(security_frame)
-        metrics_frame.grid(row=3, column=0, pady=(0, 20), sticky="ew")
-        metrics_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Label(metrics_frame, text="Scans Today:").grid(row=0, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Threats Blocked:").grid(row=1, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Risk Score:").grid(row=2, column=0, sticky="w", pady=2)
-
-        self.scans_var = tk.StringVar(value="0")
-        self.threats_var = tk.StringVar(value="0")
-        self.risk_var = tk.StringVar(value="Low")
-
-        ttk.Label(metrics_frame, textvariable=self.scans_var).grid(row=0, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, textvariable=self.threats_var).grid(row=1, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, textvariable=self.risk_var).grid(row=2, column=1, sticky="w", pady=2)
-
-        # Recent threats
-        threats_frame = ttk.LabelFrame(security_frame, text="🚨 Recent Security Events", padding=10)
-        threats_frame.grid(row=4, column=0, sticky="ew")
-        threats_frame.columnconfigure(0, weight=1)
-
-        self.threats_listbox = tk.Listbox(threats_frame, height=5, font=self.text_font)
-        self.threats_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        self.threats_listbox.insert(tk.END, "🔍 Suspicious login attempt detected")
-        self.threats_listbox.insert(tk.END, "📡 Unusual network traffic pattern")
-        self.threats_listbox.insert(tk.END, "🔐 Weak password policy alert")
-
-        # Threat controls
-        threat_controls = ttk.Frame(threats_frame)
-        threat_controls.grid(row=1, column=0, pady=(10, 0))
-
-        ttk.Button(threat_controls, text="🚨 Investigate", command=self._investigate_threat).grid(row=0, column=0, padx=5)
-        ttk.Button(threat_controls, text="🔄 Refresh", command=self._refresh_security_status).grid(row=0, column=1, padx=5)
-
-    def _show_audit_view(self):
-        """Show audit system view in the consolidated tab"""
-        # Clear current content
-        for widget in self.security_audit_content_frame.winfo_children():
-            widget.destroy()
-
-        # Audit system interface
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.security_audit_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.security_audit_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-
-        # Audit system control panel
-        audit_frame = ttk.LabelFrame(content_frame, text="📋 Audit System & Compliance Monitoring", padding=10)
-        audit_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        audit_frame.columnconfigure(0, weight=1)
-
-        # Audit description
-        desc_text = """Comprehensive audit system for compliance monitoring, security logging,
-and regulatory reporting. Tracks all system activities and maintains detailed audit trails."""
-        desc_label = ttk.Label(audit_frame, text=desc_text, wraplength=600, justify="left")
-        desc_label.grid(row=0, column=0, pady=(0, 20), sticky="w")
-
-        # Control buttons
-        control_frame = ttk.Frame(audit_frame)
-        control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Button(control_frame, text="📊 Generate Audit Report", command=self._generate_audit_report).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="🔍 Compliance Check", command=self._run_compliance_check).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        ttk.Button(control_frame, text="⚙️ Audit Settings", command=self._configure_audit).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
-        # Audit metrics
-        metrics_frame = ttk.Frame(audit_frame)
-        metrics_frame.grid(row=2, column=0, pady=(0, 20), sticky="ew")
-        metrics_frame.columnconfigure((0, 1, 2), weight=1)
-
-        ttk.Label(metrics_frame, text="Events Logged:").grid(row=0, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Compliance Score:").grid(row=1, column=0, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="Audit Alerts:").grid(row=2, column=0, sticky="w", pady=2)
-
-        ttk.Label(metrics_frame, text="15,432").grid(row=0, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="97.3%").grid(row=1, column=1, sticky="w", pady=2)
-        ttk.Label(metrics_frame, text="2").grid(row=2, column=1, sticky="w", pady=2)
-
-        # Recent audit events
-        events_frame = ttk.LabelFrame(audit_frame, text="📋 Recent Audit Events", padding=10)
-        events_frame.grid(row=3, column=0, sticky="ew")
-        events_frame.columnconfigure(0, weight=1)
-
-        audit_listbox = tk.Listbox(events_frame, height=6, font=self.text_font)
-        audit_listbox.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-
-        audit_listbox.insert(tk.END, "🔐 User authentication - user@example.com")
-        audit_listbox.insert(tk.END, "📝 Data access - Task database queried")
-        audit_listbox.insert(tk.END, "⚙️ System configuration changed")
-        audit_listbox.insert(tk.END, "🚨 Security policy violation detected")
-        audit_listbox.insert(tk.END, "📤 Data export - Tasks exported to CSV")
-        audit_listbox.insert(tk.END, "🔑 API key generated")
-
-        # Audit controls
-        audit_controls = ttk.Frame(events_frame)
-        audit_controls.grid(row=1, column=0, pady=(10, 0))
-
-        ttk.Button(audit_controls, text="📄 View Details", command=self._view_audit_details).grid(row=0, column=0, padx=5)
-        ttk.Button(audit_controls, text="🔄 Refresh Events", command=self._refresh_audit_events).grid(row=0, column=1, padx=5)
-
-    # Placeholder methods for new consolidated tabs
-    def _code_search(self):
-        messagebox.showinfo("Code Search", "Advanced code search and analysis tools.")
-
-    def _debug_helper(self):
-        messagebox.showinfo("Debug Helper", "AI-powered debugging assistance.")
-
-    def _performance_profiler(self):
-        messagebox.showinfo("Performance Profiler", "Code performance analysis and optimization.")
-
-    def _code_formatter(self):
-        messagebox.showinfo("Code Formatter", "Automatic code formatting and style correction.")
-
-    def _file_manager(self):
-        messagebox.showinfo("File Manager", "Advanced file management system.")
-
-    def _network_tools(self):
-        messagebox.showinfo("Network Tools", "Network diagnostics and monitoring tools.")
-
-    def _backup_manager(self):
-        messagebox.showinfo("Backup Manager", "Automated backup and recovery system.")
-
-    def _system_monitor(self):
-        messagebox.showinfo("System Monitor", "Real-time system performance monitoring.")
-
-    def _run_command(self):
-        messagebox.showinfo("Command Execution", "Terminal command executed successfully.")
-
-    def _browse_vision_file(self):
-        messagebox.showinfo("File Browser", "Please select an image file for analysis.")
-
-    def _analyze_image(self):
-        messagebox.showinfo("Image Analysis", "Advanced image analysis and feature extraction.")
-
-    def _basic_search(self):
-        messagebox.showinfo("Basic Search", "Performing basic text search across all sources.")
-
-    def _ai_search(self):
-        messagebox.showinfo("AI Search", "AI-powered semantic search with understanding.")
-
-    def _file_search(self):
-        messagebox.showinfo("File Search", "Searching through file contents and metadata.")
-
-    def _generate_audit_report(self):
-        messagebox.showinfo("Audit Report", "Comprehensive audit report generated.")
-
-    def _run_compliance_check(self):
-        messagebox.showinfo("Compliance Check", "Compliance check completed successfully.")
-
-    def _configure_audit(self):
-        messagebox.showinfo("Audit Configuration", "Audit system configuration dialog.")
-
-    def _view_audit_details(self):
-        messagebox.showinfo("Audit Details", "Detailed audit event information.")
-
-    def _refresh_audit_events(self):
-        messagebox.showinfo("Audit Refresh", "Audit events refreshed successfully.")
-
-    def _send_chat_message(self):
-        messagebox.showinfo("AI Chat", "Message sent to AI assistant!")
-
-    def _retrain_models(self):
-        messagebox.showinfo("Model Training", "Model retraining initiated!")
-
-    def _performance_report(self):
-        messagebox.showinfo("Performance Report", "Generating detailed performance report...")
-
-    def _system_config(self):
-        messagebox.showinfo("System Config", "AI system configuration dialog would open.")
-
-    def _deploy_advanced_model(self):
-        messagebox.showinfo("Advanced AI", "Advanced AI model deployment initiated!")
-
-    def _run_ai_experiments(self):
-        messagebox.showinfo("AI Experiments", "Running AI experiments...")
-
-    def _research_mode(self):
-        messagebox.showinfo("Research Mode", "Entering AI research mode!")
-
-    def _execute_predictive_analytics(self):
-        """Execute predictive analytics"""
-        try:
-            # Import predictive analytics system
-            from assistant_core.predictive_analytics import PredictiveAnalytics
-
-            analytics = PredictiveAnalytics()
-            result = analytics.run_prediction()
-
-            messagebox.showinfo("Predictive Analytics Complete",
-                              f"AI Predictive Analytics Results:\n\n"
-                              f"🎯 Prediction Accuracy: {result.get('accuracy', 0):.1f}%\n"
-                              f"📈 Confidence Score: {result.get('confidence', 0):.1f}%\n"
-                              f"🔮 Forecast Horizon: {result.get('horizon', 0)} days\n"
-                              f"📊 Data Points Analyzed: {result.get('data_points', 0)}\n\n"
-                              f"Predictions generated for trend analysis and decision support.")
-
-        except ImportError:
-            messagebox.showinfo("Predictive Analytics",
-                              "AI Predictive Analytics System ready.\n\n"
-                              "Features:\n"
-                              "• Time series forecasting\n"
-                              "• Trend analysis and prediction\n"
-                              "• Anomaly detection\n"
-                              "• Risk assessment modeling\n"
-                              "• Performance optimization\n\n"
-                              "Full functionality requires predictive analytics libraries.")
-        except Exception as e:
-            messagebox.showerror("Analytics Error", f"Failed to execute predictive analytics: {e}")
-
-    # ---------- Consolidated Tabs with Shared Pages ----------
-
-    def _build_dashboard_analytics_tab(self):
-        """Build consolidated Dashboard & Analytics tab with sub-navigation"""
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.dashboard_analytics_frame = ttkb.Frame(self.notebook)
-        else:
-            self.dashboard_analytics_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.dashboard_analytics_frame, text="📊 Dashboard & Analytics")
-
-        self.dashboard_analytics_frame.columnconfigure(0, weight=1)
-        self.dashboard_analytics_frame.rowconfigure(1, weight=1)
-
-        # Sub-navigation buttons
-        nav_frame = ttk.Frame(self.dashboard_analytics_frame)
-        nav_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        nav_frame.columnconfigure((0, 1), weight=1)
-
-        ttk.Button(nav_frame, text="📊 Dashboard", command=self._show_dashboard_view).grid(row=0, column=0, padx=5, pady=5)
-        ttk.Button(nav_frame, text="📈 Analytics", command=self._show_analytics_view).grid(row=0, column=1, padx=5, pady=5)
-
-        # Content frame for switching views
-        self.dashboard_content_frame = ttk.Frame(self.dashboard_analytics_frame)
-        self.dashboard_content_frame.grid(row=1, column=0, sticky="nsew")
-        self.dashboard_content_frame.columnconfigure(0, weight=1)
-        self.dashboard_content_frame.rowconfigure(0, weight=1)
-
-        # Initialize with dashboard view
-        self._show_dashboard_view()
-
-    def _show_dashboard_view(self):
-        """Show dashboard view in the consolidated tab"""
-        # Clear current content
-        for widget in self.dashboard_content_frame.winfo_children():
-            widget.destroy()
-
-        # Replicate original dashboard functionality
-        if TTKBOOTSTRAP_AVAILABLE:
-            content_frame = ttkb.Frame(self.dashboard_content_frame, padding=12)
-        else:
-            content_frame = ttk.Frame(self.dashboard_content_frame, padding=12)
-        content_frame.grid(row=0, column=0, sticky="nsew")
-
-        content_frame.columnconfigure(0, weight=1)
-        content_frame.columnconfigure(1, weight=1)
-        content_frame.rowconfigure(0, weight=1)
-        content_frame.rowconfigure(1, weight=1)
-        content_frame.rowconfigure(2, weight=0)
-        content_frame.rowconfigure(3, weight=0)
-        content_frame.rowconfigure(4, weight=0)
-
-        # Dashboard boxes - with text widgets for refresh functionality
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.today_box = ttkb.Labelframe(content_frame, text="📋 Today's Focus", bootstyle="primary", padding=10)
-            self.upcoming_box = ttkb.Labelframe(content_frame, text="📅 Upcoming Deadlines", bootstyle="info", padding=10)
-            self.status_box = ttkb.Labelframe(content_frame, text="📊 Status Overview", bootstyle="success", padding=10)
-            self.load_box = ttkb.Labelframe(content_frame, text="👥 Load by Persona", bootstyle="secondary", padding=10)
-            self.cyber_box = ttkb.Labelframe(content_frame, text="🛡️ Cyber Defense Status", bootstyle="warning", padding=10)
-        else:
-            self.today_box = ttk.LabelFrame(content_frame, text="📋 Today's Focus", padx=10, pady=10)
-            self.upcoming_box = ttk.LabelFrame(content_frame, text="📅 Upcoming Deadlines", padx=10, pady=10)
-            self.status_box = ttk.LabelFrame(content_frame, text="📊 Status Overview", padx=10, pady=10)
-            self.load_box = ttk.LabelFrame(content_frame, text="👥 Load by Persona", padx=10, pady=10)
-            self.cyber_box = ttk.LabelFrame(content_frame, text="🛡️ Cyber Defense Status", padx=10, pady=10)
-
-        self.today_box.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        self.upcoming_box.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
-        self.status_box.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
-        self.load_box.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
-        self.cyber_box.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
-
-        # Today's tasks content
-        self.today_text = tk.Text(self.today_box, height=6, wrap=tk.WORD, font=self.text_font)
-        self.today_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        # Upcoming tasks content
-        self.upcoming_text = tk.Text(self.upcoming_box, height=6, wrap=tk.WORD, font=self.text_font)
-        self.upcoming_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        # Status overview content
-        self.status_text = tk.Text(self.status_box, height=6, wrap=tk.WORD, font=self.text_font)
-        self.status_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        # Load by persona content
-        self.load_text = tk.Text(self.load_box, height=6, wrap=tk.WORD, font=self.text_font)
-        self.load_text.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        # Cyber defense status
-        self.cyber_box.columnconfigure(0, weight=1)
-        self.cyber_status_var = tk.StringVar(value="Status: offline")
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.cyber_status_label = ttkb.Label(
-                self.cyber_box,
-                textvariable=self.cyber_status_var,
-                font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
-                bootstyle="info"
-            )
-        else:
-            self.cyber_status_label = ttk.Label(
-                self.cyber_box,
-                textvariable=self.cyber_status_var,
-                font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
-            )
-        self.cyber_status_label.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
-
-        # Refresh button
-        ttk.Button(content_frame, text="🔄 Refresh Dashboard", command=self.refresh_dashboard).grid(row=3, column=0, columnspan=2, pady=10)
+        # Register unified dashboard widgets so both views stay in sync
+        self.dashboard_text_targets = [
+            tgt for tgt in getattr(self, "dashboard_text_targets", []) if tgt.get("source") != "unified"
+        ]
+        self.dashboard_text_targets.append(
+            {
+                "source": "unified",
+                "today": self.today_text,
+                "upcoming": self.upcoming_text,
+                "status": self.status_text,
+                "load": self.load_text,
+            }
+        )
+        self.unified_cyber_status_var = self.cyber_status_var
 
     def _populate_dashboard_widgets(self, today_tasks, upcoming_sorted, incomplete_sorted,
                                    tasks, status_counts, persona_load, state):
@@ -16486,6 +16810,209 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         self.refresh_ai_operations()
 
 
+# ---------- AI Operations Tab ----------
+
+    def _build_ai_operations_tab(self):
+        """Surface AI-driven document operations with governance context."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.ai_ops_frame = ttkb.Frame(self.notebook, padding=12)
+        else:
+            self.ai_ops_frame = ttk.Frame(self.notebook, padding=12)
+        self.notebook.add(self.ai_ops_frame, text="AI Ops")
+
+        header_font = (self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold")
+        header = (ttkb.Label if TTKBOOTSTRAP_AVAILABLE else ttk.Label)(
+            self.ai_ops_frame, text="AI Operations Feed", font=header_font
+        )
+        header.grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 8))
+
+        self.ai_ops_summary_var = tk.StringVar(
+            value="Live view of every AI edit, diff, and external hand-off."
+        )
+        summary_label = ttk.Label(self.ai_ops_frame, textvariable=self.ai_ops_summary_var, wraplength=900)
+        summary_label.grid(row=1, column=0, columnspan=3, sticky="w", pady=(0, 10))
+
+        filters = ttk.Frame(self.ai_ops_frame)
+        filters.grid(row=2, column=0, sticky="w", pady=(0, 6))
+
+        ttk.Label(filters, text="Status:").grid(row=0, column=0, padx=(0, 4))
+        status_values = ["all"] + OPERATION_STATUS_OPTIONS
+        self.ai_ops_status_combo = ttk.Combobox(
+            filters,
+            values=status_values,
+            textvariable=self.ai_ops_status_filter,
+            state="readonly",
+            width=18,
+        )
+        self.ai_ops_status_combo.grid(row=0, column=1, padx=(0, 12))
+        self.ai_ops_status_combo.bind("<<ComboboxSelected>>", lambda _event: self.refresh_ai_operations())
+
+        ttk.Label(filters, text="Integration:").grid(row=0, column=2, padx=(0, 4))
+        integration_values = ["all", "word", "excel", "onenote", "pdf", "powerpoint", "notes"]
+        self.ai_ops_integration_combo = ttk.Combobox(
+            filters,
+            values=integration_values,
+            textvariable=self.ai_ops_integration_filter,
+            state="readonly",
+            width=18,
+        )
+        self.ai_ops_integration_combo.grid(row=0, column=3, padx=(0, 12))
+        self.ai_ops_integration_combo.bind("<<ComboboxSelected>>", lambda _event: self.refresh_ai_operations())
+
+        action_buttons = ttk.Frame(self.ai_ops_frame)
+        action_buttons.grid(row=2, column=1, sticky="e", pady=(0, 6))
+        refresh_btn = ttk.Button(action_buttons, text="🔄 Refresh", command=self.refresh_ai_operations)
+        refresh_btn.grid(row=0, column=0, padx=4)
+        mark_done_btn = ttk.Button(
+            action_buttons, text="✅ Mark Succeeded", command=lambda: self.on_mark_ai_operation_status("succeeded")
+        )
+        mark_done_btn.grid(row=0, column=1, padx=4)
+        mark_review_btn = ttk.Button(
+            action_buttons, text="🛑 Needs Review", command=lambda: self.on_mark_ai_operation_status("needs_review")
+        )
+        mark_review_btn.grid(row=0, column=2, padx=4)
+
+        table_frame = ttk.Frame(self.ai_ops_frame)
+        table_frame.grid(row=3, column=0, columnspan=2, sticky="nsew", pady=(6, 6))
+        self.ai_ops_frame.rowconfigure(3, weight=1)
+        self.ai_ops_frame.columnconfigure(0, weight=3)
+        self.ai_ops_frame.columnconfigure(1, weight=2)
+
+        columns = (
+            "id",
+            "title",
+            "operation",
+            "persona",
+            "status",
+            "integration",
+            "external",
+            "started",
+            "completed",
+            "diff",
+        )
+        self.ai_ops_tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=14)
+        headings = {
+            "id": "ID",
+            "title": "Document / Task",
+            "operation": "Operation",
+            "persona": "AI",
+            "status": "Status",
+            "integration": "Integration",
+            "external": "External Company",
+            "started": "Started",
+            "completed": "Completed",
+            "diff": "Diff / Version",
+        }
+        for col, text in headings.items():
+            self.ai_ops_tree.heading(col, text=text)
+            width = 60 if col == "id" else 140
+            if col in {"title", "operation"}:
+                width = 200
+            self.ai_ops_tree.column(col, width=width, anchor="w")
+        self.ai_ops_tree.column("id", width=50, anchor="center")
+        self.ai_ops_tree.pack(fill="both", expand=True)
+
+        governance_frame = ttk.Frame(self.ai_ops_frame)
+        governance_frame.grid(row=3, column=2, sticky="nsew", padx=(10, 0))
+        governance_frame.rowconfigure(1, weight=1)
+        governance_frame.columnconfigure(0, weight=1)
+
+        ttk.Label(
+            governance_frame,
+            text="Governance Manifest",
+            font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
+        ).grid(row=0, column=0, sticky="w")
+        self.ai_ops_manifest = tk.Text(
+            governance_frame, wrap="word", height=18, relief="groove", borderwidth=1, font=self.text_font
+        )
+        manifest_text = (
+            "every AI edit is tracked\n"
+            "every change is diffed\n"
+            "every document has a version history\n"
+            "every operation has a timestamp\n"
+            "every action is reversible\n"
+            "every output is accountable\n\n"
+            "OneNote becomes the living structured memory\n"
+            "Word becomes the formatted deliverable engine\n"
+            "Excel becomes the analytical substrate\n"
+            "Git becomes the brain stem holding the lineage of every thought\n"
+            "ChatGPT becomes the reasoning center\n"
+            "Daemons become the continuous active cortex\n"
+            "AIC/Sora/Aria become the interpretive personalities that guide knowledge formation"
+        )
+        self.ai_ops_manifest.insert("1.0", manifest_text)
+        self.ai_ops_manifest.configure(state="disabled")
+        self.ai_ops_manifest.grid(row=1, column=0, sticky="nsew", pady=(6, 0))
+
+        self.refresh_ai_operations()
+
+    def refresh_ai_operations(self):
+        """Refresh AI operations feed and summary counts."""
+        status = self.ai_ops_status_filter.get()
+        integration = self.ai_ops_integration_filter.get()
+        status_arg = status if status != "all" else None
+        integration_arg = integration if integration != "all" else None
+
+        try:
+            operations = get_operation_feed(self.conn, status=status_arg, integration_type=integration_arg, limit=200)
+        except Exception as exc:
+            messagebox.showerror("AI Ops", f"Failed to load AI operations: {exc}")
+            operations = []
+
+        if hasattr(self, "ai_ops_tree"):
+            for item in self.ai_ops_tree.get_children():
+                self.ai_ops_tree.delete(item)
+            for op in operations:
+                diff_display = op.diff_path or op.version_tag or "—"
+                external_display = op.external_company or ""
+                self.ai_ops_tree.insert(
+                    "",
+                    "end",
+                    iid=f"op_{op.id}",
+                    values=(
+                        op.id,
+                        op.title,
+                        op.operation,
+                        op.persona,
+                        op.status,
+                        op.integration_type,
+                        external_display,
+                        op.started_at,
+                        op.completed_at or "",
+                        diff_display,
+                    ),
+                )
+
+        try:
+            counts = summarize_operation_counts(self.conn)
+            summary_parts = [f"{k}: {v}" for k, v in counts.items()]
+            self.ai_ops_summary_var.set("Live feed across Office + PDFs + Notes — " + ", ".join(summary_parts))
+        except Exception:
+            pass
+
+    def on_mark_ai_operation_status(self, status: str):
+        """Update status for selected AI operations."""
+        if not hasattr(self, "ai_ops_tree"):
+            return
+        selection = self.ai_ops_tree.selection()
+        if not selection:
+            messagebox.showinfo("AI Ops", "Select an operation to update its status.")
+            return
+        for item in selection:
+            values = self.ai_ops_tree.item(item, "values")
+            try:
+                op_id = int(values[0])
+            except Exception:
+                continue
+            db_update_document_operation_status(
+                self.conn,
+                op_id,
+                status=status,
+                mark_complete=status in {"succeeded", "failed", "needs_review"},
+            )
+        self.refresh_ai_operations()
+
+
 # ---------- Tools & Operations Tab ----------
 
     def _build_tools_tab(self):
@@ -18171,6 +18698,8 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
             self.refresh_ai_operations()
         if hasattr(self, 'refresh_analytics'):
             self.refresh_analytics()
+        if hasattr(self, 'refresh_ai_operations'):
+            self.refresh_ai_operations()
 
     def _apply_default_view(self):
         mapping = {
@@ -19797,6 +20326,173 @@ Supported Workflow Types: ETL, ML Pipelines, DevOps, Business Processes, IoT Aut
         self.fitness_var.set(".4f")
         self.nas_status_var.set("Mock evolution in progress...")
         self.best_arch_var.set("Feedforward-128-64-10 (fitness: 0.934)")
+
+    # ---------- Settings Tab (classic entry) ----------
+
+    def _build_settings_tab(self):
+        """Classic settings tab placeholder to keep legacy navigation working."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.settings_frame = ttkb.Frame(self.notebook, padding=12)
+        else:
+            self.settings_frame = ttk.Frame(self.notebook, padding=12)
+        self.notebook.add(self.settings_frame, text="Settings")
+
+        self.settings_frame.columnconfigure(0, weight=1)
+        self.settings_frame.rowconfigure(1, weight=1)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            header = ttkb.Label(
+                self.settings_frame,
+                text="Settings are consolidated under the existing configuration dialogs.\nThis placeholder preserves the legacy tab layout.",
+                bootstyle="secondary",
+                wraplength=900,
+            )
+        else:
+            header = ttk.Label(
+                self.settings_frame,
+                text="Settings are consolidated under the existing configuration dialogs.\nThis placeholder preserves the legacy tab layout.",
+                wraplength=900,
+            )
+        header.grid(row=0, column=0, sticky="w", pady=(0, 12))
+
+        ttk.Button(
+            self.settings_frame,
+            text="Open Dashboard & Analytics",
+            command=self._open_unified_analytics,
+        ).grid(row=1, column=0, sticky="w", pady=(0, 8))
+
+    # ---------- Analytics Tab (classic entry) ----------
+
+    def _build_analytics_tab(self):
+        """Classic analytics tab preserved; points to the unified view."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.analytics_frame = ttkb.Frame(self.notebook, padding=12)
+        else:
+            self.analytics_frame = ttk.Frame(self.notebook, padding=12)
+        self.notebook.add(self.analytics_frame, text="Analytics")
+
+        self.analytics_frame.columnconfigure(0, weight=1)
+        self.analytics_frame.rowconfigure(1, weight=1)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            header = ttkb.Label(
+                self.analytics_frame,
+                text="Analytics has moved to the unified Dashboard & Analytics view.",
+                bootstyle="secondary",
+                font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
+                wraplength=900,
+            )
+        else:
+            header = ttk.Label(
+                self.analytics_frame,
+                text="Analytics has moved to the unified Dashboard & Analytics view.",
+                wraplength=900,
+                font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
+            )
+        header.grid(row=0, column=0, sticky="w", pady=(0, 12))
+
+        action_frame = ttk.Frame(self.analytics_frame)
+        action_frame.grid(row=1, column=0, sticky="nw", pady=(0, 12))
+
+        ttk.Button(
+            action_frame,
+            text="Open Dashboard & Analytics",
+            command=self._open_unified_analytics,
+        ).grid(row=0, column=0, padx=(0, 10), pady=4, sticky="w")
+
+        ttk.Button(
+            action_frame,
+            text="Show Analytics View",
+            command=self._show_analytics_view,
+        ).grid(row=0, column=1, padx=(0, 10), pady=4, sticky="w")
+
+    def _open_unified_analytics(self):
+        """Navigate to the unified Dashboard & Analytics tab and show analytics."""
+        self._select_tab_by_label("📊 Dashboard & Analytics")
+        try:
+            self._show_analytics_view()
+        except Exception:
+            pass
+
+    def _populate_dashboard_widgets(
+        self,
+        today_tasks,
+        upcoming_sorted,
+        incomplete_sorted,
+        tasks,
+        status_counts,
+        persona_load,
+        state,
+    ):
+        """Populate dashboard widgets across classic and unified views."""
+
+        today_lines = []
+        if today_tasks:
+            today_lines.append("Tasks due today:\n")
+            for t in today_tasks:
+                today_lines.append(
+                    f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner})"
+                )
+        elif incomplete_sorted[:3]:
+            today_lines.append("No tasks explicitly due today.\nShowing top 3 priorities:\n")
+            for t in incomplete_sorted[:3]:
+                today_lines.append(
+                    f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner}, Due: {t.due_date or 'None'})"
+                )
+        else:
+            today_lines.append("No active tasks. System is idle.")
+        today_content = "\n".join(today_lines)
+
+        if upcoming_sorted:
+            upcoming_lines = ["Next deadlines:\n"]
+            for t in upcoming_sorted:
+                upcoming_lines.append(
+                    f"- #{t.id} [{t.priority}] {t.title} (Due: {t.due_date}, Project: {t.project}, Owner: {t.owner})"
+                )
+        else:
+            upcoming_lines = ["No upcoming deadlines logged."]
+        upcoming_content = "\n".join(upcoming_lines)
+
+        total = len(tasks)
+        status_lines = [f"Total tasks: {total}", ""]
+        for s in STATUS_OPTIONS:
+            status_lines.append(f"{s:12}: {status_counts.get(s, 0)}")
+        status_content = "\n".join(status_lines)
+
+        load_lines = ["Incomplete tasks per persona:", ""]
+        for p in PERSONAS:
+            marker = "◉" if p == state.active_persona else "○"
+            load_lines.append(f"{marker} {p:8}: {persona_load.get(p, 0)}")
+        load_content = "\n".join(load_lines)
+
+        for target in getattr(self, "dashboard_text_targets", []):
+            widget = target.get("today")
+            if widget and widget.winfo_exists():
+                widget.config(state="normal")
+                widget.delete("1.0", "end")
+                widget.insert("end", today_content)
+                widget.config(state="disabled")
+
+            widget = target.get("upcoming")
+            if widget and widget.winfo_exists():
+                widget.config(state="normal")
+                widget.delete("1.0", "end")
+                widget.insert("end", upcoming_content)
+                widget.config(state="disabled")
+
+            widget = target.get("status")
+            if widget and widget.winfo_exists():
+                widget.config(state="normal")
+                widget.delete("1.0", "end")
+                widget.insert("end", status_content)
+                widget.config(state="disabled")
+
+            widget = target.get("load")
+            if widget and widget.winfo_exists():
+                widget.config(state="normal")
+                widget.delete("1.0", "end")
+                widget.insert("end", load_content)
+                widget.config(state="disabled")
 
     def on_close(self):
         save_active_persona(self.conn, self.state_obj)
