@@ -2,6 +2,20 @@
 
 A comprehensive AI-powered **desktop application** that provides intelligent task management, document processing, and workflow automation with seamless integration to external services like Microsoft Office, Google Workspace, and Git.
 
+## Feature Highlights
+
+- **Task & Project Intelligence**: Smart prioritization, dependency-aware scoring, recurrence, and AI-powered ordering with project-level risk scoring and completion predictions (`assistant_hub/smart_prioritization.py`, `assistant_hub/project_insights.py`).
+- **Calendar Views**: Month/week/upcoming task views with overdue highlighting and calendar-ready exports (`assistant_hub/calendar_view.py`).
+- **Comments & Discussions**: Threaded comments with @persona mentions on tasks and projects, fully stored in the database (`assistant_hub/comments.py`).
+- **Document Templates**: Default and custom templates for briefs, reports, proposals, and notes with placeholder rendering (`assistant_hub/document_templates.py`).
+- **Knowledge Graph**: Relationship graph across tasks/projects/documents with dependency chains, critical path, and JSON export (`assistant_hub/knowledge_graph.py`).
+- **Code Analysis**: AI code review, bug detection, refactor suggestions, documentation drafting, and structure analysis across languages (`assistant_hub/code_analysis.py`).
+- **Analytics & Suggestions**: Productivity metrics, project/task stats, deadline reminders, workload balance, and health signals (`assistant_hub/analytics.py`, `assistant_hub/suggestions.py`).
+- **Export/Import**: CSV/JSON export/import plus full backups for tasks/projects (`assistant_hub/export_import.py`).
+- **Integrations**: Microsoft Graph (Word, Excel, OneNote, OneDrive), Google (Gmail, Calendar), Apple Calendar (CalDAV), Git/GitHub, PDF/Adobe utilities, filesystem sync.
+- **Security & Governance**: Audit logging, compliance workflows, and security monitoring via `security_monitor.py`; plugin marketplace with scanning and RBAC-aware controls.
+- **Interfaces**: Desktop GUI (`assistant_hub_gui/assistant_hub/gui.py`) with operational dashboards and terminal tools under `ui/terminal/`.
+
 ## Project Structure
 
 ```

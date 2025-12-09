@@ -4,6 +4,21 @@ A comprehensive Python-based AI assistant that integrates with multiple producti
 
 ## Features
 
+### 🧠 Task & Project Intelligence
+- **Smart Prioritization**: Multi-factor scoring (priority, due dates, dependencies, project weight, status) plus AI ordering (`assistant_hub/smart_prioritization.py`).
+- **Project Insights & Risk Analysis**: Risk scoring, mitigation suggestions, and completion prediction (`assistant_hub/project_insights.py`).
+- **Calendar Views**: Month/week/upcoming task layouts with overdue highlighting (`assistant_hub/calendar_view.py`).
+- **Knowledge Graph**: Relationships, dependency chains, critical path, and JSON export (`assistant_hub/knowledge_graph.py`).
+- **Analytics & Suggestions**: Productivity metrics, project/task stats, deadline reminders, workload balance (`assistant_hub/analytics.py`, `assistant_hub/suggestions.py`).
+
+### 🤝 Collaboration & Content
+- **Comments & Discussions**: Threaded comments with @persona mentions for tasks/projects, fully stored in DB (`assistant_hub/comments.py`).
+- **Document Templates**: Default and custom templates for briefs, reports, proposals, and notes with placeholder rendering (`assistant_hub/document_templates.py`).
+- **Export/Import**: CSV/JSON export/import and full backups for tasks/projects (`assistant_hub/export_import.py`).
+
+### 🧑‍💻 Developer Experience
+- **Code Analysis Tools**: AI code review, bug detection, refactor guidance, documentation drafting, and structure analysis across languages (`assistant_hub/code_analysis.py`).
+
 ### 🤖 AI Integration
 - **OpenAI/ChatGPT**: Chat completions, embeddings, image analysis, function calling, assistants
 - **Conversation Management**: System prompts, conversation history, temperature control
