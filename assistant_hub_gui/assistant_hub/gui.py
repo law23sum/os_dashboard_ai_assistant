@@ -2,7 +2,9 @@
 import asyncio
 import base64
 import os
+import shlex
 import sqlite3
+import sys
 import threading
 from datetime import datetime
 from pathlib import Path
@@ -10,6 +12,18 @@ from typing import Dict, Optional, Any
 
 import tkinter as tk
 from tkinter import ttk, messagebox, font as tkfont, filedialog
+
+# Optional requests import (defensive because repo contains requests.py)
+try:
+    import importlib
+
+    _requests_mod = importlib.import_module("requests")
+    if hasattr(_requests_mod, "get") and hasattr(_requests_mod, "utils"):
+        requests = _requests_mod  # type: ignore
+    else:
+        requests = None
+except Exception:
+    requests = None
 
 try:
     import ttkbootstrap as ttkb
@@ -438,6 +452,81 @@ class ProgressIndicator:
             self.indicator_label.after(500, lambda: self.indicator_label.grid_remove())
 
 
+class AIOSAPIClient:
+    """Lightweight HTTP client for the governed AI OS cockpit with safe fallbacks."""
+
+    def __init__(self, base_url: str = "http://localhost:8000", timeout: float = 2.5):
+        self.base = (base_url or "http://localhost:8000").rstrip("/")
+        self.timeout = timeout
+
+    @property
+    def available(self) -> bool:
+        return requests is not None
+
+    def _get(self, path: str):
+        if not self.available:
+            return None
+        try:
+            resp = requests.get(self.base + path, timeout=self.timeout)
+            if 200 <= resp.status_code < 300:
+                return resp.json()
+        except Exception:
+            return None
+        return None
+
+    def _post(self, path: str):
+        if not self.available:
+            return False, None
+        try:
+            resp = requests.post(self.base + path, timeout=self.timeout)
+            ok = 200 <= resp.status_code < 300
+            payload = None
+            try:
+                payload = resp.json()
+            except Exception:
+                payload = None
+            return ok, payload
+        except Exception:
+            return False, None
+
+    def search(self, q: str):
+        q = (q or "").strip()
+        if not q:
+            return []
+        data = self._get(f"/search?q={requests.utils.quote(q) if requests else q}")
+        if isinstance(data, list):
+            return data
+        if isinstance(data, dict) and isinstance(data.get("results"), list):
+            return data["results"]
+        return []
+
+    def list_operations(self):
+        data = self._get("/operations?limit=50")
+        return data if isinstance(data, list) else []
+
+    def get_audit(self, op_id: str):
+        if not op_id:
+            return None
+        data = self._get(f"/audit/{op_id}")
+        return data if isinstance(data, dict) else None
+
+    def list_daemons(self):
+        data = self._get("/daemons")
+        return data if isinstance(data, list) else []
+
+    def set_daemon_enabled(self, name: str, enabled: bool):
+        action = "enable" if enabled else "disable"
+        ok, _ = self._post(f"/daemons/{name}/{action}")
+        return ok
+
+    def run_daemon(self, name: str):
+        ok, payload = self._post(f"/daemons/{name}/run")
+        op_id = None
+        if isinstance(payload, dict):
+            op_id = payload.get("id") or payload.get("operation_id")
+        return ok, op_id
+
+
 class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def __init__(self):
         # Determine theme based on settings - use more professional modern themes
@@ -471,6 +560,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.state_obj: AssistantState = load_state(self.conn)
         self.settings: Settings = load_settings(self.conn)
         self.security_status: SecurityStatus = load_security_status(self.conn)
+        backend_default = os.environ.get("AIOS_BACKEND_URL") or getattr(self.settings, "api_base_url", "http://localhost:8000")
+        self.aios_api_client = AIOSAPIClient(base_url=backend_default)
 
         # Build palette before configuring styles so widgets share a cohesive look
         self._build_color_palette()
@@ -504,21 +595,216 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # isn't loaded, avoiding Tk's __getattr__ fallback from raising errors
         # during GUI construction.
         self.automation_orchestrator = None
+        # Terminal command helpers used by the Tools view
+        self.command_entry_var = None
+        self.command_terminal_output = None
+        # Commands pulled from the spec sheet so they are runnable from the GUI
+        self.spec_sheet_commands = [
+            {
+                "label": "Clone repository",
+                "command": "git clone https://github.com/yourusername/os-dashboard-ai-assistant.git",
+                "description": "Clone the OS Dashboard AI Assistant repo from GitHub.",
+            },
+            {
+                "label": "Setup script",
+                "command": "python setup.py",
+                "description": "Run setup script to initialize the project from source.",
+            },
+            {
+                "label": "Install dependencies",
+                "command": "pip install -r requirements.txt",
+                "description": "Install Python dependencies from requirements.txt.",
+            },
+            {
+                "label": "Run application (CLI)",
+                "command": "python run.py",
+                "description": "Start the application via run.py entrypoint.",
+            },
+            {
+                "label": "Run main app",
+                "command": "python main.py",
+                "description": "Launch the core application entrypoint.",
+            },
+            {
+                "label": "Launch GUI dashboard",
+                "command": "python_os assistant_hub_gui/main.py",
+                "description": "Start the GUI dashboard (spec lists python_os alias twice).",
+            },
+            {
+                "label": "Docker dev (basic)",
+                "command": "docker-compose up -d",
+                "description": "Bring up the basic development Docker stack.",
+            },
+            {
+                "label": "Docker full stack",
+                "command": "docker-compose --profile full up -d",
+                "description": "Start the full production stack with monitoring.",
+            },
+            {
+                "label": "Docker GUI profile",
+                "command": "docker-compose --profile gui up -d",
+                "description": "Launch the GUI-enabled Docker profile.",
+            },
+            {
+                "label": "Create credentials dir",
+                "command": "mkdir -p config/credentials",
+                "description": "Create configuration credentials directory.",
+            },
+            {
+                "label": "Copy config template",
+                "command": "cp config/config.yaml config/config.local.yaml",
+                "description": "Copy base config to local override file.",
+            },
+            {
+                "label": "Run tests (pytest)",
+                "command": "pytest tests/",
+                "description": "Execute full pytest suite (listed twice in spec).",
+            },
+            {
+                "label": "Security dashboard",
+                "command": "python security_monitor.py dashboard",
+                "description": "Open security monitor dashboard view.",
+            },
+            {
+                "label": "Compliance (GDPR)",
+                "command": "python security_monitor.py compliance gdpr",
+                "description": "Run GDPR compliance assessment routine.",
+            },
+            {
+                "label": "Analyze threats (auth.log)",
+                "command": "python security_monitor.py analyze-threats /var/log/auth.log",
+                "description": "Analyze authentication log for threats.",
+            },
+            {
+                "label": "Security incidents",
+                "command": "python security_monitor.py incidents",
+                "description": "Check security incidents dashboard.",
+            },
+            {
+                "label": "Audit logs (user, 7d)",
+                "command": "python security_monitor.py audit --user \"username\" --days 7",
+                "description": "View audit logs for a user over the last 7 days.",
+            },
+            {
+                "label": "Analyze threats (access.log)",
+                "command": "python security_monitor.py analyze-threats access.log",
+                "description": "Analyze access.log for threats (spec example).",
+            },
+            {
+                "label": "Plugins: list",
+                "command": "python plugin_manager.py list",
+                "description": "List available marketplace plugins.",
+            },
+            {
+                "label": "Plugins: search weather",
+                "command": "python plugin_manager.py list --query \"weather\" --type integration",
+                "description": "Search plugins filtered by keyword and type.",
+            },
+            {
+                "label": "Plugins: show weather",
+                "command": "python plugin_manager.py show weather-integration",
+                "description": "Show detailed info for weather-integration plugin.",
+            },
+            {
+                "label": "Plugins: install weather",
+                "command": "python plugin_manager.py install weather-integration",
+                "description": "Install the weather-integration plugin.",
+            },
+            {
+                "label": "Plugins: install versioned",
+                "command": "python plugin_manager.py install weather-integration --version 1.0.0",
+                "description": "Install a specific plugin version.",
+            },
+            {
+                "label": "Plugins: uninstall weather",
+                "command": "python plugin_manager.py uninstall weather-integration",
+                "description": "Uninstall the weather-integration plugin.",
+            },
+            {
+                "label": "Plugins: stats",
+                "command": "python plugin_manager.py stats",
+                "description": "View marketplace statistics.",
+            },
+            {
+                "label": "Compile modules",
+                "command": "python -m compileall assistant_hub",
+                "description": "Byte-compile the assistant_hub package.",
+            },
+            {
+                "label": "Neural architecture search",
+                "command": "python neural_architecture_search.py",
+                "description": "Run neural architecture search workflow.",
+            },
+            {
+                "label": "Unit tests (discover)",
+                "command": "python -m unittest discover tests",
+                "description": "Discover and execute unit tests.",
+            },
+            {
+                "label": "Unit test ai_assistant",
+                "command": "python -m unittest tests.test_ai_assistant",
+                "description": "Targeted ai_assistant test module.",
+            },
+            {
+                "label": "Unit test database",
+                "command": "python -m unittest tests.test_database",
+                "description": "Database-specific tests.",
+            },
+            {
+                "label": "Unit test task automation",
+                "command": "python -m unittest tests.test_task_automation",
+                "description": "Task automation test module.",
+            },
+            {
+                "label": "Unit tests verbose",
+                "command": "python -m unittest discover tests -v",
+                "description": "Verbose unittest discovery run.",
+            },
+            {
+                "label": "Import smoke test",
+                "command": "python -c \"from os_dashboard_orchestrator import OSDashboard; print('Import successful')\"",
+                "description": "Quick import verification of OSDashboard.",
+            },
+            {
+                "label": "Build executable (script)",
+                "command": "./build.sh",
+                "description": "Run helper build script to create executables.",
+            },
+            {
+                "label": "Install PyInstaller",
+                "command": "pip install pyinstaller",
+                "description": "Install PyInstaller for manual builds.",
+            },
+            {
+                "label": "Build executable (PyInstaller)",
+                "command": "python build-executable.py",
+                "description": "Build executables manually with PyInstaller.",
+            },
+        ]
 
         self._configure_style()
+        # Build web page map early so global dropdowns can reuse it
+        self.aios_web_page_map = self._build_ai_os_web_page_map()
 
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
 
         self._build_topbar()
-
+        # Toolbar that replaces the horizontal tab bar with dropdown navigation
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.tab_dropdown_bar = ttkb.Frame(self, padding=(12, 8))
+        else:
+            self.tab_dropdown_bar = ttk.Frame(self, padding=(12, 8))
+        self.tab_dropdown_bar.grid(row=1, column=0, sticky="ew")
+        for i in range(7):
+            self.tab_dropdown_bar.columnconfigure(i, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
             self.notebook = ttkb.Notebook(self, bootstyle="primary")
         else:
             self.notebook = ttk.Notebook(self)
         # Better spacing for professional look
-        self.notebook.grid(row=1, column=0, sticky="nsew", padx=12, pady=(4, 12))
+        self.notebook.grid(row=2, column=0, sticky="nsew", padx=12, pady=(4, 12))
 
         # Classic tabs remain available; new consolidated views are added below
         self._build_dashboard_tab()
@@ -541,6 +827,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self._build_tools_intelligence_tab()
         self._build_integrations_infrastructure_tab()
         self._build_security_audit_tab()
+        self._build_ai_os_cockpit_tab()
 
         # Update tab labels with icons if available
         if TTKBOOTSTRAP_AVAILABLE:
@@ -560,10 +847,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.notebook.tab(classic_tab_count + 4, text="🔧 Tools & Intelligence")
             self.notebook.tab(classic_tab_count + 5, text="🔌 Integrations & Infrastructure")
             self.notebook.tab(classic_tab_count + 6, text="🛡️ Security & Audit")
+            self.notebook.tab(classic_tab_count + 7, text="🧭 AI OS Cockpit")
 
-        # Populate additive tab navigation dropdown after tabs are created
+        # Populate additive tab navigation dropdown after tabs are created, then hide tab strip
+        self._capture_tab_metadata()
+        self._hide_notebook_tabs()
+        self._build_tab_dropdown_bar()
         self._initialize_tab_navigation()
         self._refresh_tab_group_dropdowns()
+        self._refresh_web_page_dropdown()
 
         # Initialize sync scheduler
         self.sync_scheduler = create_default_scheduler(self.conn)
@@ -781,6 +1073,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         top.grid(row=0, column=0, sticky="ew", padx=12, pady=(12, 8))
         top.columnconfigure(1, weight=1)
         top.columnconfigure(4, weight=1)  # Add spacing between left and right sections
+        top.columnconfigure(5, weight=1)
 
         # Left section - Persona controls
         if TTKBOOTSTRAP_AVAILABLE:
@@ -865,52 +1158,114 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             ToolTip(save_btn, text="Save current state and settings")
             ToolTip(refresh_btn, text="Refresh all views with latest data")
 
-        # Additive navigation dropdown that mirrors existing tabs without replacing them
+    def _capture_tab_metadata(self):
+        """Cache tab ids and labels so we can hide the strip but keep navigation."""
+        self._tab_meta = []
+        self._tab_label_to_id = {}
+        try:
+            for tab_id in self.notebook.tabs():
+                label = self.notebook.tab(tab_id, "text") or str(tab_id)
+                self._tab_meta.append((tab_id, label))
+                self._tab_label_to_id[label] = tab_id
+        except Exception:
+            self._tab_meta = []
+            self._tab_label_to_id = {}
+
+    def _hide_notebook_tabs(self):
+        """Hide the native tab strip so dropdowns become the primary navigation."""
+        try:
+            for tab_id, _label in getattr(self, "_tab_meta", []):
+                self.notebook.tab(tab_id, state="hidden")
+        except Exception:
+            pass
+
+    def _build_tab_dropdown_bar(self):
+        """Render dropdown toolbar that replaces the horizontal tab strip."""
+        bar = getattr(self, "tab_dropdown_bar", None)
+        if not bar:
+            return
+        for child in bar.winfo_children():
+            child.destroy()
+
+        # Navigate dropdown (all tabs)
         if TTKBOOTSTRAP_AVAILABLE:
-            nav_label = ttkb.Label(top, text="Navigate:", bootstyle="secondary")
+            nav_label = ttkb.Label(bar, text="Navigate:", bootstyle="secondary")
             self.tab_nav_var = tk.StringVar(value="Go to tab…")
             self.tab_nav_combo = ttkb.Combobox(
-                top,
+                bar,
                 textvariable=self.tab_nav_var,
+                state="readonly",
+                width=26,
+                bootstyle="secondary",
+            )
+        else:
+            nav_label = ttk.Label(bar, text="Navigate:")
+            self.tab_nav_var = tk.StringVar(value="Go to tab…")
+            self.tab_nav_combo = ttk.Combobox(
+                bar,
+                textvariable=self.tab_nav_var,
+                state="readonly",
+                width=26,
+            )
+        nav_label.grid(row=0, column=0, sticky="w", padx=(0, 8))
+        self.tab_nav_combo.grid(row=0, column=1, sticky="ew", padx=(0, 12))
+        self.tab_nav_combo.bind("<<ComboboxSelected>>", self._on_tab_navigation_select)
+        if TTKBOOTSTRAP_AVAILABLE:
+            ToolTip(self.tab_nav_combo, text="Jump to any view")
+
+        # Grouped dropdowns (productivity, AI, etc.)
+        self._build_tab_group_dropdowns(bar, row=0, start_col=2, show_label=False)
+
+        # Single web page selector (kept unique, moved into toolbar)
+        if TTKBOOTSTRAP_AVAILABLE:
+            web_label = ttkb.Label(bar, text="Web pages:", bootstyle="secondary")
+            self.aios_web_page_var = tk.StringVar(value="Open web page…")
+            self.aios_web_page_combo = ttkb.Combobox(
+                bar,
+                textvariable=self.aios_web_page_var,
                 state="readonly",
                 width=28,
                 bootstyle="secondary",
             )
         else:
-            nav_label = ttk.Label(top, text="Navigate:")
-            self.tab_nav_var = tk.StringVar(value="Go to tab…")
-            self.tab_nav_combo = ttk.Combobox(
-                top,
-                textvariable=self.tab_nav_var,
+            web_label = ttk.Label(bar, text="Web pages:")
+            self.aios_web_page_var = tk.StringVar(value="Open web page…")
+            self.aios_web_page_combo = ttk.Combobox(
+                bar,
+                textvariable=self.aios_web_page_var,
                 state="readonly",
                 width=28,
             )
-
-        nav_label.grid(row=1, column=0, sticky="w", padx=(0, 8), pady=(6, 0))
-        self.tab_nav_combo.grid(row=1, column=1, columnspan=3, sticky="w", padx=(0, 12), pady=(6, 0))
-        self.tab_nav_combo.bind("<<ComboboxSelected>>", self._on_tab_navigation_select)
+        web_label.grid(row=0, column=5, sticky="e", padx=(6, 6))
+        self.aios_web_page_combo.grid(row=0, column=6, sticky="ew")
+        self.aios_web_page_combo.bind("<<ComboboxSelected>>", self._open_ai_os_web_page)
         if TTKBOOTSTRAP_AVAILABLE:
-            ToolTip(self.tab_nav_combo, text="Jump to any tab (tabs remain visible)")
+            ToolTip(self.aios_web_page_combo, text="Open docs and dashboards in your browser")
 
-        # Grouped navigation dropdowns to keep tabs organized without removing them
-        self._build_tab_group_dropdowns(top)
+        # Backend status (compact)
+        self.aios_backend_status = tk.StringVar(value=self._aios_backend_status_text())
+        status_label = ttk.Label(bar, textvariable=self.aios_backend_status, foreground=self.colors.get("muted", "#4f566b"))
+        status_label.grid(row=1, column=0, columnspan=7, sticky="w", pady=(4, 0))
+
+    def _aios_backend_status_text(self) -> str:
+        client = getattr(self, "aios_api_client", None)
+        if client and getattr(client, "available", False):
+            return f"Backend: {client.base}"
+        return "Backend: offline (mock data)"
 
     def _initialize_tab_navigation(self):
         """Populate the navigation dropdown with current notebook tabs (additive, non-destructive)."""
         if not hasattr(self, "tab_nav_combo") or not hasattr(self, "notebook"):
             return
-        try:
-            tab_count = self.notebook.index("end")
-        except Exception:
-            return
 
         labels = []
-        self._tab_name_to_index = {}
-        for idx in range(tab_count):
-            text = self.notebook.tab(idx, "text") or f"Tab {idx + 1}"
-            labels.append(text)
-            # Preserve last occurrence if duplicate names are present
-            self._tab_name_to_index[text] = idx
+        self._tab_name_to_id = {}
+        for tab_id, text in getattr(self, "_tab_meta", []):
+            label = text or str(tab_id)
+            if label in self._tab_name_to_id:
+                continue
+            self._tab_name_to_id[label] = tab_id
+            labels.append(label)
 
         self.tab_nav_combo["values"] = labels
         self.tab_nav_combo.set("Go to tab…")
@@ -919,41 +1274,56 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def _on_tab_navigation_select(self, event=None):
         """Select the chosen tab from the additive dropdown without altering existing tabs."""
-        if not hasattr(self, "_tab_name_to_index"):
+        if not hasattr(self, "_tab_name_to_id"):
             return
         choice = self.tab_nav_var.get()
-        idx = self._tab_name_to_index.get(choice)
-        if idx is None:
+        tab_id = self._tab_name_to_id.get(choice)
+        if tab_id is None:
             return
         try:
-            self.notebook.select(idx)
+            self.notebook.select(tab_id)
         except Exception:
             pass
+
+    def _refresh_web_page_dropdown(self):
+        """Refresh the global web page dropdown with available local docs."""
+        if not hasattr(self, "aios_web_page_combo"):
+            return
+        try:
+            self.aios_web_page_map = self._build_ai_os_web_page_map()
+        except Exception:
+            self.aios_web_page_map = getattr(self, "aios_web_page_map", {}) or {}
+        values = list(self.aios_web_page_map.keys())
+        self.aios_web_page_combo["values"] = values
+        placeholder = "Open web page…" if values else "No web pages found"
+        self.aios_web_page_var.set(placeholder)
 
     def _select_tab_by_label(self, label: str):
         """Select notebook tab matching the provided label."""
         if not label:
             return
-        try:
-            tab_count = self.notebook.index("end")
-        except Exception:
+        tab_id = None
+        for tid, text in getattr(self, "_tab_meta", []):
+            if text and text.strip() == label.strip():
+                tab_id = tid
+                break
+        if tab_id is None:
             return
-        for idx in range(tab_count):
-            text = self.notebook.tab(idx, "text") or ""
-            if text.strip() == label.strip():
-                try:
-                    self.notebook.select(idx)
-                except Exception:
-                    pass
-                return
+        try:
+            self.notebook.select(tab_id)
+        except Exception:
+            pass
 
-    def _build_tab_group_dropdowns(self, parent):
+    def _build_tab_group_dropdowns(self, parent, row: int = 0, start_col: int = 0, show_label: bool = True):
         """Add category dropdowns that group existing tabs without removing them."""
-        if TTKBOOTSTRAP_AVAILABLE:
-            group_label = ttkb.Label(parent, text="Grouped Views:", bootstyle="secondary")
-        else:
-            group_label = ttk.Label(parent, text="Grouped Views:")
-        group_label.grid(row=2, column=0, sticky="w", padx=(0, 8), pady=(8, 0))
+        col = start_col
+        if show_label:
+            if TTKBOOTSTRAP_AVAILABLE:
+                group_label = ttkb.Label(parent, text="Grouped Views:", bootstyle="secondary")
+            else:
+                group_label = ttk.Label(parent, text="Grouped Views:")
+            group_label.grid(row=row, column=col, sticky="w", padx=(0, 8), pady=(4, 0))
+            col += 1
 
         self._tab_groups = {
             "Productivity": ["dashboard", "task", "project"],
@@ -972,7 +1342,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.tab_group_vars = {}
         self.tab_group_combos = {}
 
-        col = 1
         for group_name in self._tab_groups:
             var = tk.StringVar(value=f"{group_name}…")
             if TTKBOOTSTRAP_AVAILABLE:
@@ -985,7 +1354,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 )
             else:
                 combo = ttk.Combobox(parent, textvariable=var, state="readonly", width=24)
-            combo.grid(row=2, column=col, sticky="w", padx=(0, 10), pady=(8, 0))
+            combo.grid(row=row, column=col, sticky="ew", padx=(0, 10), pady=(4, 0))
             combo.bind("<<ComboboxSelected>>", lambda _e, g=group_name: self._on_tab_group_select(g))
             self.tab_group_vars[group_name] = var
             self.tab_group_combos[group_name] = combo
@@ -995,15 +1364,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         """Populate grouped dropdowns with current tab labels based on keywords."""
         if not hasattr(self, "tab_group_combos") or not hasattr(self, "notebook"):
             return
-        try:
-            tab_count = self.notebook.index("end")
-        except Exception:
-            return
-
-        # Build quick lookup of current tab labels
-        tab_labels = []
-        for idx in range(tab_count):
-            tab_labels.append(self.notebook.tab(idx, "text") or f"Tab {idx + 1}")
+        tab_labels = [label for _, label in getattr(self, "_tab_meta", [])]
 
         def match_label(keyword: str) -> Optional[str]:
             for label in tab_labels:
@@ -1233,6 +1594,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 font=(self.base_font.actual("family"), self.base_font.actual("size") - 1),
             )
         self.cyber_updated_label.grid(row=2, column=0, sticky="w", padx=10, pady=(0, 8))
+
+        ttk.Button(
+            self.cyber_box,
+            text="Scan a document for viruses (Jotti)",
+            command=self._open_virus_scan_portal
+        ).grid(row=3, column=0, sticky="w", padx=10, pady=(0, 8))
 
         if TTKBOOTSTRAP_AVAILABLE:
             self.sys_box = ttkb.Labelframe(self.dashboard_frame, text="💻 System Status (Optional)", bootstyle="secondary", padding=10)
@@ -2782,6 +3149,85 @@ for your specific datasets and tasks."""
         # Initialize with tools view
         self._show_tools_view()
 
+    def _run_command(
+        self,
+        command: Optional[str] = None,
+        *,
+        output_widget: Optional[tk.Text] = None,
+        entry_var: Optional[tk.StringVar] = None,
+    ):
+        """Run a spec-sheet command or a custom command and stream output to the terminal pane."""
+        output_widget = output_widget or getattr(self, "command_terminal_output", None)
+        entry_var = entry_var or getattr(self, "command_entry_var", None)
+        raw_command = (command if command is not None else (entry_var.get().strip() if entry_var else "")).strip()
+
+        if not raw_command:
+            messagebox.showinfo("Command Execution", "Enter a command to run.")
+            return
+
+        if entry_var is not None:
+            entry_var.set(raw_command)
+
+        cwd_value = ""
+        try:
+            cwd_value = self.cwd_var.get().strip() if hasattr(self, "cwd_var") else ""
+        except Exception:
+            cwd_value = ""
+        cwd = os.path.expanduser(cwd_value or os.getcwd())
+
+        python_exec = shlex.quote(sys.executable)
+        normalized_command = raw_command
+        notes = []
+        if raw_command.startswith("python_os "):
+            normalized_command = f"{python_exec} {raw_command[len('python_os '):]}"
+            notes.append("Mapped python_os to current Python interpreter")
+        elif raw_command.startswith("python "):
+            normalized_command = f"{python_exec} {raw_command[len('python '):]}"
+
+        def render_result(result_text: str, *, replace: bool = False):
+            if output_widget:
+                self._append_command_output(output_widget, result_text, replace=replace)
+            else:
+                messagebox.showinfo("Command Execution", result_text)
+
+        header_lines = [f"$ {raw_command}"]
+        if normalized_command != raw_command:
+            header_lines.append(f"(exec -> {normalized_command})")
+        if notes:
+            header_lines.append("Notes: " + " | ".join(notes))
+        header_lines.append(f"cwd: {cwd}")
+        render_result("\n".join(header_lines + ["[running...]"]), replace=False)
+
+        def worker():
+            try:
+                result = run_bash_command(normalized_command, cwd=cwd)
+            except Exception as exc:
+                self.after(0, lambda: render_result("\n".join(header_lines + [f"Failed: {exc}"])))
+                return
+
+            def finish():
+                lines = [f"$ {raw_command}"]
+                if normalized_command != raw_command:
+                    lines.append(f"(exec -> {normalized_command})")
+                if notes:
+                    lines.append("Notes: " + " | ".join(notes))
+                lines.append(f"shell: {result.shell_path}")
+                lines.append(f"cwd: {result.cwd}")
+                lines.append(f"exit: {result.returncode}")
+                stdout = result.stdout.strip()
+                stderr = result.stderr.strip()
+                if stdout:
+                    lines.append("STDOUT:\n" + stdout)
+                if stderr:
+                    lines.append("STDERR:\n" + stderr)
+                if not stdout and not stderr:
+                    lines.append("(no output)")
+                render_result("\n".join(lines))
+
+            self.after(0, finish)
+
+        threading.Thread(target=worker, daemon=True).start()
+
     def _show_tools_view(self):
         """Show developer tools view in the consolidated tab"""
         # Clear current content
@@ -2825,49 +3271,45 @@ for your specific datasets and tasks."""
         terminal_frame = ttk.LabelFrame(content_frame, text="💻 Command Terminal", padding=10)
         terminal_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
         terminal_frame.columnconfigure(0, weight=1)
+        terminal_frame.rowconfigure(0, weight=1)
 
         # Terminal output display
-        terminal_text = tk.Text(terminal_frame, height=8, wrap=tk.WORD, font=("Courier", 10))
-        terminal_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        self.command_terminal_output = tk.Text(terminal_frame, height=10, wrap=tk.WORD, font=("Courier", 10), state=tk.DISABLED)
+        self.command_terminal_output.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
-        terminal_scrollbar = ttk.Scrollbar(terminal_frame, command=terminal_text.yview)
+        terminal_scrollbar = ttk.Scrollbar(terminal_frame, command=self.command_terminal_output.yview)
         terminal_scrollbar.grid(row=0, column=1, sticky="ns")
-        terminal_text.config(yscrollcommand=terminal_scrollbar.set)
-
-        # Sample terminal output
-        terminal_output = """$ python --version
-Python 3.11.2
-
-$ pip list | grep torch
-torch                    2.1.1
-torchvision             0.16.1
-
-$ git status
-On branch main
-Your branch is up to date with 'origin/main'.
-
-nothing to commit, working tree clean
-
-$ ls -la
-total 128
-drwxr-xr-x  24 user  staff   768 Dec  7 19:33 .
-drwxr-xr-x   3 user  staff    96 Dec  7 18:45 ..
--rw-r--r--   1 user  staff  1024 Dec  7 19:30 README.md
--rw-r--r--   1 user  staff  2048 Dec  7 19:25 requirements.txt
-"""
-        terminal_text.insert(tk.END, terminal_output)
-        terminal_text.config(state=tk.DISABLED)
+        self.command_terminal_output.config(yscrollcommand=terminal_scrollbar.set)
+        self.command_terminal_output.config(state=tk.NORMAL)
+        self.command_terminal_output.insert(tk.END, "Select a spec-sheet command below or type your own. Output will appear here.\n\n")
+        self.command_terminal_output.config(state=tk.DISABLED)
 
         # Command input
         input_frame = ttk.Frame(terminal_frame)
         input_frame.grid(row=1, column=0, columnspan=2, pady=(5, 0), sticky="ew")
         input_frame.columnconfigure(0, weight=1)
 
-        command_entry = ttk.Entry(input_frame, font=("Courier", 10))
+        self.command_entry_var = tk.StringVar()
+        command_entry = ttk.Entry(input_frame, textvariable=self.command_entry_var, font=("Courier", 10))
         command_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        command_entry.insert(0, "Enter command...")
+        self.command_entry_var.set("python main.py")
 
-        ttk.Button(input_frame, text="▶️ Run", command=self._run_command).grid(row=0, column=1)
+        ttk.Button(input_frame, text="▶️ Run", command=lambda: self._run_command()).grid(row=0, column=1, sticky="ew")
+
+        # Spec sheet quick commands
+        commands_frame = ttk.LabelFrame(terminal_frame, text="📋 Spec Sheet Commands", padding=8)
+        commands_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=(10, 0))
+        commands_frame.columnconfigure((0, 1), weight=1)
+
+        for idx, spec in enumerate(self.spec_sheet_commands):
+            col = idx % 2
+            row = idx // 2
+            btn = ttk.Button(commands_frame, text=spec["label"], command=lambda c=spec["command"]: self._run_command(c))
+            btn.grid(row=row * 2, column=col, sticky="ew", padx=4, pady=(2, 0))
+            desc_text = f"{spec['command']}\n{spec['description']}"
+            ttk.Label(commands_frame, text=desc_text, wraplength=360, justify="left").grid(
+                row=row * 2 + 1, column=col, sticky="w", padx=4, pady=(0, 8)
+            )
 
     def _show_vision_view(self):
         """Show computer vision view in the consolidated tab"""
@@ -3387,11 +3829,12 @@ Uses machine learning algorithms to identify anomalous behavior and predict atta
         # Control buttons
         control_frame = ttk.Frame(security_frame)
         control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
+        control_frame.columnconfigure((0, 1, 2, 3), weight=1)
 
         ttk.Button(control_frame, text="🔍 Start Threat Scan", command=self._start_threat_scan).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         ttk.Button(control_frame, text="📊 View Security Report", command=self._view_security_report).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         ttk.Button(control_frame, text="⚙️ Security Settings", command=self._configure_security).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="🧪 Virus Scan (Jotti)", command=self._open_virus_scan_portal).grid(row=0, column=3, padx=5, pady=5, sticky="ew")
 
         # Threat status
         threat_frame = ttk.Frame(security_frame)
@@ -3534,8 +3977,95 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
     def _system_monitor(self):
         messagebox.showinfo("System Monitor", "Real-time system performance monitoring.")
 
-    def _run_command(self):
-        messagebox.showinfo("Command Execution", "Terminal command executed successfully.")
+    def _append_command_output(self, output_widget: Optional[tk.Text], text: str, *, replace: bool = False):
+        """Append text to the command terminal output area."""
+        if not output_widget:
+            return
+        output_widget.config(state=tk.NORMAL)
+        if replace:
+            output_widget.delete("1.0", tk.END)
+        output_widget.insert(tk.END, text.rstrip() + "\n\n")
+        output_widget.see(tk.END)
+        output_widget.config(state=tk.DISABLED)
+
+    def _run_command(
+        self,
+        command: Optional[str] = None,
+        *,
+        output_widget: Optional[tk.Text] = None,
+        entry_var: Optional[tk.StringVar] = None,
+    ):
+        """Run a spec-sheet command or a custom command and stream output to the terminal pane."""
+        output_widget = output_widget or getattr(self, "command_terminal_output", None)
+        entry_var = entry_var or getattr(self, "command_entry_var", None)
+        raw_command = (command if command is not None else (entry_var.get().strip() if entry_var else "")).strip()
+
+        if not raw_command:
+            messagebox.showinfo("Command Execution", "Enter a command to run.")
+            return
+
+        if entry_var is not None:
+            entry_var.set(raw_command)
+
+        cwd_value = ""
+        try:
+            cwd_value = self.cwd_var.get().strip() if hasattr(self, "cwd_var") else ""
+        except Exception:
+            cwd_value = ""
+        cwd = os.path.expanduser(cwd_value or os.getcwd())
+
+        python_exec = shlex.quote(sys.executable)
+        normalized_command = raw_command
+        notes = []
+        if raw_command.startswith("python_os "):
+            normalized_command = f"{python_exec} {raw_command[len('python_os '):]}"
+            notes.append("Mapped python_os to current Python interpreter")
+        elif raw_command.startswith("python "):
+            normalized_command = f"{python_exec} {raw_command[len('python '):]}"
+
+        def render_result(result_text: str, *, replace: bool = False):
+            if output_widget:
+                self._append_command_output(output_widget, result_text, replace=replace)
+            else:
+                messagebox.showinfo("Command Execution", result_text)
+
+        header_lines = [f"$ {raw_command}"]
+        if normalized_command != raw_command:
+            header_lines.append(f"(exec -> {normalized_command})")
+        if notes:
+            header_lines.append("Notes: " + " | ".join(notes))
+        header_lines.append(f"cwd: {cwd}")
+        render_result("\n".join(header_lines + ["[running...]"]), replace=False)
+
+        def worker():
+            try:
+                result = run_bash_command(normalized_command, cwd=cwd)
+            except Exception as exc:
+                self.after(0, lambda: render_result("\n".join(header_lines + [f"Failed: {exc}"])))
+                return
+
+            def finish():
+                lines = [f"$ {raw_command}"]
+                if normalized_command != raw_command:
+                    lines.append(f"(exec -> {normalized_command})")
+                if notes:
+                    lines.append("Notes: " + " | ".join(notes))
+                lines.append(f"shell: {result.shell_path}")
+                lines.append(f"cwd: {result.cwd}")
+                lines.append(f"exit: {result.returncode}")
+                stdout = result.stdout.strip()
+                stderr = result.stderr.strip()
+                if stdout:
+                    lines.append("STDOUT:\n" + stdout)
+                if stderr:
+                    lines.append("STDERR:\n" + stderr)
+                if not stdout and not stderr:
+                    lines.append("(no output)")
+                render_result("\n".join(lines))
+
+            self.after(0, finish)
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def _browse_vision_file(self):
         messagebox.showinfo("File Browser", "Please select an image file for analysis.")
@@ -4998,49 +5528,45 @@ for your specific datasets and tasks."""
         terminal_frame = ttk.LabelFrame(content_frame, text="💻 Command Terminal", padding=10)
         terminal_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
         terminal_frame.columnconfigure(0, weight=1)
+        terminal_frame.rowconfigure(0, weight=1)
 
         # Terminal output display
-        terminal_text = tk.Text(terminal_frame, height=8, wrap=tk.WORD, font=("Courier", 10))
-        terminal_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        self.command_terminal_output = tk.Text(terminal_frame, height=10, wrap=tk.WORD, font=("Courier", 10), state=tk.DISABLED)
+        self.command_terminal_output.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
-        terminal_scrollbar = ttk.Scrollbar(terminal_frame, command=terminal_text.yview)
+        terminal_scrollbar = ttk.Scrollbar(terminal_frame, command=self.command_terminal_output.yview)
         terminal_scrollbar.grid(row=0, column=1, sticky="ns")
-        terminal_text.config(yscrollcommand=terminal_scrollbar.set)
-
-        # Sample terminal output
-        terminal_output = """$ python --version
-Python 3.11.2
-
-$ pip list | grep torch
-torch                    2.1.1
-torchvision             0.16.1
-
-$ git status
-On branch main
-Your branch is up to date with 'origin/main'.
-
-nothing to commit, working tree clean
-
-$ ls -la
-total 128
-drwxr-xr-x  24 user  staff   768 Dec  7 19:33 .
-drwxr-xr-x   3 user  staff    96 Dec  7 18:45 ..
--rw-r--r--   1 user  staff  1024 Dec  7 19:30 README.md
--rw-r--r--   1 user  staff  2048 Dec  7 19:25 requirements.txt
-"""
-        terminal_text.insert(tk.END, terminal_output)
-        terminal_text.config(state=tk.DISABLED)
+        self.command_terminal_output.config(yscrollcommand=terminal_scrollbar.set)
+        self.command_terminal_output.config(state=tk.NORMAL)
+        self.command_terminal_output.insert(tk.END, "Select a spec-sheet command below or type your own. Output will appear here.\n\n")
+        self.command_terminal_output.config(state=tk.DISABLED)
 
         # Command input
         input_frame = ttk.Frame(terminal_frame)
         input_frame.grid(row=1, column=0, columnspan=2, pady=(5, 0), sticky="ew")
         input_frame.columnconfigure(0, weight=1)
 
-        command_entry = ttk.Entry(input_frame, font=("Courier", 10))
+        self.command_entry_var = tk.StringVar()
+        command_entry = ttk.Entry(input_frame, textvariable=self.command_entry_var, font=("Courier", 10))
         command_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        command_entry.insert(0, "Enter command...")
+        self.command_entry_var.set("python main.py")
 
-        ttk.Button(input_frame, text="▶️ Run", command=self._run_command).grid(row=0, column=1)
+        ttk.Button(input_frame, text="▶️ Run", command=lambda: self._run_command()).grid(row=0, column=1, sticky="ew")
+
+        # Spec sheet quick commands
+        commands_frame = ttk.LabelFrame(terminal_frame, text="📋 Spec Sheet Commands", padding=8)
+        commands_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=(10, 0))
+        commands_frame.columnconfigure((0, 1), weight=1)
+
+        for idx, spec in enumerate(self.spec_sheet_commands):
+            col = idx % 2
+            row = idx // 2
+            btn = ttk.Button(commands_frame, text=spec["label"], command=lambda c=spec["command"]: self._run_command(c))
+            btn.grid(row=row * 2, column=col, sticky="ew", padx=4, pady=(2, 0))
+            desc_text = f"{spec['command']}\n{spec['description']}"
+            ttk.Label(commands_frame, text=desc_text, wraplength=360, justify="left").grid(
+                row=row * 2 + 1, column=col, sticky="w", padx=4, pady=(0, 8)
+            )
 
     def _show_vision_view(self):
         """Show computer vision view in the consolidated tab"""
@@ -5560,11 +6086,12 @@ Uses machine learning algorithms to identify anomalous behavior and predict atta
         # Control buttons
         control_frame = ttk.Frame(security_frame)
         control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
+        control_frame.columnconfigure((0, 1, 2, 3), weight=1)
 
         ttk.Button(control_frame, text="🔍 Start Threat Scan", command=self._start_threat_scan).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         ttk.Button(control_frame, text="📊 View Security Report", command=self._view_security_report).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         ttk.Button(control_frame, text="⚙️ Security Settings", command=self._configure_security).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="🧪 Virus Scan (Jotti)", command=self._open_virus_scan_portal).grid(row=0, column=3, padx=5, pady=5, sticky="ew")
 
         # Threat status
         threat_frame = ttk.Frame(security_frame)
@@ -5707,8 +6234,84 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
     def _system_monitor(self):
         messagebox.showinfo("System Monitor", "Real-time system performance monitoring.")
 
-    def _run_command(self):
-        messagebox.showinfo("Command Execution", "Terminal command executed successfully.")
+    def _run_command(
+        self,
+        command: Optional[str] = None,
+        *,
+        output_widget: Optional[tk.Text] = None,
+        entry_var: Optional[tk.StringVar] = None,
+    ):
+        """Run a spec-sheet command or a custom command and stream output to the terminal pane."""
+        output_widget = output_widget or getattr(self, "command_terminal_output", None)
+        entry_var = entry_var or getattr(self, "command_entry_var", None)
+        raw_command = (command if command is not None else (entry_var.get().strip() if entry_var else "")).strip()
+
+        if not raw_command:
+            messagebox.showinfo("Command Execution", "Enter a command to run.")
+            return
+
+        if entry_var is not None:
+            entry_var.set(raw_command)
+
+        cwd_value = ""
+        try:
+            cwd_value = self.cwd_var.get().strip() if hasattr(self, "cwd_var") else ""
+        except Exception:
+            cwd_value = ""
+        cwd = os.path.expanduser(cwd_value or os.getcwd())
+
+        python_exec = shlex.quote(sys.executable)
+        normalized_command = raw_command
+        notes = []
+        if raw_command.startswith("python_os "):
+            normalized_command = f"{python_exec} {raw_command[len('python_os '):]}"
+            notes.append("Mapped python_os to current Python interpreter")
+        elif raw_command.startswith("python "):
+            normalized_command = f"{python_exec} {raw_command[len('python '):]}"
+
+        def render_result(result_text: str, *, replace: bool = False):
+            if output_widget:
+                self._append_command_output(output_widget, result_text, replace=replace)
+            else:
+                messagebox.showinfo("Command Execution", result_text)
+
+        header_lines = [f"$ {raw_command}"]
+        if normalized_command != raw_command:
+            header_lines.append(f"(exec -> {normalized_command})")
+        if notes:
+            header_lines.append("Notes: " + " | ".join(notes))
+        header_lines.append(f"cwd: {cwd}")
+        render_result("\n".join(header_lines + ["[running...]"]), replace=False)
+
+        def worker():
+            try:
+                result = run_bash_command(normalized_command, cwd=cwd)
+            except Exception as exc:
+                self.after(0, lambda: render_result("\n".join(header_lines + [f"Failed: {exc}"])))
+                return
+
+            def finish():
+                lines = [f"$ {raw_command}"]
+                if normalized_command != raw_command:
+                    lines.append(f"(exec -> {normalized_command})")
+                if notes:
+                    lines.append("Notes: " + " | ".join(notes))
+                lines.append(f"shell: {result.shell_path}")
+                lines.append(f"cwd: {result.cwd}")
+                lines.append(f"exit: {result.returncode}")
+                stdout = result.stdout.strip()
+                stderr = result.stderr.strip()
+                if stdout:
+                    lines.append("STDOUT:\n" + stdout)
+                if stderr:
+                    lines.append("STDERR:\n" + stderr)
+                if not stdout and not stderr:
+                    lines.append("(no output)")
+                render_result("\n".join(lines))
+
+            self.after(0, finish)
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def _browse_vision_file(self):
         messagebox.showinfo("File Browser", "Please select an image file for analysis.")
@@ -7171,49 +7774,45 @@ for your specific datasets and tasks."""
         terminal_frame = ttk.LabelFrame(content_frame, text="💻 Command Terminal", padding=10)
         terminal_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
         terminal_frame.columnconfigure(0, weight=1)
+        terminal_frame.rowconfigure(0, weight=1)
 
         # Terminal output display
-        terminal_text = tk.Text(terminal_frame, height=8, wrap=tk.WORD, font=("Courier", 10))
-        terminal_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        self.command_terminal_output = tk.Text(terminal_frame, height=10, wrap=tk.WORD, font=("Courier", 10), state=tk.DISABLED)
+        self.command_terminal_output.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
-        terminal_scrollbar = ttk.Scrollbar(terminal_frame, command=terminal_text.yview)
+        terminal_scrollbar = ttk.Scrollbar(terminal_frame, command=self.command_terminal_output.yview)
         terminal_scrollbar.grid(row=0, column=1, sticky="ns")
-        terminal_text.config(yscrollcommand=terminal_scrollbar.set)
-
-        # Sample terminal output
-        terminal_output = """$ python --version
-Python 3.11.2
-
-$ pip list | grep torch
-torch                    2.1.1
-torchvision             0.16.1
-
-$ git status
-On branch main
-Your branch is up to date with 'origin/main'.
-
-nothing to commit, working tree clean
-
-$ ls -la
-total 128
-drwxr-xr-x  24 user  staff   768 Dec  7 19:33 .
-drwxr-xr-x   3 user  staff    96 Dec  7 18:45 ..
--rw-r--r--   1 user  staff  1024 Dec  7 19:30 README.md
--rw-r--r--   1 user  staff  2048 Dec  7 19:25 requirements.txt
-"""
-        terminal_text.insert(tk.END, terminal_output)
-        terminal_text.config(state=tk.DISABLED)
+        self.command_terminal_output.config(yscrollcommand=terminal_scrollbar.set)
+        self.command_terminal_output.config(state=tk.NORMAL)
+        self.command_terminal_output.insert(tk.END, "Select a spec-sheet command below or type your own. Output will appear here.\n\n")
+        self.command_terminal_output.config(state=tk.DISABLED)
 
         # Command input
         input_frame = ttk.Frame(terminal_frame)
         input_frame.grid(row=1, column=0, columnspan=2, pady=(5, 0), sticky="ew")
         input_frame.columnconfigure(0, weight=1)
 
-        command_entry = ttk.Entry(input_frame, font=("Courier", 10))
+        self.command_entry_var = tk.StringVar()
+        command_entry = ttk.Entry(input_frame, textvariable=self.command_entry_var, font=("Courier", 10))
         command_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        command_entry.insert(0, "Enter command...")
+        self.command_entry_var.set("python main.py")
 
-        ttk.Button(input_frame, text="▶️ Run", command=self._run_command).grid(row=0, column=1)
+        ttk.Button(input_frame, text="▶️ Run", command=lambda: self._run_command()).grid(row=0, column=1, sticky="ew")
+
+        # Spec sheet quick commands
+        commands_frame = ttk.LabelFrame(terminal_frame, text="📋 Spec Sheet Commands", padding=8)
+        commands_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=(10, 0))
+        commands_frame.columnconfigure((0, 1), weight=1)
+
+        for idx, spec in enumerate(self.spec_sheet_commands):
+            col = idx % 2
+            row = idx // 2
+            btn = ttk.Button(commands_frame, text=spec["label"], command=lambda c=spec["command"]: self._run_command(c))
+            btn.grid(row=row * 2, column=col, sticky="ew", padx=4, pady=(2, 0))
+            desc_text = f"{spec['command']}\n{spec['description']}"
+            ttk.Label(commands_frame, text=desc_text, wraplength=360, justify="left").grid(
+                row=row * 2 + 1, column=col, sticky="w", padx=4, pady=(0, 8)
+            )
 
     def _show_vision_view(self):
         """Show computer vision view in the consolidated tab"""
@@ -7733,11 +8332,12 @@ Uses machine learning algorithms to identify anomalous behavior and predict atta
         # Control buttons
         control_frame = ttk.Frame(security_frame)
         control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
+        control_frame.columnconfigure((0, 1, 2, 3), weight=1)
 
         ttk.Button(control_frame, text="🔍 Start Threat Scan", command=self._start_threat_scan).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         ttk.Button(control_frame, text="📊 View Security Report", command=self._view_security_report).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         ttk.Button(control_frame, text="⚙️ Security Settings", command=self._configure_security).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="🧪 Virus Scan (Jotti)", command=self._open_virus_scan_portal).grid(row=0, column=3, padx=5, pady=5, sticky="ew")
 
         # Threat status
         threat_frame = ttk.Frame(security_frame)
@@ -7880,8 +8480,84 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
     def _system_monitor(self):
         messagebox.showinfo("System Monitor", "Real-time system performance monitoring.")
 
-    def _run_command(self):
-        messagebox.showinfo("Command Execution", "Terminal command executed successfully.")
+    def _run_command(
+        self,
+        command: Optional[str] = None,
+        *,
+        output_widget: Optional[tk.Text] = None,
+        entry_var: Optional[tk.StringVar] = None,
+    ):
+        """Run a spec-sheet command or a custom command and stream output to the terminal pane."""
+        output_widget = output_widget or getattr(self, "command_terminal_output", None)
+        entry_var = entry_var or getattr(self, "command_entry_var", None)
+        raw_command = (command if command is not None else (entry_var.get().strip() if entry_var else "")).strip()
+
+        if not raw_command:
+            messagebox.showinfo("Command Execution", "Enter a command to run.")
+            return
+
+        if entry_var is not None:
+            entry_var.set(raw_command)
+
+        cwd_value = ""
+        try:
+            cwd_value = self.cwd_var.get().strip() if hasattr(self, "cwd_var") else ""
+        except Exception:
+            cwd_value = ""
+        cwd = os.path.expanduser(cwd_value or os.getcwd())
+
+        python_exec = shlex.quote(sys.executable)
+        normalized_command = raw_command
+        notes = []
+        if raw_command.startswith("python_os "):
+            normalized_command = f"{python_exec} {raw_command[len('python_os '):]}"
+            notes.append("Mapped python_os to current Python interpreter")
+        elif raw_command.startswith("python "):
+            normalized_command = f"{python_exec} {raw_command[len('python '):]}"
+
+        def render_result(result_text: str, *, replace: bool = False):
+            if output_widget:
+                self._append_command_output(output_widget, result_text, replace=replace)
+            else:
+                messagebox.showinfo("Command Execution", result_text)
+
+        header_lines = [f"$ {raw_command}"]
+        if normalized_command != raw_command:
+            header_lines.append(f"(exec -> {normalized_command})")
+        if notes:
+            header_lines.append("Notes: " + " | ".join(notes))
+        header_lines.append(f"cwd: {cwd}")
+        render_result("\n".join(header_lines + ["[running...]"]), replace=False)
+
+        def worker():
+            try:
+                result = run_bash_command(normalized_command, cwd=cwd)
+            except Exception as exc:
+                self.after(0, lambda: render_result("\n".join(header_lines + [f"Failed: {exc}"])))
+                return
+
+            def finish():
+                lines = [f"$ {raw_command}"]
+                if normalized_command != raw_command:
+                    lines.append(f"(exec -> {normalized_command})")
+                if notes:
+                    lines.append("Notes: " + " | ".join(notes))
+                lines.append(f"shell: {result.shell_path}")
+                lines.append(f"cwd: {result.cwd}")
+                lines.append(f"exit: {result.returncode}")
+                stdout = result.stdout.strip()
+                stderr = result.stderr.strip()
+                if stdout:
+                    lines.append("STDOUT:\n" + stdout)
+                if stderr:
+                    lines.append("STDERR:\n" + stderr)
+                if not stdout and not stderr:
+                    lines.append("(no output)")
+                render_result("\n".join(lines))
+
+            self.after(0, finish)
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def _browse_vision_file(self):
         messagebox.showinfo("File Browser", "Please select an image file for analysis.")
@@ -8068,6 +8744,12 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
                 font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
             )
         self.cyber_status_label.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
+
+        ttk.Button(
+            self.cyber_box,
+            text="Scan a document for viruses (Jotti)",
+            command=self._open_virus_scan_portal
+        ).grid(row=1, column=0, sticky="w", padx=10, pady=(0, 8))
 
         # Refresh button
         ttk.Button(content_frame, text="🔄 Refresh Dashboard", command=self.refresh_dashboard).grid(row=3, column=0, columnspan=2, pady=10)
@@ -9359,49 +10041,45 @@ for your specific datasets and tasks."""
         terminal_frame = ttk.LabelFrame(content_frame, text="💻 Command Terminal", padding=10)
         terminal_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
         terminal_frame.columnconfigure(0, weight=1)
+        terminal_frame.rowconfigure(0, weight=1)
 
         # Terminal output display
-        terminal_text = tk.Text(terminal_frame, height=8, wrap=tk.WORD, font=("Courier", 10))
-        terminal_text.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        self.command_terminal_output = tk.Text(terminal_frame, height=10, wrap=tk.WORD, font=("Courier", 10), state=tk.DISABLED)
+        self.command_terminal_output.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
-        terminal_scrollbar = ttk.Scrollbar(terminal_frame, command=terminal_text.yview)
+        terminal_scrollbar = ttk.Scrollbar(terminal_frame, command=self.command_terminal_output.yview)
         terminal_scrollbar.grid(row=0, column=1, sticky="ns")
-        terminal_text.config(yscrollcommand=terminal_scrollbar.set)
-
-        # Sample terminal output
-        terminal_output = """$ python --version
-Python 3.11.2
-
-$ pip list | grep torch
-torch                    2.1.1
-torchvision             0.16.1
-
-$ git status
-On branch main
-Your branch is up to date with 'origin/main'.
-
-nothing to commit, working tree clean
-
-$ ls -la
-total 128
-drwxr-xr-x  24 user  staff   768 Dec  7 19:33 .
-drwxr-xr-x   3 user  staff    96 Dec  7 18:45 ..
--rw-r--r--   1 user  staff  1024 Dec  7 19:30 README.md
--rw-r--r--   1 user  staff  2048 Dec  7 19:25 requirements.txt
-"""
-        terminal_text.insert(tk.END, terminal_output)
-        terminal_text.config(state=tk.DISABLED)
+        self.command_terminal_output.config(yscrollcommand=terminal_scrollbar.set)
+        self.command_terminal_output.config(state=tk.NORMAL)
+        self.command_terminal_output.insert(tk.END, "Select a spec-sheet command below or type your own. Output will appear here.\n\n")
+        self.command_terminal_output.config(state=tk.DISABLED)
 
         # Command input
         input_frame = ttk.Frame(terminal_frame)
         input_frame.grid(row=1, column=0, columnspan=2, pady=(5, 0), sticky="ew")
         input_frame.columnconfigure(0, weight=1)
 
-        command_entry = ttk.Entry(input_frame, font=("Courier", 10))
+        self.command_entry_var = tk.StringVar()
+        command_entry = ttk.Entry(input_frame, textvariable=self.command_entry_var, font=("Courier", 10))
         command_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        command_entry.insert(0, "Enter command...")
+        self.command_entry_var.set("python main.py")
 
-        ttk.Button(input_frame, text="▶️ Run", command=self._run_command).grid(row=0, column=1)
+        ttk.Button(input_frame, text="▶️ Run", command=lambda: self._run_command()).grid(row=0, column=1, sticky="ew")
+
+        # Spec sheet quick commands
+        commands_frame = ttk.LabelFrame(terminal_frame, text="📋 Spec Sheet Commands", padding=8)
+        commands_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=(10, 0))
+        commands_frame.columnconfigure((0, 1), weight=1)
+
+        for idx, spec in enumerate(self.spec_sheet_commands):
+            col = idx % 2
+            row = idx // 2
+            btn = ttk.Button(commands_frame, text=spec["label"], command=lambda c=spec["command"]: self._run_command(c))
+            btn.grid(row=row * 2, column=col, sticky="ew", padx=4, pady=(2, 0))
+            desc_text = f"{spec['command']}\n{spec['description']}"
+            ttk.Label(commands_frame, text=desc_text, wraplength=360, justify="left").grid(
+                row=row * 2 + 1, column=col, sticky="w", padx=4, pady=(0, 8)
+            )
 
     def _show_vision_view(self):
         """Show computer vision view in the consolidated tab"""
@@ -9921,11 +10599,12 @@ Uses machine learning algorithms to identify anomalous behavior and predict atta
         # Control buttons
         control_frame = ttk.Frame(security_frame)
         control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
+        control_frame.columnconfigure((0, 1, 2, 3), weight=1)
 
         ttk.Button(control_frame, text="🔍 Start Threat Scan", command=self._start_threat_scan).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         ttk.Button(control_frame, text="📊 View Security Report", command=self._view_security_report).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         ttk.Button(control_frame, text="⚙️ Security Settings", command=self._configure_security).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="🧪 Virus Scan (Jotti)", command=self._open_virus_scan_portal).grid(row=0, column=3, padx=5, pady=5, sticky="ew")
 
         # Threat status
         threat_frame = ttk.Frame(security_frame)
@@ -10256,6 +10935,12 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
                 font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
             )
         self.cyber_status_label.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
+
+        ttk.Button(
+            self.cyber_box,
+            text="Scan a document for viruses (Jotti)",
+            command=self._open_virus_scan_portal
+        ).grid(row=1, column=0, sticky="w", padx=10, pady=(0, 8))
 
         # Refresh button
         ttk.Button(content_frame, text="🔄 Refresh Dashboard", command=self.refresh_dashboard).grid(row=3, column=0, columnspan=2, pady=10)
@@ -12094,11 +12779,12 @@ Uses machine learning algorithms to identify anomalous behavior and predict atta
         # Control buttons
         control_frame = ttk.Frame(security_frame)
         control_frame.grid(row=1, column=0, pady=(0, 20), sticky="ew")
-        control_frame.columnconfigure((0, 1, 2), weight=1)
+        control_frame.columnconfigure((0, 1, 2, 3), weight=1)
 
         ttk.Button(control_frame, text="🔍 Start Threat Scan", command=self._start_threat_scan).grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         ttk.Button(control_frame, text="📊 View Security Report", command=self._view_security_report).grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         ttk.Button(control_frame, text="⚙️ Security Settings", command=self._configure_security).grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+        ttk.Button(control_frame, text="🧪 Virus Scan (Jotti)", command=self._open_virus_scan_portal).grid(row=0, column=3, padx=5, pady=5, sticky="ew")
 
         # Threat status
         threat_frame = ttk.Frame(security_frame)
@@ -17051,6 +17737,12 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         # Workflow Execution section
         self._build_workflow_tools_section(tools_notebook)
 
+        # Spec sheet CLI commands section
+        self._build_cli_commands_section(tools_notebook)
+
+        # CyberChef offline toolkit (embedded static bundle)
+        self._build_cyberchef_section(tools_notebook)
+
         # Computer Vision AI section
         self._build_computer_vision_tools_section(tools_notebook)
 
@@ -17770,6 +18462,282 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         except Exception as e:
             self.logger.error(f"Failed to show automation dashboard: {e}")
             messagebox.showerror("Error", f"Failed to load dashboard: {e}")
+
+    def _build_cli_commands_section(self, parent):
+        """Build an interactive CLI/spec-sheet commands runner with live output."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(parent)
+        else:
+            frame = ttk.Frame(parent)
+        parent.add(frame, text="💻 CLI Commands")
+
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(3, weight=1)
+        frame.rowconfigure(4, weight=2)
+
+        header = ttk.Label(
+            frame,
+            text="Run every spec-sheet command directly from the GUI with detailed output.",
+            font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
+            wraplength=1000,
+            justify="left",
+        )
+        header.grid(row=0, column=0, sticky="w", padx=8, pady=(8, 4))
+
+        # Working directory selector
+        cwd_frame = ttk.LabelFrame(frame, text="Working Directory", padding=8)
+        cwd_frame.grid(row=1, column=0, sticky="ew", padx=8, pady=(0, 6))
+        cwd_frame.columnconfigure(0, weight=1)
+
+        cwd_entry = ttk.Entry(cwd_frame, textvariable=self.cwd_var)
+        cwd_entry.grid(row=0, column=0, sticky="ew", padx=(0, 6))
+        ttk.Button(
+            cwd_frame,
+            text="Use project root",
+            command=lambda: self.cwd_var.set(os.getcwd()),
+        ).grid(row=0, column=1, sticky="e")
+
+        # Command input + controls
+        input_frame = ttk.Frame(frame)
+        input_frame.grid(row=2, column=0, sticky="ew", padx=8, pady=(0, 6))
+        input_frame.columnconfigure(0, weight=1)
+
+        self.cli_command_entry_var = tk.StringVar(value="python main.py")
+        cli_entry = ttk.Entry(input_frame, textvariable=self.cli_command_entry_var, font=("Courier", 10))
+        cli_entry.grid(row=0, column=0, sticky="ew", padx=(0, 6))
+
+        def clear_cli_output():
+            if hasattr(self, "cli_command_terminal_output") and self.cli_command_terminal_output:
+                self.cli_command_terminal_output.config(state=tk.NORMAL)
+                self.cli_command_terminal_output.delete("1.0", tk.END)
+                self.cli_command_terminal_output.config(state=tk.DISABLED)
+
+        ttk.Button(
+            input_frame,
+            text="▶️ Run",
+            command=lambda: self._run_command(
+                output_widget=getattr(self, "cli_command_terminal_output", None),
+                entry_var=self.cli_command_entry_var,
+            ),
+        ).grid(row=0, column=1, sticky="ew", padx=(0, 6))
+
+        ttk.Button(input_frame, text="🧹 Clear", command=clear_cli_output).grid(row=0, column=2, sticky="ew")
+
+        # Output area
+        output_frame = ttk.LabelFrame(frame, text="Command Output", padding=8)
+        output_frame.grid(row=3, column=0, sticky="nsew", padx=8, pady=(0, 6))
+        output_frame.columnconfigure(0, weight=1)
+        output_frame.rowconfigure(0, weight=1)
+
+        self.cli_command_terminal_output = tk.Text(
+            output_frame, height=10, wrap=tk.WORD, font=("Courier", 10), state=tk.DISABLED
+        )
+        self.cli_command_terminal_output.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+        output_scrollbar = ttk.Scrollbar(output_frame, command=self.cli_command_terminal_output.yview)
+        output_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.cli_command_terminal_output.config(yscrollcommand=output_scrollbar.set)
+        self._append_command_output(
+            self.cli_command_terminal_output,
+            "Select a spec-sheet command below or type your own. Output (exit code, stdout, stderr) appears here.\n",
+            replace=True,
+        )
+
+        # Spec sheet commands (scrollable)
+        commands_frame = ttk.LabelFrame(frame, text="Spec Sheet Commands", padding=8)
+        commands_frame.grid(row=4, column=0, sticky="nsew", padx=8, pady=(0, 10))
+        commands_frame.columnconfigure(0, weight=1)
+        commands_frame.rowconfigure(0, weight=1)
+
+        commands_canvas = tk.Canvas(commands_frame, highlightthickness=0)
+        commands_canvas.grid(row=0, column=0, sticky="nsew")
+        commands_scrollbar = ttk.Scrollbar(commands_frame, orient="vertical", command=commands_canvas.yview)
+        commands_scrollbar.grid(row=0, column=1, sticky="ns")
+        commands_canvas.configure(yscrollcommand=commands_scrollbar.set)
+
+        commands_inner = ttk.Frame(commands_canvas)
+        commands_window = commands_canvas.create_window((0, 0), window=commands_inner, anchor="nw")
+        commands_inner.columnconfigure((0, 1), weight=1)
+
+        def _sync_scroll_region(_event=None):
+            commands_canvas.configure(scrollregion=commands_canvas.bbox("all"))
+
+        commands_inner.bind("<Configure>", _sync_scroll_region)
+        commands_canvas.bind(
+            "<Configure>",
+            lambda e: commands_canvas.itemconfig(commands_window, width=e.width),
+        )
+
+        for idx, spec in enumerate(self.spec_sheet_commands):
+            col = idx % 2
+            row = idx // 2
+            btn = ttk.Button(
+                commands_inner,
+                text=spec["label"],
+                command=lambda c=spec["command"]: self._run_command(
+                    c,
+                    output_widget=getattr(self, "cli_command_terminal_output", None),
+                    entry_var=self.cli_command_entry_var,
+                ),
+            )
+            btn.grid(row=row * 2, column=col, sticky="ew", padx=4, pady=(2, 0))
+            desc_text = f"{spec['command']}\n{spec['description']}"
+            ttk.Label(commands_inner, text=desc_text, wraplength=420, justify="left").grid(
+                row=row * 2 + 1, column=col, sticky="w", padx=4, pady=(0, 8)
+            )
+
+    def _build_cyberchef_section(self, parent):
+        """Expose the offline CyberChef bundle with quick launches and licenses."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(parent)
+        else:
+            frame = ttk.Frame(parent)
+        parent.add(frame, text="🧪 CyberChef (Offline)")
+
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(2, weight=1)
+
+        header = ttk.Label(
+            frame,
+            text="CyberChef (offline) • crypto/encode/decode/forensics toolkit bundled locally.",
+            font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
+            wraplength=1000,
+            justify="left",
+        )
+        header.grid(row=0, column=0, sticky="w", padx=8, pady=(8, 4))
+
+        base = Path(__file__).resolve().parent.parent
+        cyberchef_dir = base.parent / "CyberChef_v10.19.4"
+        cyberchef_html = cyberchef_dir / "CyberChef_v10.19.4.html"
+        main_license = cyberchef_dir / "assets" / "main.js.LICENSE.txt"
+        worker_license = cyberchef_dir / "ChefWorker.js.LICENSE.txt"
+
+        self.cyberchef_status_var = tk.StringVar(
+            value="Offline bundle detected." if cyberchef_html.exists() else "CyberChef bundle not found."
+        )
+        ttk.Label(frame, textvariable=self.cyberchef_status_var, foreground=self.colors.get("muted", "#4f566b")).grid(
+            row=1, column=0, sticky="w", padx=8, pady=(0, 6)
+        )
+
+        buttons = ttk.Frame(frame)
+        buttons.grid(row=2, column=0, sticky="w", padx=8, pady=(0, 10))
+
+        def _open_path(path: Path, label: str):
+            if not path.exists():
+                messagebox.showerror("CyberChef", f"{label} not found:\n{path}")
+                return
+            try:
+                import webbrowser
+                webbrowser.open(path.as_uri())
+                self.cyberchef_status_var.set(f"{label} opened in your browser.")
+            except Exception as exc:
+                messagebox.showerror("CyberChef", f"Could not open {label}:\n{exc}")
+
+        ttk.Button(
+            buttons,
+            text="🔓 Open CyberChef (offline)",
+            command=lambda: _open_path(cyberchef_html, "CyberChef"),
+        ).grid(row=0, column=0, sticky="w", padx=(0, 8), pady=(0, 6))
+
+        ttk.Button(
+            buttons,
+            text="📄 View main license",
+            command=lambda: _open_path(main_license, "CyberChef licenses"),
+        ).grid(row=0, column=1, sticky="w", padx=(0, 8), pady=(0, 6))
+
+        ttk.Button(
+            buttons,
+            text="📁 Open bundle folder",
+            command=lambda: _open_path(cyberchef_dir, "CyberChef folder"),
+        ).grid(row=0, column=2, sticky="w", padx=(0, 8), pady=(0, 6))
+
+        ttk.Button(
+            buttons,
+            text="📑 View worker/module licenses",
+            command=lambda: _open_path(worker_license, "CyberChef worker licenses"),
+        ).grid(row=0, column=3, sticky="w", padx=(0, 8), pady=(0, 6))
+
+        compliance = ttk.LabelFrame(frame, text="Compliance", padding=8)
+        compliance.grid(row=3, column=0, sticky="nsew", padx=8, pady=(0, 8))
+        compliance.columnconfigure(0, weight=1)
+
+        ttk.Label(
+            compliance,
+            text=(
+                "CyberChef is bundled as-is under Apache-2.0. All upstream license files remain in-place. "
+                "Launches use the local HTML bundle; no network calls are required."
+            ),
+            wraplength=1000,
+            justify="left",
+        ).grid(row=0, column=0, sticky="w")
+
+        # Quick launcher to pre-load input and an optional recipe into the offline bundle
+        quick = ttk.LabelFrame(frame, text="Quick launch with input", padding=8)
+        quick.grid(row=4, column=0, sticky="nsew", padx=8, pady=(0, 8))
+        quick.columnconfigure(0, weight=1)
+
+        ttk.Label(quick, text="Paste data to pre-load in CyberChef:").grid(row=0, column=0, sticky="w")
+        input_box = tk.Text(quick, height=4, wrap="word")
+        input_box.grid(row=1, column=0, sticky="nsew", pady=(4, 6))
+
+        # Basic recipe presets that map to common decode/hash flows; defaults to none
+        recipe_frame = ttk.Frame(quick)
+        recipe_frame.grid(row=2, column=0, sticky="ew", pady=(2, 8))
+        ttk.Label(recipe_frame, text="Recipe preset:").grid(row=0, column=0, sticky="w", padx=(0, 6))
+        recipe_choices = [
+            "None (just load input)",
+            "Base64 decode",
+            "Hex decode to text",
+            "SHA-256 hash",
+        ]
+        self.cyberchef_recipe_var = tk.StringVar(value=recipe_choices[0])
+        recipe_combo = ttk.Combobox(
+            recipe_frame,
+            textvariable=self.cyberchef_recipe_var,
+            values=recipe_choices,
+            state="readonly",
+            width=28,
+        )
+        recipe_combo.grid(row=0, column=1, sticky="w")
+
+        def _recipe_for_choice(choice: str):
+            choice = (choice or "").lower()
+            if "base64" in choice:
+                return [["From Base64", "A-Za-z0-9+/=", True]]
+            if "hex decode" in choice:
+                return [["From Hex", "Auto"]]
+            if "sha-256" in choice:
+                return [["SHA2", "256", 0], ["To Hex", "Space"]]
+            return []
+
+        def _open_with_input():
+            if not cyberchef_html.exists():
+                messagebox.showerror("CyberChef", f"CyberChef HTML not found:\n{cyberchef_html}")
+                return
+            raw_text = input_box.get("1.0", "end-1c")
+            recipe = _recipe_for_choice(self.cyberchef_recipe_var.get())
+            try:
+                import json
+                from urllib.parse import quote
+
+                recipe_part = f"recipe={quote(json.dumps(recipe))}" if recipe else ""
+                input_b64 = base64.b64encode(raw_text.encode("utf-8")).decode("ascii") if raw_text else ""
+                input_part = f"input={input_b64}" if input_b64 else ""
+                hash_parts = [p for p in [recipe_part, input_part] if p]
+                url = cyberchef_html.as_uri()
+                if hash_parts:
+                    url = f"{url}#{'&'.join(hash_parts)}"
+                import webbrowser
+
+                webbrowser.open(url)
+                self.cyberchef_status_var.set("Opened CyberChef with pre-loaded input.")
+            except Exception as exc:
+                messagebox.showerror("CyberChef", f"Could not launch CyberChef with input:\n{exc}")
+
+        ttk.Button(
+            quick,
+            text="🚀 Open CyberChef with this input",
+            command=_open_with_input,
+        ).grid(row=3, column=0, sticky="w", pady=(0, 4))
 
     def _build_computer_vision_tools_section(self, parent):
         """Build Computer Vision AI tools section."""
@@ -18684,6 +19652,1200 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
                 messagebox.showinfo("Cloud Document", "Cloud documents can be accessed through OneDrive. Use the 'Login to OneDrive' button to authenticate.")
             else:
                 messagebox.showinfo("Cloud Document", "Cloud documents can be accessed through OneDrive. Use the 'Login to OneDrive' button to authenticate.")
+
+    # ---------- AI OS Cockpit (governed dashboard inspired by web UI) ----------
+
+    def _build_ai_os_cockpit_tab(self):
+        """Create a governed AI OS dashboard with dropdown navigation and web links."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.aios_frame = ttkb.Frame(self.notebook, padding=6)
+        else:
+            self.aios_frame = ttk.Frame(self.notebook, padding=6)
+
+        self.notebook.add(self.aios_frame, text="🧭 AI OS Cockpit")
+        self.aios_frame.columnconfigure(0, weight=1)
+        self.aios_frame.rowconfigure(2, weight=1)
+
+        self._init_ai_os_reference_data()
+
+        # Overview hero with badges
+        hero = ttk.LabelFrame(self.aios_frame, text="Governed AI OS Dashboard", padding=12)
+        hero.grid(row=0, column=0, sticky="ew", pady=(0, 8))
+        hero.columnconfigure(1, weight=1)
+
+        ttk.Label(
+            hero,
+            text="One cockpit for unified search, audit, and daemon safety.",
+            font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
+        ).grid(row=0, column=0, columnspan=2, sticky="w")
+
+        pill_frame = ttk.Frame(hero)
+        pill_frame.grid(row=1, column=0, columnspan=2, sticky="w", pady=(4, 0))
+        for text in ["Unified Search", "Audit + Diffs", "Daemon Control", "Cross-App Previews"]:
+            ttk.Label(
+                pill_frame,
+                text=f"• {text}",
+                foreground=self.colors.get("muted", "#4f566b"),
+            ).pack(side="left", padx=(0, 10))
+
+        # Navigation row: dropdown to choose view + single web page launcher
+        nav = ttk.Frame(self.aios_frame)
+        nav.grid(row=1, column=0, sticky="ew", pady=(0, 4))
+        nav.columnconfigure(1, weight=1)
+        nav.columnconfigure(2, weight=1)
+        nav.rowconfigure(0, weight=0)
+        nav.rowconfigure(1, weight=0)
+
+        ttk.Label(nav, text="Focus area (dropdown tabs):").grid(row=0, column=0, sticky="w", padx=(0, 6))
+        self.aios_view_var = tk.StringVar(value="Unified Search")
+        self.aios_view_combo = ttk.Combobox(
+            nav,
+            textvariable=self.aios_view_var,
+            state="readonly",
+            values=["Unified Search", "Activity & Audit", "Daemons & Safety", "Docs & Web"],
+            width=30,
+        )
+        self.aios_view_combo.grid(row=0, column=1, sticky="w")
+        self.aios_view_combo.bind("<<ComboboxSelected>>", self._render_ai_os_view)
+        ttk.Label(
+            nav,
+            text="Docs & web pages live in the top dropdown ↑",
+            foreground=self.colors.get("muted", "#4f566b"),
+        ).grid(row=0, column=2, sticky="e", padx=(12, 0))
+        if not hasattr(self, "aios_backend_status"):
+            self.aios_backend_status = tk.StringVar(value=self._aios_backend_status_text())
+        ttk.Label(
+            nav,
+            textvariable=self.aios_backend_status,
+            foreground=self.colors.get("muted", "#4f566b"),
+        ).grid(row=1, column=0, columnspan=3, sticky="w", pady=(2, 0))
+        # Keep top-level web dropdown in sync when loading the cockpit
+        self._refresh_web_page_dropdown()
+
+        # Content container
+        self.aios_content = ttk.Frame(self.aios_frame)
+        self.aios_content.grid(row=2, column=0, sticky="nsew")
+        self.aios_content.columnconfigure(0, weight=1)
+        self.aios_content.rowconfigure(0, weight=1)
+
+        self._hydrate_ai_os_from_backend()
+        self._render_ai_os_view()
+
+    def _hydrate_ai_os_from_backend(self):
+        """Optional live data pull for AI OS cockpit; falls back to mock data."""
+        client = getattr(self, "aios_api_client", None)
+        if not client or not getattr(client, "available", False):
+            return
+        try:
+            ops = client.list_operations()
+            if isinstance(ops, list) and ops:
+                self.aios_mock_ops = ops
+        except Exception:
+            pass
+        try:
+            daemons = client.list_daemons()
+            if isinstance(daemons, list) and daemons:
+                for d in daemons:
+                    lr = d.get("last_run")
+                    if isinstance(lr, (int, float)):
+                        d["last_run"] = datetime.fromtimestamp(lr).isoformat()
+                self.aios_daemon_data = daemons
+        except Exception:
+            pass
+        try:
+            if hasattr(self, "aios_backend_status"):
+                self.aios_backend_status.set(self._aios_backend_status_text())
+        except Exception:
+            pass
+
+    def _init_ai_os_reference_data(self):
+        """Initialize mock/seed data for the governed cockpit."""
+        self.aios_search_data = [
+            {
+                "system": "pdf",
+                "resource_id": "reg-2025-12",
+                "node_type": "pdf",
+                "node_id": "pdf-reg-2025-12",
+                "title": "New Vendor Privacy Addendum",
+                "snippet": "Sections on data retention, breach notification, and subcontractor controls...",
+                "score": 0.91,
+            },
+            {
+                "system": "notes",
+                "resource_id": "note-7",
+                "node_type": "note",
+                "node_id": "note-7",
+                "title": "Governed AI OS idea fragments",
+                "snippet": "Daemon safety scopes, CIR minimal schema, Git-backed approvals...",
+                "score": 0.86,
+            },
+            {
+                "system": "word",
+                "resource_id": "policy-privacy-v3",
+                "node_type": "document",
+                "node_id": "word-policy-privacy-v3",
+                "title": "Internal Privacy Policy",
+                "snippet": "Policy requires 72-hour breach notice and annual vendor audits...",
+                "score": 0.81,
+            },
+            {
+                "system": "ppt",
+                "resource_id": "board-q3-2025",
+                "node_type": "presentation",
+                "node_id": "ppt-board-q3-2025",
+                "title": "Board Update Q3 2025",
+                "snippet": "Key metrics, risks, and compliance roadmap slides...",
+                "score": 0.77,
+            },
+            {
+                "system": "git",
+                "resource_id": "commit-9ad1",
+                "node_type": "commit",
+                "node_id": "git-9ad1",
+                "title": "Board deck refresh with Q3 results",
+                "snippet": "Commit: Board deck refresh with Q3 results and updated metrics.",
+                "score": 0.74,
+            },
+            {
+                "system": "filesystem",
+                "resource_id": "scoped-run",
+                "node_type": "file",
+                "node_id": "fs-scoped-run",
+                "title": "Scoped run artifact",
+                "snippet": "Local simulation output from daemon dry-run for safety review.",
+                "score": 0.69,
+            },
+        ]
+
+        self.aios_daemon_data = [
+            {
+                "name": "regulation_ingest",
+                "description": "Ingest new regulations, summarize, map to internal policies, and draft updates.",
+                "enabled": True,
+                "scopes": ["/Regulations", "Policy/Privacy", "Policy/Security"],
+                "triggers": ["pdf.added.regulations"],
+                "risk": "medium",
+                "last_run": datetime.now().isoformat(),
+                "success_rate": 0.93,
+            },
+            {
+                "name": "deck_refresh",
+                "description": "Keep executive decks aligned with underlying Excel models and latest decisions.",
+                "enabled": False,
+                "scopes": ["/Board", "/Exec"],
+                "triggers": ["excel.model.updated", "git.policy.merged"],
+                "risk": "low",
+                "last_run": datetime.now().isoformat(),
+                "success_rate": 0.88,
+            },
+            {
+                "name": "contract_risk_scan",
+                "description": "Summarize risk clauses in new contracts and propose redlines against templates.",
+                "enabled": True,
+                "scopes": ["/Contracts", "Templates/Legal"],
+                "triggers": ["pdf.added.contracts"],
+                "risk": "high",
+                "last_run": datetime.now().isoformat(),
+                "success_rate": 0.79,
+            },
+        ]
+
+        self.aios_mock_ops = [
+            {
+                "id": "op-001",
+                "actor": "daemon:regulation_ingest",
+                "intent": "ingest_regulation_and_prepare_policy_update",
+                "triggered_by": "event",
+                "started_at": datetime.now().isoformat(),
+                "finished_at": datetime.now().isoformat(),
+                "touched": [
+                    {"system": "pdf", "resource_id": "reg-2025-12", "action": "read"},
+                    {"system": "word", "resource_id": "policy-update-draft-12", "action": "write"},
+                ],
+                "diffs": [
+                    {
+                        "system": "word",
+                        "before_title": "New Vendor Privacy Addendum",
+                        "after_title": "Policy update draft based on New Vendor Privacy Addendum",
+                    }
+                ],
+                "metadata": {"event": "pdf.added.regulations"},
+            },
+            {
+                "id": "op-002",
+                "actor": "user:christian",
+                "intent": "generate_board_deck_from_sources",
+                "triggered_by": "manual",
+                "started_at": datetime.now().isoformat(),
+                "finished_at": datetime.now().isoformat(),
+                "touched": [
+                    {"system": "excel", "resource_id": "model-q3", "action": "read"},
+                    {"system": "ppt", "resource_id": "board-q3-2025", "action": "write"},
+                    {"system": "git", "resource_id": "commit-9ad1", "action": "write"},
+                ],
+                "diffs": [
+                    {"system": "ppt", "slides_added": 3, "slides_updated": 7, "slides_removed": 0},
+                    {"system": "git", "commit_message": "Board deck refresh with Q3 results"},
+                ],
+                "metadata": {"sources": ["excel", "word", "notes", "pdf"]},
+            },
+            {
+                "id": "op-003",
+                "actor": "daemon:contract_risk_scan",
+                "intent": "contract_risk_scan_preview",
+                "triggered_by": "event",
+                "started_at": datetime.now().isoformat(),
+                "finished_at": datetime.now().isoformat(),
+                "touched": [
+                    {"system": "pdf", "resource_id": "contract-2025-07", "action": "read"},
+                    {"system": "notes", "resource_id": "legal-annotations", "action": "write"},
+                ],
+                "diffs": [{"system": "pdf", "risk_flags": ["indemnity", "liability cap"], "status": "needs_review"}],
+                "metadata": {"sources": ["pdf"], "notes": "Simulated contract scan"},
+            },
+        ]
+
+    def _build_ai_os_web_page_map(self):
+        """Return ordered mapping of human labels to URLs/paths."""
+        base = Path(__file__).resolve().parent.parent
+        docs_dir = base.parent / "docs"
+        cyberchef_dir = base.parent / "CyberChef_v10.19.4"
+        pages = {
+            "Docs: Dashboard landing": docs_dir / "index.html",
+            "Docs: AI capabilities": docs_dir / "ai_capabilities.html",
+            "Docs: Canonical Internal Representation": base.parent / "CANONICAL_INTERNAL_REPRESENTATION.md",
+            "Docs: Daemon framework overview": base.parent / "DAEMON_FRAMEWORK_ARCHITECTURE.md",
+            "Guide: Cognitive daemon system": base.parent / "COGNITIVE_DAEMON_SYSTEM.md",
+            "Guide: AI features implementation": base.parent / "AI_FEATURES_IMPLEMENTATION.md",
+            "Guide: Implementation roadmap": base.parent / "IMPLEMENTATION_ROADMAP.md",
+            "Guide: Implementation summary": base.parent / "IMPLEMENTATION_SUMMARY.md",
+            "Guide: Feature opportunities": base.parent / "FEATURE_OPPORTUNITIES.md",
+            "Guide: Missing features summary": base.parent / "MISSING_FEATURES_SUMMARY.md",
+            "Guide: Low hanging feature wins": base.parent / "LOW_HANGING_FRUIT_FEATURES.md",
+            "Guide: Vision brief": base.parent / "VISION.md",
+            "Guide: Vision implementation": base.parent / "VISION_IMPLEMENTATION.md",
+            "Guide: Document upload design": base.parent / "DOCUMENT_UPLOAD_DESIGN.md",
+            "Guide: Document upload integration": base.parent / "DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md",
+            "Guide: Document upload implementation": base.parent / "DOCUMENT_UPLOAD_IMPLEMENTATION.md",
+            "Guide: Document templates & automation": base.parent / "DOCUMENT_TEMPLATES_AND_AUTOMATION.md",
+            "Guide: Automation orchestration": base.parent / "AUTOMATION_ORCHESTRATION_INTEGRATION.md",
+            "Cheatsheet: Commands": base.parent / "commands.md",
+            "Reference: README": base.parent / "README.md",
+            "Reference: Global impact white paper": base.parent / "GLOBAL_IMPACT_WHITE_PAPER.md",
+            "Reference: Architecture implementation": base.parent / "ARCHITECTURE_IMPLEMENTATION.md",
+            "Reference: Deployment guide": base.parent / "DEPLOYMENT.md",
+            "Tools: CyberChef (offline full UI)": cyberchef_dir / "CyberChef_v10.19.4.html",
+            "Legal: CyberChef bundled licenses (main assets)": cyberchef_dir / "assets" / "main.js.LICENSE.txt",
+            "Legal: CyberChef licenses (workers & modules)": cyberchef_dir / "ChefWorker.js.LICENSE.txt",
+        }
+        # Keep only entries that exist; fall back to text files opened in default handler
+        cleaned = {}
+        seen_targets = set()
+        for label, path in pages.items():
+            try:
+                if isinstance(path, Path):
+                    if not path.exists():
+                        continue
+                    target_key = path.resolve().as_posix()
+                else:
+                    target_key = str(path)
+            except Exception:
+                continue
+            # Avoid duplicate entries that point to the same underlying target
+            if target_key in seen_targets:
+                continue
+            cleaned[label] = path
+            seen_targets.add(target_key)
+        # Sort for predictable dropdown ordering
+        return dict(sorted(cleaned.items(), key=lambda kv: kv[0].lower()))
+
+    def _render_ai_os_view(self, _event=None):
+        """Clear and render the selected AI OS cockpit subview."""
+        for child in self.aios_content.winfo_children():
+            child.destroy()
+
+        view = (self.aios_view_var.get() or "Unified Search").lower()
+        if "search" in view:
+            self._render_ai_os_search_view()
+        elif "activity" in view:
+            self._render_ai_os_activity_view()
+        elif "doc" in view or "web" in view:
+            self._render_ai_os_docs_view()
+        else:
+            self._render_ai_os_daemon_view()
+
+    def _render_ai_os_docs_view(self):
+        """Docs/web landing that keeps the single web dropdown as the launcher."""
+        self._refresh_web_page_dropdown()
+        container = ttk.Frame(self.aios_content)
+        container.grid(row=0, column=0, sticky="nsew")
+        container.columnconfigure(0, weight=1)
+        container.rowconfigure(2, weight=1)
+
+        header = ttk.Frame(container)
+        header.grid(row=0, column=0, sticky="ew", pady=(0, 4))
+        ttk.Label(header, text="Docs & Web pages (dropdown-driven)", font=self.heading_font).pack(side="left")
+        ttk.Button(header, text="🔄 Refresh pages", command=self._refresh_ai_os_page_list).pack(side="right", padx=(6, 0))
+        ttk.Button(header, text="🌐 Open selected", command=self._open_selected_ai_os_page).pack(side="right")
+
+        self.aios_page_summary = tk.StringVar(value="Use the global web dropdown above to launch pages.")
+        ttk.Label(
+            container,
+            textvariable=self.aios_page_summary,
+            foreground=self.colors.get("muted", "#4f566b"),
+        ).grid(row=1, column=0, sticky="w", pady=(0, 6))
+
+        list_frame = ttk.LabelFrame(container, text="Available pages")
+        list_frame.grid(row=2, column=0, sticky="nsew")
+        list_frame.columnconfigure(0, weight=1)
+        list_frame.rowconfigure(0, weight=1)
+
+        self.aios_page_tree = ttk.Treeview(
+            list_frame,
+            columns=("label", "kind", "location"),
+            show="headings",
+            height=12,
+        )
+        for col, text, width in [
+            ("label", "Label", 240),
+            ("kind", "Type", 100),
+            ("location", "Location", 380),
+        ]:
+            self.aios_page_tree.heading(col, text=text)
+            self.aios_page_tree.column(col, width=width, anchor="w")
+        self.aios_page_tree.grid(row=0, column=0, sticky="nsew")
+        self.aios_page_tree.bind("<Double-1>", lambda _e: self._open_selected_ai_os_page())
+
+        page_scroll = ttk.Scrollbar(list_frame, orient="vertical", command=self.aios_page_tree.yview)
+        self.aios_page_tree.configure(yscrollcommand=page_scroll.set)
+        page_scroll.grid(row=0, column=1, sticky="ns")
+
+        self._refresh_ai_os_page_list()
+
+    def _refresh_ai_os_page_list(self):
+        """Populate docs/web listing from the shared dropdown map."""
+        self._refresh_web_page_dropdown()
+        if not hasattr(self, "aios_page_tree"):
+            return
+        self.aios_page_tree.delete(*self.aios_page_tree.get_children())
+        self.aios_page_lookup = {}
+        pages = getattr(self, "aios_web_page_map", {}) or {}
+        for idx, (label, target) in enumerate(pages.items()):
+            kind = "external"
+            location = str(target)
+            try:
+                if isinstance(target, Path):
+                    suffix = target.suffix.lower()
+                    if suffix in {".html", ".htm"}:
+                        kind = "HTML"
+                    elif suffix in {".md", ".txt"}:
+                        kind = "Doc"
+                    elif suffix in {".pdf"}:
+                        kind = "PDF"
+                    else:
+                        kind = suffix.lstrip(".") or "file"
+                    location = target.name
+                elif isinstance(target, str) and target.startswith("http"):
+                    kind = "URL"
+            except Exception:
+                pass
+            iid = f"page-{idx}"
+            self.aios_page_lookup[iid] = label
+            self.aios_page_tree.insert("", "end", iid=iid, values=(label, kind, location))
+        count = len(pages)
+        self.aios_page_summary.set(f"{count} page link(s) available — launch via the single web dropdown.")
+
+    def _open_selected_ai_os_page(self):
+        """Reuse the single web dropdown to open a selected entry from the list."""
+        if not hasattr(self, "aios_page_tree"):
+            return
+        sel = self.aios_page_tree.selection()
+        if not sel:
+            messagebox.showinfo("Open page", "Select a page to open.")
+            return
+        label = self.aios_page_lookup.get(sel[0]) if hasattr(self, "aios_page_lookup") else None
+        if not label:
+            return
+        self.aios_web_page_var.set(label)
+        self._open_ai_os_web_page()
+
+    # --- Unified Search ---
+
+    def _render_ai_os_search_view(self):
+        container = ttk.Frame(self.aios_content)
+        container.grid(row=0, column=0, sticky="nsew")
+        container.columnconfigure(0, weight=1)
+        container.columnconfigure(1, weight=1)
+        container.rowconfigure(3, weight=1)
+
+        # Controls
+        controls = ttk.Frame(container)
+        controls.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 6))
+        controls.columnconfigure(1, weight=1)
+
+        ttk.Label(controls, text="Query").grid(row=0, column=0, sticky="w", padx=(0, 6))
+        self.aios_query_var = tk.StringVar(value="")
+        self.aios_query_entry = ttk.Entry(controls, textvariable=self.aios_query_var)
+        self.aios_query_entry.grid(row=0, column=1, sticky="ew")
+        self.aios_query_entry.bind("<Return>", self._handle_ai_os_search)
+
+        ttk.Label(controls, text="Mode").grid(row=0, column=2, sticky="w", padx=(12, 6))
+        self.aios_mode_var = tk.StringVar(value="Hybrid")
+        self.aios_mode_combo = ttk.Combobox(
+            controls, textvariable=self.aios_mode_var, state="readonly", width=12, values=["Hybrid", "Semantic", "Keyword"]
+        )
+        self.aios_mode_combo.grid(row=0, column=3, sticky="w")
+        self.aios_mode_combo.bind("<<ComboboxSelected>>", self._handle_ai_os_search)
+
+        ttk.Button(controls, text="🔍 Search", command=self._handle_ai_os_search).grid(row=0, column=4, padx=(10, 0))
+        ttk.Button(controls, text="👁 Preview", command=self._open_selected_ai_os_preview).grid(row=0, column=5, padx=(8, 0))
+
+        quick = ttk.Frame(container)
+        quick.grid(row=1, column=0, columnspan=2, sticky="w", pady=(0, 6))
+        for prompt in ["governed AI OS", "privacy policy", "board deck Q3", "vendor contract risk", "regulatory mapping"]:
+            ttk.Button(quick, text=prompt, command=lambda p=prompt: self._quick_ai_os_prompt(p)).pack(side="left", padx=(0, 6))
+
+        filters = ttk.Frame(container)
+        filters.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(0, 6))
+        filters.columnconfigure(5, weight=1)
+        systems = sorted({(item.get("system") or "unknown").upper() for item in self.aios_search_data})
+        self.aios_system_filter_var = tk.StringVar(value="All systems")
+        ttk.Label(filters, text="System").grid(row=0, column=0, sticky="w", padx=(0, 6))
+        self.aios_system_filter = ttk.Combobox(
+            filters,
+            textvariable=self.aios_system_filter_var,
+            state="readonly",
+            width=16,
+            values=["All systems"] + systems,
+        )
+        self.aios_system_filter.grid(row=0, column=1, sticky="w")
+        self.aios_system_filter.bind("<<ComboboxSelected>>", self._handle_ai_os_search)
+
+        self.aios_sort_var = tk.StringVar(value="Relevance")
+        ttk.Label(filters, text="Sort").grid(row=0, column=2, sticky="w", padx=(12, 6))
+        self.aios_sort_combo = ttk.Combobox(
+            filters,
+            textvariable=self.aios_sort_var,
+            state="readonly",
+            width=14,
+            values=["Relevance", "Title", "System"],
+        )
+        self.aios_sort_combo.grid(row=0, column=3, sticky="w")
+        self.aios_sort_combo.bind("<<ComboboxSelected>>", self._handle_ai_os_search)
+
+        self.aios_score_threshold = tk.DoubleVar(value=0)
+        ttk.Label(filters, text="Min score").grid(row=0, column=4, sticky="w", padx=(12, 4))
+        score_scale = ttk.Scale(
+            filters,
+            from_=0,
+            to=100,
+            variable=self.aios_score_threshold,
+            command=lambda _e=None: self._handle_ai_os_search(),
+        )
+        score_scale.grid(row=0, column=5, sticky="ew", padx=(0, 6))
+        self.aios_score_label = ttk.Label(filters, text="Min score: 0")
+        self.aios_score_label.grid(row=0, column=6, sticky="e")
+
+        self.aios_results_summary_var = tk.StringVar(value="Showing all available results")
+        ttk.Label(filters, textvariable=self.aios_results_summary_var, foreground=self.colors.get("muted", "#4f566b")).grid(
+            row=1, column=0, columnspan=7, sticky="w", pady=(4, 0)
+        )
+
+        # Results + preview
+        results_frame = ttk.LabelFrame(container, text="Results")
+        results_frame.grid(row=3, column=0, sticky="nsew", padx=(0, 6))
+        results_frame.columnconfigure(0, weight=1)
+        results_frame.rowconfigure(0, weight=1)
+
+        self.aios_results_tree = ttk.Treeview(
+            results_frame,
+            columns=("system", "title", "score", "snippet"),
+            show="headings",
+            height=14,
+        )
+        self.aios_results_tree.heading("system", text="System")
+        self.aios_results_tree.heading("title", text="Title")
+        self.aios_results_tree.heading("score", text="Score")
+        self.aios_results_tree.heading("snippet", text="Snippet")
+        self.aios_results_tree.column("system", width=120, anchor="w")
+        self.aios_results_tree.column("title", width=200, anchor="w")
+        self.aios_results_tree.column("score", width=60, anchor="center")
+        self.aios_results_tree.column("snippet", width=320, anchor="w")
+        self.aios_results_tree.grid(row=0, column=0, sticky="nsew")
+        self.aios_results_tree.bind("<<TreeviewSelect>>", self._on_ai_os_result_select)
+        self.aios_results_tree.bind("<Double-1>", self._on_ai_os_result_double_click)
+
+        scroll = ttk.Scrollbar(results_frame, orient="vertical", command=self.aios_results_tree.yview)
+        self.aios_results_tree.configure(yscrollcommand=scroll.set)
+        scroll.grid(row=0, column=1, sticky="ns")
+
+        preview = ttk.LabelFrame(container, text="Preview & Metadata")
+        preview.grid(row=3, column=1, sticky="nsew")
+        preview.columnconfigure(0, weight=1)
+        preview.rowconfigure(0, weight=1)
+
+        self.aios_preview_text = tk.Text(preview, wrap=tk.WORD, font=self.text_font, state=tk.DISABLED, height=18)
+        self.aios_preview_text.grid(row=0, column=0, sticky="nsew")
+        preview_scroll = ttk.Scrollbar(preview, orient="vertical", command=self.aios_preview_text.yview)
+        self.aios_preview_text.configure(yscrollcommand=preview_scroll.set)
+        preview_scroll.grid(row=0, column=1, sticky="ns")
+
+        self._handle_ai_os_search(initial=True)
+
+    def _quick_ai_os_prompt(self, prompt: str):
+        self.aios_query_var.set(prompt)
+        self._handle_ai_os_search()
+
+    def _handle_ai_os_search(self, _event=None, initial: bool = False):
+        """Filter mock/DB search results and populate the tree."""
+        if not hasattr(self, "aios_results_tree"):
+            return
+        query = (self.aios_query_var.get() or "").strip().lower()
+        mode = (self.aios_mode_var.get() or "Hybrid").lower()
+        system_filter = (getattr(self, "aios_system_filter_var", tk.StringVar(value="all")).get() or "all").lower()
+        sort_mode = (getattr(self, "aios_sort_var", tk.StringVar(value="relevance")).get() or "relevance").lower()
+        score_threshold = 0.0
+        try:
+            score_threshold = float(getattr(self, "aios_score_threshold", tk.DoubleVar(value=0)).get() or 0) / 100.0
+        except Exception:
+            score_threshold = 0.0
+
+        pool = list(self.aios_search_data)
+        matches = []
+        for item in pool:
+            haystack = f"{item.get('title','')} {item.get('snippet','')} {item.get('system','')}".lower()
+            if not query or query in haystack:
+                sys_ok = system_filter in ("all", "all systems", "") or item.get("system", "").lower() == system_filter
+                score_ok = not score_threshold or float(item.get("score") or 0) >= score_threshold
+                if sys_ok and score_ok:
+                    matches.append(item)
+        if mode == "semantic":
+            matches = [m for m in matches if m.get("snippet")]
+        # Keep at least a few items visible for empty searches
+        if not matches:
+            matches = pool[:]
+        if sort_mode.startswith("title"):
+            matches = sorted(matches, key=lambda m: (m.get("title") or "").lower())[:24]
+        elif sort_mode.startswith("system"):
+            matches = sorted(
+                matches,
+                key=lambda m: ((m.get("system") or "").lower(), -(m.get("score") or 0)),
+            )[:24]
+        else:
+            matches = sorted(matches, key=lambda m: m.get("score", 0), reverse=True)[:24]
+
+        if hasattr(self, "aios_score_label"):
+            self.aios_score_label.config(text=f"Min score: {int(score_threshold * 100)}")
+
+        self.aios_results_tree.delete(*self.aios_results_tree.get_children())
+        self.aios_result_lookup = {}
+        for idx, item in enumerate(matches):
+            iid = f"{item.get('system','unknown')}-{item.get('resource_id','')}-{idx}"
+            self.aios_result_lookup[iid] = item
+            self.aios_results_tree.insert(
+                "",
+                "end",
+                iid=iid,
+                values=(
+                    item.get("system", "unknown").upper(),
+                    item.get("title", "Untitled"),
+                    f"{int((item.get('score') or 0)*100)}",
+                    self._truncate_text(item.get("snippet", "")),
+                ),
+            )
+        if matches and not initial:
+            self.aios_results_tree.selection_set(list(self.aios_result_lookup.keys())[0])
+            self._on_ai_os_result_select()
+        self._update_ai_os_results_summary(matches, system_filter, score_threshold)
+
+    def _update_ai_os_results_summary(self, matches, system_filter: str, score_threshold: float):
+        if not hasattr(self, "aios_results_summary_var"):
+            return
+        counts = {}
+        for item in matches:
+            sys = (item.get("system") or "unknown").upper()
+            counts[sys] = counts.get(sys, 0) + 1
+        parts = [f"{len(matches)} result(s)"]
+        if system_filter not in ("all", "all systems", ""):
+            parts.append(system_filter.title())
+        if score_threshold:
+            parts.append(f"min score {int(score_threshold * 100)}")
+        if counts:
+            parts.append(" | ".join([f"{k}:{v}" for k, v in counts.items()]))
+        self.aios_results_summary_var.set(" · ".join(parts))
+
+    def _on_ai_os_result_select(self, _event=None):
+        if not hasattr(self, "aios_result_lookup"):
+            return
+        sel = self.aios_results_tree.selection()
+        if not sel:
+            return
+        item = self.aios_result_lookup.get(sel[0])
+        if not item:
+            return
+        self.aios_preview_text.config(state=tk.NORMAL)
+        self.aios_preview_text.delete("1.0", tk.END)
+        self.aios_preview_text.insert(
+            tk.END,
+            f"System: {item.get('system','unknown').upper()}\n"
+            f"Resource: {item.get('resource_id','—')}\n"
+            f"Node: {item.get('node_type','—')}\n"
+            f"Score: {item.get('score','—')}\n\n"
+            f"{item.get('title','')}\n\n"
+            f"{item.get('snippet','No snippet available for this item.')}",
+        )
+        self.aios_preview_text.config(state=tk.DISABLED)
+
+    def _get_selected_ai_os_result(self) -> Optional[dict]:
+        if not hasattr(self, "aios_results_tree") or not hasattr(self, "aios_result_lookup"):
+            return None
+        sel = self.aios_results_tree.selection()
+        if not sel:
+            return None
+        return self.aios_result_lookup.get(sel[0])
+
+    def _open_selected_ai_os_preview(self):
+        item = self._get_selected_ai_os_result()
+        if not item:
+            messagebox.showinfo("Preview", "Select a search result to preview.")
+            return
+        self._open_ai_os_preview_window(item)
+
+    def _on_ai_os_result_double_click(self, _event=None):
+        item = self._get_selected_ai_os_result()
+        if item:
+            self._open_ai_os_preview_window(item)
+
+    def _open_ai_os_preview_window(self, item: dict):
+        """Lightweight preview drawer inspired by the web UI."""
+        try:
+            import json
+            meta_text = json.dumps(item, indent=2)
+        except Exception:
+            meta_text = str(item)
+
+        win = tk.Toplevel(self)
+        win.title(item.get("title") or item.get("resource_id") or "Search preview")
+        win.geometry("780x540")
+        try:
+            win.configure(bg=self.colors.get("background", "#ffffff"))
+        except Exception:
+            pass
+
+        header = ttk.Frame(win, padding=8)
+        header.pack(fill="x")
+        title = item.get("title") or item.get("resource_id") or "Untitled"
+        ttk.Label(header, text=title, font=self.heading_font).pack(anchor="w")
+        ttk.Label(
+            header,
+            text=f"{item.get('system','unknown').upper()} · {item.get('node_type','node')} · score {int((item.get('score') or 0)*100)}",
+            foreground=self.colors.get("muted", "#4f566b"),
+        ).pack(anchor="w", pady=(2, 0))
+        ttk.Button(header, text="Close", command=win.destroy).pack(anchor="e")
+
+        body = ttk.Frame(win, padding=8)
+        body.pack(fill="both", expand=True)
+        body.columnconfigure(0, weight=1)
+        body.rowconfigure(0, weight=1)
+        body.rowconfigure(1, weight=1)
+
+        snippet_box = tk.Text(body, wrap=tk.WORD, height=8, font=self.text_font)
+        snippet_box.insert(tk.END, item.get("snippet") or "No snippet available for this item.")
+        snippet_box.config(state=tk.DISABLED)
+        snippet_box.grid(row=0, column=0, sticky="nsew")
+        snippet_scroll = ttk.Scrollbar(body, orient="vertical", command=snippet_box.yview)
+        snippet_box.configure(yscrollcommand=snippet_scroll.set)
+        snippet_scroll.grid(row=0, column=1, sticky="ns")
+
+        meta_box = tk.Text(body, wrap=tk.NONE, font=("Courier", max(self.base_font.actual("size") - 1, 8)))
+        meta_box.insert(tk.END, meta_text)
+        meta_box.config(state=tk.DISABLED)
+        meta_box.grid(row=1, column=0, sticky="nsew", pady=(8, 0))
+        meta_scroll = ttk.Scrollbar(body, orient="vertical", command=meta_box.yview)
+        meta_box.configure(yscrollcommand=meta_scroll.set)
+        meta_scroll.grid(row=1, column=1, sticky="ns")
+
+    # --- Activity & Audit ---
+
+    def _render_ai_os_activity_view(self):
+        self.aios_ops_data = self._load_ai_os_ops()
+
+        frame = ttk.Frame(self.aios_content)
+        frame.grid(row=0, column=0, sticky="nsew")
+        frame.columnconfigure(1, weight=1)
+        frame.columnconfigure(2, weight=0)
+        frame.rowconfigure(2, weight=1)
+
+        ttk.Label(frame, text="Recent operations", font=self.heading_font).grid(row=0, column=0, columnspan=2, sticky="w")
+        ttk.Button(frame, text="🔄 Refresh", command=lambda: self._render_ai_os_view(None)).grid(row=0, column=1, sticky="e")
+        ttk.Button(frame, text="🧭 Inspect selected", command=self._open_selected_ai_os_operation_inspector).grid(row=0, column=2, sticky="e", padx=(6, 0))
+
+        filter_frame = ttk.Frame(frame)
+        filter_frame.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(4, 4))
+        filter_frame.columnconfigure(6, weight=1)
+
+        systems = sorted(
+            {t.get("system", "unknown") for op in self.aios_ops_data for t in op.get("touched", []) if t.get("system")}
+        )
+        triggers = sorted({op.get("triggered_by", "manual") for op in self.aios_ops_data})
+        self.aios_ops_actor_filter = tk.StringVar(value="all")
+        self.aios_ops_trigger_filter = tk.StringVar(value="all")
+        self.aios_ops_system_filter = tk.StringVar(value="all")
+        self.aios_ops_summary_var = tk.StringVar(value="")
+
+        ttk.Label(filter_frame, text="Actor").grid(row=0, column=0, sticky="w", padx=(0, 6))
+        actor_combo = ttk.Combobox(
+            filter_frame,
+            textvariable=self.aios_ops_actor_filter,
+            state="readonly",
+            width=14,
+            values=["all", "daemon", "user"],
+        )
+        actor_combo.grid(row=0, column=1, sticky="w")
+        actor_combo.bind("<<ComboboxSelected>>", self._filter_ai_os_ops)
+
+        ttk.Label(filter_frame, text="Trigger").grid(row=0, column=2, sticky="w", padx=(12, 6))
+        trigger_combo = ttk.Combobox(
+            filter_frame,
+            textvariable=self.aios_ops_trigger_filter,
+            state="readonly",
+            width=14,
+            values=["all"] + triggers,
+        )
+        trigger_combo.grid(row=0, column=3, sticky="w")
+        trigger_combo.bind("<<ComboboxSelected>>", self._filter_ai_os_ops)
+
+        ttk.Label(filter_frame, text="System").grid(row=0, column=4, sticky="w", padx=(12, 6))
+        system_combo = ttk.Combobox(
+            filter_frame,
+            textvariable=self.aios_ops_system_filter,
+            state="readonly",
+            width=16,
+            values=["all"] + systems,
+        )
+        system_combo.grid(row=0, column=5, sticky="w")
+        system_combo.bind("<<ComboboxSelected>>", self._filter_ai_os_ops)
+
+        ttk.Label(
+            filter_frame,
+            textvariable=self.aios_ops_summary_var,
+            foreground=self.colors.get("muted", "#4f566b"),
+        ).grid(row=1, column=0, columnspan=7, sticky="w", pady=(4, 0))
+
+        list_frame = ttk.LabelFrame(frame, text="Operations")
+        list_frame.grid(row=2, column=0, sticky="nsew", padx=(0, 6))
+        list_frame.columnconfigure(0, weight=1)
+        list_frame.rowconfigure(0, weight=1)
+
+        self.aios_ops_tree = ttk.Treeview(
+            list_frame,
+            columns=("id", "actor", "intent", "trigger", "started"),
+            show="headings",
+            height=14,
+        )
+        for col, text, width in [
+            ("id", "ID", 120),
+            ("actor", "Actor", 120),
+            ("intent", "Intent", 220),
+            ("trigger", "Triggered", 90),
+            ("started", "Started", 150),
+        ]:
+            self.aios_ops_tree.heading(col, text=text)
+            self.aios_ops_tree.column(col, width=width, anchor="w")
+        self.aios_ops_tree.grid(row=0, column=0, sticky="nsew")
+        self.aios_ops_tree.bind("<<TreeviewSelect>>", self._on_ai_os_operation_select)
+        self.aios_ops_tree.bind("<Double-1>", self._open_selected_ai_os_operation_inspector)
+
+        ops_scroll = ttk.Scrollbar(list_frame, orient="vertical", command=self.aios_ops_tree.yview)
+        self.aios_ops_tree.configure(yscrollcommand=ops_scroll.set)
+        ops_scroll.grid(row=0, column=1, sticky="ns")
+
+        detail = ttk.LabelFrame(frame, text="Details")
+        detail.grid(row=2, column=1, sticky="nsew")
+        detail.columnconfigure(0, weight=1)
+        detail.rowconfigure(0, weight=1)
+
+        self.aios_ops_detail = tk.Text(detail, wrap=tk.WORD, font=self.text_font, state=tk.DISABLED)
+        self.aios_ops_detail.grid(row=0, column=0, sticky="nsew")
+        detail_scroll = ttk.Scrollbar(detail, orient="vertical", command=self.aios_ops_detail.yview)
+        self.aios_ops_detail.configure(yscrollcommand=detail_scroll.set)
+        detail_scroll.grid(row=0, column=1, sticky="ns")
+
+        self._filter_ai_os_ops()
+
+    def _filter_ai_os_ops(self, _event=None):
+        if not hasattr(self, "aios_ops_data"):
+            return
+        actor_filter = (self.aios_ops_actor_filter.get() or "all").lower()
+        trigger_filter = (self.aios_ops_trigger_filter.get() or "all").lower()
+        system_filter = (self.aios_ops_system_filter.get() or "all").lower()
+
+        filtered = []
+        for op in self.aios_ops_data:
+            actor = op.get("actor", "").lower()
+            if actor_filter == "daemon" and not actor.startswith("daemon:"):
+                continue
+            if actor_filter == "user" and actor.startswith("daemon:"):
+                continue
+            trigger = (op.get("triggered_by") or "").lower()
+            if trigger_filter != "all" and trigger_filter != trigger:
+                continue
+            if system_filter != "all":
+                touched_systems = {t.get("system", "").lower() for t in op.get("touched", [])}
+                if system_filter not in touched_systems:
+                    continue
+            filtered.append(op)
+        self._populate_ai_os_ops_tree(filtered)
+
+    def _populate_ai_os_ops_tree(self, ops: list):
+        if not hasattr(self, "aios_ops_tree"):
+            return
+        self.aios_ops_tree.delete(*self.aios_ops_tree.get_children())
+        self.aios_op_lookup = {}
+        for op in ops:
+            iid = op.get("id", f"op-{len(self.aios_op_lookup)+1}")
+            self.aios_op_lookup[iid] = op
+            self.aios_ops_tree.insert(
+                "",
+                "end",
+                iid=iid,
+                values=(
+                    iid,
+                    op.get("actor", "unknown"),
+                    self._truncate_text(op.get("intent", "—"), 48),
+                    op.get("triggered_by", "manual"),
+                    op.get("started_at", "—"),
+                ),
+            )
+        daemon_count = len([o for o in ops if str(o.get("actor", "")).startswith("daemon:")])
+        user_count = len(ops) - daemon_count
+        summary = f"{len(ops)} op(s)"
+        summary += f" · daemon {daemon_count} / user {user_count}"
+        self.aios_ops_summary_var.set(summary)
+
+        if self.aios_op_lookup:
+            first = list(self.aios_op_lookup.keys())[0]
+            self.aios_ops_tree.selection_set(first)
+            self._on_ai_os_operation_select()
+        else:
+            self.aios_ops_detail.config(state=tk.NORMAL)
+            self.aios_ops_detail.delete("1.0", tk.END)
+            self.aios_ops_detail.insert(tk.END, "No operations available for the current filters.")
+            self.aios_ops_detail.config(state=tk.DISABLED)
+
+    def _load_ai_os_ops(self):
+        """Try to hydrate from DB, otherwise fall back to mock operations."""
+        ops = []
+        try:
+            db_ops = db_list_document_operations(self.conn)
+            for item in db_ops or []:
+                op = {
+                    "id": getattr(item, "id", getattr(item, "operation_id", f"op-{len(ops)+1}")),
+                    "actor": getattr(item, "actor", getattr(item, "source", "unknown")),
+                    "intent": getattr(item, "operation", getattr(item, "intent", "operation")),
+                    "triggered_by": getattr(item, "status", "manual"),
+                    "started_at": getattr(item, "created_at", datetime.now().isoformat()),
+                    "finished_at": getattr(item, "updated_at", None),
+                    "touched": getattr(item, "touched", []),
+                    "metadata": getattr(item, "metadata", {}),
+                }
+                ops.append(op)
+        except Exception:
+            ops = []
+        if not ops:
+            ops = list(self.aios_mock_ops)
+        return ops
+
+    def _on_ai_os_operation_select(self, _event=None):
+        if not hasattr(self, "aios_op_lookup"):
+            return
+        sel = self.aios_ops_tree.selection()
+        if not sel:
+            return
+        op = self.aios_op_lookup.get(sel[0])
+        if not op:
+            return
+        self.aios_ops_detail.config(state=tk.NORMAL)
+        self.aios_ops_detail.delete("1.0", tk.END)
+        touches = "\n".join(
+            f"• {t.get('system','?')} {t.get('action','?')} {t.get('resource_id','?')}"
+            for t in op.get("touched", [])
+        )
+        self.aios_ops_detail.insert(
+            tk.END,
+            f"ID: {op.get('id','—')}\n"
+            f"Actor: {op.get('actor','—')}\n"
+            f"Intent: {op.get('intent','—')}\n"
+            f"Triggered by: {op.get('triggered_by','—')}\n"
+            f"Started: {op.get('started_at','—')}\n"
+            f"Finished: {op.get('finished_at','—')}\n\n"
+            f"Touched:\n{touches or 'No touched resources logged.'}\n\n"
+            f"Metadata:\n{op.get('metadata',{})}",
+        )
+        self.aios_ops_detail.config(state=tk.DISABLED)
+
+    def _get_selected_ai_os_operation(self) -> Optional[dict]:
+        if not hasattr(self, "aios_ops_tree") or not hasattr(self, "aios_op_lookup"):
+            return None
+        sel = self.aios_ops_tree.selection()
+        if not sel:
+            return None
+        return self.aios_op_lookup.get(sel[0])
+
+    def _open_selected_ai_os_operation_inspector(self, _event=None):
+        op = self._get_selected_ai_os_operation()
+        if not op:
+            messagebox.showinfo("Operation inspector", "Select an operation to inspect.")
+            return
+        self._open_ai_os_operation_inspector(op)
+
+    def _open_ai_os_operation_inspector(self, op: dict):
+        """Richer inspector window for the selected operation."""
+        try:
+            import json
+            meta_text = json.dumps(op.get("metadata", {}), indent=2)
+            diffs_text = json.dumps(op.get("diffs", []), indent=2)
+        except Exception:
+            meta_text = str(op.get("metadata", {}))
+            diffs_text = str(op.get("diffs", []))
+
+        win = tk.Toplevel(self)
+        win.title(f"Operation {op.get('id', 'op')}")
+        win.geometry("840x580")
+        try:
+            win.configure(bg=self.colors.get("background", "#ffffff"))
+        except Exception:
+            pass
+
+        header = ttk.Frame(win, padding=8)
+        header.pack(fill="x")
+        ttk.Label(header, text=op.get("intent", "operation").replace("_", " "), font=self.heading_font).pack(anchor="w")
+        ttk.Label(
+            header,
+            text=f"{op.get('actor','unknown')} · {op.get('triggered_by','manual')} · started {op.get('started_at','—')}",
+            foreground=self.colors.get("muted", "#4f566b"),
+        ).pack(anchor="w", pady=(2, 0))
+        ttk.Button(header, text="Close", command=win.destroy).pack(anchor="e")
+
+        body = ttk.Frame(win, padding=8)
+        body.pack(fill="both", expand=True)
+        body.columnconfigure(0, weight=1)
+        body.columnconfigure(1, weight=1)
+        body.rowconfigure(0, weight=1)
+
+        touched_frame = ttk.LabelFrame(body, text="Touched resources")
+        touched_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
+        touched_frame.columnconfigure(0, weight=1)
+        touched_frame.rowconfigure(0, weight=1)
+        t_tree = ttk.Treeview(
+            touched_frame,
+            columns=("system", "action", "resource"),
+            show="headings",
+            height=12,
+        )
+        for col, text, width in [
+            ("system", "System", 110),
+            ("action", "Action", 80),
+            ("resource", "Resource ID", 220),
+        ]:
+            t_tree.heading(col, text=text)
+            t_tree.column(col, width=width, anchor="w")
+        t_tree.grid(row=0, column=0, sticky="nsew")
+        t_scroll = ttk.Scrollbar(touched_frame, orient="vertical", command=t_tree.yview)
+        t_tree.configure(yscrollcommand=t_scroll.set)
+        t_scroll.grid(row=0, column=1, sticky="ns")
+        for touch in op.get("touched", []) or []:
+            t_tree.insert(
+                "",
+                "end",
+                values=(
+                    touch.get("system", "unknown"),
+                    touch.get("action", "—"),
+                    touch.get("resource_id", "—"),
+                ),
+            )
+        if not op.get("touched"):
+            t_tree.insert("", "end", values=("—", "—", "No touched resources logged"))
+
+        meta_frame = ttk.LabelFrame(body, text="Metadata, diffs, and notes")
+        meta_frame.grid(row=0, column=1, sticky="nsew")
+        meta_frame.columnconfigure(0, weight=1)
+        meta_frame.rowconfigure(1, weight=1)
+        meta_frame.rowconfigure(2, weight=1)
+
+        summary_lines = [
+            f"Operation ID: {op.get('id','—')}",
+            f"Actor: {op.get('actor','—')}",
+            f"Intent: {op.get('intent','—')}",
+            f"Triggered by: {op.get('triggered_by','—')}",
+            f"Started: {op.get('started_at','—')}",
+            f"Finished: {op.get('finished_at','—')}",
+        ]
+        summary = tk.Text(meta_frame, wrap=tk.WORD, height=5, font=self.text_font)
+        summary.insert(tk.END, "\n".join(summary_lines))
+        summary.config(state=tk.DISABLED)
+        summary.grid(row=0, column=0, sticky="nsew", pady=(2, 4))
+
+        meta_box = tk.Text(meta_frame, wrap=tk.NONE, font=("Courier", max(self.base_font.actual("size") - 1, 8)))
+        meta_box.insert(tk.END, meta_text)
+        meta_box.config(state=tk.DISABLED)
+        meta_box.grid(row=1, column=0, sticky="nsew")
+        meta_scroll = ttk.Scrollbar(meta_frame, orient="vertical", command=meta_box.yview)
+        meta_box.configure(yscrollcommand=meta_scroll.set)
+        meta_scroll.grid(row=1, column=1, sticky="ns")
+
+        diff_box = tk.Text(meta_frame, wrap=tk.NONE, font=("Courier", max(self.base_font.actual("size") - 1, 8)))
+        diff_box.insert(tk.END, diffs_text if op.get("diffs") else "No structured diffs recorded.")
+        diff_box.config(state=tk.DISABLED)
+        diff_box.grid(row=2, column=0, sticky="nsew", pady=(6, 0))
+        diff_scroll = ttk.Scrollbar(meta_frame, orient="vertical", command=diff_box.yview)
+        diff_box.configure(yscrollcommand=diff_scroll.set)
+        diff_scroll.grid(row=2, column=1, sticky="ns")
+
+    # --- Daemons & Safety ---
+
+    def _render_ai_os_daemon_view(self):
+        frame = ttk.Frame(self.aios_content)
+        frame.grid(row=0, column=0, sticky="nsew")
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(1, weight=1)
+
+        header = ttk.Frame(frame)
+        header.grid(row=0, column=0, sticky="ew")
+        ttk.Label(header, text="Daemon framework", font=self.heading_font).grid(row=0, column=0, sticky="w")
+        ttk.Button(header, text="Refresh health", command=lambda: self._render_ai_os_view(None)).grid(row=0, column=1, sticky="e")
+        self.aios_safe_mode_var = getattr(self, "aios_safe_mode_var", tk.BooleanVar(value=False))
+        ttk.Checkbutton(
+            header,
+            text="Safe mode (UI only)",
+            variable=self.aios_safe_mode_var,
+            command=self._on_ai_os_safe_mode_toggle,
+        ).grid(row=0, column=2, sticky="e", padx=(8, 0))
+
+        self.aios_daemon_status = tk.StringVar(value="Scopes, triggers, and approvals are local-only placeholders.")
+        ttk.Label(header, textvariable=self.aios_daemon_status, foreground=self.colors.get("muted", "#4f566b")).grid(
+            row=1, column=0, columnspan=2, sticky="w", pady=(2, 0)
+        )
+
+        list_frame = ttk.Frame(frame)
+        list_frame.grid(row=1, column=0, sticky="nsew", pady=(6, 0))
+        list_frame.columnconfigure(0, weight=1)
+
+        self.aios_daemon_vars = {}
+        for row, daemon in enumerate(self.aios_daemon_data):
+            card = ttk.LabelFrame(list_frame, text=f"{daemon['name']} ({daemon['risk'].title()} risk)", padding=8)
+            card.grid(row=row, column=0, sticky="ew", pady=4)
+            card.columnconfigure(1, weight=1)
+
+            enabled_var = tk.BooleanVar(value=daemon["enabled"])
+            self.aios_daemon_vars[daemon["name"]] = enabled_var
+            ttk.Checkbutton(
+                card,
+                text="Enabled",
+                variable=enabled_var,
+                command=lambda d=daemon, v=enabled_var: self._toggle_ai_os_daemon(d, v),
+            ).grid(row=0, column=0, sticky="w")
+
+            ttk.Label(card, text=self._truncate_text(daemon["description"], 80)).grid(row=0, column=1, sticky="w", padx=(8, 0))
+            last_run_text = self._format_ai_os_time(daemon.get("last_run"))
+            ttk.Label(card, text=f"Last run: {last_run_text}").grid(
+                row=1, column=0, sticky="w", padx=(0, 8), pady=(4, 0)
+            )
+            success_pct = int(daemon.get("success_rate", 0) * 100)
+            ttk.Label(card, text=f"Success: {success_pct}%").grid(row=1, column=1, sticky="w", pady=(4, 0))
+            ttk.Progressbar(card, maximum=100, value=success_pct).grid(row=2, column=0, columnspan=2, sticky="ew", pady=(2, 0))
+
+            scopes = ", ".join(daemon.get("scopes", [])) or "No scopes"
+            triggers = ", ".join(daemon.get("triggers", [])) or "No triggers"
+            ttk.Label(card, text=f"Scopes: {scopes}", foreground=self.colors.get("muted", "#4f566b")).grid(row=3, column=0, columnspan=2, sticky="w")
+            ttk.Label(card, text=f"Triggers: {triggers}", foreground=self.colors.get("muted", "#4f566b")).grid(row=4, column=0, columnspan=2, sticky="w")
+
+            ttk.Button(card, text="▶ Run now", command=lambda d=daemon: self._run_ai_os_daemon(d)).grid(row=0, column=2, rowspan=2, padx=(8, 0))
+            ttk.Button(card, text="📜 Activity", command=lambda d=daemon: self._jump_to_ai_os_activity(d["name"])).grid(
+                row=2, column=2, padx=(8, 0), pady=(2, 0)
+            )
+
+    def _toggle_ai_os_daemon(self, daemon: dict, var: tk.BooleanVar):
+        daemon["enabled"] = bool(var.get())
+        self.aios_daemon_status.set(f"{daemon['name']} {'enabled' if daemon['enabled'] else 'disabled'} (local toggle).")
+
+    def _run_ai_os_daemon(self, daemon: dict):
+        """Simulate a daemon run and surface it in the activity view."""
+        now = datetime.now().isoformat()
+        op = {
+            "id": f"op-{daemon['name']}-{now.split('T')[1][:8]}",
+            "actor": f"daemon:{daemon['name']}",
+            "intent": f"{daemon['name']}_manual_run",
+            "triggered_by": "manual",
+            "started_at": now,
+            "finished_at": now,
+            "touched": [{"system": "filesystem", "resource_id": "scoped-run", "action": "read"}],
+            "metadata": {"note": "local simulated run"},
+        }
+        self.aios_mock_ops.insert(0, op)
+        self.aios_daemon_status.set(f"Triggered {daemon['name']} run; added to activity log.")
+        if (self.aios_view_var.get() or "").lower().startswith("activity"):
+            self._render_ai_os_view()
+        else:
+            # Auto-jump to activity when requested
+            self._jump_to_ai_os_activity(daemon.get("name", ""))
+
+    def _on_ai_os_safe_mode_toggle(self):
+        state = "enabled" if self.aios_safe_mode_var.get() else "disabled"
+        self.aios_daemon_status.set(f"Safe mode {state} (UI placeholder)")
+
+    def _jump_to_ai_os_activity(self, daemon_name: str):
+        """Switch to the Activity view and focus on daemon entries."""
+        self.aios_view_var.set("Activity & Audit")
+        self._render_ai_os_view()
+        try:
+            if hasattr(self, "aios_ops_actor_filter"):
+                self.aios_ops_actor_filter.set("daemon")
+            if hasattr(self, "aios_ops_system_filter"):
+                self.aios_ops_system_filter.set("all")
+            self._filter_ai_os_ops()
+            # Optionally select first op for this daemon
+            if hasattr(self, "aios_op_lookup"):
+                for iid, op in self.aios_op_lookup.items():
+                    if daemon_name and str(op.get("actor", "")).endswith(daemon_name):
+                        self.aios_ops_tree.selection_set(iid)
+                        self._on_ai_os_operation_select()
+                        break
+        except Exception:
+            pass
+
+    # --- Web page launcher ---
+
+    def _open_ai_os_web_page(self, _event=None):
+        choice = self.aios_web_page_var.get()
+        if not choice or choice not in self.aios_web_page_map:
+            return
+        target = self.aios_web_page_map.get(choice)
+        try:
+            import webbrowser
+            url = str(target)
+            if isinstance(target, Path):
+                url = target.as_uri()
+            webbrowser.open(url)
+            self.aios_web_page_var.set("Open web page…")
+        except Exception as e:
+            messagebox.showerror("Open page", f"Could not open page:\n{e}")
+
+    # --- helpers ---
+
+    def _truncate_text(self, text: str, limit: int = 120):
+        if not text:
+            return ""
+        return text if len(text) <= limit else f"{text[:limit].rstrip()}…"
+
+    def _format_ai_os_time(self, iso_ts):
+        """Small helper to format ISO strings defensively."""
+        if not iso_ts:
+            return "—"
+        try:
+            return datetime.fromisoformat(iso_ts).strftime("%Y-%m-%d %H:%M")
+        except Exception:
+            return str(iso_ts)
 
     # ---------- Global ----------
 
@@ -20261,6 +22423,14 @@ Supported Workflow Types: ETL, ML Pipelines, DevOps, Business Processes, IoT Aut
         for threat in random.sample(threats, random.randint(2, 6)):
             self.threats_listbox.insert(tk.END, threat)
 
+    def _open_virus_scan_portal(self):
+        """Open external virus scan portal for document checks."""
+        try:
+            import webbrowser
+            webbrowser.open("https://virusscan.jotti.org/")
+        except Exception as exc:
+            messagebox.showerror("Virus scan", f"Could not open virus scan portal:\n{exc}")
+
     def _start_nas_experiment(self):
         """Start a Neural Architecture Search experiment"""
         try:
@@ -20493,6 +22663,171 @@ Supported Workflow Types: ETL, ML Pipelines, DevOps, Business Processes, IoT Aut
                 widget.delete("1.0", "end")
                 widget.insert("end", load_content)
                 widget.config(state="disabled")
+
+    def _show_tools_view(self):
+        """Show developer tools view in the consolidated tab with spec-sheet commands."""
+        if not hasattr(self, "tools_intelligence_content_frame"):
+            return
+
+        # Clear current content
+        for widget in self.tools_intelligence_content_frame.winfo_children():
+            widget.destroy()
+
+        # Developer tools interface
+        if TTKBOOTSTRAP_AVAILABLE:
+            content_frame = ttkb.Frame(self.tools_intelligence_content_frame, padding=12)
+        else:
+            content_frame = ttk.Frame(self.tools_intelligence_content_frame, padding=12)
+        content_frame.grid(row=0, column=0, sticky="nsew")
+
+        content_frame.columnconfigure(0, weight=1)
+        content_frame.rowconfigure(0, weight=1)
+
+        # Tools panel
+        tools_frame = ttk.LabelFrame(content_frame, text="🔧 Developer Tools", padding=10)
+        tools_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        tools_frame.columnconfigure((0, 1), weight=1)
+
+        # Left side - Code Tools
+        code_frame = ttk.LabelFrame(tools_frame, text="💻 Code Tools", padding=10)
+        code_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        ttk.Button(code_frame, text="🔍 Code Search", command=self._code_search).grid(row=0, column=0, pady=5, sticky="ew")
+        ttk.Button(code_frame, text="🐛 Debug Helper", command=self._debug_helper).grid(row=1, column=0, pady=5, sticky="ew")
+        ttk.Button(code_frame, text="📊 Performance Profiler", command=self._performance_profiler).grid(row=2, column=0, pady=5, sticky="ew")
+        ttk.Button(code_frame, text="🔧 Code Formatter", command=self._code_formatter).grid(row=3, column=0, pady=5, sticky="ew")
+
+        # Right side - System Tools
+        system_frame = ttk.LabelFrame(tools_frame, text="🖥️ System Tools", padding=10)
+        system_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+
+        ttk.Button(system_frame, text="📁 File Manager", command=self._file_manager).grid(row=0, column=0, pady=5, sticky="ew")
+        ttk.Button(system_frame, text="🌐 Network Tools", command=self._network_tools).grid(row=1, column=0, pady=5, sticky="ew")
+        ttk.Button(system_frame, text="💾 Backup Manager", command=self._backup_manager).grid(row=2, column=0, pady=5, sticky="ew")
+        ttk.Button(system_frame, text="📋 System Monitor", command=self._system_monitor).grid(row=3, column=0, pady=5, sticky="ew")
+
+        # Terminal/Command interface
+        terminal_frame = ttk.LabelFrame(content_frame, text="💻 Command Terminal", padding=10)
+        terminal_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
+        terminal_frame.columnconfigure(0, weight=1)
+        terminal_frame.rowconfigure(0, weight=1)
+
+        # Terminal output display
+        self.command_terminal_output = tk.Text(terminal_frame, height=10, wrap=tk.WORD, font=("Courier", 10), state=tk.DISABLED)
+        self.command_terminal_output.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        terminal_scrollbar = ttk.Scrollbar(terminal_frame, command=self.command_terminal_output.yview)
+        terminal_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.command_terminal_output.config(yscrollcommand=terminal_scrollbar.set)
+        self.command_terminal_output.config(state=tk.NORMAL)
+        self.command_terminal_output.insert(tk.END, "Select a spec-sheet command below or type your own. Output will appear here.\n\n")
+        self.command_terminal_output.config(state=tk.DISABLED)
+
+        # Command input
+        input_frame = ttk.Frame(terminal_frame)
+        input_frame.grid(row=1, column=0, columnspan=2, pady=(5, 0), sticky="ew")
+        input_frame.columnconfigure(0, weight=1)
+
+        self.command_entry_var = tk.StringVar()
+        command_entry = ttk.Entry(input_frame, textvariable=self.command_entry_var, font=("Courier", 10))
+        command_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        self.command_entry_var.set("python main.py")
+
+        ttk.Button(input_frame, text="▶️ Run", command=lambda: self._run_command()).grid(row=0, column=1, sticky="ew")
+
+        # Spec sheet quick commands
+        commands_frame = ttk.LabelFrame(terminal_frame, text="📋 Spec Sheet Commands", padding=8)
+        commands_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=(10, 0))
+        commands_frame.columnconfigure((0, 1), weight=1)
+
+        for idx, spec in enumerate(self.spec_sheet_commands):
+            col = idx % 2
+            row = idx // 2
+            btn = ttk.Button(commands_frame, text=spec["label"], command=lambda c=spec["command"]: self._run_command(c))
+            btn.grid(row=row * 2, column=col, sticky="ew", padx=4, pady=(2, 0))
+            desc_text = f"{spec['command']}\n{spec['description']}"
+            ttk.Label(commands_frame, text=desc_text, wraplength=360, justify="left").grid(
+                row=row * 2 + 1, column=col, sticky="w", padx=4, pady=(0, 8)
+            )
+
+    def _run_command(
+        self,
+        command: Optional[str] = None,
+        *,
+        output_widget: Optional[tk.Text] = None,
+        entry_var: Optional[tk.StringVar] = None,
+    ):
+        """Run a spec-sheet command or a custom command and stream output to the terminal pane."""
+        output_widget = output_widget or getattr(self, "command_terminal_output", None)
+        entry_var = entry_var or getattr(self, "command_entry_var", None)
+        raw_command = (command if command is not None else (entry_var.get().strip() if entry_var else "")).strip()
+
+        if not raw_command:
+            messagebox.showinfo("Command Execution", "Enter a command to run.")
+            return
+
+        if entry_var is not None:
+            entry_var.set(raw_command)
+
+        cwd_value = ""
+        try:
+            cwd_value = self.cwd_var.get().strip() if hasattr(self, "cwd_var") else ""
+        except Exception:
+            cwd_value = ""
+        cwd = os.path.expanduser(cwd_value or os.getcwd())
+
+        python_exec = shlex.quote(sys.executable)
+        normalized_command = raw_command
+        notes = []
+        if raw_command.startswith("python_os "):
+            normalized_command = f"{python_exec} {raw_command[len('python_os '):]}"
+            notes.append("Mapped python_os to current Python interpreter")
+        elif raw_command.startswith("python "):
+            normalized_command = f"{python_exec} {raw_command[len('python '):]}"
+
+        def render_result(result_text: str, *, replace: bool = False):
+            if output_widget:
+                self._append_command_output(output_widget, result_text, replace=replace)
+            else:
+                messagebox.showinfo("Command Execution", result_text)
+
+        header_lines = [f"$ {raw_command}"]
+        if normalized_command != raw_command:
+            header_lines.append(f"(exec -> {normalized_command})")
+        if notes:
+            header_lines.append("Notes: " + " | ".join(notes))
+        header_lines.append(f"cwd: {cwd}")
+        render_result("\n".join(header_lines + ["[running...]"]), replace=False)
+
+        def worker():
+            try:
+                result = run_bash_command(normalized_command, cwd=cwd)
+            except Exception as exc:
+                self.after(0, lambda: render_result("\n".join(header_lines + [f"Failed: {exc}"])))
+                return
+
+            def finish():
+                lines = [f"$ {raw_command}"]
+                if normalized_command != raw_command:
+                    lines.append(f"(exec -> {normalized_command})")
+                if notes:
+                    lines.append("Notes: " + " | ".join(notes))
+                lines.append(f"shell: {result.shell_path}")
+                lines.append(f"cwd: {result.cwd}")
+                lines.append(f"exit: {result.returncode}")
+                stdout = result.stdout.strip()
+                stderr = result.stderr.strip()
+                if stdout:
+                    lines.append("STDOUT:\n" + stdout)
+                if stderr:
+                    lines.append("STDERR:\n" + stderr)
+                if not stdout and not stderr:
+                    lines.append("(no output)")
+                render_result("\n".join(lines))
+
+            self.after(0, finish)
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def on_close(self):
         save_active_persona(self.conn, self.state_obj)
