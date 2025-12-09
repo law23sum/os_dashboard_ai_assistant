@@ -686,13 +686,24 @@ class OfficeFileConnector(BaseConnector):
     def __init__(self, config: ConnectorConfig):
         super().__init__(config)
         self.base_path = Path(config.settings.get("base_path", "."))
-        self.processors = {
-            ".docx": _StubProcessor(),
-            ".xlsx": _StubProcessor(),
-            ".pptx": _StubProcessor(),
-        }
-        processor = _PlainTextProcessor()
-        self.processors = {".docx": processor, ".xlsx": processor, ".pptx": processor}
+        # Prefer rich processors when optional deps are available; otherwise fallback to plaintext.
+        processor_map: Dict[str, Any] = {}
+        try:
+            from api_connectors.file_processors import FileProcessorFactory
+
+            processor_map = FileProcessorFactory(self.base_path).build()
+        except Exception:
+            processor_map = {}
+
+        if not processor_map:
+            fallback = _PlainTextProcessor()
+            processor_map = {
+                ".docx": fallback,
+                ".xlsx": fallback,
+                ".pptx": fallback,
+                ".pdf": fallback,
+            }
+        self.processors = processor_map
 
     async def connect(self) -> OperationResult:
         try:
