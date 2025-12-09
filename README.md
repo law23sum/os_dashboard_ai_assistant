@@ -2,6 +2,8 @@
 
 A comprehensive AI-powered **desktop application** that provides intelligent task management, document processing, and workflow automation with seamless integration to external services like Microsoft Office, Google Workspace, and Git.
 
+For the enterprise-grade rollout summary, architecture highlights, and test readiness, see `OS_DASHBOARD_ENTERPRISE.md`.
+
 ## Feature Highlights
 
 - **Task & Project Intelligence**: Smart prioritization, dependency-aware scoring, recurrence, and AI-powered ordering with project-level risk scoring and completion predictions (`assistant_hub/smart_prioritization.py`, `assistant_hub/project_insights.py`).

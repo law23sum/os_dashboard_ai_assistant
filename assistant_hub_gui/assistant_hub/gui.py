@@ -781,6 +781,88 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 "description": "Build executables manually with PyInstaller.",
             },
         ]
+        # Backend CLI commands (wired to assistant_hub.ui.terminal.cli)
+        base_cli = "python assistant_hub_gui/assistant_hub/ui/terminal/cli.py"
+        self.backend_cli_commands = [
+            {
+                "label": "CLI: Projects list",
+                "command": f"{base_cli} projects list",
+                "description": "List all projects via CLI backend.",
+            },
+            {
+                "label": "CLI: Projects create sample",
+                "command": f"{base_cli} projects create gui-sample-project",
+                "description": "Create a sample project to verify CLI wiring.",
+            },
+            {
+                "label": "CLI: History (20 entries)",
+                "command": f"{base_cli} history --limit 20",
+                "description": "Show recent actions from git/agents.",
+            },
+            {
+                "label": "CLI: History (Aria, 10)",
+                "command": f"{base_cli} history --agent Aria --limit 10",
+                "description": "Filter history by Aria agent.",
+            },
+            {
+                "label": "CLI: Excel summarize sample",
+                "command": f'{base_cli} excel summarize "assistant_hub_gui/documents/Samples/Operational Metrics Workbook.xlsx" --sheet "Sheet1" --agent AIC',
+                "description": "Summarize bundled sample workbook (Sheet1) with AIC.",
+            },
+            {
+                "label": "CLI: Word rewrite sample",
+                "command": f'{base_cli} word rewrite "assistant_hub_gui/documents/Samples/Governed Brief Template.docx" --agent Aria',
+                "description": "Rewrite bundled sample doc with Aria agent.",
+            },
+            {
+                "label": "CLI: OneNote list notebooks",
+                "command": f"{base_cli} onenote list-notebooks",
+                "description": "List notebooks (requires OneNote auth).",
+            },
+        ]
+        # Templates that prefill the command box so users can insert IDs/paths before running
+        self.backend_cli_templates = [
+            {
+                "label": "Template: Projects view <id>",
+                "command": f"{base_cli} projects view <project_id>",
+                "description": "Replace <project_id> then hit Run.",
+            },
+            {
+                "label": "Template: Word draft",
+                "command": f"{base_cli} word draft --project proj-osdash --template <template_name> --agent Aria",
+                "description": "Set template/project as needed, then Run.",
+            },
+            {
+                "label": "Template: Word rewrite (custom)",
+                "command": f'{base_cli} word rewrite "<path_to_docx>" --agent Aria',
+                "description": "Point to your docx before running.",
+            },
+            {
+                "label": "Template: Excel summarize (custom)",
+                "command": f'{base_cli} excel summarize "<path_to_excel>" --sheet Sheet1 --agent AIC',
+                "description": "Set your workbook path + sheet.",
+            },
+            {
+                "label": "Template: OneNote list sections",
+                "command": f"{base_cli} onenote list-sections <notebook_id>",
+                "description": "Insert OneNote notebook ID.",
+            },
+            {
+                "label": "Template: OneNote list pages",
+                "command": f"{base_cli} onenote list-pages <section_id>",
+                "description": "Insert OneNote section ID.",
+            },
+            {
+                "label": "Template: OneNote clean section",
+                "command": f"{base_cli} onenote clean-section <section_id> --agent AIC",
+                "description": "Add section ID before running clean.",
+            },
+            {
+                "label": "Template: OneNote summarize page",
+                "command": f"{base_cli} onenote summarize-page <page_id> --agent Aria",
+                "description": "Add OneNote page ID before running summary.",
+            },
+        ]
 
         self._configure_style()
         # Build web page map early so global dropdowns can reuse it
@@ -3311,6 +3393,37 @@ for your specific datasets and tasks."""
                 row=row * 2 + 1, column=col, sticky="w", padx=4, pady=(0, 8)
             )
 
+        # Backend CLI commands sourced from assistant_hub.ui.terminal.cli
+        backend_frame = ttk.LabelFrame(terminal_frame, text="🛠️ Backend CLI Commands", padding=8)
+        backend_frame.grid(row=3, column=0, columnspan=2, sticky="ew", padx=5, pady=(10, 0))
+        backend_frame.columnconfigure((0, 1), weight=1)
+
+        for idx, spec in enumerate(self.backend_cli_commands):
+            col = idx % 2
+            row = idx // 2
+            btn = ttk.Button(backend_frame, text=spec["label"], command=lambda c=spec["command"]: self._run_command(c))
+            btn.grid(row=row * 2, column=col, sticky="ew", padx=4, pady=(2, 0))
+            desc_text = f"{spec['command']}\n{spec['description']}"
+            ttk.Label(backend_frame, text=desc_text, wraplength=360, justify="left").grid(
+                row=row * 2 + 1, column=col, sticky="w", padx=4, pady=(0, 8)
+            )
+
+        # Templates populate the command box so users can fill IDs/paths before running
+        template_row_start = ((len(self.backend_cli_commands) + 1) // 2) * 2
+        template_frame = ttk.LabelFrame(backend_frame, text="✏️ Fill & Run (sets command box)", padding=8)
+        template_frame.grid(row=template_row_start, column=0, columnspan=2, sticky="ew", padx=4, pady=(6, 0))
+        template_frame.columnconfigure((0, 1), weight=1)
+
+        for idx, spec in enumerate(self.backend_cli_templates):
+            col = idx % 2
+            row = idx // 2
+            btn = ttk.Button(template_frame, text=spec["label"], command=lambda c=spec["command"]: self._set_command_text(c))
+            btn.grid(row=row * 2, column=col, sticky="ew", padx=4, pady=(2, 0))
+            desc_text = f"{spec['command']}\n{spec['description']}"
+            ttk.Label(template_frame, text=desc_text, wraplength=360, justify="left").grid(
+                row=row * 2 + 1, column=col, sticky="w", padx=4, pady=(0, 8)
+            )
+
     def _show_vision_view(self):
         """Show computer vision view in the consolidated tab"""
         # Clear current content
@@ -4066,6 +4179,19 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
             self.after(0, finish)
 
         threading.Thread(target=worker, daemon=True).start()
+
+    def _set_command_text(self, command: str):
+        """Prefill the command entry without executing (for parameterized backend CLI calls)."""
+        entry_var = getattr(self, "command_entry_var", None)
+        if not entry_var:
+            return
+        entry_var.set(command)
+        try:
+            if self.command_terminal_output:
+                self.command_terminal_output.see("end")
+            self.focus_set()
+        except Exception:
+            pass
 
     def _browse_vision_file(self):
         messagebox.showinfo("File Browser", "Please select an image file for analysis.")
@@ -19906,58 +20032,104 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         ]
 
     def _build_ai_os_web_page_map(self):
-        """Return ordered mapping of human labels to URLs/paths."""
-        base = Path(__file__).resolve().parent.parent
-        docs_dir = base.parent / "docs"
-        cyberchef_dir = base.parent / "CyberChef_v10.19.4"
-        pages = {
-            "Docs: Dashboard landing": docs_dir / "index.html",
-            "Docs: AI capabilities": docs_dir / "ai_capabilities.html",
-            "Docs: Canonical Internal Representation": base.parent / "CANONICAL_INTERNAL_REPRESENTATION.md",
-            "Docs: Daemon framework overview": base.parent / "DAEMON_FRAMEWORK_ARCHITECTURE.md",
-            "Guide: Cognitive daemon system": base.parent / "COGNITIVE_DAEMON_SYSTEM.md",
-            "Guide: AI features implementation": base.parent / "AI_FEATURES_IMPLEMENTATION.md",
-            "Guide: Implementation roadmap": base.parent / "IMPLEMENTATION_ROADMAP.md",
-            "Guide: Implementation summary": base.parent / "IMPLEMENTATION_SUMMARY.md",
-            "Guide: Feature opportunities": base.parent / "FEATURE_OPPORTUNITIES.md",
-            "Guide: Missing features summary": base.parent / "MISSING_FEATURES_SUMMARY.md",
-            "Guide: Low hanging feature wins": base.parent / "LOW_HANGING_FRUIT_FEATURES.md",
-            "Guide: Vision brief": base.parent / "VISION.md",
-            "Guide: Vision implementation": base.parent / "VISION_IMPLEMENTATION.md",
-            "Guide: Document upload design": base.parent / "DOCUMENT_UPLOAD_DESIGN.md",
-            "Guide: Document upload integration": base.parent / "DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md",
-            "Guide: Document upload implementation": base.parent / "DOCUMENT_UPLOAD_IMPLEMENTATION.md",
-            "Guide: Document templates & automation": base.parent / "DOCUMENT_TEMPLATES_AND_AUTOMATION.md",
-            "Guide: Automation orchestration": base.parent / "AUTOMATION_ORCHESTRATION_INTEGRATION.md",
-            "Cheatsheet: Commands": base.parent / "commands.md",
-            "Reference: README": base.parent / "README.md",
-            "Reference: Global impact white paper": base.parent / "GLOBAL_IMPACT_WHITE_PAPER.md",
-            "Reference: Architecture implementation": base.parent / "ARCHITECTURE_IMPLEMENTATION.md",
-            "Reference: Deployment guide": base.parent / "DEPLOYMENT.md",
-            "Tools: CyberChef (offline full UI)": cyberchef_dir / "CyberChef_v10.19.4.html",
-            "Legal: CyberChef bundled licenses (main assets)": cyberchef_dir / "assets" / "main.js.LICENSE.txt",
-            "Legal: CyberChef licenses (workers & modules)": cyberchef_dir / "ChefWorker.js.LICENSE.txt",
-        }
-        # Keep only entries that exist; fall back to text files opened in default handler
+        """Return ordered mapping of human labels to URLs/paths (grouped, de-duped)."""
+        # Resolve repository root (gui.py -> assistant_hub -> assistant_hub_gui -> repo root)
+        repo_root = Path(__file__).resolve().parents[2]
+        docs_dir = repo_root / "docs"
+        cyberchef_dir = repo_root / "CyberChef_v10.19.4"
+
+        # Group pages logically so dropdowns stay readable; preserve insertion order
+        grouped_pages = [
+            (
+                "Docs",
+                [
+                    ("Dashboard landing", docs_dir / "index.html"),
+                    ("AI capabilities", docs_dir / "ai_capabilities.html"),
+                ],
+            ),
+            (
+                "Architecture & Canon",
+                [
+                    ("Canonical Internal Representation", repo_root / "CANONICAL_INTERNAL_REPRESENTATION.md"),
+                    ("Daemon framework overview", repo_root / "DAEMON_FRAMEWORK_ARCHITECTURE.md"),
+                    ("Cognitive daemon system", repo_root / "COGNITIVE_DAEMON_SYSTEM.md"),
+                ],
+            ),
+            (
+                "Features & Roadmap",
+                [
+                    ("AI features implementation", repo_root / "AI_FEATURES_IMPLEMENTATION.md"),
+                    ("Implementation roadmap", repo_root / "IMPLEMENTATION_ROADMAP.md"),
+                    ("Implementation summary", repo_root / "IMPLEMENTATION_SUMMARY.md"),
+                    ("Feature opportunities", repo_root / "FEATURE_OPPORTUNITIES.md"),
+                    ("Missing features summary", repo_root / "MISSING_FEATURES_SUMMARY.md"),
+                    ("Low hanging feature wins", repo_root / "LOW_HANGING_FRUIT_FEATURES.md"),
+                ],
+            ),
+            (
+                "Vision",
+                [
+                    ("Vision brief", repo_root / "VISION.md"),
+                    ("Vision implementation", repo_root / "VISION_IMPLEMENTATION.md"),
+                ],
+            ),
+            (
+                "Document pipeline",
+                [
+                    ("Document upload design", repo_root / "DOCUMENT_UPLOAD_DESIGN.md"),
+                    ("Document upload integration", repo_root / "DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md"),
+                    ("Document upload implementation", repo_root / "DOCUMENT_UPLOAD_IMPLEMENTATION.md"),
+                    ("Document templates & automation", repo_root / "DOCUMENT_TEMPLATES_AND_AUTOMATION.md"),
+                ],
+            ),
+            (
+                "Automation & Orchestration",
+                [("Automation orchestration", repo_root / "AUTOMATION_ORCHESTRATION_INTEGRATION.md")],
+            ),
+            (
+                "Reference",
+                [
+                    ("Commands cheatsheet", repo_root / "commands.md"),
+                    ("README", repo_root / "README.md"),
+                    ("Global impact white paper", repo_root / "GLOBAL_IMPACT_WHITE_PAPER.md"),
+                    ("Architecture implementation", repo_root / "ARCHITECTURE_IMPLEMENTATION.md"),
+                    ("Deployment guide", repo_root / "DEPLOYMENT.md"),
+                ],
+            ),
+            (
+                "Tools",
+                [("CyberChef (offline full UI)", cyberchef_dir / "CyberChef_v10.19.4.html")],
+            ),
+            (
+                "Legal",
+                [
+                    ("CyberChef bundled licenses (main assets)", cyberchef_dir / "assets" / "main.js.LICENSE.txt"),
+                    ("CyberChef licenses (workers & modules)", cyberchef_dir / "ChefWorker.js.LICENSE.txt"),
+                ],
+            ),
+        ]
+
         cleaned = {}
         seen_targets = set()
-        for label, path in pages.items():
-            try:
-                if isinstance(path, Path):
-                    if not path.exists():
-                        continue
-                    target_key = path.resolve().as_posix()
-                else:
-                    target_key = str(path)
-            except Exception:
-                continue
-            # Avoid duplicate entries that point to the same underlying target
-            if target_key in seen_targets:
-                continue
-            cleaned[label] = path
-            seen_targets.add(target_key)
-        # Sort for predictable dropdown ordering
-        return dict(sorted(cleaned.items(), key=lambda kv: kv[0].lower()))
+
+        for group, entries in grouped_pages:
+            for label, path in entries:
+                display_label = f"{group}: {label}"
+                try:
+                    if isinstance(path, Path):
+                        if not path.exists():
+                            continue
+                        target_key = path.resolve().as_posix()
+                    else:
+                        target_key = str(path)
+                except Exception:
+                    continue
+                if target_key in seen_targets:
+                    continue  # drop only true duplicates, keep unique pages intact
+                cleaned[display_label] = path
+                seen_targets.add(target_key)
+
+        return cleaned
 
     def _render_ai_os_view(self, _event=None):
         """Clear and render the selected AI OS cockpit subview."""
