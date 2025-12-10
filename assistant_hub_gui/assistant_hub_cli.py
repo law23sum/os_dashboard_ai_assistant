@@ -7,4 +7,3 @@ from assistant_hub.logging_config import configure_logging
 if __name__ == "__main__":
     configure_logging()
     exit(main())
-

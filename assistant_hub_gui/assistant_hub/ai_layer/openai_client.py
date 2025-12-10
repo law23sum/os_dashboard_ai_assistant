@@ -17,10 +17,14 @@ class OpenAIClient:
             raise RuntimeError("OPENAI_API_KEY is not configured")
         self._client = OpenAI(api_key=self.api_key)
 
-    def chat(self, model: str, messages: List[Dict[str, Any]], **kwargs) -> Dict[str, Any]:
+    def chat(
+        self, model: str, messages: List[Dict[str, Any]], **kwargs
+    ) -> Dict[str, Any]:
         """Send a chat completion request and return the raw response."""
 
-        return self._client.chat.completions.create(model=model, messages=messages, **kwargs)
+        return self._client.chat.completions.create(
+            model=model, messages=messages, **kwargs
+        )
 
 
 def get_default_client() -> OpenAIClient:
@@ -31,7 +35,7 @@ def get_default_client() -> OpenAIClient:
 
 def chat(model: str, messages: List[Dict[str, Any]], **kwargs: Any) -> str:
     """Convenience function for simple chat completions that returns just the content.
-    
+
     This is a simpler interface for cases where you just need the text response.
     """
     client = get_default_client()

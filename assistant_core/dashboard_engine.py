@@ -17,10 +17,12 @@ class DashboardEngine:
         self.dashboard_state = {
             "last_updated": None,
             "data_sources": {},
-            "display_model": {}
+            "display_model": {},
         }
 
-    def update_dashboard_data(self, sources_data: Dict[str, List[Dict]]) -> Dict[str, Any]:
+    def update_dashboard_data(
+        self, sources_data: Dict[str, List[Dict]]
+    ) -> Dict[str, Any]:
         """Update dashboard with new data from all sources."""
         # Aggregate and normalize data
         aggregated_data = self.data_aggregator.aggregate_all_sources(sources_data)
@@ -35,26 +37,31 @@ class DashboardEngine:
         self.dashboard_state["display_model"] = display_model
         return display_model
 
-    def _prepare_display_model(self, aggregated_data: Dict[str, List[Dict]]) -> Dict[str, Any]:
+    def _prepare_display_model(
+        self, aggregated_data: Dict[str, List[Dict]]
+    ) -> Dict[str, Any]:
         """Prepare data for dashboard display."""
         # Today's events
         today = datetime.now().date()
         todays_events = [
-            event for event in aggregated_data["calendar_events"]
+            event
+            for event in aggregated_data["calendar_events"]
             if event.get("start_time") and event["start_time"].date() == today
         ]
 
         # Recent emails (last 24 hours)
         yesterday = datetime.now() - timedelta(days=1)
         recent_emails = [
-            email for email in aggregated_data["emails"]
+            email
+            for email in aggregated_data["emails"]
             if email.get("timestamp") and email["timestamp"] > yesterday
         ]
 
         # Recent documents (last 7 days)
         week_ago = datetime.now() - timedelta(days=7)
         recent_docs = [
-            doc for doc in aggregated_data["documents"]
+            doc
+            for doc in aggregated_data["documents"]
             if doc.get("modified_time") and doc["modified_time"] > week_ago
         ]
 
@@ -65,7 +72,7 @@ class DashboardEngine:
         security_summary = {
             "security_score": 85.0,  # Placeholder - would come from security framework
             "active_incidents": 0,
-            "compliance_score": 92.0
+            "compliance_score": 92.0,
         }
 
         return {
@@ -77,17 +84,19 @@ class DashboardEngine:
                 "recent_emails_count": len(recent_emails),
                 "recent_docs_count": len(recent_docs),
                 "onenote_links_count": len(onenote_links),
-                "onenote_accessible_count": len([l for l in onenote_links if l.get('status') == 'accessible']),
+                "onenote_accessible_count": len(
+                    [l for l in onenote_links if l.get("status") == "accessible"]
+                ),
                 "security_score": security_summary["security_score"],
                 "active_security_incidents": security_summary["active_incidents"],
-                "compliance_score": security_summary["compliance_score"]
+                "compliance_score": security_summary["compliance_score"],
             },
             "todays_events": todays_events[:10],  # Show top 10
-            "recent_emails": recent_emails[:5],    # Show top 5
-            "recent_documents": recent_docs[:10], # Show top 10
-            "onenote_links": onenote_links[:5],   # Show top 5 OneNote links
+            "recent_emails": recent_emails[:5],  # Show top 5
+            "recent_documents": recent_docs[:10],  # Show top 10
+            "onenote_links": onenote_links[:5],  # Show top 5 OneNote links
             "security_status": security_summary,
-            "last_updated": datetime.now().isoformat()
+            "last_updated": datetime.now().isoformat(),
         }
 
     def get_dashboard_state(self) -> Dict[str, Any]:
@@ -119,6 +128,7 @@ class DashboardEngine:
         """Initialize the plugin marketplace."""
         try:
             from .plugin_marketplace import PluginMarketplace
+
             if not self.plugin_marketplace:
                 self.plugin_marketplace = PluginMarketplace()
             await self.plugin_marketplace.initialize()
@@ -160,13 +170,16 @@ class DashboardEngine:
         """Execute a plugin method."""
         if not self.plugin_marketplace:
             raise Exception("Plugin marketplace not available")
-        return await self.plugin_marketplace.execute_plugin(plugin_id, method, *args, **kwargs)
+        return await self.plugin_marketplace.execute_plugin(
+            plugin_id, method, *args, **kwargs
+        )
 
     # Security framework methods
     async def initialize_security_framework(self):
         """Initialize the security framework."""
         try:
             from .security_framework import EnterpriseSecurityFramework
+
             if not self.security_framework:
                 self.security_framework = EnterpriseSecurityFramework()
             await self.security_framework.initialize()
@@ -192,8 +205,11 @@ class DashboardEngine:
             return {"error": "Security framework not available"}
         try:
             from .security_framework import ComplianceFramework
+
             framework_enum = ComplianceFramework(framework)
-            return await self.security_framework.run_compliance_assessment(framework_enum)
+            return await self.security_framework.run_compliance_assessment(
+                framework_enum
+            )
         except Exception as e:
             return {"error": str(e)}
 
@@ -203,10 +219,12 @@ class DashboardEngine:
             return {"error": "Security framework not available"}
         try:
             classification = await self.security_framework.classify_data(data, context)
-            protected_data = await self.security_framework.apply_data_protection(data, classification)
+            protected_data = await self.security_framework.apply_data_protection(
+                data, classification
+            )
             return {
                 "classification": classification.value,
-                "protected_data": protected_data
+                "protected_data": protected_data,
             }
         except Exception as e:
             return {"error": str(e)}

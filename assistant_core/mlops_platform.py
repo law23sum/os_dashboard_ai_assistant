@@ -58,6 +58,7 @@ class PipelineStage(Enum):
 @dataclass
 class MLModel:
     """ML Model information"""
+
     model_id: str
     name: str
     version: str
@@ -83,6 +84,7 @@ class MLModel:
 @dataclass
 class MLPipeline:
     """ML Pipeline configuration"""
+
     pipeline_id: str
     name: str
     description: str
@@ -102,6 +104,7 @@ class MLPipeline:
 @dataclass
 class PipelineRun:
     """Pipeline execution run"""
+
     run_id: str
     pipeline_id: str
     start_time: datetime
@@ -121,6 +124,7 @@ class PipelineRun:
 @dataclass
 class ModelDeployment:
     """Model deployment information"""
+
     deployment_id: str
     model_id: str
     model_version: str
@@ -140,6 +144,7 @@ class ModelDeployment:
 @dataclass
 class DataDriftAlert:
     """Data drift detection alert"""
+
     alert_id: str
     model_id: str
     drift_type: str
@@ -183,14 +188,18 @@ class MLOpsPlatform:
             Path("models/checkpoints"),
             Path("pipelines/logs"),
             Path("data/datasets"),
-            Path("data/features")
+            Path("data/features"),
         ]
 
         for directory in directories:
             directory.mkdir(parents=True, exist_ok=True)
 
-    async def manage_ml_pipeline(self, action: str, config: Dict[str, Any],
-                               options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def manage_ml_pipeline(
+        self,
+        action: str,
+        config: Dict[str, Any],
+        options: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """Manage ML pipelines and operations"""
         try:
             if action == "create_pipeline":
@@ -223,7 +232,7 @@ class MLOpsPlatform:
             stages=[PipelineStage(stage) for stage in config["stages"]],
             config=config.get("config", {}),
             schedule=config.get("schedule"),
-            is_active=config.get("is_active", True)
+            is_active=config.get("is_active", True),
         )
 
         self.pipelines[pipeline_id] = pipeline
@@ -232,7 +241,7 @@ class MLOpsPlatform:
             "pipeline_id": pipeline_id,
             "status": "created",
             "stages": [stage.value for stage in pipeline.stages],
-            "schedule": pipeline.schedule
+            "schedule": pipeline.schedule,
         }
 
     async def _run_pipeline(self, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -247,9 +256,7 @@ class MLOpsPlatform:
         # Create pipeline run
         run_id = str(uuid.uuid4())
         pipeline_run = PipelineRun(
-            run_id=run_id,
-            pipeline_id=pipeline_id,
-            start_time=datetime.now()
+            run_id=run_id, pipeline_id=pipeline_id, start_time=datetime.now()
         )
 
         self.pipeline_runs.append(pipeline_run)
@@ -261,7 +268,7 @@ class MLOpsPlatform:
             "run_id": run_id,
             "pipeline_id": pipeline_id,
             "status": "started",
-            "stages": [stage.value for stage in pipeline.stages]
+            "stages": [stage.value for stage in pipeline.stages],
         }
 
     async def _execute_pipeline(self, pipeline: MLPipeline, pipeline_run: PipelineRun):
@@ -273,19 +280,33 @@ class MLOpsPlatform:
                 self.logger.info(f"Executing pipeline stage: {stage.value}")
 
                 if stage == PipelineStage.DATA_INGESTION:
-                    results[stage.value] = await self._execute_data_ingestion(pipeline.config)
+                    results[stage.value] = await self._execute_data_ingestion(
+                        pipeline.config
+                    )
                 elif stage == PipelineStage.DATA_PREPROCESSING:
-                    results[stage.value] = await self._execute_data_preprocessing(pipeline.config)
+                    results[stage.value] = await self._execute_data_preprocessing(
+                        pipeline.config
+                    )
                 elif stage == PipelineStage.FEATURE_ENGINEERING:
-                    results[stage.value] = await self._execute_feature_engineering(pipeline.config)
+                    results[stage.value] = await self._execute_feature_engineering(
+                        pipeline.config
+                    )
                 elif stage == PipelineStage.MODEL_TRAINING:
-                    results[stage.value] = await self._execute_model_training(pipeline.config)
+                    results[stage.value] = await self._execute_model_training(
+                        pipeline.config
+                    )
                 elif stage == PipelineStage.MODEL_VALIDATION:
-                    results[stage.value] = await self._execute_model_validation(pipeline.config)
+                    results[stage.value] = await self._execute_model_validation(
+                        pipeline.config
+                    )
                 elif stage == PipelineStage.MODEL_DEPLOYMENT:
-                    results[stage.value] = await self._execute_model_deployment(pipeline.config)
+                    results[stage.value] = await self._execute_model_deployment(
+                        pipeline.config
+                    )
                 elif stage == PipelineStage.MONITORING:
-                    results[stage.value] = await self._execute_monitoring(pipeline.config)
+                    results[stage.value] = await self._execute_monitoring(
+                        pipeline.config
+                    )
 
             pipeline_run.stage_results = results
             pipeline_run.status = "completed"
@@ -293,10 +314,19 @@ class MLOpsPlatform:
             pipeline.last_run = pipeline_run.end_time
 
             # Update success rate
-            total_runs = len([r for r in self.pipeline_runs if r.pipeline_id == pipeline.pipeline_id])
-            successful_runs = len([r for r in self.pipeline_runs
-                                 if r.pipeline_id == pipeline.pipeline_id and r.status == "completed"])
-            pipeline.success_rate = successful_runs / total_runs if total_runs > 0 else 0
+            total_runs = len(
+                [r for r in self.pipeline_runs if r.pipeline_id == pipeline.pipeline_id]
+            )
+            successful_runs = len(
+                [
+                    r
+                    for r in self.pipeline_runs
+                    if r.pipeline_id == pipeline.pipeline_id and r.status == "completed"
+                ]
+            )
+            pipeline.success_rate = (
+                successful_runs / total_runs if total_runs > 0 else 0
+            )
 
             self.logger.info(f"Pipeline {pipeline.pipeline_id} completed successfully")
 
@@ -316,10 +346,12 @@ class MLOpsPlatform:
             "data_source": data_source,
             "records_ingested": dataset_size,
             "data_quality_score": 0.95,
-            "status": "completed"
+            "status": "completed",
         }
 
-    async def _execute_data_preprocessing(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    async def _execute_data_preprocessing(
+        self, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Execute data preprocessing stage"""
         # Simulate preprocessing
         preprocessing_steps = config.get("steps", ["cleaning", "normalization"])
@@ -328,10 +360,12 @@ class MLOpsPlatform:
             "steps_applied": preprocessing_steps,
             "data_quality_improvement": 0.15,
             "outliers_removed": 25,
-            "status": "completed"
+            "status": "completed",
         }
 
-    async def _execute_feature_engineering(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    async def _execute_feature_engineering(
+        self, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Execute feature engineering stage"""
         # Simulate feature engineering
         feature_count = config.get("target_features", 20)
@@ -340,7 +374,7 @@ class MLOpsPlatform:
             "features_created": feature_count,
             "feature_importance_calculated": True,
             "correlation_analysis_completed": True,
-            "status": "completed"
+            "status": "completed",
         }
 
     async def _execute_model_training(self, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -356,7 +390,7 @@ class MLOpsPlatform:
             version="1.0.0",
             model_type=ModelType(model_type),
             framework=config.get("framework", "sklearn"),
-            status=ModelStatus.TRAINING
+            status=ModelStatus.TRAINING,
         )
 
         self.models[model_id] = model
@@ -371,15 +405,10 @@ class MLOpsPlatform:
                 "precision": 0.87,
                 "recall": 0.88,
                 "f1_score": 0.875,
-                "auc_roc": 0.92
+                "auc_roc": 0.92,
             }
         elif model_type == "regression":
-            metrics = {
-                "mse": 0.045,
-                "mae": 0.18,
-                "r2_score": 0.91,
-                "rmse": 0.21
-            }
+            metrics = {"mse": 0.045, "mae": 0.18, "r2_score": 0.91, "rmse": 0.21}
         else:
             metrics = {"custom_metric": 0.85}
 
@@ -393,7 +422,7 @@ class MLOpsPlatform:
             "training_completed": True,
             "performance_metrics": metrics,
             "training_duration_seconds": 120,
-            "status": "completed"
+            "status": "completed",
         }
 
     async def _execute_model_validation(self, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -413,7 +442,7 @@ class MLOpsPlatform:
             "cross_validation_score": 0.87,
             "test_accuracy": 0.86,
             "overfitting_detected": False,
-            "validation_passed": True
+            "validation_passed": True,
         }
 
         model.status = ModelStatus.VALIDATED
@@ -421,7 +450,7 @@ class MLOpsPlatform:
         return {
             "model_id": model_id,
             "validation_metrics": validation_metrics,
-            "status": "completed"
+            "status": "completed",
         }
 
     async def _execute_model_deployment(self, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -443,7 +472,7 @@ class MLOpsPlatform:
             model_id=model_id,
             model_version=model.version,
             endpoint_url=f"http://localhost:8000/models/{model_id}/predict",
-            deployment_type=config.get("deployment_type", "api")
+            deployment_type=config.get("deployment_type", "api"),
         )
 
         self.deployments[deployment_id] = deployment
@@ -455,7 +484,7 @@ class MLOpsPlatform:
             "model_id": model_id,
             "endpoint_url": deployment.endpoint_url,
             "deployment_type": deployment.deployment_type,
-            "status": "completed"
+            "status": "completed",
         }
 
     async def _execute_monitoring(self, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -465,7 +494,7 @@ class MLOpsPlatform:
             "monitoring_enabled": True,
             "metrics_collected": ["latency", "throughput", "error_rate"],
             "alerts_configured": True,
-            "status": "completed"
+            "status": "completed",
         }
 
     async def _train_model(self, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -476,7 +505,7 @@ class MLOpsPlatform:
             "model_name": config.get("model_name", "custom_model"),
             "framework": config.get("framework", "sklearn"),
             "hyperparameters": config.get("hyperparameters", {}),
-            "dataset_path": config.get("dataset_path", "data/sample.csv")
+            "dataset_path": config.get("dataset_path", "data/sample.csv"),
         }
 
         return await self._execute_model_training(training_config)
@@ -497,7 +526,7 @@ class MLOpsPlatform:
             model_id=model_id,
             model_version=model.version,
             endpoint_url=f"http://localhost:8000/models/{model_id}/predict",
-            deployment_type=deployment_type
+            deployment_type=deployment_type,
         )
 
         self.deployments[deployment_id] = deployment
@@ -508,10 +537,12 @@ class MLOpsPlatform:
             "deployment_id": deployment_id,
             "model_id": model_id,
             "endpoint_url": deployment.endpoint_url,
-            "status": "deployed"
+            "status": "deployed",
         }
 
-    async def _monitor_model_performance(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    async def _monitor_model_performance(
+        self, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Monitor model performance"""
         model_id = config.get("model_id")
 
@@ -526,7 +557,7 @@ class MLOpsPlatform:
             "throughput_req_per_sec": 23.8,
             "error_rate_percent": 0.02,
             "data_drift_detected": False,
-            "performance_degradation": 0.05  # 5% degradation
+            "performance_degradation": 0.05,  # 5% degradation
         }
 
         # Check for data drift
@@ -542,16 +573,18 @@ class MLOpsPlatform:
                 recommendations=[
                     "Consider retraining the model with recent data",
                     "Review data distribution changes",
-                    "Monitor feature importance shifts"
-                ]
+                    "Monitor feature importance shifts",
+                ],
             )
             self.data_drift_alerts.append(alert)
 
         return {
             "model_id": model_id,
             "current_metrics": current_metrics,
-            "alerts": len([a for a in self.data_drift_alerts if a.model_id == model_id]),
-            "status": "monitored"
+            "alerts": len(
+                [a for a in self.data_drift_alerts if a.model_id == model_id]
+            ),
+            "status": "monitored",
         }
 
     async def _retrain_model(self, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -564,9 +597,9 @@ class MLOpsPlatform:
         model = self.models[model_id]
 
         # Increment version
-        current_version = model.version.split('.')
+        current_version = model.version.split(".")
         current_version[-1] = str(int(current_version[-1]) + 1)
-        new_version = '.'.join(current_version)
+        new_version = ".".join(current_version)
 
         # Create new model with updated version
         new_model = MLModel(
@@ -576,7 +609,7 @@ class MLOpsPlatform:
             model_type=model.model_type,
             framework=model.framework,
             status=ModelStatus.TRAINING,
-            metadata=model.metadata.copy()
+            metadata=model.metadata.copy(),
         )
 
         self.models[new_model.model_id] = new_model
@@ -599,7 +632,7 @@ class MLOpsPlatform:
             "new_model_id": new_model.model_id,
             "new_version": new_version,
             "improvement_metrics": updated_metrics,
-            "status": "retrained"
+            "status": "retrained",
         }
 
     async def _run_pipeline_scheduler(self):
@@ -615,7 +648,11 @@ class MLOpsPlatform:
                         if "hourly" in pipeline.schedule.lower():
                             last_run = pipeline.last_run or datetime.min
                             if (current_time - last_run).total_seconds() >= 3600:
-                                asyncio.create_task(self._run_pipeline({"pipeline_id": pipeline.pipeline_id}))
+                                asyncio.create_task(
+                                    self._run_pipeline(
+                                        {"pipeline_id": pipeline.pipeline_id}
+                                    )
+                                )
 
             except Exception as e:
                 self.logger.error(f"Error in pipeline scheduler: {e}")
@@ -630,7 +667,9 @@ class MLOpsPlatform:
                 for model in self.models.values():
                     if model.status == ModelStatus.DEPLOYED:
                         # Simulate monitoring
-                        await self._monitor_model_performance({"model_id": model.model_id})
+                        await self._monitor_model_performance(
+                            {"model_id": model.model_id}
+                        )
 
             except Exception as e:
                 self.logger.error(f"Error in model monitoring: {e}")
@@ -639,10 +678,17 @@ class MLOpsPlatform:
     async def get_mlops_status(self) -> Dict[str, Any]:
         """Get overall MLOps platform status"""
         total_models = len(self.models)
-        deployed_models = len([m for m in self.models.values() if m.status == ModelStatus.DEPLOYED])
+        deployed_models = len(
+            [m for m in self.models.values() if m.status == ModelStatus.DEPLOYED]
+        )
         active_pipelines = len([p for p in self.pipelines.values() if p.is_active])
-        recent_alerts = len([a for a in self.data_drift_alerts
-                           if (datetime.now() - a.detected_at).total_seconds() < 86400])  # Last 24 hours
+        recent_alerts = len(
+            [
+                a
+                for a in self.data_drift_alerts
+                if (datetime.now() - a.detected_at).total_seconds() < 86400
+            ]
+        )  # Last 24 hours
 
         return {
             "total_models": total_models,
@@ -650,7 +696,7 @@ class MLOpsPlatform:
             "active_pipelines": active_pipelines,
             "total_pipeline_runs": len(self.pipeline_runs),
             "recent_alerts": recent_alerts,
-            "platform_health": "healthy" if recent_alerts < 5 else "warning"
+            "platform_health": "healthy" if recent_alerts < 5 else "warning",
         }
 
     async def get_model_details(self, model_id: str) -> Optional[Dict[str, Any]]:
@@ -666,7 +712,7 @@ class MLOpsPlatform:
             "model": asdict(model),
             "deployments": [asdict(d) for d in deployments],
             "alerts": [asdict(a) for a in alerts],
-            "performance_trend": await self._get_model_performance_trend(model_id)
+            "performance_trend": await self._get_model_performance_trend(model_id),
         }
 
     async def _get_model_performance_trend(self, model_id: str) -> List[Dict[str, Any]]:
@@ -677,11 +723,15 @@ class MLOpsPlatform:
 
         for i in range(30):
             date = base_date + timedelta(days=i)
-            trend.append({
-                "date": date.isoformat(),
-                "accuracy": 0.85 + (i * 0.001) + (0.01 * (i % 7 == 0)),  # Weekly variation
-                "latency": 50 + (i * 0.1)  # Slight increase over time
-            })
+            trend.append(
+                {
+                    "date": date.isoformat(),
+                    "accuracy": 0.85
+                    + (i * 0.001)
+                    + (0.01 * (i % 7 == 0)),  # Weekly variation
+                    "latency": 50 + (i * 0.1),  # Slight increase over time
+                }
+            )
 
         return trend
 
@@ -702,15 +752,11 @@ class MLOpsPlatform:
                 "n_estimators": 100,
                 "max_depth": 10,
                 "learning_rate": 0.1,
-                "subsample": 0.8
+                "subsample": 0.8,
             }
             best_score = 0.92
         elif model_type == "regression":
-            best_params = {
-                "alpha": 0.01,
-                "l1_ratio": 0.5,
-                "max_iter": 1000
-            }
+            best_params = {"alpha": 0.01, "l1_ratio": 0.5, "max_iter": 1000}
             best_score = 0.89
 
         return {
@@ -718,5 +764,5 @@ class MLOpsPlatform:
             "best_score": best_score,
             "trials_completed": max_trials,
             "optimization_method": "bayesian_optimization",
-            "search_space_explored": len(search_space)
+            "search_space_explored": len(search_space),
         }

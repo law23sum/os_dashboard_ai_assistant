@@ -9,6 +9,7 @@ import sqlite3
 try:
     import caldav
     from caldav import DAVClient
+
     CALDAV_AVAILABLE = True
 except ImportError:
     CALDAV_AVAILABLE = False
@@ -32,14 +33,16 @@ class AppleCalendarClient:
         """Initialize Apple Calendar client"""
         try:
             if not CALDAV_AVAILABLE:
-                self.logger.warning("CalDAV library not available. Install with: pip install caldav")
+                self.logger.warning(
+                    "CalDAV library not available. Install with: pip install caldav"
+                )
                 return False
 
             # Create CalDAV client
             self.client = DAVClient(
                 url=self.config.caldav_url,
                 username=self.config.caldav_username,
-                password=self.config.caldav_password
+                password=self.config.caldav_password,
             )
 
             # Get principal
@@ -88,25 +91,32 @@ class AppleCalendarClient:
 
             for name, calendar in self.calendars.items():
                 try:
-                    props = calendar.get_properties([
-                        caldav.dav.DisplayName(),
-                        caldav.cdav.CalendarDescription()
-                    ])
+                    props = calendar.get_properties(
+                        [caldav.dav.DisplayName(), caldav.cdav.CalendarDescription()]
+                    )
 
-                    calendars_info.append({
-                        'name': name,
-                        'display_name': props.get(caldav.dav.DisplayName.tag, name),
-                        'description': props.get(caldav.cdav.CalendarDescription.tag, ''),
-                        'url': str(calendar.url)
-                    })
+                    calendars_info.append(
+                        {
+                            "name": name,
+                            "display_name": props.get(caldav.dav.DisplayName.tag, name),
+                            "description": props.get(
+                                caldav.cdav.CalendarDescription.tag, ""
+                            ),
+                            "url": str(calendar.url),
+                        }
+                    )
                 except Exception as e:
-                    self.logger.warning(f"Failed to get properties for calendar {name}: {e}")
-                    calendars_info.append({
-                        'name': name,
-                        'display_name': name,
-                        'description': '',
-                        'url': str(calendar.url)
-                    })
+                    self.logger.warning(
+                        f"Failed to get properties for calendar {name}: {e}"
+                    )
+                    calendars_info.append(
+                        {
+                            "name": name,
+                            "display_name": name,
+                            "description": "",
+                            "url": str(calendar.url),
+                        }
+                    )
 
             return calendars_info
 
@@ -114,9 +124,16 @@ class AppleCalendarClient:
             self.logger.error(f"Failed to get calendars: {e}")
             raise
 
-    async def create_event(self, title: str, start_time: datetime, end_time: datetime,
-                          description: str = "", calendar_name: str = None,
-                          location: str = "", attendees: List[str] = None) -> Dict[str, Any]:
+    async def create_event(
+        self,
+        title: str,
+        start_time: datetime,
+        end_time: datetime,
+        description: str = "",
+        calendar_name: str = None,
+        location: str = "",
+        attendees: List[str] = None,
+    ) -> Dict[str, Any]:
         """Create a calendar event"""
         try:
             # Select calendar
@@ -155,28 +172,35 @@ END:VCALENDAR"""
                     attendee_lines.append(f"ATTENDEE:mailto:{attendee}")
 
                 # Insert attendees before END:VEVENT
-                ical_event = ical_event.replace("END:VEVENT", "\n".join(attendee_lines) + "\nEND:VEVENT")
+                ical_event = ical_event.replace(
+                    "END:VEVENT", "\n".join(attendee_lines) + "\nEND:VEVENT"
+                )
 
             # Save event to calendar
             event = calendar.save_event(ical_event)
 
             return {
-                'id': event_id,
-                'title': title,
-                'start_time': start_time.isoformat(),
-                'end_time': end_time.isoformat(),
-                'description': description,
-                'location': location,
-                'calendar': calendar.name,
-                'url': str(event.url) if hasattr(event, 'url') else None
+                "id": event_id,
+                "title": title,
+                "start_time": start_time.isoformat(),
+                "end_time": end_time.isoformat(),
+                "description": description,
+                "location": location,
+                "calendar": calendar.name,
+                "url": str(event.url) if hasattr(event, "url") else None,
             }
 
         except Exception as e:
             self.logger.error(f"Failed to create event: {e}")
             raise
 
-    async def get_events(self, calendar_name: str = None, start_date: datetime = None,
-                        end_date: datetime = None, max_results: int = 50) -> List[Dict[str, Any]]:
+    async def get_events(
+        self,
+        calendar_name: str = None,
+        start_date: datetime = None,
+        end_date: datetime = None,
+        max_results: int = 50,
+    ) -> List[Dict[str, Any]]:
         """Get calendar events"""
         try:
             if not start_date:
@@ -205,15 +229,23 @@ END:VCALENDAR"""
 
                             # Extract basic information
                             event_info = {
-                                'id': self._extract_field(event_data, 'UID'),
-                                'title': self._extract_field(event_data, 'SUMMARY'),
-                                'description': self._extract_field(event_data, 'DESCRIPTION'),
-                                'location': self._extract_field(event_data, 'LOCATION'),
-                                'start_time': self._parse_datetime(self._extract_field(event_data, 'DTSTART')),
-                                'end_time': self._parse_datetime(self._extract_field(event_data, 'DTEND')),
-                                'calendar': calendar.name,
-                                'status': self._extract_field(event_data, 'STATUS'),
-                                'url': str(event.url) if hasattr(event, 'url') else None
+                                "id": self._extract_field(event_data, "UID"),
+                                "title": self._extract_field(event_data, "SUMMARY"),
+                                "description": self._extract_field(
+                                    event_data, "DESCRIPTION"
+                                ),
+                                "location": self._extract_field(event_data, "LOCATION"),
+                                "start_time": self._parse_datetime(
+                                    self._extract_field(event_data, "DTSTART")
+                                ),
+                                "end_time": self._parse_datetime(
+                                    self._extract_field(event_data, "DTEND")
+                                ),
+                                "calendar": calendar.name,
+                                "status": self._extract_field(event_data, "STATUS"),
+                                "url": str(event.url)
+                                if hasattr(event, "url")
+                                else None,
                             }
 
                             events.append(event_info)
@@ -223,7 +255,9 @@ END:VCALENDAR"""
                             continue
 
                 except Exception as e:
-                    self.logger.warning(f"Failed to search calendar {calendar.name}: {e}")
+                    self.logger.warning(
+                        f"Failed to search calendar {calendar.name}: {e}"
+                    )
                     continue
 
             return events[:max_results]
@@ -235,13 +269,13 @@ END:VCALENDAR"""
     def _extract_field(self, ical_data: str, field_name: str) -> str:
         """Extract field value from iCalendar data"""
         try:
-            lines = ical_data.split('\n')
+            lines = ical_data.split("\n")
             for line in lines:
                 if line.startswith(f"{field_name}:"):
-                    return line.split(':', 1)[1].strip()
+                    return line.split(":", 1)[1].strip()
                 elif line.startswith(f"{field_name};"):
                     # Handle fields with parameters
-                    return line.split(':', 1)[1].strip()
+                    return line.split(":", 1)[1].strip()
             return ""
         except Exception:
             return ""
@@ -253,7 +287,7 @@ END:VCALENDAR"""
                 return ""
 
             # Remove timezone info for simplicity
-            dt_string = dt_string.replace('Z', '').replace('T', '')
+            dt_string = dt_string.replace("Z", "").replace("T", "")
 
             if len(dt_string) >= 8:
                 # Parse YYYYMMDDHHMMSS format
@@ -276,19 +310,22 @@ END:VCALENDAR"""
         except Exception:
             return dt_string
 
-    async def update_event(self, event_id: str, updates: Dict[str, Any],
-                          calendar_name: str = None) -> Dict[str, Any]:
+    async def update_event(
+        self, event_id: str, updates: Dict[str, Any], calendar_name: str = None
+    ) -> Dict[str, Any]:
         """Update calendar event"""
         try:
             # This is a simplified implementation
             # In practice, you'd need to find the event, modify it, and save it back
 
-            self.logger.warning("Event update functionality requires more complex CalDAV operations")
+            self.logger.warning(
+                "Event update functionality requires more complex CalDAV operations"
+            )
 
             return {
-                'id': event_id,
-                'status': 'update_pending',
-                'message': 'Event update requires manual implementation'
+                "id": event_id,
+                "status": "update_pending",
+                "message": "Event update requires manual implementation",
             }
 
         except Exception as e:
@@ -301,7 +338,9 @@ END:VCALENDAR"""
             # This is a simplified implementation
             # In practice, you'd need to find the event and delete it
 
-            self.logger.warning("Event deletion functionality requires more complex CalDAV operations")
+            self.logger.warning(
+                "Event deletion functionality requires more complex CalDAV operations"
+            )
 
             return False
 
@@ -317,16 +356,18 @@ END:VCALENDAR"""
 
             # Set description if provided
             if description:
-                calendar.set_properties({caldav.cdav.CalendarDescription(): description})
+                calendar.set_properties(
+                    {caldav.cdav.CalendarDescription(): description}
+                )
 
             # Add to local cache
             self.calendars[name] = calendar
 
             return {
-                'name': name,
-                'description': description,
-                'url': str(calendar.url),
-                'status': 'created'
+                "name": name,
+                "description": description,
+                "url": str(calendar.url),
+                "status": "created",
             }
 
         except Exception as e:
@@ -382,17 +423,17 @@ class AppleCalendarIntegration(BaseIntegration):
             count = 0
             for event in events:
                 self.record_item(
-                    external_id=event['id'],
+                    external_id=event["id"],
                     item_kind="event",
-                    title=event['title'],
+                    title=event["title"],
                     data={
-                        "start": event['start_time'],
-                        "end": event['end_time'],
-                        "description": event['description'],
-                        "location": event.get('location', ''),
-                        "calendar": event['calendar'],
-                        "source": "Apple Calendar"
-                    }
+                        "start": event["start_time"],
+                        "end": event["end_time"],
+                        "description": event["description"],
+                        "location": event.get("location", ""),
+                        "calendar": event["calendar"],
+                        "source": "Apple Calendar",
+                    },
                 )
                 count += 1
 
@@ -406,7 +447,7 @@ class AppleCalendarIntegration(BaseIntegration):
 
     def get_status(self) -> IntegrationStatus:
         """Get current status."""
-        if not hasattr(self, '_status') or not self._status:
+        if not hasattr(self, "_status") or not self._status:
             self._status = IntegrationStatus()
         return self._status
 
@@ -414,4 +455,4 @@ class AppleCalendarIntegration(BaseIntegration):
         """Truncate text safely."""
         if len(text) <= max_length:
             return text
-        return text[:max_length - 3] + "..."
+        return text[: max_length - 3] + "..."

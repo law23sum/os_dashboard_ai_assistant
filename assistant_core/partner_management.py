@@ -30,16 +30,19 @@ from config.logging_config import setup_logger
 # Import analytics system
 try:
     from .partner_analytics import PartnerAnalyticsSystem
+
     ANALYTICS_AVAILABLE = True
 except ImportError:
     PartnerAnalyticsSystem = None
     ANALYTICS_AVAILABLE = False
+
 
 class PartnerTier(Enum):
     BASIC = "basic"
     PROFESSIONAL = "professional"
     ENTERPRISE = "enterprise"
     PREMIUM = "premium"
+
 
 class OnboardingStatus(Enum):
     INITIATED = "initiated"
@@ -52,6 +55,7 @@ class OnboardingStatus(Enum):
     SUSPENDED = "suspended"
     TERMINATED = "terminated"
 
+
 class SupportTicketStatus(Enum):
     OPEN = "open"
     IN_PROGRESS = "in_progress"
@@ -59,24 +63,29 @@ class SupportTicketStatus(Enum):
     RESOLVED = "resolved"
     CLOSED = "closed"
 
+
 class SupportPriority(Enum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
 
+
 @dataclass
 class PartnerContact:
     """Partner contact information"""
+
     name: str
     email: str
     phone: str
     role: str
     primary: bool = False
 
+
 @dataclass
 class OnboardingStep:
     """Onboarding process step"""
+
     id: str
     name: str
     description: str
@@ -87,9 +96,11 @@ class OnboardingStep:
     estimated_duration: int = 0  # hours
     dependencies: List[str] = None
 
+
 @dataclass
 class SupportTicket:
     """Support ticket"""
+
     id: str
     partner_id: str
     title: str
@@ -103,9 +114,11 @@ class SupportTicket:
     resolution: str = ""
     customer_satisfaction: Optional[int] = None
 
+
 @dataclass
 class PartnerMetrics:
     """Partner performance metrics"""
+
     partner_id: str
     api_calls_total: int
     api_calls_success: int
@@ -118,9 +131,11 @@ class PartnerMetrics:
     period_start: datetime
     period_end: datetime
 
+
 @dataclass
 class PartnerProfile:
     """Complete partner profile"""
+
     id: str
     company_name: str
     business_description: str
@@ -140,6 +155,7 @@ class PartnerProfile:
     created_at: datetime
     updated_at: datetime
     notes: List[str] = None
+
 
 class PartnerManagementSystem:
     """Comprehensive partner management system integrated into OS Dashboard"""
@@ -166,26 +182,26 @@ class PartnerManagementSystem:
                 "auto_approve_basic": True,
                 "require_manual_review": ["enterprise", "premium"],
                 "default_trial_period": 30,  # days
-                "welcome_email_delay": 1,    # hours
+                "welcome_email_delay": 1,  # hours
             },
             "support": {
                 "auto_assign": True,
                 "escalation_time": {
-                    "low": 48,      # hours
+                    "low": 48,  # hours
                     "medium": 24,
                     "high": 8,
-                    "critical": 2
+                    "critical": 2,
                 },
-                "satisfaction_survey_delay": 24  # hours after resolution
+                "satisfaction_survey_delay": 24,  # hours after resolution
             },
             "monitoring": {
                 "health_check_interval": 300,  # seconds
                 "alert_thresholds": {
                     "api_error_rate": 0.05,
                     "response_time": 5000,  # ms
-                    "uptime": 0.99
-                }
-            }
+                    "uptime": 0.99,
+                },
+            },
         }
 
     async def initialize(self):
@@ -213,7 +229,9 @@ class PartnerManagementSystem:
         self.logger.info("Partner Management System initialized")
 
     # Partner Onboarding
-    async def initiate_partner_onboarding(self, partner_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def initiate_partner_onboarding(
+        self, partner_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Initiate partner onboarding process"""
         try:
             # Create partner profile
@@ -221,36 +239,36 @@ class PartnerManagementSystem:
 
             # Parse contacts
             contacts = []
-            for contact_data in partner_data.get('contacts', []):
+            for contact_data in partner_data.get("contacts", []):
                 contact = PartnerContact(**contact_data)
                 contacts.append(contact)
 
             # Determine tier
-            tier = PartnerTier(partner_data.get('tier', 'basic'))
+            tier = PartnerTier(partner_data.get("tier", "basic"))
 
             # Create onboarding steps
             onboarding_steps = await self._create_onboarding_steps(tier)
 
             partner = PartnerProfile(
                 id=partner_id,
-                company_name=partner_data['company_name'],
-                business_description=partner_data.get('business_description', ''),
-                website=partner_data.get('website', ''),
-                industry=partner_data.get('industry', ''),
-                company_size=partner_data.get('company_size', ''),
-                headquarters_location=partner_data.get('headquarters_location', ''),
+                company_name=partner_data["company_name"],
+                business_description=partner_data.get("business_description", ""),
+                website=partner_data.get("website", ""),
+                industry=partner_data.get("industry", ""),
+                company_size=partner_data.get("company_size", ""),
+                headquarters_location=partner_data.get("headquarters_location", ""),
                 tier=tier,
                 status=OnboardingStatus.INITIATED,
                 contacts=contacts,
                 api_credentials={},
                 integration_details={},
-                contract_details=partner_data.get('contract_details', {}),
+                contract_details=partner_data.get("contract_details", {}),
                 onboarding_progress=onboarding_steps,
                 support_tickets=[],
                 metrics=None,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
-                notes=[]
+                notes=[],
             )
 
             # Store partner
@@ -271,7 +289,9 @@ class PartnerManagementSystem:
                 "status": "success",
                 "partner_id": partner_id,
                 "onboarding_steps": len(onboarding_steps),
-                "estimated_completion": self._calculate_onboarding_timeline(onboarding_steps)
+                "estimated_completion": self._calculate_onboarding_timeline(
+                    onboarding_steps
+                ),
             }
 
         except Exception as e:
@@ -288,11 +308,11 @@ class PartnerManagementSystem:
         for template_step in template_steps:
             step = OnboardingStep(
                 id=str(uuid.uuid4()),
-                name=template_step['name'],
-                description=template_step['description'],
-                required=template_step['required'],
-                estimated_duration=template_step.get('estimated_duration', 4),
-                dependencies=template_step.get('dependencies', [])
+                name=template_step["name"],
+                description=template_step["description"],
+                required=template_step["required"],
+                estimated_duration=template_step.get("estimated_duration", 4),
+                dependencies=template_step.get("dependencies", []),
             )
             steps.append(step)
 
@@ -311,7 +331,7 @@ class PartnerManagementSystem:
                 "api_key": api_key,
                 "api_secret": api_secret,
                 "created_at": datetime.now().isoformat(),
-                "status": "active"
+                "status": "active",
             }
 
             partner.updated_at = datetime.now()
@@ -321,8 +341,9 @@ class PartnerManagementSystem:
         except Exception as e:
             self.logger.error(f"API credential generation failed: {e}")
 
-    async def update_onboarding_step(self, partner_id: str, step_id: str,
-                                   completed: bool, notes: str = "") -> bool:
+    async def update_onboarding_step(
+        self, partner_id: str, step_id: str, completed: bool, notes: str = ""
+    ) -> bool:
         """Update onboarding step status"""
         try:
             partner = self.partners.get(partner_id)
@@ -361,19 +382,26 @@ class PartnerManagementSystem:
             partner = self.partners[partner_id]
 
             # Check if all required steps are completed
-            required_steps = [step for step in partner.onboarding_progress if step.required]
+            required_steps = [
+                step for step in partner.onboarding_progress if step.required
+            ]
             completed_required = [step for step in required_steps if step.completed]
 
             if len(completed_required) == len(required_steps):
                 # Onboarding complete
-                if partner.tier in [PartnerTier.BASIC] and self.config["onboarding"]["auto_approve_basic"]:
+                if (
+                    partner.tier in [PartnerTier.BASIC]
+                    and self.config["onboarding"]["auto_approve_basic"]
+                ):
                     partner.status = OnboardingStatus.ACTIVE
                     await self._send_activation_email(partner)
                 else:
                     partner.status = OnboardingStatus.APPROVAL_PENDING
                     await self._notify_approval_team(partner)
 
-                self.logger.info(f"Partner onboarding completed: {partner.company_name}")
+                self.logger.info(
+                    f"Partner onboarding completed: {partner.company_name}"
+                )
 
         except Exception as e:
             self.logger.error(f"Onboarding completion check failed: {e}")
@@ -394,14 +422,14 @@ class PartnerManagementSystem:
 
             ticket = SupportTicket(
                 id=ticket_id,
-                partner_id=ticket_data['partner_id'],
-                title=ticket_data['title'],
-                description=ticket_data['description'],
-                priority=SupportPriority(ticket_data.get('priority', 'medium')),
+                partner_id=ticket_data["partner_id"],
+                title=ticket_data["title"],
+                description=ticket_data["description"],
+                priority=SupportPriority(ticket_data.get("priority", "medium")),
                 status=SupportTicketStatus.OPEN,
-                category=ticket_data.get('category', 'general'),
+                category=ticket_data.get("category", "general"),
                 created_at=datetime.now(),
-                updated_at=datetime.now()
+                updated_at=datetime.now(),
             )
 
             # Auto-assign if enabled
@@ -433,13 +461,18 @@ class PartnerManagementSystem:
             "technical": "tech_team",
             "support": "support_team",
             "general": "support_team",
-            "integration": "integration_team"
+            "integration": "integration_team",
         }
 
         return assignment_rules.get(ticket.category, "support_team")
 
-    async def update_ticket_status(self, ticket_id: str, status: SupportTicketStatus,
-                                 resolution: str = "", assigned_to: str = "") -> bool:
+    async def update_ticket_status(
+        self,
+        ticket_id: str,
+        status: SupportTicketStatus,
+        resolution: str = "",
+        assigned_to: str = "",
+    ) -> bool:
         """Update support ticket status"""
         try:
             ticket = self.support_tickets.get(ticket_id)
@@ -504,7 +537,9 @@ class PartnerManagementSystem:
             partner = self.partners[partner_id]
 
             # Collect current metrics
-            current_metrics = await self.metrics_collector.collect_partner_metrics(partner_id)
+            current_metrics = await self.metrics_collector.collect_partner_metrics(
+                partner_id
+            )
 
             if current_metrics:
                 # Update partner metrics
@@ -520,8 +555,9 @@ class PartnerManagementSystem:
         except Exception as e:
             self.logger.error(f"Partner health check failed for {partner_id}: {e}")
 
-    async def _check_alert_thresholds(self, partner_id: str,
-                                    metrics: PartnerMetrics) -> List[Dict[str, Any]]:
+    async def _check_alert_thresholds(
+        self, partner_id: str, metrics: PartnerMetrics
+    ) -> List[Dict[str, Any]]:
         """Check if metrics exceed alert thresholds"""
         alerts = []
         thresholds = self.config["monitoring"]["alert_thresholds"]
@@ -531,36 +567,42 @@ class PartnerManagementSystem:
             if metrics.api_calls_total > 0:
                 error_rate = metrics.api_calls_failed / metrics.api_calls_total
                 if error_rate > thresholds["api_error_rate"]:
-                    alerts.append({
-                        "type": "high_error_rate",
-                        "severity": "high",
-                        "message": f"API error rate {error_rate:.2%} exceeds threshold",
-                        "metric": "api_error_rate",
-                        "value": error_rate,
-                        "threshold": thresholds["api_error_rate"]
-                    })
+                    alerts.append(
+                        {
+                            "type": "high_error_rate",
+                            "severity": "high",
+                            "message": f"API error rate {error_rate:.2%} exceeds threshold",
+                            "metric": "api_error_rate",
+                            "value": error_rate,
+                            "threshold": thresholds["api_error_rate"],
+                        }
+                    )
 
             # Uptime
             if metrics.uptime_percentage < thresholds["uptime"]:
-                alerts.append({
-                    "type": "low_uptime",
-                    "severity": "critical",
-                    "message": f"Uptime {metrics.uptime_percentage:.2%} below threshold",
-                    "metric": "uptime",
-                    "value": metrics.uptime_percentage,
-                    "threshold": thresholds["uptime"]
-                })
+                alerts.append(
+                    {
+                        "type": "low_uptime",
+                        "severity": "critical",
+                        "message": f"Uptime {metrics.uptime_percentage:.2%} below threshold",
+                        "metric": "uptime",
+                        "value": metrics.uptime_percentage,
+                        "threshold": thresholds["uptime"],
+                    }
+                )
 
             # Response time
             if metrics.average_response_time > thresholds["response_time"]:
-                alerts.append({
-                    "type": "slow_response",
-                    "severity": "medium",
-                    "message": f"Average response time {metrics.average_response_time}ms exceeds threshold",
-                    "metric": "response_time",
-                    "value": metrics.average_response_time,
-                    "threshold": thresholds["response_time"]
-                })
+                alerts.append(
+                    {
+                        "type": "slow_response",
+                        "severity": "medium",
+                        "message": f"Average response time {metrics.average_response_time}ms exceeds threshold",
+                        "metric": "response_time",
+                        "value": metrics.average_response_time,
+                        "threshold": thresholds["response_time"],
+                    }
+                )
 
         except Exception as e:
             self.logger.error(f"Alert threshold check failed: {e}")
@@ -568,8 +610,9 @@ class PartnerManagementSystem:
         return alerts
 
     # Partner Analytics and Reporting
-    async def generate_partner_report(self, partner_id: str,
-                                    period_days: int = 30) -> Dict[str, Any]:
+    async def generate_partner_report(
+        self, partner_id: str, period_days: int = 30
+    ) -> Dict[str, Any]:
         """Generate comprehensive partner report"""
         try:
             partner = self.partners.get(partner_id)
@@ -592,17 +635,30 @@ class PartnerManagementSystem:
             ]
 
             recent_tickets = [
-                ticket for ticket in partner_tickets
-                if ticket.created_at >= start_date
+                ticket for ticket in partner_tickets if ticket.created_at >= start_date
             ]
 
             # Calculate support metrics
             support_metrics = {
                 "total_tickets": len(recent_tickets),
-                "open_tickets": len([t for t in recent_tickets if t.status == SupportTicketStatus.OPEN]),
-                "resolved_tickets": len([t for t in recent_tickets if t.status == SupportTicketStatus.RESOLVED]),
-                "average_resolution_time": self._calculate_average_resolution_time(recent_tickets),
-                "satisfaction_scores": [t.customer_satisfaction for t in recent_tickets if t.customer_satisfaction]
+                "open_tickets": len(
+                    [t for t in recent_tickets if t.status == SupportTicketStatus.OPEN]
+                ),
+                "resolved_tickets": len(
+                    [
+                        t
+                        for t in recent_tickets
+                        if t.status == SupportTicketStatus.RESOLVED
+                    ]
+                ),
+                "average_resolution_time": self._calculate_average_resolution_time(
+                    recent_tickets
+                ),
+                "satisfaction_scores": [
+                    t.customer_satisfaction
+                    for t in recent_tickets
+                    if t.customer_satisfaction
+                ],
             }
 
             # Generate report
@@ -614,17 +670,23 @@ class PartnerManagementSystem:
                 "report_period": {
                     "start_date": start_date.isoformat(),
                     "end_date": end_date.isoformat(),
-                    "days": period_days
+                    "days": period_days,
                 },
                 "api_metrics": asdict(metrics) if metrics else {},
                 "support_metrics": support_metrics,
                 "onboarding_progress": {
                     "total_steps": len(partner.onboarding_progress),
-                    "completed_steps": len([s for s in partner.onboarding_progress if s.completed]),
-                    "completion_percentage": self._calculate_completion_percentage(partner.onboarding_progress)
+                    "completed_steps": len(
+                        [s for s in partner.onboarding_progress if s.completed]
+                    ),
+                    "completion_percentage": self._calculate_completion_percentage(
+                        partner.onboarding_progress
+                    ),
                 },
                 "health_score": await self._calculate_partner_health_score(partner),
-                "recommendations": await self._generate_partner_recommendations(partner, metrics)
+                "recommendations": await self._generate_partner_recommendations(
+                    partner, metrics
+                ),
             }
 
             return report
@@ -636,7 +698,8 @@ class PartnerManagementSystem:
     def _calculate_average_resolution_time(self, tickets: List[SupportTicket]) -> float:
         """Calculate average ticket resolution time in hours"""
         resolved_tickets = [
-            ticket for ticket in tickets
+            ticket
+            for ticket in tickets
             if ticket.status == SupportTicketStatus.RESOLVED
         ]
 
@@ -645,7 +708,9 @@ class PartnerManagementSystem:
 
         total_time = 0
         for ticket in resolved_tickets:
-            resolution_time = (ticket.updated_at - ticket.created_at).total_seconds() / 3600
+            resolution_time = (
+                ticket.updated_at - ticket.created_at
+            ).total_seconds() / 3600
             total_time += resolution_time
 
         return total_time / len(resolved_tickets)
@@ -666,8 +731,13 @@ class PartnerManagementSystem:
             # API performance (30% weight)
             if partner.metrics:
                 if partner.metrics.api_calls_total > 0:
-                    error_rate = partner.metrics.api_calls_failed / partner.metrics.api_calls_total
-                    api_score = max(0, 100 - (error_rate * 1000))  # Penalize errors heavily
+                    error_rate = (
+                        partner.metrics.api_calls_failed
+                        / partner.metrics.api_calls_total
+                    )
+                    api_score = max(
+                        0, 100 - (error_rate * 1000)
+                    )  # Penalize errors heavily
                     score = score * 0.7 + api_score * 0.3
 
             # Support ticket health (20% weight)
@@ -678,18 +748,28 @@ class PartnerManagementSystem:
             ]
 
             if recent_tickets:
-                open_tickets = len([t for t in recent_tickets if t.status == SupportTicketStatus.OPEN])
-                support_score = max(0, 100 - (open_tickets * 10))  # Penalize open tickets
+                open_tickets = len(
+                    [t for t in recent_tickets if t.status == SupportTicketStatus.OPEN]
+                )
+                support_score = max(
+                    0, 100 - (open_tickets * 10)
+                )  # Penalize open tickets
                 score = score * 0.8 + support_score * 0.2
 
             # Onboarding progress (20% weight)
-            completion_pct = self._calculate_completion_percentage(partner.onboarding_progress)
+            completion_pct = self._calculate_completion_percentage(
+                partner.onboarding_progress
+            )
             score = score * 0.8 + completion_pct * 0.2
 
             # Activity level (30% weight)
             if partner.metrics and partner.metrics.last_activity:
-                days_since_activity = (datetime.now() - partner.metrics.last_activity).days
-                activity_score = max(0, 100 - (days_since_activity * 2))  # Penalize inactivity
+                days_since_activity = (
+                    datetime.now() - partner.metrics.last_activity
+                ).days
+                activity_score = max(
+                    0, 100 - (days_since_activity * 2)
+                )  # Penalize inactivity
                 score = score * 0.7 + activity_score * 0.3
 
             return round(score, 1)
@@ -698,8 +778,9 @@ class PartnerManagementSystem:
             self.logger.error(f"Health score calculation failed: {e}")
             return 50.0  # Default score
 
-    async def _generate_partner_recommendations(self, partner: PartnerProfile,
-                                              metrics: PartnerMetrics) -> List[str]:
+    async def _generate_partner_recommendations(
+        self, partner: PartnerProfile, metrics: PartnerMetrics
+    ) -> List[str]:
         """Generate recommendations for partner improvement"""
         recommendations = []
 
@@ -708,35 +789,50 @@ class PartnerManagementSystem:
             if metrics and metrics.api_calls_total > 0:
                 error_rate = metrics.api_calls_failed / metrics.api_calls_total
                 if error_rate > 0.05:
-                    recommendations.append("Consider implementing retry logic and error handling to reduce API failures")
+                    recommendations.append(
+                        "Consider implementing retry logic and error handling to reduce API failures"
+                    )
 
                 if metrics.average_response_time > 2000:
-                    recommendations.append("Optimize API calls to improve response times")
+                    recommendations.append(
+                        "Optimize API calls to improve response times"
+                    )
 
             # Support recommendations
-            open_tickets = len([
-                ticket_id for ticket_id in partner.support_tickets
-                if ticket_id in self.support_tickets and
-                self.support_tickets[ticket_id].status == SupportTicketStatus.OPEN
-            ])
+            open_tickets = len(
+                [
+                    ticket_id
+                    for ticket_id in partner.support_tickets
+                    if ticket_id in self.support_tickets
+                    and self.support_tickets[ticket_id].status
+                    == SupportTicketStatus.OPEN
+                ]
+            )
 
             if open_tickets > 3:
-                recommendations.append("Address open support tickets to improve partner experience")
+                recommendations.append(
+                    "Address open support tickets to improve partner experience"
+                )
 
             # Onboarding recommendations
             incomplete_steps = [
-                step for step in partner.onboarding_progress
+                step
+                for step in partner.onboarding_progress
                 if step.required and not step.completed
             ]
 
             if incomplete_steps:
-                recommendations.append(f"Complete {len(incomplete_steps)} remaining onboarding steps")
+                recommendations.append(
+                    f"Complete {len(incomplete_steps)} remaining onboarding steps"
+                )
 
             # Activity recommendations
             if metrics and metrics.last_activity:
                 days_inactive = (datetime.now() - metrics.last_activity).days
                 if days_inactive > 7:
-                    recommendations.append("Increase API usage to maintain active partnership status")
+                    recommendations.append(
+                        "Increase API usage to maintain active partnership status"
+                    )
 
         except Exception as e:
             self.logger.error(f"Recommendation generation failed: {e}")
@@ -749,7 +845,10 @@ class PartnerManagementSystem:
         while True:
             try:
                 for partner in self.partners.values():
-                    if partner.status in [OnboardingStatus.INITIATED, OnboardingStatus.DOCUMENTATION_REVIEW]:
+                    if partner.status in [
+                        OnboardingStatus.INITIATED,
+                        OnboardingStatus.DOCUMENTATION_REVIEW,
+                    ]:
                         await self._check_onboarding_reminders(partner)
 
                 await asyncio.sleep(3600)  # Check every hour
@@ -763,7 +862,10 @@ class PartnerManagementSystem:
         while True:
             try:
                 for ticket in self.support_tickets.values():
-                    if ticket.status in [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS]:
+                    if ticket.status in [
+                        SupportTicketStatus.OPEN,
+                        SupportTicketStatus.IN_PROGRESS,
+                    ]:
                         await self._check_ticket_escalation(ticket)
 
                 await asyncio.sleep(1800)  # Check every 30 minutes
@@ -775,7 +877,9 @@ class PartnerManagementSystem:
     async def _check_ticket_escalation(self, ticket: SupportTicket):
         """Check if ticket needs escalation"""
         try:
-            escalation_time = self.config["support"]["escalation_time"][ticket.priority.value]
+            escalation_time = self.config["support"]["escalation_time"][
+                ticket.priority.value
+            ]
             hours_open = (datetime.now() - ticket.created_at).total_seconds() / 3600
 
             if hours_open > escalation_time:
@@ -794,7 +898,9 @@ class PartnerManagementSystem:
             ticket.updated_at = datetime.now()
             if not ticket.notes:
                 ticket.notes = []
-            ticket.notes.append(f"Escalated due to {ticket.priority.value} priority timeout")
+            ticket.notes.append(
+                f"Escalated due to {ticket.priority.value} priority timeout"
+            )
 
             self.logger.warning(f"Ticket escalated: {ticket.id}")
 
@@ -805,7 +911,9 @@ class PartnerManagementSystem:
     async def _send_welcome_email(self, partner: PartnerProfile):
         """Send welcome email to new partner"""
         try:
-            primary_contact = next((c for c in partner.contacts if c.primary), partner.contacts[0])
+            primary_contact = next(
+                (c for c in partner.contacts if c.primary), partner.contacts[0]
+            )
 
             await self.notification_service.send_email(
                 to_email=primary_contact.email,
@@ -815,8 +923,8 @@ class PartnerManagementSystem:
                     "contact_name": primary_contact.name,
                     "partner_id": partner.id,
                     "tier": partner.tier.value,
-                    "onboarding_steps": len(partner.onboarding_progress)
-                }
+                    "onboarding_steps": len(partner.onboarding_progress),
+                },
             )
 
         except Exception as e:
@@ -825,7 +933,9 @@ class PartnerManagementSystem:
     async def _send_activation_email(self, partner: PartnerProfile):
         """Send activation email to partner"""
         try:
-            primary_contact = next((c for c in partner.contacts if c.primary), partner.contacts[0])
+            primary_contact = next(
+                (c for c in partner.contacts if c.primary), partner.contacts[0]
+            )
 
             await self.notification_service.send_email(
                 to_email=primary_contact.email,
@@ -834,8 +944,8 @@ class PartnerManagementSystem:
                     "partner_name": partner.company_name,
                     "contact_name": primary_contact.name,
                     "api_key": partner.api_credentials.get("api_key", ""),
-                    "documentation_url": "https://docs.dashboard-ai.com"
-                }
+                    "documentation_url": "https://docs.dashboard-ai.com",
+                },
             )
 
         except Exception as e:
@@ -850,59 +960,59 @@ class PartnerManagementSystem:
                     "name": "Documentation Review",
                     "description": "Review API documentation and integration guide",
                     "required": True,
-                    "estimated_duration": 2
+                    "estimated_duration": 2,
                 },
                 {
                     "name": "API Key Setup",
                     "description": "Configure API credentials in your system",
                     "required": True,
-                    "estimated_duration": 1
+                    "estimated_duration": 1,
                 },
                 {
                     "name": "Basic Integration Test",
                     "description": "Test basic API connectivity",
                     "required": True,
-                    "estimated_duration": 2
-                }
+                    "estimated_duration": 2,
+                },
             ],
             "enterprise_onboarding": [
                 {
                     "name": "Requirements Analysis",
                     "description": "Detailed analysis of integration requirements",
                     "required": True,
-                    "estimated_duration": 8
+                    "estimated_duration": 8,
                 },
                 {
                     "name": "Architecture Review",
                     "description": "Review integration architecture with technical team",
                     "required": True,
-                    "estimated_duration": 4
+                    "estimated_duration": 4,
                 },
                 {
                     "name": "Security Assessment",
                     "description": "Complete security and compliance review",
                     "required": True,
-                    "estimated_duration": 6
+                    "estimated_duration": 6,
                 },
                 {
                     "name": "Custom Integration Development",
                     "description": "Develop custom integration components",
                     "required": False,
-                    "estimated_duration": 40
+                    "estimated_duration": 40,
                 },
                 {
                     "name": "Load Testing",
                     "description": "Performance and load testing",
                     "required": True,
-                    "estimated_duration": 8
+                    "estimated_duration": 8,
                 },
                 {
                     "name": "Production Deployment",
                     "description": "Deploy to production environment",
                     "required": True,
-                    "estimated_duration": 4
-                }
-            ]
+                    "estimated_duration": 4,
+                },
+            ],
         }
 
     async def _load_email_templates(self):
@@ -914,7 +1024,13 @@ class PartnerManagementSystem:
         """Get dashboard data for partner management"""
         try:
             total_partners = len(self.partners)
-            active_partners = len([p for p in self.partners.values() if p.status == OnboardingStatus.ACTIVE])
+            active_partners = len(
+                [
+                    p
+                    for p in self.partners.values()
+                    if p.status == OnboardingStatus.ACTIVE
+                ]
+            )
 
             # Status distribution
             status_distribution = {}
@@ -929,22 +1045,41 @@ class PartnerManagementSystem:
                 tier_distribution[tier] = tier_distribution.get(tier, 0) + 1
 
             # Support metrics
-            open_tickets = len([t for t in self.support_tickets.values() if t.status == SupportTicketStatus.OPEN])
+            open_tickets = len(
+                [
+                    t
+                    for t in self.support_tickets.values()
+                    if t.status == SupportTicketStatus.OPEN
+                ]
+            )
             total_tickets = len(self.support_tickets)
 
             return {
                 "timestamp": datetime.now().isoformat(),
                 "total_partners": total_partners,
                 "active_partners": active_partners,
-                "onboarding_partners": len([p for p in self.partners.values()
-                                          if p.status in [OnboardingStatus.INITIATED, OnboardingStatus.DOCUMENTATION_REVIEW]]),
+                "onboarding_partners": len(
+                    [
+                        p
+                        for p in self.partners.values()
+                        if p.status
+                        in [
+                            OnboardingStatus.INITIATED,
+                            OnboardingStatus.DOCUMENTATION_REVIEW,
+                        ]
+                    ]
+                ),
                 "status_distribution": status_distribution,
                 "tier_distribution": tier_distribution,
                 "support_metrics": {
                     "open_tickets": open_tickets,
                     "total_tickets": total_tickets,
-                    "resolution_rate": ((total_tickets - open_tickets) / total_tickets * 100) if total_tickets > 0 else 0
-                }
+                    "resolution_rate": (
+                        (total_tickets - open_tickets) / total_tickets * 100
+                    )
+                    if total_tickets > 0
+                    else 0,
+                },
             }
 
         except Exception as e:
@@ -961,6 +1096,7 @@ class PartnerManagementSystem:
             await self.analytics_system.shutdown()
 
         self.logger.info("Partner Management System shutdown complete")
+
 
 class NotificationService:
     """Handles partner communications and notifications"""
@@ -985,6 +1121,7 @@ class NotificationService:
         """Shutdown notification service"""
         self.logger.info("Notification Service shutdown")
 
+
 class PartnerMetricsCollector:
     """Collects and analyzes partner metrics"""
 
@@ -995,7 +1132,9 @@ class PartnerMetricsCollector:
         """Initialize metrics collector"""
         self.logger.info("Metrics Collector initialized")
 
-    async def collect_partner_metrics(self, partner_id: str) -> Optional[PartnerMetrics]:
+    async def collect_partner_metrics(
+        self, partner_id: str
+    ) -> Optional[PartnerMetrics]:
         """Collect current metrics for partner"""
         # In production, collect from monitoring systems
         return PartnerMetrics(
@@ -1009,12 +1148,12 @@ class PartnerMetricsCollector:
             uptime_percentage=0.995,
             last_activity=datetime.now(),
             period_start=datetime.now() - timedelta(days=1),
-            period_end=datetime.now()
+            period_end=datetime.now(),
         )
 
-    async def get_partner_metrics(self, partner_id: str,
-                                start_date: datetime,
-                                end_date: datetime) -> Optional[PartnerMetrics]:
+    async def get_partner_metrics(
+        self, partner_id: str, start_date: datetime, end_date: datetime
+    ) -> Optional[PartnerMetrics]:
         """Get historical metrics for partner"""
         # In production, query metrics database
         return await self.collect_partner_metrics(partner_id)
@@ -1022,6 +1161,7 @@ class PartnerMetricsCollector:
     async def shutdown(self):
         """Shutdown metrics collector"""
         self.logger.info("Metrics Collector shutdown")
+
 
 # Integration helpers for OS Dashboard AI Assistant
 async def initialize_partner_system() -> Optional[PartnerManagementSystem]:
@@ -1037,6 +1177,7 @@ async def initialize_partner_system() -> Optional[PartnerManagementSystem]:
     except ImportError as e:
         print(f"⚠️ Partner management system not available: Missing dependencies ({e})")
         return None
+
 
 # Example usage integrated with OS Dashboard
 async def demo_partner_management():
@@ -1059,9 +1200,9 @@ async def demo_partner_management():
                 "email": "sarah@techcorp.com",
                 "phone": "+1-555-0123",
                 "role": "CTO",
-                "primary": True
+                "primary": True,
             }
-        ]
+        ],
     }
 
     result = await partner_system.initiate_partner_onboarding(partner_data)
@@ -1070,6 +1211,7 @@ async def demo_partner_management():
     # Get dashboard data
     dashboard = await partner_system.get_partner_dashboard_data()
     print(f"Partner dashboard: {dashboard}")
+
 
 if __name__ == "__main__":
     asyncio.run(demo_partner_management())

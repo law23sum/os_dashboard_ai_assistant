@@ -14,42 +14,52 @@ class DataAggregator:
         """Normalize email data to common format."""
         normalized = []
         for email in raw_emails:
-            normalized.append({
-                "id": email.get("id"),
-                "subject": email.get("subject", ""),
-                "sender": email.get("from", {}).get("email", ""),
-                "timestamp": self._parse_timestamp(email.get("timestamp")),
-                "content": email.get("body", ""),
-                "type": "email"
-            })
+            normalized.append(
+                {
+                    "id": email.get("id"),
+                    "subject": email.get("subject", ""),
+                    "sender": email.get("from", {}).get("email", ""),
+                    "timestamp": self._parse_timestamp(email.get("timestamp")),
+                    "content": email.get("body", ""),
+                    "type": "email",
+                }
+            )
         return normalized
 
     def normalize_calendar_data(self, raw_events: List[Dict]) -> List[Dict]:
         """Normalize calendar event data to common format."""
         normalized = []
         for event in raw_events:
-            normalized.append({
-                "id": event.get("id"),
-                "title": event.get("summary", ""),
-                "start_time": self._parse_timestamp(event.get("start", {}).get("dateTime")),
-                "end_time": self._parse_timestamp(event.get("end", {}).get("dateTime")),
-                "location": event.get("location", ""),
-                "type": "calendar_event"
-            })
+            normalized.append(
+                {
+                    "id": event.get("id"),
+                    "title": event.get("summary", ""),
+                    "start_time": self._parse_timestamp(
+                        event.get("start", {}).get("dateTime")
+                    ),
+                    "end_time": self._parse_timestamp(
+                        event.get("end", {}).get("dateTime")
+                    ),
+                    "location": event.get("location", ""),
+                    "type": "calendar_event",
+                }
+            )
         return normalized
 
     def normalize_document_data(self, raw_docs: List[Dict]) -> List[Dict]:
         """Normalize document data to common format."""
         normalized = []
         for doc in raw_docs:
-            normalized.append({
-                "id": doc.get("id"),
-                "name": doc.get("name", ""),
-                "type": doc.get("mimeType", "").split("/")[-1],
-                "size": doc.get("size", 0),
-                "modified_time": self._parse_timestamp(doc.get("modifiedTime")),
-                "source": "document"
-            })
+            normalized.append(
+                {
+                    "id": doc.get("id"),
+                    "name": doc.get("name", ""),
+                    "type": doc.get("mimeType", "").split("/")[-1],
+                    "size": doc.get("size", 0),
+                    "modified_time": self._parse_timestamp(doc.get("modifiedTime")),
+                    "source": "document",
+                }
+            )
         return normalized
 
     def _parse_timestamp(self, timestamp: Any) -> Optional[datetime]:
@@ -63,7 +73,7 @@ class DataAggregator:
                 "%Y-%m-%dT%H:%M:%S.%fZ",
                 "%Y-%m-%dT%H:%M:%SZ",
                 "%Y-%m-%d %H:%M:%S",
-                "%Y-%m-%d"
+                "%Y-%m-%d",
             ]
             for fmt in formats:
                 try:
@@ -72,14 +82,11 @@ class DataAggregator:
                     continue
         return None
 
-    def aggregate_all_sources(self, sources_data: Dict[str, List[Dict]]) -> Dict[str, List[Dict]]:
+    def aggregate_all_sources(
+        self, sources_data: Dict[str, List[Dict]]
+    ) -> Dict[str, List[Dict]]:
         """Aggregate data from all sources into normalized format."""
-        aggregated = {
-            "emails": [],
-            "calendar_events": [],
-            "documents": [],
-            "tasks": []
-        }
+        aggregated = {"emails": [], "calendar_events": [], "documents": [], "tasks": []}
 
         for source_type, data in sources_data.items():
             if source_type == "gmail":

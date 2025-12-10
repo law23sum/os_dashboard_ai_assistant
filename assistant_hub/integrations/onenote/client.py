@@ -17,10 +17,14 @@ class OneNoteClient:
         return self.graph.get("/me/onenote/notebooks").get("value", [])
 
     def list_sections(self, notebook_id: str) -> List[Dict[str, Any]]:
-        return self.graph.get(f"/me/onenote/notebooks/{notebook_id}/sections").get("value", [])
+        return self.graph.get(f"/me/onenote/notebooks/{notebook_id}/sections").get(
+            "value", []
+        )
 
     def list_pages(self, section_id: str) -> List[Dict[str, Any]]:
-        return self.graph.get(f"/me/onenote/sections/{section_id}/pages").get("value", [])
+        return self.graph.get(f"/me/onenote/sections/{section_id}/pages").get(
+            "value", []
+        )
 
     def get_page_html(self, page_id: str) -> str:
         return self.graph.get(f"/me/onenote/pages/{page_id}/content")  # type: ignore[return-value]

@@ -26,11 +26,13 @@ import statistics
 
 from config.logging_config import setup_logger
 
+
 class MetricType(Enum):
     COUNTER = "counter"
     GAUGE = "gauge"
     HISTOGRAM = "histogram"
     TIMER = "timer"
+
 
 class AlertSeverity(Enum):
     INFO = "info"
@@ -38,23 +40,28 @@ class AlertSeverity(Enum):
     ERROR = "error"
     CRITICAL = "critical"
 
+
 class AlertStatus(Enum):
     ACTIVE = "active"
     ACKNOWLEDGED = "acknowledged"
     RESOLVED = "resolved"
 
+
 @dataclass
 class Metric:
     """Metric data point"""
+
     name: str
     value: float
     timestamp: datetime
     tags: Dict[str, str]
     type: MetricType
 
+
 @dataclass
 class Alert:
     """Alert definition and status"""
+
     id: str
     partner_id: str
     metric_name: str
@@ -68,9 +75,11 @@ class Alert:
     resolved_at: Optional[datetime] = None
     acknowledged_by: str = ""
 
+
 @dataclass
 class PerformanceReport:
     """Performance analysis report"""
+
     partner_id: str
     period_start: datetime
     period_end: datetime
@@ -79,6 +88,7 @@ class PerformanceReport:
     trends: Dict[str, str]
     recommendations: List[str]
     alerts_summary: Dict[str, int]
+
 
 class PartnerAnalyticsSystem:
     """Comprehensive partner analytics and monitoring system"""
@@ -104,14 +114,14 @@ class PartnerAnalyticsSystem:
                 "response_time": 0.25,
                 "uptime": 0.2,
                 "error_rate": 0.15,
-                "usage_growth": 0.1
+                "usage_growth": 0.1,
             },
             "alert_cooldown": 300,  # 5 minutes
             "anomaly_detection": {
                 "enabled": True,
                 "sensitivity": 0.95,
-                "window_size": 100
-            }
+                "window_size": 100,
+            },
         }
 
         # Predefined metric definitions
@@ -119,43 +129,43 @@ class PartnerAnalyticsSystem:
             "api_requests_total": {
                 "type": MetricType.COUNTER,
                 "description": "Total API requests",
-                "unit": "requests"
+                "unit": "requests",
             },
             "api_requests_success": {
                 "type": MetricType.COUNTER,
                 "description": "Successful API requests",
-                "unit": "requests"
+                "unit": "requests",
             },
             "api_requests_failed": {
                 "type": MetricType.COUNTER,
                 "description": "Failed API requests",
-                "unit": "requests"
+                "unit": "requests",
             },
             "api_response_time": {
                 "type": MetricType.HISTOGRAM,
                 "description": "API response time",
-                "unit": "milliseconds"
+                "unit": "milliseconds",
             },
             "api_rate_limit_hits": {
                 "type": MetricType.COUNTER,
                 "description": "Rate limit violations",
-                "unit": "hits"
+                "unit": "hits",
             },
             "data_transfer_bytes": {
                 "type": MetricType.COUNTER,
                 "description": "Data transfer volume",
-                "unit": "bytes"
+                "unit": "bytes",
             },
             "active_connections": {
                 "type": MetricType.GAUGE,
                 "description": "Active connections",
-                "unit": "connections"
+                "unit": "connections",
             },
             "revenue_generated": {
                 "type": MetricType.COUNTER,
                 "description": "Revenue generated",
-                "unit": "dollars"
-            }
+                "unit": "dollars",
+            },
         }
 
     async def initialize(self):
@@ -166,8 +176,13 @@ class PartnerAnalyticsSystem:
         self.logger.info("Partner Analytics System initialized")
 
     # Metrics Collection and Storage
-    async def record_metric(self, partner_id: str, metric_name: str,
-                          value: float, tags: Dict[str, str] = None) -> bool:
+    async def record_metric(
+        self,
+        partner_id: str,
+        metric_name: str,
+        value: float,
+        tags: Dict[str, str] = None,
+    ) -> bool:
         """Record a metric data point"""
         try:
             metric = Metric(
@@ -175,7 +190,9 @@ class PartnerAnalyticsSystem:
                 value=value,
                 timestamp=datetime.now(),
                 tags=tags or {},
-                type=self.metric_definitions.get(metric_name, {}).get("type", MetricType.GAUGE)
+                type=self.metric_definitions.get(metric_name, {}).get(
+                    "type", MetricType.GAUGE
+                ),
             )
 
             # Store metric
@@ -195,15 +212,21 @@ class PartnerAnalyticsSystem:
             self.logger.error(f"Metric recording failed: {e}")
             return False
 
-    async def record_api_request(self, partner_id: str, endpoint: str,
-                               method: str, status_code: int,
-                               response_time: float, data_size: int = 0):
+    async def record_api_request(
+        self,
+        partner_id: str,
+        endpoint: str,
+        method: str,
+        status_code: int,
+        response_time: float,
+        data_size: int = 0,
+    ):
         """Record API request metrics"""
         try:
             tags = {
                 "endpoint": endpoint,
                 "method": method,
-                "status_code": str(status_code)
+                "status_code": str(status_code),
             }
 
             # Record total requests
@@ -216,11 +239,15 @@ class PartnerAnalyticsSystem:
                 await self.record_metric(partner_id, "api_requests_failed", 1, tags)
 
             # Record response time
-            await self.record_metric(partner_id, "api_response_time", response_time, tags)
+            await self.record_metric(
+                partner_id, "api_response_time", response_time, tags
+            )
 
             # Record data transfer
             if data_size > 0:
-                await self.record_metric(partner_id, "data_transfer_bytes", data_size, tags)
+                await self.record_metric(
+                    partner_id, "data_transfer_bytes", data_size, tags
+                )
 
             # Check for rate limiting
             if status_code == 429:
@@ -230,9 +257,14 @@ class PartnerAnalyticsSystem:
             self.logger.error(f"API request recording failed: {e}")
 
     # Metrics Querying and Aggregation
-    async def get_metric_values(self, partner_id: str, metric_name: str,
-                              start_time: datetime, end_time: datetime,
-                              aggregation: str = "avg") -> List[Tuple[datetime, float]]:
+    async def get_metric_values(
+        self,
+        partner_id: str,
+        metric_name: str,
+        start_time: datetime,
+        end_time: datetime,
+        aggregation: str = "avg",
+    ) -> List[Tuple[datetime, float]]:
         """Get metric values for time range"""
         try:
             metric_key = f"{partner_id}:{metric_name}"
@@ -240,8 +272,7 @@ class PartnerAnalyticsSystem:
 
             # Filter by time range
             filtered_metrics = [
-                m for m in metrics
-                if start_time <= m.timestamp <= end_time
+                m for m in metrics if start_time <= m.timestamp <= end_time
             ]
 
             if not filtered_metrics:
@@ -256,7 +287,8 @@ class PartnerAnalyticsSystem:
                 interval_end = current_time + timedelta(seconds=interval)
 
                 interval_metrics = [
-                    m for m in filtered_metrics
+                    m
+                    for m in filtered_metrics
                     if current_time <= m.timestamp < interval_end
                 ]
 
@@ -286,9 +318,9 @@ class PartnerAnalyticsSystem:
             self.logger.error(f"Metric query failed: {e}")
             return []
 
-    async def calculate_derived_metrics(self, partner_id: str,
-                                      start_time: datetime,
-                                      end_time: datetime) -> Dict[str, float]:
+    async def calculate_derived_metrics(
+        self, partner_id: str, start_time: datetime, end_time: datetime
+    ) -> Dict[str, float]:
         """Calculate derived metrics from raw data"""
         try:
             derived_metrics = {}
@@ -306,7 +338,9 @@ class PartnerAnalyticsSystem:
                 success_sum = sum(value for _, value in success_requests)
 
                 if total_sum > 0:
-                    derived_metrics["api_success_rate"] = (success_sum / total_sum) * 100
+                    derived_metrics["api_success_rate"] = (
+                        success_sum / total_sum
+                    ) * 100
                 else:
                     derived_metrics["api_success_rate"] = 0
 
@@ -330,14 +364,18 @@ class PartnerAnalyticsSystem:
             )
 
             if response_times:
-                avg_response_time = statistics.mean(value for _, value in response_times)
+                avg_response_time = statistics.mean(
+                    value for _, value in response_times
+                )
                 derived_metrics["avg_response_time"] = avg_response_time
 
             # Request Rate (requests per minute)
             if total_requests:
                 duration_minutes = (end_time - start_time).total_seconds() / 60
                 total_sum = sum(value for _, value in total_requests)
-                derived_metrics["request_rate"] = total_sum / duration_minutes if duration_minutes > 0 else 0
+                derived_metrics["request_rate"] = (
+                    total_sum / duration_minutes if duration_minutes > 0 else 0
+                )
 
             # Data Transfer Rate
             data_transfer = await self.get_metric_values(
@@ -347,7 +385,11 @@ class PartnerAnalyticsSystem:
             if data_transfer:
                 duration_hours = (end_time - start_time).total_seconds() / 3600
                 total_bytes = sum(value for _, value in data_transfer)
-                derived_metrics["data_transfer_rate_mbps"] = (total_bytes / (1024 * 1024)) / duration_hours if duration_hours > 0 else 0
+                derived_metrics["data_transfer_rate_mbps"] = (
+                    (total_bytes / (1024 * 1024)) / duration_hours
+                    if duration_hours > 0
+                    else 0
+                )
 
             return derived_metrics
 
@@ -356,12 +398,14 @@ class PartnerAnalyticsSystem:
             return {}
 
     # Performance Analysis
-    async def calculate_performance_score(self, partner_id: str,
-                                        start_time: datetime,
-                                        end_time: datetime) -> float:
+    async def calculate_performance_score(
+        self, partner_id: str, start_time: datetime, end_time: datetime
+    ) -> float:
         """Calculate overall performance score"""
         try:
-            derived_metrics = await self.calculate_derived_metrics(partner_id, start_time, end_time)
+            derived_metrics = await self.calculate_derived_metrics(
+                partner_id, start_time, end_time
+            )
             weights = self.config["performance_weights"]
 
             score = 0.0
@@ -395,7 +439,9 @@ class PartnerAnalyticsSystem:
                 total_weight += weights["uptime"]
 
             # Usage growth (simplified calculation)
-            usage_growth = await self._calculate_usage_growth(partner_id, start_time, end_time)
+            usage_growth = await self._calculate_usage_growth(
+                partner_id, start_time, end_time
+            )
             if usage_growth is not None:
                 # Normalize growth rate (0-50% growth = 0-1 score)
                 normalized_growth = max(0, min(1, usage_growth / 50))
@@ -414,9 +460,9 @@ class PartnerAnalyticsSystem:
             self.logger.error(f"Performance score calculation failed: {e}")
             return 0.0
 
-    async def _calculate_usage_growth(self, partner_id: str,
-                                    start_time: datetime,
-                                    end_time: datetime) -> Optional[float]:
+    async def _calculate_usage_growth(
+        self, partner_id: str, start_time: datetime, end_time: datetime
+    ) -> Optional[float]:
         """Calculate usage growth rate"""
         try:
             # Get current period usage
@@ -438,7 +484,9 @@ class PartnerAnalyticsSystem:
                 previous_total = sum(value for _, value in previous_requests)
 
                 if previous_total > 0:
-                    growth_rate = ((current_total - previous_total) / previous_total) * 100
+                    growth_rate = (
+                        (current_total - previous_total) / previous_total
+                    ) * 100
                     return growth_rate
 
             return None
@@ -448,8 +496,13 @@ class PartnerAnalyticsSystem:
             return None
 
     # Trend Analysis
-    async def analyze_trends(self, partner_id: str, metric_name: str,
-                           start_time: datetime, end_time: datetime) -> Dict[str, Any]:
+    async def analyze_trends(
+        self,
+        partner_id: str,
+        metric_name: str,
+        start_time: datetime,
+        end_time: datetime,
+    ) -> Dict[str, Any]:
         """Analyze trends in metric data"""
         try:
             metric_values = await self.get_metric_values(
@@ -470,7 +523,11 @@ class PartnerAnalyticsSystem:
                 y = np.array(values)
 
                 # Normalize x to avoid numerical issues
-                x_norm = (x - x.min()) / (x.max() - x.min()) if x.max() != x.min() else np.zeros_like(x)
+                x_norm = (
+                    (x - x.min()) / (x.max() - x.min())
+                    if x.max() != x.min()
+                    else np.zeros_like(x)
+                )
 
                 # Calculate slope
                 slope = np.polyfit(x_norm, y, 1)[0] if len(x_norm) > 1 else 0
@@ -499,8 +556,8 @@ class PartnerAnalyticsSystem:
                     "data_points": len(values),
                     "period": {
                         "start": start_time.isoformat(),
-                        "end": end_time.isoformat()
-                    }
+                        "end": end_time.isoformat(),
+                    },
                 }
 
             return {"trend": "insufficient_data", "direction": "unknown"}
@@ -521,15 +578,27 @@ class PartnerAnalyticsSystem:
 
             # Check for daily pattern (assuming 5-minute intervals, 288 points per day)
             if len(values) >= 288:
-                daily_correlation = np.corrcoef(values_array[:-288], values_array[288:])[0, 1]
+                daily_correlation = np.corrcoef(
+                    values_array[:-288], values_array[288:]
+                )[0, 1]
                 if abs(daily_correlation) > 0.3:
-                    return {"detected": True, "pattern": "daily", "correlation": float(daily_correlation)}
+                    return {
+                        "detected": True,
+                        "pattern": "daily",
+                        "correlation": float(daily_correlation),
+                    }
 
             # Check for weekly pattern
             if len(values) >= 2016:  # 7 days * 288 points
-                weekly_correlation = np.corrcoef(values_array[:-2016], values_array[2016:])[0, 1]
+                weekly_correlation = np.corrcoef(
+                    values_array[:-2016], values_array[2016:]
+                )[0, 1]
                 if abs(weekly_correlation) > 0.3:
-                    return {"detected": True, "pattern": "weekly", "correlation": float(weekly_correlation)}
+                    return {
+                        "detected": True,
+                        "pattern": "weekly",
+                        "correlation": float(weekly_correlation),
+                    }
 
             return {"detected": False, "pattern": "none"}
 
@@ -538,7 +607,9 @@ class PartnerAnalyticsSystem:
             return {"detected": False, "pattern": "error"}
 
     # Alerting System
-    async def create_alert_rule(self, partner_id: str, rule_data: Dict[str, Any]) -> str:
+    async def create_alert_rule(
+        self, partner_id: str, rule_data: Dict[str, Any]
+    ) -> str:
         """Create new alert rule"""
         try:
             rule_id = str(uuid.uuid4())
@@ -550,10 +621,12 @@ class PartnerAnalyticsSystem:
                 "condition": rule_data["condition"],  # "gt", "lt", "eq"
                 "threshold": float(rule_data["threshold"]),
                 "severity": AlertSeverity(rule_data.get("severity", "warning")),
-                "message_template": rule_data.get("message_template", "Alert: {metric_name} {condition} {threshold}"),
+                "message_template": rule_data.get(
+                    "message_template", "Alert: {metric_name} {condition} {threshold}"
+                ),
                 "cooldown": rule_data.get("cooldown", self.config["alert_cooldown"]),
                 "enabled": rule_data.get("enabled", True),
-                "last_triggered": None
+                "last_triggered": None,
             }
 
             self.alert_rules[rule_id] = rule
@@ -569,13 +642,16 @@ class PartnerAnalyticsSystem:
         """Check if metric triggers any alerts"""
         try:
             for rule_id, rule in self.alert_rules.items():
-                if (rule["partner_id"] == partner_id and
-                    rule["metric_name"] == metric.name and
-                    rule["enabled"]):
-
+                if (
+                    rule["partner_id"] == partner_id
+                    and rule["metric_name"] == metric.name
+                    and rule["enabled"]
+                ):
                     # Check cooldown
                     if rule["last_triggered"]:
-                        time_since_last = (datetime.now() - rule["last_triggered"]).total_seconds()
+                        time_since_last = (
+                            datetime.now() - rule["last_triggered"]
+                        ).total_seconds()
                         if time_since_last < rule["cooldown"]:
                             continue
 
@@ -611,7 +687,7 @@ class PartnerAnalyticsSystem:
                 metric_name=metric.name,
                 condition=rule["condition"],
                 threshold=rule["threshold"],
-                value=metric.value
+                value=metric.value,
             )
 
             alert = Alert(
@@ -623,7 +699,7 @@ class PartnerAnalyticsSystem:
                 severity=rule["severity"],
                 status=AlertStatus.ACTIVE,
                 message=message,
-                created_at=datetime.now()
+                created_at=datetime.now(),
             )
 
             self.alerts[alert_id] = alert
@@ -655,7 +731,10 @@ class PartnerAnalyticsSystem:
                 return  # Not enough data
 
             # Get recent values
-            recent_values = [m.value for m in metrics[-self.config["anomaly_detection"]["window_size"]:]]
+            recent_values = [
+                m.value
+                for m in metrics[-self.config["anomaly_detection"]["window_size"] :]
+            ]
             values_array = np.array(recent_values)
 
             # Calculate statistical bounds
@@ -668,13 +747,21 @@ class PartnerAnalyticsSystem:
                 threshold = 2.5  # 2.5 standard deviations
 
                 if z_score > threshold:
-                    await self._create_anomaly_alert(partner_id, metric_name, value, mean_value, z_score)
+                    await self._create_anomaly_alert(
+                        partner_id, metric_name, value, mean_value, z_score
+                    )
 
         except Exception as e:
             self.logger.error(f"Anomaly detection failed: {e}")
 
-    async def _create_anomaly_alert(self, partner_id: str, metric_name: str,
-                                  value: float, expected: float, z_score: float):
+    async def _create_anomaly_alert(
+        self,
+        partner_id: str,
+        metric_name: str,
+        value: float,
+        expected: float,
+        z_score: float,
+    ):
         """Create anomaly alert"""
         try:
             alert_id = str(uuid.uuid4())
@@ -690,7 +777,7 @@ class PartnerAnalyticsSystem:
                 severity=AlertSeverity.WARNING,
                 status=AlertStatus.ACTIVE,
                 message=message,
-                created_at=datetime.now()
+                created_at=datetime.now(),
             )
 
             self.alerts[alert_id] = alert
@@ -700,46 +787,71 @@ class PartnerAnalyticsSystem:
             self.logger.error(f"Anomaly alert creation failed: {e}")
 
     # Reporting
-    async def generate_performance_report(self, partner_id: str,
-                                        start_time: datetime,
-                                        end_time: datetime) -> PerformanceReport:
+    async def generate_performance_report(
+        self, partner_id: str, start_time: datetime, end_time: datetime
+    ) -> PerformanceReport:
         """Generate comprehensive performance report"""
         try:
             # Calculate derived metrics
-            derived_metrics = await self.calculate_derived_metrics(partner_id, start_time, end_time)
+            derived_metrics = await self.calculate_derived_metrics(
+                partner_id, start_time, end_time
+            )
 
             # Calculate performance score
-            performance_score = await self.calculate_performance_score(partner_id, start_time, end_time)
+            performance_score = await self.calculate_performance_score(
+                partner_id, start_time, end_time
+            )
 
             # Analyze trends for key metrics
             trends = {}
-            key_metrics = ["api_requests_total", "api_response_time", "api_success_rate"]
+            key_metrics = [
+                "api_requests_total",
+                "api_response_time",
+                "api_success_rate",
+            ]
 
             for metric_name in key_metrics:
-                if metric_name in derived_metrics or metric_name in self.metric_definitions:
-                    trend_analysis = await self.analyze_trends(partner_id, metric_name, start_time, end_time)
+                if (
+                    metric_name in derived_metrics
+                    or metric_name in self.metric_definitions
+                ):
+                    trend_analysis = await self.analyze_trends(
+                        partner_id, metric_name, start_time, end_time
+                    )
                     trends[metric_name] = trend_analysis.get("direction", "unknown")
 
             # Generate recommendations
-            recommendations = await self._generate_recommendations(partner_id, derived_metrics, trends)
+            recommendations = await self._generate_recommendations(
+                partner_id, derived_metrics, trends
+            )
 
             # Summarize alerts
             partner_alerts = [
-                alert for alert in self.alerts.values()
+                alert
+                for alert in self.alerts.values()
                 if alert.partner_id == partner_id
             ]
 
             period_alerts = [
-                alert for alert in partner_alerts
+                alert
+                for alert in partner_alerts
                 if start_time <= alert.created_at <= end_time
             ]
 
             alerts_summary = {
                 "total": len(period_alerts),
-                "critical": len([a for a in period_alerts if a.severity == AlertSeverity.CRITICAL]),
-                "error": len([a for a in period_alerts if a.severity == AlertSeverity.ERROR]),
-                "warning": len([a for a in period_alerts if a.severity == AlertSeverity.WARNING]),
-                "info": len([a for a in period_alerts if a.severity == AlertSeverity.INFO])
+                "critical": len(
+                    [a for a in period_alerts if a.severity == AlertSeverity.CRITICAL]
+                ),
+                "error": len(
+                    [a for a in period_alerts if a.severity == AlertSeverity.ERROR]
+                ),
+                "warning": len(
+                    [a for a in period_alerts if a.severity == AlertSeverity.WARNING]
+                ),
+                "info": len(
+                    [a for a in period_alerts if a.severity == AlertSeverity.INFO]
+                ),
             }
 
             report = PerformanceReport(
@@ -750,7 +862,7 @@ class PartnerAnalyticsSystem:
                 performance_score=performance_score,
                 trends=trends,
                 recommendations=recommendations,
-                alerts_summary=alerts_summary
+                alerts_summary=alerts_summary,
             )
 
             return report
@@ -759,9 +871,9 @@ class PartnerAnalyticsSystem:
             self.logger.error(f"Performance report generation failed: {e}")
             raise
 
-    async def _generate_recommendations(self, partner_id: str,
-                                      metrics: Dict[str, float],
-                                      trends: Dict[str, str]) -> List[str]:
+    async def _generate_recommendations(
+        self, partner_id: str, metrics: Dict[str, float], trends: Dict[str, str]
+    ) -> List[str]:
         """Generate performance recommendations"""
         recommendations = []
 
@@ -770,37 +882,55 @@ class PartnerAnalyticsSystem:
             if "api_success_rate" in metrics:
                 success_rate = metrics["api_success_rate"]
                 if success_rate < 95:
-                    recommendations.append("API success rate is below 95%. Consider implementing retry logic and improving error handling.")
+                    recommendations.append(
+                        "API success rate is below 95%. Consider implementing retry logic and improving error handling."
+                    )
                 elif success_rate < 99:
-                    recommendations.append("API success rate could be improved. Review error patterns and optimize API reliability.")
+                    recommendations.append(
+                        "API success rate could be improved. Review error patterns and optimize API reliability."
+                    )
 
             # Response Time recommendations
             if "avg_response_time" in metrics:
                 response_time = metrics["avg_response_time"]
                 if response_time > 1000:
-                    recommendations.append("Average response time exceeds 1 second. Consider optimizing API performance and implementing caching.")
+                    recommendations.append(
+                        "Average response time exceeds 1 second. Consider optimizing API performance and implementing caching."
+                    )
                 elif response_time > 500:
-                    recommendations.append("Response time could be improved. Review slow endpoints and optimize database queries.")
+                    recommendations.append(
+                        "Response time could be improved. Review slow endpoints and optimize database queries."
+                    )
 
             # Error Rate recommendations
             if "api_error_rate" in metrics:
                 error_rate = metrics["api_error_rate"]
                 if error_rate > 5:
-                    recommendations.append("Error rate is high (>5%). Investigate common error patterns and improve input validation.")
+                    recommendations.append(
+                        "Error rate is high (>5%). Investigate common error patterns and improve input validation."
+                    )
                 elif error_rate > 1:
-                    recommendations.append("Consider reducing error rate further by improving API robustness.")
+                    recommendations.append(
+                        "Consider reducing error rate further by improving API robustness."
+                    )
 
             # Trend-based recommendations
             if trends.get("api_requests_total") == "decreasing":
-                recommendations.append("API usage is declining. Consider reaching out to understand user needs and improve API value proposition.")
+                recommendations.append(
+                    "API usage is declining. Consider reaching out to understand user needs and improve API value proposition."
+                )
 
             if trends.get("api_response_time") == "increasing":
-                recommendations.append("Response times are trending upward. Monitor system performance and consider scaling resources.")
+                recommendations.append(
+                    "Response times are trending upward. Monitor system performance and consider scaling resources."
+                )
 
             # Usage growth recommendations
             request_rate = metrics.get("request_rate", 0)
             if request_rate < 1:  # Less than 1 request per minute
-                recommendations.append("Low API usage detected. Consider improving documentation and developer experience.")
+                recommendations.append(
+                    "Low API usage detected. Consider improving documentation and developer experience."
+                )
 
         except Exception as e:
             self.logger.error(f"Recommendation generation failed: {e}")
@@ -823,7 +953,9 @@ class PartnerAnalyticsSystem:
         """Clean up old metric data"""
         while self.monitoring_enabled:
             try:
-                cutoff_time = datetime.now() - timedelta(days=self.config["retention_days"])
+                cutoff_time = datetime.now() - timedelta(
+                    days=self.config["retention_days"]
+                )
 
                 for metric_key, metrics in self.metrics_data.items():
                     # Remove old metrics
@@ -845,9 +977,10 @@ class PartnerAnalyticsSystem:
                 auto_resolve_time = timedelta(hours=24)
 
                 for alert in self.alerts.values():
-                    if (alert.status == AlertStatus.ACTIVE and
-                        current_time - alert.created_at > auto_resolve_time):
-
+                    if (
+                        alert.status == AlertStatus.ACTIVE
+                        and current_time - alert.created_at > auto_resolve_time
+                    ):
                         alert.status = AlertStatus.RESOLVED
                         alert.resolved_at = current_time
 
@@ -868,10 +1001,13 @@ class PartnerAnalyticsSystem:
                 inactive_threshold = timedelta(hours=1)
 
                 for metric_key in self.metrics_data.keys():
-                    partner_id = metric_key.split(':')[0]
+                    partner_id = metric_key.split(":")[0]
                     metrics = self.metrics_data[metric_key]
 
-                    if metrics and current_time - metrics[-1].timestamp > inactive_threshold:
+                    if (
+                        metrics
+                        and current_time - metrics[-1].timestamp > inactive_threshold
+                    ):
                         # Partner appears inactive
                         await self._create_inactivity_alert(partner_id)
 
@@ -886,10 +1022,13 @@ class PartnerAnalyticsSystem:
         try:
             # Check if we already have an active inactivity alert
             existing_alerts = [
-                alert for alert in self.alerts.values()
-                if (alert.partner_id == partner_id and
-                    alert.metric_name == "partner_activity" and
-                    alert.status == AlertStatus.ACTIVE)
+                alert
+                for alert in self.alerts.values()
+                if (
+                    alert.partner_id == partner_id
+                    and alert.metric_name == "partner_activity"
+                    and alert.status == AlertStatus.ACTIVE
+                )
             ]
 
             if existing_alerts:
@@ -906,7 +1045,7 @@ class PartnerAnalyticsSystem:
                 severity=AlertSeverity.WARNING,
                 status=AlertStatus.ACTIVE,
                 message=f"Partner {partner_id} has been inactive for over 1 hour",
-                created_at=datetime.now()
+                created_at=datetime.now(),
             )
 
             self.alerts[alert_id] = alert
@@ -925,21 +1064,23 @@ class PartnerAnalyticsSystem:
                 "condition": "gt",
                 "threshold": 2000,
                 "severity": "warning",
-                "message_template": "High response time detected: {value}ms (threshold: {threshold}ms)"
+                "message_template": "High response time detected: {value}ms (threshold: {threshold}ms)",
             },
             {
                 "metric_name": "api_error_rate",
                 "condition": "gt",
                 "threshold": 10,
                 "severity": "error",
-                "message_template": "High error rate detected: {value}% (threshold: {threshold}%)"
-            }
+                "message_template": "High error rate detected: {value}% (threshold: {threshold}%)",
+            },
         ]
 
         # In production, load from configuration storage
         self.logger.info("Default alert rules loaded")
 
-    async def get_analytics_dashboard_data(self, partner_id: str = None) -> Dict[str, Any]:
+    async def get_analytics_dashboard_data(
+        self, partner_id: str = None
+    ) -> Dict[str, Any]:
         """Get analytics dashboard data"""
         try:
             current_time = datetime.now()
@@ -947,12 +1088,18 @@ class PartnerAnalyticsSystem:
 
             if partner_id:
                 # Partner-specific dashboard
-                derived_metrics = await self.calculate_derived_metrics(partner_id, last_hour, current_time)
-                performance_score = await self.calculate_performance_score(partner_id, last_hour, current_time)
+                derived_metrics = await self.calculate_derived_metrics(
+                    partner_id, last_hour, current_time
+                )
+                performance_score = await self.calculate_performance_score(
+                    partner_id, last_hour, current_time
+                )
 
                 partner_alerts = [
-                    alert for alert in self.alerts.values()
-                    if alert.partner_id == partner_id and alert.status == AlertStatus.ACTIVE
+                    alert
+                    for alert in self.alerts.values()
+                    if alert.partner_id == partner_id
+                    and alert.status == AlertStatus.ACTIVE
                 ]
 
                 return {
@@ -962,31 +1109,74 @@ class PartnerAnalyticsSystem:
                     "metrics": derived_metrics,
                     "active_alerts": len(partner_alerts),
                     "alert_breakdown": {
-                        "critical": len([a for a in partner_alerts if a.severity == AlertSeverity.CRITICAL]),
-                        "error": len([a for a in partner_alerts if a.severity == AlertSeverity.ERROR]),
-                        "warning": len([a for a in partner_alerts if a.severity == AlertSeverity.WARNING])
-                    }
+                        "critical": len(
+                            [
+                                a
+                                for a in partner_alerts
+                                if a.severity == AlertSeverity.CRITICAL
+                            ]
+                        ),
+                        "error": len(
+                            [
+                                a
+                                for a in partner_alerts
+                                if a.severity == AlertSeverity.ERROR
+                            ]
+                        ),
+                        "warning": len(
+                            [
+                                a
+                                for a in partner_alerts
+                                if a.severity == AlertSeverity.WARNING
+                            ]
+                        ),
+                    },
                 }
             else:
                 # System-wide dashboard
-                total_alerts = len([a for a in self.alerts.values() if a.status == AlertStatus.ACTIVE])
+                total_alerts = len(
+                    [a for a in self.alerts.values() if a.status == AlertStatus.ACTIVE]
+                )
 
                 # Get unique partners with metrics
                 active_partners = set()
                 for metric_key in self.metrics_data.keys():
-                    partner_id = metric_key.split(':')[0]
+                    partner_id = metric_key.split(":")[0]
                     active_partners.add(partner_id)
 
                 return {
                     "timestamp": current_time.isoformat(),
                     "total_partners": len(active_partners),
-                    "total_metrics": sum(len(metrics) for metrics in self.metrics_data.values()),
+                    "total_metrics": sum(
+                        len(metrics) for metrics in self.metrics_data.values()
+                    ),
                     "active_alerts": total_alerts,
                     "alert_breakdown": {
-                        "critical": len([a for a in self.alerts.values() if a.severity == AlertSeverity.CRITICAL and a.status == AlertStatus.ACTIVE]),
-                        "error": len([a for a in self.alerts.values() if a.severity == AlertSeverity.ERROR and a.status == AlertStatus.ACTIVE]),
-                        "warning": len([a for a in self.alerts.values() if a.severity == AlertSeverity.WARNING and a.status == AlertStatus.ACTIVE])
-                    }
+                        "critical": len(
+                            [
+                                a
+                                for a in self.alerts.values()
+                                if a.severity == AlertSeverity.CRITICAL
+                                and a.status == AlertStatus.ACTIVE
+                            ]
+                        ),
+                        "error": len(
+                            [
+                                a
+                                for a in self.alerts.values()
+                                if a.severity == AlertSeverity.ERROR
+                                and a.status == AlertStatus.ACTIVE
+                            ]
+                        ),
+                        "warning": len(
+                            [
+                                a
+                                for a in self.alerts.values()
+                                if a.severity == AlertSeverity.WARNING
+                                and a.status == AlertStatus.ACTIVE
+                            ]
+                        ),
+                    },
                 }
 
         except Exception as e:
@@ -997,6 +1187,7 @@ class PartnerAnalyticsSystem:
         """Shutdown analytics system"""
         self.monitoring_enabled = False
         self.logger.info("Partner Analytics System shutdown complete")
+
 
 # Integration helpers for OS Dashboard AI Assistant
 async def initialize_partner_analytics() -> Optional[PartnerAnalyticsSystem]:
@@ -1012,6 +1203,7 @@ async def initialize_partner_analytics() -> Optional[PartnerAnalyticsSystem]:
     except ImportError as e:
         print(f"⚠️ Partner analytics system not available: Missing dependencies ({e})")
         return None
+
 
 # Example usage integrated with OS Dashboard
 async def demo_partner_analytics():
@@ -1031,7 +1223,7 @@ async def demo_partner_analytics():
         method="GET",
         status_code=200,
         response_time=150.0,
-        data_size=1024
+        data_size=1024,
     )
 
     # Create alert rule
@@ -1039,7 +1231,7 @@ async def demo_partner_analytics():
         "metric_name": "api_response_time",
         "condition": "gt",
         "threshold": 200,
-        "severity": "warning"
+        "severity": "warning",
     }
 
     rule_id = await analytics_system.create_alert_rule(partner_id, alert_rule_data)
@@ -1049,13 +1241,16 @@ async def demo_partner_analytics():
     end_time = datetime.now()
     start_time = end_time - timedelta(hours=1)
 
-    report = await analytics_system.generate_performance_report(partner_id, start_time, end_time)
+    report = await analytics_system.generate_performance_report(
+        partner_id, start_time, end_time
+    )
     print(f"Performance Score: {report.performance_score}")
     print(f"Recommendations: {report.recommendations}")
 
     # Get dashboard data
     dashboard = await analytics_system.get_analytics_dashboard_data(partner_id)
     print(f"Dashboard: {dashboard}")
+
 
 if __name__ == "__main__":
     asyncio.run(demo_partner_analytics())

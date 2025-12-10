@@ -51,6 +51,7 @@ class SecurityEventType(Enum):
 @dataclass
 class SecurityEvent:
     """Security event data"""
+
     event_id: str
     event_type: SecurityEventType
     source_ip: Optional[str]
@@ -71,6 +72,7 @@ class SecurityEvent:
 @dataclass
 class ThreatDetection:
     """Threat detection result"""
+
     detection_id: str
     threat_type: ThreatType
     threat_level: ThreatLevel
@@ -86,6 +88,7 @@ class ThreatDetection:
 @dataclass
 class IncidentResponse:
     """Automated incident response action"""
+
     response_id: str
     detection_id: str
     action_type: str
@@ -99,6 +102,7 @@ class IncidentResponse:
 @dataclass
 class SecurityModel:
     """Security ML model"""
+
     model_id: str
     model_type: str
     trained_on: datetime
@@ -132,8 +136,12 @@ class AISecurityFramework:
         await self._load_threat_intelligence()
 
         # Start security monitoring
-        self.monitoring_task = asyncio.create_task(self._continuous_security_monitoring())
-        self.threat_detection_task = asyncio.create_task(self._continuous_threat_detection())
+        self.monitoring_task = asyncio.create_task(
+            self._continuous_security_monitoring()
+        )
+        self.threat_detection_task = asyncio.create_task(
+            self._continuous_threat_detection()
+        )
 
         self.logger.info("AI Security Framework initialized")
 
@@ -148,9 +156,9 @@ class AISecurityFramework:
                 "accuracy": 0.92,
                 "precision": 0.89,
                 "recall": 0.91,
-                "f1_score": 0.90
+                "f1_score": 0.90,
             },
-            version="1.0.0"
+            version="1.0.0",
         )
 
         # Phishing detection model
@@ -162,9 +170,9 @@ class AISecurityFramework:
                 "accuracy": 0.95,
                 "precision": 0.93,
                 "recall": 0.94,
-                "f1_score": 0.935
+                "f1_score": 0.935,
             },
-            version="1.0.0"
+            version="1.0.0",
         )
 
         self.security_models["anomaly_detection"] = anomaly_model
@@ -177,41 +185,56 @@ class AISecurityFramework:
             "sql_injection": [
                 r"(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER)\b.*\b(UNION|SCRIPT|EXEC|CMD)\b)",
                 r"(\bor\b\s+\d+\s*=\s*\d+)",
-                r"(\bAND\b\s+\d+\s*=\s*\d+)"
+                r"(\bAND\b\s+\d+\s*=\s*\d+)",
             ],
             "xss_patterns": [
                 r"<script[^>]*>.*?</script>",
                 r"javascript:",
                 r"on\w+\s*=",
-                r"<iframe[^>]*>.*?</iframe>"
+                r"<iframe[^>]*>.*?</iframe>",
             ],
             "suspicious_ips": [
                 "10.0.0.0/8",  # Private networks (should be monitored)
-                "192.168.0.0/16"  # Private networks
-            ]
+                "192.168.0.0/16",  # Private networks
+            ],
         }
 
-    async def scan_for_threats(self, data: Dict[str, Any],
-                             options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def scan_for_threats(
+        self, data: Dict[str, Any], options: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Scan data for security threats"""
         try:
-            scan_type = options.get("scan_type", "comprehensive") if options else "comprehensive"
+            scan_type = (
+                options.get("scan_type", "comprehensive")
+                if options
+                else "comprehensive"
+            )
             sensitivity = options.get("sensitivity", "medium") if options else "medium"
 
             threats_found = []
 
             # Scan different types of data
             if "log_data" in data:
-                threats_found.extend(await self._scan_logs(data["log_data"], sensitivity))
+                threats_found.extend(
+                    await self._scan_logs(data["log_data"], sensitivity)
+                )
 
             if "network_traffic" in data:
-                threats_found.extend(await self._scan_network_traffic(data["network_traffic"], sensitivity))
+                threats_found.extend(
+                    await self._scan_network_traffic(
+                        data["network_traffic"], sensitivity
+                    )
+                )
 
             if "file_content" in data:
-                threats_found.extend(await self._scan_file_content(data["file_content"], sensitivity))
+                threats_found.extend(
+                    await self._scan_file_content(data["file_content"], sensitivity)
+                )
 
             if "user_behavior" in data:
-                threats_found.extend(await self._scan_user_behavior(data["user_behavior"], sensitivity))
+                threats_found.extend(
+                    await self._scan_user_behavior(data["user_behavior"], sensitivity)
+                )
 
             # Create threat detections
             for threat in threats_found:
@@ -224,7 +247,7 @@ class AISecurityFramework:
                     affected_resources=threat["resources"],
                     indicators=threat["indicators"],
                     detected_at=datetime.now(),
-                    recommended_actions=threat["actions"]
+                    recommended_actions=threat["actions"],
                 )
                 self.threat_detections.append(detection)
 
@@ -232,8 +255,10 @@ class AISecurityFramework:
                 "scan_type": scan_type,
                 "sensitivity": sensitivity,
                 "threats_detected": len(threats_found),
-                "threats": [asdict(t) for t in self.threat_detections[-len(threats_found):]],
-                "scan_completed_at": datetime.now().isoformat()
+                "threats": [
+                    asdict(t) for t in self.threat_detections[-len(threats_found) :]
+                ],
+                "scan_completed_at": datetime.now().isoformat(),
             }
 
         except Exception as e:
@@ -247,32 +272,48 @@ class AISecurityFramework:
         # Check for SQL injection patterns
         for pattern in self.suspicious_patterns.get("sql_injection", []):
             if re.search(pattern, log_data, re.IGNORECASE):
-                threats.append({
-                    "type": ThreatType.INTRUSION,
-                    "level": ThreatLevel.HIGH,
-                    "confidence": 0.85,
-                    "description": "Potential SQL injection attempt detected",
-                    "resources": ["database"],
-                    "indicators": ["SQL injection pattern match"],
-                    "actions": ["Block IP", "Alert security team", "Review database access logs"]
-                })
+                threats.append(
+                    {
+                        "type": ThreatType.INTRUSION,
+                        "level": ThreatLevel.HIGH,
+                        "confidence": 0.85,
+                        "description": "Potential SQL injection attempt detected",
+                        "resources": ["database"],
+                        "indicators": ["SQL injection pattern match"],
+                        "actions": [
+                            "Block IP",
+                            "Alert security team",
+                            "Review database access logs",
+                        ],
+                    }
+                )
 
         # Check for suspicious login patterns
-        failed_logins = len(re.findall(r"failed login|authentication failed", log_data, re.IGNORECASE))
+        failed_logins = len(
+            re.findall(r"failed login|authentication failed", log_data, re.IGNORECASE)
+        )
         if failed_logins > 10:
-            threats.append({
-                "type": ThreatType.UNAUTHORIZED_ACCESS,
-                "level": ThreatLevel.MEDIUM,
-                "confidence": 0.75,
-                "description": f"Multiple failed login attempts detected ({failed_logins})",
-                "resources": ["authentication_system"],
-                "indicators": ["Brute force login attempts"],
-                "actions": ["Implement account lockout", "Enable MFA", "Monitor IP addresses"]
-            })
+            threats.append(
+                {
+                    "type": ThreatType.UNAUTHORIZED_ACCESS,
+                    "level": ThreatLevel.MEDIUM,
+                    "confidence": 0.75,
+                    "description": f"Multiple failed login attempts detected ({failed_logins})",
+                    "resources": ["authentication_system"],
+                    "indicators": ["Brute force login attempts"],
+                    "actions": [
+                        "Implement account lockout",
+                        "Enable MFA",
+                        "Monitor IP addresses",
+                    ],
+                }
+            )
 
         return threats
 
-    async def _scan_network_traffic(self, traffic_data: Dict[str, Any], sensitivity: str) -> List[Dict[str, Any]]:
+    async def _scan_network_traffic(
+        self, traffic_data: Dict[str, Any], sensitivity: str
+    ) -> List[Dict[str, Any]]:
         """Scan network traffic for threats"""
         threats = []
 
@@ -290,32 +331,49 @@ class AISecurityFramework:
 
         # Check for port scanning
         if len(port_counter) > 100:  # Many different ports
-            threats.append({
-                "type": ThreatType.INTRUSION,
-                "level": ThreatLevel.HIGH,
-                "confidence": 0.90,
-                "description": "Potential port scanning activity detected",
-                "resources": ["network"],
-                "indicators": ["Multiple ports accessed", "Unusual port distribution"],
-                "actions": ["Block suspicious IP", "Enable firewall rules", "Alert network security"]
-            })
+            threats.append(
+                {
+                    "type": ThreatType.INTRUSION,
+                    "level": ThreatLevel.HIGH,
+                    "confidence": 0.90,
+                    "description": "Potential port scanning activity detected",
+                    "resources": ["network"],
+                    "indicators": [
+                        "Multiple ports accessed",
+                        "Unusual port distribution",
+                    ],
+                    "actions": [
+                        "Block suspicious IP",
+                        "Enable firewall rules",
+                        "Alert network security",
+                    ],
+                }
+            )
 
         # Check for DDoS patterns
         high_traffic_ips = [ip for ip, count in ip_counter.items() if count > 1000]
         if high_traffic_ips:
-            threats.append({
-                "type": ThreatType.INTRUSION,
-                "level": ThreatLevel.CRITICAL,
-                "confidence": 0.95,
-                "description": "Potential DDoS attack detected",
-                "resources": ["network", "servers"],
-                "indicators": ["High traffic from single IPs", "Connection flood"],
-                "actions": ["Activate DDoS protection", "Block attacking IPs", "Scale infrastructure"]
-            })
+            threats.append(
+                {
+                    "type": ThreatType.INTRUSION,
+                    "level": ThreatLevel.CRITICAL,
+                    "confidence": 0.95,
+                    "description": "Potential DDoS attack detected",
+                    "resources": ["network", "servers"],
+                    "indicators": ["High traffic from single IPs", "Connection flood"],
+                    "actions": [
+                        "Activate DDoS protection",
+                        "Block attacking IPs",
+                        "Scale infrastructure",
+                    ],
+                }
+            )
 
         return threats
 
-    async def _scan_file_content(self, file_data: Dict[str, Any], sensitivity: str) -> List[Dict[str, Any]]:
+    async def _scan_file_content(
+        self, file_data: Dict[str, Any], sensitivity: str
+    ) -> List[Dict[str, Any]]:
         """Scan file content for threats"""
         threats = []
 
@@ -325,32 +383,46 @@ class AISecurityFramework:
         # Check for XSS patterns
         for pattern in self.suspicious_patterns.get("xss_patterns", []):
             if re.search(pattern, content, re.IGNORECASE):
-                threats.append({
-                    "type": ThreatType.MALWARE,
-                    "level": ThreatLevel.MEDIUM,
-                    "confidence": 0.80,
-                    "description": "Potential XSS vulnerability or attack detected",
-                    "resources": [filename],
-                    "indicators": ["Cross-site scripting patterns"],
-                    "actions": ["Sanitize input", "Implement CSP headers", "Review file content"]
-                })
+                threats.append(
+                    {
+                        "type": ThreatType.MALWARE,
+                        "level": ThreatLevel.MEDIUM,
+                        "confidence": 0.80,
+                        "description": "Potential XSS vulnerability or attack detected",
+                        "resources": [filename],
+                        "indicators": ["Cross-site scripting patterns"],
+                        "actions": [
+                            "Sanitize input",
+                            "Implement CSP headers",
+                            "Review file content",
+                        ],
+                    }
+                )
 
         # Check for suspicious file extensions
-        suspicious_extensions = ['.exe', '.bat', '.cmd', '.scr', '.pif', '.com']
+        suspicious_extensions = [".exe", ".bat", ".cmd", ".scr", ".pif", ".com"]
         if any(filename.lower().endswith(ext) for ext in suspicious_extensions):
-            threats.append({
-                "type": ThreatType.MALWARE,
-                "level": ThreatLevel.HIGH,
-                "confidence": 0.85,
-                "description": "Potentially malicious file detected",
-                "resources": [filename],
-                "indicators": ["Suspicious file extension"],
-                "actions": ["Quarantine file", "Scan with antivirus", "Block file execution"]
-            })
+            threats.append(
+                {
+                    "type": ThreatType.MALWARE,
+                    "level": ThreatLevel.HIGH,
+                    "confidence": 0.85,
+                    "description": "Potentially malicious file detected",
+                    "resources": [filename],
+                    "indicators": ["Suspicious file extension"],
+                    "actions": [
+                        "Quarantine file",
+                        "Scan with antivirus",
+                        "Block file execution",
+                    ],
+                }
+            )
 
         return threats
 
-    async def _scan_user_behavior(self, behavior_data: Dict[str, Any], sensitivity: str) -> List[Dict[str, Any]]:
+    async def _scan_user_behavior(
+        self, behavior_data: Dict[str, Any], sensitivity: str
+    ) -> List[Dict[str, Any]]:
         """Scan user behavior for anomalies"""
         threats = []
 
@@ -363,33 +435,54 @@ class AISecurityFramework:
         # Check for unusual data access patterns
         data_access_count = action_counter.get("data_access", 0)
         if data_access_count > 1000:  # Threshold for unusual activity
-            threats.append({
-                "type": ThreatType.DATA_LEAK,
-                "level": ThreatLevel.HIGH,
-                "confidence": 0.75,
-                "description": "Unusual data access patterns detected",
-                "resources": ["data_stores"],
-                "indicators": ["High volume data access", "Potential data exfiltration"],
-                "actions": ["Review user permissions", "Enable data access auditing", "Monitor data egress"]
-            })
+            threats.append(
+                {
+                    "type": ThreatType.DATA_LEAK,
+                    "level": ThreatLevel.HIGH,
+                    "confidence": 0.75,
+                    "description": "Unusual data access patterns detected",
+                    "resources": ["data_stores"],
+                    "indicators": [
+                        "High volume data access",
+                        "Potential data exfiltration",
+                    ],
+                    "actions": [
+                        "Review user permissions",
+                        "Enable data access auditing",
+                        "Monitor data egress",
+                    ],
+                }
+            )
 
         # Check for privilege escalation attempts
-        privilege_changes = [a for a in user_actions if a.get("type") == "privilege_change"]
+        privilege_changes = [
+            a for a in user_actions if a.get("type") == "privilege_change"
+        ]
         if len(privilege_changes) > 5:
-            threats.append({
-                "type": ThreatType.UNAUTHORIZED_ACCESS,
-                "level": ThreatLevel.CRITICAL,
-                "confidence": 0.90,
-                "description": "Multiple privilege escalation attempts detected",
-                "resources": ["user_permissions"],
-                "indicators": ["Frequent privilege changes", "Suspicious permission requests"],
-                "actions": ["Revoke suspicious permissions", "Enable step-up authentication", "Audit user actions"]
-            })
+            threats.append(
+                {
+                    "type": ThreatType.UNAUTHORIZED_ACCESS,
+                    "level": ThreatLevel.CRITICAL,
+                    "confidence": 0.90,
+                    "description": "Multiple privilege escalation attempts detected",
+                    "resources": ["user_permissions"],
+                    "indicators": [
+                        "Frequent privilege changes",
+                        "Suspicious permission requests",
+                    ],
+                    "actions": [
+                        "Revoke suspicious permissions",
+                        "Enable step-up authentication",
+                        "Audit user actions",
+                    ],
+                }
+            )
 
         return threats
 
-    async def analyze_security_event(self, event_data: Dict[str, Any],
-                                   options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def analyze_security_event(
+        self, event_data: Dict[str, Any], options: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Analyze a specific security event"""
         try:
             # Create security event
@@ -400,7 +493,7 @@ class AISecurityFramework:
                 user_id=event_data.get("user_id"),
                 resource=event_data["resource"],
                 action=event_data["action"],
-                metadata=event_data.get("metadata", {})
+                metadata=event_data.get("metadata", {}),
             )
 
             # Calculate risk score
@@ -414,14 +507,16 @@ class AISecurityFramework:
             # Automatic response if high risk
             response_taken = None
             if security_event.risk_score > 0.8:
-                response_taken = await self._execute_automated_response(security_event, threat_analysis)
+                response_taken = await self._execute_automated_response(
+                    security_event, threat_analysis
+                )
 
             return {
                 "event_id": security_event.event_id,
                 "risk_score": security_event.risk_score,
                 "threat_analysis": threat_analysis,
                 "automated_response": response_taken,
-                "analyzed_at": datetime.now().isoformat()
+                "analyzed_at": datetime.now().isoformat(),
             }
 
         except Exception as e:
@@ -439,7 +534,7 @@ class AISecurityFramework:
             SecurityEventType.NETWORK_CONNECTION: 0.5,
             SecurityEventType.PROCESS_EXECUTION: 0.6,
             SecurityEventType.SYSTEM_CHANGE: 0.8,
-            SecurityEventType.DATA_ACCESS: 0.7
+            SecurityEventType.DATA_ACCESS: 0.7,
         }
         risk_score += type_risks.get(event.event_type, 0.5)
 
@@ -478,11 +573,16 @@ class AISecurityFramework:
 
         # Check for brute force patterns
         if event.event_type == SecurityEventType.LOGIN_ATTEMPT:
-            recent_failed_logins = len([e for e in self.security_events[-100:]
-                                      if e.event_type == SecurityEventType.LOGIN_ATTEMPT
-                                      and e.source_ip == event.source_ip
-                                      and "failed" in e.action.lower()
-                                      and (datetime.now() - e.timestamp).seconds < 3600])
+            recent_failed_logins = len(
+                [
+                    e
+                    for e in self.security_events[-100:]
+                    if e.event_type == SecurityEventType.LOGIN_ATTEMPT
+                    and e.source_ip == event.source_ip
+                    and "failed" in e.action.lower()
+                    and (datetime.now() - e.timestamp).seconds < 3600
+                ]
+            )
             if recent_failed_logins > 5:
                 threat_indicators.append("brute_force_attempt")
 
@@ -494,12 +594,17 @@ class AISecurityFramework:
 
         return {
             "threat_indicators": threat_indicators,
-            "severity_assessment": "high" if len(threat_indicators) > 1 else "medium" if threat_indicators else "low",
-            "requires_investigation": len(threat_indicators) > 0
+            "severity_assessment": "high"
+            if len(threat_indicators) > 1
+            else "medium"
+            if threat_indicators
+            else "low",
+            "requires_investigation": len(threat_indicators) > 0,
         }
 
-    async def _execute_automated_response(self, event: SecurityEvent,
-                                        threat_analysis: Dict[str, Any]) -> Dict[str, Any]:
+    async def _execute_automated_response(
+        self, event: SecurityEvent, threat_analysis: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Execute automated incident response"""
         response_actions = []
 
@@ -516,7 +621,7 @@ class AISecurityFramework:
             action_description=f"Automated response to high-risk event: {event.event_id}",
             executed_at=datetime.now(),
             success=True,
-            result={"blocked_ip": event.source_ip, "actions_taken": response_actions}
+            result={"blocked_ip": event.source_ip, "actions_taken": response_actions},
         )
 
         self.incident_responses.append(response)
@@ -524,7 +629,7 @@ class AISecurityFramework:
         return {
             "response_id": response.response_id,
             "actions_taken": response_actions,
-            "success": True
+            "success": True,
         }
 
     async def _continuous_security_monitoring(self):
@@ -559,8 +664,11 @@ class AISecurityFramework:
         while True:
             try:
                 # Run ML-based threat detection
-                recent_events = [e for e in self.security_events
-                               if (datetime.now() - e.timestamp).seconds < 3600]  # Last hour
+                recent_events = [
+                    e
+                    for e in self.security_events
+                    if (datetime.now() - e.timestamp).seconds < 3600
+                ]  # Last hour
 
                 if recent_events:
                     # Use anomaly detection model
@@ -576,7 +684,9 @@ class AISecurityFramework:
                 self.logger.error(f"Error in threat detection: {e}")
                 await asyncio.sleep(600)
 
-    async def _detect_anomalies_with_ml(self, events: List[SecurityEvent]) -> List[ThreatDetection]:
+    async def _detect_anomalies_with_ml(
+        self, events: List[SecurityEvent]
+    ) -> List[ThreatDetection]:
         """Use ML model to detect anomalies in security events"""
         anomalies = []
 
@@ -585,7 +695,9 @@ class AISecurityFramework:
         user_activity = Counter([e.user_id for e in events if e.user_id])
 
         # Detect IP with unusually high activity
-        avg_ip_activity = sum(ip_activity.values()) / len(ip_activity) if ip_activity else 0
+        avg_ip_activity = (
+            sum(ip_activity.values()) / len(ip_activity) if ip_activity else 0
+        )
         for ip, count in ip_activity.items():
             if count > avg_ip_activity * 3:  # 3x average
                 anomaly = ThreatDetection(
@@ -595,9 +707,15 @@ class AISecurityFramework:
                     confidence_score=0.8,
                     description=f"Unusual activity from IP {ip}: {count} events",
                     affected_resources=["network"],
-                    indicators=["High frequency activity", "Potential scanning or attack"],
+                    indicators=[
+                        "High frequency activity",
+                        "Potential scanning or attack",
+                    ],
                     detected_at=datetime.now(),
-                    recommended_actions=["Investigate IP activity", "Consider blocking if malicious"]
+                    recommended_actions=[
+                        "Investigate IP activity",
+                        "Consider blocking if malicious",
+                    ],
                 )
                 anomalies.append(anomaly)
 
@@ -606,11 +724,16 @@ class AISecurityFramework:
     async def get_security_dashboard(self) -> Dict[str, Any]:
         """Get comprehensive security dashboard data"""
         recent_threats = [asdict(t) for t in self.threat_detections[-20:]]
-        active_responses = [asdict(r) for r in self.incident_responses
-                          if (datetime.now() - r.executed_at).days < 1]
+        active_responses = [
+            asdict(r)
+            for r in self.incident_responses
+            if (datetime.now() - r.executed_at).days < 1
+        ]
 
         threat_summary = Counter([t.threat_type.value for t in self.threat_detections])
-        severity_summary = Counter([t.threat_level.value for t in self.threat_detections])
+        severity_summary = Counter(
+            [t.threat_level.value for t in self.threat_detections]
+        )
 
         return {
             "total_threats_detected": len(self.threat_detections),
@@ -623,10 +746,12 @@ class AISecurityFramework:
                 model_type: model.performance_metrics
                 for model_type, model in self.security_models.items()
             },
-            "last_updated": datetime.now().isoformat()
+            "last_updated": datetime.now().isoformat(),
         }
 
-    async def federated_security_learning(self, participant_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def federated_security_learning(
+        self, participant_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Participate in federated learning for security models"""
         # Simulate federated learning participation
         return {
@@ -634,5 +759,5 @@ class AISecurityFramework:
             "models_updated": ["anomaly_detection", "phishing_detection"],
             "data_contributed": participant_data.get("sample_count", 1000),
             "global_model_improvement": 0.05,
-            "next_update": (datetime.now() + timedelta(hours=24)).isoformat()
+            "next_update": (datetime.now() + timedelta(hours=24)).isoformat(),
         }

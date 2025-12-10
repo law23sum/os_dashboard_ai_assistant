@@ -14,6 +14,7 @@ from assistant_hub.document_manager import scan_and_import_existing_documents
 from assistant_hub.db import init_db
 from assistant_hub.logging_config import configure_logging
 
+
 def main():
     """Import existing documents."""
     configure_logging()
@@ -44,6 +45,7 @@ def main():
         conn.close()
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

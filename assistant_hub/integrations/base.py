@@ -13,6 +13,7 @@ from ..logging_config import get_logger
 @dataclass
 class IntegrationStatus:
     """Status of an external integration."""
+
     connected: bool = False
     last_sync: Optional[str] = None
     error: Optional[str] = None
@@ -21,7 +22,7 @@ class IntegrationStatus:
 
 class BaseIntegration(ABC):
     """Base class for all external integrations."""
-    
+
     def __init__(self, conn: sqlite3.Connection, source_name: str, source_kind: str):
         self.conn = conn
         self.source_name = source_name
@@ -62,23 +63,25 @@ class BaseIntegration(ABC):
                 "fields": [],
             },
         }
-    
+
     @abstractmethod
     def authenticate(self) -> bool:
         """Authenticate with the external service. Returns True if successful."""
         pass
-    
+
     @abstractmethod
     def sync(self) -> int:
         """Sync data from external service. Returns number of items synced."""
         pass
-    
+
     @abstractmethod
     def get_status(self) -> IntegrationStatus:
         """Get current status of the integration."""
         pass
 
-    def invoke_action(self, action: str, options: Optional[Dict[str, Any]] = None) -> Any:
+    def invoke_action(
+        self, action: str, options: Optional[Dict[str, Any]] = None
+    ) -> Any:
         """Invoke an action exposed by the integration.
 
         Concrete integrations can override this to support richer behaviors,
@@ -106,13 +109,9 @@ class BaseIntegration(ABC):
                 return attr(**options) if options else attr()
 
         raise ValueError(f"Unsupported action '{action}' for {self.source_name}")
-    
+
     def record_item(
-        self,
-        external_id: str,
-        item_kind: str,
-        title: str,
-        data: Dict[str, Any]
+        self, external_id: str, item_kind: str, title: str, data: Dict[str, Any]
     ):
         """Record an external item in the database."""
         record_external_item(
@@ -122,23 +121,29 @@ class BaseIntegration(ABC):
             external_id=external_id,
             item_kind=item_kind,
             title=title,
-            data=data
+            data=data,
         )
-    
+
     def ensure_source(self) -> int:
         """Ensure the external source exists in the database."""
         return ensure_external_source(self.conn, self.source_name, self.source_kind)
-    
-    def update_status(self, connected: bool, error: Optional[str] = None, item_count: int = 0):
+
+    def update_status(
+        self, connected: bool, error: Optional[str] = None, item_count: int = 0
+    ):
         """Update integration status."""
         self._status.connected = connected
-        self._status.last_sync = datetime.now().isoformat(timespec="seconds") if connected else None
+        self._status.last_sync = (
+            datetime.now().isoformat(timespec="seconds") if connected else None
+        )
         self._status.error = error
         self._status.item_count = item_count
 
         status_text = "connected" if connected else "disconnected"
         if error:
-            self.logger.error("%s status updated: %s | error=%s", self.source_name, status_text, error)
+            self.logger.error(
+                "%s status updated: %s | error=%s", self.source_name, status_text, error
+            )
         else:
             self.logger.info(
                 "%s status updated: %s | items=%s",
@@ -152,4 +157,3 @@ class BaseIntegration(ABC):
         if value is None:
             return None
         return value if len(value) <= length else value[: length - 3] + "..."
-

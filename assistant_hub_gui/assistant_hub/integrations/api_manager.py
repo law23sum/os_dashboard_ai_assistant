@@ -22,6 +22,7 @@ from integrations.apple_calendar import AppleCalendarClient
 @dataclass
 class APIStatus:
     """Status information for an API"""
+
     name: str
     connected: bool
     last_check: datetime
@@ -113,7 +114,9 @@ class APIManager:
                 self.logger.error(f"❌ Failed to initialize Apple Calendar client: {e}")
                 initialization_results["apple_calendar"] = False
 
-        self.logger.info(f"API Manager initialization complete. Results: {initialization_results}")
+        self.logger.info(
+            f"API Manager initialization complete. Results: {initialization_results}"
+        )
         return initialization_results
 
     async def get_status(self) -> Dict[str, APIStatus]:
@@ -124,16 +127,14 @@ class APIManager:
             try:
                 is_connected = await client.health_check()
                 status_results[name] = APIStatus(
-                    name=name,
-                    connected=is_connected,
-                    last_check=datetime.now()
+                    name=name, connected=is_connected, last_check=datetime.now()
                 )
             except Exception as e:
                 status_results[name] = APIStatus(
                     name=name,
                     connected=False,
                     last_check=datetime.now(),
-                    error_message=str(e)
+                    error_message=str(e),
                 )
 
         self.status = status_results
@@ -146,25 +147,43 @@ class APIManager:
             return await self.clients["openai"].chat_completion(message, **kwargs)
         raise Exception("OpenAI client not available")
 
-    async def create_document(self, title: str, content: str, doc_type: str = "word") -> Dict[str, Any]:
+    async def create_document(
+        self, title: str, content: str, doc_type: str = "word"
+    ) -> Dict[str, Any]:
         """Create a document in Microsoft Office"""
         if "microsoft" in self.clients:
-            return await self.clients["microsoft"].create_document(title, content, doc_type)
+            return await self.clients["microsoft"].create_document(
+                title, content, doc_type
+            )
         raise Exception("Microsoft client not available")
 
-    async def send_email(self, to: str, subject: str, body: str, attachments: List[str] = None) -> bool:
+    async def send_email(
+        self, to: str, subject: str, body: str, attachments: List[str] = None
+    ) -> bool:
         """Send email via Gmail"""
         if "google" in self.clients:
-            return await self.clients["google"].send_email(to, subject, body, attachments)
+            return await self.clients["google"].send_email(
+                to, subject, body, attachments
+            )
         raise Exception("Google client not available")
 
-    async def create_calendar_event(self, title: str, start_time: datetime, end_time: datetime,
-                                  description: str = "", service: str = "google") -> Dict[str, Any]:
+    async def create_calendar_event(
+        self,
+        title: str,
+        start_time: datetime,
+        end_time: datetime,
+        description: str = "",
+        service: str = "google",
+    ) -> Dict[str, Any]:
         """Create calendar event"""
         if service == "google" and "google" in self.clients:
-            return await self.clients["google"].create_calendar_event(title, start_time, end_time, description)
+            return await self.clients["google"].create_calendar_event(
+                title, start_time, end_time, description
+            )
         elif service == "apple" and "apple_calendar" in self.clients:
-            return await self.clients["apple_calendar"].create_event(title, start_time, end_time, description)
+            return await self.clients["apple_calendar"].create_event(
+                title, start_time, end_time, description
+            )
         raise Exception(f"{service} calendar client not available")
 
     async def git_operations(self, operation: str, **kwargs) -> Any:
@@ -185,7 +204,7 @@ class APIManager:
 
         for name, client in self.clients.items():
             try:
-                if hasattr(client, 'shutdown'):
+                if hasattr(client, "shutdown"):
                     await client.shutdown()
                 self.logger.info(f"✅ {name} client shutdown successfully")
             except Exception as e:

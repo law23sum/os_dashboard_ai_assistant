@@ -15,8 +15,10 @@ from ai_os.app.orchestration.events import EventBus
 from ai_os.app.orchestration.runner import Orchestrator
 from ai_os.app.search.index import InMemoryVectorIndex
 from ai_os.app.governance.audit import AuditLog
+from ai_os.app.governance.change_engine import ChangeEngine
 from ai_os.app.system_monitor import get_system_stats
 from ai_os.app.ai_proxy import ask_ai
+from assistant_core.failure_registry import get_failure_registry
 
 
 class DummyStorage:
@@ -34,7 +36,9 @@ class DummyStorage:
     def get(self, resource_id):
         return self.data[resource_id]
 
-    def upsert(self, resource_id, title: str, text: str = "", table=None, metadata=None):
+    def upsert(
+        self, resource_id, title: str, text: str = "", table=None, metadata=None
+    ):
         if resource_id == "new":
             resource_id = str(len(self.data) + 1)
         self.data[resource_id] = {
@@ -61,6 +65,7 @@ bus = EventBus()
 orch = Orchestrator(bus)
 index = InMemoryVectorIndex()
 audit = AuditLog()
+change_engine = ChangeEngine()
 
 notes_storage = DummyStorage()
 word_storage = DummyStorage()
@@ -69,8 +74,11 @@ pdf_storage = DummyStorage()
 notes = NotesConnector(notes_storage)
 word = WordConnector(word_storage)
 pdf = PDFConnector(pdf_storage)
+failure_registry = get_failure_registry()
 
-reg_daemon = RegulationIngestDaemon(pdf_connector=pdf, word_connector=word, index=index, audit=audit)
+reg_daemon = RegulationIngestDaemon(
+    pdf_connector=pdf, word_connector=word, index=index, audit=audit
+)
 orch.register_daemon("pdf.added.regulations", reg_daemon)
 
 
@@ -82,11 +90,32 @@ class ChatRequest(BaseModel):
 def create_note(payload: Dict[str, Any]):
     title = payload.get("title", "Untitled Note")
     text = payload.get("text", "")
-    cir = CIRDocument(root=CIRNode(type="note", title=title, text=text), doc_type="note")
+    cir = CIRDocument(
+        root=CIRNode(type="note", title=title, text=text), doc_type="note"
+    )
     ref = notes.write("new", cir)
 
-    index.upsert_document(cir, payload={"system": notes.system_name, "resource_id": ref.id})
-    return {"id": ref.id, "title": ref.name}
+    index.upsert_document(
+        cir, payload={"system": notes.system_name, "resource_id": ref.id}
+    )
+    audit_record = audit.start(
+        actor="api:user", intent="create_note", triggered_by="api"
+    )
+    audit.add_touch(
+        audit_record.id,
+        system=notes.system_name,
+        resource_id=ref.id,
+        action="write",
+    )
+    before = CIRDocument(
+        root=CIRNode(type="note", title=title, text=""), doc_type="note"
+    )
+    audit.add_diff(
+        audit_record.id,
+        change_engine.build_write_payload(before, cir),
+    )
+    audit.finish(audit_record.id)
+    return {"id": ref.id, "title": ref.name, "audit_id": audit_record.id}
 
 
 @app.post("/pdfs/regulations")
@@ -95,8 +124,29 @@ def add_regulation_pdf(payload: Dict[str, Any]):
     text = payload.get("text", "")
     cir = CIRDocument(root=CIRNode(type="pdf", title=title, text=text), doc_type="pdf")
     ref = pdf.write("new", cir)
+    audit_record = audit.start(
+        actor="api:user", intent="add_regulation_pdf", triggered_by="api"
+    )
+    audit.add_touch(
+        audit_record.id,
+        system=pdf.system_name,
+        resource_id=ref.id,
+        action="write",
+    )
+    before = CIRDocument(
+        root=CIRNode(type="pdf", title=title, text=""), doc_type="pdf"
+    )
+    audit.add_diff(
+        audit_record.id,
+        change_engine.build_write_payload(before, cir),
+    )
+    audit.finish(audit_record.id)
     orch.emit("pdf.added.regulations", {"resource_id": ref.id})
-    return {"pdf_id": ref.id, "status": "ingested_event_emitted"}
+    return {
+        "pdf_id": ref.id,
+        "status": "ingested_event_emitted",
+        "audit_id": audit_record.id,
+    }
 
 
 @app.get("/search")
@@ -133,3 +183,13 @@ def ask_ai_endpoint(payload: ChatRequest):
     """Simple passthrough to the lightweight chat proxy."""
 
     return ask_ai(payload.prompt)
+
+
+@app.get("/failures")
+def failure_dashboard():
+    """Expose Section 14 failure summaries for observability tooling."""
+
+    return {
+        "summary": failure_registry.summarize_events(),
+        "signals": failure_registry.summarize_signals(),
+    }

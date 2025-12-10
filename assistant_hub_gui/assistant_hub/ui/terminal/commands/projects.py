@@ -19,7 +19,9 @@ def handle_projects_command(args, conn: sqlite3.Connection) -> int:
         return 0
 
     elif args.subcommand == "view":
-        project = next((p for p in state.projects if p.name == args.id or p.name == args.id), None)
+        project = next(
+            (p for p in state.projects if p.name == args.id or p.name == args.id), None
+        )
         if not project:
             print(f"Project not found: {args.id}", file=sys.stderr)
             return 1
@@ -44,7 +46,3 @@ def handle_projects_command(args, conn: sqlite3.Connection) -> int:
     else:
         print(f"Unknown Projects subcommand: {args.subcommand}", file=sys.stderr)
         return 1
-
-
-
-

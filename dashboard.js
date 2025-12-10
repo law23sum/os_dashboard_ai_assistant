@@ -189,32 +189,34 @@ const API = {
 
 // Primitive UI components
 function Badge({ children, variant = "secondary", className = "" }) {
-  const base = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
+  const base = "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide";
   const tones = {
-    default: "bg-blue-50 text-blue-700",
-    secondary: "bg-gray-100 text-gray-800",
-    destructive: "bg-red-100 text-red-800",
-    outline: "border border-gray-300 text-gray-700",
+    default: "bg-white/15 text-white shadow-inner shadow-slate-900/40",
+    secondary: "bg-slate-900/40 text-slate-100 border border-white/10",
+    destructive: "bg-rose-500/20 text-rose-100 border border-rose-400/30",
+    outline: "border border-white/20 text-white",
   };
   return <span className={`${base} ${tones[variant] || tones.secondary} ${className}`}>{children}</span>;
 }
 
 function Button({ children, variant = "default", size = "default", onClick, disabled, className = "" }) {
-  const base = "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+  const base =
+    "inline-flex items-center justify-center rounded-xl font-semibold tracking-wide transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
   const variants = {
-    default: "bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-500",
-    secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 focus-visible:ring-gray-500",
-    outline: "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus-visible:ring-gray-500",
-    ghost: "text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-500",
+    default:
+      "bg-gradient-to-r from-indigo-500 via-purple-500 to-sky-500 text-white shadow-lg shadow-indigo-900/40 hover:shadow-2xl hover:translate-y-[-1px] focus-visible:ring-indigo-400",
+    secondary: "bg-white/10 text-white border border-white/10 hover:bg-white/20 focus-visible:ring-white/30",
+    outline: "border border-white/20 text-white hover:bg-white/10 focus-visible:ring-white/30",
+    ghost: "text-white/80 hover:bg-white/10 focus-visible:ring-white/20",
   };
   const sizes = {
-    default: "h-10 px-4 py-2",
-    sm: "h-8 px-3 text-sm",
-    icon: "h-10 w-10",
+    default: "h-11 px-6",
+    sm: "h-9 px-4 text-sm",
+    icon: "h-11 w-11",
   };
   return (
     <button
-      className={`${base} ${variants[variant]} ${sizes[size]} ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
+      className={`${base} ${variants[variant]} ${sizes[size]} ${disabled ? "opacity-40 cursor-not-allowed" : ""} ${className}`}
       onClick={onClick}
       disabled={disabled}
     >
@@ -224,7 +226,11 @@ function Button({ children, variant = "default", size = "default", onClick, disa
 }
 
 function Card({ children, className = "" }) {
-  return <div className={`bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>{children}</div>;
+  return (
+    <div className={`bg-white/5 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-xl text-slate-100 ${className}`}>
+      {children}
+    </div>
+  );
 }
 
 function CardHeader({ children, className = "" }) {
@@ -232,11 +238,11 @@ function CardHeader({ children, className = "" }) {
 }
 
 function CardTitle({ children, className = "" }) {
-  return <h3 className={`text-lg font-semibold ${className}`}>{children}</h3>;
+  return <h3 className={`text-xl font-semibold text-white ${className}`}>{children}</h3>;
 }
 
 function CardDescription({ children, className = "" }) {
-  return <p className={`text-sm text-gray-600 mt-1 ${className}`}>{children}</p>;
+  return <p className={`text-sm text-slate-300 mt-1 ${className}`}>{children}</p>;
 }
 
 function CardContent({ children, className = "" }) {
@@ -250,32 +256,32 @@ function Input({ value, onChange, placeholder, className = "" }) {
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${className}`}
+      className={`w-full px-4 py-3 text-sm bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent ${className}`}
     />
   );
 }
 
 const SummaryCard = ({ title, value, description, icon }) => (
-  <Card className="p-4 border border-gray-200 shadow-none">
-    <div className="flex items-center justify-between text-sm text-gray-500">
-      <span className="font-medium">{title}</span>
-      <span>{icon}</span>
+  <Card className="p-5 border border-white/10 shadow-none">
+    <div className="flex items-center justify-between text-sm text-slate-300">
+      <span className="uppercase tracking-[0.35em] text-xs text-slate-400">{title}</span>
+      <span className="text-lg">{icon}</span>
     </div>
-    <p className="text-2xl font-semibold mt-2">{value}</p>
-    <p className="text-sm text-gray-500 mt-1">{description}</p>
+    <p className="text-3xl font-semibold mt-4 text-white">{value}</p>
+    <p className="text-sm text-slate-300 mt-2">{description}</p>
   </Card>
 );
 
 const NotificationBar = ({ notification }) => {
   if (!notification) return null;
   const tone = {
-    success: "bg-emerald-50 border-emerald-200 text-emerald-900",
-    warning: "bg-yellow-50 border-yellow-200 text-yellow-900",
-    error: "bg-red-50 border-red-200 text-red-900",
-    info: "bg-blue-50 border-blue-200 text-blue-900",
+    success: "bg-emerald-500/15 border-emerald-400/40 text-emerald-100",
+    warning: "bg-amber-500/15 border-amber-400/40 text-amber-100",
+    error: "bg-rose-500/15 border-rose-400/40 text-rose-100",
+    info: "bg-sky-500/15 border-sky-400/40 text-sky-100",
   };
   return (
-    <div className={`rounded-md border px-4 py-2 text-sm ${tone[notification.type] || tone.info}`}>
+    <div className={`rounded-xl border px-4 py-3 text-sm ${tone[notification.type] || tone.info}`}>
       {notification.message}
     </div>
   );
@@ -413,48 +419,9 @@ export default function AIOSDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-sm uppercase tracking-wide text-blue-600">OS Dashboard</p>
-              <h1 className="text-3xl font-bold text-gray-900">Driver-Aware Orchestrator</h1>
-              <p className="text-gray-600 mt-1">Unified visibility for knowledge operations, daemons, and audits.</p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={loadOperations}>Refresh Activity</Button>
-              <Button onClick={() => toggleAllDaemons(true)}>Enable All Daemons</Button>
-            </div>
-          </div>
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <SummaryCard
-              title="Daemons"
-              value={`${summaryMetrics.activeDaemons}/${summaryMetrics.daemonCount}`}
-              description="Active automations"
-              icon="🤖"
-            />
-            <SummaryCard
-              title="Search Hits"
-              value={summaryMetrics.searchHits}
-              description="Matches this session"
-              icon="🔍"
-            />
-            <SummaryCard
-              title="Recent Ops"
-              value={summaryMetrics.recentOps}
-              description="Past 24 hours"
-              icon="📊"
-            />
-            <SummaryCard
-              title="Needs Attention"
-              value={daemons.find((d) => !d.enabled)?.name || "All covered"}
-              description="Next automation to review"
-              icon="⚡"
-            />
-          </div>
-
-          <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div className="min-h-screen bg-slate-50">
+        {/* Spec references: 1.7.2 driver-aware dashboard, 5.2 OS driver telemetry, 0.5 persona co-pilot */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle>System Health</CardTitle>
@@ -462,35 +429,35 @@ export default function AIOSDashboard() {
               </CardHeader>
               <CardContent>
                 {systemLoading ? (
-                  <p className="text-sm text-gray-500">Collecting metrics…</p>
+                  <p className="text-sm text-slate-400">Collecting metrics…</p>
                 ) : (
                   <div className="space-y-4">
                     <div>
-                      <p className="text-xs uppercase text-gray-500">CPU</p>
-                      <p className="text-3xl font-semibold">{Math.round(systemStats.cpu_percent)}%</p>
+                      <p className="text-xs uppercase tracking-[0.35em] text-slate-400">CPU</p>
+                      <p className="text-3xl font-semibold text-white">{Math.round(systemStats.cpu_percent)}%</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-gray-500">Memory</p>
-                      <div className="flex items-center justify-between text-sm text-gray-600">
+                      <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Memory</p>
+                      <div className="flex items-center justify-between text-sm text-slate-300">
                         <span>{formatBytes(memoryUsage.used)} used</span>
                         <span>{formatBytes(memoryUsage.total)}</span>
                       </div>
-                      <div className="h-2 mt-2 bg-gray-100 rounded-full">
+                      <div className="h-2 mt-2 bg-white/10 rounded-full">
                         <div
-                          className="h-full rounded-full bg-blue-500"
+                          className="h-full rounded-full bg-gradient-to-r from-sky-400 to-indigo-500"
                           style={{ width: `${Math.min(memoryUsage.percent, 100)}%` }}
                         ></div>
                       </div>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-gray-500">Disk</p>
-                      <div className="flex items-center justify-between text-sm text-gray-600">
+                      <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Disk</p>
+                      <div className="flex items-center justify-between text-sm text-slate-300">
                         <span>{formatBytes(diskUsage.used)} used</span>
                         <span>{formatBytes(diskUsage.total)}</span>
                       </div>
-                      <div className="h-2 mt-2 bg-gray-100 rounded-full">
+                      <div className="h-2 mt-2 bg-white/10 rounded-full">
                         <div
-                          className="h-full rounded-full bg-indigo-500"
+                          className="h-full rounded-full bg-gradient-to-r from-purple-400 to-fuchsia-500"
                           style={{ width: `${Math.min(diskUsage.percent, 100)}%` }}
                         ></div>
                       </div>
@@ -539,7 +506,6 @@ export default function AIOSDashboard() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
-        {notification && <NotificationBar notification={notification} />}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-2">
@@ -712,4 +678,12 @@ export default function AIOSDashboard() {
       </div>
     </div>
   );
+}
+
+if (typeof document !== "undefined") {
+  const mountNode = document.getElementById("aios-dashboard-root");
+  if (mountNode && !mountNode.dataset.bootstrapped) {
+    mountNode.dataset.bootstrapped = "true";
+    createRoot(mountNode).render(<AIOSDashboard />);
+  }
 }

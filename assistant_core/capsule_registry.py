@@ -169,11 +169,15 @@ class CapsuleRegistry:
     def list_capsules_by_driver(self, driver_id: str) -> List[CapsuleSpec]:
         return [cap for cap in self.capsules.values() if driver_id in cap.drivers]
 
-    def log_capsule_run(self, capsule_id: str, summary: str, artifacts: List[str]) -> EvidencePack:
+    def log_capsule_run(
+        self, capsule_id: str, summary: str, artifacts: List[str]
+    ) -> EvidencePack:
         capsule = self.capsules.get(capsule_id)
         if capsule:
             capsule.last_run = datetime.utcnow()
-            capsule.ledger_reference = f"LEDGER-{capsule_id}-{capsule.last_run.strftime('%Y%m%d%H%M%S')}"
+            capsule.ledger_reference = (
+                f"LEDGER-{capsule_id}-{capsule.last_run.strftime('%Y%m%d%H%M%S')}"
+            )
         pack = EvidencePack(
             id=f"EVID-{len(self.evidence_packs)+1:04d}",
             capsule_id=capsule_id,

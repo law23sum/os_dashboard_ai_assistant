@@ -26,7 +26,9 @@ class OneDriveSession:
 class OneDriveProjectClient:
     """Interactive MSAL client to list, update, and upload OneDrive files."""
 
-    def __init__(self, client_id: str, tenant_id: str, scopes: Optional[List[str]] = None) -> None:
+    def __init__(
+        self, client_id: str, tenant_id: str, scopes: Optional[List[str]] = None
+    ) -> None:
         scopes = scopes or ["Files.ReadWrite", "User.Read"]
         authority = f"https://login.microsoftonline.com/{tenant_id}"
         if PublicClientApplication is None:
@@ -34,14 +36,20 @@ class OneDriveProjectClient:
                 "msal dependency is not available. Install msal or run pip install -r requirements.txt to enable OneDrive features."
             )
 
-        self.session = OneDriveSession(client_id=client_id, tenant_id=tenant_id, scopes=scopes, authority=authority)
+        self.session = OneDriveSession(
+            client_id=client_id, tenant_id=tenant_id, scopes=scopes, authority=authority
+        )
         self.app = PublicClientApplication(client_id, authority=authority)
 
     # ------------------------------------------------------------------
     # Authentication helpers
     # ------------------------------------------------------------------
     def ensure_token(self) -> str:
-        if self.session.access_token and self.session.expires_at and self.session.expires_at > time.time() - 10:
+        if (
+            self.session.access_token
+            and self.session.expires_at
+            and self.session.expires_at > time.time() - 10
+        ):
             return self.session.access_token
         result = self.app.acquire_token_interactive(scopes=self.session.scopes)
         if "access_token" not in result:
@@ -59,7 +67,10 @@ class OneDriveProjectClient:
     # API helpers
     # ------------------------------------------------------------------
     def list_root_files(self) -> List[Dict[str, str]]:
-        response = requests.get("https://graph.microsoft.com/v1.0/me/drive/root/children", headers=self._headers())
+        response = requests.get(
+            "https://graph.microsoft.com/v1.0/me/drive/root/children",
+            headers=self._headers(),
+        )
         response.raise_for_status()
         return response.json().get("value", [])
 
@@ -69,7 +80,9 @@ class OneDriveProjectClient:
         response.raise_for_status()
         return response.json()
 
-    def poll_file_updates(self, file_id: str, polls: int = 3, delay: float = 2.0) -> List[str]:
+    def poll_file_updates(
+        self, file_id: str, polls: int = 3, delay: float = 2.0
+    ) -> List[str]:
         timestamps: List[str] = []
         url = f"https://graph.microsoft.com/v1.0/me/drive/items/{file_id}"
         for _ in range(polls):
@@ -81,6 +94,8 @@ class OneDriveProjectClient:
 
     def upload_text_file(self, file_name: str, content: str) -> Dict[str, str]:
         url = f"https://graph.microsoft.com/v1.0/me/drive/root:/{file_name}:/content"
-        response = requests.put(url, headers=self._headers(), data=content.encode("utf-8"))
+        response = requests.put(
+            url, headers=self._headers(), data=content.encode("utf-8")
+        )
         response.raise_for_status()
         return response.json()

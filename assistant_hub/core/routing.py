@@ -10,8 +10,20 @@ import re
 @dataclass
 class Intent:
     """Represents a user intent for routing to agents and workflows."""
-    kind: Literal["plan", "summarize", "refactor", "report", "clean", "analyze", "draft", "create_task"]
-    target: Optional[str] = None  # Optional target identifier (project name, file path, etc.)
+
+    kind: Literal[
+        "plan",
+        "summarize",
+        "refactor",
+        "report",
+        "clean",
+        "analyze",
+        "draft",
+        "create_task",
+    ]
+    target: Optional[
+        str
+    ] = None  # Optional target identifier (project name, file path, etc.)
     context: Optional[str] = None  # Additional context for the intent
 
 
@@ -88,7 +100,7 @@ def parse_intent_from_routing(result: Optional[Dict[str, Any]]) -> Optional[Inte
     """Convert routing result to an Intent dataclass."""
     if not result:
         return None
-    
+
     intent_map = {
         "project_plan": "plan",
         "onenote_summarize": "summarize",
@@ -97,7 +109,7 @@ def parse_intent_from_routing(result: Optional[Dict[str, Any]]) -> Optional[Inte
         "word_draft": "draft",
         "task_create": "create_task",
     }
-    
+
     intent_kind = intent_map.get(result.get("intent", ""), "report")
     return Intent(
         kind=intent_kind,
@@ -107,24 +119,24 @@ def parse_intent_from_routing(result: Optional[Dict[str, Any]]) -> Optional[Inte
 
 def route_intent(project, intent: Intent) -> str:
     """Route an intent to the appropriate agent handler.
-    
+
     Args:
         project: A Project instance
         intent: An Intent dataclass
-        
+
     Returns:
         The agent's response as a string
     """
     from ..ai_layer.agents import aic, sora, aria
     from ..db import Project as DBProject
-    
+
     # Convert db.Project to the format expected by agents if needed
     if isinstance(project, DBProject):
         # Agents expect Project with name, description, status
         project_obj = project
     else:
         project_obj = project
-    
+
     if intent.kind == "plan":
         return sora.handle_planning(project_obj, intent)
     elif intent.kind == "report":
@@ -137,4 +149,3 @@ def route_intent(project, intent: Intent) -> str:
         return sora.handle_planning(project_obj, intent)  # Task creation is planning
     else:
         return f"Unknown intent kind: {intent.kind}"
-

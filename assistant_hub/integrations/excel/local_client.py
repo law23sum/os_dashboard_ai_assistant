@@ -19,7 +19,9 @@ def save_sheet(path: str, sheet_name: str, df: pd.DataFrame) -> None:
     """Save a DataFrame to an Excel file."""
     dest = Path(path)
     mode = "a" if dest.exists() else "w"
-    with pd.ExcelWriter(dest, engine="openpyxl", mode=mode, if_sheet_exists="replace") as writer:
+    with pd.ExcelWriter(
+        dest, engine="openpyxl", mode=mode, if_sheet_exists="replace"
+    ) as writer:
         df.to_excel(writer, sheet_name=sheet_name, index=False)
 
 
@@ -43,7 +45,9 @@ class LocalWorkbook:
 
     def write_summary(self, instruction: str, summary: str) -> Path:
         summary_path = self.path.with_suffix(self.path.suffix + ".summary.txt")
-        summary_path.write_text(f"Instruction: {instruction}\n\n{summary}\n", encoding="utf-8")
+        summary_path.write_text(
+            f"Instruction: {instruction}\n\n{summary}\n", encoding="utf-8"
+        )
         return summary_path
 
     def export_table(self, sheet_name: str, rows: List[List[str]]) -> Path:

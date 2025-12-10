@@ -128,13 +128,17 @@ class DriverMetrics:
         self.operations: List[Dict[str, Any]] = []
 
     async def record_operation(self, name: str, payload: Dict[str, Any]) -> None:
-        self.operations.append({"name": name, "payload": payload, "timestamp": datetime.now()})
+        self.operations.append(
+            {"name": name, "payload": payload, "timestamp": datetime.now()}
+        )
 
 
 class PolicyEngine:
     """Base policy engine interface used in the skeleton."""
 
-    async def check_permission(self, action: str, resource: str, context: Dict[str, Any]) -> bool:
+    async def check_permission(
+        self, action: str, resource: str, context: Dict[str, Any]
+    ) -> bool:
         return True
 
     async def check_file_write_permission(self, path: str) -> bool:
@@ -163,7 +167,9 @@ class RateLimiter:
 class CostEstimator:
     """Estimates costs for driver operations."""
 
-    async def estimate_cost(self, manifest: DriverManifest, operation_description: str) -> float:
+    async def estimate_cost(
+        self, manifest: DriverManifest, operation_description: str
+    ) -> float:
         base = manifest.cost_model.get("per_call", 0.0)
         modifier = min(len(operation_description.split()) / 10.0, 5)
         return base * (1 + modifier)
@@ -206,7 +212,9 @@ class BaseDriver:
     async def execute_action(self, action: str, params: Dict[str, Any]) -> Any:
         raise NotImplementedError
 
-    async def validate_preconditions(self, action: str, context: Dict[str, Any]) -> bool:
+    async def validate_preconditions(
+        self, action: str, context: Dict[str, Any]
+    ) -> bool:
         schema = self.manifest.actions[action].input_schema
         for condition in schema.get("preconditions", []):
             if condition == "auth_token_present" and "auth_token" not in context:
@@ -237,7 +245,9 @@ class OSDriver(BaseDriver):
         return {"success": True, "path": path, "size": len(content)}
 
     async def _run_process(self, command: str, env: Dict[str, str]) -> Dict[str, Any]:
-        await self.metrics.record_operation("process_run", {"command": command, "env": env})
+        await self.metrics.record_operation(
+            "process_run", {"command": command, "env": env}
+        )
         return {"success": True, "command": command, "env": env}
 
 
@@ -246,7 +256,9 @@ class SoftwareDriver(BaseDriver):
 
     driver_type = DriverType.SOFTWARE
 
-    def __init__(self, manifest: DriverManifest, api_client: Callable[..., Any]) -> None:
+    def __init__(
+        self, manifest: DriverManifest, api_client: Callable[..., Any]
+    ) -> None:
         super().__init__(manifest)
         self.api_client = api_client
         self.rate_limiter = RateLimiter(manifest.rate_limits)
@@ -261,12 +273,18 @@ class SoftwareDriver(BaseDriver):
         finally:
             self.rate_limiter.release()
 
-    async def _action_create_pull_request(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _action_create_pull_request(
+        self, params: Dict[str, Any]
+    ) -> Dict[str, Any]:
         repo = params["repository"]
         if not await self.policy_engine.check_repo_access(repo):
             raise PermissionError(f"No repo access for {repo}")
         await self.metrics.record_operation("pr_created", {"repo": repo})
-        return {"repo": repo, "title": params.get("title", ""), "number": uuid.uuid4().hex[:6]}
+        return {
+            "repo": repo,
+            "title": params.get("title", ""),
+            "number": uuid.uuid4().hex[:6],
+        }
 
 
 class DataDriver(BaseDriver):
@@ -276,10 +294,14 @@ class DataDriver(BaseDriver):
 
     async def execute_action(self, action: str, params: Dict[str, Any]) -> Any:
         if action == "query":
-            return await self._execute_query(params["sql"], params.get("parameters", {}))
+            return await self._execute_query(
+                params["sql"], params.get("parameters", {})
+            )
         raise ValueError(f"Unknown data action: {action}")
 
-    async def _execute_query(self, sql: str, parameters: Dict[str, Any]) -> List[Dict[str, Any]]:
+    async def _execute_query(
+        self, sql: str, parameters: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         await self.metrics.record_operation("query", {"sql": sql})
         return [{"row": 1, "sql": sql, "parameters": parameters}]
 
@@ -301,7 +323,9 @@ class CapabilityIndex:
         descriptions: List[str] = []
         for action in manifest.actions.values():
             descriptions.append(action.description)
-            descriptions.extend(example.get("description", "") for example in action.examples)
+            descriptions.extend(
+                example.get("description", "") for example in action.examples
+            )
         embeddings = await self.embeddings_model.embed_texts(descriptions)
         self.capability_vectors[manifest.name] = embeddings
         self.action_descriptions[manifest.name] = descriptions
@@ -312,7 +336,9 @@ class CapabilityIndex:
         query_embedding = await self.embeddings_model.embed_text(query)
         scores: List[Tuple[str, float]] = []
         for driver_name, vectors in self.capability_vectors.items():
-            similarities = [self._cosine_similarity(query_embedding, vec) for vec in vectors]
+            similarities = [
+                self._cosine_similarity(query_embedding, vec) for vec in vectors
+            ]
             scores.append((driver_name, max(similarities)))
         scores.sort(key=lambda item: item[1], reverse=True)
         return [name for name, _ in scores[:top_k]]
@@ -333,7 +359,9 @@ class DriverRegistry:
         self.capability_index = CapabilityIndex()
         self.cost_estimator = CostEstimator()
 
-    async def register_driver(self, manifest: DriverManifest, driver_instance: BaseDriver) -> None:
+    async def register_driver(
+        self, manifest: DriverManifest, driver_instance: BaseDriver
+    ) -> None:
         await self._validate_manifest(manifest)
         self.manifests[manifest.name] = manifest
         self.driver_instances[manifest.name] = driver_instance
@@ -345,16 +373,23 @@ class DriverRegistry:
     async def get_manifests(self, driver_names: List[str]) -> List[DriverManifest]:
         return [self.manifests[name] for name in driver_names if name in self.manifests]
 
-    async def discover_drivers_for_task(self, task_description: str, constraints: Dict[str, Any]) -> List[str]:
+    async def discover_drivers_for_task(
+        self, task_description: str, constraints: Dict[str, Any]
+    ) -> List[str]:
         candidates = await self.capability_index.semantic_search(task_description)
         filtered: List[str] = []
         for driver_name in candidates:
             manifest = self.manifests[driver_name]
             if constraints.get("max_cost"):
-                cost = await self.cost_estimator.estimate_cost(manifest, task_description)
+                cost = await self.cost_estimator.estimate_cost(
+                    manifest, task_description
+                )
                 if cost > constraints["max_cost"]:
                     continue
-            if constraints.get("security_class") and manifest.security_class != constraints["security_class"]:
+            if (
+                constraints.get("security_class")
+                and manifest.security_class != constraints["security_class"]
+            ):
                 continue
             filtered.append(driver_name)
         return filtered or list(self.manifests.keys())
@@ -397,7 +432,9 @@ class TaskHypothesis:
 
 
 class TaskDecomposer:
-    async def refine_hypothesis(self, hypothesis: TaskHypothesis, context: Dict[str, Any]) -> TaskDecomposition:
+    async def refine_hypothesis(
+        self, hypothesis: TaskHypothesis, context: Dict[str, Any]
+    ) -> TaskDecomposition:
         steps: List[TaskStep] = []
         for idx, step_description in enumerate(hypothesis.steps):
             steps.append(
@@ -420,7 +457,9 @@ class TaskDecomposer:
 
 
 class ConstraintSolver:
-    async def score_driver_option(self, driver_name: str, task_step: TaskStep, intent: Intent) -> float:
+    async def score_driver_option(
+        self, driver_name: str, task_step: TaskStep, intent: Intent
+    ) -> float:
         base = 1.0
         if task_step.risk_level == "low":
             base += 0.1
@@ -430,7 +469,9 @@ class ConstraintSolver:
 
 
 class HypothesisGenerator:
-    async def generate_hypotheses(self, intent: Intent, context: Dict[str, Any]) -> List[TaskHypothesis]:
+    async def generate_hypotheses(
+        self, intent: Intent, context: Dict[str, Any]
+    ) -> List[TaskHypothesis]:
         return [TaskHypothesis(steps=[intent.content])]
 
 
@@ -442,8 +483,12 @@ class AICReasoningEngine:
         self.constraint_solver = ConstraintSolver()
         self.hypothesis_generator = HypothesisGenerator()
 
-    async def decompose_task(self, intent: Intent, context: Dict[str, Any]) -> TaskDecomposition:
-        hypotheses = await self.hypothesis_generator.generate_hypotheses(intent, context)
+    async def decompose_task(
+        self, intent: Intent, context: Dict[str, Any]
+    ) -> TaskDecomposition:
+        hypotheses = await self.hypothesis_generator.generate_hypotheses(
+            intent, context
+        )
         best = hypotheses[0]
         context["intent_id"] = intent.id
         return await self.task_decomposer.refine_hypothesis(best, context)
@@ -456,7 +501,9 @@ class ExecutionPlanner:
         self.driver_registry = driver_registry
         self.constraint_solver = ConstraintSolver()
 
-    async def create_execution_plan(self, decomposition: TaskDecomposition, intent: Intent) -> ExecutionPlan:
+    async def create_execution_plan(
+        self, decomposition: TaskDecomposition, intent: Intent
+    ) -> ExecutionPlan:
         execution_steps: List[ExecutionStep] = []
         for step in decomposition.steps:
             candidates = await self.driver_registry.discover_drivers_for_task(
@@ -468,7 +515,9 @@ class ExecutionPlanner:
             )
             if not candidates:
                 raise ValueError(f"No drivers available for {step.description}")
-            selected_driver = await self._select_optimal_driver(candidates, step, intent)
+            selected_driver = await self._select_optimal_driver(
+                candidates, step, intent
+            )
             execution_steps.append(
                 ExecutionStep(
                     id=f"exec_{step.id}",
@@ -497,7 +546,9 @@ class ExecutionPlanner:
     ) -> str:
         scores: List[Tuple[float, str]] = []
         for driver_name in candidate_drivers:
-            score = await self.constraint_solver.score_driver_option(driver_name, task_step, intent)
+            score = await self.constraint_solver.score_driver_option(
+                driver_name, task_step, intent
+            )
             scores.append((score, driver_name))
         scores.sort(key=lambda item: item[0])
         return scores[-1][1]
@@ -529,10 +580,14 @@ class ProjectLedger:
     async def get_context(self, project_id: Optional[str]) -> Dict[str, Any]:
         return {"project_id": project_id, "status": "active"}
 
-    async def get_conversation_history(self, project_id: Optional[str], limit: int) -> List[str]:
+    async def get_conversation_history(
+        self, project_id: Optional[str], limit: int
+    ) -> List[str]:
         return [f"conversation_{idx}" for idx in range(min(limit, 3))]
 
-    async def get_execution_history(self, project_id: Optional[str], limit: int) -> List[str]:
+    async def get_execution_history(
+        self, project_id: Optional[str], limit: int
+    ) -> List[str]:
         return [f"execution_{idx}" for idx in range(min(limit, 3))]
 
 
@@ -557,8 +612,12 @@ class IntentProcessor:
         await self._ensure_driver_catalog()
         enriched_intent = await self._enrich_intent(intent)
         context = await self._build_reasoning_context(enriched_intent)
-        decomposition = await self.reasoning_engine.decompose_task(enriched_intent, context)
-        plan = await self.execution_planner.create_execution_plan(decomposition, enriched_intent)
+        decomposition = await self.reasoning_engine.decompose_task(
+            enriched_intent, context
+        )
+        plan = await self.execution_planner.create_execution_plan(
+            decomposition, enriched_intent
+        )
         result = await self.execution_fabric.execute_plan(plan)
         await self._integrate_feedback(result, enriched_intent)
         return result
@@ -583,15 +642,21 @@ class IntentProcessor:
                 "project_context": project_context,
                 "user_permissions": user_permissions,
                 "budget_constraints": budget,
-                "available_drivers": await self.driver_registry.get_available_drivers(intent.user_id, intent.tenant_id),
+                "available_drivers": await self.driver_registry.get_available_drivers(
+                    intent.user_id, intent.tenant_id
+                ),
             }
         )
         return intent
 
     async def _build_reasoning_context(self, intent: Intent) -> Dict[str, Any]:
         return {
-            "prior_conversations": await self.project_ledger.get_conversation_history(intent.project_id, limit=5),
-            "execution_traces": await self.project_ledger.get_execution_history(intent.project_id, limit=5),
+            "prior_conversations": await self.project_ledger.get_conversation_history(
+                intent.project_id, limit=5
+            ),
+            "execution_traces": await self.project_ledger.get_execution_history(
+                intent.project_id, limit=5
+            ),
             "current_system_state": await self._get_system_state(intent),
         }
 
@@ -602,9 +667,14 @@ class IntentProcessor:
         return {"tenant_id": tenant_id, "monthly_budget": 1000}
 
     async def _get_system_state(self, intent: Intent) -> Dict[str, Any]:
-        return {"active_daemons": await self.daemon_manager.list_daemons(), "intent": intent.id}
+        return {
+            "active_daemons": await self.daemon_manager.list_daemons(),
+            "intent": intent.id,
+        }
 
-    async def _integrate_feedback(self, result: ExecutionResult, intent: Intent) -> None:
+    async def _integrate_feedback(
+        self, result: ExecutionResult, intent: Intent
+    ) -> None:
         _ = (result, intent)
         return
 

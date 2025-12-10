@@ -156,7 +156,9 @@ class AIOfficeWebSocketRouter:
         session = self._clients.pop(client_id, None)
         if not session:
             return
-        if session.document_id and client_id in self._document_index.get(session.document_id, set()):
+        if session.document_id and client_id in self._document_index.get(
+            session.document_id, set()
+        ):
             self._document_index[session.document_id].discard(client_id)
             if not self._document_index[session.document_id]:
                 self._document_index.pop(session.document_id, None)
@@ -174,14 +176,18 @@ class AIOfficeWebSocketRouter:
     # ------------------------------------------------------------------
     # Event routing helpers
     # ------------------------------------------------------------------
-    def broadcast_live_edit(self, client_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def broadcast_live_edit(
+        self, client_id: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Prepare a live-edit broadcast for other collaborators."""
         client = self._clients.get(client_id)
         if not client or not client.document_id:
             return {"recipients": [], "message": None}
 
         client.touch()
-        recipients = [cid for cid in self._document_index[client.document_id] if cid != client_id]
+        recipients = [
+            cid for cid in self._document_index[client.document_id] if cid != client_id
+        ]
         message = AIOfficeMessage(
             type=MessageType.LIVE_EDIT_UPDATE,
             source=client.application,
@@ -248,7 +254,11 @@ class AIOfficeWebSocketRouter:
         """Return a list of target client IDs for a message."""
         if message.document_id and message.document_id in self._document_index:
             return [cid for cid in self._document_index[message.document_id]]
-        return [cid for cid, client in self._clients.items() if client.application == message.target]
+        return [
+            cid
+            for cid, client in self._clients.items()
+            if client.application == message.target
+        ]
 
     # ------------------------------------------------------------------
     # AI processing queue
@@ -261,14 +271,18 @@ class AIOfficeWebSocketRouter:
         self.logger.debug("Queued AI job %s for %s", job_id, message.type.value)
         return job_id
 
-    def get_ai_job_result(self, job_id: str, timeout: Optional[float] = None) -> Optional[Dict[str, Any]]:
+    def get_ai_job_result(
+        self, job_id: str, timeout: Optional[float] = None
+    ) -> Optional[Dict[str, Any]]:
         future = self._pending_jobs.get(job_id)
         if not future:
             return None
         try:
             result = future.result(timeout=timeout)
             return result
-        except Exception as exc:  # pragma: no cover - Future timeout/error surfaces to caller
+        except (
+            Exception
+        ) as exc:  # pragma: no cover - Future timeout/error surfaces to caller
             self.logger.error("AI job %s failed: %s", job_id, exc)
             return {"success": False, "error": str(exc)}
 

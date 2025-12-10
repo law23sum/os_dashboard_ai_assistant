@@ -37,11 +37,15 @@ class RegulationIngestDaemon:
         pdf_cir = self.pdf.read(pdf_id)
         self.audit.add_touch(operation.id, self.pdf.system_name, pdf_id, "read")
 
-        self.index.upsert_document(pdf_cir, payload={"system": self.pdf.system_name, "resource_id": pdf_id})
+        self.index.upsert_document(
+            pdf_cir, payload={"system": self.pdf.system_name, "resource_id": pdf_id}
+        )
 
         draft_root = pdf_cir.root.model_copy(deep=True)
         draft_root.type = "document"
-        draft_root.title = f"Policy update draft based on {pdf_cir.root.title or 'regulation'}"
+        draft_root.title = (
+            f"Policy update draft based on {pdf_cir.root.title or 'regulation'}"
+        )
         draft_root.text = (
             "DRAFT POLICY UPDATE\n\n"
             "This is a placeholder draft generated from the regulation.\n"

@@ -18,18 +18,18 @@ class OneNoteViewer:
         try:
             # Parse the OneDrive sharing link
             parsed = urlparse(url)
-            if '1drv.ms' in parsed.netloc:
+            if "1drv.ms" in parsed.netloc:
                 # Extract the sharing token and other parameters
                 query_params = parse_qs(parsed.query)
-                sharing_token = query_params.get('e', [None])[0]
+                sharing_token = query_params.get("e", [None])[0]
 
                 if sharing_token:
                     self.shared_links[name] = {
-                        'url': url,
-                        'sharing_token': sharing_token,
-                        'added_at': datetime.now(),
-                        'last_accessed': None,
-                        'content_cache': None
+                        "url": url,
+                        "sharing_token": sharing_token,
+                        "added_at": datetime.now(),
+                        "last_accessed": None,
+                        "content_cache": None,
                     }
                     return True
             return False
@@ -51,28 +51,30 @@ class OneNoteViewer:
         try:
             # For OneDrive shared links, we can try to access the content
             # Note: This is limited by OneDrive sharing permissions
-            response = self.session.get(link_data['url'], allow_redirects=True)
+            response = self.session.get(link_data["url"], allow_redirects=True)
             response.raise_for_status()
 
             # Update access time
-            link_data['last_accessed'] = datetime.now()
+            link_data["last_accessed"] = datetime.now()
 
             return {
-                'name': name,
-                'url': link_data['url'],
-                'status': 'accessible',
-                'last_accessed': link_data['last_accessed'].isoformat(),
-                'content_type': response.headers.get('content-type', 'unknown'),
-                'size': len(response.content) if response.content else 0
+                "name": name,
+                "url": link_data["url"],
+                "status": "accessible",
+                "last_accessed": link_data["last_accessed"].isoformat(),
+                "content_type": response.headers.get("content-type", "unknown"),
+                "size": len(response.content) if response.content else 0,
             }
 
         except requests.exceptions.RequestException as e:
             return {
-                'name': name,
-                'url': link_data['url'],
-                'status': 'error',
-                'error': str(e),
-                'last_accessed': link_data.get('last_accessed').isoformat() if link_data.get('last_accessed') else None
+                "name": name,
+                "url": link_data["url"],
+                "status": "error",
+                "error": str(e),
+                "last_accessed": link_data.get("last_accessed").isoformat()
+                if link_data.get("last_accessed")
+                else None,
             }
 
     def get_all_link_statuses(self) -> List[Dict[str, Any]]:
@@ -90,8 +92,8 @@ class OneNoteViewer:
             return False
 
         content = self.get_link_content(name)
-        if content and content.get('status') == 'accessible':
-            self.shared_links[name]['content_cache'] = content
+        if content and content.get("status") == "accessible":
+            self.shared_links[name]["content_cache"] = content
             return True
         return False
 
@@ -104,16 +106,22 @@ def integrate_onenote_with_dashboard(dashboard_engine, onenote_viewer: OneNoteVi
     onenote_data = onenote_viewer.get_all_link_statuses()
 
     # Update dashboard display model to include OneNote
-    current_model = dashboard_engine.get_dashboard_state().get('display_model', {})
+    current_model = dashboard_engine.get_dashboard_state().get("display_model", {})
 
-    current_model.update({
-        'onenote_links': onenote_data,
-        'onenote_summary': {
-            'total_links': len(onenote_data),
-            'accessible_links': len([l for l in onenote_data if l.get('status') == 'accessible']),
-            'error_links': len([l for l in onenote_data if l.get('status') == 'error'])
+    current_model.update(
+        {
+            "onenote_links": onenote_data,
+            "onenote_summary": {
+                "total_links": len(onenote_data),
+                "accessible_links": len(
+                    [l for l in onenote_data if l.get("status") == "accessible"]
+                ),
+                "error_links": len(
+                    [l for l in onenote_data if l.get("status") == "error"]
+                ),
+            },
         }
-    })
+    )
 
-    dashboard_engine.dashboard_state['display_model'] = current_model
+    dashboard_engine.dashboard_state["display_model"] = current_model
     return current_model

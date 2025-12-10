@@ -30,12 +30,22 @@ import subprocess
 
 from config.logging_config import setup_logger
 
-from assistant_core.cir.schema import CIRDocument, ContentType, SourceSystem, ProvenanceEvent as Provenance
-from api_connectors.universal_connector import BaseConnector, OperationResult, GitConnector
+from assistant_core.cir.schema import (
+    CIRDocument,
+    ContentType,
+    SourceSystem,
+    ProvenanceEvent as Provenance,
+)
+from api_connectors.universal_connector import (
+    BaseConnector,
+    OperationResult,
+    GitConnector,
+)
 
 
 class AuditEventType(Enum):
     """Types of audit events"""
+
     RESOURCE_READ = "resource_read"
     RESOURCE_WRITE = "resource_write"
     RESOURCE_CREATE = "resource_create"
@@ -54,6 +64,7 @@ class AuditEventType(Enum):
 
 class AuditLevel(Enum):
     """Audit event severity levels"""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -62,6 +73,7 @@ class AuditLevel(Enum):
 
 class ComplianceFramework(Enum):
     """Supported compliance frameworks"""
+
     GDPR = "gdpr"
     HIPAA = "hipaa"
     SOX = "sox"
@@ -74,6 +86,7 @@ class ComplianceFramework(Enum):
 @dataclass
 class AuditEvent:
     """Individual audit event record"""
+
     event_id: str
     event_type: AuditEventType
     timestamp: datetime
@@ -100,6 +113,7 @@ class AuditEvent:
 @dataclass
 class ComplianceRule:
     """Compliance rule definition"""
+
     rule_id: str
     framework: ComplianceFramework
     name: str
@@ -117,6 +131,7 @@ class ComplianceRule:
 @dataclass
 class ComplianceViolation:
     """Compliance violation record"""
+
     violation_id: str
     rule_id: str
     event_id: str
@@ -136,6 +151,7 @@ class ComplianceViolation:
 @dataclass
 class DataLineage:
     """Data lineage tracking"""
+
     lineage_id: str
     resource_id: str
     connector_name: str
@@ -176,13 +192,13 @@ class AuditStorage:
 
         # Serialize event
         event_data = asdict(event)
-        event_data['timestamp'] = event.timestamp.isoformat()
-        event_data['event_type'] = event.event_type.value  # Convert enum to string
-        event_data['level'] = event.level.value  # Convert enum to string
+        event_data["timestamp"] = event.timestamp.isoformat()
+        event_data["event_type"] = event.event_type.value  # Convert enum to string
+        event_data["level"] = event.level.value  # Convert enum to string
 
         # Append to file
-        with open(events_file, 'a') as f:
-            f.write(json.dumps(event_data) + '\n')
+        with open(events_file, "a") as f:
+            f.write(json.dumps(event_data) + "\n")
 
         # Add to cache
         self.events_cache[event.event_id] = event
@@ -191,14 +207,14 @@ class AuditStorage:
         if len(self.events_cache) > self.cache_size:
             # Remove oldest entries
             sorted_events = sorted(
-                self.events_cache.items(),
-                key=lambda x: x[1].timestamp
+                self.events_cache.items(), key=lambda x: x[1].timestamp
             )
-            for event_id, _ in sorted_events[:len(sorted_events) - self.cache_size]:
+            for event_id, _ in sorted_events[: len(sorted_events) - self.cache_size]:
                 del self.events_cache[event_id]
 
-    async def get_events(self, start_date: datetime, end_date: datetime,
-                        filters: Dict[str, Any] = None) -> List[AuditEvent]:
+    async def get_events(
+        self, start_date: datetime, end_date: datetime, filters: Dict[str, Any] = None
+    ) -> List[AuditEvent]:
         """Retrieve audit events within date range"""
         events = []
 
@@ -211,7 +227,7 @@ class AuditStorage:
             events_file = self.storage_path / "events" / f"{date_str}.jsonl"
 
             if events_file.exists():
-                with open(events_file, 'r') as f:
+                with open(events_file, "r") as f:
                     for line in f:
                         try:
                             event_data = json.loads(line.strip())
@@ -236,27 +252,29 @@ class AuditStorage:
         # Load existing rules
         rules = {}
         if rules_file.exists():
-            with open(rules_file, 'r') as f:
+            with open(rules_file, "r") as f:
                 rules = json.load(f)
 
         # Add/update rule
         rule_data = asdict(rule)
-        rule_data['created_at'] = rule.created_at.isoformat()
-        rule_data['framework'] = rule.framework.value  # Convert enum to string
+        rule_data["created_at"] = rule.created_at.isoformat()
+        rule_data["framework"] = rule.framework.value  # Convert enum to string
         rules[rule.rule_id] = rule_data
 
         # Save rules
-        with open(rules_file, 'w') as f:
+        with open(rules_file, "w") as f:
             json.dump(rules, f, indent=2)
 
-    async def get_compliance_rules(self, framework: ComplianceFramework = None) -> List[ComplianceRule]:
+    async def get_compliance_rules(
+        self, framework: ComplianceFramework = None
+    ) -> List[ComplianceRule]:
         """Get compliance rules"""
         rules_file = self.storage_path / "compliance" / "rules.json"
 
         if not rules_file.exists():
             return []
 
-        with open(rules_file, 'r') as f:
+        with open(rules_file, "r") as f:
             rules_data = json.load(f)
 
         rules = []
@@ -272,53 +290,55 @@ class AuditStorage:
         violations_file = self.storage_path / "compliance" / "violations.jsonl"
 
         violation_data = asdict(violation)
-        violation_data['detected_at'] = violation.detected_at.isoformat()
-        violation_data['severity'] = violation.severity.value  # Convert enum to string
+        violation_data["detected_at"] = violation.detected_at.isoformat()
+        violation_data["severity"] = violation.severity.value  # Convert enum to string
         if violation.resolved_at:
-            violation_data['resolved_at'] = violation.resolved_at.isoformat()
+            violation_data["resolved_at"] = violation.resolved_at.isoformat()
 
-        with open(violations_file, 'a') as f:
-            f.write(json.dumps(violation_data) + '\n')
+        with open(violations_file, "a") as f:
+            f.write(json.dumps(violation_data) + "\n")
 
     async def store_lineage(self, lineage: DataLineage):
         """Store data lineage"""
         lineage_file = self.storage_path / "lineage" / f"{lineage.resource_id}.json"
 
         lineage_data = asdict(lineage)
-        lineage_data['created_at'] = lineage.created_at.isoformat()
-        lineage_data['updated_at'] = lineage.updated_at.isoformat()
+        lineage_data["created_at"] = lineage.created_at.isoformat()
+        lineage_data["updated_at"] = lineage.updated_at.isoformat()
 
-        with open(lineage_file, 'w') as f:
+        with open(lineage_file, "w") as f:
             json.dump(lineage_data, f, indent=2)
 
     def _deserialize_event(self, data: Dict[str, Any]) -> AuditEvent:
         """Deserialize audit event from JSON data"""
-        data['timestamp'] = datetime.fromisoformat(data['timestamp'])
-        data['event_type'] = AuditEventType(data['event_type'])
-        data['level'] = AuditLevel(data['level'])
+        data["timestamp"] = datetime.fromisoformat(data["timestamp"])
+        data["event_type"] = AuditEventType(data["event_type"])
+        data["level"] = AuditLevel(data["level"])
         return AuditEvent(**data)
 
     def _deserialize_compliance_rule(self, data: Dict[str, Any]) -> ComplianceRule:
         """Deserialize compliance rule from JSON data"""
-        data['framework'] = ComplianceFramework(data['framework'])
-        data['created_at'] = datetime.fromisoformat(data['created_at'])
+        data["framework"] = ComplianceFramework(data["framework"])
+        data["created_at"] = datetime.fromisoformat(data["created_at"])
         return ComplianceRule(**data)
 
-    def _event_matches_filters(self, event: AuditEvent, filters: Dict[str, Any]) -> bool:
+    def _event_matches_filters(
+        self, event: AuditEvent, filters: Dict[str, Any]
+    ) -> bool:
         """Check if event matches the given filters"""
         if not filters:
             return True
 
         for key, value in filters.items():
-            if key == 'event_type' and event.event_type != AuditEventType(value):
+            if key == "event_type" and event.event_type != AuditEventType(value):
                 return False
-            elif key == 'user_id' and event.user_id != value:
+            elif key == "user_id" and event.user_id != value:
                 return False
-            elif key == 'connector_name' and event.connector_name != value:
+            elif key == "connector_name" and event.connector_name != value:
                 return False
-            elif key == 'level' and event.level != AuditLevel(value):
+            elif key == "level" and event.level != AuditLevel(value):
                 return False
-            elif key == 'success' and event.success != value:
+            elif key == "success" and event.success != value:
                 return False
 
         return True
@@ -359,27 +379,34 @@ class ComplianceEngine:
 
         return violations
 
-    async def _check_rule(self, rule: ComplianceRule, event: AuditEvent) -> Optional[ComplianceViolation]:
+    async def _check_rule(
+        self, rule: ComplianceRule, event: AuditEvent
+    ) -> Optional[ComplianceViolation]:
         """Check a specific rule against an event"""
-        if rule.rule_type == 'data_retention':
+        if rule.rule_type == "data_retention":
             return await self._check_data_retention(rule, event)
-        elif rule.rule_type == 'access_control':
+        elif rule.rule_type == "access_control":
             return await self._check_access_control(rule, event)
-        elif rule.rule_type == 'encryption':
+        elif rule.rule_type == "encryption":
             return await self._check_encryption(rule, event)
-        elif rule.rule_type == 'data_export':
+        elif rule.rule_type == "data_export":
             return await self._check_data_export(rule, event)
-        elif rule.rule_type == 'sensitive_data':
+        elif rule.rule_type == "sensitive_data":
             return await self._check_sensitive_data(rule, event)
 
         return None
 
-    async def _check_data_retention(self, rule: ComplianceRule, event: AuditEvent) -> Optional[ComplianceViolation]:
+    async def _check_data_retention(
+        self, rule: ComplianceRule, event: AuditEvent
+    ) -> Optional[ComplianceViolation]:
         """Check data retention compliance"""
-        if event.event_type not in [AuditEventType.RESOURCE_CREATE, AuditEventType.RESOURCE_WRITE]:
+        if event.event_type not in [
+            AuditEventType.RESOURCE_CREATE,
+            AuditEventType.RESOURCE_WRITE,
+        ]:
             return None
 
-        max_retention_days = rule.config.get('max_retention_days')
+        max_retention_days = rule.config.get("max_retention_days")
         if not max_retention_days:
             return None
 
@@ -392,71 +419,84 @@ class ComplianceEngine:
                 rule_id=rule.rule_id,
                 event_id=event.event_id,
                 severity=AuditLevel.WARNING,
-                description=f"Data retention violation: Resource {event.resource_id} exceeds {max_retention_days} day retention policy"
+                description=f"Data retention violation: Resource {event.resource_id} exceeds {max_retention_days} day retention policy",
             )
 
         return None
 
-    async def _check_access_control(self, rule: ComplianceRule, event: AuditEvent) -> Optional[ComplianceViolation]:
+    async def _check_access_control(
+        self, rule: ComplianceRule, event: AuditEvent
+    ) -> Optional[ComplianceViolation]:
         """Check access control compliance"""
-        if event.event_type not in [AuditEventType.RESOURCE_READ, AuditEventType.RESOURCE_WRITE]:
+        if event.event_type not in [
+            AuditEventType.RESOURCE_READ,
+            AuditEventType.RESOURCE_WRITE,
+        ]:
             return None
 
         # Check for unauthorized access patterns
-        allowed_users = rule.config.get('allowed_users', [])
-        restricted_resources = rule.config.get('restricted_resources', [])
+        allowed_users = rule.config.get("allowed_users", [])
+        restricted_resources = rule.config.get("restricted_resources", [])
 
         if allowed_users and event.user_id not in allowed_users:
-            if any(pattern in (event.resource_id or '') for pattern in restricted_resources):
+            if any(
+                pattern in (event.resource_id or "") for pattern in restricted_resources
+            ):
                 return ComplianceViolation(
                     violation_id=str(uuid.uuid4()),
                     rule_id=rule.rule_id,
                     event_id=event.event_id,
                     severity=AuditLevel.ERROR,
-                    description=f"Access control violation: User {event.user_id} accessed restricted resource {event.resource_id}"
+                    description=f"Access control violation: User {event.user_id} accessed restricted resource {event.resource_id}",
                 )
 
         return None
 
-    async def _check_encryption(self, rule: ComplianceRule, event: AuditEvent) -> Optional[ComplianceViolation]:
+    async def _check_encryption(
+        self, rule: ComplianceRule, event: AuditEvent
+    ) -> Optional[ComplianceViolation]:
         """Check encryption compliance"""
         if event.event_type != AuditEventType.DATA_EXPORT:
             return None
 
-        require_encryption = rule.config.get('require_encryption', True)
-        if require_encryption and not event.details.get('encrypted', False):
+        require_encryption = rule.config.get("require_encryption", True)
+        if require_encryption and not event.details.get("encrypted", False):
             return ComplianceViolation(
                 violation_id=str(uuid.uuid4()),
                 rule_id=rule.rule_id,
                 event_id=event.event_id,
                 severity=AuditLevel.CRITICAL,
-                description="Encryption violation: Unencrypted data export detected"
+                description="Encryption violation: Unencrypted data export detected",
             )
 
         return None
 
-    async def _check_data_export(self, rule: ComplianceRule, event: AuditEvent) -> Optional[ComplianceViolation]:
+    async def _check_data_export(
+        self, rule: ComplianceRule, event: AuditEvent
+    ) -> Optional[ComplianceViolation]:
         """Check data export compliance"""
         if event.event_type != AuditEventType.DATA_EXPORT:
             return None
 
-        max_export_size = rule.config.get('max_export_size_mb')
+        max_export_size = rule.config.get("max_export_size_mb")
         if max_export_size:
-            export_size_mb = event.details.get('size_mb', 0)
+            export_size_mb = event.details.get("size_mb", 0)
             if export_size_mb > max_export_size:
                 return ComplianceViolation(
                     violation_id=str(uuid.uuid4()),
                     rule_id=rule.rule_id,
                     event_id=event.event_id,
                     severity=AuditLevel.WARNING,
-                    description=f"Data export size violation: {export_size_mb}MB exceeds limit of {max_export_size}MB"
+                    description=f"Data export size violation: {export_size_mb}MB exceeds limit of {max_export_size}MB",
                 )
 
         return None
 
-    async def _check_sensitive_data(self, rule: ComplianceRule, event: AuditEvent) -> Optional[ComplianceViolation]:
+    async def _check_sensitive_data(
+        self, rule: ComplianceRule, event: AuditEvent
+    ) -> Optional[ComplianceViolation]:
         """Check sensitive data handling compliance"""
-        sensitive_patterns = rule.config.get('sensitive_patterns', [])
+        sensitive_patterns = rule.config.get("sensitive_patterns", [])
         if not sensitive_patterns:
             return None
 
@@ -470,7 +510,7 @@ class ComplianceEngine:
                     rule_id=rule.rule_id,
                     event_id=event.event_id,
                     severity=AuditLevel.ERROR,
-                    description=f"Sensitive data violation: Pattern '{pattern}' detected in event"
+                    description=f"Sensitive data violation: Pattern '{pattern}' detected in event",
                 )
 
         return None
@@ -479,7 +519,9 @@ class ComplianceEngine:
 class GitIntegration:
     """Git integration for audit trail versioning"""
 
-    def __init__(self, git_connector: GitConnector, audit_repo_path: str = "audit_repository"):
+    def __init__(
+        self, git_connector: GitConnector, audit_repo_path: str = "audit_repository"
+    ):
         self.git_connector = git_connector
         self.audit_repo_path = Path(audit_repo_path)
         self.logger = setup_logger(__name__)
@@ -491,9 +533,16 @@ class GitIntegration:
 
             # Initialize git repository
             import subprocess
-            subprocess.run(['git', 'init'], cwd=self.audit_repo_path)
-            subprocess.run(['git', 'config', 'user.name', 'OS Dashboard Audit System'], cwd=self.audit_repo_path)
-            subprocess.run(['git', 'config', 'user.email', 'audit@osdashboard.local'], cwd=self.audit_repo_path)
+
+            subprocess.run(["git", "init"], cwd=self.audit_repo_path)
+            subprocess.run(
+                ["git", "config", "user.name", "OS Dashboard Audit System"],
+                cwd=self.audit_repo_path,
+            )
+            subprocess.run(
+                ["git", "config", "user.email", "audit@osdashboard.local"],
+                cwd=self.audit_repo_path,
+            )
 
     async def commit_audit_data(self, date: datetime, description: str = None):
         """Commit audit data for a specific date"""
@@ -503,14 +552,15 @@ class GitIntegration:
 
             # Stage all changes
             import subprocess
-            subprocess.run(['git', 'add', '.'], cwd=self.audit_repo_path)
+
+            subprocess.run(["git", "add", "."], cwd=self.audit_repo_path)
 
             # Commit changes
             result = subprocess.run(
-                ['git', 'commit', '-m', commit_message],
+                ["git", "commit", "-m", commit_message],
                 cwd=self.audit_repo_path,
                 capture_output=True,
-                text=True
+                text=True,
             )
 
             if result.returncode == 0:
@@ -530,23 +580,28 @@ class GitIntegration:
             import subprocess
 
             # Create and checkout new branch
-            subprocess.run(['git', 'checkout', '-b', branch_name], cwd=self.audit_repo_path)
+            subprocess.run(
+                ["git", "checkout", "-b", branch_name], cwd=self.audit_repo_path
+            )
 
             # Add investigation metadata
             metadata = {
-                'branch_name': branch_name,
-                'created_at': datetime.utcnow().isoformat(),
-                'base_date': base_date.isoformat(),
-                'purpose': 'audit_investigation'
+                "branch_name": branch_name,
+                "created_at": datetime.utcnow().isoformat(),
+                "base_date": base_date.isoformat(),
+                "purpose": "audit_investigation",
             }
 
             metadata_file = self.audit_repo_path / f"investigation_{branch_name}.json"
-            with open(metadata_file, 'w') as f:
+            with open(metadata_file, "w") as f:
                 json.dump(metadata, f, indent=2)
 
             # Commit metadata
-            subprocess.run(['git', 'add', str(metadata_file)], cwd=self.audit_repo_path)
-            subprocess.run(['git', 'commit', '-m', f"Start audit investigation: {branch_name}"], cwd=self.audit_repo_path)
+            subprocess.run(["git", "add", str(metadata_file)], cwd=self.audit_repo_path)
+            subprocess.run(
+                ["git", "commit", "-m", f"Start audit investigation: {branch_name}"],
+                cwd=self.audit_repo_path,
+            )
 
             return True
 
@@ -560,26 +615,35 @@ class GitIntegration:
             import subprocess
 
             result = subprocess.run(
-                ['git', 'log', '--pretty=format:%H|%an|%ad|%s', '--date=iso', '--', file_path],
+                [
+                    "git",
+                    "log",
+                    "--pretty=format:%H|%an|%ad|%s",
+                    "--date=iso",
+                    "--",
+                    file_path,
+                ],
                 cwd=self.audit_repo_path,
                 capture_output=True,
-                text=True
+                text=True,
             )
 
             if result.returncode != 0:
                 return []
 
             history = []
-            for line in result.stdout.strip().split('\n'):
+            for line in result.stdout.strip().split("\n"):
                 if line:
-                    parts = line.split('|', 3)
+                    parts = line.split("|", 3)
                     if len(parts) == 4:
-                        history.append({
-                            'commit_hash': parts[0],
-                            'author': parts[1],
-                            'date': parts[2],
-                            'message': parts[3]
-                        })
+                        history.append(
+                            {
+                                "commit_hash": parts[0],
+                                "author": parts[1],
+                                "date": parts[2],
+                                "message": parts[3],
+                            }
+                        )
 
             return history
 
@@ -591,7 +655,9 @@ class GitIntegration:
 class AuditSystem:
     """Main audit and governance system"""
 
-    def __init__(self, storage_path: str = "audit_data", git_repo_path: str = "audit_repository"):
+    def __init__(
+        self, storage_path: str = "audit_data", git_repo_path: str = "audit_repository"
+    ):
         self.storage = AuditStorage(storage_path)
         self.compliance_engine = ComplianceEngine(self.storage)
         self.git_integration = None
@@ -602,7 +668,9 @@ class AuditSystem:
         # Event hooks
         self.event_hooks: List[Callable] = []
 
-    async def initialize(self, enable_git: bool = True, git_connector: GitConnector = None):
+    async def initialize(
+        self, enable_git: bool = True, git_connector: GitConnector = None
+    ):
         """Initialize audit system"""
         await self.compliance_engine.load_rules()
 
@@ -620,10 +688,17 @@ class AuditSystem:
         """Add event hook for custom processing"""
         self.event_hooks.append(hook)
 
-    async def log_event(self, event_type: AuditEventType, action: str,
-                       user_id: str = None, connector_name: str = None,
-                       resource_id: str = None, details: Dict[str, Any] = None,
-                       level: AuditLevel = AuditLevel.INFO, **kwargs) -> str:
+    async def log_event(
+        self,
+        event_type: AuditEventType,
+        action: str,
+        user_id: str = None,
+        connector_name: str = None,
+        resource_id: str = None,
+        details: Dict[str, Any] = None,
+        level: AuditLevel = AuditLevel.INFO,
+        **kwargs,
+    ) -> str:
         """Log audit event"""
         event = AuditEvent(
             event_id=str(uuid.uuid4()),
@@ -635,7 +710,7 @@ class AuditSystem:
             action=action,
             details=details or {},
             level=level,
-            **kwargs
+            **kwargs,
         )
 
         # Store event
@@ -644,7 +719,9 @@ class AuditSystem:
         # Check compliance
         violations = await self.compliance_engine.check_compliance(event)
         if violations:
-            self.logger.warning(f"Compliance violations detected for event {event.event_id}: {len(violations)}")
+            self.logger.warning(
+                f"Compliance violations detected for event {event.event_id}: {len(violations)}"
+            )
 
         # Call event hooks
         for hook in self.event_hooks:
@@ -655,9 +732,13 @@ class AuditSystem:
 
         return event.event_id
 
-    async def track_data_lineage(self, resource_id: str, connector_name: str,
-                                source_resources: List[str] = None,
-                                transformations: List[Dict[str, Any]] = None):
+    async def track_data_lineage(
+        self,
+        resource_id: str,
+        connector_name: str,
+        source_resources: List[str] = None,
+        transformations: List[Dict[str, Any]] = None,
+    ):
         """Track data lineage"""
         lineage = DataLineage(
             lineage_id=str(uuid.uuid4()),
@@ -666,19 +747,21 @@ class AuditSystem:
             source_resources=source_resources or [],
             transformations=transformations or [],
             created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            updated_at=datetime.utcnow(),
         )
 
         await self.storage.store_lineage(lineage)
         self.lineage_tracker[resource_id] = lineage
 
-    async def get_audit_trail(self, start_date: datetime, end_date: datetime,
-                             filters: Dict[str, Any] = None) -> List[AuditEvent]:
+    async def get_audit_trail(
+        self, start_date: datetime, end_date: datetime, filters: Dict[str, Any] = None
+    ) -> List[AuditEvent]:
         """Get audit trail for date range"""
         return await self.storage.get_events(start_date, end_date, filters)
 
-    async def generate_compliance_report(self, framework: ComplianceFramework,
-                                       start_date: datetime, end_date: datetime) -> Dict[str, Any]:
+    async def generate_compliance_report(
+        self, framework: ComplianceFramework, start_date: datetime, end_date: datetime
+    ) -> Dict[str, Any]:
         """Generate compliance report"""
         # Get relevant events
         events = await self.get_audit_trail(start_date, end_date)
@@ -701,28 +784,39 @@ class AuditSystem:
                 rule_violations[violation.rule_id] += 1
 
         # Calculate compliance score
-        compliance_score = ((total_events - violation_count) / total_events * 100) if total_events > 0 else 100
+        compliance_score = (
+            ((total_events - violation_count) / total_events * 100)
+            if total_events > 0
+            else 100
+        )
 
         report = {
-            'framework': framework.value,
-            'period': {
-                'start_date': start_date.isoformat(),
-                'end_date': end_date.isoformat()
+            "framework": framework.value,
+            "period": {
+                "start_date": start_date.isoformat(),
+                "end_date": end_date.isoformat(),
             },
-            'summary': {
-                'total_events': total_events,
-                'total_violations': violation_count,
-                'compliance_score': round(compliance_score, 2),
-                'rules_evaluated': len(rules)
+            "summary": {
+                "total_events": total_events,
+                "total_violations": violation_count,
+                "compliance_score": round(compliance_score, 2),
+                "rules_evaluated": len(rules),
             },
-            'rule_violations': rule_violations,
-            'recommendations': self._generate_compliance_recommendations(rule_violations, rules)
+            "rule_violations": rule_violations,
+            "recommendations": self._generate_compliance_recommendations(
+                rule_violations, rules
+            ),
         }
 
         return report
 
-    async def export_audit_data(self, start_date: datetime, end_date: datetime,
-                               format: str = 'json', encrypt: bool = True) -> str:
+    async def export_audit_data(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        format: str = "json",
+        encrypt: bool = True,
+    ) -> str:
         """Export audit data"""
         events = await self.get_audit_trail(start_date, end_date)
 
@@ -731,25 +825,25 @@ class AuditSystem:
             AuditEventType.DATA_EXPORT,
             "export_audit_data",
             details={
-                'start_date': start_date.isoformat(),
-                'end_date': end_date.isoformat(),
-                'format': format,
-                'encrypted': encrypt,
-                'event_count': len(events),
-                'size_mb': len(json.dumps([asdict(e) for e in events])) / (1024 * 1024)
-            }
+                "start_date": start_date.isoformat(),
+                "end_date": end_date.isoformat(),
+                "format": format,
+                "encrypted": encrypt,
+                "event_count": len(events),
+                "size_mb": len(json.dumps([asdict(e) for e in events])) / (1024 * 1024),
+            },
         )
 
         # Export data
-        if format == 'json':
+        if format == "json":
             export_data = [asdict(event) for event in events]
             # Convert datetime objects to ISO strings
             for event_data in export_data:
-                event_data['timestamp'] = event_data['timestamp'].isoformat()
+                event_data["timestamp"] = event_data["timestamp"].isoformat()
 
             export_content = json.dumps(export_data, indent=2)
 
-        elif format == 'csv':
+        elif format == "csv":
             import csv
             import io
 
@@ -761,7 +855,7 @@ class AuditSystem:
 
                 for event in events:
                     event_dict = asdict(event)
-                    event_dict['timestamp'] = event.timestamp.isoformat()
+                    event_dict["timestamp"] = event.timestamp.isoformat()
                     writer.writerow(event_dict)
 
             export_content = output.getvalue()
@@ -780,7 +874,7 @@ class AuditSystem:
             filename += ".encrypted"
             export_path = self.storage.storage_path / filename
 
-        with open(export_path, 'w') as f:
+        with open(export_path, "w") as f:
             f.write(export_content)
 
         return str(export_path)
@@ -795,8 +889,9 @@ class AuditSystem:
 
         return await self.git_integration.commit_audit_data(date)
 
-    def _generate_compliance_recommendations(self, violations: Dict[str, int],
-                                           rules: List[ComplianceRule]) -> List[str]:
+    def _generate_compliance_recommendations(
+        self, violations: Dict[str, int], rules: List[ComplianceRule]
+    ) -> List[str]:
         """Generate compliance recommendations"""
         recommendations = []
 
@@ -808,12 +903,16 @@ class AuditSystem:
             # Find the rule
             rule = next((r for r in rules if r.rule_id == rule_id), None)
             if rule:
-                recommendations.append(f"Address frequent violations of rule '{rule.name}' ({count} violations)")
+                recommendations.append(
+                    f"Address frequent violations of rule '{rule.name}' ({count} violations)"
+                )
 
         # General recommendations
         if len(violations) > 0:
             recommendations.append("Review and update access control policies")
-            recommendations.append("Implement additional monitoring for sensitive operations")
+            recommendations.append(
+                "Implement additional monitoring for sensitive operations"
+            )
             recommendations.append("Provide compliance training to users")
 
         return recommendations
@@ -822,6 +921,7 @@ class AuditSystem:
         """Simple content encryption (placeholder)"""
         # In production, use proper encryption like Fernet
         import base64
+
         return base64.b64encode(content.encode()).decode()
 
     async def get_system_statistics(self) -> Dict[str, Any]:
@@ -839,16 +939,15 @@ class AuditSystem:
 
         # Compliance statistics
         total_rules = len(self.compliance_engine.rules)
-        active_rules = sum(1 for rule in self.compliance_engine.rules.values() if rule.enabled)
+        active_rules = sum(
+            1 for rule in self.compliance_engine.rules.values() if rule.enabled
+        )
 
         return {
-            'total_events_30_days': len(recent_events),
-            'event_type_distribution': event_type_counts,
-            'compliance_rules': {
-                'total': total_rules,
-                'active': active_rules
-            },
-            'registered_connectors': len(self.connectors),
-            'data_lineage_tracked': len(self.lineage_tracker),
-            'git_integration_enabled': self.git_integration is not None
+            "total_events_30_days": len(recent_events),
+            "event_type_distribution": event_type_counts,
+            "compliance_rules": {"total": total_rules, "active": active_rules},
+            "registered_connectors": len(self.connectors),
+            "data_lineage_tracked": len(self.lineage_tracker),
+            "git_integration_enabled": self.git_integration is not None,
         }

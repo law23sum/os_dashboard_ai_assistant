@@ -157,13 +157,18 @@ class IntelligenceDataDriver(BaseDriver):
             return await collector.fetch_api_data(source)
 
     async def _batch(self, params: Dict[str, Any]) -> List[Dict[str, Any]]:
-        sources = [self._build_source(src, src.get("source_type", "web")) for src in params["sources"]]
+        sources = [
+            self._build_source(src, src.get("source_type", "web"))
+            for src in params["sources"]
+        ]
         selectors = params.get("selectors", {})
         async with DataCollector(self._collector.max_concurrent) as collector:
             return await collector.batch_collect(sources, selectors)
 
     def _cross_reference(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        return self._collector.cross_reference_verify(params["datasets"], params["fields"])
+        return self._collector.cross_reference_verify(
+            params["datasets"], params["fields"]
+        )
 
     async def _clean(self, params: Dict[str, Any]) -> Dict[str, Any]:
         loop = asyncio.get_running_loop()
@@ -335,7 +340,9 @@ class ContentGenerationDriver(BaseDriver):
             elif etype == "table":
                 generator.add_table(element.get("data", []), element.get("headers"))
             elif etype == "list":
-                generator.add_list(element.get("items", []), element.get("list_type", "bullet"))
+                generator.add_list(
+                    element.get("items", []), element.get("list_type", "bullet")
+                )
             else:
                 generator.add_paragraph(element.get("text", ""))
         output_path = params["output_path"]
@@ -351,7 +358,10 @@ class SystemOperationsDriver(BaseDriver):
             "execute_command": ActionSchema(
                 name="execute_command",
                 description="Execute shell command",
-                input_schema={"type": "object", "properties": {"command": {}, "cwd": {"type": "string"}}},
+                input_schema={
+                    "type": "object",
+                    "properties": {"command": {}, "cwd": {"type": "string"}},
+                },
                 output_schema={"type": "object"},
                 examples=[{"description": "Run diagnostics"}],
             ),

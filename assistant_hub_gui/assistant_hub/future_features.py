@@ -367,7 +367,9 @@ FUTURE_FEATURES: List[FutureFeature] = [
 ]
 
 
-def get_features_by_tier(features: Iterable[FutureFeature] | None = None) -> "OrderedDict[str, List[FutureFeature]]":
+def get_features_by_tier(
+    features: Iterable[FutureFeature] | None = None,
+) -> "OrderedDict[str, List[FutureFeature]]":
     """Return ordered mapping tier -> features (preserves declaration order)."""
 
     tiers: "OrderedDict[str, List[FutureFeature]]" = OrderedDict()
@@ -376,7 +378,9 @@ def get_features_by_tier(features: Iterable[FutureFeature] | None = None) -> "Or
     return tiers
 
 
-def get_feature_lookup(features: Iterable[FutureFeature] | None = None) -> Dict[str, FutureFeature]:
+def get_feature_lookup(
+    features: Iterable[FutureFeature] | None = None,
+) -> Dict[str, FutureFeature]:
     """Fast lookup by code for selection handlers."""
 
     lookup: Dict[str, FutureFeature] = {}

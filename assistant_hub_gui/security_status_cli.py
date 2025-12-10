@@ -23,7 +23,9 @@ DEFAULT_MESSAGES: Dict[str, str] = {
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Update or inspect the cyber defense status for the dashboard.")
+    parser = argparse.ArgumentParser(
+        description="Update or inspect the cyber defense status for the dashboard."
+    )
     parser.add_argument(
         "status",
         choices=SECURITY_STATUS_CHOICES,
@@ -62,7 +64,9 @@ def main() -> None:
                 f"updated_at={current.updated_at or 'n/a'} | source={current.source}"
             )
 
-        message = args.message or DEFAULT_MESSAGES.get(args.status, "Status updated via CLI.")
+        message = args.message or DEFAULT_MESSAGES.get(
+            args.status, "Status updated via CLI."
+        )
         updated_at = datetime.now().isoformat(timespec="seconds")
         payload = SecurityStatus(
             status=args.status,

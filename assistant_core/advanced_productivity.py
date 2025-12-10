@@ -64,7 +64,7 @@ class EmailIntelligenceEngine:
     def __init__(self):
         self.templates = {
             "support_acknowledgment": "Thanks for reaching out. We received your request and will follow up shortly.",
-            "default": "Thank you for the email. I'll review this and respond soon."
+            "default": "Thank you for the email. I'll review this and respond soon.",
         }
 
     def analyze_email(self, email_data: Dict[str, Any]) -> EmailInsight:
@@ -90,14 +90,26 @@ class EmailIntelligenceEngine:
             category = EmailCategory.NEWSLETTER
         elif any(word in content_lower for word in ["support", "help", "issue"]):
             category = EmailCategory.SUPPORT
-        elif any(word in content_lower for word in ["action", "please", "need", "request"]):
+        elif any(
+            word in content_lower for word in ["action", "please", "need", "request"]
+        ):
             category = EmailCategory.ACTION_REQUIRED
         else:
             category = EmailCategory.WORK
 
-        sentiment = "positive" if any(word in content_lower for word in ["thank", "great", "awesome"]) else "neutral"
-        action_required = category in {EmailCategory.ACTION_REQUIRED, EmailCategory.MEETING, EmailCategory.SUPPORT}
-        response_time = 30 if priority in {EmailPriority.URGENT, EmailPriority.HIGH} else 90
+        sentiment = (
+            "positive"
+            if any(word in content_lower for word in ["thank", "great", "awesome"])
+            else "neutral"
+        )
+        action_required = category in {
+            EmailCategory.ACTION_REQUIRED,
+            EmailCategory.MEETING,
+            EmailCategory.SUPPORT,
+        }
+        response_time = (
+            30 if priority in {EmailPriority.URGENT, EmailPriority.HIGH} else 90
+        )
         topics = self._extract_topics(subject, body)
 
         insight = EmailInsight(
@@ -123,7 +135,11 @@ class EmailIntelligenceEngine:
 
         for email in emails:
             insight = self.analyze_email(email)
-            record = {"email": email, "insight": insight, "processed_at": datetime.utcnow().isoformat()}
+            record = {
+                "email": email,
+                "insight": insight,
+                "processed_at": datetime.utcnow().isoformat(),
+            }
             processed.append(record)
 
             categories.setdefault(insight.category.value, []).append(record)
@@ -232,7 +248,9 @@ class SmartCalendarOptimizer:
     def __init__(self, preferences: Optional[SchedulingPreferences] = None):
         self.preferences = preferences or SchedulingPreferences()
 
-    def detect_conflicts(self, events: Sequence[CalendarEvent]) -> List[SchedulingConflict]:
+    def detect_conflicts(
+        self, events: Sequence[CalendarEvent]
+    ) -> List[SchedulingConflict]:
         conflicts: List[SchedulingConflict] = []
         events_sorted = sorted(events, key=lambda e: e.start_time)
 
@@ -286,7 +304,10 @@ class SmartCalendarOptimizer:
         # Preference violations (outside work hours or during lunch)
         for event in events_sorted:
             hour = event.start_time.hour
-            if hour < self.preferences.work_hours_start or hour >= self.preferences.work_hours_end:
+            if (
+                hour < self.preferences.work_hours_start
+                or hour >= self.preferences.work_hours_end
+            ):
                 conflicts.append(
                     SchedulingConflict(
                         conflict_type=ConflictType.PREFERENCE,
@@ -313,8 +334,14 @@ class SmartCalendarOptimizer:
         if not events:
             return {"total_meetings": 0, "focus_time_hours": 8, "busy_hours": 0}
 
-        duration_hours = sum((e.end_time - e.start_time).total_seconds() for e in events) / 3600
-        focus_time = max(0, (self.preferences.work_hours_end - self.preferences.work_hours_start) - duration_hours)
+        duration_hours = (
+            sum((e.end_time - e.start_time).total_seconds() for e in events) / 3600
+        )
+        focus_time = max(
+            0,
+            (self.preferences.work_hours_end - self.preferences.work_hours_start)
+            - duration_hours,
+        )
 
         return {
             "total_meetings": len(events),
@@ -351,7 +378,9 @@ class OfficeAutomationLite:
             content = content.replace(f"{{{key}}}", str(value))
         return content.strip()
 
-    def generate_meeting_notes(self, transcript: str, meeting_info: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_meeting_notes(
+        self, transcript: str, meeting_info: Dict[str, Any]
+    ) -> Dict[str, Any]:
         # Simplified extraction (mirrors reference fallback)
         lines = [l.strip() for l in transcript.splitlines() if l.strip()]
         action_items = [l for l in lines if l.lower().startswith("action")]
@@ -364,12 +393,16 @@ class OfficeAutomationLite:
             "duration": meeting_info.get("duration", "60m"),
             "agenda": meeting_info.get("agenda", "n/a"),
             "discussion": "\n".join(f"- {d}" for d in discussion) or "None captured",
-            "action_items": "\n".join(f"- {a}" for a in action_items) or "None captured",
+            "action_items": "\n".join(f"- {a}" for a in action_items)
+            or "None captured",
             "next_steps": meeting_info.get("next_steps", "Follow up with attendees"),
         }
 
         document = self.render_template("meeting_notes", variables)
-        return {"document": document, "extracted_info": {"action_items": action_items, "discussion": discussion}}
+        return {
+            "document": document,
+            "extracted_info": {"action_items": action_items, "discussion": discussion},
+        }
 
     def _load_templates(self) -> Dict[str, DocumentTemplate]:
         return {
@@ -441,7 +474,11 @@ class GitWorkflowAutomationLite:
         if ".py" in file_types:
             suggestions.append("Run linters and formatters for Python changes.")
 
-        security_issues = ["Review authentication paths"] if "auth" in json.dumps(changes).lower() else []
+        security_issues = (
+            ["Review authentication paths"]
+            if "auth" in json.dumps(changes).lower()
+            else []
+        )
         performance_issues = ["Profile heavy loops"] if total_lines > 800 else []
 
         return CodeAnalysis(
@@ -464,7 +501,9 @@ class GitWorkflowAutomationLite:
 
     def project_health(self, changes: Dict[str, Any]) -> Dict[str, Any]:
         analysis = self.analyze_code_changes(changes)
-        health_score = statistics.mean([analysis.quality_score, 10 - analysis.complexity_score])
+        health_score = statistics.mean(
+            [analysis.quality_score, 10 - analysis.complexity_score]
+        )
         return {
             "health_score": round(health_score, 2),
             "open_issues": changes.get("open_issues", 0),
@@ -496,14 +535,18 @@ class CrossAppSyncLite:
     def __init__(self):
         self.rules = self._default_rules()
 
-    def execute_rule(self, rule_name: str, source_data: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
+    def execute_rule(
+        self, rule_name: str, source_data: Sequence[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         rule = next((r for r in self.rules if r.name == rule_name), None)
         if not rule:
             raise ValueError(f"Sync rule '{rule_name}' not found")
         if not rule.enabled:
             return {"status": "disabled", "records": []}
 
-        filtered = [item for item in source_data if self._matches_filters(item, rule.filters)]
+        filtered = [
+            item for item in source_data if self._matches_filters(item, rule.filters)
+        ]
         transformed = self._apply_transformations(filtered, rule.transformations)
         mapped = [self._map_fields(item, rule.field_mapping) for item in transformed]
 
@@ -520,14 +563,20 @@ class CrossAppSyncLite:
                 return False
         return True
 
-    def _apply_transformations(self, data: Sequence[Dict[str, Any]], transformations: Sequence[str]) -> List[Dict[str, Any]]:
+    def _apply_transformations(
+        self, data: Sequence[Dict[str, Any]], transformations: Sequence[str]
+    ) -> List[Dict[str, Any]]:
         result = [dict(item) for item in data]
         for t in transformations:
             if t == "convert_datetime_format":
                 for item in result:
                     for key, val in list(item.items()):
-                        if isinstance(val, str) and re.match(r"\d{4}-\d{2}-\d{2}T", val):
-                            item[key] = datetime.fromisoformat(val.replace("Z", "+00:00")).strftime("%Y-%m-%d %H:%M:%S")
+                        if isinstance(val, str) and re.match(
+                            r"\d{4}-\d{2}-\d{2}T", val
+                        ):
+                            item[key] = datetime.fromisoformat(
+                                val.replace("Z", "+00:00")
+                            ).strftime("%Y-%m-%d %H:%M:%S")
             elif t == "deduplicate":
                 seen = set()
                 unique = []
@@ -539,7 +588,9 @@ class CrossAppSyncLite:
                 result = unique
         return result
 
-    def _map_fields(self, item: Dict[str, Any], mapping: Dict[str, str]) -> Dict[str, Any]:
+    def _map_fields(
+        self, item: Dict[str, Any], mapping: Dict[str, str]
+    ) -> Dict[str, Any]:
         mapped = {}
         for source, target in mapping.items():
             if source in item:
@@ -553,7 +604,11 @@ class CrossAppSyncLite:
                 source_app="calendar",
                 target_app="tasks",
                 data_type="events",
-                field_mapping={"title": "subject", "start_time": "due_date", "description": "body"},
+                field_mapping={
+                    "title": "subject",
+                    "start_time": "due_date",
+                    "description": "body",
+                },
                 transformations=["convert_datetime_format"],
                 filters={"event_type": "task"},
             )
@@ -614,14 +669,27 @@ class ProductivitySuite:
     def run_e2e(self) -> Dict[str, Any]:
         # Sample inputs kept small for test performance
         emails = [
-            {"subject": "Urgent meeting request", "body": "Please join ASAP to discuss launch", "from": "product@corp"},
-            {"subject": "Weekly newsletter", "body": "Unsubscribe if not interested", "from": "news@corp"},
+            {
+                "subject": "Urgent meeting request",
+                "body": "Please join ASAP to discuss launch",
+                "from": "product@corp",
+            },
+            {
+                "subject": "Weekly newsletter",
+                "body": "Unsubscribe if not interested",
+                "from": "news@corp",
+            },
         ]
         email_result = self.email.process_inbox(emails)
 
         now = datetime.utcnow()
         events = [
-            CalendarEvent(id="1", title="Standup", start_time=now, end_time=now + timedelta(minutes=30)),
+            CalendarEvent(
+                id="1",
+                title="Standup",
+                start_time=now,
+                end_time=now + timedelta(minutes=30),
+            ),
             CalendarEvent(
                 id="2",
                 title="Design review",
@@ -633,19 +701,40 @@ class ProductivitySuite:
         calendar_summary = self.calendar.summarize_day(events)
         calendar_summary["conflicts_found"] = len(conflicts)
 
-        transcript = "Discussion: roadmap updates\nAction: send summary\nAction: prepare slides"
-        meeting_doc = self.office.generate_meeting_notes(transcript, {"title": "Weekly Sync", "attendees": "Team"})
+        transcript = (
+            "Discussion: roadmap updates\nAction: send summary\nAction: prepare slides"
+        )
+        meeting_doc = self.office.generate_meeting_notes(
+            transcript, {"title": "Weekly Sync", "attendees": "Team"}
+        )
 
-        git_changes = {"files_changed": 4, "total_lines": 320, "file_types": [".py"], "recent_commits": 3}
+        git_changes = {
+            "files_changed": 4,
+            "total_lines": 320,
+            "file_types": [".py"],
+            "recent_commits": 3,
+        }
         git_health = self.git.project_health(git_changes)
 
         sync_data = [
-            {"title": "Finish report", "start_time": now.isoformat(), "description": "task item", "event_type": "task"},
-            {"title": "Team lunch", "start_time": now.isoformat(), "description": "social", "event_type": "personal"},
+            {
+                "title": "Finish report",
+                "start_time": now.isoformat(),
+                "description": "task item",
+                "event_type": "task",
+            },
+            {
+                "title": "Team lunch",
+                "start_time": now.isoformat(),
+                "description": "social",
+                "event_type": "personal",
+            },
         ]
         sync_result = self.sync.execute_rule("Calendar to Task Sync", sync_data)
 
-        dashboard_html = self.dashboard.build_dashboard(email_result, calendar_summary, git_health, sync_result)
+        dashboard_html = self.dashboard.build_dashboard(
+            email_result, calendar_summary, git_health, sync_result
+        )
 
         return {
             "email": email_result,
@@ -656,7 +745,3 @@ class ProductivitySuite:
             "sync": sync_result,
             "dashboard_html": dashboard_html,
         }
-
-
-
-

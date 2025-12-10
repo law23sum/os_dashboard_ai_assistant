@@ -22,7 +22,7 @@ class OpenAIClient:
         try:
             self.client = AsyncOpenAI(
                 api_key=self.config.openai_api_key,
-                organization=self.config.openai_organization
+                organization=self.config.openai_organization,
             )
 
             # Test connection
@@ -41,16 +41,21 @@ class OpenAIClient:
             response = await self.client.chat.completions.create(
                 model=self.config.openai_model,
                 messages=[{"role": "user", "content": "Hello"}],
-                max_tokens=5
+                max_tokens=5,
             )
             return True
         except Exception as e:
             self.logger.error(f"OpenAI health check failed: {e}")
             return False
 
-    async def chat_completion(self, message: str, system_prompt: str = None,
-                            temperature: float = 0.7, max_tokens: int = 1000,
-                            conversation_history: List[Dict[str, str]] = None) -> str:
+    async def chat_completion(
+        self,
+        message: str,
+        system_prompt: str = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1000,
+        conversation_history: List[Dict[str, str]] = None,
+    ) -> str:
         """Generate chat completion"""
         try:
             messages = []
@@ -70,7 +75,7 @@ class OpenAIClient:
                 model=self.config.openai_model,
                 messages=messages,
                 temperature=temperature,
-                max_tokens=max_tokens
+                max_tokens=max_tokens,
             )
 
             return response.choices[0].message.content
@@ -79,13 +84,12 @@ class OpenAIClient:
             self.logger.error(f"Chat completion failed: {e}")
             raise
 
-    async def generate_embeddings(self, texts: List[str], model: str = "text-embedding-ada-002") -> List[List[float]]:
+    async def generate_embeddings(
+        self, texts: List[str], model: str = "text-embedding-ada-002"
+    ) -> List[List[float]]:
         """Generate embeddings for text"""
         try:
-            response = await self.client.embeddings.create(
-                model=model,
-                input=texts
-            )
+            response = await self.client.embeddings.create(model=model, input=texts)
 
             return [embedding.embedding for embedding in response.data]
 
@@ -93,7 +97,9 @@ class OpenAIClient:
             self.logger.error(f"Embedding generation failed: {e}")
             raise
 
-    async def analyze_image(self, image_url: str, prompt: str = "What's in this image?") -> str:
+    async def analyze_image(
+        self, image_url: str, prompt: str = "What's in this image?"
+    ) -> str:
         """Analyze image using GPT-4 Vision"""
         try:
             response = await self.client.chat.completions.create(
@@ -103,11 +109,11 @@ class OpenAIClient:
                         "role": "user",
                         "content": [
                             {"type": "text", "text": prompt},
-                            {"type": "image_url", "image_url": {"url": image_url}}
-                        ]
+                            {"type": "image_url", "image_url": {"url": image_url}},
+                        ],
                     }
                 ],
-                max_tokens=500
+                max_tokens=500,
             )
 
             return response.choices[0].message.content
@@ -116,26 +122,30 @@ class OpenAIClient:
             self.logger.error(f"Image analysis failed: {e}")
             raise
 
-    async def function_calling(self, message: str, functions: List[Dict[str, Any]]) -> Dict[str, Any]:
+    async def function_calling(
+        self, message: str, functions: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Use OpenAI function calling"""
         try:
             response = await self.client.chat.completions.create(
                 model=self.config.openai_model,
                 messages=[{"role": "user", "content": message}],
                 functions=functions,
-                function_call="auto"
+                function_call="auto",
             )
 
             return {
                 "message": response.choices[0].message.content,
-                "function_call": response.choices[0].message.function_call
+                "function_call": response.choices[0].message.function_call,
             }
 
         except Exception as e:
             self.logger.error(f"Function calling failed: {e}")
             raise
 
-    async def create_assistant(self, name: str, instructions: str, tools: List[str] = None) -> Dict[str, Any]:
+    async def create_assistant(
+        self, name: str, instructions: str, tools: List[str] = None
+    ) -> Dict[str, Any]:
         """Create an OpenAI Assistant"""
         try:
             assistant_tools = []
@@ -150,13 +160,13 @@ class OpenAIClient:
                 name=name,
                 instructions=instructions,
                 tools=assistant_tools,
-                model=self.config.openai_model
+                model=self.config.openai_model,
             )
 
             return {
                 "id": assistant.id,
                 "name": assistant.name,
-                "instructions": assistant.instructions
+                "instructions": assistant.instructions,
             }
 
         except Exception as e:
@@ -170,14 +180,18 @@ class OpenAIClient:
         self.logger.info("OpenAI client shutdown complete")
 
     # Backward compatibility methods
-    def chat(self, model: str, messages: List[Dict[str, Any]], **kwargs) -> Dict[str, Any]:
+    def chat(
+        self, model: str, messages: List[Dict[str, Any]], **kwargs
+    ) -> Dict[str, Any]:
         """Send a chat completion request and return the raw response (synchronous wrapper)"""
         # For backward compatibility, create a sync client
         sync_client = openai.OpenAI(
             api_key=self.config.openai_api_key,
-            organization=self.config.openai_organization
+            organization=self.config.openai_organization,
         )
-        return sync_client.chat.completions.create(model=model, messages=messages, **kwargs)
+        return sync_client.chat.completions.create(
+            model=model, messages=messages, **kwargs
+        )
 
 
 def get_default_client() -> OpenAIClient:

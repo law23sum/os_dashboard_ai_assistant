@@ -18,7 +18,9 @@ TRACKED_EXTENSIONS = {
 }
 
 
-def discover_files(root: Path, extensions: Iterable[str] = TRACKED_EXTENSIONS) -> List[Path]:
+def discover_files(
+    root: Path, extensions: Iterable[str] = TRACKED_EXTENSIONS
+) -> List[Path]:
     """Return a list of files under root that match the provided extensions."""
     matches: List[Path] = []
     for path in root.rglob("*"):

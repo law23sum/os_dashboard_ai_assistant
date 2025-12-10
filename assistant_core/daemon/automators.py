@@ -18,11 +18,13 @@ from ..versioning import enqueue_commit
 
 class BaseAutomator:
     """Base class for all automators."""
-    
+
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
-    
-    def process_findings(self, findings: Dict[str, List], state: AssistantState, settings: Settings) -> List[str]:
+
+    def process_findings(
+        self, findings: Dict[str, List], state: AssistantState, settings: Settings
+    ) -> List[str]:
         """Process findings and return list of actions taken."""
         raise NotImplementedError
 
@@ -30,7 +32,9 @@ class BaseAutomator:
 class AutoDraftService(BaseAutomator):
     """Automatically drafts missing documents and processes uploaded files."""
 
-    def process_findings(self, findings: Dict[str, List], state: AssistantState, settings: Settings) -> List[str]:
+    def process_findings(
+        self, findings: Dict[str, List], state: AssistantState, settings: Settings
+    ) -> List[str]:
         """Auto-draft documents based on findings."""
         actions = []
 
@@ -55,8 +59,10 @@ class AutoDraftService(BaseAutomator):
                     print(f"[AutoDraftService] Error processing uploaded document: {e}")
 
         return actions
-    
-    def _draft_missing_document(self, finding: Dict, state: AssistantState, settings: Settings) -> Optional[str]:
+
+    def _draft_missing_document(
+        self, finding: Dict, state: AssistantState, settings: Settings
+    ) -> Optional[str]:
         """Draft a missing document."""
         doc_type = finding.get("document_type")
         suggested_path = finding.get("suggested_path")
@@ -81,13 +87,20 @@ Please review and update with specific details.
             path.write_text(content, encoding="utf-8")
 
             # Auto-commit the new document
-            enqueue_commit([str(path)], actor="Aria", tag="auto-draft", reason=f"Draft project brief for {project_name}")
+            enqueue_commit(
+                [str(path)],
+                actor="Aria",
+                tag="auto-draft",
+                reason=f"Draft project brief for {project_name}",
+            )
 
             return f"Drafted project brief: {path.name}"
 
         return None
 
-    def _process_uploaded_document(self, finding: Dict, state: AssistantState, settings: Settings) -> Optional[str]:
+    def _process_uploaded_document(
+        self, finding: Dict, state: AssistantState, settings: Settings
+    ) -> Optional[str]:
         """Process a newly uploaded document."""
         doc_type = finding.get("doc_type")
         file_path = finding.get("path")
@@ -96,11 +109,9 @@ Please review and update with specific details.
         if doc_type == "pdf":
             # Extract tasks from PDF
             from ..file_task_extraction import extract_and_create_tasks_from_file
+
             tasks = extract_and_create_tasks_from_file(
-                self.conn,
-                file_path,
-                project_name,
-                owner="Aria"  # Auto-extracted by AI
+                self.conn, file_path, project_name, owner="Aria"  # Auto-extracted by AI
             )
 
             # Auto-commit the extraction
@@ -108,7 +119,7 @@ Please review and update with specific details.
                 paths=[file_path],
                 actor="Aria",
                 tag="auto-extract",
-                reason=f"Auto-extracted {len(tasks)} tasks from uploaded PDF"
+                reason=f"Auto-extracted {len(tasks)} tasks from uploaded PDF",
             )
 
             return f"Extracted {len(tasks)} tasks from {Path(file_path).name}"
@@ -123,11 +134,13 @@ Please review and update with specific details.
 
 class AutoUpdateService(BaseAutomator):
     """Automatically updates outdated content."""
-    
-    def process_findings(self, findings: Dict[str, List], state: AssistantState, settings: Settings) -> List[str]:
+
+    def process_findings(
+        self, findings: Dict[str, List], state: AssistantState, settings: Settings
+    ) -> List[str]:
         """Auto-update outdated content."""
         actions = []
-        
+
         # Process outdated document findings
         for finding in findings.get("documents", []):
             if finding.get("type") == "outdated_document":
@@ -137,7 +150,7 @@ class AutoUpdateService(BaseAutomator):
                         actions.append(action)
                 except Exception as e:
                     print(f"[AutoUpdateService] Error updating document: {e}")
-        
+
         # Process outdated content findings
         for finding in findings.get("outdated", []):
             if finding.get("type") == "project_progress_update_needed":
@@ -147,19 +160,21 @@ class AutoUpdateService(BaseAutomator):
                         actions.append(action)
                 except Exception as e:
                     print(f"[AutoUpdateService] Error updating project: {e}")
-        
+
         return actions
-    
-    def _update_outdated_document(self, finding: Dict, state: AssistantState, settings: Settings) -> Optional[str]:
+
+    def _update_outdated_document(
+        self, finding: Dict, state: AssistantState, settings: Settings
+    ) -> Optional[str]:
         """Update an outdated document."""
         doc_path = finding.get("path")
         if not doc_path or not os.path.exists(doc_path):
             return None
-        
+
         # In full implementation, would use WordService/ExcelService to update content
         # For now, just touch the file to update timestamp
         path = Path(doc_path)
-        
+
         # Add update marker
         try:
             # This is a placeholder - real implementation would update content intelligently
@@ -167,43 +182,47 @@ class AutoUpdateService(BaseAutomator):
         except Exception as e:
             print(f"[AutoUpdateService] Error updating {doc_path}: {e}")
             return None
-    
-    def _update_project_progress(self, finding: Dict, state: AssistantState, settings: Settings) -> Optional[str]:
+
+    def _update_project_progress(
+        self, finding: Dict, state: AssistantState, settings: Settings
+    ) -> Optional[str]:
         """Update project progress information."""
         project_name = finding.get("project")
         if not project_name:
             return None
-        
+
         # In full implementation, would update project description with current progress
         return f"Project progress updated: {project_name}"
 
 
 class AutoSuggestService(BaseAutomator):
     """Generates proactive suggestions."""
-    
-    def process_findings(self, findings: Dict[str, List], state: AssistantState, settings: Settings) -> List[str]:
+
+    def process_findings(
+        self, findings: Dict[str, List], state: AssistantState, settings: Settings
+    ) -> List[str]:
         """Generate suggestions based on findings."""
         suggestions = []
-        
+
         # Process urgent task findings
         for finding in findings.get("tasks", []):
             if finding.get("type") == "urgent_task":
                 task_id = finding.get("task_id")
                 task_title = finding.get("task_title")
                 days_until = finding.get("days_until_due", 0)
-                
+
                 suggestion = f"⚠️ Task #{task_id} '{task_title}' is due in {days_until} days - consider prioritizing"
                 suggestions.append(suggestion)
-        
+
         # Process task documentation findings
         for finding in findings.get("tasks", []):
             if finding.get("type") == "task_needs_documentation":
                 task_id = finding.get("task_id")
                 task_title = finding.get("task_title")
-                
+
                 suggestion = f"📝 Task #{task_id} '{task_title}' is in progress but lacks documentation - consider creating a task doc"
                 suggestions.append(suggestion)
-        
+
         return suggestions
 
 
@@ -218,7 +237,9 @@ class WorkflowExecutor(BaseAutomator):
         """Set the workflow engine instance."""
         self.workflow_engine = engine
 
-    def process_findings(self, findings: Dict[str, List], state: AssistantState, settings: Settings) -> List[str]:
+    def process_findings(
+        self, findings: Dict[str, List], state: AssistantState, settings: Settings
+    ) -> List[str]:
         """Execute workflows based on findings."""
         actions = []
 
@@ -238,20 +259,24 @@ class WorkflowExecutor(BaseAutomator):
             # Check for project milestone triggers (legacy behavior)
             for project in state.projects:
                 if project.status == "active":
-                    project_tasks = [t for t in state.tasks if t.project == project.name]
+                    project_tasks = [
+                        t for t in state.tasks if t.project == project.name
+                    ]
                     if len(project_tasks) > 0:
-                        completed = len([t for t in project_tasks if t.status == "DONE"])
+                        completed = len(
+                            [t for t in project_tasks if t.status == "DONE"]
+                        )
                         completion_ratio = completed / len(project_tasks)
 
                         # Trigger milestone workflow at 50% completion
                         if 0.49 < completion_ratio < 0.51:  # Just crossed 50%
                             event = {
-                                'type': 'project_milestone',
-                                'project': project.name,
-                                'milestone': '50_percent_complete',
-                                'completion_ratio': completion_ratio,
-                                'total_tasks': len(project_tasks),
-                                'completed_tasks': completed
+                                "type": "project_milestone",
+                                "project": project.name,
+                                "milestone": "50_percent_complete",
+                                "completion_ratio": completion_ratio,
+                                "total_tasks": len(project_tasks),
+                                "completed_tasks": completed,
                             }
                             asyncio.create_task(self.workflow_engine.emit_event(event))
 
@@ -266,44 +291,43 @@ class WorkflowExecutor(BaseAutomator):
             if category == "documents":
                 if finding.get("type") == "missing_document":
                     return {
-                        'type': 'missing_document',
-                        'document_type': finding.get('document_type'),
-                        'suggested_path': finding.get('suggested_path'),
-                        'project': finding.get('project')
+                        "type": "missing_document",
+                        "document_type": finding.get("document_type"),
+                        "suggested_path": finding.get("suggested_path"),
+                        "project": finding.get("project"),
                     }
                 elif finding.get("type") == "outdated_document":
                     return {
-                        'type': 'outdated_document',
-                        'path': finding.get('path'),
-                        'last_modified': finding.get('last_modified')
+                        "type": "outdated_document",
+                        "path": finding.get("path"),
+                        "last_modified": finding.get("last_modified"),
                     }
 
             elif category == "tasks":
                 if finding.get("type") == "urgent_task":
                     return {
-                        'type': 'urgent_task',
-                        'task_id': finding.get('task_id'),
-                        'task_title': finding.get('task_title'),
-                        'days_until_due': finding.get('days_until_due')
+                        "type": "urgent_task",
+                        "task_id": finding.get("task_id"),
+                        "task_title": finding.get("task_title"),
+                        "days_until_due": finding.get("days_until_due"),
                     }
                 elif finding.get("type") == "task_needs_documentation":
                     return {
-                        'type': 'task_needs_documentation',
-                        'task_id': finding.get('task_id'),
-                        'task_title': finding.get('task_title')
+                        "type": "task_needs_documentation",
+                        "task_id": finding.get("task_id"),
+                        "task_title": finding.get("task_title"),
                     }
 
             elif category == "filesystem":
                 if finding.get("type") == "new_uploaded_document":
                     return {
-                        'type': 'new_uploaded_document',
-                        'path': finding.get('path'),
-                        'doc_type': finding.get('doc_type'),
-                        'project': finding.get('project')
+                        "type": "new_uploaded_document",
+                        "path": finding.get("path"),
+                        "doc_type": finding.get("doc_type"),
+                        "project": finding.get("project"),
                     }
 
         except Exception as e:
             print(f"[WorkflowExecutor] Error converting finding to event: {e}")
 
         return None
-

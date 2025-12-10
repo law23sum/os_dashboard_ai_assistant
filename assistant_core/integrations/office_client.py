@@ -43,7 +43,9 @@ class AIOfficeClient:
 
     async def connect(self) -> None:
         if websockets is None:
-            raise RuntimeError("websockets dependency is not available in this environment")
+            raise RuntimeError(
+                "websockets dependency is not available in this environment"
+            )
 
         self.websocket = await websockets.connect(self.endpoint)
         await self._send(

@@ -23,7 +23,7 @@ class GraphCredentials:
         tenant_id = os.environ.get("AZURE_TENANT_ID", "")
         client_id = os.environ.get("AZURE_CLIENT_ID", "")
         client_secret = os.environ.get("AZURE_CLIENT_SECRET", "")
-        
+
         # If not all credentials are in environment, try loading from config file
         if not all([tenant_id, client_id, client_secret]):
             config_file = Path.home() / ".assistant_hub" / "azure_config.txt"
@@ -46,7 +46,7 @@ class GraphCredentials:
                 except Exception:
                     # If file read fails, continue with what we have from env
                     pass
-        
+
         return cls(
             tenant_id=tenant_id,
             client_id=client_id,

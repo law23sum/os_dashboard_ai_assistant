@@ -12,11 +12,15 @@ from .base import BaseIntegration, IntegrationStatus
 
 class GoogleCalendarIntegration(BaseIntegration):
     """Integration for Google Calendar."""
-    
+
     def __init__(self, conn: sqlite3.Connection):
         super().__init__(conn, "Google Calendar", "calendar")
-        self.credentials_path = os.path.expanduser("~/.assistant_hub/google_calendar_credentials.json")
-        self.token_path = os.path.expanduser("~/.assistant_hub/google_calendar_token.json")
+        self.credentials_path = os.path.expanduser(
+            "~/.assistant_hub/google_calendar_credentials.json"
+        )
+        self.token_path = os.path.expanduser(
+            "~/.assistant_hub/google_calendar_token.json"
+        )
         self._api_base = "https://www.googleapis.com/calendar/v3"
 
     def authenticate(self) -> bool:
@@ -35,7 +39,9 @@ class GoogleCalendarIntegration(BaseIntegration):
                 self.update_status(False, f"Token invalid: {resp.text[:120]}")
                 return False
         except requests.RequestException as exc:
-            self.update_status(False, f"Auth check failed: {self._safe_truncate(str(exc))}")
+            self.update_status(
+                False, f"Auth check failed: {self._safe_truncate(str(exc))}"
+            )
             return False
 
         self.update_status(True)
@@ -55,8 +61,12 @@ class GoogleCalendarIntegration(BaseIntegration):
                 if not event_id:
                     continue
 
-                start = event.get("start", {}).get("dateTime") or event.get("start", {}).get("date")
-                end = event.get("end", {}).get("dateTime") or event.get("end", {}).get("date")
+                start = event.get("start", {}).get("dateTime") or event.get(
+                    "start", {}
+                ).get("date")
+                end = event.get("end", {}).get("dateTime") or event.get("end", {}).get(
+                    "date"
+                )
 
                 self.record_item(
                     external_id=event_id,
@@ -84,7 +94,7 @@ class GoogleCalendarIntegration(BaseIntegration):
 
     def get_status(self) -> IntegrationStatus:
         """Get current status."""
-        if not hasattr(self, '_status') or not self._status:
+        if not hasattr(self, "_status") or not self._status:
             self._status = IntegrationStatus()
         return self._status
 
@@ -134,4 +144,3 @@ class GoogleCalendarIntegration(BaseIntegration):
 
         self.update_status(False, "No Google Calendar token configured")
         return None
-

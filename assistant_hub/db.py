@@ -103,13 +103,15 @@ class AssistantState:
 
 @dataclass
 class Settings:
-    theme: str = "plain"              # plain | light | dark
-    default_view: str = "dashboard"   # dashboard | tasks | projects
-    show_system_status: bool = True   # show CPU/RAM/Disk in dashboard
-    font_scale: str = "medium"        # small | medium | large
-    data_preferences: Dict[str, bool] = field(default_factory=lambda: DEFAULT_FETCH_PREFERENCES.copy())
+    theme: str = "plain"  # plain | light | dark
+    default_view: str = "dashboard"  # dashboard | tasks | projects
+    show_system_status: bool = True  # show CPU/RAM/Disk in dashboard
+    font_scale: str = "medium"  # small | medium | large
+    data_preferences: Dict[str, bool] = field(
+        default_factory=lambda: DEFAULT_FETCH_PREFERENCES.copy()
+    )
     change_permission_mode: str = "ask_when_unsure"  # auto | ask | ask_when_unsure
-    auto_overwrite: bool = True       # legacy flag retained for backward compatibility
+    auto_overwrite: bool = True  # legacy flag retained for backward compatibility
 
 
 @dataclass
@@ -132,6 +134,7 @@ class ExternalConnection:
 @dataclass
 class NoteLink:
     """Link between a project and an external integration resource."""
+
     id: int
     project_id: str  # References Project.name
     integration_type: str  # "onenote" | "excel" | "word" | "filesystem" | ...
@@ -145,6 +148,7 @@ class NoteLink:
 @dataclass
 class AgentRun:
     """Record of an AI agent action/operation."""
+
     id: int
     agent: str  # "AIC" | "Sora" | "Aria" | "User"
     action_type: str  # "ONENOTE_CLEANUP" | "EXCEL_SUMMARY" | "WORD_DRAFT" | ...
@@ -174,14 +178,17 @@ def init_db() -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS state_meta (
             key TEXT PRIMARY KEY,
             value TEXT
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
@@ -199,8 +206,9 @@ def init_db() -> sqlite3.Connection:
             time_logged INTEGER,
             template_id TEXT
         )
-    """)
-    
+    """
+    )
+
     # Add new columns if they don't exist (for existing databases)
     c.execute("PRAGMA table_info(tasks)")
     columns = [row[1] for row in c.fetchall()]
@@ -215,9 +223,10 @@ def init_db() -> sqlite3.Connection:
     for col_name, col_type in new_columns:
         if col_name not in columns:
             c.execute(f"ALTER TABLE tasks ADD COLUMN {col_name} {col_type}")
-    
+
     # Create task_templates table
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS task_templates (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -228,18 +237,22 @@ def init_db() -> sqlite3.Connection:
             time_estimated INTEGER,
             created_at TEXT
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS projects (
             name TEXT PRIMARY KEY,
             description TEXT,
             status TEXT,
             priority TEXT
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS external_sources (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE,
@@ -247,9 +260,11 @@ def init_db() -> sqlite3.Connection:
             connected INTEGER DEFAULT 1,
             last_sync TEXT
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS external_items (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             source_id INTEGER,
@@ -261,9 +276,11 @@ def init_db() -> sqlite3.Connection:
             last_seen_at TEXT,
             FOREIGN KEY(source_id) REFERENCES external_sources(id)
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS chat_messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             persona TEXT,
@@ -272,9 +289,11 @@ def init_db() -> sqlite3.Connection:
             content TEXT,
             created_at TEXT
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS note_links (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             project_id TEXT NOT NULL,
@@ -286,15 +305,17 @@ def init_db() -> sqlite3.Connection:
             last_synced TEXT,
             FOREIGN KEY(project_id) REFERENCES projects(name)
         )
-    """)
-    
+    """
+    )
+
     # Add description column if it doesn't exist (for existing databases)
     c.execute("PRAGMA table_info(note_links)")
     columns = [row[1] for row in c.fetchall()]
     if "description" not in columns:
         c.execute("ALTER TABLE note_links ADD COLUMN description TEXT DEFAULT ''")
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS document_versions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             note_link_id INTEGER NOT NULL,
@@ -307,9 +328,11 @@ def init_db() -> sqlite3.Connection:
             description TEXT,
             FOREIGN KEY(note_link_id) REFERENCES note_links(id)
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS agent_runs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             agent TEXT NOT NULL,
@@ -320,7 +343,8 @@ def init_db() -> sqlite3.Connection:
             git_commit_hash TEXT,
             created_at TEXT
         )
-    """)
+    """
+    )
 
     # Document sample definitions for each file type
     c.execute(
@@ -353,7 +377,9 @@ def init_db() -> sqlite3.Connection:
     return conn
 
 
-def get_meta(conn: sqlite3.Connection, key: str, default: Optional[str] = None) -> Optional[str]:
+def get_meta(
+    conn: sqlite3.Connection, key: str, default: Optional[str] = None
+) -> Optional[str]:
     c = conn.cursor()
     c.execute("SELECT value FROM state_meta WHERE key = ?", (key,))
     row = c.fetchone()
@@ -394,32 +420,34 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
             depends_on = r["depends_on"] if r["depends_on"] else None
         except (KeyError, IndexError):
             depends_on = None
-        
+
         try:
             recurrence_pattern = r["recurrence_pattern"] or None
         except (KeyError, IndexError):
             recurrence_pattern = None
-        
+
         try:
             recurrence_end = r["recurrence_end"] or None
         except (KeyError, IndexError):
             recurrence_end = None
-        
+
         try:
-            time_estimated = r["time_estimated"] if r["time_estimated"] is not None else None
+            time_estimated = (
+                r["time_estimated"] if r["time_estimated"] is not None else None
+            )
         except (KeyError, IndexError):
             time_estimated = None
-        
+
         try:
             time_logged = r["time_logged"] if r["time_logged"] is not None else None
         except (KeyError, IndexError):
             time_logged = None
-        
+
         try:
             template_id = r["template_id"] or None
         except (KeyError, IndexError):
             template_id = None
-        
+
         tasks.append(
             Task(
                 id=r["id"],
@@ -430,7 +458,8 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
                 due_date=r["due_date"] or "",
                 notes=r["notes"] or "",
                 owner=owner,
-                created_at=r["created_at"] or datetime.now().isoformat(timespec="seconds"),
+                created_at=r["created_at"]
+                or datetime.now().isoformat(timespec="seconds"),
                 depends_on=depends_on,
                 recurrence_pattern=recurrence_pattern,
                 recurrence_end=recurrence_end,
@@ -480,7 +509,8 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
                 role=role,
                 kind=kind,
                 content=r["content"] or "",
-                created_at=r["created_at"] or datetime.now().isoformat(timespec="seconds"),
+                created_at=r["created_at"]
+                or datetime.now().isoformat(timespec="seconds"),
             )
         )
 
@@ -500,12 +530,15 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
     theme = get_meta(conn, "setting.theme", "plain") or "plain"
     default_view = get_meta(conn, "setting.default_view", "dashboard") or "dashboard"
     show_system_status_raw = get_meta(conn, "setting.show_system_status", "1") or "1"
-    show_system_status = (show_system_status_raw == "1")
+    show_system_status = show_system_status_raw == "1"
     font_scale = get_meta(conn, "setting.font_scale", "medium") or "medium"
     data_pref_raw = get_meta(conn, "setting.data_preferences", None)
-    approval_mode = get_meta(conn, "setting.change_permission_mode", "ask_when_unsure") or "ask_when_unsure"
+    approval_mode = (
+        get_meta(conn, "setting.change_permission_mode", "ask_when_unsure")
+        or "ask_when_unsure"
+    )
     auto_overwrite_raw = get_meta(conn, "setting.auto_overwrite", "1") or "1"
-    auto_overwrite = (auto_overwrite_raw == "1")
+    auto_overwrite = auto_overwrite_raw == "1"
     if approval_mode not in CHANGE_PERMISSION_MODES:
         approval_mode = "auto" if auto_overwrite else "ask"
     auto_overwrite = approval_mode == "auto"
@@ -532,11 +565,21 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
 def save_settings(conn: sqlite3.Connection, settings: Settings):
     set_meta(conn, "setting.theme", settings.theme)
     set_meta(conn, "setting.default_view", settings.default_view)
-    set_meta(conn, "setting.show_system_status", "1" if settings.show_system_status else "0")
+    set_meta(
+        conn, "setting.show_system_status", "1" if settings.show_system_status else "0"
+    )
     set_meta(conn, "setting.font_scale", settings.font_scale)
-    set_meta(conn, "setting.data_preferences", json.dumps(settings.data_preferences, ensure_ascii=False))
+    set_meta(
+        conn,
+        "setting.data_preferences",
+        json.dumps(settings.data_preferences, ensure_ascii=False),
+    )
     set_meta(conn, "setting.change_permission_mode", settings.change_permission_mode)
-    set_meta(conn, "setting.auto_overwrite", "1" if settings.change_permission_mode == "auto" else "0")
+    set_meta(
+        conn,
+        "setting.auto_overwrite",
+        "1" if settings.change_permission_mode == "auto" else "0",
+    )
 
 
 def save_active_persona(conn: sqlite3.Connection, state: AssistantState):
@@ -547,10 +590,15 @@ def load_security_status(conn: sqlite3.Connection) -> SecurityStatus:
     status = (get_meta(conn, "security.status", "offline") or "offline").lower()
     if status not in SECURITY_STATUS_CHOICES:
         status = "offline"
-    message = get_meta(conn, "security.message", "Telemetry not available yet.") or "Telemetry not available yet."
+    message = (
+        get_meta(conn, "security.message", "Telemetry not available yet.")
+        or "Telemetry not available yet."
+    )
     updated_at = get_meta(conn, "security.updated_at", "") or ""
     source = get_meta(conn, "security.source", "mac_guard") or "mac_guard"
-    return SecurityStatus(status=status, message=message, updated_at=updated_at, source=source)
+    return SecurityStatus(
+        status=status, message=message, updated_at=updated_at, source=source
+    )
 
 
 def save_security_status(conn: sqlite3.Connection, status: SecurityStatus):
@@ -568,7 +616,7 @@ def db_upsert_project(conn: sqlite3.Connection, proj: Project):
     if "priority" not in columns:
         c.execute("ALTER TABLE projects ADD COLUMN priority TEXT DEFAULT 'MEDIUM'")
         conn.commit()
-    
+
     c.execute(
         """
         INSERT INTO projects (name, description, status, priority)
@@ -598,8 +646,22 @@ def db_insert_task(conn: sqlite3.Connection, t: Task) -> int:
          depends_on, recurrence_pattern, recurrence_end, time_estimated, time_logged, template_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (t.title, t.project, t.status, t.priority, t.due_date, t.notes, t.owner, t.created_at,
-         t.depends_on, t.recurrence_pattern, t.recurrence_end, t.time_estimated, t.time_logged, t.template_id),
+        (
+            t.title,
+            t.project,
+            t.status,
+            t.priority,
+            t.due_date,
+            t.notes,
+            t.owner,
+            t.created_at,
+            t.depends_on,
+            t.recurrence_pattern,
+            t.recurrence_end,
+            t.time_estimated,
+            t.time_logged,
+            t.template_id,
+        ),
     )
     conn.commit()
     return c.lastrowid
@@ -616,9 +678,22 @@ def db_update_task(conn: sqlite3.Connection, t: Task):
             time_estimated = ?, time_logged = ?, template_id = ?
         WHERE id = ?
         """,
-        (t.title, t.project, t.status, t.priority, t.due_date, t.notes, t.owner,
-         t.depends_on, t.recurrence_pattern, t.recurrence_end,
-         t.time_estimated, t.time_logged, t.template_id, t.id),
+        (
+            t.title,
+            t.project,
+            t.status,
+            t.priority,
+            t.due_date,
+            t.notes,
+            t.owner,
+            t.depends_on,
+            t.recurrence_pattern,
+            t.recurrence_end,
+            t.time_estimated,
+            t.time_logged,
+            t.template_id,
+            t.id,
+        ),
     )
     conn.commit()
 
@@ -711,7 +786,9 @@ def record_external_item(
     conn.commit()
 
 
-def load_external_connections(conn: sqlite3.Connection) -> Dict[str, ExternalConnection]:
+def load_external_connections(
+    conn: sqlite3.Connection,
+) -> Dict[str, ExternalConnection]:
     raw = get_meta(conn, "external.connections", "{}") or "{}"
     try:
         payload = json.loads(raw)
@@ -767,11 +844,11 @@ DEFAULT_DOCUMENT_SAMPLES = [
         "description": "JSON blueprint for AI-led risk reviews with provenance and personas.",
         "sample_content": (
             "{{\n"
-            "  \"title\": \"Risk Assessment\",\n"
-            "  \"versioning\": \"{governance}\",\n"
-            "  \"operating_model\": \"{roles}\",\n"
-            "  \"behaviors\": \"{behaviors}\",\n"
-            "  \"sections\": [\"briefs\", \"proposals\", \"compliance reports\", \"patient summaries\", \"risk assessments\", \"regulatory filings\", \"engineering specs\", \"technical documents\", \"product updates\", \"operational manuals\"]\n"
+            '  "title": "Risk Assessment",\n'
+            '  "versioning": "{governance}",\n'
+            '  "operating_model": "{roles}",\n'
+            '  "behaviors": "{behaviors}",\n'
+            '  "sections": ["briefs", "proposals", "compliance reports", "patient summaries", "risk assessments", "regulatory filings", "engineering specs", "technical documents", "product updates", "operational manuals"]\n'
             "}}"
         ),
     },
@@ -874,7 +951,9 @@ def initialize_document_samples(conn: sqlite3.Connection):
 
 
 def db_get_document_samples(
-    conn: sqlite3.Connection, file_type: Optional[str] = None, category: Optional[str] = None
+    conn: sqlite3.Connection,
+    file_type: Optional[str] = None,
+    category: Optional[str] = None,
 ) -> List[DocumentSample]:
     """Return document sample definitions with optional filtering."""
 
@@ -901,7 +980,8 @@ def db_get_document_samples(
                 description=row["description"] or "",
                 sample_content=row["sample_content"] or "",
                 governance=row["governance"] or GOVERNANCE_BANNER,
-                created_at=row["created_at"] or datetime.now().isoformat(timespec="seconds"),
+                created_at=row["created_at"]
+                or datetime.now().isoformat(timespec="seconds"),
             )
         )
     return samples

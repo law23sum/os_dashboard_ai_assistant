@@ -24,7 +24,9 @@ def handle_excel_command(args, conn: sqlite3.Connection) -> int:
 
         print(f"Summarizing {path} (sheet: {sheet_name}) with agent {args.agent}...")
         try:
-            changed_files = service.summarize_sheet(str(path), sheet_name, instruction, actor=args.agent)
+            changed_files = service.summarize_sheet(
+                str(path), sheet_name, instruction, actor=args.agent
+            )
             print(f"Summary created. Modified files:")
             for f in changed_files:
                 print(f"  - {f}")
@@ -36,4 +38,3 @@ def handle_excel_command(args, conn: sqlite3.Connection) -> int:
     else:
         print(f"Unknown Excel subcommand: {args.subcommand}", file=sys.stderr)
         return 1
-

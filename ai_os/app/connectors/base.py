@@ -88,7 +88,10 @@ class StorageBackedConnector:
         return CIRDocument(root=root, doc_type=self.doc_type)
 
     def write(
-        self, resource_id: str, cir: CIRDocument, operations: Optional[Dict[str, Any]] = None
+        self,
+        resource_id: str,
+        cir: CIRDocument,
+        operations: Optional[Dict[str, Any]] = None,
     ) -> ResourceRef:
         data = {
             "title": cir.root.title or "Untitled",
