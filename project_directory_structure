@@ -1,0 +1,1721 @@
+__pycache__
+add_onenote_link.py
+ai_os
+ai_security_threat_detection.py
+api_connectors
+assistant_core
+assistant_hub
+assistant_hub_gui
+attachments
+aws-deployment.yml
+build-executable.py
+build.sh
+client_secret_788356908604-ro9n0fq4p70q569237314n12u84jnren.apps.googleusercontent.com.json
+colorlog.py
+config
+CyberChef_v10.19.4
+dashboard.js
+deploy-aws.sh
+docker-compose.yml
+Dockerfile
+Dockerfile.gpu
+docs
+documentation
+documents
+ecs-task-definition-gpu.json
+ecs-task-definition.json
+edge_computing_distributed_ai.py
+env.example
+example_weather_plugin
+examples
+file_cache
+fix_azure_mobile_auth.py
+get_azure_credentials.py
+integrations
+main.py
+neural_architecture_search.py
+os_dashboard_ai_assistant(Microsoft Graph format).json
+os_dashboard_orchestrator.py
+plugin_manager.py
+Procfile
+Project Deliverables (Reorder By Complexity Without Dependency).pdf
+project_directory_structure
+pyproject.toml
+README.md
+reference
+requests.py
+requirements.txt
+runtime.txt
+security_monitor.py
+settings.py
+setup_all_api_connections.py
+setup_third_party_credentials.py
+setup.py
+test_ai_services.py
+test_automation_integration.py
+test_azure_auth.py
+test_computer_vision.py
+test_conversation_integration.py
+test_developer_portal_api.py
+test_developer_portal_simple.py
+test_developer_portal.py
+test_predictive_analytics.py
+tests
+ui
+utils
+versions
+workflows
+
+./__pycache__:
+ai_security_threat_detection.cpython-311.pyc
+colorlog.cpython-310.pyc
+colorlog.cpython-311.pyc
+colorlog.cpython-37.pyc
+main.cpython-310.pyc
+neural_architecture_search.cpython-311.pyc
+requests.cpython-311.pyc
+
+./ai_os:
+__init__.py
+__pycache__
+app
+
+./ai_os/__pycache__:
+__init__.cpython-311.pyc
+
+./ai_os/app:
+__init__.py
+__pycache__
+ai_proxy.py
+cir.py
+connectors
+governance
+main.py
+orchestration
+search
+system_monitor.py
+
+./ai_os/app/__pycache__:
+__init__.cpython-311.pyc
+ai_proxy.cpython-311.pyc
+ai_proxy.cpython-37.pyc
+cir.cpython-311.pyc
+main.cpython-311.pyc
+main.cpython-37.pyc
+system_monitor.cpython-311.pyc
+system_monitor.cpython-37.pyc
+
+./ai_os/app/connectors:
+__init__.py
+base.py
+excel.py
+filesystem.py
+git.py
+notes.py
+onenote.py
+pdf.py
+powerpoint.py
+word.py
+
+./ai_os/app/governance:
+__init__.py
+audit.py
+change_engine.py
+
+./ai_os/app/orchestration:
+__init__.py
+daemons.py
+events.py
+runner.py
+
+./ai_os/app/search:
+__init__.py
+embedder.py
+index.py
+
+./api_connectors:
+__init__.py
+__pycache__
+apple_connector.py
+base.py
+file_processors.py
+git_client.py
+git.py
+google_client.py
+integration_manager.py
+integrations
+microsoft_graph.py
+ms_graph_client.py
+pdf.py
+rate_limiters.py
+universal_connector.py
+
+./api_connectors/__pycache__:
+__init__.cpython-310.pyc
+__init__.cpython-311.pyc
+__init__.cpython-37.pyc
+base.cpython-310.pyc
+base.cpython-311.pyc
+base.cpython-37.pyc
+git_client.cpython-311.pyc
+google_client.cpython-311.pyc
+ms_graph_client.cpython-311.pyc
+universal_connector.cpython-310.pyc
+universal_connector.cpython-311.pyc
+universal_connector.cpython-37.pyc
+
+./api_connectors/integrations:
+__init__.py
+image_integration.py
+office_integration.py
+pdf_integration.py
+
+./assistant_core:
+__init__.py
+__pycache__
+advanced_ai_engine.py
+advanced_productivity.py
+ai_layer
+ai_manager.py
+ai_services_api.py
+ai_task_creation.py
+ai.py
+analytics.py
+audit_system.py
+automation_orchestrator.py
+capsule_registry.py
+cir
+collaboration_intelligence.py
+computer_vision_ai.py
+content
+conversation_manager.py
+core
+daemon
+dashboard
+dashboard_engine.py
+data_aggregator.py
+db.py
+developer_portal.py
+document_manager.py
+driver_orchestrator_architecture.py
+driver_registry.py
+drivers
+edge_computing_ai.py
+integration_foundations.py
+integrations
+intelligence
+intelligent_monitoring.py
+mlops_platform.py
+onenote_viewer.py
+operations
+partner_analytics.py
+partner_management.py
+personalization_engine.py
+plugin_marketplace.py
+predictive_analytics.py
+search_engine.py
+security
+security_framework.py
+suggestions.py
+system
+task_automation.py
+templates
+terminal.py
+
+./assistant_core/__pycache__:
+__init__.cpython-310.pyc
+__init__.cpython-311.pyc
+__init__.cpython-37.pyc
+advanced_ai_engine.cpython-311.pyc
+advanced_ai_engine.cpython-37.pyc
+advanced_productivity.cpython-310.pyc
+advanced_productivity.cpython-37.pyc
+ai_manager.cpython-37.pyc
+ai_services_api.cpython-37.pyc
+ai_task_creation.cpython-311.pyc
+ai_task_creation.cpython-37.pyc
+ai.cpython-310.pyc
+ai.cpython-311.pyc
+ai.cpython-37.pyc
+analytics.cpython-37.pyc
+audit_system.cpython-310.pyc
+audit_system.cpython-311.pyc
+audit_system.cpython-37.pyc
+automation_orchestrator.cpython-311.pyc
+automation_orchestrator.cpython-37.pyc
+capsule_registry.cpython-311.pyc
+capsule_registry.cpython-37.pyc
+collaboration_intelligence.cpython-37.pyc
+computer_vision_ai.cpython-311.pyc
+computer_vision_ai.cpython-37.pyc
+conversation_manager.cpython-311.pyc
+conversation_manager.cpython-37.pyc
+dashboard_engine.cpython-311.pyc
+dashboard_engine.cpython-37.pyc
+data_aggregator.cpython-311.pyc
+data_aggregator.cpython-37.pyc
+db.cpython-311.pyc
+db.cpython-37.pyc
+developer_portal.cpython-37.pyc
+document_manager.cpython-37.pyc
+driver_orchestrator_architecture.cpython-311.pyc
+driver_orchestrator_architecture.cpython-37.pyc
+driver_registry.cpython-311.pyc
+driver_registry.cpython-37.pyc
+edge_computing_ai.cpython-37.pyc
+integration_foundations.cpython-37.pyc
+intelligent_monitoring.cpython-37.pyc
+mlops_platform.cpython-37.pyc
+onenote_viewer.cpython-311.pyc
+onenote_viewer.cpython-37.pyc
+partner_analytics.cpython-37.pyc
+partner_management.cpython-37.pyc
+personalization_engine.cpython-37.pyc
+plugin_marketplace.cpython-37.pyc
+predictive_analytics.cpython-311.pyc
+predictive_analytics.cpython-37.pyc
+search_engine.cpython-311.pyc
+search_engine.cpython-37.pyc
+security_framework.cpython-311.pyc
+security_framework.cpython-37.pyc
+suggestions.cpython-37.pyc
+task_automation.cpython-311.pyc
+task_automation.cpython-37.pyc
+terminal.cpython-311.pyc
+terminal.cpython-37.pyc
+
+./assistant_core/ai_layer:
+__init__.py
+__pycache__
+agents
+openai_client.py
+prompts.py
+tools.py
+workflows.py
+
+./assistant_core/ai_layer/__pycache__:
+__init__.cpython-37.pyc
+openai_client.cpython-37.pyc
+prompts.cpython-37.pyc
+tools.cpython-37.pyc
+workflows.cpython-37.pyc
+
+./assistant_core/ai_layer/agents:
+__init__.py
+__pycache__
+aic.py
+aria.py
+data_science_agent.py
+sora.py
+
+./assistant_core/ai_layer/agents/__pycache__:
+__init__.cpython-37.pyc
+aic.cpython-37.pyc
+aria.cpython-37.pyc
+data_science_agent.cpython-37.pyc
+sora.cpython-37.pyc
+
+./assistant_core/cir:
+__init__.py
+__pycache__
+schema.py
+
+./assistant_core/cir/__pycache__:
+__init__.cpython-310.pyc
+__init__.cpython-311.pyc
+__init__.cpython-37.pyc
+schema.cpython-310.pyc
+schema.cpython-311.pyc
+schema.cpython-37.pyc
+
+./assistant_core/content:
+__init__.py
+__pycache__
+generators.py
+
+./assistant_core/content/__pycache__:
+__init__.cpython-311.pyc
+__init__.cpython-37.pyc
+generators.cpython-311.pyc
+generators.cpython-37.pyc
+
+./assistant_core/core:
+__init__.py
+__pycache__
+routing.py
+scheduler.py
+state.py
+
+./assistant_core/core/__pycache__:
+__init__.cpython-311.pyc
+__init__.cpython-37.pyc
+routing.cpython-311.pyc
+routing.cpython-37.pyc
+scheduler.cpython-311.pyc
+scheduler.cpython-37.pyc
+state.cpython-310.pyc
+state.cpython-311.pyc
+state.cpython-37.pyc
+
+./assistant_core/daemon:
+__init__.py
+__pycache__
+automators.py
+cognitive_daemon.py
+monitors.py
+workflow_orchestration.py
+
+./assistant_core/daemon/__pycache__:
+__init__.cpython-311.pyc
+__init__.cpython-37.pyc
+automators.cpython-37.pyc
+cognitive_daemon.cpython-311.pyc
+cognitive_daemon.cpython-37.pyc
+monitors.cpython-37.pyc
+workflow_orchestration.cpython-37.pyc
+
+./assistant_core/dashboard:
+__init__.py
+__pycache__
+main_interface.py
+
+./assistant_core/dashboard/__pycache__:
+__init__.cpython-37.pyc
+main_interface.cpython-37.pyc
+
+./assistant_core/drivers:
+__init__.py
+__pycache__
+builtin.py
+
+./assistant_core/drivers/__pycache__:
+__init__.cpython-311.pyc
+__init__.cpython-37.pyc
+builtin.cpython-311.pyc
+builtin.cpython-37.pyc
+
+./assistant_core/integrations:
+__init__.py
+__pycache__
+advanced_systems.py
+office_client.py
+office_realtime.py
+office_server.py
+onedrive_project.py
+
+./assistant_core/integrations/__pycache__:
+__init__.cpython-311.pyc
+__init__.cpython-37.pyc
+advanced_systems.cpython-311.pyc
+advanced_systems.cpython-37.pyc
+office_client.cpython-311.pyc
+office_client.cpython-37.pyc
+office_realtime.cpython-311.pyc
+office_realtime.cpython-37.pyc
+office_server.cpython-37.pyc
+onedrive_project.cpython-311.pyc
+onedrive_project.cpython-37.pyc
+
+./assistant_core/intelligence:
+__init__.py
+__pycache__
+data_collector.py
+office_ai_service.py
+quality_assurance.py
+
+./assistant_core/intelligence/__pycache__:
+__init__.cpython-311.pyc
+__init__.cpython-37.pyc
+data_collector.cpython-311.pyc
+data_collector.cpython-37.pyc
+office_ai_service.cpython-311.pyc
+office_ai_service.cpython-37.pyc
+quality_assurance.cpython-311.pyc
+quality_assurance.cpython-37.pyc
+
+./assistant_core/operations:
+__init__.py
+__pycache__
+concurrent_manager.py
+
+./assistant_core/operations/__pycache__:
+__init__.cpython-37.pyc
+concurrent_manager.cpython-37.pyc
+
+./assistant_core/security:
+__init__.py
+__pycache__
+auth_manager.py
+billing_system.py
+encryption_service.py
+governance_engine.py
+security_monitor.py
+
+./assistant_core/security/__pycache__:
+__init__.cpython-311.pyc
+auth_manager.cpython-311.pyc
+encryption_service.cpython-311.pyc
+
+./assistant_core/system:
+__init__.py
+__pycache__
+operations.py
+
+./assistant_core/system/__pycache__:
+__init__.cpython-311.pyc
+__init__.cpython-37.pyc
+operations.cpython-311.pyc
+operations.cpython-37.pyc
+
+./assistant_core/templates:
+documentation_page.html
+homepage.html
+
+./assistant_hub:
+__init__.py
+__pycache__
+ai_layer
+ai_task_creation.py
+ai.py
+analytics.py
+config.py
+core
+daemon
+db.py
+document_manager.py
+document_templates.py
+export_import.py
+file_task_extraction.py
+gui.py
+integrations
+logging_config.py
+suggestions.py
+sync_scheduler.py
+task_automation.py
+task_templates.py
+terminal.py
+ui
+utils.py
+versioning
+
+./assistant_hub/__pycache__:
+__init__.cpython-311.pyc
+__init__.cpython-37.pyc
+db.cpython-311.pyc
+db.cpython-37.pyc
+document_templates.cpython-311.pyc
+document_templates.cpython-37.pyc
+logging_config.cpython-311.pyc
+terminal.cpython-311.pyc
+terminal.cpython-37.pyc
+
+./assistant_hub/ai_layer:
+__init__.py
+agents
+openai_client.py
+prompts.py
+tools.py
+workflows.py
+
+./assistant_hub/ai_layer/agents:
+__init__.py
+aic.py
+aria.py
+sora.py
+
+./assistant_hub/core:
+__init__.py
+api_server.py
+routing.py
+scheduler.py
+state.py
+
+./assistant_hub/daemon:
+__init__.py
+automators.py
+cognitive_daemon.py
+monitors.py
+
+./assistant_hub/integrations:
+__init__.py
+__pycache__
+adobe_client.py
+api_manager.py
+api.py
+apple_calendar.py
+base.py
+excel
+excel_integration.py
+filesystem
+filesystem_integration.py
+git_client.py
+git_integration.py
+github.py
+gmail.py
+google_calendar.py
+google_client.py
+msgraph
+notes.py
+onenote
+onenote_integration.py
+pdf_integration.py
+sample_data_preview.py
+word
+word_integration.py
+
+./assistant_hub/integrations/__pycache__:
+__init__.cpython-311.pyc
+base.cpython-311.pyc
+
+./assistant_hub/integrations/excel:
+__init__.py
+__pycache__
+cloud_client.py
+local_client.py
+service.py
+
+./assistant_hub/integrations/excel/__pycache__:
+__init__.cpython-311.pyc
+cloud_client.cpython-311.pyc
+
+./assistant_hub/integrations/filesystem:
+__init__.py
+service.py
+
+./assistant_hub/integrations/msgraph:
+__init__.py
+__pycache__
+auth.py
+client.py
+
+./assistant_hub/integrations/msgraph/__pycache__:
+__init__.cpython-311.pyc
+auth.cpython-311.pyc
+client.cpython-311.pyc
+
+./assistant_hub/integrations/onenote:
+__init__.py
+client.py
+service.py
+
+./assistant_hub/integrations/word:
+__init__.py
+cloud_client.py
+local_client.py
+service.py
+
+./assistant_hub/ui:
+__init__.py
+terminal
+
+./assistant_hub/ui/terminal:
+__init__.py
+cli.py
+commands
+
+./assistant_hub/ui/terminal/commands:
+__init__.py
+excel.py
+history.py
+onenote.py
+projects.py
+word.py
+
+./assistant_hub/versioning:
+__init__.py
+git_async.py
+git_manager.py
+
+./assistant_hub_gui:
+__pycache__
+add_projects_from_pdf.py
+add_tasks_from_pdf.py
+assistant_hub
+assistant_hub_cli.py
+assistant_hub.db
+cleanup_duplicate_tasks.py
+documents
+extract_tasks_from_projects.py
+import_existing_documents.py
+main.py
+pyproject.toml
+requirements.txt
+samples
+security_status_cli.py
+update_project_priorities.py
+update_projects_tasks_with_priority.py
+
+./assistant_hub_gui/__pycache__:
+main.cpython-310.pyc
+
+./assistant_hub_gui/assistant_hub:
+__init__.py
+__pycache__
+ai_layer
+ai_task_creation.py
+ai.py
+analytics.py
+api_bridge.py
+backend_registry.py
+calendar_view.py
+code_analysis.py
+comments.py
+config.py
+core
+daemon
+db_fixed.py
+db.py
+db.py.backup
+document_manager.py
+document_templates.py
+export_import.py
+file_task_extraction.py
+future_features.py
+gui.py
+integrations
+knowledge_graph.py
+logging_config.py
+paths.py
+project_insights.py
+smart_prioritization.py
+spec_registry.py
+suggestions.py
+sync_scheduler.py
+task_automation.py
+task_templates.py
+terminal.py
+ui
+utils.py
+versioning
+
+./assistant_hub_gui/assistant_hub/__pycache__:
+__init__.cpython-310.pyc
+__init__.cpython-311.pyc
+__init__.cpython-37.pyc
+ai_task_creation.cpython-311.pyc
+ai.cpython-311.pyc
+analytics.cpython-311.pyc
+api_bridge.cpython-310.pyc
+api_bridge.cpython-311.pyc
+backend_registry.cpython-311.pyc
+backend_registry.cpython-37.pyc
+config.cpython-310.pyc
+config.cpython-311.pyc
+db_corrected.cpython-310.pyc
+db.cpython-310.pyc
+db.cpython-311.pyc
+db.cpython-37.pyc
+document_manager.cpython-310.pyc
+document_manager.cpython-311.pyc
+document_templates.cpython-310.pyc
+document_templates.cpython-311.pyc
+document_templates.cpython-37.pyc
+export_import.cpython-311.pyc
+future_features.cpython-311.pyc
+future_features.cpython-37.pyc
+gui.cpython-310.pyc
+gui.cpython-311.pyc
+gui.cpython-37.pyc
+logging_config.cpython-311.pyc
+paths.cpython-311.pyc
+paths.cpython-37.pyc
+spec_registry.cpython-311.pyc
+spec_registry.cpython-37.pyc
+suggestions.cpython-311.pyc
+sync_scheduler.cpython-311.pyc
+task_automation.cpython-311.pyc
+task_templates.cpython-311.pyc
+terminal.cpython-311.pyc
+utils.cpython-311.pyc
+
+./assistant_hub_gui/assistant_hub/ai_layer:
+__init__.py
+__pycache__
+agents
+openai_client.py
+prompts.py
+tools.py
+workflows.py
+
+./assistant_hub_gui/assistant_hub/ai_layer/__pycache__:
+__init__.cpython-311.pyc
+openai_client.cpython-311.pyc
+prompts.cpython-311.pyc
+tools.cpython-311.pyc
+workflows.cpython-311.pyc
+
+./assistant_hub_gui/assistant_hub/ai_layer/agents:
+__init__.py
+__pycache__
+aic.py
+aria.py
+sora.py
+
+./assistant_hub_gui/assistant_hub/ai_layer/agents/__pycache__:
+__init__.cpython-311.pyc
+aic.cpython-311.pyc
+aria.cpython-311.pyc
+sora.cpython-311.pyc
+
+./assistant_hub_gui/assistant_hub/core:
+__init__.py
+__pycache__
+api_server.py
+routing.py
+scheduler.py
+state.py
+
+./assistant_hub_gui/assistant_hub/core/__pycache__:
+__init__.cpython-311.pyc
+routing.cpython-311.pyc
+scheduler.cpython-311.pyc
+state.cpython-311.pyc
+
+./assistant_hub_gui/assistant_hub/daemon:
+__init__.py
+__pycache__
+automators.py
+cognitive_daemon.py
+monitors.py
+
+./assistant_hub_gui/assistant_hub/daemon/__pycache__:
+__init__.cpython-311.pyc
+automators.cpython-311.pyc
+cognitive_daemon.cpython-311.pyc
+monitors.cpython-311.pyc
+
+./assistant_hub_gui/assistant_hub/integrations:
+__init__.py
+__pycache__
+adobe_client.py
+api_manager.py
+api.py
+apple_calendar.py
+base.py
+excel
+excel_integration.py
+filesystem
+filesystem_integration.py
+git_client.py
+git_integration.py
+github.py
+gmail.py
+google_calendar.py
+google_client.py
+msgraph
+notes.py
+onedrive
+onenote
+onenote_integration.py
+pdf_integration.py
+sample_data_preview.py
+word
+word_integration.py
+
+./assistant_hub_gui/assistant_hub/integrations/__pycache__:
+__init__.cpython-311.pyc
+apple_calendar.cpython-311.pyc
+base.cpython-311.pyc
+excel_integration.cpython-311.pyc
+filesystem_integration.cpython-311.pyc
+git_integration.cpython-311.pyc
+github.cpython-311.pyc
+gmail.cpython-311.pyc
+google_calendar.cpython-311.pyc
+notes.cpython-311.pyc
+onedrive_integration.cpython-311.pyc
+onenote_integration.cpython-311.pyc
+pdf_integration.cpython-311.pyc
+word_integration.cpython-311.pyc
+
+./assistant_hub_gui/assistant_hub/integrations/excel:
+__init__.py
+__pycache__
+cloud_client.py
+local_client.py
+service.py
+
+./assistant_hub_gui/assistant_hub/integrations/excel/__pycache__:
+__init__.cpython-311.pyc
+cloud_client.cpython-311.pyc
+local_client.cpython-311.pyc
+service.cpython-311.pyc
+
+./assistant_hub_gui/assistant_hub/integrations/filesystem:
+__init__.py
+__pycache__
+service.py
+
+./assistant_hub_gui/assistant_hub/integrations/filesystem/__pycache__:
+__init__.cpython-311.pyc
+service.cpython-311.pyc
+
+./assistant_hub_gui/assistant_hub/integrations/msgraph:
+__init__.py
+__pycache__
+auth.py
+client.py
+
+./assistant_hub_gui/assistant_hub/integrations/msgraph/__pycache__:
+__init__.cpython-311.pyc
+auth.cpython-311.pyc
+client.cpython-311.pyc
+
+./assistant_hub_gui/assistant_hub/integrations/onedrive:
+__pycache__
+
+./assistant_hub_gui/assistant_hub/integrations/onedrive/__pycache__:
+__init__.cpython-311.pyc
+client.cpython-311.pyc
+service.cpython-311.pyc
+
+./assistant_hub_gui/assistant_hub/integrations/onenote:
+__init__.py
+__pycache__
+client.py
+service.py
+
+./assistant_hub_gui/assistant_hub/integrations/onenote/__pycache__:
+__init__.cpython-311.pyc
+client.cpython-311.pyc
+service.cpython-311.pyc
+
+./assistant_hub_gui/assistant_hub/integrations/word:
+__init__.py
+__pycache__
+cloud_client.py
+local_client.py
+service.py
+
+./assistant_hub_gui/assistant_hub/integrations/word/__pycache__:
+__init__.cpython-311.pyc
+cloud_client.cpython-311.pyc
+local_client.cpython-311.pyc
+service.cpython-311.pyc
+
+./assistant_hub_gui/assistant_hub/ui:
+__init__.py
+terminal
+
+./assistant_hub_gui/assistant_hub/ui/terminal:
+__init__.py
+cli.py
+commands
+
+./assistant_hub_gui/assistant_hub/ui/terminal/commands:
+__init__.py
+excel.py
+history.py
+onenote.py
+projects.py
+word.py
+
+./assistant_hub_gui/assistant_hub/versioning:
+__init__.py
+__pycache__
+git_async.py
+git_manager.py
+
+./assistant_hub_gui/assistant_hub/versioning/__pycache__:
+__init__.cpython-310.pyc
+__init__.cpython-311.pyc
+git_async.cpython-310.pyc
+git_async.cpython-311.pyc
+git_manager.cpython-310.pyc
+git_manager.cpython-311.pyc
+
+./assistant_hub_gui/documents:
+42 Podcast The Resonance Paradox
+OS Dashboard AI Assistant
+Royal Polyarchy Encyclopedia BlueprintCipherEntities
+Samples
+
+./assistant_hub_gui/documents/42 Podcast The Resonance Paradox:
+pdf
+word
+
+./assistant_hub_gui/documents/42 Podcast The Resonance Paradox/pdf:
+ThePodcastTopics.pdf
+
+./assistant_hub_gui/documents/42 Podcast The Resonance Paradox/word:
+LinkedIn Profile Update - Order TR38492423.docx
+
+./assistant_hub_gui/documents/OS Dashboard AI Assistant:
+pdf
+
+./assistant_hub_gui/documents/OS Dashboard AI Assistant/pdf:
+Project Deliverables (Reorder By Complexity Without Dependency).pdf
+
+./assistant_hub_gui/documents/Royal Polyarchy Encyclopedia BlueprintCipherEntities:
+excel
+
+./assistant_hub_gui/documents/Royal Polyarchy Encyclopedia BlueprintCipherEntities/excel:
+HighestRoyalPolyarchyMembers.xlsx
+
+./assistant_hub_gui/documents/Samples:
+Compliance Report Snapshot.csv
+Governed Brief Template.docx
+Notes Inbox Seed.txt
+Operational Metrics Workbook.xlsx
+Regulatory Filing Shell.pdf
+Risk Assessment Outline.json
+
+./assistant_hub_gui/samples:
+sample_data.csv
+sample_data.json
+sample_document.txt
+
+./attachments:
+
+./config:
+__init__.py
+__pycache__
+config.py
+config.yaml
+default_config.yaml
+logging_config.py
+samples
+
+./config/__pycache__:
+__init__.cpython-310.pyc
+__init__.cpython-311.pyc
+__init__.cpython-37.pyc
+config.cpython-310.pyc
+config.cpython-311.pyc
+config.cpython-37.pyc
+logging_config.cpython-310.pyc
+logging_config.cpython-311.pyc
+logging_config.cpython-37.pyc
+
+./config/samples:
+sample_data.csv
+sample_data.json
+sample_document.txt
+
+./CyberChef_v10.19.4:
+assets
+ChefWorker.js.LICENSE.txt
+CyberChef_v10.19.4.html
+DishWorker.js.LICENSE.txt
+images
+index.html.br
+index.html.gz
+InputWorker.js.LICENSE.txt
+LoaderWorker.js.LICENSE.txt
+modules
+ZipWorker.js.LICENSE.txt
+
+./CyberChef_v10.19.4/assets:
+02aafe15b98928fdaa38.ttf
+aecc661b69309290f600.ico
+fonts
+forge
+main.css
+main.css.br
+main.css.gz
+main.js
+main.js.br
+main.js.gz
+main.js.LICENSE.txt
+tesseract
+
+./CyberChef_v10.19.4/assets/fonts:
+Roboto72White.fnt
+Roboto72White.png
+RobotoBlack72White.fnt
+RobotoBlack72White.png
+RobotoMono72White.fnt
+RobotoMono72White.png
+RobotoSlab72White.fnt
+RobotoSlab72White.png
+
+./CyberChef_v10.19.4/assets/forge:
+prime.worker.min.js
+prime.worker.min.js.br
+prime.worker.min.js.gz
+
+./CyberChef_v10.19.4/assets/tesseract:
+lang-data
+tesseract-core.wasm.js
+tesseract-core.wasm.js.br
+tesseract-core.wasm.js.gz
+worker.min.js
+worker.min.js.br
+worker.min.js.gz
+worker.min.js.LICENSE.txt
+
+./CyberChef_v10.19.4/assets/tesseract/lang-data:
+eng.traineddata.gz
+
+./CyberChef_v10.19.4/images:
+cook_male-32x32.png
+cyberchef-128x128.png
+file-128x128.png
+fork_me.png
+
+./CyberChef_v10.19.4/modules:
+Bletchley.js
+Bletchley.js.br
+Bletchley.js.gz
+Bletchley.js.LICENSE.txt
+Charts.js
+Charts.js.br
+Charts.js.gz
+Charts.js.LICENSE.txt
+Ciphers.js
+Ciphers.js.br
+Ciphers.js.gz
+Ciphers.js.LICENSE.txt
+Code.js
+Code.js.br
+Code.js.gz
+Code.js.LICENSE.txt
+Compression.js
+Compression.js.br
+Compression.js.gz
+Compression.js.LICENSE.txt
+Crypto.js
+Crypto.js.br
+Crypto.js.gz
+Crypto.js.LICENSE.txt
+Diff.js
+Diff.js.br
+Diff.js.gz
+Diff.js.LICENSE.txt
+Encodings.js
+Encodings.js.br
+Encodings.js.gz
+Encodings.js.LICENSE.txt
+Handlebars.js
+Handlebars.js.br
+Handlebars.js.gz
+Handlebars.js.LICENSE.txt
+Hashing.js
+Hashing.js.br
+Hashing.js.gz
+Hashing.js.LICENSE.txt
+Image.js
+Image.js.br
+Image.js.gz
+Image.js.LICENSE.txt
+Jq.js
+Jq.js.br
+Jq.js.gz
+Jq.js.LICENSE.txt
+OCR.js
+OCR.js.br
+OCR.js.gz
+OCR.js.LICENSE.txt
+PGP.js
+PGP.js.br
+PGP.js.gz
+PGP.js.LICENSE.txt
+Protobuf.js
+Protobuf.js.br
+Protobuf.js.gz
+Protobuf.js.LICENSE.txt
+PublicKey.js
+PublicKey.js.br
+PublicKey.js.gz
+PublicKey.js.LICENSE.txt
+Regex.js
+Regex.js.br
+Regex.js.gz
+Regex.js.LICENSE.txt
+Serialise.js
+Serialise.js.br
+Serialise.js.gz
+Serialise.js.LICENSE.txt
+Shellcode.js
+Shellcode.js.br
+Shellcode.js.gz
+Shellcode.js.LICENSE.txt
+URL.js
+URL.js.br
+URL.js.gz
+URL.js.LICENSE.txt
+UserAgent.js
+UserAgent.js.br
+UserAgent.js.gz
+UserAgent.js.LICENSE.txt
+Yara.js
+Yara.js.br
+Yara.js.gz
+Yara.js.LICENSE.txt
+
+./docs:
+ai_capabilities.html
+future_advanced.html
+future_core_os.html
+future_god.html
+future_hyper.html
+future_meta.html
+future_super.html
+future_ultra.html
+index.html
+
+./documentation:
+AI_FEATURES_IMPLEMENTATION.md
+AI_OFFICE_AGENT_REALTIME.md
+api_research.md
+ARCHITECTURE_IMPLEMENTATION.md
+assistant_hub
+assistant_hub_gui
+AUTOMATION_ORCHESTRATION_INTEGRATION.md
+AWS_COST_ESTIMATE.md
+CANONICAL_INTERNAL_REPRESENTATION.md
+COGNITIVE_DAEMON_SYSTEM.md
+commands.md
+config
+CONVERSATION_AI_INTEGRATION.md
+DAEMON_FRAMEWORK_ARCHITECTURE.md
+DEPLOYMENT.md
+DOCUMENT_TEMPLATES_AND_AUTOMATION.md
+DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md
+DOCUMENT_UPLOAD_DESIGN.md
+DOCUMENT_UPLOAD_IMPLEMENTATION.md
+ENGINEERING_COMPLEXITY_ANALYSIS.md
+FEATURE_OPPORTUNITIES.md
+FILE_TASK_EXTRACTION_FEATURE.md
+FUTURE_FEATURE_PORTFOLIO.md
+GLOBAL_IMPACT_WHITE_PAPER.md
+IMPLEMENTATION_ROADMAP.md
+IMPLEMENTATION_SUMMARY.md
+LOW_HANGING_FRUIT_FEATURES.md
+MISSING_FEATURES_SUMMARY.md
+NEW_FEATURES_ADDED.md
+ONEDRIVE_INTEGRATION.md
+OS_DASHBOARD_CANON_SYSTEM_SPEC.md
+OS_DASHBOARD_ENTERPRISE.md
+README.md
+reference
+SALVAGED_CODE_SUMMARY.md
+THIRD_PARTY_CREDENTIALS_SETUP.md
+VISION_IMPLEMENTATION.md
+VISION.md
+workflows
+
+./documentation/assistant_hub:
+ARCHITECTURE.md
+
+./documentation/assistant_hub_gui:
+assistant_hub
+samples
+
+./documentation/assistant_hub_gui/assistant_hub:
+ARCHITECTURE.md
+
+./documentation/assistant_hub_gui/samples:
+excel_workbook_specification.md
+index.md
+pdf_document_specification.md
+powerpoint_presentation_specification.md
+README.md
+word_document_specification.md
+
+./documentation/config:
+samples
+
+./documentation/config/samples:
+excel_workbook_specification.md
+index.md
+pdf_document_specification.md
+powerpoint_presentation_specification.md
+README.md
+word_document_specification.md
+
+./documentation/reference:
+os-dashboard-ai-assistant
+os-dashboard-ai-assistant-advanced (1)
+os-dashboard-ai-assistant-platform
+Technical Spec Sheets (Version 5 Latest Version).pdf
+
+./documentation/reference/os-dashboard-ai-assistant:
+README.md
+todo.md
+
+./documentation/reference/os-dashboard-ai-assistant-advanced (1):
+ADVANCED_FEATURES.md
+README.md
+todo.md
+
+./documentation/reference/os-dashboard-ai-assistant-platform:
+CHANGELOG.md
+INSTALL.md
+README.md
+todo.md
+
+./documentation/workflows:
+README.md
+
+./documents:
+projects
+
+./documents/projects:
+32. Resonance Propulsion
+42 Podcast The Resonance Paradox
+43. Psyche Spatial Architecture
+45. Royal Polyarchy Dynasties & Atlas
+46. Royal Polyarchy Encyclopedia (Blueprint
+47. Royal Polyarchy Cosmology & Volumes of the Cosmos
+AIC 
+Alternative Interpretation Tests
+Archetypal Mathematics
+Arithmorphics Mathematics
+Consciousness-Physics Bridge
+Cosmological Resonance Model
+Document OCR Platform (Django)
+Electromagnetic Resonance
+Energy Resonance Framework
+Engineering Applications Framework
+Experimental Validation Roadmap
+Financial Frameworks Book
+Gravitational Resonance
+Information-Energy Equivalence
+Mathematical Phenomena Interpretation System (MPIS)
+Motif Taxonomy Atlas
+Next Generation Technologies Roadmap
+Ontological-Epistemological Matrix
+OS Dashboard AI Assistant
+Particle Resonance Taxonomy
+Podcast: Paradox Paradigm
+Podcast: The Resonance Paradox
+Portfolio Strategist MVP
+Portfolio Strategist v1.0 (Paid Tier)
+Psyche Spatial Architecture
+Quantum Resonance Interpretation
+Reflexive Arithmetic Universe
+Resonance Computing
+Resonance Detector Design
+Resonance Field Equations
+Resonance Propulsion
+Resonance Sensing Technologies
+Resonance-Based Energy Systems
+Resonant Universe Theory
+Royal Polyarchy Constitution & Government
+Royal Polyarchy Cosmology & Volumes of the Cosmos
+Royal Polyarchy Dynasties & Atlas
+Royal Polyarchy Encyclopedia (Blueprint
+Royal Polyarchy Encyclopedia BlueprintCipherEntities
+STUFF Framework
+Symbolic Axiom Set (Five Foundational Equations)
+Symbolic Phase Entropy
+Synchronetic Coordinate System
+Synchronetic Mathematics
+Theoretical Reasoning Framework (TRF)
+Time-Causality Matrix
+Trader Exchange MVP
+Triadic Mathematics
+Unknown Equations Atlas
+Writing Measurement Framework
+
+./documents/projects/32. Resonance Propulsion:
+32. Resonance Propulsion_brief.docx
+
+./documents/projects/42 Podcast The Resonance Paradox:
+42 Podcast The Resonance Paradox_brief.docx
+
+./documents/projects/43. Psyche Spatial Architecture:
+43. Psyche Spatial Architecture_brief.docx
+
+./documents/projects/45. Royal Polyarchy Dynasties & Atlas:
+45. Royal Polyarchy Dynasties & Atlas_brief.docx
+
+./documents/projects/46. Royal Polyarchy Encyclopedia (Blueprint:
+Cipher
+
+./documents/projects/46. Royal Polyarchy Encyclopedia (Blueprint/Cipher:
+Entities)
+
+./documents/projects/46. Royal Polyarchy Encyclopedia (Blueprint/Cipher/Entities):
+46. Royal Polyarchy Encyclopedia (Blueprint
+
+./documents/projects/46. Royal Polyarchy Encyclopedia (Blueprint/Cipher/Entities)/46. Royal Polyarchy Encyclopedia (Blueprint:
+Cipher
+
+./documents/projects/46. Royal Polyarchy Encyclopedia (Blueprint/Cipher/Entities)/46. Royal Polyarchy Encyclopedia (Blueprint/Cipher:
+Entities)_brief.docx
+
+./documents/projects/47. Royal Polyarchy Cosmology & Volumes of the Cosmos:
+47. Royal Polyarchy Cosmology & Volumes of the Cosmos_brief.docx
+
+./documents/projects/AIC :
+ Daemon Framework (Echo, Oracle, Critic, Archivist)
+
+./documents/projects/AIC / Daemon Framework (Echo, Oracle, Critic, Archivist):
+AIC 
+
+./documents/projects/AIC / Daemon Framework (Echo, Oracle, Critic, Archivist)/AIC :
+ Daemon Framework (Echo, Oracle, Critic, Archivist)_brief.docx
+
+./documents/projects/Alternative Interpretation Tests:
+Alternative Interpretation Tests_brief.docx
+
+./documents/projects/Archetypal Mathematics:
+Archetypal Mathematics_brief.docx
+
+./documents/projects/Arithmorphics Mathematics:
+Arithmorphics Mathematics_brief.docx
+
+./documents/projects/Consciousness-Physics Bridge:
+Consciousness-Physics Bridge_brief.docx
+
+./documents/projects/Cosmological Resonance Model:
+Cosmological Resonance Model_brief.docx
+
+./documents/projects/Document OCR Platform (Django):
+Document OCR Platform (Django)_brief.docx
+
+./documents/projects/Electromagnetic Resonance:
+Electromagnetic Resonance_brief.docx
+
+./documents/projects/Energy Resonance Framework:
+Energy Resonance Framework_brief.docx
+
+./documents/projects/Engineering Applications Framework:
+Engineering Applications Framework_brief.docx
+
+./documents/projects/Experimental Validation Roadmap:
+Experimental Validation Roadmap_brief.docx
+
+./documents/projects/Financial Frameworks Book:
+Financial Frameworks Book_brief.docx
+
+./documents/projects/Gravitational Resonance:
+Gravitational Resonance_brief.docx
+
+./documents/projects/Information-Energy Equivalence:
+Information-Energy Equivalence_brief.docx
+
+./documents/projects/Mathematical Phenomena Interpretation System (MPIS):
+Mathematical Phenomena Interpretation System (MPIS)_brief.docx
+
+./documents/projects/Motif Taxonomy Atlas:
+Motif Taxonomy Atlas_brief.docx
+
+./documents/projects/Next Generation Technologies Roadmap:
+Next Generation Technologies Roadmap_brief.docx
+
+./documents/projects/Ontological-Epistemological Matrix:
+Ontological-Epistemological Matrix_brief.docx
+
+./documents/projects/OS Dashboard AI Assistant:
+OS Dashboard AI Assistant_brief.docx
+
+./documents/projects/Particle Resonance Taxonomy:
+Particle Resonance Taxonomy_brief.docx
+
+./documents/projects/Podcast: Paradox Paradigm:
+Podcast: Paradox Paradigm_brief.docx
+
+./documents/projects/Podcast: The Resonance Paradox:
+Podcast: The Resonance Paradox_brief.docx
+
+./documents/projects/Portfolio Strategist MVP:
+Portfolio Strategist MVP_brief.docx
+
+./documents/projects/Portfolio Strategist v1.0 (Paid Tier):
+Portfolio Strategist v1.0 (Paid Tier)_brief.docx
+
+./documents/projects/Psyche Spatial Architecture:
+Psyche Spatial Architecture_brief.docx
+
+./documents/projects/Quantum Resonance Interpretation:
+Quantum Resonance Interpretation_brief.docx
+
+./documents/projects/Reflexive Arithmetic Universe:
+Reflexive Arithmetic Universe_brief.docx
+
+./documents/projects/Resonance Computing:
+Resonance Computing_brief.docx
+
+./documents/projects/Resonance Detector Design:
+Resonance Detector Design_brief.docx
+
+./documents/projects/Resonance Field Equations:
+Resonance Field Equations_brief.docx
+
+./documents/projects/Resonance Propulsion:
+Resonance Propulsion_brief.docx
+
+./documents/projects/Resonance Sensing Technologies:
+Resonance Sensing Technologies_brief.docx
+
+./documents/projects/Resonance-Based Energy Systems:
+Resonance-Based Energy Systems_brief.docx
+
+./documents/projects/Resonant Universe Theory:
+Resonant Universe Theory_brief.docx
+
+./documents/projects/Royal Polyarchy Constitution & Government:
+Royal Polyarchy Constitution & Government_brief.docx
+
+./documents/projects/Royal Polyarchy Cosmology & Volumes of the Cosmos:
+Royal Polyarchy Cosmology & Volumes of the Cosmos_brief.docx
+
+./documents/projects/Royal Polyarchy Dynasties & Atlas:
+Royal Polyarchy Dynasties & Atlas_brief.docx
+
+./documents/projects/Royal Polyarchy Encyclopedia (Blueprint:
+Cipher
+
+./documents/projects/Royal Polyarchy Encyclopedia (Blueprint/Cipher:
+Entities)
+
+./documents/projects/Royal Polyarchy Encyclopedia (Blueprint/Cipher/Entities):
+Royal Polyarchy Encyclopedia (Blueprint
+
+./documents/projects/Royal Polyarchy Encyclopedia (Blueprint/Cipher/Entities)/Royal Polyarchy Encyclopedia (Blueprint:
+Cipher
+
+./documents/projects/Royal Polyarchy Encyclopedia (Blueprint/Cipher/Entities)/Royal Polyarchy Encyclopedia (Blueprint/Cipher:
+Entities)_brief.docx
+
+./documents/projects/Royal Polyarchy Encyclopedia BlueprintCipherEntities:
+Royal Polyarchy Encyclopedia BlueprintCipherEntities_brief.docx
+
+./documents/projects/STUFF Framework:
+STUFF Framework_brief.docx
+
+./documents/projects/Symbolic Axiom Set (Five Foundational Equations):
+Symbolic Axiom Set (Five Foundational Equations)_brief.docx
+
+./documents/projects/Symbolic Phase Entropy:
+Symbolic Phase Entropy_brief.docx
+
+./documents/projects/Synchronetic Coordinate System:
+Synchronetic Coordinate System_brief.docx
+
+./documents/projects/Synchronetic Mathematics:
+Synchronetic Mathematics_brief.docx
+
+./documents/projects/Theoretical Reasoning Framework (TRF):
+Theoretical Reasoning Framework (TRF)_brief.docx
+
+./documents/projects/Time-Causality Matrix:
+Time-Causality Matrix_brief.docx
+
+./documents/projects/Trader Exchange MVP:
+Trader Exchange MVP_brief.docx
+
+./documents/projects/Triadic Mathematics:
+Triadic Mathematics_brief.docx
+
+./documents/projects/Unknown Equations Atlas:
+Unknown Equations Atlas_brief.docx
+
+./documents/projects/Writing Measurement Framework:
+Writing Measurement Framework_brief.docx
+
+./example_weather_plugin:
+main.py
+manifest.yaml
+
+./examples:
+__pycache__
+demo_usage.py
+
+./examples/__pycache__:
+demo_usage.cpython-37.pyc
+
+./file_cache:
+
+./integrations:
+
+./reference:
+os-dashboard-ai-assistant
+os-dashboard-ai-assistant-advanced (1)
+os-dashboard-ai-assistant-platform
+
+./reference/os-dashboard-ai-assistant:
+api_manager.py
+apis
+config.py
+examples
+logger.py
+main.py
+requirements.txt
+setup.py
+
+./reference/os-dashboard-ai-assistant/apis:
+__init__.py
+adobe_client.py
+apple_calendar_client.py
+git_client.py
+google_client.py
+microsoft_client.py
+openai_client.py
+
+./reference/os-dashboard-ai-assistant/examples:
+basic_usage.py
+
+./reference/os-dashboard-ai-assistant-advanced (1):
+advanced
+advanced_main.py
+api_manager.py
+apis
+config.py
+examples
+logger.py
+main.py
+requirements.txt
+setup.py
+ui
+workflows
+
+./reference/os-dashboard-ai-assistant-advanced (1)/advanced:
+__init__.py
+email_intelligence.py
+git_workflow_automation.py
+office_automation.py
+smart_calendar.py
+
+./reference/os-dashboard-ai-assistant-advanced (1)/apis:
+__init__.py
+adobe_client.py
+apple_calendar_client.py
+git_client.py
+google_client.py
+microsoft_client.py
+openai_client.py
+
+./reference/os-dashboard-ai-assistant-advanced (1)/examples:
+basic_usage.py
+
+./reference/os-dashboard-ai-assistant-advanced (1)/ui:
+__init__.py
+dashboard_components.py
+
+./reference/os-dashboard-ai-assistant-advanced (1)/workflows:
+__init__.py
+cross_app_sync.py
+
+./reference/os-dashboard-ai-assistant-platform:
+config
+Dockerfile
+examples
+LICENSE
+main.py
+requirements.txt
+setup.py
+src
+
+./reference/os-dashboard-ai-assistant-platform/config:
+default_config.yaml
+
+./reference/os-dashboard-ai-assistant-platform/examples:
+demo_usage.py
+
+./reference/os-dashboard-ai-assistant-platform/src:
+__init__.py
+content
+core
+dashboard
+integrations
+intelligence
+operations
+system
+
+./reference/os-dashboard-ai-assistant-platform/src/content:
+generators.py
+
+./reference/os-dashboard-ai-assistant-platform/src/core:
+base_agent.py
+
+./reference/os-dashboard-ai-assistant-platform/src/dashboard:
+main_interface.py
+
+./reference/os-dashboard-ai-assistant-platform/src/integrations:
+advanced_systems.py
+
+./reference/os-dashboard-ai-assistant-platform/src/intelligence:
+data_collector.py
+quality_assurance.py
+
+./reference/os-dashboard-ai-assistant-platform/src/operations:
+concurrent_manager.py
+
+./reference/os-dashboard-ai-assistant-platform/src/system:
+operations.py
+
+./tests:
+__init__.py
+__pycache__
+conftest.py
+test_advanced_productivity.py
+test_ai_assistant.py
+test_ai_manager.py
+test_api_connectors.py
+test_audit_system.py
+test_builtin_drivers.py
+test_config.py
+test_core_state.py
+test_data_aggregator.py
+test_database.py
+test_error_handling.py
+test_git_client.py
+test_office_router.py
+test_rate_limiters_helper.py
+test_search_engine.py
+test_task_automation.py
+
+./tests/__pycache__:
+__init__.cpython-310.pyc
+__init__.cpython-311.pyc
+conftest.cpython-311-pytest-7.1.3.pyc
+test_advanced_productivity.cpython-310.pyc
+test_ai_assistant.cpython-311-pytest-7.1.3.pyc
+test_ai_manager.cpython-311-pytest-7.1.3.pyc
+test_api_connectors.cpython-311-pytest-7.1.3.pyc
+test_audit_system.cpython-311-pytest-7.1.3.pyc
+test_builtin_drivers.cpython-311-pytest-7.1.3.pyc
+test_config.cpython-311-pytest-7.1.3.pyc
+test_core_state.cpython-311-pytest-7.1.3.pyc
+test_data_aggregator.cpython-311-pytest-7.1.3.pyc
+test_database.cpython-311-pytest-7.1.3.pyc
+test_error_handling.cpython-311-pytest-7.1.3.pyc
+test_git_client.cpython-311-pytest-7.1.3.pyc
+test_office_router.cpython-37.pyc
+test_search_engine.cpython-311-pytest-7.1.3.pyc
+test_task_automation.cpython-311-pytest-7.1.3.pyc
+
+./ui:
+__init__.py
+assets
+gui.py
+index.html
+main.py
+terminal
+
+./ui/assets:
+styles.css
+
+./ui/terminal:
+__init__.py
+cli.py
+commands
+
+./ui/terminal/commands:
+__init__.py
+excel.py
+history.py
+onenote.py
+projects.py
+word.py
+
+./utils:
+__init__.py
+auth_helpers.py
+file_parsers.py
+
+./versions:
+version 1
+
+./versions/version 1:
+assistant_hub.db
+os_dashboard_ai_assistant
+
+./workflows:
+document_processing_workflow.json
+project_milestone_workflow.json
+urgent_task_workflow.json

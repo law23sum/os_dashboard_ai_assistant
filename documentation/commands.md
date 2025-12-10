@@ -1,5 +1,5 @@
 python main.py                             # Main application
-python_os assistant_hub_gui/main.py        # Web dashboard
+python_os assistant_hub_gui/main.py        # Web dashboard (`./python_os` or add repo to PATH)
 pytest tests/                              # Run tests
 
 

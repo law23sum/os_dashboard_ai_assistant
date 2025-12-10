@@ -81,6 +81,11 @@ black src/
 flake8 src/
 ```
 
+### Guided Bootstrap
+For an interactive setup (system deps, config folders, launcher script), run
+`python tools/bootstrap.py`. This helper mirrors the legacy `python setup.py` flow
+without interfering with modern packaging.
+
 ---
 
 ## Quick Start
@@ -89,7 +94,7 @@ flake8 src/
 ```bash
 os-dashboard
 # or
-python -m src.dashboard.main_interface
+python -m ai_os.app.main
 ```
 
 ### Run the Demo Suite
@@ -97,6 +102,25 @@ python -m src.dashboard.main_interface
 python examples/demo_usage.py
 # Generates presentations, Excel dashboards, Word reports, and deployment artifacts
 ```
+
+### Lightweight Web Dashboard
+The `ai_os/app` FastAPI service now exposes the same primitives that powered the legacy
+`~/Downloads/os_dashboard_ai` Flask prototype:
+
+- `GET /system` – CPU, memory, and disk telemetry powered by `psutil` (`ai_os/app/system_monitor.py`).
+- `POST /ai/ask` – prompt → response passthrough for OpenAI-compatible chat endpoints (`ai_os/app/ai_proxy.py`).
+
+You can point the React dashboard (`dashboard.js`) at this FastAPI app to surface a
+live system health card and a “Quick AI Assistant” panel without writing additional
+glue code:
+
+```bash
+uvicorn ai_os.app.main:app --reload
+# visit http://localhost:8000/dashboard.html (served by your static host) to try the new cards
+```
+
+Both helpers degrade gracefully when `psutil` or `OPENAI_API_KEY` are missing, so you
+can develop locally without secrets.
 
 ### Data Collection Example
 ```python
@@ -179,6 +203,29 @@ batch_id = manager.create_batch_operation("data_processing", tasks)
 results = manager.execute_batch_sync(batch_id)
 print(f"Processed {results['successful_tasks']} tasks successfully")
 ```
+
+## CLI Helpers
+### python_os alias
+The repository ships a portable `python_os` helper:
+- Run it directly via `./python_os ...` or add the repo root to your `PATH` to call
+  `python_os` without a prefix.
+- In offline environments you can also create a shell alias (`alias
+  python_os=python3`).
+- If you already run `pip install -e . --no-build-isolation --no-deps`, the console
+  entry point registers the same command globally.
+
+Either way it simply proxies to your active Python interpreter, so `python`/`python3`
+remain equivalent for every example command. To launch the desktop dashboard without
+installing anything globally, run:
+
+```bash
+./python_os -m assistant_hub_gui.main
+```
+
+## Repository Structure Snapshot
+The file `project_directory_structure` contains the full `ls -R` output captured on
+2025-12-10. Regenerate it anytime with `ls -R > project_directory_structure` to keep
+the directory map in sync with the repo.
 
 ### Monitor Real-Time Sessions
 1. Launch the dashboard via `os-dashboard` or `python -m src.dashboard.main_interface`.

@@ -4,8 +4,6 @@ import pytest
 import sys
 import os
 
-pytest_plugins = ("pytest_asyncio",)
-
 # Add project root to path for imports
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:

@@ -6,7 +6,11 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 import requests
-from msal import PublicClientApplication
+
+try:
+    from msal import PublicClientApplication  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    PublicClientApplication = None  # type: ignore
 
 
 @dataclass
@@ -25,6 +29,11 @@ class OneDriveProjectClient:
     def __init__(self, client_id: str, tenant_id: str, scopes: Optional[List[str]] = None) -> None:
         scopes = scopes or ["Files.ReadWrite", "User.Read"]
         authority = f"https://login.microsoftonline.com/{tenant_id}"
+        if PublicClientApplication is None:
+            raise RuntimeError(
+                "msal dependency is not available. Install msal or run pip install -r requirements.txt to enable OneDrive features."
+            )
+
         self.session = OneDriveSession(client_id=client_id, tenant_id=tenant_id, scopes=scopes, authority=authority)
         self.app = PublicClientApplication(client_id, authority=authority)
 

@@ -29,4 +29,11 @@ def post(*args: Any, **kwargs: Any) -> Response:
     return Response(status_code=200, _payload={"access_token": f"stub-{token}"})
 
 
-__all__ = ["post", "Response"]
+class Session:
+    """Tiny drop-in replacement supporting ``post`` only."""
+
+    def post(self, *args: Any, **kwargs: Any) -> Response:
+        return post(*args, **kwargs)
+
+
+__all__ = ["post", "Response", "Session"]

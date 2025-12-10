@@ -206,6 +206,11 @@ class ConversationManager:
                 "error": str(e)
             }
 
+    async def initialize(self) -> bool:
+        """Parity method so the main bootstrapper can await initialization."""
+        self.logger.info("Conversation Manager initialized")
+        return True
+
     async def _analyze_message(self, user_id: str, message: str,
                              session_id: str = None) -> MessageAnalysis:
         """Analyze message using pattern-based approach (simplified from advanced system)"""

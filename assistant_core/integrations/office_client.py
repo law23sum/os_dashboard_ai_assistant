@@ -7,7 +7,10 @@ import logging
 import uuid
 from typing import Any, Dict, Optional
 
-import websockets
+try:
+    import websockets  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    websockets = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +32,7 @@ class AIOfficeClient:
         self.document_id = document_id
         self.user_id = user_id
         self.session_id = session_id or f"client_{uuid.uuid4().hex}"
-        self.websocket: Optional[websockets.WebSocketClientProtocol] = None
+        self.websocket: Optional[Any] = None
 
     async def __aenter__(self) -> "AIOfficeClient":
         await self.connect()
@@ -39,6 +42,9 @@ class AIOfficeClient:
         await self.disconnect()
 
     async def connect(self) -> None:
+        if websockets is None:
+            raise RuntimeError("websockets dependency is not available in this environment")
+
         self.websocket = await websockets.connect(self.endpoint)
         await self._send(
             {

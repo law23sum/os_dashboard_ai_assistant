@@ -13,7 +13,10 @@ from typing import Dict, Any, List, Optional, Tuple, Union
 from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
 from enum import Enum
-import psutil
+try:
+    import psutil  # type: ignore
+except Exception:  # pragma: no cover - fallback when psutil missing
+    from utils.psutil_stub import psutil  # type: ignore
 import socket
 import platform
 from collections import deque, defaultdict

@@ -5,7 +5,10 @@ Full Linux environment control, process management, and network services
 
 import os
 import subprocess
-import psutil
+try:
+    import psutil  # type: ignore
+except Exception:  # pragma: no cover - fallback when psutil missing
+    from utils.psutil_stub import psutil  # type: ignore
 import threading
 import time
 import signal

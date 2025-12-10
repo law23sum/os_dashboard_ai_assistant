@@ -69,6 +69,12 @@ const systemMeta = {
   unknown: { label: "Unknown", icon: "❓" },
 };
 
+const MOCK_SYSTEM_STATS = {
+  cpu_percent: 27,
+  memory: { total: 16_000_000_000, used: 6_100_000_000, available: 9_900_000_000 },
+  disk: { total: 500_000_000_000, used: 320_000_000_000, free: 180_000_000_000 },
+};
+
 function getSystemIcon(system) {
   return systemMeta[system]?.icon || systemMeta.unknown.icon;
 }
@@ -84,6 +90,18 @@ function formatWhen(iso) {
   } catch {
     return iso;
   }
+}
+
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes)) return "—";
+  const thresholds = ["B", "KB", "MB", "GB", "TB"];
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < thresholds.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+  return `${value.toFixed(1)} ${thresholds[unit]}`;
 }
 
 // API client wrappers fall back to mock data
@@ -143,6 +161,28 @@ const API = {
       return await res.json();
     } catch {
       return MOCK_OPS.find((o) => o.id === opId) || null;
+    }
+  },
+  async getSystemStats() {
+    try {
+      const res = await fetch("/system");
+      if (!res.ok) throw new Error("system_failed");
+      return await res.json();
+    } catch {
+      return MOCK_SYSTEM_STATS;
+    }
+  },
+  async askAI(prompt) {
+    try {
+      const res = await fetch("/ai/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      if (!res.ok) throw new Error("ai_failed");
+      return await res.json();
+    } catch (error) {
+      return { response: error?.message || "AI unavailable" };
     }
   },
 };
@@ -252,10 +292,18 @@ export default function AIOSDashboard() {
   const [selectedOpDetail, setSelectedOpDetail] = useState(null);
   const [auditLoading, setAuditLoading] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [systemStats, setSystemStats] = useState(MOCK_SYSTEM_STATS);
+  const [systemLoading, setSystemLoading] = useState(true);
+  const [chatPrompt, setChatPrompt] = useState("");
+  const [chatResponse, setChatResponse] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
     loadDaemons();
     loadOperations();
+    loadSystem();
+    const interval = setInterval(loadSystem, 30_000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -264,12 +312,29 @@ export default function AIOSDashboard() {
     return () => clearTimeout(timer);
   }, [notification]);
 
-  const summaryMetrics = useMemo(() => ({
-    daemonCount: daemons.length,
-    activeDaemons: daemons.filter((d) => d.enabled).length,
-    recentOps: operations.length,
-    searchHits: searchResults.length,
-  }), [daemons, operations, searchResults]);
+  const summaryMetrics = useMemo(
+    () => ({
+      daemonCount: daemons.length,
+      activeDaemons: daemons.filter((d) => d.enabled).length,
+      recentOps: operations.length,
+      searchHits: searchResults.length,
+    }),
+    [daemons, operations, searchResults]
+  );
+
+  const memoryUsage = useMemo(() => {
+    const mem = systemStats?.memory || {};
+    const used = mem.used || 0;
+    const total = mem.total || 1;
+    return { used, total, percent: Math.round((used / total) * 100) };
+  }, [systemStats]);
+
+  const diskUsage = useMemo(() => {
+    const disk = systemStats?.disk || {};
+    const used = disk.used || 0;
+    const total = disk.total || 1;
+    return { used, total, percent: Math.round((used / total) * 100) };
+  }, [systemStats]);
 
   const loadDaemons = async () => {
     const data = await API.listDaemons();
@@ -279,6 +344,13 @@ export default function AIOSDashboard() {
   const loadOperations = async () => {
     const data = await API.listOperations();
     setOperations(data);
+  };
+
+  const loadSystem = async () => {
+    setSystemLoading(true);
+    const stats = await API.getSystemStats();
+    setSystemStats(stats);
+    setSystemLoading(false);
   };
 
   const handleSearch = async () => {
@@ -329,6 +401,17 @@ export default function AIOSDashboard() {
     setAuditLoading(false);
   };
 
+  const handleSendPrompt = async () => {
+    if (!chatPrompt.trim()) {
+      setNotification({ type: "warning", message: "Enter a prompt for the AI assistant." });
+      return;
+    }
+    setChatLoading(true);
+    const data = await API.askAI(chatPrompt.trim());
+    setChatResponse(data?.response || "No response");
+    setChatLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200">
@@ -369,6 +452,88 @@ export default function AIOSDashboard() {
               description="Next automation to review"
               icon="⚡"
             />
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>System Health</CardTitle>
+                <CardDescription>Realtime snapshot from the host OS.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {systemLoading ? (
+                  <p className="text-sm text-gray-500">Collecting metrics…</p>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-xs uppercase text-gray-500">CPU</p>
+                      <p className="text-3xl font-semibold">{Math.round(systemStats.cpu_percent)}%</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-gray-500">Memory</p>
+                      <div className="flex items-center justify-between text-sm text-gray-600">
+                        <span>{formatBytes(memoryUsage.used)} used</span>
+                        <span>{formatBytes(memoryUsage.total)}</span>
+                      </div>
+                      <div className="h-2 mt-2 bg-gray-100 rounded-full">
+                        <div
+                          className="h-full rounded-full bg-blue-500"
+                          style={{ width: `${Math.min(memoryUsage.percent, 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-gray-500">Disk</p>
+                      <div className="flex items-center justify-between text-sm text-gray-600">
+                        <span>{formatBytes(diskUsage.used)} used</span>
+                        <span>{formatBytes(diskUsage.total)}</span>
+                      </div>
+                      <div className="h-2 mt-2 bg-gray-100 rounded-full">
+                        <div
+                          className="h-full rounded-full bg-indigo-500"
+                          style={{ width: `${Math.min(diskUsage.percent, 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick AI Assistant</CardTitle>
+                <CardDescription>Bridge prompts to OpenAI-compatible APIs.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-3">
+                  <Input
+                    value={chatPrompt}
+                    onChange={(e) => setChatPrompt(e.target.value)}
+                    placeholder="Ask about tasks, incidents, or plans"
+                  />
+                  <div className="flex gap-2">
+                    <Button onClick={handleSendPrompt} disabled={chatLoading}>
+                      {chatLoading ? "Sending…" : "Send"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setChatPrompt("");
+                        setChatResponse("");
+                      }}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                  {chatResponse && (
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700">
+                      {chatResponse}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
