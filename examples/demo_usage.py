@@ -10,6 +10,12 @@ from typing import Dict, Any
 
 import pandas as pd
 
+# Ensure repo root is on the Python path when running as a standalone script
+REPO_ROOT = Path(__file__).resolve().parents[1]
+import sys
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from assistant_core.intelligence.data_collector import SyncDataCollector, DataSource
 from assistant_core.content.generators import (
     PresentationGenerator,

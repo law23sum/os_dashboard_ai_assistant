@@ -8,6 +8,7 @@ from .quality_assurance import (
     ValidationRule,
     ValidationResult,
 )
+from .office_ai_service import OfficeAIProcessingService
 
 __all__ = [
     "DataCollector",
@@ -18,4 +19,5 @@ __all__ = [
     "AccessibilityChecker",
     "ValidationRule",
     "ValidationResult",
+    "OfficeAIProcessingService",
 ]

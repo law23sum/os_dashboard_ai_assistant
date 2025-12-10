@@ -29,6 +29,7 @@ from ..intelligence.quality_assurance import ContentValidator, BatchValidator, A
 from ..operations.concurrent_manager import ConcurrentOperationsManager, ConcurrentTask, BatchOperation
 from ..integrations.advanced_systems import StaticSiteDeployer, OfficeAddinEmbedder, DeploymentConfig, OfficeAddinConfig
 from ..integrations.office_realtime import AIOfficeWebSocketRouter, MessageType, ApplicationType
+from ..intelligence.office_ai_service import OfficeAIProcessingService
 
 @dataclass
 class DashboardConfig:
@@ -819,6 +820,7 @@ class MainDashboard:
         # Core components
         self.concurrent_manager = ConcurrentOperationsManager(max_workers=self.config.max_workers)
         self.system_controller = SystemOperationsController()
+        self.office_ai_service = OfficeAIProcessingService(self.config.workspace_dir)
         self.realtime_events: List[Dict[str, Any]] = []
         self.office_router = None
         self.office_ai_service_url = self.config.ai_service_url
@@ -1096,6 +1098,13 @@ class MainDashboard:
                     "AI Office service unreachable (%s). Falling back to local heuristics.",
                     exc,
                 )
+
+        if response_data is None and self.office_ai_service:
+            try:
+                response_data = self.office_ai_service.process_message(message)
+            except Exception as exc:  # pragma: no cover - defensive fallback
+                self.logger.error("Local AI service failed: %s", exc)
+                response_data = None
 
         if response_data is None:
             response_data = self._build_local_ai_office_result(message)

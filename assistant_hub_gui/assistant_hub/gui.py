@@ -9,7 +9,7 @@ import sys
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 
 import tkinter as tk
 from tkinter import ttk, messagebox, font as tkfont, filedialog
@@ -29,10 +29,14 @@ except Exception:
 try:
     import ttkbootstrap as ttkb
     from ttkbootstrap.tooltip import ToolTip
+    from ttkbootstrap.scrolled import ScrolledFrame
     TTKBOOTSTRAP_AVAILABLE = True
+    TTKB_SCROLLED_AVAILABLE = True
 except ImportError:
     TTKBOOTSTRAP_AVAILABLE = False
+    TTKB_SCROLLED_AVAILABLE = False
     import tkinter.ttk as ttkb
+    ScrolledFrame = None
     # Fallback tooltip class
     class ToolTip:
         def __init__(self, widget, text=""):
@@ -71,6 +75,7 @@ from .db import (
     DEFAULT_FETCH_PREFERENCES,
     DocumentOperation,
     db_update_document_operation_status,
+    load_azure_credentials,
 )
 from .db import db_list_document_operations, db_record_document_operation
 
@@ -98,6 +103,12 @@ from .ai import (
 )
 from .terminal import run_bash_command
 from .sync_scheduler import create_default_scheduler
+from .future_features import (
+    FUTURE_FEATURES,
+    get_features_by_tier,
+    get_feature_lookup,
+    tier_palette,
+)
 
 # Additional imports for Tools & Operations tab
 try:
@@ -300,6 +311,9 @@ except ImportError:
     PredictiveModel = None
     AICapability = None
 
+from assistant_core.driver_registry import get_driver_registry, DriverSpec
+from assistant_core.capsule_registry import get_capsule_registry, CapsuleSpec, BlueprintSpec
+from assistant_core.integrations.onedrive_project import OneDriveProjectClient
 from .suggestions import (
     get_deadline_reminders,
     get_workload_balance,
@@ -570,6 +584,22 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.aios_api_client = AIOSAPIClient(base_url=backend_default)
         self.spec_registry = SpecRegistry()
         self.backend_registry = BackendRegistry(self.spec_registry)
+        self.driver_registry = get_driver_registry()
+        self.capsule_registry = get_capsule_registry()
+        self.future_features_by_tier = get_features_by_tier()
+        self.future_feature_lookup = get_feature_lookup()
+        self.future_feature_palette = tier_palette()
+        self.future_feature_capability_map = {
+            f"{item.code} · {item.title}": item.code for item in FUTURE_FEATURES
+        }
+        self.future_feature_tree = None
+        self.future_feature_title_var = tk.StringVar(value="Select a capability")
+        self.future_feature_value_var = tk.StringVar(value="")
+        self.future_feature_summary_var = tk.StringVar(
+            value="Choose a capability to load its implementation canvas."
+        )
+        self.future_feature_detail_body = None
+        self.future_feature_tier_docs = self._build_future_feature_tier_doc_map()
 
         # Build palette before configuring styles so widgets share a cohesive look
         self._build_color_palette()
@@ -602,6 +632,23 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.backend_tree_items: Dict[str, Any] = {}
         self.spec_search_var = tk.StringVar()
         self.backend_filter_var = tk.StringVar(value="All")
+        self.page_action_var = tk.StringVar()
+        self.page_search_var = tk.StringVar()
+        self.current_page_key = None
+        self.page_action_definitions: Dict[str, Dict[str, Any]] = {}
+        self.driver_layer_filter_var = tk.StringVar(value="All")
+        self.driver_search_var = tk.StringVar()
+        self.driver_capsule_summary_var = tk.StringVar(value="Manual verification run")
+        self.driver_tree_items: Dict[str, str] = {}
+        self.driver_capsule_map: Dict[int, str] = {}
+        self.driver_blueprint_map: Dict[int, str] = {}
+        self.selected_driver_id: Optional[str] = None
+        self.onedrive_project_client: Optional[OneDriveProjectClient] = None
+        self.onedrive_file_id_var = tk.StringVar()
+        self.onedrive_update_content_var = tk.StringVar(value="Updated file content via OS Dashboard")
+        self.onedrive_new_filename_var = tk.StringVar(value="NewFile.txt")
+        self.onedrive_upload_text = None
+        self._onedrive_cached_ids = ("", "")
         # Optional automation orchestrator instance (set when feature is available)
         # Initialize to None so attribute lookups remain safe even if the feature
         # isn't loaded, avoiding Tk's __getattr__ fallback from raising errors
@@ -897,11 +944,22 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.tab_dropdown_bar.columnconfigure(i, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            self.notebook = ttkb.Notebook(self, bootstyle="primary")
+            self.content_frame = ttkb.Frame(self, padding=(0, 0))
         else:
-            self.notebook = ttk.Notebook(self)
-        # Better spacing for professional look
-        self.notebook.grid(row=2, column=0, sticky="nsew", padx=12, pady=(4, 12))
+            self.content_frame = ttk.Frame(self)
+        self.content_frame.grid(row=2, column=0, sticky="nsew")
+        self.content_frame.columnconfigure(0, weight=3)
+        self.content_frame.columnconfigure(1, weight=1)
+        self.content_frame.rowconfigure(0, weight=1)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.notebook = ttkb.Notebook(self.content_frame, bootstyle="primary")
+        else:
+            self.notebook = ttk.Notebook(self.content_frame)
+        self.notebook.grid(row=0, column=0, sticky="nsew", padx=(12, 6), pady=(4, 12))
+
+        self._build_page_info_panel()
+        self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_change)
 
         # Classic tabs remain available; new consolidated views are added below
         self._build_dashboard_tab()
@@ -926,26 +984,47 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self._build_security_audit_tab()
         self._build_ai_os_cockpit_tab()
         self._build_specs_and_systems_tab()
+        self._build_driver_layer_tab()
+        self._build_future_features_tab()
+
+        self.page_guides = self._build_page_guides()
+        self._update_page_info_panel()
 
         # Update tab labels with icons if available
         if TTKBOOTSTRAP_AVAILABLE:
-            self.notebook.tab(0, text="📊 Dashboard")
-            self.notebook.tab(1, text="✅ Tasks")
-            self.notebook.tab(2, text="📁 Projects")
-            self.notebook.tab(3, text="💬 AI Console")
-            self.notebook.tab(4, text="🔗 Integrations")
-            self.notebook.tab(5, text="🔧 Tools")
-            self.notebook.tab(6, text="📊 Analytics")
-            self.notebook.tab(7, text="⚙️ Settings")
-            self.notebook.tab(8, text="🛰️ AI Ops Feed")
-            self.notebook.tab(classic_tab_count + 0, text="📊 Dashboard & Analytics")
-            self.notebook.tab(classic_tab_count + 1, text="✅ Tasks & Projects")
-            self.notebook.tab(classic_tab_count + 2, text="🤖 AI Systems")
-            self.notebook.tab(classic_tab_count + 3, text="🚀 AI Features")
-            self.notebook.tab(classic_tab_count + 4, text="🔧 Tools & Intelligence")
-            self.notebook.tab(classic_tab_count + 5, text="🔌 Integrations & Infrastructure")
-            self.notebook.tab(classic_tab_count + 6, text="🛡️ Security & Audit")
-            self.notebook.tab(classic_tab_count + 7, text="🧭 AI OS Cockpit")
+            base_labels = [
+                "📊 Dashboard",
+                "✅ Tasks",
+                "📁 Projects",
+                "💬 AI Console",
+                "🔗 Integrations",
+                "🔧 Tools",
+                "📊 Analytics",
+                "⚙️ Settings",
+                "🛰️ AI Ops Feed",
+            ]
+            for idx, label in enumerate(base_labels):
+                try:
+                    self.notebook.tab(idx, text=label)
+                except Exception:
+                    pass
+
+            consolidated_labels = [
+                "📊 Dashboard & Analytics",
+                "✅ Tasks & Projects",
+                "🤖 AI Systems",
+                "🚀 AI Features",
+                "🔧 Tools & Intelligence",
+                "🔌 Integrations & Infrastructure",
+                "🛡️ Security & Audit",
+                "🧭 AI OS Cockpit",
+                "🚧 Future Features",
+            ]
+            for offset, label in enumerate(consolidated_labels):
+                try:
+                    self.notebook.tab(classic_tab_count + offset, text=label)
+                except Exception:
+                    pass
 
         # Populate additive tab navigation dropdown after tabs are created, then hide tab strip
         self._capture_tab_metadata()
@@ -1312,7 +1391,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             ToolTip(self.tab_nav_combo, text="Jump to any view")
 
         # Grouped dropdowns (productivity, AI, etc.)
-        self._build_tab_group_dropdowns(bar, row=0, start_col=2, show_label=False)
+        next_col = self._build_tab_group_dropdowns(bar, row=0, start_col=2, show_label=True)
 
         # Single web page selector (kept unique, moved into toolbar)
         if TTKBOOTSTRAP_AVAILABLE:
@@ -1334,8 +1413,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 state="readonly",
                 width=28,
             )
-        web_label.grid(row=0, column=5, sticky="e", padx=(6, 6))
-        self.aios_web_page_combo.grid(row=0, column=6, sticky="ew")
+        web_label.grid(row=0, column=next_col, sticky="e", padx=(6, 6))
+        self.aios_web_page_combo.grid(row=0, column=next_col + 1, sticky="ew")
         self.aios_web_page_combo.bind("<<ComboboxSelected>>", self._open_ai_os_web_page)
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(self.aios_web_page_combo, text="Open docs and dashboards in your browser")
@@ -1416,17 +1495,18 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         """Add category dropdowns that group existing tabs without removing them."""
         col = start_col
         if show_label:
+            label_text = "Suites:" if TTKBOOTSTRAP_AVAILABLE else "Suites:"
             if TTKBOOTSTRAP_AVAILABLE:
-                group_label = ttkb.Label(parent, text="Grouped Views:", bootstyle="secondary")
+                group_label = ttkb.Label(parent, text=label_text, bootstyle="secondary")
             else:
-                group_label = ttk.Label(parent, text="Grouped Views:")
+                group_label = ttk.Label(parent, text=label_text)
             group_label.grid(row=row, column=col, sticky="w", padx=(0, 8), pady=(4, 0))
             col += 1
 
         self._tab_groups = {
-            "Productivity": ["dashboard", "task", "project"],
-            "AI & Ops": ["ai console", "tool", "analytic", "ai ops"],
-            "Integrations": ["integration", "setting"],
+            "Work Graph": ["dashboard", "task", "project"],
+            "Automation": ["ai console", "ai systems", "ai features", "ai ops"],
+            "Integration & Security": ["integration", "setting", "security", "infrastructure"],
             "Unified Views": [
                 "dashboard & analytics",
                 "tasks & projects",
@@ -1435,7 +1515,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 "tools & intelligence",
                 "integrations & infrastructure",
                 "security & audit",
+                "ai os cockpit",
             ],
+            "Future Portfolio": ["future features", "specs", "portfolio"],
         }
         self.tab_group_vars = {}
         self.tab_group_combos = {}
@@ -1457,6 +1539,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.tab_group_vars[group_name] = var
             self.tab_group_combos[group_name] = combo
             col += 1
+        return col
 
     def _refresh_tab_group_dropdowns(self):
         """Populate grouped dropdowns with current tab labels based on keywords."""
@@ -17873,6 +17956,9 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         # PDF Documents section
         self._build_pdf_tools_section(tools_notebook)
 
+        # OneDrive Project driver tools
+        self._build_onedrive_project_section(tools_notebook)
+
         # Template and sample documents section
         self._build_template_samples_section(tools_notebook)
 
@@ -18214,6 +18300,74 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         else:
             status_label = ttk.Label(frame, textvariable=self.pdf_status_var)
         status_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=8, pady=4)
+
+    def _build_onedrive_project_section(self, parent):
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(parent)
+        else:
+            frame = ttk.Frame(parent)
+        parent.add(frame, text="☁️ OneDrive Driver")
+        frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(1, weight=1)
+        frame.rowconfigure(4, weight=1)
+
+        header = ttk.Label(
+            frame,
+            text="Microsoft OneDrive Driver",
+            font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"),
+        )
+        header.grid(row=0, column=0, columnspan=2, sticky="w", padx=12, pady=(10, 4))
+
+        instructions = (
+            "Use the buttons below to authenticate with Microsoft Graph (a login window will appear the first time), "
+            "list root files, update a file's contents, poll for last-modified timestamps, or upload a new text file. "
+            "Client ID and Tenant ID are read from the saved Azure credentials in Settings → Integrations → Microsoft Graph."
+        )
+        ttk.Label(frame, text=instructions, wraplength=760).grid(row=1, column=0, columnspan=2, sticky="w", padx=12)
+
+        self.onedrive_status_var = tk.StringVar(value="Click 'List OneDrive Files' to authenticate.")
+        ttk.Label(frame, textvariable=self.onedrive_status_var, foreground=self.colors.get("muted", "#4f566b")) \
+            .grid(row=2, column=0, columnspan=2, sticky="w", padx=12, pady=(4, 6))
+
+        button_frame = ttk.Frame(frame)
+        button_frame.grid(row=3, column=0, columnspan=2, sticky="ew", padx=12, pady=(0, 8))
+        button_frame.columnconfigure(0, weight=1)
+        button_frame.columnconfigure(1, weight=1)
+        ttk.Button(button_frame, text="List OneDrive Files", command=self._onedrive_list_files).grid(row=0, column=0, sticky="ew", padx=(0, 6))
+        ttk.Button(button_frame, text="Upload Text File", command=self._onedrive_upload_file).grid(row=0, column=1, sticky="ew", padx=(6, 0))
+
+        action_frame = ttk.LabelFrame(frame, text="File Update & Polling", padding=10)
+        action_frame.grid(row=4, column=0, sticky="nsew", padx=12, pady=(0, 8))
+        action_frame.columnconfigure(1, weight=1)
+        ttk.Label(action_frame, text="File ID:").grid(row=0, column=0, sticky="w")
+        ttk.Entry(action_frame, textvariable=self.onedrive_file_id_var).grid(row=0, column=1, sticky="ew", padx=(6, 0))
+        ttk.Label(action_frame, text="Update content:").grid(row=1, column=0, sticky="w", pady=(8, 0))
+        ttk.Entry(action_frame, textvariable=self.onedrive_update_content_var).grid(row=1, column=1, sticky="ew", padx=(6, 0), pady=(8, 0))
+        action_btns = ttk.Frame(action_frame)
+        action_btns.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        ttk.Button(action_btns, text="Update File", command=self._onedrive_update_file).pack(side="left", padx=(0, 6))
+        ttk.Button(action_btns, text="Poll Last Modified", command=self._onedrive_poll_updates).pack(side="left")
+
+        upload_frame = ttk.LabelFrame(frame, text="Upload New File", padding=10)
+        upload_frame.grid(row=4, column=1, sticky="nsew", padx=12, pady=(0, 8))
+        upload_frame.columnconfigure(1, weight=1)
+        ttk.Label(upload_frame, text="Filename:").grid(row=0, column=0, sticky="w")
+        ttk.Entry(upload_frame, textvariable=self.onedrive_new_filename_var).grid(row=0, column=1, sticky="ew", padx=(6, 0))
+        ttk.Label(upload_frame, text="Content:").grid(row=1, column=0, sticky="nw", pady=(8, 0))
+        self.onedrive_upload_text = tk.Text(upload_frame, height=6, wrap=tk.WORD)
+        self.onedrive_upload_text.insert(tk.END, "This is a new file uploaded via OS Dashboard.")
+        self.onedrive_upload_text.grid(row=1, column=1, sticky="nsew", padx=(6, 0), pady=(8, 0))
+        upload_frame.rowconfigure(1, weight=1)
+
+        output_frame = ttk.LabelFrame(frame, text="Activity Log", padding=10)
+        output_frame.grid(row=5, column=0, columnspan=2, sticky="nsew", padx=12, pady=(0, 12))
+        output_frame.columnconfigure(0, weight=1)
+        output_frame.rowconfigure(0, weight=1)
+        self.onedrive_output_text = tk.Text(output_frame, height=12, wrap=tk.WORD, state=tk.DISABLED)
+        output_scroll = ttk.Scrollbar(output_frame, orient=tk.VERTICAL, command=self.onedrive_output_text.yview)
+        self.onedrive_output_text.configure(yscrollcommand=output_scroll.set)
+        self.onedrive_output_text.grid(row=0, column=0, sticky="nsew")
+        output_scroll.grid(row=0, column=1, sticky="ns")
 
     def _build_template_samples_section(self, parent):
         """Surface governed template samples and allow one-click materialization."""
@@ -20020,6 +20174,949 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         self.backend_output_text.grid(row=0, column=0, sticky="nsew")
         backend_output_scroll.grid(row=0, column=1, sticky="ns")
 
+    def _build_driver_layer_tab(self):
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(self.notebook, padding=8)
+        else:
+            frame = ttk.Frame(self.notebook, padding=8)
+        frame.columnconfigure(0, weight=2)
+        frame.columnconfigure(1, weight=1)
+        frame.rowconfigure(2, weight=1)
+        self.notebook.add(frame, text="⚙️ Driver Layer")
+
+        # Filters
+        filter_frame = ttk.Frame(frame)
+        filter_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 6))
+        filter_frame.columnconfigure(1, weight=1)
+        ttk.Label(filter_frame, text="Driver layer:").grid(row=0, column=0, sticky="w")
+        layers = sorted({driver.layer for driver in self.driver_registry.list_drivers()})
+        values = ["All"] + layers
+        self.driver_layer_filter_combo = ttk.Combobox(
+            filter_frame,
+            textvariable=self.driver_layer_filter_var,
+            state="readonly",
+            values=values,
+            width=18,
+        )
+        self.driver_layer_filter_combo.grid(row=0, column=1, sticky="w", padx=(6, 12))
+        self.driver_layer_filter_combo.bind("<<ComboboxSelected>>", lambda _e: self._refresh_driver_tree())
+
+        ttk.Label(filter_frame, text="Search:").grid(row=0, column=2, sticky="e")
+        driver_search_entry = ttk.Entry(filter_frame, textvariable=self.driver_search_var)
+        driver_search_entry.grid(row=0, column=3, sticky="ew", padx=(6, 6))
+        driver_search_entry.bind("<Return>", lambda _e: self._refresh_driver_tree())
+        ttk.Button(filter_frame, text="Filter", command=self._refresh_driver_tree).grid(row=0, column=4)
+
+        # Driver tree
+        driver_frame = ttk.LabelFrame(frame, text="Driver Catalog", padding=8)
+        driver_frame.grid(row=1, column=0, sticky="nsew", padx=(0, 8))
+        driver_frame.columnconfigure(0, weight=1)
+        driver_frame.rowconfigure(0, weight=1)
+        columns = ("Driver", "Layer", "Status", "Risk")
+        self.driver_tree = ttk.Treeview(driver_frame, columns=columns, show="headings", height=12)
+        for col in columns:
+            self.driver_tree.heading(col, text=col)
+            stretch = tk.YES if col == "Driver" else tk.NO
+            width = 200 if col == "Driver" else 120
+            self.driver_tree.column(col, width=width, stretch=stretch)
+        driver_scroll = ttk.Scrollbar(driver_frame, orient=tk.VERTICAL, command=self.driver_tree.yview)
+        self.driver_tree.configure(yscrollcommand=driver_scroll.set)
+        self.driver_tree.grid(row=0, column=0, sticky="nsew")
+        driver_scroll.grid(row=0, column=1, sticky="ns")
+        self.driver_tree.bind("<<TreeviewSelect>>", self._on_driver_select)
+
+        # Driver details
+        detail_frame = ttk.LabelFrame(frame, text="Driver Details", padding=8)
+        detail_frame.grid(row=2, column=0, sticky="nsew", padx=(0, 8))
+        detail_frame.columnconfigure(0, weight=1)
+        detail_frame.rowconfigure(0, weight=1)
+        self.driver_detail_text = tk.Text(detail_frame, height=8, wrap=tk.WORD, font=self.text_font, state=tk.DISABLED)
+        detail_scroll = ttk.Scrollbar(detail_frame, orient=tk.VERTICAL, command=self.driver_detail_text.yview)
+        self.driver_detail_text.configure(yscrollcommand=detail_scroll.set)
+        self.driver_detail_text.grid(row=0, column=0, sticky="nsew")
+        detail_scroll.grid(row=0, column=1, sticky="ns")
+
+        buttons_frame = ttk.Frame(detail_frame)
+        buttons_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(6, 0))
+        ttk.Button(buttons_frame, text="Heartbeat", command=self._heartbeat_selected_driver).pack(side="left")
+        ttk.Button(buttons_frame, text="Mark Ready", command=lambda: self._update_selected_driver_status("ready")).pack(side="left", padx=(6, 0))
+        ttk.Button(buttons_frame, text="Pause", command=lambda: self._update_selected_driver_status("paused")).pack(side="left", padx=(6, 0))
+
+        # Capsules & blueprints column
+        right_col = ttk.Frame(frame)
+        right_col.grid(row=1, column=1, rowspan=2, sticky="nsew")
+        right_col.columnconfigure(0, weight=1)
+
+        capsule_frame = ttk.LabelFrame(right_col, text="Linked Capsules", padding=8)
+        capsule_frame.grid(row=0, column=0, sticky="nsew")
+        capsule_frame.columnconfigure(0, weight=1)
+        self.driver_capsule_listbox = tk.Listbox(capsule_frame, height=8)
+        self.driver_capsule_listbox.grid(row=0, column=0, sticky="nsew")
+        self.driver_capsule_listbox.bind("<<ListboxSelect>>", self._on_capsule_select)
+        capsule_scroll = ttk.Scrollbar(capsule_frame, orient=tk.VERTICAL, command=self.driver_capsule_listbox.yview)
+        self.driver_capsule_listbox.configure(yscrollcommand=capsule_scroll.set)
+        capsule_scroll.grid(row=0, column=1, sticky="ns")
+
+        summary_entry = ttk.Entry(capsule_frame, textvariable=self.driver_capsule_summary_var)
+        summary_entry.grid(row=1, column=0, sticky="ew", pady=(6, 0))
+        ttk.Button(capsule_frame, text="Simulate Capsule Run", command=self._simulate_capsule_run).grid(row=2, column=0, sticky="ew", pady=(6, 0))
+
+        blueprint_frame = ttk.LabelFrame(right_col, text="Blueprints", padding=8)
+        blueprint_frame.grid(row=1, column=0, sticky="nsew", pady=(8, 0))
+        blueprint_frame.columnconfigure(0, weight=1)
+        self.driver_blueprint_listbox = tk.Listbox(blueprint_frame, height=6)
+        self.driver_blueprint_listbox.grid(row=0, column=0, sticky="nsew")
+        blueprint_scroll = ttk.Scrollbar(blueprint_frame, orient=tk.VERTICAL, command=self.driver_blueprint_listbox.yview)
+        self.driver_blueprint_listbox.configure(yscrollcommand=blueprint_scroll.set)
+        blueprint_scroll.grid(row=0, column=1, sticky="ns")
+
+        evidence_frame = ttk.LabelFrame(right_col, text="Evidence Packs", padding=8)
+        evidence_frame.grid(row=2, column=0, sticky="nsew", pady=(8, 0))
+        evidence_frame.columnconfigure(0, weight=1)
+        columns_evidence = ("Capsule", "Summary", "Created")
+        self.driver_evidence_tree = ttk.Treeview(evidence_frame, columns=columns_evidence, show="headings", height=6)
+        for col in columns_evidence:
+            width = 160 if col == "Summary" else 120
+            self.driver_evidence_tree.heading(col, text=col)
+            self.driver_evidence_tree.column(col, width=width, stretch=tk.YES)
+        evidence_scroll = ttk.Scrollbar(evidence_frame, orient=tk.VERTICAL, command=self.driver_evidence_tree.yview)
+        self.driver_evidence_tree.configure(yscrollcommand=evidence_scroll.set)
+        self.driver_evidence_tree.grid(row=0, column=0, sticky="nsew")
+        evidence_scroll.grid(row=0, column=1, sticky="ns")
+
+        self._refresh_driver_tree()
+
+    def _refresh_driver_tree(self):
+        if not hasattr(self, "driver_tree"):
+            return
+        for item in self.driver_tree.get_children():
+            self.driver_tree.delete(item)
+        keyword = (self.driver_search_var.get() or "").lower().strip()
+        layer_filter = (self.driver_layer_filter_var.get() or "All").lower()
+        drivers = self.driver_registry.list_drivers()
+        filtered = []
+        for driver in drivers:
+            if layer_filter not in ("all", "") and driver.layer.lower() != layer_filter:
+                continue
+            if keyword:
+                haystack = " ".join(
+                    [
+                        driver.name,
+                        driver.layer,
+                        driver.description,
+                        driver.driver_type,
+                        driver.notes,
+                        " ".join(cap.name for cap in driver.capabilities),
+                    ]
+                ).lower()
+                if keyword not in haystack:
+                    continue
+            filtered.append(driver)
+        filtered.sort(key=lambda d: (d.layer, d.name))
+        if not filtered:
+            self.driver_tree.insert("", "end", values=("No drivers", "-", "-", "-"))
+            return
+        for driver in filtered:
+            iid = driver.id
+            self.driver_tree.insert(
+                "",
+                "end",
+                iid=iid,
+                values=(driver.name, driver.layer, driver.status.title(), driver.risk_tier.title()),
+            )
+        self.driver_tree.selection_set(filtered[0].id)
+        self._on_driver_select()
+
+    def _on_driver_select(self, _event=None):
+        if not hasattr(self, "driver_tree"):
+            return
+        selection = self.driver_tree.selection()
+        if not selection:
+            return
+        driver_id = selection[0]
+        driver = self.driver_registry.get(driver_id)
+        if not driver:
+            return
+        self.selected_driver_id = driver.id
+        self._populate_driver_details(driver)
+        self._populate_driver_relationships(driver)
+
+    def _populate_driver_details(self, driver: DriverSpec):
+        if not hasattr(self, "driver_detail_text"):
+            return
+        lines = [f"Name: {driver.name}", f"Layer: {driver.layer}", f"Status: {driver.status}", f"Risk: {driver.risk_tier}"]
+        if driver.notes:
+            lines.append(f"Notes: {driver.notes}")
+        lines.append("Capabilities:")
+        for capability in driver.capabilities:
+            lines.append(f" • {capability.name}: {capability.description}")
+            if capability.actions:
+                lines.append(f"   Actions: {', '.join(capability.actions)}")
+        text = "\n".join(lines)
+        self.driver_detail_text.config(state=tk.NORMAL)
+        self.driver_detail_text.delete("1.0", tk.END)
+        self.driver_detail_text.insert(tk.END, text)
+        self.driver_detail_text.config(state=tk.DISABLED)
+
+    def _populate_driver_relationships(self, driver: DriverSpec):
+        capsules = self.capsule_registry.list_capsules_by_driver(driver.id)
+        self.driver_capsule_listbox.delete(0, tk.END)
+        self.driver_capsule_map.clear()
+        for idx, capsule in enumerate(capsules):
+            subtitle = f"[{capsule.category}] {capsule.name}"
+            self.driver_capsule_listbox.insert(tk.END, subtitle)
+            self.driver_capsule_map[idx] = capsule.id
+        if not capsules:
+            self.driver_capsule_listbox.insert(tk.END, "No capsules mapped")
+
+        blueprints = self._get_blueprints_for_driver(driver.id)
+        self.driver_blueprint_listbox.delete(0, tk.END)
+        self.driver_blueprint_map.clear()
+        for idx, blueprint in enumerate(blueprints):
+            self.driver_blueprint_listbox.insert(tk.END, f"{blueprint.name} ({blueprint.domain})")
+            self.driver_blueprint_map[idx] = blueprint.id
+        if not blueprints:
+            self.driver_blueprint_listbox.insert(tk.END, "No blueprints mapped")
+
+        first_capsule = capsules[0].id if capsules else None
+        self._refresh_evidence_table(first_capsule)
+
+    def _get_blueprints_for_driver(self, driver_id: str) -> List[BlueprintSpec]:
+        blueprints = []
+        linked_capsules = set(self.driver_registry.get(driver_id).linked_capsules if self.driver_registry.get(driver_id) else [])
+        for blueprint in self.capsule_registry.list_blueprints():
+            capsule_match = linked_capsules.intersection(set(blueprint.capsules))
+            if driver_id in blueprint.default_drivers or capsule_match:
+                blueprints.append(blueprint)
+        return blueprints
+
+    def _on_capsule_select(self, _event=None):
+        selection = self.driver_capsule_listbox.curselection()
+        if not selection:
+            return
+        idx = selection[0]
+        capsule_id = self.driver_capsule_map.get(idx)
+        if capsule_id:
+            self._refresh_evidence_table(capsule_id)
+
+    def _simulate_capsule_run(self):
+        selection = self.driver_capsule_listbox.curselection()
+        if not selection:
+            messagebox.showinfo("Capsule", "Select a capsule to simulate a run.")
+            return
+        capsule_id = self.driver_capsule_map.get(selection[0])
+        if not capsule_id:
+            messagebox.showinfo("Capsule", "No capsule mapped to this entry.")
+            return
+        summary = self.driver_capsule_summary_var.get().strip() or "Manual verification run"
+        pack = self.capsule_registry.log_capsule_run(capsule_id, summary, [f"artifact-{datetime.now():%H%M%S}.log"])
+        messagebox.showinfo("Capsule Run", f"Logged Evidence Pack {pack.id} for {capsule_id}.")
+        self._refresh_evidence_table(capsule_id)
+
+    def _refresh_evidence_table(self, capsule_id: Optional[str]):
+        if not hasattr(self, "driver_evidence_tree"):
+            return
+        for item in self.driver_evidence_tree.get_children():
+            self.driver_evidence_tree.delete(item)
+        if not capsule_id:
+            self.driver_evidence_tree.insert("", "end", values=("-", "No capsule selected", "-"))
+            return
+        packs = self.capsule_registry.list_evidence(capsule_id)
+        if not packs:
+            self.driver_evidence_tree.insert("", "end", values=(capsule_id, "No evidence yet", "-"))
+            return
+        for pack in packs[-50:]:
+            created = pack.created_at.strftime("%Y-%m-%d %H:%M")
+            summary = pack.summary[:50]
+            self.driver_evidence_tree.insert("", "end", values=(pack.capsule_id, summary, created))
+
+    def _heartbeat_selected_driver(self):
+        if not self.selected_driver_id:
+            messagebox.showinfo("Driver", "Select a driver first.")
+            return
+        self.driver_registry.heartbeat(self.selected_driver_id)
+        messagebox.showinfo("Driver", "Heartbeat recorded.")
+
+    def _update_selected_driver_status(self, status: str):
+        if not self.selected_driver_id:
+            messagebox.showinfo("Driver", "Select a driver first.")
+            return
+        self.driver_registry.update_status(self.selected_driver_id, status)
+        self._refresh_driver_tree()
+
+    # ---------- OneDrive Project helpers ----------
+
+    def _get_onedrive_project_client(self) -> OneDriveProjectClient:
+        creds = load_azure_credentials(self.conn)
+        client_id = (creds or {}).get("client_id") or os.environ.get("ONEDRIVE_CLIENT_ID", "")
+        tenant_id = (creds or {}).get("tenant_id") or os.environ.get("ONEDRIVE_TENANT_ID", "")
+        if not client_id or not tenant_id:
+            raise ValueError("Azure credentials missing. Save Tenant ID and Client ID in Settings → Integrations → Microsoft Graph.")
+        if not self.onedrive_project_client or self._onedrive_cached_ids != (client_id, tenant_id):
+            self.onedrive_project_client = OneDriveProjectClient(client_id=client_id, tenant_id=tenant_id)
+            self._onedrive_cached_ids = (client_id, tenant_id)
+        return self.onedrive_project_client
+
+    def _onedrive_set_status(self, message: str):
+        if hasattr(self, "onedrive_status_var"):
+            self.onedrive_status_var.set(message)
+
+    def _onedrive_log(self, message: str, clear: bool = False):
+        if not self.onedrive_output_text:
+            return
+        self.onedrive_output_text.config(state=tk.NORMAL)
+        if clear:
+            self.onedrive_output_text.delete("1.0", tk.END)
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        self.onedrive_output_text.insert(tk.END, f"[{timestamp}] {message}\n")
+        self.onedrive_output_text.see(tk.END)
+        self.onedrive_output_text.config(state=tk.DISABLED)
+
+    def _onedrive_handle_error(self, context: str, exc: Exception):
+        message = str(exc)
+        self._onedrive_set_status(f"{context} failed")
+        self._onedrive_log(f"Error: {message}")
+        messagebox.showerror("OneDrive", message)
+
+    def _onedrive_list_files(self):
+        try:
+            self._onedrive_set_status("Authenticating with Microsoft Graph…")
+            client = self._get_onedrive_project_client()
+            files = client.list_root_files()
+            self._onedrive_log("Files in OneDrive root:", clear=True)
+            if not files:
+                self._onedrive_log("(no files returned)")
+            for item in files:
+                self._onedrive_log(f"• {item.get('name')} ({item.get('id')})")
+            self._onedrive_set_status(f"Loaded {len(files)} file(s) from OneDrive root.")
+        except Exception as exc:
+            self._onedrive_handle_error("Listing files", exc)
+
+    def _onedrive_update_file(self):
+        file_id = self.onedrive_file_id_var.get().strip()
+        if not file_id:
+            messagebox.showinfo("OneDrive", "Enter a file ID to update.")
+            return
+        try:
+            client = self._get_onedrive_project_client()
+            content = self.onedrive_update_content_var.get().encode("utf-8")
+            client.update_file_content(file_id, content)
+            self._onedrive_log(f"Updated file {file_id} with new content.")
+            self._onedrive_set_status("File updated successfully.")
+        except Exception as exc:
+            self._onedrive_handle_error("File update", exc)
+
+    def _onedrive_poll_updates(self):
+        file_id = self.onedrive_file_id_var.get().strip()
+        if not file_id:
+            messagebox.showinfo("OneDrive", "Enter a file ID to poll.")
+            return
+        try:
+            client = self._get_onedrive_project_client()
+            timestamps = client.poll_file_updates(file_id)
+            self._onedrive_log(f"Polling updates for {file_id}:")
+            for idx, stamp in enumerate(timestamps, start=1):
+                self._onedrive_log(f"  #{idx}: {stamp}")
+            self._onedrive_set_status("Polled file timestamps.")
+        except Exception as exc:
+            self._onedrive_handle_error("Polling", exc)
+
+    def _onedrive_upload_file(self):
+        filename = self.onedrive_new_filename_var.get().strip() or "NewFile.txt"
+        content_widget = getattr(self, "onedrive_upload_text", None)
+        content = content_widget.get("1.0", tk.END).strip() if content_widget else ""
+        if not content:
+            messagebox.showinfo("OneDrive", "Enter content for the new file.")
+            return
+        try:
+            client = self._get_onedrive_project_client()
+            response = client.upload_text_file(filename, content)
+            self._onedrive_log(f"Uploaded {response.get('name')} ({response.get('id')})")
+            self._onedrive_set_status("Uploaded file to OneDrive root.")
+        except Exception as exc:
+            self._onedrive_handle_error("Upload", exc)
+
+    def _build_page_info_panel(self):
+        if TTKBOOTSTRAP_AVAILABLE:
+            self.page_info_panel = ttkb.Labelframe(self.content_frame, text="Page Assistant", padding=10)
+        else:
+            self.page_info_panel = ttk.Labelframe(self.content_frame, text="Page Assistant", padding=10)
+        self.page_info_panel.grid(row=0, column=1, sticky="nsew", padx=(6, 12), pady=(4, 12))
+        self.page_info_panel.columnconfigure(0, weight=1)
+        for idx in range(6):
+            self.page_info_panel.rowconfigure(idx, weight=0)
+        self.page_info_panel.rowconfigure(2, weight=1)
+
+        self.page_info_title_var = tk.StringVar(value="Page Overview")
+        self.page_info_hint_var = tk.StringVar(value="Use the quick search below to filter this page.")
+        title_label = ttk.Label(
+            self.page_info_panel,
+            textvariable=self.page_info_title_var,
+            font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
+        )
+        title_label.grid(row=0, column=0, sticky="w")
+
+        desc_frame = ttk.Frame(self.page_info_panel)
+        desc_frame.grid(row=1, column=0, sticky="nsew", pady=(6, 4))
+        desc_frame.columnconfigure(0, weight=1)
+        desc_frame.rowconfigure(0, weight=1)
+        self.page_info_text = tk.Text(desc_frame, height=8, wrap=tk.WORD, font=self.text_font, state=tk.DISABLED)
+        desc_scroll = ttk.Scrollbar(desc_frame, orient=tk.VERTICAL, command=self.page_info_text.yview)
+        self.page_info_text.configure(yscrollcommand=desc_scroll.set)
+        self.page_info_text.grid(row=0, column=0, sticky="nsew")
+        desc_scroll.grid(row=0, column=1, sticky="ns")
+
+        docs_label = ttk.Label(self.page_info_panel, text="Key specs & docs:")
+        docs_label.grid(row=2, column=0, sticky="w", pady=(4, 0))
+        self.page_doc_list = tk.Listbox(self.page_info_panel, height=4)
+        self.page_doc_list.grid(row=3, column=0, sticky="nsew")
+        self.page_doc_list.bind("<Double-1>", lambda _e: self._open_selected_doc_from_panel())
+        self.page_doc_mapping: List[Path] = []
+
+        doc_btn_frame = ttk.Frame(self.page_info_panel)
+        doc_btn_frame.grid(row=4, column=0, sticky="ew", pady=(4, 4))
+        ttk.Button(doc_btn_frame, text="Open Doc", command=self._open_selected_doc_from_panel).pack(side="left")
+        ttk.Button(doc_btn_frame, text="Tutorial", command=self._open_tutorial_window).pack(side="left", padx=(6, 0))
+
+        search_frame = ttk.Frame(self.page_info_panel)
+        search_frame.grid(row=5, column=0, sticky="ew", pady=(4, 4))
+        search_frame.columnconfigure(1, weight=1)
+        ttk.Label(search_frame, text="Quick search:").grid(row=0, column=0, sticky="w")
+        search_entry = ttk.Entry(search_frame, textvariable=self.page_search_var)
+        search_entry.grid(row=0, column=1, sticky="ew", padx=(6, 6))
+        search_entry.bind("<Return>", lambda _e: self._apply_page_search())
+        ttk.Button(search_frame, text="Apply", command=self._apply_page_search).grid(row=0, column=2)
+
+        hint_label = ttk.Label(self.page_info_panel, textvariable=self.page_info_hint_var, wraplength=260)
+        hint_label.grid(row=6, column=0, sticky="w", pady=(2, 2))
+
+        action_frame = ttk.LabelFrame(self.page_info_panel, text="Quick actions", padding=6)
+        action_frame.grid(row=7, column=0, sticky="ew", pady=(4, 0))
+        action_frame.columnconfigure(0, weight=1)
+        self.page_action_combo = ttk.Combobox(action_frame, textvariable=self.page_action_var, state="readonly", values=[])
+        self.page_action_combo.grid(row=0, column=0, sticky="ew", padx=(0, 6))
+        ttk.Button(action_frame, text="Run", command=self._run_page_action).grid(row=0, column=1)
+
+    def _build_page_guides(self):
+        default_docs = ["README.md"]
+        return {
+            "dashboard": {
+                "title": "Dashboard Overview",
+                "description": (
+                    "Monitor KPIs, project health, and AI signals. Use quick filters to highlight projects "
+                    "or OKRs, then open analytics for deeper breakdowns."
+                ),
+                "docs": ["IMPLEMENTATION_SUMMARY.md", "IMPLEMENTATION_ROADMAP.md"],
+                "actions": [
+                    {"label": "Refresh metrics", "message": "Use Dashboard → Refresh Insights to reload KPIs."},
+                    {"label": "Open analytics view", "message": "Switch to the Dashboard + Analytics tab for charts."},
+                ],
+                "search_hint": "Examples: 'OKR', 'risk', 'pipeline'."
+            },
+            "tasks": {
+                "title": "Tasks Workspace",
+                "description": (
+                    "Plan, prioritize, and assign tasks. Drag to reorder, use AI suggestions, and link documents."
+                ),
+                "docs": ["FILE_TASK_EXTRACTION_FEATURE.md", "AI_FEATURES_IMPLEMENTATION.md"],
+                "actions": [
+                    {"label": "Add AI task", "message": "Use AI Create Task to capture action items instantly."},
+                    {"label": "Review dependencies", "message": "Toggle dependency view to see blockers."},
+                ],
+                "search_hint": "Type task owner, project, or status to highlight matching rows."
+            },
+            "projects": {
+                "title": "Projects Portfolio",
+                "description": "Review milestones, budgets, and documents per project in one view.",
+                "docs": ["IMPLEMENTATION_ROADMAP.md", "DOCUMENT_TEMPLATES_AND_AUTOMATION.md"],
+                "actions": [
+                    {"label": "Sync status", "message": "Run Sync Projects to pull the latest linked tasks."},
+                    {"label": "Generate brief", "message": "Use the document tab to export AI-written briefs."},
+                ],
+                "search_hint": "Filter by program, exec sponsor, or risk level."
+            },
+            "ai console": {
+                "title": "AI Console",
+                "description": "Chat with personas, attach files, and orchestrate tool calls with guardrails.",
+                "docs": ["CONVERSATION_AI_INTEGRATION.md", "AI_FEATURES_IMPLEMENTATION.md"],
+                "actions": [
+                    {"label": "Upload reference", "message": "Attach files then mention them in your next prompt."},
+                    {"label": "Change persona", "message": "Switch personas to test Aria, Sora, or other voices."},
+                ],
+                "search_hint": "Search conversation keywords to jump to relevant responses."
+            },
+            "integrations": {
+                "title": "Integrations Hub",
+                "description": "Connect Microsoft, Google, Git, and file systems. Review tokens and scopes.",
+                "docs": ["THIRD_PARTY_CREDENTIALS_SETUP.md", "ONEDRIVE_INTEGRATION.md"],
+                "actions": [
+                    {"label": "Reconnect service", "message": "Use the reconnect button next to the desired connector."},
+                    {"label": "Test API call", "message": "Use the test section to verify scopes before automations."},
+                ],
+                "search_hint": "Search by service name or capability (e.g., 'calendar')."
+            },
+            "tools": {
+                "title": "Developer Tools",
+                "description": "Run terminal commands, code search, and profiling tasks with one click.",
+                "docs": ["FEATURE_OPPORTUNITIES.md", "commands.md"],
+                "actions": [
+                    {"label": "Open terminal", "message": "Use the embedded terminal with saved commands."},
+                    {"label": "Profiling run", "message": "Kick off the profiler to capture CPU + memory stats."},
+                ],
+                "search_hint": "Type script names or CLI arguments to filter saved commands."
+            },
+            "analytics": {
+                "title": "Analytics Studio",
+                "description": "Inspect productivity metrics, completion trends, and risk analytics.",
+                "docs": ["IMPLEMENTATION_SUMMARY.md", "FEATURE_OPPORTUNITIES.md"],
+                "actions": [
+                    {"label": "Export report", "message": "Use Export → CSV/JSON for exec-ready reports."},
+                    {"label": "Refresh charts", "message": "Run the refresh control to rebuild charts with new data."},
+                ],
+                "search_hint": "Filter metrics by timeframe or persona name."
+            },
+            "settings": {
+                "title": "Settings & Personas",
+                "description": "Control themes, automation toggles, and persona defaults from one place.",
+                "docs": ["README.md"],
+                "actions": [
+                    {"label": "Switch theme", "message": "Choose minty/light/dark themes for the UI."},
+                    {"label": "Update API base", "message": "Point the GUI at a different backend host."},
+                ],
+                "search_hint": "Search for setting names like 'font' or 'api'."
+            },
+            "ai operations": {
+                "title": "AI Operations",
+                "description": "Monitor automation workflows, daemon status, and compliance tasks.",
+                "docs": ["AUTOMATION_ORCHESTRATION_INTEGRATION.md", "DAEMON_FRAMEWORK_ARCHITECTURE.md"],
+                "actions": [
+                    {"label": "Start orchestrator", "message": "Use Start Orchestrator to begin workflow execution."},
+                    {"label": "View workflow", "message": "Open the workflow list to inspect definitions."},
+                ],
+                "search_hint": "Search workflow names or statuses (running, paused)."
+            },
+            "ai os cockpit": {
+                "title": "AI OS Cockpit",
+                "description": "Unified search, daemon safety, and document previews for AI OS operations.",
+                "docs": ["OS_DASHBOARD_ENTERPRISE.md", "VISION_IMPLEMENTATION.md"],
+                "actions": [
+                    {"label": "Filter ops", "message": "Use view dropdowns to inspect operations per source."},
+                    {"label": "Preview diff", "message": "Select a result then open the preview drawer."},
+                ],
+                "search_hint": "Search by system name (PDF, Notes) or keyword (risk, contract)."
+            },
+            "specs & systems": {
+                "title": "Specs & Systems",
+                "description": "Browse Markdown specs and trigger backend capabilities directly in the GUI.",
+                "docs": default_docs,
+                "actions": [
+                    {"label": "Filter specs", "message": "Use the filter to find specs by keyword or owner."},
+                    {"label": "Run backend action", "message": "Select a capability then run a sample action."},
+                ],
+                "search_hint": "Type spec title, keyword, or doc path fragment."
+            },
+            "driver layer": {
+                "title": "Driver Layer",
+                "description": "Inspect every driver (OS, Software, UI, Unix, Package, Data, Research, Governance) and the Capsules they power.",
+                "docs": ["Technical Spec Sheets (Version 5 Latest Version).pdf", "CANONICAL_INTERNAL_REPRESENTATION.md"],
+                "actions": [
+                    {"label": "Heartbeat driver", "message": "Use the Driver Layer tab to mark active drivers and refresh metrics."},
+                    {"label": "Simulate Capsule run", "message": "Select a capsule and log an Evidence Pack for auditors."},
+                ],
+                "search_hint": "Filter by driver layer (OS, Software, UI, Unix, Package, Data, Research, Governance)."
+            },
+            "security & audit": {
+                "title": "Security & Audit",
+                "description": "Review audit logs, compliance checks, and threat intelligence in one view.",
+                "docs": ["DAEMON_FRAMEWORK_ARCHITECTURE.md", "COGNITIVE_DAEMON_SYSTEM.md"],
+                "actions": [
+                    {"label": "Run compliance scan", "message": "Use the compliance controls to trigger scans."},
+                    {"label": "Download report", "message": "Export audit logs for IR or attestation."},
+                ],
+                "search_hint": "Search by control, framework, or incident number."
+            },
+            "default": {
+                "title": "Page Guide",
+                "description": "Use the quick controls to explore this workspace and review linked specs.",
+                "docs": default_docs,
+                "actions": [
+                    {"label": "Open documentation", "message": "Select a doc above to read the spec."}
+                ],
+                "search_hint": "Enter keywords related to the current tab."
+            },
+        }
+
+    def _build_future_features_tab(self):
+        """Portfolio of future OS engines with blank canvases for planning."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(self.notebook, padding=12)
+            heading_style = {
+                "bootstyle": "primary",
+                "font": (self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"),
+            }
+        else:
+            frame = ttk.Frame(self.notebook, padding=12)
+            heading_style = {
+                "font": (self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"),
+            }
+
+        frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(1, weight=3)
+        frame.rowconfigure(2, weight=1)
+        self.notebook.add(frame, text="🚧 Future Features")
+        self.future_feature_tab = frame
+
+        intro = ttk.Label(
+            frame,
+            text="Plan master engines, capsules, and governance layers before wiring backends.",
+            foreground=self.colors.get("muted", "#4f566b"),
+        )
+        intro.grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 8))
+
+        filter_bar = ttk.Frame(frame)
+        filter_bar.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 12))
+        filter_bar.columnconfigure(3, weight=1)
+
+        combo_cls = ttkb.Combobox if TTKBOOTSTRAP_AVAILABLE else ttk.Combobox
+
+        ttk.Label(filter_bar, text="Tier:").grid(row=0, column=0, padx=(0, 4))
+        self.future_feature_tier_filter_var = tk.StringVar(value="Filter by tier…")
+        self.future_feature_tier_filter = combo_cls(
+            filter_bar,
+            state="readonly",
+            width=26,
+            textvariable=self.future_feature_tier_filter_var,
+            values=list(self.future_features_by_tier.keys()),
+        )
+        self.future_feature_tier_filter.grid(row=0, column=1, padx=(0, 8))
+        self.future_feature_tier_filter.bind("<<ComboboxSelected>>", self._on_future_tier_dropdown)
+
+        ttk.Label(filter_bar, text="Capability:").grid(row=0, column=2, padx=(0, 4))
+        self.future_feature_capability_var = tk.StringVar(value="Go to capability…")
+        self.future_feature_capability_combo = combo_cls(
+            filter_bar,
+            state="readonly",
+            width=32,
+            textvariable=self.future_feature_capability_var,
+            values=list(self.future_feature_capability_map.keys()),
+        )
+        self.future_feature_capability_combo.grid(row=0, column=3, sticky="ew", padx=(0, 8))
+        self.future_feature_capability_combo.bind("<<ComboboxSelected>>", self._on_future_feature_nav)
+
+        self.future_feature_open_btn = ttk.Button(
+            filter_bar,
+            text="Open tier web page",
+            command=self._open_selected_future_tier_page,
+        )
+        self.future_feature_open_btn.grid(row=0, column=4, padx=(0, 4))
+
+        self.future_feature_reset_btn = ttk.Button(
+            filter_bar,
+            text="Reset",
+            command=self._reset_future_feature_filters,
+        )
+        self.future_feature_reset_btn.grid(row=0, column=5)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            nav_frame = ttkb.Labelframe(frame, text="Capability tiers", padding=12, bootstyle="info")
+        else:
+            nav_frame = ttk.LabelFrame(frame, text="Capability tiers", padding=12)
+        nav_frame.grid(row=2, column=0, sticky="nsew")
+        nav_frame.columnconfigure(0, weight=1)
+        nav_frame.rowconfigure(1, weight=1)
+
+        ttk.Label(nav_frame, text="Select a feature to load its implementation canvas.").grid(row=0, column=0, sticky="w", pady=(0, 6))
+        self.future_feature_tree = ttk.Treeview(nav_frame, columns=("value",), show="tree")
+        self.future_feature_tree.grid(row=1, column=0, sticky="nsew")
+        nav_scroll = ttk.Scrollbar(nav_frame, orient=tk.VERTICAL, command=self.future_feature_tree.yview)
+        nav_scroll.grid(row=1, column=1, sticky="ns")
+        self.future_feature_tree.configure(yscrollcommand=nav_scroll.set)
+
+        for tier, features in self.future_features_by_tier.items():
+            tier_id = f"tier::{tier}"
+            tier_label = f"{tier} ({len(features)})"
+            self.future_feature_tree.insert("", "end", iid=tier_id, text=tier_label, open=True)
+            for feature in features:
+                display = f"{feature.code} · {feature.title}"
+                self.future_feature_tree.insert(tier_id, "end", iid=feature.code, text=display)
+
+        self.future_feature_tree.bind("<<TreeviewSelect>>", self._on_future_feature_select)
+
+        if TTKBOOTSTRAP_AVAILABLE:
+            detail_frame = ttkb.Labelframe(frame, text="Implementation canvas", padding=12, bootstyle="secondary")
+        else:
+            detail_frame = ttk.LabelFrame(frame, text="Implementation canvas", padding=12)
+        detail_frame.grid(row=2, column=1, sticky="nsew")
+        detail_frame.columnconfigure(0, weight=1)
+        detail_frame.rowconfigure(3, weight=1)
+
+        self.future_feature_title_label = ttk.Label(detail_frame, textvariable=self.future_feature_title_var, **heading_style)
+        self.future_feature_title_label.grid(row=0, column=0, sticky="w")
+        ttk.Label(
+            detail_frame,
+            textvariable=self.future_feature_value_var,
+            foreground=self.colors.get("muted", "#4f566b"),
+        ).grid(row=1, column=0, sticky="w")
+        self.future_feature_summary = ttk.Label(
+            detail_frame,
+            textvariable=self.future_feature_summary_var,
+            wraplength=720,
+            justify=tk.LEFT,
+        )
+        self.future_feature_summary.grid(row=2, column=0, sticky="ew", pady=(0, 8))
+
+        if TTKB_SCROLLED_AVAILABLE:
+            scrolled = ScrolledFrame(detail_frame, autohide=True, padding=0)
+            scrolled.grid(row=3, column=0, sticky="nsew")
+            canvas_parent = scrolled
+        else:
+            canvas_parent = ttk.Frame(detail_frame)
+            canvas_parent.grid(row=3, column=0, sticky="nsew")
+            canvas_parent.columnconfigure(0, weight=1)
+            canvas_parent.rowconfigure(0, weight=1)
+
+        self.future_feature_detail_body = tk.Text(canvas_parent, wrap=tk.WORD, font=self.text_font, height=16)
+        self._style_text_widget(self.future_feature_detail_body)
+        self.future_feature_detail_body.configure(state=tk.DISABLED)
+        self.future_feature_detail_body.pack(fill="both", expand=True)
+
+        action_bar = ttk.Frame(detail_frame)
+        action_bar.grid(row=4, column=0, sticky="ew", pady=(12, 0))
+        ttk.Button(action_bar, text="Add placeholder board", command=self._add_future_feature_placeholder_note).pack(side="left")
+        ttk.Button(action_bar, text="Copy summary", command=self._copy_future_feature_summary).pack(side="left", padx=(8, 0))
+
+    def _normalize_tab_label(self, label: str) -> str:
+        if not label:
+            return "default"
+        clean = "".join(ch for ch in label if ch.isalnum() or ch.isspace())
+        return " ".join(clean.split()).lower() or "default"
+
+    def _on_future_feature_select(self, _event=None):
+        tree = getattr(self, "future_feature_tree", None)
+        if not tree:
+            return
+        selection = tree.selection()
+        if not selection:
+            return
+        node_id = selection[0]
+        feature = self.future_feature_lookup.get(node_id)
+        if not feature:
+            return
+        accent = self.future_feature_palette.get(feature.tier, self.colors.get("text", "#1f2532"))
+        try:
+            self.future_feature_title_label.configure(foreground=accent)
+        except Exception:
+            pass
+        self.future_feature_title_var.set(f"{feature.code} · {feature.title}")
+        self.future_feature_value_var.set(f"Lifetime value: {feature.lifetime_value}")
+        self.future_feature_summary_var.set(feature.summary)
+        details = (
+            f"Tier: {feature.tier}\n"
+            "\n"
+            "Implementation canvas placeholders:\n"
+            " • Key systems to integrate\n"
+            " • Required drivers / env manifests\n"
+            " • Capsule packs or workflows\n"
+            " • Policy, billing, and audit hooks\n"
+            "\n"
+            "Use this space to sketch the approach before wiring the backend."
+        )
+        self.future_feature_detail_body.configure(state=tk.NORMAL)
+        self.future_feature_detail_body.delete("1.0", tk.END)
+        self.future_feature_detail_body.insert("1.0", details)
+        self.future_feature_detail_body.configure(state=tk.DISABLED)
+        self.future_feature_tier_filter_var.set(feature.tier)
+
+    def _navigate_to_future_feature(self, feature_code: Optional[str] = None, tier: Optional[str] = None):
+        try:
+            self.notebook.select(self.future_feature_tab)
+        except Exception:
+            pass
+        tree = getattr(self, "future_feature_tree", None)
+        if not tree:
+            return
+        target = None
+        if feature_code and tree.exists(feature_code):
+            target = feature_code
+        elif tier:
+            tier_id = f"tier::{tier}"
+            if tree.exists(tier_id):
+                children = tree.get_children(tier_id)
+                target = children[0] if children else None
+        if target:
+            tree.selection_set(target)
+            tree.focus(target)
+            tree.see(target)
+            self._on_future_feature_select()
+
+    def _on_future_tier_dropdown(self, _event=None):
+        tier = self.future_feature_tier_filter_var.get()
+        if tier.startswith("Filter"):
+            return
+        self._navigate_to_future_feature(tier=tier)
+
+    def _on_future_feature_nav(self, _event=None):
+        display = self.future_feature_capability_var.get()
+        feature_code = self.future_feature_capability_map.get(display)
+        if feature_code:
+            self._navigate_to_future_feature(feature_code=feature_code)
+
+    def _reset_future_feature_filters(self):
+        self.future_feature_tier_filter_var.set("Filter by tier…")
+        self.future_feature_capability_var.set("Go to capability…")
+        self.future_feature_title_var.set("Select a capability")
+        self.future_feature_value_var.set("")
+        self.future_feature_summary_var.set("Choose a capability to load its implementation canvas.")
+        if self.future_feature_detail_body:
+            self.future_feature_detail_body.configure(state=tk.NORMAL)
+            self.future_feature_detail_body.delete("1.0", tk.END)
+            self.future_feature_detail_body.configure(state=tk.DISABLED)
+
+    def _copy_future_feature_summary(self):
+        try:
+            self.clipboard_clear()
+            self.clipboard_append(self.future_feature_summary_var.get())
+        except Exception:
+            pass
+
+    def _add_future_feature_placeholder_note(self):
+        if not self.future_feature_detail_body:
+            return
+        self.future_feature_detail_body.configure(state=tk.NORMAL)
+        self.future_feature_detail_body.insert(
+            tk.END,
+            "\n\n[ ] Requirements\n[ ] Dependencies\n[ ] Pilot users\n[ ] Success metrics\n",
+        )
+        self.future_feature_detail_body.configure(state=tk.DISABLED)
+
+    def _build_future_feature_tier_doc_map(self):
+        docs_dir = REPO_ROOT / "docs"
+        return {
+            "Core OS Engines": docs_dir / "future_core_os.html",
+            "Advanced Horizons": docs_dir / "future_advanced.html",
+            "Super Capabilities": docs_dir / "future_super.html",
+            "Hyper Network": docs_dir / "future_hyper.html",
+            "Ultra Scale": docs_dir / "future_ultra.html",
+            "God Tier": docs_dir / "future_god.html",
+            "Meta Envelope": docs_dir / "future_meta.html",
+        }
+
+    def _open_selected_future_tier_page(self, _event=None):
+        tier = self.future_feature_tier_filter_var.get()
+        if tier.startswith("Filter"):
+            return
+        path = self.future_feature_tier_docs.get(tier)
+        if not path or not Path(path).exists():
+            messagebox.showinfo("Future Features", "No web page registered for this tier yet.")
+            return
+        try:
+            import webbrowser
+
+            webbrowser.open(Path(path).resolve().as_uri())
+        except Exception as exc:
+            messagebox.showerror("Future Features", f"Could not open web page: {exc}")
+
+    def _on_tab_change(self, _event=None):
+        self._update_page_info_panel()
+
+    def _update_page_info_panel(self):
+        try:
+            tab_id = self.notebook.select()
+        except Exception:
+            return
+        if not tab_id:
+            return
+        label = self.notebook.tab(tab_id, "text")
+        key = self._normalize_tab_label(label)
+        self.current_page_key = key
+        guide = self.page_guides.get(key, self.page_guides.get("default", {}))
+        self.page_info_title_var.set(guide.get("title", "Page Guide"))
+        self.page_info_hint_var.set(guide.get("search_hint", "Use search to highlight items."))
+        description = guide.get("description", "")
+        self.page_info_text.config(state=tk.NORMAL)
+        self.page_info_text.delete("1.0", tk.END)
+        self.page_info_text.insert(tk.END, description.strip())
+        self.page_info_text.config(state=tk.DISABLED)
+
+        self.page_doc_list.delete(0, tk.END)
+        self.page_doc_mapping = []
+        for doc in guide.get("docs", []):
+            path = get_documentation_path(doc)
+            self.page_doc_list.insert(tk.END, doc)
+            self.page_doc_mapping.append(path)
+        if not self.page_doc_mapping:
+            self.page_doc_list.insert(tk.END, "No docs mapped")
+
+        actions = guide.get("actions", [])
+        action_labels = [action.get("label", "") for action in actions]
+        if not action_labels:
+            action_labels = ["No quick actions"]
+        self.page_action_combo["values"] = action_labels
+        self.page_action_var.set(action_labels[0])
+        self.page_action_definitions = {action.get("label"): action for action in actions}
+
+    def _open_selected_doc_from_panel(self):
+        if not self.page_doc_mapping:
+            messagebox.showinfo("Docs", "No documentation available for this page.")
+            return
+        selection = self.page_doc_list.curselection()
+        if not selection:
+            index = 0
+        else:
+            index = selection[0]
+        if index >= len(self.page_doc_mapping):
+            messagebox.showinfo("Docs", "No documentation file mapped.")
+            return
+        path = self.page_doc_mapping[index]
+        try:
+            content = path.read_text(encoding="utf-8", errors="ignore")
+        except Exception as exc:
+            messagebox.showerror("Docs", f"Unable to load {path}: {exc}")
+            return
+        win = tk.Toplevel(self)
+        win.title(f"Documentation - {path.name}")
+        win.geometry("720x520")
+        text_widget = tk.Text(win, wrap=tk.WORD, font=self.text_font)
+        text_widget.insert(tk.END, content)
+        text_widget.config(state=tk.DISABLED)
+        text_widget.pack(fill=tk.BOTH, expand=True)
+
+    def _open_tutorial_window(self):
+        guide = self.page_guides.get(self.current_page_key or "default", self.page_guides.get("default"))
+        win = tk.Toplevel(self)
+        win.title(f"Tutorial - {guide.get('title', 'Page Guide')}")
+        win.geometry("640x480")
+        message = tk.Text(win, wrap=tk.WORD, font=self.text_font)
+        message.insert(tk.END, guide.get("description", ""))
+        message.insert(tk.END, "\n\nSuggested actions:\n")
+        for action in guide.get("actions", []):
+            message.insert(tk.END, f" • {action.get('label')}: {action.get('message', '')}\n")
+        message.config(state=tk.DISABLED)
+        message.pack(fill=tk.BOTH, expand=True)
+
+    def _apply_page_search(self):
+        term = (self.page_search_var.get() or "").strip()
+        if not term:
+            messagebox.showinfo("Search", "Enter a keyword to search within this workspace.")
+            return
+        guide = self.page_guides.get(self.current_page_key or "default", {})
+        hint = guide.get("search_hint", "Use in-page filters to narrow content.")
+        messagebox.showinfo("Search", f"Filtering '{term}'. {hint}")
+
+    def _run_page_action(self):
+        label = self.page_action_var.get()
+        guide = self.page_guides.get(self.current_page_key or "default", {})
+        action = None
+        for candidate in guide.get("actions", []):
+            if candidate.get("label") == label:
+                action = candidate
+                break
+        if not action:
+            messagebox.showinfo("Quick actions", "No action available for this page.")
+            return
+        message = action.get("message", "Follow the on-screen controls inside the tab.")
+        messagebox.showinfo("Quick actions", message)
+
     def _on_spec_doc_selected(self, _event=None):
         if not hasattr(self, "spec_tree") or not hasattr(self, "spec_preview_text"):
             return
@@ -20380,6 +21477,18 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
                 [
                     ("Vision brief", get_documentation_path("VISION.md")),
                     ("Vision implementation", get_documentation_path("VISION_IMPLEMENTATION.md")),
+                ],
+            ),
+            (
+                "Future Feature Portfolio",
+                [
+                    ("Core OS roadmap", docs_dir / "future_core_os.html"),
+                    ("Advanced horizons roadmap", docs_dir / "future_advanced.html"),
+                    ("Super capabilities roadmap", docs_dir / "future_super.html"),
+                    ("Hyper network roadmap", docs_dir / "future_hyper.html"),
+                    ("Ultra scale roadmap", docs_dir / "future_ultra.html"),
+                    ("God tier roadmap", docs_dir / "future_god.html"),
+                    ("Meta envelope", docs_dir / "future_meta.html"),
                 ],
             ),
             (

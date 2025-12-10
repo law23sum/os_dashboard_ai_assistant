@@ -9,7 +9,7 @@ import requests
 import zipfile
 import tempfile
 import shutil
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional, Union, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 import logging

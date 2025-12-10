@@ -35,16 +35,21 @@ from .system import (
     ServiceConfig,
     ProcessInfo,
 )
-from .security import (
-    EncryptionService,
-    KeyManager,
-    PolicyEngine,
-    GovernanceEngine,
-    AuditManager,
-    BillingSystem,
-    SecurityMonitor,
-    AuthManager,
-)
+
+try:  # Some security modules require optional dependencies like bcrypt
+    from .security import (
+        EncryptionService,
+        KeyManager,
+        PolicyEngine,
+        GovernanceEngine,
+        AuditManager,
+        BillingSystem,
+        SecurityMonitor,
+        AuthManager,
+    )
+    _HAS_SECURITY = True
+except ImportError:  # pragma: no cover
+    _HAS_SECURITY = False
 
 __all__ = [
     # Audit System
@@ -79,13 +84,16 @@ __all__ = [
     'NetworkServiceManager',
     'ServiceConfig',
     'ProcessInfo',
-    # Security and governance
-    'EncryptionService',
-    'KeyManager',
-    'PolicyEngine',
-    'GovernanceEngine',
-    'AuditManager',
-    'BillingSystem',
-    'SecurityMonitor',
-    'AuthManager',
 ]
+
+if _HAS_SECURITY:
+    __all__.extend([
+        'EncryptionService',
+        'KeyManager',
+        'PolicyEngine',
+        'GovernanceEngine',
+        'AuditManager',
+        'BillingSystem',
+        'SecurityMonitor',
+        'AuthManager',
+    ])
