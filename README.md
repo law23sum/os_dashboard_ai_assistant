@@ -30,6 +30,7 @@ Enterprise-grade autonomous workflows, professional content generation, and adva
 - Accessibility compliance checks and reporting.
 - Formatting validation with consistency enforcement and professional standards.
 - Batch verification with cross-file error reporting.
+- Local Office AI processing service that analyzes, generates, and suggests content for add-ins even when external APIs are unavailable (`assistant_core/intelligence/office_ai_service.py`).
 
 ### Concurrent Operations
 - Parallel processing with intelligent batching across three to five simultaneous searches.
@@ -182,7 +183,17 @@ print(f"Processed {results['successful_tasks']} tasks successfully")
 ### Monitor Real-Time Sessions
 1. Launch the dashboard via `os-dashboard` or `python -m src.dashboard.main_interface`.
 2. Navigate to **Tools → Real-Time Sessions** to inspect connected Office add-ins, their active documents, and the router's AI event log.
-3. Set `AI_SERVICE_URL` to your processing endpoint or rely on the built-in simulator exposed by `assistant_core/integrations/office_realtime.py` for local testing.
+3. Set `AI_SERVICE_URL` to your processing endpoint or rely on the built-in offline service (`assistant_core/intelligence/office_ai_service.py`) that automatically powers the router when no remote endpoint is available.
+
+### Run the Office Realtime Service
+Spin up the shared router as a standalone backend for Office add-ins:
+
+```bash
+uvicorn assistant_core.integrations.office_server:app --host 0.0.0.0 --port 8080
+# WebSocket endpoint: ws://localhost:8080/ws
+```
+
+Clients should first send a `register` message (with `application`, `documentId`, etc.), then stream `live_edit` or `ai_request` payloads following the protocol outlined in `assistant_core/integrations/office_realtime.py`.
 
 ---
 

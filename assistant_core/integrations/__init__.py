@@ -17,6 +17,7 @@ from .office_realtime import (
     MessageType,
     ClientSession,
 )
+from .office_client import AIOfficeClient
 
 __all__ = [
     "DeploymentConfig",
@@ -32,4 +33,5 @@ __all__ = [
     "ApplicationType",
     "MessageType",
     "ClientSession",
+    "AIOfficeClient",
 ]
