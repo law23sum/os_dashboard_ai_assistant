@@ -125,24 +125,44 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, location }:
       </div>
       {expanded &&
         createPortal(
-          <div ref={dropdownRef} className="osd-dropdown w-56" style={{ position: 'fixed', zIndex: 99999 }}>
-            <div className="py-2">
-              {childItems.map((child) => {
-                const ChildIcon = child.icon
-                const childActive = location.pathname === child.path
-                return (
-                  <Link
-                    key={child.path}
-                    to={child.path}
-                    className={`osd-dropdown-link ${childActive ? 'osd-dropdown-link--active' : ''}`}
-                    onClick={onToggle}
-                  >
-                    <ChildIcon className="w-4 h-4 mr-2" />
-                    {child.label}
-                  </Link>
-                )
-              })}
-            </div>
+          <div ref={dropdownRef} className="osd-dropdown w-72" style={{ position: 'fixed', zIndex: 99999 }}>
+            {(item.groups && item.groups.length
+              ? item.groups
+              : [{ label: undefined, items: childItems }]
+            ).map((group, index) => (
+              <div
+                key={`${item.path}-group-${group.label ?? index}`}
+                className="px-4 py-3 border-b border-white/5 last:border-b-0"
+              >
+                {group.label && (
+                  <div className="mb-2 space-y-1">
+                    <p className="text-[0.65rem] uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
+                      {group.label}
+                    </p>
+                    {group.description && (
+                      <p className="text-[0.7rem] text-[color:var(--osd-muted)]">{group.description}</p>
+                    )}
+                  </div>
+                )}
+                <div className="space-y-1">
+                  {group.items.map((child) => {
+                    const ChildIcon = child.icon
+                    const childActive = location.pathname === child.path
+                    return (
+                      <Link
+                        key={child.path}
+                        to={child.path}
+                        className={`osd-dropdown-link ${childActive ? 'osd-dropdown-link--active' : ''}`}
+                        onClick={onToggle}
+                      >
+                        <ChildIcon className="w-4 h-4 mr-2" />
+                        {child.label}
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>,
           document.body
         )}

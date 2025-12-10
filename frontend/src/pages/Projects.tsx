@@ -663,12 +663,14 @@ export default function Projects() {
 }
 
       <section className="grid gap-6 lg:grid-cols-2">
-        {enrichedProjects.map((project) => {
+        {orderedProjects.map((project, index) => {
           const gradient = statusGradients[project.status?.toLowerCase() ?? ''] || 'from-slate-600/50 to-slate-800/70'
           const tasks = project.tasks ?? []
           const links = project.links ?? []
           const intelligence = project.intelligence
           const latestLedgerEvent = project.ledger?.[0]
+          const canMoveUp = index > 0
+          const canMoveDown = index < orderedProjects.length - 1
           const ledgerDate = latestLedgerEvent ? new Date(latestLedgerEvent.created_at) : null
           const ledgerTimestamp =
             ledgerDate && !Number.isNaN(ledgerDate.getTime())
@@ -719,6 +721,50 @@ export default function Projects() {
                   </div>
                 </div>
               )}
+              <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => canMoveUp && handleMove(project, 'up')}
+                  disabled={!canMoveUp}
+                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--osd-border)] px-3 py-1 text-[color:var(--osd-muted)] hover:border-[color:var(--osd-accent)] hover:text-[color:var(--osd-accent)] disabled:opacity-40"
+                >
+                  <ArrowUpNarrowWide className="h-3.5 w-3.5" />
+                  Move Up
+                </button>
+                <button
+                  type="button"
+                  onClick={() => canMoveDown && handleMove(project, 'down')}
+                  disabled={!canMoveDown}
+                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--osd-border)] px-3 py-1 text-[color:var(--osd-muted)] hover:border-[color:var(--osd-accent)] hover:text-[color:var(--osd-accent)] disabled:opacity-40"
+                >
+                  <ArrowDownNarrowWide className="h-3.5 w-3.5" />
+                  Move Down
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openEditForm(project)}
+                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--osd-border)] px-3 py-1 text-[color:var(--osd-muted)] hover:border-[color:var(--osd-accent)] hover:text-[color:var(--osd-accent)]"
+                >
+                  <PenSquare className="h-3.5 w-3.5" />
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openInsightsPanel(project)}
+                  className="inline-flex items-center gap-2 rounded-full border border-transparent bg-[color:var(--osd-accent)] px-3 py-1 text-white shadow-lg shadow-slate-900/20 hover:bg-[color:var(--osd-accentHover)]"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Insights
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(project)}
+                  className="inline-flex items-center gap-2 rounded-full border border-rose-500/60 px-3 py-1 text-rose-200 hover:bg-rose-500/10"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete
+                </button>
+              </div>
               <div className="mt-6 grid gap-3">
                 {tasks.slice(0, 4).map((task) => (
                   <div key={task.id} className="flex items-center justify-between rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] px-4 py-3 text-sm">
@@ -870,20 +916,19 @@ export default function Projects() {
           onRefresh={() => ledgerQuery.refetch()}
         />
       </section>
+      {insightsProject && (
+        <ProjectInsightsDrawer
+          project={insightsProject}
+          insight={projectInsightsQuery.data}
+          isLoading={projectInsightsQuery.isLoading}
+          isFetching={projectInsightsQuery.isFetching}
+          error={projectInsightsQuery.error}
+          onClose={() => setInsightsProject(null)}
+          onRefresh={() => projectInsightsQuery.refetch()}
+        />
+      )}
     </div>
   )
-}
-
-type ProjectLedgerPanelProps = {
-  events: ProjectLedgerEvent[]
-  integrityOk: boolean
-  isLoading: boolean
-  isFetching: boolean
-  error: unknown
-  selectedFilter: string | null
-  projectOptions: string[]
-  onProjectChange: (projectName: string | null) => void
-  onRefresh: () => void
 }
 
 type ProjectIntelligencePanelProps = {
@@ -896,6 +941,28 @@ type ProjectIntelligencePanelProps = {
   isLoading: boolean
   isFetching: boolean
   error: unknown
+  onRefresh: () => void
+}
+
+type ProjectInsightsDrawerProps = {
+  project: EnrichedProject
+  insight?: ProjectInsightResponse
+  isLoading: boolean
+  isFetching: boolean
+  error: unknown
+  onClose: () => void
+  onRefresh: () => void
+}
+
+type ProjectLedgerPanelProps = {
+  events: ProjectLedgerEvent[]
+  integrityOk: boolean
+  isLoading: boolean
+  isFetching: boolean
+  error: unknown
+  selectedFilter: string | null
+  projectOptions: string[]
+  onProjectChange: (projectName: string | null) => void
   onRefresh: () => void
 }
 
@@ -1007,6 +1074,153 @@ function ProjectIntelligencePanel({
           <ExternalLink className="h-3 w-3" />
           Read spec
         </a>
+      </div>
+    </div>
+  )
+}
+
+function ProjectInsightsDrawer({
+  project,
+  insight,
+  isLoading,
+  isFetching,
+  error,
+  onClose,
+  onRefresh,
+}: ProjectInsightsDrawerProps) {
+  const severityTone: Record<string, string> = {
+    low: 'text-emerald-300',
+    medium: 'text-amber-300',
+    high: 'text-rose-300',
+    critical: 'text-rose-400',
+  }
+  const riskScore = insight?.risk.risk_score ?? 0
+  const severity = insight?.risk.severity ?? 'unknown'
+  const risks = insight?.risk.risks ?? []
+  const recommendations = insight?.risk.recommendations ?? 'No recommendations yet.'
+  const forecast = insight?.forecast
+  const errorMessage = error instanceof Error ? error.message : 'Unable to load insights.'
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
+      <div className="relative w-full max-w-3xl rounded-3xl border border-[color:var(--osd-border)] bg-[color:var(--osd-background)] p-6 shadow-2xl shadow-slate-900/50">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">Spec §4.5 · §4.8 · §6.2</p>
+            <h3 className="text-2xl font-semibold text-[color:var(--osd-text)] flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-[color:var(--osd-accent)]" />
+              Project Intelligence · {project.name}
+            </h3>
+            <p className="text-sm text-[color:var(--osd-muted)]">
+              Mirrors the Tkinter insight flyout — shared FastAPI snapshot powering both desktop and browser shells.
+            </p>
+            <p className="text-xs text-[color:var(--osd-muted)] mt-1">
+              Generated {insight ? formatTimestamp(insight.generated_at) : '—'}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isFetching}
+              className="inline-flex items-center gap-2 rounded-full border border-[color:var(--osd-border)] px-4 py-2 text-xs font-semibold text-[color:var(--osd-text)] hover:border-[color:var(--osd-accent)] disabled:opacity-60"
+            >
+              <RefreshCw className="h-4 w-4" />
+              {isFetching ? 'Refreshing…' : 'Refresh'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center gap-2 rounded-full border border-[color:var(--osd-border)] px-4 py-2 text-xs font-semibold text-[color:var(--osd-text)] hover:border-[color:var(--osd-accent)]"
+            >
+              <X className="h-4 w-4" />
+              Close
+            </button>
+          </div>
+        </div>
+        {error && (
+          <div className="mt-4 rounded-2xl border border-rose-500/60 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+            <strong>Insights unavailable.</strong> {errorMessage}
+          </div>
+        )}
+        {isLoading ? (
+          <div className="flex h-64 items-center justify-center">
+            <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-[color:var(--osd-accent)]" />
+          </div>
+        ) : (
+          <div className="mt-6 space-y-6">
+            <div className="rounded-2xl border border-[color:var(--osd-border)] p-5">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-[color:var(--osd-muted)]">Risk Score</p>
+                  <p className="text-4xl font-bold text-[color:var(--osd-text)]">{riskScore}</p>
+                </div>
+                <div className={`text-sm font-semibold ${severityTone[severity] ?? 'text-[color:var(--osd-muted)]'}`}>
+                  Severity · {severity.toUpperCase()}
+                </div>
+              </div>
+              <div className="mt-4 h-3 w-full overflow-hidden rounded-full border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)]">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-rose-400 via-amber-400 to-emerald-400"
+                  style={{ width: `${Math.min(100, Math.max(0, riskScore))}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-[color:var(--osd-muted)]">
+                {insight?.risk.completed_tasks ?? 0} completed · {insight?.risk.total_tasks ?? 0} total ·{' '}
+                {((insight?.risk.completion_rate ?? 0) * 100).toFixed(0)}% complete
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[color:var(--osd-border)] p-5">
+              <p className="text-xs uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">Risks</p>
+              {risks.length === 0 ? (
+                <p className="mt-3 text-sm text-[color:var(--osd-muted)]">
+                  No active risks detected for this workspace.
+                </p>
+              ) : (
+                <ul className="mt-3 space-y-2 text-sm text-[color:var(--osd-muted)]">
+                  {risks.map((item, idx) => (
+                    <li
+                      key={`${item.type}-${idx}`}
+                      className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] px-4 py-3"
+                    >
+                      <p className="font-semibold text-[color:var(--osd-text)]">
+                        {item.message}
+                        {item.count ? ` · ${item.count}` : ''}
+                      </p>
+                      <p className="text-xs uppercase tracking-[0.35em]">
+                        {item.type.replace(/_/g, ' ')} · {item.severity}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="rounded-2xl border border-[color:var(--osd-border)] p-5 space-y-3">
+              <p className="text-xs uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">Recommendations</p>
+              <p className="whitespace-pre-line text-sm text-[color:var(--osd-text)]">{recommendations}</p>
+            </div>
+            <div className="rounded-2xl border border-[color:var(--osd-border)] p-5">
+              <p className="text-xs uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
+                Forecast &amp; Continuity
+              </p>
+              {forecast ? (
+                <div className="mt-3 space-y-2 text-sm text-[color:var(--osd-muted)]">
+                  <p className="text-lg font-semibold text-[color:var(--osd-text)]">
+                    Target completion: {forecast.predicted_date ?? 'TBD'} ({forecast.confidence} confidence)
+                  </p>
+                  <p>{forecast.reasoning}</p>
+                  <p>
+                    Estimated days remaining: {forecast.estimated_days ?? '—'} · Pending tasks:{' '}
+                    {forecast.pending_task_count}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-[color:var(--osd-muted)]">
+                  Forecast unavailable until more task data is recorded.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
