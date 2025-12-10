@@ -33,3 +33,9 @@ def get_logger(name: str) -> logging.Logger:
         Logger instance
     """
     return logging.getLogger(name)
+
+
+def setup_logger(name: str = "assistant_hub") -> logging.Logger:
+    """Compat shim that mirrors config.logging_config.setup_logger."""
+    configure_logging()
+    return get_logger(name)

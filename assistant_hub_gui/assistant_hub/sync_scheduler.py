@@ -2,7 +2,7 @@
 
 import threading
 import time
-from typing import Dict, List
+from typing import Dict, List, Optional
 import sqlite3
 
 from .db import init_db, load_settings
@@ -86,10 +86,18 @@ class SyncScheduler:
         self.running = False
         self.thread = None
         self.integrations: Dict[str, object] = {}
+        self.preferences: Optional[Dict[str, bool]] = None
 
     def register_integration(self, name: str, integration):
         """Register an integration for syncing."""
         self.integrations[name] = integration
+
+    def apply_preferences(self, preferences: Optional[Dict[str, bool]]):
+        """Override sync preferences (useful for GUI-driven toggles)."""
+        if preferences is None:
+            self.preferences = None
+        else:
+            self.preferences = dict(preferences)
 
     def start(self):
         """Start the sync scheduler."""
@@ -110,24 +118,24 @@ class SyncScheduler:
         """Main sync loop."""
         while self.running:
             try:
-                settings = load_settings(self.conn)
+                prefs = self._get_effective_preferences()
 
                 # Sync based on preferences
-                if settings.data_preferences.get("notes", False):
+                if prefs.get("notes", False):
                     if "notes" in self.integrations:
                         try:
                             self.integrations["notes"].sync()
                         except Exception:
                             pass
 
-                if settings.data_preferences.get("calendar", False):
+                if prefs.get("calendar", False):
                     if "calendar" in self.integrations:
                         try:
                             self.integrations["calendar"].sync()
                         except Exception:
                             pass
 
-                if settings.data_preferences.get("mail", False):
+                if prefs.get("mail", False):
                     if "mail" in self.integrations:
                         try:
                             self.integrations["mail"].sync()
@@ -171,6 +179,17 @@ class SyncScheduler:
 
         return results
 
+    def _get_effective_preferences(self) -> Dict[str, bool]:
+        """Return currently active sync preferences."""
+        if self.preferences is not None:
+            return dict(self.preferences)
+        try:
+            settings = load_settings(self.conn)
+            data = getattr(settings, "data_preferences", {}) or {}
+            return dict(data)
+        except Exception:
+            return {}
+
 
 def create_default_scheduler(conn: sqlite3.Connection) -> SyncScheduler:
     """Create scheduler with default integrations."""
@@ -181,5 +200,10 @@ def create_default_scheduler(conn: sqlite3.Connection) -> SyncScheduler:
     scheduler.register_integration("calendar", AppleCalendarIntegration(conn))
     scheduler.register_integration("mail", GmailIntegration(conn))
     scheduler.register_integration("github", GitHubIntegration(conn))
+    try:
+        prefs = load_settings(conn).data_preferences
+        scheduler.apply_preferences(prefs)
+    except Exception:
+        pass
 
     return scheduler

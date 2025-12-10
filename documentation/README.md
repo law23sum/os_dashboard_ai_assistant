@@ -1,80 +1,54 @@
 # Documentation Index
 
-This folder centralizes the reference material for the OS Dashboard AI Assistant Platform. The **canonical view** of every artifact is now maintained in `documentation/OS_DashboardAIAssistantTOC.md`, which mirrors the official OS DashboardAIAssistantTOC design and links each Markdown source to the spec hierarchy. For the consolidated product overview, installation, and feature guide, see the root-level `README.md`.
+This folder centralizes the reference material for the OS Dashboard AI Assistant Platform. The **canonical ordering** now mirrors `OS DashboardAIAssistantTOC.txt`: every section below references the spec chapter, the key Markdown(s), and the runtime surfaces that satisfy it. Use this page alongside `documentation/OS_DashboardAIAssistantTOC.md` when you need to trace an implementation back to the canon.
 
 ---
 
-## Platform Strategy & Roadmaps
-- `documentation/OS_DASHBOARD_ENTERPRISE.md`
-- `documentation/VISION.md`
-- `documentation/VISION_IMPLEMENTATION.md`
-- `documentation/IMPLEMENTATION_ROADMAP.md`
-- `documentation/IMPLEMENTATION_SUMMARY.md`
-- `documentation/GLOBAL_IMPACT_WHITE_PAPER.md`
-- `documentation/ENGINEERING_COMPLEXITY_ANALYSIS.md`
-- `documentation/LOW_HANGING_FRUIT_FEATURES.md`
-- `documentation/FEATURE_OPPORTUNITIES.md`
-- `documentation/MISSING_FEATURES_SUMMARY.md`
-- `documentation/NEW_FEATURES_ADDED.md`
+## 0 — Mission, Modes, Identity & Cognitive Agents
+- Vision & mission: `VISION.md`, `VISION_IMPLEMENTATION.md`, `GLOBAL_IMPACT_WHITE_PAPER.md`
+- Operating models & objectives: `OS_DASHBOARD_ENTERPRISE.md`, `IMPLEMENTATION_SUMMARY.md`, `ENGINEERING_COMPLEXITY_ANALYSIS.md`
+- Personas & daemons narrative: `AI_FEATURES_IMPLEMENTATION.md`, `DAEMON_FRAMEWORK_ARCHITECTURE.md`
+- Roadmaps / deltas: `IMPLEMENTATION_ROADMAP.md`, `LOW_HANGING_FRUIT_FEATURES.md`, `FEATURE_OPPORTUNITIES.md`, `MISSING_FEATURES_SUMMARY.md`, `NEW_FEATURES_ADDED.md`
 
-## Architecture & Core Systems
-- `documentation/ARCHITECTURE_IMPLEMENTATION.md`
-- `documentation/OS_DASHBOARD_CANON_SYSTEM_SPEC.md`
-- `documentation/CANONICAL_INTERNAL_REPRESENTATION.md`
-- `documentation/AI_FEATURES_IMPLEMENTATION.md`
-- `documentation/AI_OFFICE_AGENT_REALTIME.md`
-- `documentation/DAEMON_FRAMEWORK_ARCHITECTURE.md`
-- `documentation/COGNITIVE_DAEMON_SYSTEM.md`
-- `documentation/AUTOMATION_ORCHESTRATION_INTEGRATION.md`
-- `documentation/assistant_hub/ARCHITECTURE.md`
-- `documentation/assistant_hub_gui/assistant_hub/ARCHITECTURE.md`
+## 1 — Architectural Overview & Principles
+- Canon spec + layered architecture: `OS_DASHBOARD_CANON_SYSTEM_SPEC.md`, `ARCHITECTURE_IMPLEMENTATION.md`
+- Driver-aware orchestrator + automation flow: `AUTOMATION_ORCHESTRATION_INTEGRATION.md`, `assistant_hub/ARCHITECTURE.md`
+- Presentation & migration blueprint: `WEB_MIGRATION_PLAN.md`, `FRONTEND_DEPLOYMENT.md` (React desktop), `docs/frontend_migration_plan.md`
 
-## Intelligence, Integrations & Automation
-- `documentation/api_research.md`
-- `documentation/CONVERSATION_AI_INTEGRATION.md`
-- `documentation/ONEDRIVE_INTEGRATION.md`
-- `documentation/FILE_TASK_EXTRACTION_FEATURE.md`
-- `documentation/DOCUMENT_UPLOAD_DESIGN.md`
-- `documentation/DOCUMENT_UPLOAD_IMPLEMENTATION.md`
-- `documentation/DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md`
-- `documentation/DOCUMENT_TEMPLATES_AND_AUTOMATION.md`
-- `documentation/THIRD_PARTY_CREDENTIALS_SETUP.md`
-- `documentation/commands.md`
-- `documentation/SALVAGED_CODE_SUMMARY.md`
+## 2 — Planes Architecture (Data / Control / Governance)
+- Planes and control-loop insights: `AI_OFFICE_AGENT_REALTIME.md`, `COGNITIVE_DAEMON_SYSTEM.md`
+- Policy layer & governance guardrails: `CONVERSATION_AI_INTEGRATION.md`, `documentation/reference/os-dashboard-ai-assistant-platform/CHANGELOG.md` (policy history)
 
-## Operations, Deployment & Costing
-- `documentation/DEPLOYMENT.md`
-- `documentation/AWS_COST_ESTIMATE.md`
+## 3 — Core Domain & Knowledge Model
+- CIR & document taxonomy: `CANONICAL_INTERNAL_REPRESENTATION.md`, `DOCUMENT_TEMPLATES_AND_AUTOMATION.md`
+- Task/project ledger: `DOCUMENT_UPLOAD_DESIGN.md`, `DOCUMENT_UPLOAD_IMPLEMENTATION.md`
+- Knowledge capsules & workspace stories: `DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md`, `DOCUMENT_UPLOAD_DESIGN.md`, `DOCUMENT_UPLOAD_IMPLEMENTATION.md`
 
-## Workflows & Configuration
-- `documentation/workflows/README.md`
-- `documentation/config/samples/README.md`
-- `documentation/config/samples/index.md`
-- `documentation/config/samples/pdf_document_specification.md`
-- `documentation/config/samples/word_document_specification.md`
-- `documentation/config/samples/excel_workbook_specification.md`
-- `documentation/config/samples/powerpoint_presentation_specification.md`
+## 4 — Cognitive Agents, Reasoning & Daemon Framework
+- Cognitive framework + personas: `AI_FEATURES_IMPLEMENTATION.md`, `COGNITIVE_DAEMON_SYSTEM.md`
+- Daemon runtime & automation controller: `DAEMON_FRAMEWORK_ARCHITECTURE.md`, `assistant_hub_gui/assistant_hub/ARCHITECTURE.md`
+- Research & reasoning overlays: `api_research.md`, `WEB_MIGRATION_PLAN.md` (desktop research workspace)
 
-## Assistant Hub GUI Samples
-- `documentation/assistant_hub_gui/samples/README.md`
-- `documentation/assistant_hub_gui/samples/index.md`
-- `documentation/assistant_hub_gui/samples/pdf_document_specification.md`
-- `documentation/assistant_hub_gui/samples/word_document_specification.md`
-- `documentation/assistant_hub_gui/samples/excel_workbook_specification.md`
-- `documentation/assistant_hub_gui/samples/powerpoint_presentation_specification.md`
+## 5 — Driver Architecture & System Execution Layer
+- OS / SaaS driver specs: `ARCHITECTURE_IMPLEMENTATION.md` (Section 5), `assistant_hub/ARCHITECTURE.md`
+- Git/Office integrations & automation capsules: `ONEDRIVE_INTEGRATION.md`, `FILE_TASK_EXTRACTION_FEATURE.md`, `assistant_hub_gui/samples/*.md`
 
-## Reference Libraries
-- `documentation/reference/os-dashboard-ai-assistant/README.md`
-- `documentation/reference/os-dashboard-ai-assistant/todo.md`
-- `documentation/reference/os-dashboard-ai-assistant-platform/README.md`
-- `documentation/reference/os-dashboard-ai-assistant-platform/INSTALL.md`
-- `documentation/reference/os-dashboard-ai-assistant-platform/CHANGELOG.md`
-- `documentation/reference/os-dashboard-ai-assistant-platform/todo.md`
-- `documentation/reference/os-dashboard-ai-assistant-advanced (1)/README.md`
-- `documentation/reference/os-dashboard-ai-assistant-advanced (1)/ADVANCED_FEATURES.md`
-- `documentation/reference/os-dashboard-ai-assistant-advanced (1)/todo.md`
+## 6 — Data & Storage Architecture
+- Data stores & observability: `AWS_COST_ESTIMATE.md`, `DEPLOYMENT.md`, `AI_OFFICE_AGENT_REALTIME.md` (telemetry)
+- Config references & samples: `config/samples/*.md`, `assistant_hub_gui/samples/*.md`
 
-## Testing Artifacts
-- `documentation/.pytest_cache/README.md`
+## 7 — Workspaces, Domain Engines & Collaboration
+- Workspace engines & workflows: `workflows/README.md`, `assistant_hub_gui/assistant_hub/ARCHITECTURE.md`
+- Writer / Research / DevOS overlays: `api_research.md`, `documentation/reference/os-dashboard-ai-assistant-platform/README.md`
+- Migration tracker (Tk → React parity): `UI_MIGRATION_STATUS.md`
 
-Use this index to quickly jump to the relevant spec or guide based on the area you are exploring (strategy, architecture, integrations, operations, or reference materials).
+## 8 — Capsule System, Ledger & Automation
+- Capsules & release packets: `DOCUMENT_TEMPLATES_AND_AUTOMATION.md`, `DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md`
+- Automation guidance & CLI surface: `commands.md`, `assistant_hub/ARCHITECTURE.md`
+
+## 9+ — Deployment, Ops & Testing (Supporting Appendices)
+- Deployment & costing: `DEPLOYMENT.md`, `AWS_COST_ESTIMATE.md`, `docs/ui_deployment.md`
+- Test & verification references: `documentation/.pytest_cache/README.md` (placeholder until pytest suite expands)
+- Reference libraries: `documentation/reference/**`
+
+Every new Markdown or implementation note should declare the spec section(s) it fulfills and be linked from the appropriate numbered list above. This keeps the documentation synchronized with `OS_DashboardAIAssistantTOC.md`, ensures newcomers can find the canonical artifact quickly, and satisfies the “read-all-MDs and reorganize per TOC” directive from the Canon specification.

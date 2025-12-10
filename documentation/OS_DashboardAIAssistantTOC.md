@@ -23,6 +23,7 @@ This living document reorganizes **all Markdown guidance** into the canonical st
 - `AI_FEATURES_IMPLEMENTATION.md` + `assistant_core/ai_layer/openai_client.py` define GPT-5.x, multimodal, and local model adapters. `ai_os/app/ai_proxy.py` shows a lightweight entrypoint.
 ### 0.9 Terminology, Glossary & Definitions
 - Consolidated glossary maintained here with cross-links to `documentation/README.md` and `documentation/consolidated_md/README.md`.
+- The React front-end (`frontend/src/App.tsx`) exposes navigation cards and dropdowns wired into this canonical TOC so operators can jump directly to relevant Markdown/HTML surfaces (spec, architecture, daemon design) without leaving the cockpit.
 ### 0.10 Open Questions / TODOs
 - Outstanding identity + mission tasks tracked in `documentation/MISSING_FEATURES_SUMMARY.md` and `documentation/IMPLEMENTATION_ROADMAP.md`.
 
@@ -30,7 +31,7 @@ This living document reorganizes **all Markdown guidance** into the canonical st
 
 ## 1. Architectural Overview & Principles
 ### 1.1 Logical Layered Architecture
-- 1.1.1 Presentation Layer — `assistant_hub_gui/assistant_hub/gui.py`, `dashboard.js`.
+- 1.1.1 Presentation Layer — `frontend/src/App.tsx` (React + TypeScript SPA served via Vite). The single-page “Research & Simulation Workspace” now mirrors the Bootstrap inspiration and acts as the primary desktop view while Tkinter is phased out.
 - 1.1.2 Application Layer — `assistant_core/*` orchestrator modules.
 - 1.1.3 Cognitive Layer — `assistant_core/cognitive_framework.py`.
 - 1.1.4 Domain/Model Layer — `assistant_core/domain/models.py`, `DOCUMENT_TEMPLATES_AND_AUTOMATION.md`.
@@ -38,6 +39,7 @@ This living document reorganizes **all Markdown guidance** into the canonical st
 - 1.1.6 Security/Governance Layer — `assistant_core/security/*`, `documentation/COGNITIVE_DAEMON_SYSTEM.md`.
 ### 1.2 Major Components & Interaction Patterns
 - `ARCHITECTURE_IMPLEMENTATION.md` plus `assistant_core/driver_orchestrator_architecture.py` describe flows between UI ↔ orchestrator ↔ driver stack ↔ daemons.
+- `assistant_hub/api/server.py` exposes the FastAPI bridge (system stats, AI console, daemons, research workspace) consumed by the React desktop shell and pywebview host.
 ### 1.3 Architectural Principles
 - Documented in `OS_DASHBOARD_CANON_SYSTEM_SPEC.md` Section 1 with mapping to enforcement hooks in `assistant_core/spec_registry.py`.
 ### 1.4 Component & Responsibility Mapping
@@ -47,7 +49,7 @@ This living document reorganizes **all Markdown guidance** into the canonical st
 ### 1.6 Platform Envelope & Capability Baselines
 - Summarized in `documentation/IMPLEMENTATION_SUMMARY.md` and `OS_DASHBOARD_ENTERPRISE.md`.
 ### 1.7 Driver-Aware Orchestrator
-- `assistant_core/automation_orchestrator.py`, `ai_os/app/system_monitor.py`, and `dashboard.js` satisfy sections 1.7.1–1.7.8; spec references embedded via `spec_registry`.
+- `assistant_core/automation_orchestrator.py` and `ai_os/app/system_monitor.py` satisfy sections 1.7.1–1.7.8; spec references embedded via `spec_registry`.
 ### 1.8 Open Questions / TODOs
 - Active discussion tracked in `documentation/IMPLEMENTATION_ROADMAP.md` and GitHub issues (see `documentation/commands.md` for CLI shortcuts).
 
@@ -116,7 +118,8 @@ This living document reorganizes **all Markdown guidance** into the canonical st
 ### 4.4 Runtime, Scheduling, Scopes & Budgets
 - `assistant_core/daemon/runtime.py`, `assistant_hub_gui/.../daemon`.
 ### 4.5 Project Intelligence Subsystem
-- `assistant_core/cognitive_framework.py` (`ProjectIntelligence` class).
+- `assistant_core/cognitive_framework.py` (`ProjectIntelligence` class) and the new UI surface inside `assistant_hub/gui.py` (“Project Intelligence” panel) which calls `project_insights.analyze_project_risks`, `project_insights.predict_project_completion`, and `smart_prioritization.get_smart_priority_order` so backend analytics are rendered directly in the Projects tab.
+- Research workspace state is centralized in `assistant_hub/research_workspace.py`, guaranteeing the Tkinter dashboard, FastAPI endpoints, and React client display consistent personas/analytics per §4.5 and §4.6.
 ### 4.6 Theoretical Reasoning Framework (TRF)
 - `assistant_core/cognitive_framework.py`, `documentation/AI_FEATURES_IMPLEMENTATION.md`.
 ### 4.7 Reasoning over Time
@@ -146,6 +149,8 @@ This living document reorganizes **all Markdown guidance** into the canonical st
 ## 7. Workspaces, Domain Engines & Collaboration
 - Workspace definitions appear in `AI_FEATURES_IMPLEMENTATION.md`, `NEW_FEATURES_ADDED.md`, and `documentation/reference/os-dashboard-ai-assistant-platform/README.md`.
 - Sections 7.1–7.13 map to explicit engines: DevOps (`assistant_core/ai_layer/agents/data_science_agent.py`), Research (`documentation/VISION_IMPLEMENTATION.md`), Writer OS (`documentation/DOCUMENT_TEMPLATES...`), Archive/Continuity (`COGNITIVE_DAEMON_SYSTEM`), Security (`assistant_core/security/*`), Business/Finance (`assistant_core/predictive_analytics.py`), Record Auditor (`assistant_core/audit_system.py`), Operator/SRE (`assistant_core/intelligent_monitoring.py`), Digital Twin (`NEW_FEATURES_ADDED.md`), Multi-user collaboration (`assistant_hub/ai_task_creation.py`), and orchestration dependencies (`automation_orchestrator.py`).
+- The refreshed Projects workspace in `assistant_hub/gui.py` closes the loop between these engines and the operator by embedding risk dashboards, completion forecasts, and smart task queues driven by the backend intelligence modules above.
+- The modern desktop-facing surface for Research/Simulation (React) lives at `frontend/src/App.tsx` and talks to FastAPI’s `/research/*` endpoints, giving Chapter 7 a concrete realization that shares data with the Tk dashboard via `assistant_hub/research_workspace.py`.
 
 ---
 

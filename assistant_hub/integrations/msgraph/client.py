@@ -15,7 +15,7 @@ from msgraph.generated.models.workbook import Workbook
 from msgraph.generated.models.notebook import Notebook
 
 from config import get_api_config
-from ..logging_config import setup_logger
+from ...logging_config import setup_logger
 
 
 class MicrosoftClient:
@@ -356,3 +356,8 @@ class MicrosoftClient:
         self.access_token = None
         self.graph_client = None
         self.logger.info("Microsoft client shutdown complete")
+
+
+class GraphClient(MicrosoftClient):
+    """Backward compatible alias for existing integrations."""
+    pass

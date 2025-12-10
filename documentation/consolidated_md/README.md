@@ -118,17 +118,15 @@ The `ai_os/app` FastAPI service now exposes the same primitives that powered the
 - `GET /system` – CPU, memory, and disk telemetry powered by `psutil` (`ai_os/app/system_monitor.py`).
 - `POST /ai/ask` – prompt → response passthrough for OpenAI-compatible chat endpoints (`ai_os/app/ai_proxy.py`).
 
-You can point the React dashboard (`dashboard.js`) at this FastAPI app to surface a
-live system health card and a “Quick AI Assistant” panel without writing additional
-glue code:
+Run the API alongside the React front-end to feed live telemetry into the assistant:
 
 ```bash
 uvicorn ai_os.app.main:app --reload
-# serve docs/dashboard.html via any static host (or open it directly) to try the new cards
+npm install --prefix frontend
+npm run dev --prefix frontend
 ```
 
-Both helpers degrade gracefully when `psutil` or `OPENAI_API_KEY` are missing, so you
-can develop locally without secrets.
+Both helpers degrade gracefully when `psutil` or `OPENAI_API_KEY` are missing, so you can develop locally without secrets.
 
 ### Canon Spec Compliance
 - Canon requirements live in `OS DashboardAIAssistantTOC.txt`.

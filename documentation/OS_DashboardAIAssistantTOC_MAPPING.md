@@ -4,7 +4,7 @@ This note links the latest code additions to the canonical requirements in `OS D
 
 ## 1.7 Driver-Aware Orchestrator
 - **System telemetry endpoint** (`ai_os/app/system_monitor.py`) fulfills 1.7.2/1.7.4 by exposing OS stats for the presentation layer and control planes.
-- **React dashboard cards** (`dashboard.js`) surface those stats per 1.7.2 and align with the human-in-the-loop UX requirements.
+- **React dashboard panels** (`frontend/src/pages/Research.tsx` and `/Dashboard.tsx`) surface those stats per 1.7.2 and align with the human-in-the-loop UX requirements.
 
 ## 5.x Driver Architecture
 - `system_monitor.py` implements the OS driver visibility layer (5.2/5.3) with psutil, ready for containerized or bare-metal deployments.
@@ -15,6 +15,11 @@ This note links the latest code additions to the canonical requirements in `OS D
 
 ## 6.x Observability & Data Plane
 - The telemetry payload attaches `spec_refs` for downstream governance/observability tooling as described in 6.6.
+
+## Desktop API + React Bridge (1.2, 2.2, 7.x)
+- `assistant_hub/api/server.py` is the FastAPI boundary that exposes personas, projects/tasks, daemon orchestration, billing, integrations, terminal access, and the research workspace required by Sections 1.2 (component interaction patterns) and 2.2 (control plane services). Every endpoint traces back to canon sections through logs/spec_refs.
+- `frontend/src/App.tsx` renders the modern Research & Simulation workspace while the legacy Tkinter dashboard remains for continuity. Both UIs consume the same FastAPI responses, ensuring presentation-layer parity per 1.1.1/7.3.
+- The shared research state in `assistant_hub/research_workspace.py` satisfies 4.5/7.5 by centralizing intelligence, experiments, and analytics so each persona or UI reads identical data.
 
 ## Spec Registry Guardrails
 - `assistant_core/spec_registry.py` parses `OS DashboardAIAssistantTOC.txt` and offers helpers to validate section identifiers.

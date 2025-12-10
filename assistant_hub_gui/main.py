@@ -1,23 +1,54 @@
-#!/Library/Frameworks/Python.framework/Versions/3.11/bin/python3
-"""GUI entrypoint for OS Dashboard AI Assistant."""
+#!/usr/bin/env python3
+"""Unified launcher for the shared React UI (desktop + browser)."""
+from __future__ import annotations
 
+import argparse
 import sys
-import os
 
-# Add the assistant_hub_gui directory to the path so imports work
-# This allows both "from assistant_hub_gui.assistant_hub..." and "from assistant_hub..." to work
-_assistant_hub_gui_dir = os.path.dirname(os.path.abspath(__file__))
-if _assistant_hub_gui_dir not in sys.path:
-    sys.path.insert(0, _assistant_hub_gui_dir)
+from assistant_hub_gui.webview_app import launch_browser, launch_desktop
 
-# Also add parent directory for scripts that use "from assistant_hub..."
-_parent_dir = os.path.dirname(_assistant_hub_gui_dir)
-if _parent_dir not in sys.path:
-    sys.path.insert(0, _parent_dir)
 
-from assistant_hub_gui.assistant_hub.gui import run_gui
-from assistant_hub_gui.assistant_hub.logging_config import configure_logging
+def _prompt_mode() -> str:
+    if not sys.stdin.isatty():
+        return "browser"
+
+    print("Select UI surface:")
+    print("  1) Desktop app (pywebview shell)")
+    print("  2) Web browser")
+    choice = input("Mode [1/2]: ").strip() or "1"
+    mapping = {"1": "desktop", "desktop": "desktop", "2": "browser", "browser": "browser"}
+    return mapping.get(choice.lower(), "desktop")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Launch the shared React UI")
+    parser.add_argument(
+        "--mode",
+        choices=("desktop", "browser"),
+        default=None,
+        help="Desktop launches the pywebview shell, browser opens the default browser",
+    )
+    parser.add_argument("--host", default="127.0.0.1", help="Host for the FastAPI server")
+    parser.add_argument("--port", type=int, default=8800, help="Port for the FastAPI server")
+    parser.add_argument(
+        "--dist",
+        type=str,
+        default=None,
+        help="Optional path to the built React assets (defaults to frontend/dist)",
+    )
+    args = parser.parse_args()
+
+    mode = args.mode or _prompt_mode()
+    try:
+        if mode == "desktop":
+            launch_desktop(args.host, args.port, args.dist)
+        else:
+            launch_browser(args.host, args.port, args.dist)
+    except RuntimeError as exc:
+        print(f"❌ {exc}")
+        return 1
+    return 0
+
 
 if __name__ == "__main__":
-    configure_logging()
-    run_gui()
+    raise SystemExit(main())

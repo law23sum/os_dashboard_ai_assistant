@@ -150,7 +150,7 @@ def create_desktop_shortcut():
 
         content = f"""[Desktop Entry]
 Name=OS Dashboard AI Assistant
-Exec={Path.cwd() / "run.py"}
+Exec={Path.cwd() / "start_ui.py"}
 Icon={Path.cwd() / "icon.png"}
 Type=Application
 Categories=Utility;Office;
@@ -164,7 +164,7 @@ Terminal=false
     elif system == "darwin":  # macOS
         # Create alias on Desktop
         desktop_path = Path.home() / "Desktop"
-        app_path = Path.cwd() / "run.py"
+        app_path = Path.cwd() / "start_ui.py"
 
         if desktop_path.exists():
             try:
@@ -174,34 +174,19 @@ Terminal=false
                 print("⚠️  Could not create desktop alias")
 
 def create_run_script():
-    """Create a simple run script"""
+    """Create a simple run script that forwards to start_ui.py."""
     run_script = """#!/usr/bin/env python3
-import sys
-import os
-from pathlib import Path
+\"\"\"Backward-compatible shim that routes to start_ui.py\"\"\"
+from start_ui import main as start_main
 
-# Add current directory to Python path
-current_dir = Path(__file__).parent
-if str(current_dir) not in sys.path:
-    sys.path.insert(0, str(current_dir))
-
-# Try to run the GUI application
-try:
-    from assistant_hub_gui.main import main
-    main()
-except ImportError as e:
-    print(f"❌ Import error: {e}")
-    print("Please run the bootstrap script first: python tools/bootstrap.py")
-    sys.exit(1)
-except KeyboardInterrupt:
-    print("\\n👋 Goodbye!")
-    sys.exit(0)
+if __name__ == "__main__":
+    raise SystemExit(start_main())
 """
 
     run_file = Path("run.py")
     run_file.write_text(run_script)
     run_file.chmod(0o755)
-    print("✅ Run script created: run.py")
+    print("✅ Compatibility launcher created: run.py → start_ui.py")
 
 def main():
     """Main setup function"""
@@ -232,8 +217,8 @@ def main():
 
     print("\\n🎉 Setup complete!")
     print("\\n🚀 To start the application:")
-    print("   python run.py")
-    print("   # or double-click run.py")
+    print("   python start_ui.py")
+    print("   # or double-click start_ui.py")
     print("\\n📚 For help, visit: https://github.com/yourusername/os-dashboard-ai-assistant")
 
     return True

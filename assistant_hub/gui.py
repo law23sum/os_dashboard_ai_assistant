@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 import base64
+import copy
 import json
 import os
+import random
 import sqlite3
 import subprocess
+import sys
 import threading
 import uuid
+import webbrowser
 from datetime import datetime
-from typing import Dict, Optional, Any
+from pathlib import Path
+from typing import Dict, Optional, Any, List
 from queue import Queue
 
 import tkinter as tk
@@ -115,6 +120,9 @@ from .export_import import (
     import_tasks_from_json,
 )
 from .daemon import start_daemon_system
+from .project_insights import analyze_project_risks, predict_project_completion
+from .smart_prioritization import get_smart_priority_order
+from .research_workspace import default_workspace_snapshot
 
 try:
     import psutil
@@ -129,6 +137,11 @@ except ImportError:
     CUSTOMTKINTER_AVAILABLE = False
 
 MAX_IMPORTED_FILE_CHARS = int(os.getenv("ASSISTANT_HUB_FILE_CHAR_LIMIT", "60000"))
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DOC_ROOT = REPO_ROOT / "documentation"
+WEB_DOCS_ROOT = REPO_ROOT / "docs"
+
+
 
 
 # Animation helper class
@@ -288,6 +301,17 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.file_preview_text = None
         self.command_var = tk.StringVar()
         self.cwd_var = tk.StringVar(value=os.getcwd())
+        self.project_insights_text = None
+        self.project_priority_tree = None
+        self.project_prediction_var = tk.StringVar(
+            value="Select a project to view completion predictions."
+        )
+        self.project_intel_status_var = tk.StringVar(
+            value="Select a project to see risk analysis."
+        )
+        self.reference_links = self._build_reference_links()
+        self.reference_var = tk.StringVar(value="Open Reference…")
+        self._init_dashboard_state()
 
         # Initialize fonts before building tabs (needed by all tabs)
         scale_map = {"small": 10, "medium": 12, "large": 14}
@@ -397,6 +421,61 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     # ---------- Top bar ----------
 
+    def _init_dashboard_state(self):
+        snapshot = default_workspace_snapshot()
+        sim_config = snapshot["simulation_config"]
+        metrics = snapshot["metrics"]
+        analytics = snapshot["analytics"]
+
+        self.dashboard_status_var = tk.StringVar(
+            value=snapshot.get("status_message", "Configure and run research simulations.")
+        )
+        self.simulation_type_var = tk.StringVar(value=sim_config.get("type", "monte_carlo"))
+        self.model_select_var = tk.StringVar(value=sim_config.get("model", "financial_risk"))
+        self.confidence_level_var = tk.StringVar(value=str(sim_config.get("confidence", "0.95")))
+        self.iterations_var = tk.StringVar(value=str(sim_config.get("iterations", "1000")))
+
+        default_model_name = next(
+            (
+                model["name"]
+                for model in snapshot["models"]
+                if model.get("id") == sim_config.get("model")
+            ),
+            "Financial Risk Model v2.1",
+        )
+        self.selected_model_var = tk.StringVar(value=default_model_name)
+
+        self.active_experiments = copy.deepcopy(snapshot["experiments"])
+        self.model_registry_data = copy.deepcopy(snapshot["models"])
+        self.research_reports_data = copy.deepcopy(snapshot["reports"])
+
+        ci_low, ci_high = metrics.get("confidence_interval", (40.2, 45.1))
+        self.simulation_metric_vars = {
+            "mean": tk.StringVar(value=f"{metrics.get('mean', 42.7):.1f}"),
+            "std": tk.StringVar(value=f"{metrics.get('std', 3.2):.1f}"),
+            "min": tk.StringVar(value=f"{metrics.get('min', 35.1):.1f}"),
+            "max": tk.StringVar(value=f"{metrics.get('max', 48.9):.1f}"),
+            "confidence": tk.StringVar(value=f"[{ci_low:.1f}, {ci_high:.1f}]"),
+        }
+
+        self.simulation_series = list(analytics.get("series", []))
+        self.simulation_bounds = list(analytics.get("bounds", []))
+
+        knowledge = snapshot["knowledge_graph"]
+        self.knowledge_nodes = [
+            (node["x"], node["y"], node["label"].replace(" ", "\n"))
+            for node in knowledge.get("nodes", [])
+        ]
+        self.knowledge_edges = list(knowledge.get("edges", []))
+
+        self.parameters_container = None
+        self.parameter_rows: List[tk.Frame] = []
+        self.experiments_tree = None
+        self.model_registry_tree = None
+        self.reports_tree = None
+        self.analytics_canvas = None
+        self.knowledge_canvas = None
+
     def _configure_style(self):
         if TTKBOOTSTRAP_AVAILABLE:
             # ttkbootstrap handles themes automatically
@@ -439,6 +518,64 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 self.style.configure(
                     style_name, background=colors["bg"], foreground=colors["fg"]
                 )
+
+    def _build_reference_links(self) -> Dict[str, Any]:
+        """Curated list of documentation/web surfaces referenced by the TOC."""
+        links: Dict[str, Any] = {
+            "Canonical Spec · OS DashboardAIAssistantTOC": DOC_ROOT
+            / "OS_DashboardAIAssistantTOC.md",
+            "Mission & Vision Brief": DOC_ROOT / "VISION.md",
+            "Driver & System Architecture": DOC_ROOT / "ARCHITECTURE_IMPLEMENTATION.md",
+            "Cognitive Daemon System": DOC_ROOT / "COGNITIVE_DAEMON_SYSTEM.md",
+            "AI OS Dashboard (HTML preview)": WEB_DOCS_ROOT / "dashboard.html",
+        }
+        resolved: Dict[str, Any] = {}
+        for label, target in links.items():
+            if isinstance(target, Path):
+                if target.exists():
+                    resolved[label] = target
+            else:
+                resolved[label] = target
+        return resolved
+
+    def _on_reference_selected(self, event=None):
+        """Handle dropdown selection for reference/document links."""
+        label = self.reference_var.get()
+        target = self.reference_links.get(label)
+        if not target:
+            return
+        self._open_reference_target(target)
+        self.after(150, lambda: self.reference_var.set("Open Reference…"))
+
+    def _open_reference_target(self, target: Any):
+        """Open local documentation or remote links with sensible defaults."""
+        try:
+            if isinstance(target, Path):
+                path = target
+            else:
+                target_str = str(target)
+                if target_str.startswith("http"):
+                    webbrowser.open(target_str)
+                    return
+                path = Path(target_str)
+            if not path.exists():
+                messagebox.showwarning(
+                    "Reference", f"Unable to locate reference file:\n{path}"
+                )
+                return
+            if path.suffix.lower() in {".html", ".htm"}:
+                webbrowser.open(path.as_uri())
+                return
+            if os.name == "nt":
+                os.startfile(path)  # type: ignore[attr-defined]
+            elif sys.platform == "darwin":
+                subprocess.run(["open", str(path)], check=False)
+            else:
+                subprocess.run(["xdg-open", str(path)], check=False)
+        except Exception as exc:
+            messagebox.showerror(
+                "Reference", f"Failed to open reference '{target}':\n{exc}"
+            )
 
     def _build_topbar(self):
         if TTKBOOTSTRAP_AVAILABLE:
@@ -524,6 +661,33 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             ToolTip(save_btn, text="Save current state and settings")
             ToolTip(refresh_btn, text="Refresh all views with latest data")
 
+        # Global docs/web dropdown sourced from the canonical TOC
+        if self.reference_links:
+            values = ["Open Reference…", *self.reference_links.keys()]
+            if TTKBOOTSTRAP_AVAILABLE:
+                self.reference_combo = ttkb.Combobox(
+                    top,
+                    textvariable=self.reference_var,
+                    values=values,
+                    state="readonly",
+                    width=32,
+                    bootstyle="secondary",
+                )
+            else:
+                self.reference_combo = ttk.Combobox(
+                    top,
+                    textvariable=self.reference_var,
+                    values=values,
+                    state="readonly",
+                    width=32,
+                )
+            self.reference_combo.grid(row=0, column=6, sticky="e", padx=(10, 0))
+            self.reference_combo.bind("<<ComboboxSelected>>", self._on_reference_selected)
+            if TTKBOOTSTRAP_AVAILABLE:
+                ToolTip(
+                    self.reference_combo,
+                    text="Open canonical documentation/web pages from the TOC",
+                )
     def on_persona_change(self, event=None):
         val = self.persona_var.get()
         if val in PERSONAS:
@@ -560,337 +724,373 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     # ---------- Dashboard Tab ----------
 
+
     def _build_dashboard_tab(self):
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.dashboard_frame = ttkb.Frame(self.notebook)
-        else:
-            self.dashboard_frame = ttk.Frame(self.notebook)
+        frame_cls = ttkb.Frame if TTKBOOTSTRAP_AVAILABLE else ttk.Frame
+        label_cls = ttkb.Label if TTKBOOTSTRAP_AVAILABLE else ttk.Label
+        button_cls = ttkb.Button if TTKBOOTSTRAP_AVAILABLE else ttk.Button
+        combo_cls = ttkb.Combobox if TTKBOOTSTRAP_AVAILABLE else ttk.Combobox
+
+        self.dashboard_frame = frame_cls(self.notebook, padding=12)
         self.notebook.add(self.dashboard_frame, text="Dashboard")
-
-        self.dashboard_frame.columnconfigure(0, weight=1)
+        self.dashboard_frame.columnconfigure(0, weight=2)
         self.dashboard_frame.columnconfigure(1, weight=1)
-        self.dashboard_frame.rowconfigure(0, weight=1)
-        self.dashboard_frame.rowconfigure(1, weight=1)
-        self.dashboard_frame.rowconfigure(2, weight=0)
-        self.dashboard_frame.rowconfigure(3, weight=0)
 
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.today_box = ttkb.Labelframe(
-                self.dashboard_frame, text="📋 Today's Focus", bootstyle="primary"
-            )
-            self.upcoming_box = ttkb.Labelframe(
-                self.dashboard_frame, text="📅 Upcoming Deadlines", bootstyle="info"
-            )
-            self.status_box = ttkb.Labelframe(
-                self.dashboard_frame, text="📊 Status Overview", bootstyle="success"
-            )
-            self.load_box = ttkb.Labelframe(
-                self.dashboard_frame, text="👥 Load by Persona", bootstyle="secondary"
-            )
-            self.cyber_box = ttkb.Labelframe(
-                self.dashboard_frame,
-                text="🛡️ Cyber Defense Status",
-                bootstyle="warning",
-            )
-        else:
-            self.today_box = ttk.LabelFrame(self.dashboard_frame, text="Today's Focus")
-            self.upcoming_box = ttk.LabelFrame(
-                self.dashboard_frame, text="Upcoming Deadlines"
-            )
-            self.status_box = ttk.LabelFrame(
-                self.dashboard_frame, text="Status Overview"
-            )
-            self.load_box = ttk.LabelFrame(self.dashboard_frame, text="Load by Persona")
-            self.cyber_box = ttk.LabelFrame(
-                self.dashboard_frame, text="Cyber Defense Status"
-            )
-        self.today_box.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
-        self.today_text = tk.Text(
-            self.today_box, height=10, wrap="word", font=self.text_font
+        hero = frame_cls(self.dashboard_frame)
+        hero.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 12))
+        hero.columnconfigure(0, weight=1)
+        label_cls(
+            hero,
+            text="Research & Simulation Workspace",
+            font=(self.base_font.actual("family"), self.base_font.actual("size") + 6, "bold"),
+        ).grid(row=0, column=0, sticky="w")
+        label_cls(
+            hero,
+            text="Advanced simulation tools, experiment design, and model validation",
+            font=(self.base_font.actual("family"), self.base_font.actual("size") + 1),
+            foreground="#6c757d",
+        ).grid(row=1, column=0, sticky="w")
+        self.dashboard_status_label = label_cls(
+            hero, textvariable=self.dashboard_status_var, foreground="#6c757d"
         )
-        self.today_text.pack(fill="both", expand=True, padx=4, pady=4)
-
-        self.upcoming_box.grid(row=0, column=1, sticky="nsew", padx=8, pady=8)
-        self.upcoming_text = tk.Text(
-            self.upcoming_box, height=10, wrap="word", font=self.text_font
+        self.dashboard_status_label.grid(row=2, column=0, sticky="w")
+        hero_actions = frame_cls(hero)
+        hero_actions.grid(row=0, column=1, rowspan=3, sticky="e")
+        button_cls(hero_actions, text="Design Experiment", command=self.on_design_experiment).grid(
+            row=0, column=0, padx=(0, 8)
         )
-        self.upcoming_text.pack(fill="both", expand=True, padx=4, pady=4)
-
-        self.status_box.grid(row=1, column=0, sticky="nsew", padx=8, pady=8)
-        self.status_text = tk.Text(
-            self.status_box, height=8, wrap="word", font=self.text_font
+        button_cls(hero_actions, text="Run Simulation", command=self.on_run_simulation).grid(
+            row=0, column=1
         )
-        self.status_text.pack(fill="both", expand=True, padx=4, pady=4)
 
-        self.load_box.grid(row=1, column=1, sticky="nsew", padx=8, pady=8)
-        self.load_text = tk.Text(
-            self.load_box, height=8, wrap="word", font=self.text_font
+        sim_controls = ttk.LabelFrame(self.dashboard_frame, text="Simulation Configuration")
+        sim_controls.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 16))
+        for col in range(4):
+            sim_controls.columnconfigure(col, weight=1)
+        combo_cls(
+            sim_controls,
+            textvariable=self.simulation_type_var,
+            values=["monte_carlo", "agent_based", "discrete_event", "system_dynamics"],
+            state="readonly",
+        ).grid(row=0, column=0, padx=8, pady=6, sticky="ew")
+        combo_cls(
+            sim_controls,
+            textvariable=self.model_select_var,
+            values=["financial_risk", "population_dynamics", "network_analysis", "optimization"],
+            state="readonly",
+        ).grid(row=0, column=1, padx=8, pady=6, sticky="ew")
+        ttk.Entry(sim_controls, textvariable=self.iterations_var).grid(
+            row=0, column=2, padx=8, pady=6, sticky="ew"
         )
-        self.load_text.pack(fill="both", expand=True, padx=4, pady=4)
-        self.cyber_box.grid(
-            row=2, column=0, columnspan=2, sticky="nsew", padx=8, pady=(0, 8)
+        combo_cls(
+            sim_controls,
+            textvariable=self.confidence_level_var,
+            values=["0.90", "0.95", "0.99"],
+            state="readonly",
+        ).grid(row=0, column=3, padx=8, pady=6, sticky="ew")
+        label_cls(sim_controls, text="Parameters").grid(
+            row=1, column=0, columnspan=2, sticky="w", padx=8
         )
-        self.cyber_box.columnconfigure(0, weight=1)
-
-        self.cyber_status_var = tk.StringVar(value="Status: offline")
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.cyber_status_label = ttkb.Label(
-                self.cyber_box,
-                textvariable=self.cyber_status_var,
-                font=(
-                    self.base_font.actual("family"),
-                    self.base_font.actual("size") + 1,
-                    "bold",
-                ),
-                bootstyle="info",
-            )
-        else:
-            self.cyber_status_label = ttk.Label(
-                self.cyber_box,
-                textvariable=self.cyber_status_var,
-                font=(
-                    self.base_font.actual("family"),
-                    self.base_font.actual("size") + 1,
-                    "bold",
-                ),
-            )
-        self.cyber_status_label.grid(row=0, column=0, sticky="w", padx=6, pady=(4, 2))
-
-        self.cyber_message_var = tk.StringVar(value="Telemetry not available.")
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.cyber_message_label = ttkb.Label(
-                self.cyber_box,
-                textvariable=self.cyber_message_var,
-                wraplength=800,
-                justify="left",
-                bootstyle="secondary",
-            )
-        else:
-            self.cyber_message_label = ttk.Label(
-                self.cyber_box,
-                textvariable=self.cyber_message_var,
-                wraplength=800,
-                justify="left",
-            )
-        self.cyber_message_label.grid(row=1, column=0, sticky="w", padx=6, pady=2)
-
-        self.cyber_updated_var = tk.StringVar(value="Updated: n/a")
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.cyber_updated_label = ttkb.Label(
-                self.cyber_box,
-                textvariable=self.cyber_updated_var,
-                font=(
-                    self.base_font.actual("family"),
-                    self.base_font.actual("size") - 1,
-                ),
-                bootstyle="secondary",
-            )
-        else:
-            self.cyber_updated_label = ttk.Label(
-                self.cyber_box,
-                textvariable=self.cyber_updated_var,
-                font=(
-                    self.base_font.actual("family"),
-                    self.base_font.actual("size") - 1,
-                ),
-            )
-        self.cyber_updated_label.grid(row=2, column=0, sticky="w", padx=6, pady=(0, 4))
-
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.sys_box = ttkb.Labelframe(
-                self.dashboard_frame,
-                text="💻 System Status (Optional)",
-                bootstyle="secondary",
-            )
-        else:
-            self.sys_box = ttk.LabelFrame(
-                self.dashboard_frame, text="System Status (Optional)"
-            )
-        self.sys_box.grid(
-            row=3, column=0, columnspan=2, sticky="nsew", padx=8, pady=(0, 8)
+        self.parameters_container = frame_cls(sim_controls)
+        self.parameters_container.grid(
+            row=2, column=0, columnspan=3, sticky="ew", padx=8, pady=(0, 8)
         )
-        self.sys_text = tk.Text(
-            self.sys_box, height=4, wrap="word", font=self.text_font
+        self._add_parameter_row("volatility", "0.1", "0.5")
+        self._add_parameter_row("drift_rate", "0.05", "0.15")
+        button_cls(sim_controls, text="+ Add Parameter", command=self._add_parameter_row).grid(
+            row=2, column=3, padx=8, pady=(0, 8), sticky="e"
         )
-        self.sys_text.pack(fill="both", expand=True, padx=4, pady=4)
+
+        experiments_frame = ttk.LabelFrame(self.dashboard_frame, text="Active Experiments")
+        experiments_frame.grid(row=2, column=0, sticky="nsew", padx=(0, 12))
+        experiments_frame.columnconfigure(0, weight=1)
+        experiments_frame.rowconfigure(0, weight=1)
+        columns = ("name", "status", "progress", "eta")
+        self.experiments_tree = ttk.Treeview(
+            experiments_frame, columns=columns, show="headings", height=6
+        )
+        for col in columns:
+            self.experiments_tree.heading(col, text=col.title())
+            self.experiments_tree.column(col, anchor="w" if col in ("name", "status") else "center")
+        self.experiments_tree.grid(row=0, column=0, sticky="nsew")
+        ttk.Scrollbar(experiments_frame, orient="vertical", command=self.experiments_tree.yview).grid(
+            row=0, column=1, sticky="ns"
+        )
+
+        results_frame = ttk.LabelFrame(self.dashboard_frame, text="Simulation Results")
+        results_frame.grid(row=2, column=1, sticky="nsew")
+        metrics = [
+            ("Mean Value", "mean"),
+            ("Std Dev", "std"),
+            ("Min Value", "min"),
+            ("Max Value", "max"),
+        ]
+        for idx, (label, key) in enumerate(metrics):
+            card = frame_cls(results_frame, padding=6)
+            card.grid(row=idx // 2, column=idx % 2, sticky="nsew", padx=6, pady=6)
+            label_cls(card, text=label, foreground="#6c757d").grid(sticky="w")
+            label_cls(
+                card,
+                textvariable=self.simulation_metric_vars[key],
+                font=(self.base_font.actual("family"), self.base_font.actual("size") + 6, "bold"),
+                foreground="#4facfe",
+            ).grid(sticky="w")
+        label_cls(
+            results_frame, text="95% Confidence Interval", foreground="#6c757d"
+        ).grid(row=2, column=0, sticky="w", padx=6, pady=(4, 0))
+        label_cls(
+            results_frame,
+            textvariable=self.simulation_metric_vars["confidence"],
+            font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
+            foreground="#38a3a5",
+        ).grid(row=2, column=1, sticky="w", padx=6, pady=(4, 0))
+
+        registry_frame = ttk.LabelFrame(self.dashboard_frame, text="Model Registry")
+        registry_frame.grid(row=3, column=0, sticky="nsew", padx=(0, 12), pady=(12, 0))
+        registry_frame.columnconfigure(0, weight=1)
+        columns = ("model", "status", "accuracy", "updated")
+        self.model_registry_tree = ttk.Treeview(
+            registry_frame, columns=columns, show="headings", height=6
+        )
+        for col in columns:
+            width = 220 if col == "model" else 110
+            self.model_registry_tree.heading(col, text=col.title())
+            self.model_registry_tree.column(col, width=width, anchor="center")
+        self.model_registry_tree.grid(row=0, column=0, sticky="nsew")
+        ttk.Scrollbar(registry_frame, orient="vertical", command=self.model_registry_tree.yview).grid(
+            row=0, column=1, sticky="ns"
+        )
+        self.model_registry_tree.bind("<<TreeviewSelect>>", self._on_model_selected)
+
+        analytics_frame = ttk.LabelFrame(self.dashboard_frame, text="Simulation Analytics")
+        analytics_frame.grid(row=3, column=1, sticky="nsew", pady=(12, 0))
+        self.analytics_canvas = tk.Canvas(
+            analytics_frame, height=240, background="white", highlightthickness=0
+        )
+        self.analytics_canvas.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
+        self.analytics_canvas.bind("<Configure>", lambda _e: self._update_analytics_chart())
+
+        knowledge_frame = ttk.LabelFrame(self.dashboard_frame, text="Research Knowledge Graph")
+        knowledge_frame.grid(row=4, column=0, columnspan=2, sticky="nsew", pady=(16, 0))
+        self.knowledge_canvas = tk.Canvas(
+            knowledge_frame, height=320, background="#f8f9fa", highlightthickness=0
+        )
+        self.knowledge_canvas.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
+        self.knowledge_canvas.bind("<Configure>", lambda _e: self._render_knowledge_graph())
+
+        reports_frame = ttk.LabelFrame(self.dashboard_frame, text="Research Reports & Publications")
+        reports_frame.grid(row=5, column=0, columnspan=2, sticky="nsew", pady=(16, 0))
+        columns = ("title", "summary", "generated")
+        self.reports_tree = ttk.Treeview(
+            reports_frame, columns=columns, show="headings", height=4
+        )
+        for col in columns:
+            width = 300 if col != "generated" else 140
+            self.reports_tree.heading(col, text=col.title())
+            self.reports_tree.column(col, width=width, anchor="w")
+        self.reports_tree.grid(row=0, column=0, sticky="nsew")
+        ttk.Scrollbar(reports_frame, orient="vertical", command=self.reports_tree.yview).grid(
+            row=0, column=1, sticky="ns"
+        )
+
+    def _add_parameter_row(self, name: str = "", minimum: str = "", maximum: str = ""):
+        if not getattr(self, "parameters_container", None):
+            return
+        frame_cls = ttkb.Frame if TTKBOOTSTRAP_AVAILABLE else ttk.Frame
+        row = frame_cls(self.parameters_container)
+        row.grid(sticky="ew", pady=2)
+        row.columnconfigure(0, weight=1)
+        name_entry = ttk.Entry(row, width=18)
+        name_entry.insert(0, name)
+        name_entry.grid(row=0, column=0, padx=4, sticky="ew")
+        min_entry = ttk.Entry(row, width=10)
+        min_entry.insert(0, minimum)
+        min_entry.grid(row=0, column=1, padx=4)
+        max_entry = ttk.Entry(row, width=10)
+        max_entry.insert(0, maximum)
+        max_entry.grid(row=0, column=2, padx=4)
+        remove_btn = ttk.Button(
+            row, text="✕", width=3, command=lambda r=row: self._remove_parameter_row(r)
+        )
+        remove_btn.grid(row=0, column=3, padx=4)
+        self.parameter_rows.append(row)
+
+    def _remove_parameter_row(self, row: tk.Frame):
+        if row in self.parameter_rows:
+            self.parameter_rows.remove(row)
+        row.destroy()
+
+    def on_design_experiment(self):
+        sim_type = self.simulation_type_var.get()
+        self.dashboard_status_var.set(
+            f"Experiment design prepared for {sim_type.replace('_', ' ').title()}."
+        )
+        messagebox.showinfo(
+            "Experiment Design",
+            f"Designed a parameter sweep for {sim_type.replace('_', ' ').title()}.",
+        )
+
+    def on_run_simulation(self):
+        sim_type = self.simulation_type_var.get()
+        iterations = int(self.iterations_var.get() or 1000)
+        entry = {
+            "name": f"{sim_type.replace('_', ' ').title()} Simulation",
+            "status": "running",
+            "progress": 0,
+            "total": iterations,
+            "eta": "starting...",
+            "description": f"{iterations} iteration run",
+        }
+        self.active_experiments.insert(0, entry)
+        self.dashboard_status_var.set(
+            f"Running {sim_type.replace('_', ' ').title()} simulation with {iterations} iterations."
+        )
+        self._update_experiments_tree()
+        self._update_simulation_metric_cards()
+
+    def _on_model_selected(self, _event=None):
+        selection = self.model_registry_tree.selection()
+        if not selection:
+            return
+        item = self.model_registry_tree.item(selection[0], "values")
+        if item:
+            self.selected_model_var.set(item[0])
+            self.dashboard_status_var.set(f"Selected model: {item[0]} ({item[1]})")
+
+    def _update_experiments_tree(self):
+        if not self.experiments_tree:
+            return
+        self.experiments_tree.delete(*self.experiments_tree.get_children())
+        for exp in self.active_experiments:
+            if exp["total"]:
+                pct = int((exp["progress"] / exp["total"]) * 100)
+            else:
+                pct = 0
+            progress_text = f"{exp['progress']:,}/{exp['total']:,} ({pct}%)"
+            self.experiments_tree.insert(
+                "",
+                "end",
+                values=(exp["name"], exp["status"].title(), progress_text, exp["eta"]),
+            )
+
+    def _update_model_registry(self):
+        if not self.model_registry_tree:
+            return
+        self.model_registry_tree.delete(*self.model_registry_tree.get_children())
+        for model in self.model_registry_data:
+            self.model_registry_tree.insert(
+                "",
+                "end",
+                values=(model["name"], model["status"], model["accuracy"], model["updated"]),
+            )
+
+    def _update_reports(self):
+        if not self.reports_tree:
+            return
+        self.reports_tree.delete(*self.reports_tree.get_children())
+        for report in self.research_reports_data:
+            self.reports_tree.insert(
+                "",
+                "end",
+                values=(report["title"], report["summary"], report["generated"]),
+            )
+
+    def _update_simulation_metric_cards(self):
+        mean = 40 + random.random() * 5
+        std = 2 + random.random() * 2
+        span = std * 2
+        self.simulation_metric_vars["mean"].set(f"{mean:.1f}")
+        self.simulation_metric_vars["std"].set(f"{std:.1f}")
+        self.simulation_metric_vars["min"].set(f"{mean - span:.1f}")
+        self.simulation_metric_vars["max"].set(f"{mean + span:.1f}")
+        self.simulation_metric_vars["confidence"].set(
+            f"[{mean - std:.1f}, {mean + std:.1f}]"
+        )
+
+    def _update_analytics_chart(self):
+        canvas = getattr(self, "analytics_canvas", None)
+        if not canvas:
+            return
+        canvas.delete("all")
+        width = canvas.winfo_width() or 400
+        height = canvas.winfo_height() or 200
+        margin = 20
+        series = self.simulation_series
+        bounds = self.simulation_bounds
+        if len(series) < 2:
+            return
+        max_val = max(series + bounds) or 1
+        points = []
+        for idx, value in enumerate(series):
+            x = margin + (idx / (len(series) - 1)) * (width - 2 * margin)
+            y = height - margin - (value / max_val) * (height - 2 * margin)
+            points.append((x, y))
+        for i in range(len(points) - 1):
+            canvas.create_line(*points[i], *points[i + 1], fill="#4facfe", width=2)
+        for x, y in points:
+            canvas.create_oval(x - 3, y - 3, x + 3, y + 3, fill="#4facfe", outline="")
+        canvas.create_text(
+            margin,
+            margin,
+            anchor="nw",
+            text="Convergence",
+            fill="#4facfe",
+            font=("TkDefaultFont", 10, "bold"),
+        )
+
+    def _render_knowledge_graph(self):
+        canvas = getattr(self, "knowledge_canvas", None)
+        if not canvas:
+            return
+        canvas.delete("all")
+        for start_idx, end_idx in self.knowledge_edges:
+            x1, y1, _ = self.knowledge_nodes[start_idx]
+            x2, y2, _ = self.knowledge_nodes[end_idx]
+            canvas.create_line(x1, y1, x2, y2, fill="#cbd5e0", width=2)
+        for x, y, label in self.knowledge_nodes:
+            canvas.create_oval(
+                x - 50, y - 40, x + 50, y + 40, fill="#667eea", outline="", width=0
+            )
+            canvas.create_text(
+                x,
+                y,
+                text=label,
+                fill="white",
+                font=("TkDefaultFont", 10, "bold"),
+                justify="center",
+            )
 
     def refresh_dashboard(self):
-        state = self.state_obj
-        tasks = state.tasks
-        today_str = datetime.now().strftime("%Y-%m-%d")
-
-        today_tasks = [
-            t for t in tasks if t.due_date == today_str and t.status != "DONE"
-        ]
-        priority_weight = {
-            p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)
-        }
-        incomplete = [t for t in tasks if t.status != "DONE"]
-        incomplete_sorted = sorted(
-            incomplete,
-            key=lambda t: (
-                priority_weight.get(t.priority, 1),
-                t.due_date or "9999-99-99",
-                t.id,
-            ),
-            reverse=True,
+        tasks = self.state_obj.tasks
+        total_tasks = len(tasks)
+        active_tasks = sum(1 for t in tasks if t.status != "DONE")
+        projects = len(self.state_obj.projects)
+        today = datetime.now().strftime("%Y-%m-%d")
+        due_today = sum(1 for t in tasks if t.due_date == today and t.status != "DONE")
+        self.dashboard_status_var.set(
+            f"{total_tasks} tasks tracked · {active_tasks} active · {projects} projects · {due_today} due today"
         )
+        self._update_experiment_progress()
+        self._update_simulation_metric_cards()
+        self._refresh_dashboard_views()
 
-        upcoming = [
-            t
-            for t in tasks
-            if t.due_date and t.due_date > today_str and t.status != "DONE"
-        ]
-        upcoming_sorted = sorted(upcoming, key=lambda t: t.due_date)[:5]
+    def _update_experiment_progress(self):
+        for exp in self.active_experiments:
+            if exp["status"] != "running":
+                continue
+            increment = random.randint(exp["total"] // 40, exp["total"] // 20)
+            exp["progress"] = min(exp["progress"] + increment, exp["total"])
+            if exp["progress"] >= exp["total"]:
+                exp["status"] = "completed"
+                exp["eta"] = "Complete"
+        self._update_experiments_tree()
 
-        status_counts: Dict[str, int] = {s: 0 for s in STATUS_OPTIONS}
-        for t in tasks:
-            status_counts[t.status] = status_counts.get(t.status, 0) + 1
-
-        persona_load: Dict[str, int] = {p: 0 for p in PERSONAS}
-        for t in incomplete:
-            persona_load[t.owner] = persona_load.get(t.owner, 0) + 1
-
-        self.today_text.config(state="normal")
-        self.today_text.delete("1.0", "end")
-        if today_tasks:
-            self.today_text.insert("end", "Tasks due today:\n\n")
-            for t in today_tasks:
-                self.today_text.insert(
-                    "end",
-                    f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner})\n",
-                )
-        elif incomplete_sorted[:3]:
-            self.today_text.insert(
-                "end", "No tasks explicitly due today.\nShowing top 3 priorities:\n\n"
-            )
-            for t in incomplete_sorted[:3]:
-                self.today_text.insert(
-                    "end",
-                    f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner}, Due: {t.due_date or 'None'})\n",
-                )
-        else:
-            self.today_text.insert("end", "No active tasks. System is idle.")
-        self.today_text.config(state="disabled")
-
-        self.upcoming_text.config(state="normal")
-        self.upcoming_text.delete("1.0", "end")
-        if upcoming_sorted:
-            self.upcoming_text.insert("end", "Next deadlines:\n\n")
-            for t in upcoming_sorted:
-                self.upcoming_text.insert(
-                    "end",
-                    f"- #{t.id} [{t.priority}] {t.title} (Due: {t.due_date}, Project: {t.project}, Owner: {t.owner})\n",
-                )
-        else:
-            self.upcoming_text.insert("end", "No upcoming deadlines logged.")
-        self.upcoming_text.config(state="disabled")
-
-        self.status_text.config(state="normal")
-        self.status_text.delete("1.0", "end")
-        total = len(tasks)
-        self.status_text.insert("end", f"Total tasks: {total}\n\n")
-        for s in STATUS_OPTIONS:
-            self.status_text.insert("end", f"{s:12}: {status_counts.get(s, 0)}\n")
-        self.status_text.config(state="disabled")
-
-        self.load_text.config(state="normal")
-        self.load_text.delete("1.0", "end")
-        self.load_text.insert("end", "Incomplete tasks per persona:\n\n")
-        for p in PERSONAS:
-            marker = "◉" if p == state.active_persona else "○"
-            self.load_text.insert("end", f"{marker} {p:8}: {persona_load.get(p, 0)}\n")
-        self.load_text.config(state="disabled")
-
-        # Show external data items if preferences enabled
-        if (
-            self.settings.data_preferences.get("calendar", False)
-            or self.settings.data_preferences.get("mail", False)
-            or self.settings.data_preferences.get("notes", False)
-        ):
-            try:
-                from .db import get_meta
-                import json
-
-                # Get recent external items
-                c = self.conn.cursor()
-                c.execute(
-                    """
-                    SELECT ei.title, ei.kind, es.name, ei.last_seen_at
-                    FROM external_items ei
-                    JOIN external_sources es ON ei.source_id = es.id
-                    ORDER BY ei.last_seen_at DESC
-                    LIMIT 5
-                """
-                )
-                items = c.fetchall()
-                if items:
-                    self.load_text.config(state="normal")
-                    self.load_text.insert("end", "\n--- Recent External Items ---\n")
-                    for item in items:
-                        self.load_text.insert("end", f"• {item[0][:40]} ({item[2]})\n")
-                    self.load_text.config(state="disabled")
-            except Exception:
-                pass
-
-        self.sys_text.config(state="normal")
-        self.sys_text.delete("1.0", "end")
-        if self.settings.show_system_status and psutil is not None:
-            cpu = psutil.cpu_percent(interval=0.1)
-            mem = psutil.virtual_memory()
-            self.sys_text.insert(
-                "end",
-                f"CPU: {cpu:.1f}%   RAM: {mem.percent:.1f}% "
-                f"({mem.used // (1024**2)}MB / {mem.total // (1024**2)}MB)\n",
-            )
-            self.sys_text.insert("end", "(Toggle in Settings if you want this hidden.)")
-        else:
-            self.sys_text.insert("end", "System status disabled. Enable from Settings.")
-        self.sys_text.config(state="disabled")
-
-        # Cyber defense status tile
-        self.security_status = load_security_status(self.conn)
-        status_text = self.security_status.status.upper()
-        status_emoji = {
-            "secure": "✅",
-            "vulnerable": "⚠️",
-            "exploited": "🔴",
-            "offline": "⚫",
-        }
-        emoji = status_emoji.get(self.security_status.status, "⚫")
-        self.cyber_status_var.set(f"{emoji} Status: {status_text}")
-
-        if TTKBOOTSTRAP_AVAILABLE:
-            bootstyle_map = {
-                "secure": "success",
-                "vulnerable": "warning",
-                "exploited": "danger",
-                "offline": "secondary",
-            }
-            bootstyle = bootstyle_map.get(self.security_status.status, "secondary")
-            self.cyber_status_label.configure(bootstyle=bootstyle)
-        else:
-            color_map = {
-                "secure": "#2e7d32",
-                "vulnerable": "#ef6c00",
-                "exploited": "#b71c1c",
-                "offline": "#616161",
-            }
-            self.cyber_status_label.configure(
-                foreground=color_map.get(self.security_status.status, "#202020")
-            )
-
-        message = self.security_status.message.strip() or "Telemetry not available."
-        self.cyber_message_var.set(message)
-        if self.security_status.updated_at:
-            human_ts = self.security_status.updated_at.replace("T", " ")
-        else:
-            human_ts = "n/a"
-        source = self.security_status.source or "mac_guard"
-        self.cyber_updated_var.set(f"Updated: {human_ts} via {source}")
-
-    # ---------- Tasks Tab ----------
-
+    def _refresh_dashboard_views(self):
+        self._update_experiments_tree()
+        self._update_model_registry()
+        self._update_reports()
+        self._update_analytics_chart()
+        self._render_knowledge_graph()
     def _build_tasks_tab(self):
         if TTKBOOTSTRAP_AVAILABLE:
             self.tasks_frame = ttkb.Frame(self.notebook)
@@ -1691,7 +1891,89 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             ToolTip(save_btn, text="Save changes to the current project")
             ToolTip(delete_btn, text="Delete the selected project")
 
+        # Project intelligence panel connects backend insights to the GUI
+        intel_row = row + 2
+        if TTKBOOTSTRAP_AVAILABLE:
+            intel_frame = ttkb.Labelframe(
+                detail, text="🧠 Project Intelligence", bootstyle="secondary"
+            )
+        else:
+            intel_frame = ttk.LabelFrame(detail, text="Project Intelligence")
+        intel_frame.grid(
+            row=intel_row, column=0, columnspan=2, sticky="nsew", pady=(12, 0)
+        )
+        intel_frame.columnconfigure(0, weight=1)
+        intel_frame.rowconfigure(1, weight=1)
+        detail.rowconfigure(intel_row, weight=2)
+
+        status_label = ttk.Label(
+            intel_frame,
+            textvariable=self.project_intel_status_var,
+            wraplength=420,
+            justify="left",
+        )
+        status_label.grid(row=0, column=0, sticky="w", padx=6, pady=(6, 2))
+
+        self.project_insights_text = tk.Text(
+            intel_frame,
+            height=6,
+            wrap="word",
+            font=self.text_font,
+            state=tk.DISABLED,
+        )
+        self.project_insights_text.grid(row=1, column=0, sticky="nsew", padx=6, pady=4)
+
+        prediction_row = ttk.Frame(intel_frame)
+        prediction_row.grid(row=2, column=0, sticky="ew", padx=6, pady=(2, 4))
+        prediction_row.columnconfigure(0, weight=1)
+        ttk.Label(prediction_row, text="📅 Completion Forecast:").grid(
+            row=0, column=0, sticky="w"
+        )
+        ttk.Label(
+            prediction_row,
+            textvariable=self.project_prediction_var,
+            wraplength=380,
+            justify="left",
+        ).grid(row=0, column=1, sticky="w", padx=(4, 0))
+
+        priority_frame = ttk.Frame(intel_frame)
+        priority_frame.grid(row=3, column=0, sticky="nsew", padx=6, pady=(4, 6))
+        priority_frame.columnconfigure(0, weight=1)
+        priority_frame.rowconfigure(0, weight=1)
+
+        columns = ("task", "score", "due")
+        self.project_priority_tree = ttk.Treeview(
+            priority_frame,
+            columns=columns,
+            show="headings",
+            height=4,
+            selectmode="none",
+        )
+        self.project_priority_tree.heading("task", text="Task")
+        self.project_priority_tree.heading("score", text="Score")
+        self.project_priority_tree.heading("due", text="Due")
+        self.project_priority_tree.column("task", width=260)
+        self.project_priority_tree.column("score", width=70, anchor="center")
+        self.project_priority_tree.column("due", width=80, anchor="center")
+        self.project_priority_tree.grid(row=0, column=0, sticky="nsew")
+        priority_scroll = ttk.Scrollbar(
+            priority_frame, orient="vertical", command=self.project_priority_tree.yview
+        )
+        self.project_priority_tree.configure(yscrollcommand=priority_scroll.set)
+        priority_scroll.grid(row=0, column=1, sticky="ns")
+
+        refresh_btn = ttk.Button(
+            intel_frame,
+            text="🔎 Refresh Intelligence",
+            command=self._refresh_selected_project_intel,
+        )
+        refresh_btn.grid(row=4, column=0, sticky="e", padx=6, pady=(0, 6))
+        AnimationHelper.add_hover_effect(refresh_btn)
+        self._clear_project_intelligence()
+
     def refresh_project_list(self):
+        selected = self.project_tree.selection()
+        selected_name = selected[0] if selected else None
         for row in self.project_tree.get_children():
             self.project_tree.delete(row)
 
@@ -1715,6 +1997,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 iid=p.name,
                 values=(p.name, p.priority, p.status, counts.get(p.name, 0)),
             )
+        if selected_name and self.project_tree.exists(selected_name):
+            self.project_tree.selection_set(selected_name)
+            self._refresh_project_intelligence(selected_name)
+        else:
+            self._clear_project_intelligence()
 
     def on_project_select(self, event=None):
         sel = self.project_tree.selection()
@@ -1733,6 +2020,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.proj_desc_text.delete("1.0", "end")
         if proj.description:
             self.proj_desc_text.insert("1.0", proj.description)
+        self._refresh_project_intelligence(name)
 
     def on_new_project(self):
         self.project_tree.selection_remove(*self.project_tree.selection())
@@ -1740,6 +2028,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.proj_priority_combo.set("MEDIUM")
         self.proj_status_combo.set("active")
         self.proj_desc_text.delete("1.0", "end")
+        self._clear_project_intelligence()
 
     def _save_project_with_feedback(self):
         """Save project with visual feedback"""
@@ -1796,6 +2085,108 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.state_obj.projects = [p for p in self.state_obj.projects if p.name != name]
         self.refresh_project_list()
         self.on_new_project()
+
+    def _refresh_selected_project_intel(self):
+        sel = self.project_tree.selection()
+        project_name = sel[0] if sel else self.proj_name_entry.get().strip()
+        self._refresh_project_intelligence(project_name)
+
+    def _clear_project_intelligence(self):
+        if self.project_insights_text:
+            self.project_insights_text.config(state=tk.NORMAL)
+            self.project_insights_text.delete("1.0", "end")
+            self.project_insights_text.insert(
+                "1.0", "Select a project to analyze risk, forecasts, and priorities."
+            )
+            self.project_insights_text.config(state=tk.DISABLED)
+        self.project_intel_status_var.set("Select a project to see risk analysis.")
+        self.project_prediction_var.set(
+            "Select a project to view completion predictions."
+        )
+        if self.project_priority_tree:
+            for row in self.project_priority_tree.get_children():
+                self.project_priority_tree.delete(row)
+
+    def _refresh_project_intelligence(self, project_name: Optional[str]):
+        if not project_name:
+            self._clear_project_intelligence()
+            return
+        if not self.project_insights_text or not self.project_priority_tree:
+            return
+        try:
+            insights = analyze_project_risks(self.state_obj, project_name)
+        except Exception as exc:
+            self.project_intel_status_var.set(f"Risk analysis failed: {exc}")
+            self._clear_project_intelligence()
+            return
+
+        summary_lines = [
+            f"Risk Score: {insights.get('risk_score', 0)}/100",
+            f"Severity: {insights.get('severity', 'unknown').title()}",
+        ]
+        risks = insights.get("risks") or []
+        if risks:
+            summary_lines.append("\nKey Risks:")
+            for item in risks:
+                summary_lines.append(
+                    f"- {item.get('message','Unknown')} (Severity: {item.get('severity','n/a')})"
+                )
+        recommendations = insights.get("recommendations", "").strip()
+        if recommendations:
+            summary_lines.append("\nRecommendations:")
+            summary_lines.append(recommendations)
+
+        self.project_intel_status_var.set(
+            f"Live intelligence for {project_name} · {insights.get('severity','low').title()} risk"
+        )
+        self.project_insights_text.config(state=tk.NORMAL)
+        self.project_insights_text.delete("1.0", "end")
+        self.project_insights_text.insert("1.0", "\n".join(summary_lines))
+        self.project_insights_text.config(state=tk.DISABLED)
+
+        try:
+            prediction = predict_project_completion(self.state_obj, project_name)
+        except Exception as exc:
+            self.project_prediction_var.set(f"Prediction unavailable: {exc}")
+        else:
+            predicted_date = prediction.get("predicted_date")
+            if predicted_date:
+                confidence = prediction.get("confidence", "low").title()
+                reasoning = prediction.get("reasoning", "")
+                self.project_prediction_var.set(
+                    f"{predicted_date} ({confidence} confidence) {reasoning}"
+                )
+            else:
+                self.project_prediction_var.set(prediction.get("reasoning", "No data"))
+
+        for row in self.project_priority_tree.get_children():
+            self.project_priority_tree.delete(row)
+        try:
+            ranked = [
+                item
+                for item in get_smart_priority_order(self.state_obj)
+                if item["task"].project == project_name and item["task"].status != "DONE"
+            ][:5]
+        except Exception as exc:
+            self.project_priority_tree.insert(
+                "",
+                "end",
+                values=(f"Unable to load priorities: {exc}", "-", "-"),
+            )
+            return
+        if not ranked:
+            self.project_priority_tree.insert(
+                "", "end", values=("No active tasks for this project.", "-", "-")
+            )
+            return
+        for entry in ranked:
+            task = entry["task"]
+            score = entry.get("priority_score", 0)
+            due = task.due_date or "—"
+            label = f"#{task.id} {task.title}"
+            self.project_priority_tree.insert(
+                "", "end", values=(label, score, due)
+            )
 
     # ---------- AI Chat + Terminal Tab ----------
 
@@ -2085,7 +2476,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         )
 
         # Placeholder hint
-        placeholder_text = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder_text = (
+            "Type a message for the AI. Prefix shell commands with '$'. "
+            "Shift+Enter adds a newline."
+        )
+        self.chat_placeholder = placeholder_text
         self.chat_input.insert("1.0", placeholder_text)
         self.chat_input.config(foreground="gray")
         self.chat_input.bind("<FocusIn>", self.on_input_focus_in)
@@ -2150,7 +2545,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             ToolTip(import_btn, text="Import file content into input")
             ToolTip(
                 send_btn,
-                text="Send message (Ctrl+Enter) or run command (Enter for single-line, prefix with $)",
+                text="Send message (Ctrl+Enter). Prefix with '$' to run shell commands. Shift+Enter inserts a newline.",
             )
             ToolTip(clear_btn, text="Clear all chat history")
 
@@ -2414,7 +2809,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         # Clear placeholder if present
         current = self.chat_input.get("1.0", "end").strip()
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder = getattr(
+            self,
+            "chat_placeholder",
+            "Type a message for the AI. Prefix shell commands with '$'.",
+        )
         if current == placeholder:
             self.chat_input.delete("1.0", "end")
             self.chat_input.config(foreground="black")
@@ -2709,7 +3108,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         text = self.chat_input.get("1.0", "end").strip()
 
         # Ignore placeholder text
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder = getattr(
+            self,
+            "chat_placeholder",
+            "Type a message for the AI. Prefix shell commands with '$'.",
+        )
         if not text or text == placeholder:
             messagebox.showinfo("Chat", "Type a message first.")
             return
@@ -2957,7 +3360,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def on_input_focus_in(self, event=None):
         """Clear placeholder text when input gains focus."""
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder = getattr(
+            self,
+            "chat_placeholder",
+            "Type a message for the AI. Prefix shell commands with '$'.",
+        )
         current_text = self.chat_input.get("1.0", "end").strip()
         if current_text == placeholder:
             self.chat_input.delete("1.0", "end")
@@ -2966,29 +3373,38 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def on_input_focus_out(self, event=None):
         """Restore placeholder text if input is empty."""
         current_text = self.chat_input.get("1.0", "end").strip()
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder = getattr(
+            self,
+            "chat_placeholder",
+            "Type a message for the AI. Prefix shell commands with '$'.",
+        )
         if not current_text:
             self.chat_input.insert("1.0", placeholder)
             self.chat_input.config(foreground="gray")
 
-    def on_handle_combined_input(self, chat_mode=False):
+    def on_handle_combined_input(self, chat_mode=True):
         """Handle combined input field - can be either chat message or terminal command."""
         if not hasattr(self, "chat_input"):
             return
 
         text = self.chat_input.get("1.0", "end").strip()
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder = getattr(
+            self,
+            "chat_placeholder",
+            "Type a message for the AI. Prefix shell commands with '$'.",
+        )
 
         # Ignore placeholder text
         if not text or text == placeholder:
             return
 
-        # Check if it's a command (starts with $ or chat_mode is False and it's a single line)
-        is_command = text.startswith("$") or (not chat_mode and "\n" not in text)
+        # Check if it's a command (starts with $ or explicitly forced)
+        starts_with_dollar = text.startswith("$")
+        is_command = starts_with_dollar or not chat_mode
 
         if is_command:
             # Remove $ prefix if present
-            command = text.lstrip("$").strip()
+            command = text[1:].strip() if starts_with_dollar else text.strip()
             if command:
                 # Update command_var for backward compatibility
                 self.command_var.set(command)
@@ -3008,29 +3424,25 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             return None
 
         text = self.chat_input.get("1.0", "end").strip()
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder = getattr(
+            self,
+            "chat_placeholder",
+            "Type a message for the AI. Prefix shell commands with '$'.",
+        )
 
         # Ignore placeholder text
         if not text or text == placeholder:
             return "break"  # Prevent default Enter behavior
 
-        # If Ctrl is pressed, always allow newline (user wants multi-line)
-        if event.state & 0x4:  # Ctrl pressed
-            return None  # Allow default Enter behavior (newline)
+        # Shift+Enter inserts newline for multi-line prompts
+        if event.state & 0x1:  # Shift modifier
+            return None
 
-        # Check if it's a single-line command
-        # If it starts with $, it's definitely a command
-        # If it's a single line (no newlines), treat as command
-        has_newlines = "\n" in text
-        starts_with_dollar = text.startswith("$")
-
-        if starts_with_dollar or (not has_newlines and len(text) > 0):
-            # Treat as command - execute it
+        if text.startswith("$"):
             self.on_handle_combined_input(chat_mode=False)
-            return "break"  # Prevent default Enter behavior
-
-        # Otherwise, allow Enter to create a newline (default behavior for multi-line messages)
-        return None
+        else:
+            self.on_handle_combined_input(chat_mode=True)
+        return "break"
 
     # ---------- Integrations Tab ----------
 

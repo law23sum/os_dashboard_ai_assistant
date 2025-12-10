@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
+import hashlib
 import os
 import sqlite3
 import json
+import uuid
 from dataclasses import dataclass, field, asdict
-import os
-from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
@@ -215,7 +215,7 @@ class DocumentOperation:
 
 
 def init_db() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(DB_FILE, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
 
@@ -366,6 +366,30 @@ def init_db() -> sqlite3.Connection:
     columns = [row[1] for row in c.fetchall()]
     if "description" not in columns:
         c.execute("ALTER TABLE note_links ADD COLUMN description TEXT DEFAULT ''")
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS project_events (
+            id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            event_type TEXT NOT NULL,
+            entity_type TEXT,
+            entity_id TEXT,
+            payload TEXT,
+            created_at TEXT NOT NULL,
+            hash_prev TEXT,
+            hash_curr TEXT,
+            FOREIGN KEY(project_id) REFERENCES projects(name)
+        )
+    """
+    )
+
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_project_events_project_time
+        ON project_events(project_id, created_at DESC)
+        """
+    )
 
     c.execute(
         """
@@ -1368,6 +1392,109 @@ def db_delete_note_link(conn: sqlite3.Connection, link_id: int):
     c = conn.cursor()
     c.execute("DELETE FROM note_links WHERE id = ?", (link_id,))
     conn.commit()
+
+
+# ---------------------------------------------------------------------------
+# Project Ledger helpers (Spec 3.7 / 6.3 / 8.7)
+# ---------------------------------------------------------------------------
+def db_record_project_event(
+    conn: sqlite3.Connection,
+    project_id: str,
+    event_type: str,
+    entity_type: Optional[str] = None,
+    entity_id: Optional[str] = None,
+    payload: Optional[Dict[str, Any]] = None,
+) -> str:
+    """Append a hash-chained event to the project ledger."""
+    project_ref = project_id or "General"
+    event_id = str(uuid.uuid4())
+    created_at = datetime.now().isoformat(timespec="seconds")
+    payload_json = json.dumps(payload or {}, ensure_ascii=False)
+
+    c = conn.cursor()
+    c.execute(
+        """
+        SELECT hash_curr FROM project_events
+        WHERE project_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        (project_ref,),
+    )
+    row = c.fetchone()
+    hash_prev = row["hash_curr"] if row else None
+
+    hash_source = f"{event_id}{project_ref}{event_type}{created_at}"
+    if entity_type:
+        hash_source += entity_type
+    if entity_id:
+        hash_source += entity_id
+    if hash_prev:
+        hash_source += hash_prev
+    hash_curr = hashlib.sha256(hash_source.encode("utf-8")).hexdigest()
+
+    c.execute(
+        """
+        INSERT INTO project_events (
+            id, project_id, event_type, entity_type, entity_id,
+            payload, created_at, hash_prev, hash_curr
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            event_id,
+            project_ref,
+            event_type,
+            entity_type,
+            entity_id,
+            payload_json,
+            created_at,
+            hash_prev,
+            hash_curr,
+        ),
+    )
+    conn.commit()
+    return event_id
+
+
+def db_list_project_events(
+    conn: sqlite3.Connection,
+    project_id: Optional[str] = None,
+    limit: int = 50,
+) -> List[Dict[str, Any]]:
+    """Return the newest project ledger events."""
+    c = conn.cursor()
+    params: List[Any] = []
+    query = "SELECT * FROM project_events"
+    if project_id:
+        query += " WHERE project_id = ?"
+        params.append(project_id)
+    query += " ORDER BY datetime(created_at) DESC, rowid DESC LIMIT ?"
+    params.append(limit)
+    c.execute(query, params)
+    rows = c.fetchall()
+    events: List[Dict[str, Any]] = []
+    for row in rows:
+        payload: Dict[str, Any] = {}
+        if row["payload"]:
+            try:
+                payload = json.loads(row["payload"])
+            except json.JSONDecodeError:
+                payload = {"raw": row["payload"]}
+        events.append(
+            {
+                "id": row["id"],
+                "project_id": row["project_id"],
+                "event_type": row["event_type"],
+                "entity_type": row["entity_type"],
+                "entity_id": row["entity_id"],
+                "payload": payload,
+                "created_at": row["created_at"],
+                "hash_prev": row["hash_prev"],
+                "hash_curr": row["hash_curr"],
+            }
+        )
+    return events
 
 
 # ---------------- Document sample helpers -----------------

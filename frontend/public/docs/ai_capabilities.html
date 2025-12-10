@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Capability Control Center</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #0b1120;
+            --bg-alt: #111a2e;
+            --panel: #141f33;
+            --panel-alt: #182540;
+            --accent: #5d8bff;
+            --accent-alt: #9b7bff;
+            --muted: #9ca9c9;
+            --text: #f5f7ff;
+            --grid-gap: clamp(1rem, 1.5vw, 1.5rem);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at top, rgba(93, 139, 255, 0.18), transparent 55%), var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: clamp(1rem, 2vw, 2.5rem);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .app-shell {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 420px;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        header {
+            background: linear-gradient(135deg, rgba(93, 139, 255, 0.25), rgba(155, 123, 255, 0.15));
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: clamp(1.25rem, 2vw, 2rem);
+            box-shadow: 0 30px 60px rgba(5, 8, 20, 0.65);
+        }
+
+        header h1 {
+            font-size: clamp(1.9rem, 4vw, 2.8rem);
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--muted);
+            max-width: 60ch;
+            line-height: 1.5;
+        }
+
+        .meta-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-chip {
+            padding: 0.65rem 1rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(10, 18, 40, 0.35);
+            font-size: 0.9rem;
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+        }
+
+        .controls {
+            background: var(--panel);
+            border-radius: 18px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .filter-btn {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(20, 31, 51, 0.7);
+            color: var(--text);
+            padding: 0.45rem 0.95rem;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .filter-btn.active {
+            border-color: transparent;
+            background: linear-gradient(120deg, var(--accent), var(--accent-alt));
+            box-shadow: 0 10px 25px rgba(93, 139, 255, 0.25);
+        }
+
+        .search-bar {
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.85rem 1rem 0.85rem 2.8rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 24, 44, 0.9);
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .search-bar span {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+        }
+
+        main {
+            background: var(--panel);
+            border-radius: 24px;
+            padding: clamp(1rem, 1.5vw, 1.5rem);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .capability-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: var(--grid-gap);
+        }
+
+        .capability-card {
+            background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(10, 18, 40, 0.35));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            cursor: pointer;
+            transition: transform 0.25s ease, border-color 0.25s ease;
+            position: relative;
+        }
+
+        .capability-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(93, 139, 255, 0.5);
+            box-shadow: 0 20px 35px rgba(3, 8, 23, 0.55);
+        }
+
+        .capability-card h3 {
+            font-size: 1.1rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .capability-card p {
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.4;
+        }
+
+        .focus-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            font-size: 0.88rem;
+            color: var(--muted);
+        }
+
+        .focus-list li {
+            display: flex;
+            gap: 0.4rem;
+            align-items: flex-start;
+        }
+
+        .focus-list li span {
+            color: var(--accent);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            background: rgba(93, 139, 255, 0.12);
+            color: var(--accent);
+        }
+
+        aside {
+            position: sticky;
+            top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .detail-panel {
+            background: var(--panel);
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 1.4rem;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .detail-panel h2 {
+            font-size: 1.3rem;
+        }
+
+        .detail-panel p {
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .detail-panel .insight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.8rem;
+        }
+
+        .stat-card {
+            background: var(--panel-alt);
+            border-radius: 14px;
+            padding: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            margin-top: 0.3rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .feature-item {
+            padding: 0.75rem 0.85rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .feature-item strong {
+            display: block;
+            margin-bottom: 0.15rem;
+        }
+
+        .feature-item small {
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .action-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 0.55rem 1rem;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(120deg, var(--accent), var(--accent-alt));
+            box-shadow: 0 15px 30px rgba(93, 139, 255, 0.25);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            color: var(--muted);
+            font-style: italic;
+            text-align: center;
+        }
+
+        @media (max-width: 1200px) {
+            .app-shell {
+                grid-template-columns: 1fr;
+            }
+
+            aside {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .capability-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <p class="status-pill">Unified AI Control Surface</p>
+            <h1>AI Capability Orchestration Console</h1>
+            <p>Explore, monitor, and activate each intelligence layer that powers the OS Dashboard platform. Every capability is instrumented with live health, feature coverage, and ready-to-run actions.</p>
+        </div>
+        <div class="meta-row">
+            <div class="meta-chip">🔁 Continuous orchestration</div>
+            <div class="meta-chip">🧠 10 cognitive domains</div>
+            <div class="meta-chip">⚡ Live sandbox-ready actions</div>
+        </div>
+    </header>
+
+    <div class="controls">
+        <div class="filter-group" id="filter-group">
+            <button class="filter-btn active" data-filter="all">All Domains</button>
+            <button class="filter-btn" data-filter="intelligence">Intelligence</button>
+            <button class="filter-btn" data-filter="automation">Automation</button>
+            <button class="filter-btn" data-filter="security">Security</button>
+            <button class="filter-btn" data-filter="infrastructure">Infrastructure</button>
+            <button class="filter-btn" data-filter="collaboration">Collaboration</button>
+        </div>
+        <div class="search-bar">
+            <span>🔍</span>
+            <input id="search-input" type="search" placeholder="Search capabilities, e.g. 'forecasting', 'routing', 'AutoML'">
+        </div>
+    </div>
+
+    <div class="app-shell">
+        <main>
+            <section id="capability-grid" class="capability-grid" aria-live="polite"></section>
+        </main>
+        <aside>
+            <section class="detail-panel" id="detail-panel" aria-live="polite">
+                <p class="empty-state">Select a capability card to inspect metrics, focus areas, and launch actions.</p>
+            </section>
+            <section class="detail-panel">
+                <h3>Realtime Diagnostics</h3>
+                <div class="insight-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Pipelines Online</div>
+                        <div class="stat-value" id="diag-pipelines">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Models Healthy</div>
+                        <div class="stat-value" id="diag-models">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Alerts</div>
+                        <div class="stat-value" id="diag-alerts">0</div>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <script>
+        const capabilities = [
+            {
+                id: "predictive-analytics",
+                icon: "📈",
+                title: "AI-Powered Predictive Analytics & Forecasting",
+                summary: "Forecast productivity, surface anomalies, and auto-tune models in production.",
+                focusAreas: [
+                    "Machine learning models for productivity forecasting",
+                    "Behavioral analysis and anomaly detection",
+                    "Real-time prediction generation with confidence scoring",
+                    "Automated model retraining and performance optimization"
+                ],
+                tags: ["intelligence"],
+                metrics: [
+                    { label: "Confidence", value: "93%" },
+                    { label: "Retrain cadence", value: "Daily" },
+                    { label: "Drift alerts", value: "2 active" }
+                ],
+                actions: [
+                    { label: "Generate Forecast", type: "primary" },
+                    { label: "View Anomaly Map" },
+                    { label: "Schedule Auto-Retrain" }
+                ]
+            },
+            {
+                id: "conversation-ai",
+                icon: "💬",
+                title: "Advanced NLP & Conversation AI",
+                summary: "Multi-modal copilots with emotion awareness and adaptive personalities.",
+                focusAreas: [
+                    "Multi-modal conversation understanding with emotion recognition",
+                    "Context-aware responses and personality adaptation",
+                    "Intent classification and sentiment analysis",
+                    "Proactive suggestions and conversation patterns analysis"
+                ],
+                tags: ["intelligence", "collaboration"],
+                metrics: [
+                    { label: "Intent precision", value: "97%" },
+                    { label: "Latency", value: "280 ms" },
+                    { label: "Sentiment drift", value: "Stable" }
+                ],
+                actions: [
+                    { label: "Launch Dialogue Sandbox", type: "primary" },
+                    { label: "Tune Persona" },
+                    { label: "Inspect Intents" }
+                ]
+            },
+            {
+                id: "automation-orchestration",
+                icon: "🪄",
+                title: "Intelligent Automation & Workflow Orchestration",
+                summary: "Decision-aware workflow fabric with event triggers and federated routing.",
+                focusAreas: [
+                    "AI-powered workflow automation with smart decision making",
+                    "Event-driven triggers and dependency management",
+                    "Self-optimization and learning from execution patterns",
+                    "Federated execution and intelligent routing"
+                ],
+                tags: ["automation", "infrastructure"],
+                metrics: [
+                    { label: "Active flows", value: "128" },
+                    { label: "Avg. SLA", value: "1m 14s" },
+                    { label: "Routing efficiency", value: "92%" }
+                ],
+                actions: [
+                    { label: "Create Flow Blueprint", type: "primary" },
+                    { label: "Audit Dependencies" },
+                    { label: "Optimize Routing" }
+                ]
+            },
+            {
+                id: "computer-vision",
+                icon: "🖼️",
+                title: "Computer Vision & Multimodal AI",
+                summary: "Document intelligence, VQA, and multimodal moderation pipelines.",
+                focusAreas: [
+                    "Image analysis, document processing, and visual question answering",
+                    "Object detection, OCR, and scene understanding",
+                    "Content moderation and similarity search",
+                    "Batch processing with caching systems"
+                ],
+                tags: ["intelligence"],
+                metrics: [
+                    { label: "OCR accuracy", value: "99.1%" },
+                    { label: "Throughput", value: "450 docs/min" },
+                    { label: "Cache hit rate", value: "87%" }
+                ],
+                actions: [
+                    { label: "Open Vision Studio", type: "primary" },
+                    { label: "Review Moderation" },
+                    { label: "Tune Similarity" }
+                ]
+            },
+            {
+                id: "security-threat",
+                icon: "🛡️",
+                title: "Advanced Security & AI Threat Detection",
+                summary: "Behavioral threat graph with real-time countermeasures.",
+                focusAreas: [
+                    "ML-powered threat detection and behavioral analysis",
+                    "Real-time monitoring and anomaly detection",
+                    "Automated incident response and federated learning for security",
+                    "Comprehensive threat classification and response actions"
+                ],
+                tags: ["security"],
+                metrics: [
+                    { label: "Threats blocked", value: "47 / 24h" },
+                    { label: "MTTR", value: "3m 22s" },
+                    { label: "Federated peers", value: "14 nodes" }
+                ],
+                actions: [
+                    { label: "Launch Threat Command", type: "primary" },
+                    { label: "Review Detections" },
+                    { label: "Harden Policies" }
+                ]
+            },
+            {
+                id: "edge-computing",
+                icon: "🌐",
+                title: "Edge Computing & Distributed AI",
+                summary: "Federated learning mesh with intelligent node orchestration.",
+                focusAreas: [
+                    "Distributed AI model deployment and federated learning",
+                    "Edge orchestration with node management and task scheduling",
+                    "Model synchronization and network optimization",
+                    "Fault tolerance and auto-scaling capabilities"
+                ],
+                tags: ["infrastructure"],
+                metrics: [
+                    { label: "Edge clusters", value: "32" },
+                    { label: "Sync latency", value: "420 ms" },
+                    { label: "Auto-heal events", value: "0 today" }
+                ],
+                actions: [
+                    { label: "Deploy to Edge Mesh", type: "primary" },
+                    { label: "Inspect Nodes" },
+                    { label: "Optimize Network" }
+                ]
+            },
+            {
+                id: "personalization",
+                icon: "🎯",
+                title: "Personalization & Recommendation Engines",
+                summary: "Hybrid recommender stack with adaptive delivery and deep analytics.",
+                focusAreas: [
+                    "ML-powered recommendations with user profiling",
+                    "Multiple recommendation types (content-based, collaborative, hybrid)",
+                    "Real-time personalization and adaptive content delivery",
+                    "Advanced analytics and A/B testing support"
+                ],
+                tags: ["intelligence", "automation"],
+                metrics: [
+                    { label: "CTR lift", value: "+34%" },
+                    { label: "Segments live", value: "58" },
+                    { label: "A/B tests", value: "6 running" }
+                ],
+                actions: [
+                    { label: "Launch Experiment", type: "primary" },
+                    { label: "Tune Cohorts" },
+                    { label: "Review Insights" }
+                ]
+            },
+            {
+                id: "collaboration",
+                icon: "🤝",
+                title: "Real-Time Collaboration & Team Intelligence",
+                summary: "Presence-aware teamwork canvas with proactive coordination.",
+                focusAreas: [
+                    "Real-time communication with WebSocket support",
+                    "Team analytics and intelligent coordination",
+                    "Collaborative document editing and presence management",
+                    "Advanced team insights and productivity analysis"
+                ],
+                tags: ["collaboration"],
+                metrics: [
+                    { label: "Active rooms", value: "24" },
+                    { label: "Latency", value: "140 ms" },
+                    { label: "Insights queued", value: "11" }
+                ],
+                actions: [
+                    { label: "Open Collaboration Hub", type: "primary" },
+                    { label: "Review Presence" },
+                    { label: "Analyze Patterns" }
+                ]
+            },
+            {
+                id: "mlops",
+                icon: "⚙️",
+                title: "Advanced Data Science & MLOps",
+                summary: "Automated pipelines, model registry, and continuous monitoring.",
+                focusAreas: [
+                    "Comprehensive MLOps platform with automated pipelines",
+                    "Model management, versioning, and deployment",
+                    "AutoML capabilities and hyperparameter optimization",
+                    "Data drift detection and model monitoring"
+                ],
+                tags: ["automation", "infrastructure"],
+                metrics: [
+                    { label: "Pipelines", value: "42" },
+                    { label: "Models tracked", value: "310" },
+                    { label: "Drift alerts", value: "1" }
+                ],
+                actions: [
+                    { label: "Open Pipeline Studio", type: "primary" },
+                    { label: "Compare Models" },
+                    { label: "Tune Hyperparams" }
+                ]
+            },
+            {
+                id: "self-healing",
+                icon: "🩺",
+                title: "Intelligent Monitoring & Self-Healing",
+                summary: "Predictive maintenance with autonomous remediation playbooks.",
+                focusAreas: [
+                    "AI-powered anomaly detection and predictive maintenance",
+                    "Automated remediation and self-healing capabilities",
+                    "Comprehensive system health monitoring",
+                    "Adaptive thresholds and intelligent alerting"
+                ],
+                tags: ["security", "infrastructure"],
+                metrics: [
+                    { label: "Health score", value: "98/100" },
+                    { label: "Auto-fixes", value: "12 today" },
+                    { label: "Open incidents", value: "0" }
+                ],
+                actions: [
+                    { label: "Launch Health Console", type: "primary" },
+                    { label: "Review Playbooks" },
+                    { label: "Adjust Thresholds" }
+                ]
+            }
+        ];
+
+        const capabilityGrid = document.getElementById("capability-grid");
+        const detailPanel = document.getElementById("detail-panel");
+        const filters = document.querySelectorAll(".filter-btn");
+        const searchInput = document.getElementById("search-input");
+        const diagPipelines = document.getElementById("diag-pipelines");
+        const diagModels = document.getElementById("diag-models");
+        const diagAlerts = document.getElementById("diag-alerts");
+
+        let currentFilter = "all";
+        let currentSearch = "";
+
+        const renderDiagnostics = () => {
+            const visibleCaps = getVisibleCapabilities();
+            const pipelineCount = visibleCaps.reduce((acc, cap) => acc + (parseInt(cap.metrics[0].value) || 1), 0);
+            const modelCount = visibleCaps.reduce((acc, cap) => acc + (parseInt(cap.metrics[1].value) || 1), 0);
+            diagPipelines.textContent = pipelineCount;
+            diagModels.textContent = modelCount;
+            diagAlerts.textContent = visibleCaps.filter(cap => cap.metrics.some(m => (m.value || "").toLowerCase().includes("alert"))).length;
+        };
+
+        const getVisibleCapabilities = () => {
+            return capabilities.filter(cap => {
+                const matchesFilter = currentFilter === "all" || cap.tags.includes(currentFilter);
+                const matchesSearch = cap.title.toLowerCase().includes(currentSearch) ||
+                    cap.summary.toLowerCase().includes(currentSearch) ||
+                    cap.focusAreas.some(item => item.toLowerCase().includes(currentSearch));
+                return matchesFilter && matchesSearch;
+            });
+        };
+
+        const renderCards = () => {
+            const filtered = getVisibleCapabilities();
+            if (!filtered.length) {
+                capabilityGrid.innerHTML = '<p class="empty-state">No capabilities match your filters.</p>';
+                renderDiagnostics();
+                return;
+            }
+            capabilityGrid.innerHTML = filtered.map(cap => `
+                <article class="capability-card" data-id="${cap.id}" tabindex="0">
+                    <div class="status-pill">${cap.icon} Ready</div>
+                    <h3>${cap.title}</h3>
+                    <p>${cap.summary}</p>
+                    <ul class="focus-list">
+                        ${cap.focusAreas.map(item => `<li><span>•</span>${item}</li>`).join("")}
+                    </ul>
+                </article>
+            `).join("");
+            attachCardEvents();
+            renderDiagnostics();
+        };
+
+        const attachCardEvents = () => {
+            capabilityGrid.querySelectorAll(".capability-card").forEach(card => {
+                const id = card.dataset.id;
+                const capability = capabilities.find(cap => cap.id === id);
+                const select = () => openDetail(capability);
+                card.addEventListener("click", select);
+                card.addEventListener("keypress", (evt) => {
+                    if (evt.key === "Enter") select();
+                });
+            });
+        };
+
+        const openDetail = (capability) => {
+            detailPanel.innerHTML = `
+                <div class="status-pill">${capability.icon} ${capability.title}</div>
+                <h2>${capability.summary}</h2>
+                <ul class="feature-list">
+                    ${capability.focusAreas.map(feature => `
+                        <li class="feature-item">
+                            <strong>${feature.split(" ")[0]} Focus</strong>
+                            <small>${feature}</small>
+                        </li>
+                    `).join("")}
+                </ul>
+                <div class="insight-grid">
+                    ${capability.metrics.map(metric => `
+                        <div class="stat-card">
+                            <div class="stat-label">${metric.label}</div>
+                            <div class="stat-value">${metric.value}</div>
+                        </div>
+                    `).join("")}
+                </div>
+                <div class="actions-row">
+                    ${capability.actions.map(action => `
+                        <button class="action-btn ${action.type === "primary" ? "primary" : ""}">${action.label}</button>
+                    `).join("")}
+                </div>
+            `;
+        };
+
+        filters.forEach(button => {
+            button.addEventListener("click", () => {
+                filters.forEach(btn => btn.classList.remove("active"));
+                button.classList.add("active");
+                currentFilter = button.dataset.filter;
+                renderCards();
+            });
+        });
+
+        searchInput.addEventListener("input", (evt) => {
+            currentSearch = evt.target.value.toLowerCase().trim();
+            renderCards();
+        });
+
+        renderCards();
+        openDetail(capabilities[0]);
+    </script>
+</body>
+</html>
+

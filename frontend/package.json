@@ -1,0 +1,47 @@
+{
+  "name": "os-dashboard-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Unified Tkinter-inspired React + Electron interface for the OS Dashboard AI Assistant.",
+  "author": "OS Dashboard Engineering",
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "node ./scripts/dev.js",
+    "dev:web": "vite --host",
+    "dev:web-only": "vite --host",
+    "electron:dev": "wait-on http://localhost:5173 && cross-env NODE_ENV=development VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
+    "dev:desktop": "concurrently -k \"npm run dev:web-only\" \"npm run electron:dev\"",
+    "build": "vite build",
+    "build:web": "vite build",
+    "build:desktop": "vite build && electron-builder -c electron-builder.yml",
+    "build:desktop:linux": "vite build && electron-builder -c electron-builder.yml --linux",
+    "build:desktop:windows": "vite build && electron-builder -c electron-builder.yml --win",
+    "build:desktop:mac": "vite build && electron-builder -c electron-builder.yml --mac",
+    "build:all": "npm run build:web && npm run build:desktop:linux && npm run build:desktop:windows && npm run build:desktop:mac",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.27.5",
+    "axios": "^1.6.8",
+    "lucide-react": "^0.365.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@vitejs/plugin-react": "^4.2.0",
+    "autoprefixer": "^10.4.17",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^39.2.6",
+    "electron-builder": "^24.9.1",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.2.2",
+    "vite": "^7.2.7",
+    "wait-on": "^7.2.0"
+  }
+}

@@ -4,9 +4,10 @@ import sqlite3
 import json
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
+from pathlib import Path
 from typing import List, Optional, Dict, Any
 
-DB_FILE = os.path.join(os.path.dirname(__file__), "..", "assistant_hub.db")
+DB_FILE = str((Path(__file__).resolve().parent.parent / "assistant_hub.db"))
 
 PERSONAS = ["Chris", "AIC", "Aria", "Sora"]
 PERSONA_ROLES = {
@@ -24,6 +25,8 @@ CHAT_ROLES = ["user", "assistant", "system", "tool"]
 CHAT_MESSAGE_KINDS = ["chat", "terminal", "terminal_result", "file", "tool_result"]
 SECURITY_STATUS_CHOICES = ["secure", "vulnerable", "exploited", "offline"]
 CHANGE_PERMISSION_MODES = ["auto", "ask", "ask_when_unsure"]
+CONTINUITY_MODES = ["full", "automation-off", "read-only"]
+RISK_APPETITE_MODES = ["conservative", "balanced", "progressive"]
 
 DEFAULT_FETCH_PREFERENCES = {
     "notes": True,
@@ -111,6 +114,8 @@ class Settings:
         default_factory=lambda: DEFAULT_FETCH_PREFERENCES.copy()
     )
     change_permission_mode: str = "ask_when_unsure"  # auto | ask | ask_when_unsure
+    continuity_mode: str = "full"  # full | automation-off | read-only
+    risk_appetite: str = "balanced"  # conservative | balanced | progressive
     auto_overwrite: bool = True  # legacy flag retained for backward compatibility
 
 
@@ -173,8 +178,17 @@ class DocumentSample:
     created_at: str = datetime.now().isoformat(timespec="seconds")
 
 
-def init_db() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_FILE)
+def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
+    """
+    Initialize the SQLite database (creating tables if needed) and return a connection.
+
+    Args:
+        db_path: Optional override path for the DB file. Defaults to the canonical assistant_hub.db.
+    """
+
+    target = Path(db_path) if db_path else Path(DB_FILE)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(target), check_same_thread=False)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
 
@@ -537,11 +551,17 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
         get_meta(conn, "setting.change_permission_mode", "ask_when_unsure")
         or "ask_when_unsure"
     )
+    continuity_mode = get_meta(conn, "setting.continuity_mode", "full") or "full"
+    risk_appetite = get_meta(conn, "setting.risk_appetite", "balanced") or "balanced"
     auto_overwrite_raw = get_meta(conn, "setting.auto_overwrite", "1") or "1"
     auto_overwrite = auto_overwrite_raw == "1"
     if approval_mode not in CHANGE_PERMISSION_MODES:
         approval_mode = "auto" if auto_overwrite else "ask"
     auto_overwrite = approval_mode == "auto"
+    if continuity_mode not in CONTINUITY_MODES:
+        continuity_mode = "full"
+    if risk_appetite not in RISK_APPETITE_MODES:
+        risk_appetite = "balanced"
     data_preferences = DEFAULT_FETCH_PREFERENCES.copy()
     if data_pref_raw:
         try:
@@ -558,6 +578,8 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
         font_scale=font_scale,
         data_preferences=data_preferences,
         change_permission_mode=approval_mode,
+        continuity_mode=continuity_mode,
+        risk_appetite=risk_appetite,
         auto_overwrite=auto_overwrite,
     )
 
@@ -575,6 +597,8 @@ def save_settings(conn: sqlite3.Connection, settings: Settings):
         json.dumps(settings.data_preferences, ensure_ascii=False),
     )
     set_meta(conn, "setting.change_permission_mode", settings.change_permission_mode)
+    set_meta(conn, "setting.continuity_mode", settings.continuity_mode)
+    set_meta(conn, "setting.risk_appetite", settings.risk_appetite)
     set_meta(
         conn,
         "setting.auto_overwrite",

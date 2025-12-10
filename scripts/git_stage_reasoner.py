@@ -18,6 +18,7 @@ from typing import Dict, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 REASONS_FILE = REPO_ROOT / ".git" / ".ai_stage_reasons.json"
+ASK_UNCERTAINTY_THRESHOLD = 0.05  # Only prompt when confidence <= 5%
 
 
 def run(cmd: list[str]) -> subprocess.CompletedProcess:
@@ -34,6 +35,23 @@ def run(cmd: list[str]) -> subprocess.CompletedProcess:
 def staged_files() -> list[str]:
     proc = run(["git", "diff", "--cached", "--name-only"])
     return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+
+
+def staged_statuses() -> Dict[str, str]:
+    proc = run(["git", "diff", "--cached", "--name-status"])
+    mapping: Dict[str, str] = {}
+    for line in proc.stdout.splitlines():
+        parts = [segment.strip() for segment in line.strip().split("\t") if segment.strip()]
+        if not parts:
+            continue
+        status = parts[0]
+        if len(parts) == 2:
+            path = parts[1]
+            mapping[path] = status
+        elif len(parts) >= 3:
+            old_path, new_path = parts[1], parts[-1]
+            mapping[new_path] = f"{status} {old_path} -> {new_path}"
+    return mapping
 
 
 def diff_for(path: str) -> str:
@@ -125,6 +143,7 @@ def main() -> int:
     if not files:
         return 0
     data = load_stage_data()
+    status_map = staged_statuses()
     entries = data.setdefault("files", {})
     now = datetime.now(timezone.utc).isoformat()
     updated = False
@@ -136,7 +155,7 @@ def main() -> int:
         if entry and entry.get("hash") == digest:
             continue
         guess, confidence = auto_reason(path, diff_text)
-        if not guess or confidence < 0.65:
+        if not guess or confidence <= ASK_UNCERTAINTY_THRESHOLD:
             reason = prompt_for_reason(path, guess, diff_text)
             source = "user"
         else:
@@ -162,10 +181,13 @@ def main() -> int:
         save_stage_data(data)
 
     print("\nStage Reasoning Summary:")
+    status_width = max((len(status_map.get(path, "")) for path in files), default=1)
     for path in files:
         reason = entries[path]["reason"]
         source = entries[path]["source"]
-        print(f"- {path}: {reason} ({source})")
+        status = status_map.get(path, "?") or "?"
+        aligned_status = status.rjust(status_width)
+        print(f"{aligned_status} {path} — {reason} ({source})")
 
     return 0
 
