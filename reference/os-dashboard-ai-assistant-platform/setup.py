@@ -2,13 +2,20 @@
 Setup script for OS Dashboard AI Assistant Platform
 """
 
+from pathlib import Path
 from setuptools import setup, find_packages
 import os
 
+BASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BASE_DIR.parents[1]
+DOCS_ROOT = REPO_ROOT / "documentation"
+
 # Read README file
 def read_readme():
-    with open("README.md", "r", encoding="utf-8") as fh:
-        return fh.read()
+    doc_candidate = DOCS_ROOT / BASE_DIR.relative_to(REPO_ROOT) / "README.md"
+    if not doc_candidate.exists():
+        doc_candidate = DOCS_ROOT / "README.md"
+    return doc_candidate.read_text(encoding="utf-8")
 
 # Read requirements
 def read_requirements():
