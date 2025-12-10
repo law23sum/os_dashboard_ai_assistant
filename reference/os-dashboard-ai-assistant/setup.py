@@ -1,10 +1,24 @@
 """
 Setup script for OS Dashboard AI Assistant
 """
+from pathlib import Path
 from setuptools import setup, find_packages
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+BASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BASE_DIR.parents[1]
+DOCS_ROOT = REPO_ROOT / "documentation"
+
+
+def _load_long_description() -> str:
+    """Load README content from the consolidated documentation tree."""
+
+    doc_candidate = DOCS_ROOT / BASE_DIR.relative_to(REPO_ROOT) / "README.md"
+    if not doc_candidate.exists():
+        doc_candidate = DOCS_ROOT / "README.md"
+    return doc_candidate.read_text(encoding="utf-8")
+
+
+long_description = _load_long_description()
 
 with open("requirements.txt", "r", encoding="utf-8") as fh:
     requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]

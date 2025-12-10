@@ -12,6 +12,39 @@ from .audit_system import (
     ComplianceViolation,
     DataLineage
 )
+from .intelligence import (
+    DataCollector,
+    SyncDataCollector,
+    DataSource,
+    ContentValidator,
+    BatchValidator,
+    AccessibilityChecker,
+    ValidationRule,
+    ValidationResult,
+)
+from .content import (
+    ContentConfig,
+    BaseContentGenerator,
+    PresentationGenerator,
+    ExcelDashboardGenerator,
+    WordDocumentGenerator,
+)
+from .system import (
+    SystemOperationsController,
+    NetworkServiceManager,
+    ServiceConfig,
+    ProcessInfo,
+)
+from .security import (
+    EncryptionService,
+    KeyManager,
+    PolicyEngine,
+    GovernanceEngine,
+    AuditManager,
+    BillingSystem,
+    SecurityMonitor,
+    AuthManager,
+)
 
 __all__ = [
     # Audit System
@@ -25,5 +58,34 @@ __all__ = [
     'ComplianceFramework',
     'ComplianceRule',
     'ComplianceViolation',
-    'DataLineage'
+    'DataLineage',
+    # Intelligence
+    'DataCollector',
+    'SyncDataCollector',
+    'DataSource',
+    'ContentValidator',
+    'BatchValidator',
+    'AccessibilityChecker',
+    'ValidationRule',
+    'ValidationResult',
+    # Content
+    'ContentConfig',
+    'BaseContentGenerator',
+    'PresentationGenerator',
+    'ExcelDashboardGenerator',
+    'WordDocumentGenerator',
+    # System
+    'SystemOperationsController',
+    'NetworkServiceManager',
+    'ServiceConfig',
+    'ProcessInfo',
+    # Security and governance
+    'EncryptionService',
+    'KeyManager',
+    'PolicyEngine',
+    'GovernanceEngine',
+    'AuditManager',
+    'BillingSystem',
+    'SecurityMonitor',
+    'AuthManager',
 ]

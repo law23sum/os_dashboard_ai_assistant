@@ -2,6 +2,12 @@
 
 Drop-in, production-ready updates for the Office AI examples: resilient WebSocket handling, COM-thread safety, throttled telemetry, and safer document mutations.
 
+## Platform Implementation Reference
+- `assistant_core/integrations/office_realtime.py` now provides the shared WebSocket router, AI queueing, and live edit broadcasting used by the desktop dashboard.
+- `assistant_core/integrations/advanced_systems.py` builds multi-host Office add-in manifests (Workbook/Document/Presentation) with optional RunOnLoad metadata and requirement sets.
+- `examples/demo_usage.py` includes `demo_office_realtime_integration()` to exercise the router alongside manifest generation.
+- The GUI dashboard exposes **Tools → Real-Time Sessions** for monitoring the router at runtime.
+
 ## PowerPoint Add-in (Taskpane JS)
 
 Key improvements: gated UI until connected, reconnect with backoff, heartbeats, safe send wrapper, and basic error surfacing.
@@ -542,5 +548,6 @@ class UniversalDocumentHandler:
     async def _error(self, message: str):
         await self.ws.send(json.dumps({"type": "error", "message": message}))
 ```
+
 
 

@@ -1,6 +1,7 @@
 #!/Library/Frameworks/Python.framework/Versions/3.11/bin/python3
 import asyncio
 import base64
+import json
 import os
 import shlex
 import sqlite3
@@ -38,6 +39,9 @@ except ImportError:
             self.widget = widget
             self.text = text
             self.tipwindow = None
+
+from .paths import REPO_ROOT, DOCUMENTATION_ROOT, get_documentation_path
+
 
 from .db import (
     init_db,
@@ -175,6 +179,8 @@ except ImportError:
 from .task_automation import process_recurring_tasks, check_task_dependencies
 # Template functionality removed - backend code kept in task_templates.py for potential future use
 from .ai_task_creation import create_task_from_ai_message
+from .spec_registry import SpecRegistry
+from .backend_registry import BackendRegistry
 
 # Import enhanced conversation manager (optional)
 try:
@@ -562,6 +568,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.security_status: SecurityStatus = load_security_status(self.conn)
         backend_default = os.environ.get("AIOS_BACKEND_URL") or getattr(self.settings, "api_base_url", "http://localhost:8000")
         self.aios_api_client = AIOSAPIClient(base_url=backend_default)
+        self.spec_registry = SpecRegistry()
+        self.backend_registry = BackendRegistry(self.spec_registry)
 
         # Build palette before configuring styles so widgets share a cohesive look
         self._build_color_palette()
@@ -590,6 +598,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.ai_ops_status_filter = tk.StringVar(value="all")
         self.ai_ops_integration_filter = tk.StringVar(value="all")
         self.dashboard_text_targets = []  # Track dashboard widgets across classic/unified views
+        self.spec_tree_docs: Dict[str, Any] = {}
+        self.backend_tree_items: Dict[str, Any] = {}
+        self.spec_search_var = tk.StringVar()
+        self.backend_filter_var = tk.StringVar(value="All")
         # Optional automation orchestrator instance (set when feature is available)
         # Initialize to None so attribute lookups remain safe even if the feature
         # isn't loaded, avoiding Tk's __getattr__ fallback from raising errors
@@ -598,6 +610,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Terminal command helpers used by the Tools view
         self.command_entry_var = None
         self.command_terminal_output = None
+        self.backend_action_var = tk.StringVar()
+        self.backend_action_combo = None
+        self.backend_output_text = None
         # Commands pulled from the spec sheet so they are runnable from the GUI
         self.spec_sheet_commands = [
             {
@@ -910,6 +925,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self._build_integrations_infrastructure_tab()
         self._build_security_audit_tab()
         self._build_ai_os_cockpit_tab()
+        self._build_specs_and_systems_tab()
 
         # Update tab labels with icons if available
         if TTKBOOTSTRAP_AVAILABLE:
@@ -19857,6 +19873,299 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         self._hydrate_ai_os_from_backend()
         self._render_ai_os_view()
 
+    def _build_specs_and_systems_tab(self):
+        """Unified page for documentation review + backend capability control."""
+        if TTKBOOTSTRAP_AVAILABLE:
+            frame = ttkb.Frame(self.notebook, padding=8)
+            inner_notebook = ttkb.Notebook(frame)
+            docs_tab = ttkb.Frame(inner_notebook, padding=8)
+            backend_tab = ttkb.Frame(inner_notebook, padding=8)
+        else:
+            frame = ttk.Frame(self.notebook, padding=8)
+            inner_notebook = ttk.Notebook(frame)
+            docs_tab = ttk.Frame(inner_notebook, padding=8)
+            backend_tab = ttk.Frame(inner_notebook, padding=8)
+
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(0, weight=1)
+        inner_notebook.grid(row=0, column=0, sticky="nsew")
+        self.notebook.add(frame, text="📚 Specs & Systems")
+        inner_notebook.add(docs_tab, text="Documentation")
+        inner_notebook.add(backend_tab, text="Backend Services")
+
+        # Documentation browser -------------------------------------------------
+        docs_tab.columnconfigure(0, weight=3)
+        docs_tab.columnconfigure(1, weight=2)
+        docs_tab.rowconfigure(1, weight=1)
+
+        info_frame = ttk.Frame(docs_tab)
+        info_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+        doc_count = self.spec_registry.total_documents() if self.spec_registry else 0
+        ttk.Label(info_frame, text=f"{doc_count} Markdown specs parsed").pack(side="left")
+        top_keywords = self.spec_registry.keyword_totals(5) if self.spec_registry else []
+        if top_keywords:
+            keyword_text = ", ".join(f"{kw} ({count})" for kw, count in top_keywords)
+            ttk.Label(
+                info_frame,
+                text=f"Top keywords: {keyword_text}",
+                foreground=self.colors.get("muted", "#4f566b"),
+            ).pack(side="right")
+
+        # Search/filter controls for docs
+        search_frame = ttk.Frame(docs_tab)
+        search_frame.grid(row=1, column=0, sticky="ew", padx=(0, 8), pady=(0, 4))
+        search_frame.columnconfigure(1, weight=1)
+        ttk.Label(search_frame, text="Filter specs:").grid(row=0, column=0, sticky="w", padx=(0, 6))
+        search_entry = ttk.Entry(search_frame, textvariable=self.spec_search_var)
+        search_entry.grid(row=0, column=1, sticky="ew")
+        search_entry.bind("<Return>", lambda _e: self._refresh_spec_tree(self.spec_search_var.get()))
+        ttk.Button(search_frame, text="Search", command=lambda: self._refresh_spec_tree(self.spec_search_var.get())).grid(row=0, column=2, padx=(6, 0))
+        ttk.Button(search_frame, text="Clear", command=lambda: self._clear_spec_filter()).grid(row=0, column=3, padx=(6, 0))
+
+        columns = ("title", "sections", "keywords", "path")
+        doc_tree_container = ttk.Frame(docs_tab)
+        doc_tree_container.grid(row=2, column=0, sticky="nsew", padx=(0, 8))
+        doc_tree_container.columnconfigure(0, weight=1)
+        doc_tree_container.rowconfigure(0, weight=1)
+        self.spec_tree = ttk.Treeview(doc_tree_container, columns=columns, show="headings")
+        for col in columns:
+            self.spec_tree.heading(col, text=col.title())
+        self.spec_tree.column("title", width=240, anchor="w")
+        self.spec_tree.column("sections", width=200, anchor="w")
+        self.spec_tree.column("keywords", width=200, anchor="w")
+        self.spec_tree.column("path", width=260, anchor="w")
+        spec_scroll = ttk.Scrollbar(doc_tree_container, orient=tk.VERTICAL, command=self.spec_tree.yview)
+        self.spec_tree.configure(yscrollcommand=spec_scroll.set)
+        self.spec_tree.grid(row=0, column=0, sticky="nsew")
+        spec_scroll.grid(row=0, column=1, sticky="ns")
+
+        self._refresh_spec_tree()
+        self.spec_tree.bind("<<TreeviewSelect>>", self._on_spec_doc_selected)
+
+        preview_frame = ttk.LabelFrame(docs_tab, text="Specification Preview", padding=8)
+        preview_frame.grid(row=1, column=1, sticky="nsew")
+        preview_frame.columnconfigure(0, weight=1)
+        preview_frame.rowconfigure(0, weight=1)
+        self.spec_preview_text = tk.Text(preview_frame, wrap=tk.WORD, font=self.text_font, height=20)
+        preview_scroll = ttk.Scrollbar(preview_frame, orient=tk.VERTICAL, command=self.spec_preview_text.yview)
+        self.spec_preview_text.configure(yscrollcommand=preview_scroll.set, state=tk.DISABLED)
+        self.spec_preview_text.grid(row=0, column=0, sticky="nsew")
+        preview_scroll.grid(row=0, column=1, sticky="ns")
+
+        # Backend capabilities ---------------------------------------------------
+        backend_tab.columnconfigure(0, weight=1)
+        backend_tab.rowconfigure(0, weight=2)
+        backend_tab.rowconfigure(3, weight=1)
+
+        backend_filter_frame = ttk.Frame(backend_tab)
+        backend_filter_frame.grid(row=0, column=0, sticky="ew", pady=(0, 4))
+        backend_filter_frame.columnconfigure(1, weight=1)
+        ttk.Label(backend_filter_frame, text="Status filter:").grid(row=0, column=0, sticky="w")
+        self.backend_filter_combo = ttk.Combobox(
+            backend_filter_frame,
+            textvariable=self.backend_filter_var,
+            values=["All", "Available", "Unavailable"],
+            state="readonly",
+            width=18,
+        )
+        self.backend_filter_combo.grid(row=0, column=1, sticky="w", padx=(6, 0))
+        self.backend_filter_combo.bind("<<ComboboxSelected>>", lambda _e: self._refresh_backend_tree())
+
+        backend_columns = ("title", "status", "documents", "tags")
+        backend_tree_container = ttk.Frame(backend_tab)
+        backend_tree_container.grid(row=1, column=0, sticky="nsew", padx=(0, 8))
+        backend_tree_container.columnconfigure(0, weight=1)
+        backend_tree_container.rowconfigure(0, weight=1)
+        self.backend_capability_tree = ttk.Treeview(
+            backend_tree_container, columns=backend_columns, show="headings"
+        )
+        for col in backend_columns:
+            self.backend_capability_tree.heading(col, text=col.title())
+        self.backend_capability_tree.column("title", width=240, anchor="w")
+        self.backend_capability_tree.column("status", width=120, anchor="center")
+        self.backend_capability_tree.column("documents", width=260, anchor="w")
+        self.backend_capability_tree.column("tags", width=200, anchor="w")
+        backend_scroll = ttk.Scrollbar(
+            backend_tree_container, orient=tk.VERTICAL, command=self.backend_capability_tree.yview
+        )
+        self.backend_capability_tree.configure(yscrollcommand=backend_scroll.set)
+        self.backend_capability_tree.grid(row=0, column=0, sticky="nsew")
+        backend_scroll.grid(row=0, column=1, sticky="ns")
+
+        self._refresh_backend_tree()
+        self.backend_capability_tree.bind("<<TreeviewSelect>>", self._on_backend_capability_select)
+
+        action_frame = ttk.LabelFrame(backend_tab, text="Actions", padding=8)
+        action_frame.grid(row=2, column=0, sticky="ew", pady=(8, 8))
+        action_frame.columnconfigure(1, weight=1)
+        ttk.Label(action_frame, text="Action:").grid(row=0, column=0, sticky="w")
+        self.backend_action_combo = ttk.Combobox(
+            action_frame,
+            textvariable=self.backend_action_var,
+            state="readonly",
+            values=[],
+        )
+        self.backend_action_combo.grid(row=0, column=1, sticky="ew", padx=(8, 8))
+        ttk.Button(action_frame, text="Run", command=self._run_backend_action).grid(row=0, column=2)
+
+        output_frame = ttk.LabelFrame(backend_tab, text="Backend Output", padding=8)
+        output_frame.grid(row=3, column=0, sticky="nsew")
+        output_frame.columnconfigure(0, weight=1)
+        output_frame.rowconfigure(0, weight=1)
+        self.backend_output_text = tk.Text(output_frame, wrap=tk.WORD, font=self.text_font, height=10)
+        backend_output_scroll = ttk.Scrollbar(
+            output_frame, orient=tk.VERTICAL, command=self.backend_output_text.yview
+        )
+        self.backend_output_text.configure(yscrollcommand=backend_output_scroll.set, state=tk.DISABLED)
+        self.backend_output_text.grid(row=0, column=0, sticky="nsew")
+        backend_output_scroll.grid(row=0, column=1, sticky="ns")
+
+    def _on_spec_doc_selected(self, _event=None):
+        if not hasattr(self, "spec_tree") or not hasattr(self, "spec_preview_text"):
+            return
+        selection = self.spec_tree.selection()
+        if not selection:
+            return
+        doc = self.spec_tree_docs.get(selection[0])
+        if not doc:
+            self.spec_preview_text.config(state=tk.NORMAL)
+            self.spec_preview_text.delete("1.0", tk.END)
+            self.spec_preview_text.insert(tk.END, "No specification selected.")
+            self.spec_preview_text.config(state=tk.DISABLED)
+            return
+        try:
+            body = doc.path.read_text(encoding="utf-8", errors="ignore")
+        except Exception:
+            body = doc.summary or ""
+        preview = (
+            f"Title: {doc.title}\n"
+            f"Path: {doc.relative_path}\n"
+            f"Sections: {', '.join(doc.sections[:5])}\n"
+            f"Keywords: {', '.join(sorted(doc.keywords)[:10])}\n\n"
+        )
+        excerpt = body.strip()[:2000]
+        content = preview + (excerpt if excerpt else doc.summary)
+        self.spec_preview_text.config(state=tk.NORMAL)
+        self.spec_preview_text.delete("1.0", tk.END)
+        self.spec_preview_text.insert(tk.END, content.strip())
+        self.spec_preview_text.config(state=tk.DISABLED)
+
+    def _refresh_spec_tree(self, filter_text: Optional[str] = None):
+        if not hasattr(self, "spec_tree"):
+            return
+        filter_text = (filter_text or "").lower().strip()
+        self.spec_tree_docs.clear()
+        self.spec_tree.delete(*self.spec_tree.get_children())
+        documents = getattr(self.spec_registry, "documents", [])
+        for doc in documents:
+            haystack = " ".join([
+                doc.title,
+                " ".join(doc.sections),
+                " ".join(sorted(doc.keywords)),
+                str(doc.relative_path),
+                doc.summary,
+            ]).lower()
+            if filter_text and filter_text not in haystack:
+                continue
+            sections = " / ".join(doc.sections[:3])
+            keywords = ", ".join(sorted(doc.keywords)[:4])
+            item_id = self.spec_tree.insert(
+                "",
+                "end",
+                values=(doc.title, sections or "—", keywords or "—", str(doc.relative_path)),
+            )
+            self.spec_tree_docs[item_id] = doc
+        if not self.spec_tree_docs:
+            placeholder = self.spec_tree.insert("", "end", values=("No documents found", "", "", ""))
+            self.spec_tree_docs[placeholder] = None
+
+    def _clear_spec_filter(self):
+        self.spec_search_var.set("")
+        self._refresh_spec_tree()
+
+    def _on_backend_capability_select(self, _event=None):
+        if not hasattr(self, "backend_capability_tree") or not self.backend_action_combo:
+            return
+        selection = self.backend_capability_tree.selection()
+        if not selection:
+            return
+        capability = self.backend_tree_items.get(selection[0])
+        if not capability:
+            return
+        actions = [action.label for action in capability.actions]
+        self.backend_action_combo["values"] = actions or ["No actions"]
+        if actions:
+            self.backend_action_var.set(actions[0])
+        else:
+            self.backend_action_var.set("No actions")
+
+    def _refresh_backend_tree(self):
+        if not hasattr(self, "backend_capability_tree"):
+            return
+        filter_value = (self.backend_filter_var.get() or "All").lower()
+        self.backend_tree_items.clear()
+        self.backend_capability_tree.delete(*self.backend_capability_tree.get_children())
+        for capability in self.backend_registry.list_capabilities():
+            status = "Available" if capability.available else "Unavailable"
+            if filter_value != "all" and filter_value != status.lower():
+                continue
+            docs_label = ", ".join(doc.relative_path.name for doc in capability.documents[:3]) or "—"
+            tags_label = ", ".join(capability.tags)
+            iid = self.backend_capability_tree.insert(
+                "",
+                "end",
+                values=(capability.title, status, docs_label, tags_label or "—"),
+            )
+            self.backend_tree_items[iid] = capability
+        if not self.backend_tree_items:
+            self.backend_capability_tree.insert(
+                "",
+                "end",
+                values=("No backend capabilities", "", "", ""),
+            )
+
+    def _run_backend_action(self):
+        if not hasattr(self, "backend_capability_tree"):
+            return
+        selection = self.backend_capability_tree.selection()
+        if not selection:
+            messagebox.showinfo("Backend action", "Select a backend capability first.")
+            return
+        capability = self.backend_tree_items.get(selection[0])
+        if not capability:
+            messagebox.showerror("Backend action", "Unable to find the selected capability.")
+            return
+        action_label = self.backend_action_var.get()
+        if not action_label or action_label == "No actions":
+            messagebox.showinfo("Backend action", "Choose an action to run.")
+            return
+
+        self._append_backend_output(f"Running {action_label} on {capability.title}…")
+
+        def _worker():
+            result = self.backend_registry.run_action(capability.key, action_label)
+            formatted = self._format_backend_result(result)
+            self.after(0, lambda: self._append_backend_output(formatted))
+
+        threading.Thread(target=_worker, daemon=True).start()
+
+    def _append_backend_output(self, text: str):
+        if not self.backend_output_text:
+            return
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        self.backend_output_text.config(state=tk.NORMAL)
+        self.backend_output_text.insert(tk.END, f"[{timestamp}] {text}\n\n")
+        self.backend_output_text.see(tk.END)
+        self.backend_output_text.config(state=tk.DISABLED)
+
+    def _format_backend_result(self, result) -> str:
+        if isinstance(result, (dict, list)):
+            try:
+                return json.dumps(result, indent=2, default=str)
+            except Exception:
+                return str(result)
+        return str(result)
+
     def _hydrate_ai_os_from_backend(self):
         """Optional live data pull for AI OS cockpit; falls back to mock data."""
         client = getattr(self, "aios_api_client", None)
@@ -20034,7 +20343,7 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
     def _build_ai_os_web_page_map(self):
         """Return ordered mapping of human labels to URLs/paths (grouped, de-duped)."""
         # Resolve repository root (gui.py -> assistant_hub -> assistant_hub_gui -> repo root)
-        repo_root = Path(__file__).resolve().parents[2]
+        repo_root = REPO_ROOT
         docs_dir = repo_root / "docs"
         cyberchef_dir = repo_root / "CyberChef_v10.19.4"
 
@@ -20050,50 +20359,50 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
             (
                 "Architecture & Canon",
                 [
-                    ("Canonical Internal Representation", repo_root / "CANONICAL_INTERNAL_REPRESENTATION.md"),
-                    ("Daemon framework overview", repo_root / "DAEMON_FRAMEWORK_ARCHITECTURE.md"),
-                    ("Cognitive daemon system", repo_root / "COGNITIVE_DAEMON_SYSTEM.md"),
+                    ("Canonical Internal Representation", get_documentation_path("CANONICAL_INTERNAL_REPRESENTATION.md")),
+                    ("Daemon framework overview", get_documentation_path("DAEMON_FRAMEWORK_ARCHITECTURE.md")),
+                    ("Cognitive daemon system", get_documentation_path("COGNITIVE_DAEMON_SYSTEM.md")),
                 ],
             ),
             (
                 "Features & Roadmap",
                 [
-                    ("AI features implementation", repo_root / "AI_FEATURES_IMPLEMENTATION.md"),
-                    ("Implementation roadmap", repo_root / "IMPLEMENTATION_ROADMAP.md"),
-                    ("Implementation summary", repo_root / "IMPLEMENTATION_SUMMARY.md"),
-                    ("Feature opportunities", repo_root / "FEATURE_OPPORTUNITIES.md"),
-                    ("Missing features summary", repo_root / "MISSING_FEATURES_SUMMARY.md"),
-                    ("Low hanging feature wins", repo_root / "LOW_HANGING_FRUIT_FEATURES.md"),
+                    ("AI features implementation", get_documentation_path("AI_FEATURES_IMPLEMENTATION.md")),
+                    ("Implementation roadmap", get_documentation_path("IMPLEMENTATION_ROADMAP.md")),
+                    ("Implementation summary", get_documentation_path("IMPLEMENTATION_SUMMARY.md")),
+                    ("Feature opportunities", get_documentation_path("FEATURE_OPPORTUNITIES.md")),
+                    ("Missing features summary", get_documentation_path("MISSING_FEATURES_SUMMARY.md")),
+                    ("Low hanging feature wins", get_documentation_path("LOW_HANGING_FRUIT_FEATURES.md")),
                 ],
             ),
             (
                 "Vision",
                 [
-                    ("Vision brief", repo_root / "VISION.md"),
-                    ("Vision implementation", repo_root / "VISION_IMPLEMENTATION.md"),
+                    ("Vision brief", get_documentation_path("VISION.md")),
+                    ("Vision implementation", get_documentation_path("VISION_IMPLEMENTATION.md")),
                 ],
             ),
             (
                 "Document pipeline",
                 [
-                    ("Document upload design", repo_root / "DOCUMENT_UPLOAD_DESIGN.md"),
-                    ("Document upload integration", repo_root / "DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md"),
-                    ("Document upload implementation", repo_root / "DOCUMENT_UPLOAD_IMPLEMENTATION.md"),
-                    ("Document templates & automation", repo_root / "DOCUMENT_TEMPLATES_AND_AUTOMATION.md"),
+                    ("Document upload design", get_documentation_path("DOCUMENT_UPLOAD_DESIGN.md")),
+                    ("Document upload integration", get_documentation_path("DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md")),
+                    ("Document upload implementation", get_documentation_path("DOCUMENT_UPLOAD_IMPLEMENTATION.md")),
+                    ("Document templates & automation", get_documentation_path("DOCUMENT_TEMPLATES_AND_AUTOMATION.md")),
                 ],
             ),
             (
                 "Automation & Orchestration",
-                [("Automation orchestration", repo_root / "AUTOMATION_ORCHESTRATION_INTEGRATION.md")],
+                [("Automation orchestration", get_documentation_path("AUTOMATION_ORCHESTRATION_INTEGRATION.md"))],
             ),
             (
                 "Reference",
                 [
-                    ("Commands cheatsheet", repo_root / "commands.md"),
-                    ("README", repo_root / "README.md"),
-                    ("Global impact white paper", repo_root / "GLOBAL_IMPACT_WHITE_PAPER.md"),
-                    ("Architecture implementation", repo_root / "ARCHITECTURE_IMPLEMENTATION.md"),
-                    ("Deployment guide", repo_root / "DEPLOYMENT.md"),
+                    ("Commands cheatsheet", get_documentation_path("commands.md")),
+                    ("README", get_documentation_path("README.md")),
+                    ("Global impact white paper", get_documentation_path("GLOBAL_IMPACT_WHITE_PAPER.md")),
+                    ("Architecture implementation", get_documentation_path("ARCHITECTURE_IMPLEMENTATION.md")),
+                    ("Deployment guide", get_documentation_path("DEPLOYMENT.md")),
                 ],
             ),
             (
