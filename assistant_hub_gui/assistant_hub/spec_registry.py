@@ -48,7 +48,7 @@ class SpecRegistry:
     def _parse_document(self, path: Path) -> SpecDocument:
         text = path.read_text(encoding="utf-8", errors="ignore")
         lines = text.splitlines()
-        title = path.stem.replace('_', ' ').title()
+        title = path.stem.replace("_", " ").title()
         sections: List[str] = []
         keywords: Set[str] = set()
         summary_parts: List[str] = []
@@ -74,7 +74,13 @@ class SpecRegistry:
             sections = ["Overview"]
 
         summary = "\n".join(summary_parts[:5])
-        return SpecDocument(path=path, title=title, sections=sections, keywords=keywords, summary=summary)
+        return SpecDocument(
+            path=path,
+            title=title,
+            sections=sections,
+            keywords=keywords,
+            summary=summary,
+        )
 
     def _tokenize(self, text: str) -> Set[str]:
         tokens = re.findall(r"[A-Za-z0-9_]+", text.lower())
@@ -121,5 +127,5 @@ class SpecRegistry:
         groups: Set[str] = set()
         for doc in self.documents:
             if doc.sections:
-                groups.add(doc.sections[0].split(':')[0])
+                groups.add(doc.sections[0].split(":")[0])
         return sorted(groups)

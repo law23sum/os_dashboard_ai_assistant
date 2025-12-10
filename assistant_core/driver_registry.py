@@ -240,7 +240,9 @@ class DriverRegistry:
         return list(self._drivers.values())
 
     def list_by_layer(self, layer: str) -> List[DriverSpec]:
-        return [drv for drv in self._drivers.values() if drv.layer.lower() == layer.lower()]
+        return [
+            drv for drv in self._drivers.values() if drv.layer.lower() == layer.lower()
+        ]
 
     def search(self, keyword: str) -> List[DriverSpec]:
         keyword = keyword.lower()

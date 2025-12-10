@@ -17,6 +17,7 @@ from uuid import UUID, uuid4
 
 # --- Core Document Model ----------------------------------------------------
 
+
 @dataclass
 class DocumentMetadata:
     """Rich metadata for document classification and discovery."""
@@ -149,6 +150,7 @@ class ContentBlockType(Enum):
 
 class ContentType(Enum):
     """High-level content type classification for search and filtering."""
+
     DOCUMENT = "document"
     IMAGE = "image"
     VIDEO = "video"
@@ -169,6 +171,7 @@ class ContentType(Enum):
 
 class SourceSystem(Enum):
     """Source system classification for content provenance."""
+
     ONEDRIVE = "onedrive"
     SHAREPOINT = "sharepoint"
     OUTLOOK = "outlook"
@@ -436,7 +439,9 @@ class ProvenanceEvent:
 class ProvenanceChain:
     """Complete audit trail of document changes."""
 
-    creation_event: ProvenanceEvent = field(default_factory=lambda: ProvenanceEvent(event_type="create"))
+    creation_event: ProvenanceEvent = field(
+        default_factory=lambda: ProvenanceEvent(event_type="create")
+    )
     events: List[ProvenanceEvent] = field(default_factory=list)
 
     def add_event(self, event: ProvenanceEvent) -> None:
@@ -668,9 +673,13 @@ class CIRTransformer:
             raise UnsupportedFormatException(f"No handler for {target_format}")
         return await handler.generate_from_cir(cir_doc)
 
-    async def transform(self, source_data: Any, source_format: str, target_format: str) -> Any:
+    async def transform(
+        self, source_data: Any, source_format: str, target_format: str
+    ) -> Any:
         cir_doc = await self.to_cir(source_data, source_format)
-        transformed_cir = await self.apply_transformation_rules(cir_doc, source_format, target_format)
+        transformed_cir = await self.apply_transformation_rules(
+            cir_doc, source_format, target_format
+        )
         return await self.from_cir(transformed_cir, target_format)
 
     def load_transformation_rules(self) -> List[TransformationRule]:
@@ -679,14 +688,18 @@ class CIRTransformer:
     def register_format_handlers(self) -> Dict[str, Any]:
         return {}
 
-    async def apply_transformation_rules(self, cir_doc: CIRDocument, source_format: str, target_format: str) -> CIRDocument:
+    async def apply_transformation_rules(
+        self, cir_doc: CIRDocument, source_format: str, target_format: str
+    ) -> CIRDocument:
         return cir_doc
 
 
 class SemanticPreserver:
     """Ensures semantic meaning is preserved during transformations."""
 
-    async def preserve_document_structure(self, cir_doc: CIRDocument, target_format: str) -> CIRDocument:
+    async def preserve_document_structure(
+        self, cir_doc: CIRDocument, target_format: str
+    ) -> CIRDocument:
         if target_format == "powerpoint":
             return await self.adapt_for_presentation(cir_doc)
         if target_format == "excel":

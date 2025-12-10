@@ -13,7 +13,10 @@ class NotesConnector(StorageBackedConnector):
     doc_type = "note"
 
     def write(
-        self, resource_id: str, cir: CIRDocument, operations: Optional[Dict[str, Any]] = None
+        self,
+        resource_id: str,
+        cir: CIRDocument,
+        operations: Optional[Dict[str, Any]] = None,
     ) -> ResourceRef:
         # allow title/text to be overridden by operations if provided
         if operations:

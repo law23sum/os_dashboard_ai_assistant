@@ -24,14 +24,12 @@ def load_state(conn: Optional[sqlite3.Connection] = None) -> AssistantState:
     return db_load_state(conn)
 
 
-def save_state(state: AssistantState, conn: Optional[sqlite3.Connection] = None) -> None:
+def save_state(
+    state: AssistantState, conn: Optional[sqlite3.Connection] = None
+) -> None:
     """Save the dashboard state to the database."""
     if conn is None:
         conn = init_db()
     # State is saved incrementally through individual operations
     # This is a placeholder for future bulk save operations
     pass
-
-
-
-

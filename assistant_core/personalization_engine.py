@@ -42,6 +42,7 @@ class ContentType(Enum):
 @dataclass
 class UserProfile:
     """User profile for personalization"""
+
     user_id: str
     preferences: Dict[str, Any]
     behavior_history: List[Dict[str, Any]]
@@ -60,6 +61,7 @@ class UserProfile:
 @dataclass
 class ContentItem:
     """Content item for recommendations"""
+
     item_id: str
     content_type: ContentType
     title: str
@@ -78,6 +80,7 @@ class ContentItem:
 @dataclass
 class UserInteraction:
     """User interaction with content"""
+
     user_id: str
     item_id: str
     interaction_type: str  # view, like, complete, share, etc.
@@ -94,6 +97,7 @@ class UserInteraction:
 @dataclass
 class Recommendation:
     """Recommendation result"""
+
     recommendation_id: str
     user_id: str
     item_id: str
@@ -164,9 +168,13 @@ class PersonalizationRecommendationEngine:
         except Exception as e:
             self.logger.error(f"Error building content embeddings: {e}")
 
-    async def generate_recommendations(self, user_id: str, recommendation_type: str,
-                                     user_data: Dict[str, Any],
-                                     options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def generate_recommendations(
+        self,
+        user_id: str,
+        recommendation_type: str,
+        user_data: Dict[str, Any],
+        options: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """Generate personalized recommendations"""
         try:
             rec_type = RecommendationType(recommendation_type)
@@ -181,25 +189,35 @@ class PersonalizationRecommendationEngine:
             recommendations = []
 
             if rec_type == RecommendationType.CONTENT_BASED:
-                recommendations = await self._content_based_recommendations(user_id, options)
+                recommendations = await self._content_based_recommendations(
+                    user_id, options
+                )
             elif rec_type == RecommendationType.COLLABORATIVE:
-                recommendations = await self._collaborative_filtering_recommendations(user_id, options)
+                recommendations = await self._collaborative_filtering_recommendations(
+                    user_id, options
+                )
             elif rec_type == RecommendationType.HYBRID:
                 recommendations = await self._hybrid_recommendations(user_id, options)
             elif rec_type == RecommendationType.CONTEXTUAL:
-                recommendations = await self._contextual_recommendations(user_id, user_data, options)
+                recommendations = await self._contextual_recommendations(
+                    user_id, user_data, options
+                )
             elif rec_type == RecommendationType.TREND_BASED:
-                recommendations = await self._trend_based_recommendations(user_id, options)
+                recommendations = await self._trend_based_recommendations(
+                    user_id, options
+                )
 
             # Apply diversity and business rules
-            recommendations = await self._apply_recommendation_filters(recommendations, options)
+            recommendations = await self._apply_recommendation_filters(
+                recommendations, options
+            )
 
             return {
                 "user_id": user_id,
                 "recommendation_type": rec_type.value,
                 "recommendations": [asdict(rec) for rec in recommendations],
                 "total_recommendations": len(recommendations),
-                "generated_at": datetime.now().isoformat()
+                "generated_at": datetime.now().isoformat(),
             }
 
         except Exception as e:
@@ -213,7 +231,7 @@ class PersonalizationRecommendationEngine:
             preferences=user_data.get("preferences", {}),
             behavior_history=[],
             skill_levels=user_data.get("skill_levels", {}),
-            interests=set(user_data.get("interests", []))
+            interests=set(user_data.get("interests", [])),
         )
 
         self.user_profiles[user_id] = profile
@@ -244,15 +262,16 @@ class PersonalizationRecommendationEngine:
             user_id=user_id,
             item_id=user_data.get("current_item", ""),
             interaction_type=user_data.get("interaction_type", "view"),
-            context=user_data.get("context", {})
+            context=user_data.get("context", {}),
         )
         profile.behavior_history.append(asdict(interaction))
         self.interactions.append(interaction)
 
         profile.last_updated = datetime.now()
 
-    async def _content_based_recommendations(self, user_id: str,
-                                           options: Optional[Dict[str, Any]] = None) -> List[Recommendation]:
+    async def _content_based_recommendations(
+        self, user_id: str, options: Optional[Dict[str, Any]] = None
+    ) -> List[Recommendation]:
         """Generate content-based recommendations"""
         profile = self.user_profiles[user_id]
         max_recommendations = options.get("max_recommendations", 10) if options else 10
@@ -262,13 +281,21 @@ class PersonalizationRecommendationEngine:
 
         for item_id, item in self.content_items.items():
             # Skip items the user has already interacted with heavily
-            user_interactions = [i for i in self.interactions
-                               if i.user_id == user_id and i.item_id == item_id]
+            user_interactions = [
+                i
+                for i in self.interactions
+                if i.user_id == user_id and i.item_id == item_id
+            ]
             if user_interactions:
                 continue
 
             # Calculate similarity based on tag overlap
-            tag_similarity = len(user_interests.intersection(item.tags)) / len(user_interests.union(item.tags)) if user_interests.union(item.tags) else 0
+            tag_similarity = (
+                len(user_interests.intersection(item.tags))
+                / len(user_interests.union(item.tags))
+                if user_interests.union(item.tags)
+                else 0
+            )
 
             # Calculate preference similarity
             preference_score = 0
@@ -277,7 +304,9 @@ class PersonalizationRecommendationEngine:
                     if pref_key in item.features:
                         if item.features[pref_key] == pref_value:
                             preference_score += 1
-                preference_score /= len(profile.preferences) if profile.preferences else 1
+                preference_score /= (
+                    len(profile.preferences) if profile.preferences else 1
+                )
 
             # Combined score
             score = (tag_similarity * 0.7) + (preference_score * 0.3)
@@ -292,8 +321,8 @@ class PersonalizationRecommendationEngine:
                     recommendation_type=RecommendationType.CONTENT_BASED,
                     context_factors={
                         "tag_similarity": tag_similarity,
-                        "preference_match": preference_score
-                    }
+                        "preference_match": preference_score,
+                    },
                 )
                 recommendations.append(recommendation)
 
@@ -301,8 +330,9 @@ class PersonalizationRecommendationEngine:
         recommendations.sort(key=lambda x: x.score, reverse=True)
         return recommendations[:max_recommendations]
 
-    async def _collaborative_filtering_recommendations(self, user_id: str,
-                                                     options: Optional[Dict[str, Any]] = None) -> List[Recommendation]:
+    async def _collaborative_filtering_recommendations(
+        self, user_id: str, options: Optional[Dict[str, Any]] = None
+    ) -> List[Recommendation]:
         """Generate collaborative filtering recommendations"""
         max_recommendations = options.get("max_recommendations", 10) if options else 10
 
@@ -314,8 +344,11 @@ class PersonalizationRecommendationEngine:
         # Get items liked by similar users
         candidate_items = set()
         for similar_user_id, similarity in similar_users:
-            user_interactions = [i for i in self.interactions
-                               if i.user_id == similar_user_id and i.rating and i.rating > 3.0]
+            user_interactions = [
+                i
+                for i in self.interactions
+                if i.user_id == similar_user_id and i.rating and i.rating > 3.0
+            ]
             candidate_items.update([i.item_id for i in user_interactions])
 
         # Remove items the user has already interacted with
@@ -333,9 +366,11 @@ class PersonalizationRecommendationEngine:
             for similar_user_id, similarity in similar_users:
                 user_rating = None
                 for interaction in self.interactions:
-                    if (interaction.user_id == similar_user_id and
-                        interaction.item_id == item_id and
-                        interaction.rating):
+                    if (
+                        interaction.user_id == similar_user_id
+                        and interaction.item_id == item_id
+                        and interaction.rating
+                    ):
                         user_rating = interaction.rating
                         break
 
@@ -355,15 +390,17 @@ class PersonalizationRecommendationEngine:
                     recommendation_type=RecommendationType.COLLABORATIVE,
                     context_factors={
                         "similar_users_count": len(contributing_users),
-                        "average_similarity": np.mean([s for _, s in similar_users])
-                    }
+                        "average_similarity": np.mean([s for _, s in similar_users]),
+                    },
                 )
                 recommendations.append(recommendation)
 
         recommendations.sort(key=lambda x: x.score, reverse=True)
         return recommendations[:max_recommendations]
 
-    async def _find_similar_users(self, user_id: str, top_k: int = 5) -> List[Tuple[str, float]]:
+    async def _find_similar_users(
+        self, user_id: str, top_k: int = 5
+    ) -> List[Tuple[str, float]]:
         """Find users similar to the given user"""
         if user_id not in self.user_profiles:
             return []
@@ -376,19 +413,26 @@ class PersonalizationRecommendationEngine:
                 continue
 
             # Calculate similarity based on interests overlap
-            interest_similarity = (len(target_profile.interests.intersection(other_profile.interests)) /
-                                 len(target_profile.interests.union(other_profile.interests))
-                                 if target_profile.interests.union(other_profile.interests) else 0)
+            interest_similarity = (
+                len(target_profile.interests.intersection(other_profile.interests))
+                / len(target_profile.interests.union(other_profile.interests))
+                if target_profile.interests.union(other_profile.interests)
+                else 0
+            )
 
             # Calculate similarity based on skill levels
             skill_similarity = 0
             common_skills = set(target_profile.skill_levels.keys()).intersection(
-                          set(other_profile.skill_levels.keys()))
+                set(other_profile.skill_levels.keys())
+            )
 
             if common_skills:
                 skill_diffs = []
                 for skill in common_skills:
-                    diff = abs(target_profile.skill_levels[skill] - other_profile.skill_levels[skill])
+                    diff = abs(
+                        target_profile.skill_levels[skill]
+                        - other_profile.skill_levels[skill]
+                    )
                     skill_diffs.append(1.0 - (diff / 10.0))  # Normalize difference
                 skill_similarity = np.mean(skill_diffs)
 
@@ -401,16 +445,21 @@ class PersonalizationRecommendationEngine:
         similarities.sort(key=lambda x: x[1], reverse=True)
         return similarities[:top_k]
 
-    async def _hybrid_recommendations(self, user_id: str,
-                                    options: Optional[Dict[str, Any]] = None) -> List[Recommendation]:
+    async def _hybrid_recommendations(
+        self, user_id: str, options: Optional[Dict[str, Any]] = None
+    ) -> List[Recommendation]:
         """Generate hybrid recommendations combining multiple approaches"""
         max_recommendations = options.get("max_recommendations", 10) if options else 10
 
         # Get content-based recommendations
-        content_based = await self._content_based_recommendations(user_id, {"max_recommendations": max_recommendations * 2})
+        content_based = await self._content_based_recommendations(
+            user_id, {"max_recommendations": max_recommendations * 2}
+        )
 
         # Get collaborative recommendations
-        collaborative = await self._collaborative_filtering_recommendations(user_id, {"max_recommendations": max_recommendations * 2})
+        collaborative = await self._collaborative_filtering_recommendations(
+            user_id, {"max_recommendations": max_recommendations * 2}
+        )
 
         # Combine and re-rank
         all_candidates = {rec.item_id: rec for rec in content_based}
@@ -428,8 +477,12 @@ class PersonalizationRecommendationEngine:
 
         return recommendations[:max_recommendations]
 
-    async def _contextual_recommendations(self, user_id: str, user_data: Dict[str, Any],
-                                        options: Optional[Dict[str, Any]] = None) -> List[Recommendation]:
+    async def _contextual_recommendations(
+        self,
+        user_id: str,
+        user_data: Dict[str, Any],
+        options: Optional[Dict[str, Any]] = None,
+    ) -> List[Recommendation]:
         """Generate context-aware recommendations"""
         context = user_data.get("context", {})
         current_time = datetime.now()
@@ -484,20 +537,24 @@ class PersonalizationRecommendationEngine:
                     context_factors={
                         "time_context": time_context,
                         "location": location,
-                        "device": device
-                    }
+                        "device": device,
+                    },
                 )
                 recommendations.append(recommendation)
 
         recommendations.sort(key=lambda x: x.score, reverse=True)
-        return recommendations[:options.get("max_recommendations", 10) if options else 10]
+        return recommendations[
+            : options.get("max_recommendations", 10) if options else 10
+        ]
 
-    async def _trend_based_recommendations(self, user_id: str,
-                                         options: Optional[Dict[str, Any]] = None) -> List[Recommendation]:
+    async def _trend_based_recommendations(
+        self, user_id: str, options: Optional[Dict[str, Any]] = None
+    ) -> List[Recommendation]:
         """Generate trend-based recommendations"""
         # Analyze recent interactions to find trending items
-        recent_interactions = [i for i in self.interactions
-                             if (datetime.now() - i.timestamp).days <= 7]
+        recent_interactions = [
+            i for i in self.interactions if (datetime.now() - i.timestamp).days <= 7
+        ]
 
         # Count interactions per item
         item_counts = Counter([i.item_id for i in recent_interactions])
@@ -516,15 +573,18 @@ class PersonalizationRecommendationEngine:
                     recommendation_type=RecommendationType.TREND_BASED,
                     context_factors={
                         "recent_interactions": interaction_count,
-                        "trend_period_days": 7
-                    }
+                        "trend_period_days": 7,
+                    },
                 )
                 recommendations.append(recommendation)
 
         return recommendations
 
-    async def _apply_recommendation_filters(self, recommendations: List[Recommendation],
-                                          options: Optional[Dict[str, Any]] = None) -> List[Recommendation]:
+    async def _apply_recommendation_filters(
+        self,
+        recommendations: List[Recommendation],
+        options: Optional[Dict[str, Any]] = None,
+    ) -> List[Recommendation]:
         """Apply business rules and diversity filters"""
         if not recommendations:
             return recommendations
@@ -545,13 +605,21 @@ class PersonalizationRecommendationEngine:
             if item and item.content_type not in content_types:
                 diverse.append(rec)
                 content_types.add(item.content_type)
-                if len(diverse) >= (options.get("max_recommendations", 10) if options else 10):
+                if len(diverse) >= (
+                    options.get("max_recommendations", 10) if options else 10
+                ):
                     break
 
         # If we don't have enough diverse recommendations, fill with remaining
         if len(diverse) < len(filtered):
             remaining = [rec for rec in filtered if rec not in diverse]
-            diverse.extend(remaining[: (options.get("max_recommendations", 10) - len(diverse)) if options else (10 - len(diverse))])
+            diverse.extend(
+                remaining[
+                    : (options.get("max_recommendations", 10) - len(diverse))
+                    if options
+                    else (10 - len(diverse))
+                ]
+            )
 
         return diverse
 
@@ -566,7 +634,7 @@ class PersonalizationRecommendationEngine:
             description=item_data.get("description", ""),
             tags=set(item_data.get("tags", [])),
             features=item_data.get("features", {}),
-            popularity_score=item_data.get("popularity_score", 0.0)
+            popularity_score=item_data.get("popularity_score", 0.0),
         )
 
         self.content_items[item_id] = item
@@ -584,13 +652,15 @@ class PersonalizationRecommendationEngine:
             interaction_type=interaction_data["interaction_type"],
             rating=interaction_data.get("rating"),
             duration=interaction_data.get("duration"),
-            context=interaction_data.get("context", {})
+            context=interaction_data.get("context", {}),
         )
 
         self.interactions.append(interaction)
 
         # Update user-item matrix
-        rating = interaction.rating or (1.0 if interaction.interaction_type in ["like", "complete"] else 0.5)
+        rating = interaction.rating or (
+            1.0 if interaction.interaction_type in ["like", "complete"] else 0.5
+        )
         self.user_item_matrix[interaction.user_id][interaction.item_id] = rating
 
     async def get_user_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
@@ -604,9 +674,15 @@ class PersonalizationRecommendationEngine:
             "preferences": profile.preferences,
             "skill_levels": profile.skill_levels,
             "interests": list(profile.interests),
-            "total_interactions": len([i for i in self.interactions if i.user_id == user_id]),
-            "created_at": profile.created_at.isoformat() if profile.created_at else None,
-            "last_updated": profile.last_updated.isoformat() if profile.last_updated else None
+            "total_interactions": len(
+                [i for i in self.interactions if i.user_id == user_id]
+            ),
+            "created_at": profile.created_at.isoformat()
+            if profile.created_at
+            else None,
+            "last_updated": profile.last_updated.isoformat()
+            if profile.last_updated
+            else None,
         }
 
     async def get_recommendation_stats(self) -> Dict[str, Any]:
@@ -615,7 +691,13 @@ class PersonalizationRecommendationEngine:
             "total_users": len(self.user_profiles),
             "total_content_items": len(self.content_items),
             "total_interactions": len(self.interactions),
-            "content_types": {ct.value: len([i for i in self.content_items.values() if i.content_type == ct])
-                            for ct in ContentType},
-            "recommendation_types": {rt.value: 0 for rt in RecommendationType}  # Would be tracked in real implementation
+            "content_types": {
+                ct.value: len(
+                    [i for i in self.content_items.values() if i.content_type == ct]
+                )
+                for ct in ContentType
+            },
+            "recommendation_types": {
+                rt.value: 0 for rt in RecommendationType
+            },  # Would be tracked in real implementation
         }

@@ -48,6 +48,7 @@ class TeamRole(Enum):
 @dataclass
 class TeamMember:
     """Team member information"""
+
     user_id: str
     name: str
     role: TeamRole
@@ -64,6 +65,7 @@ class TeamMember:
 @dataclass
 class CollaborationEvent:
     """Collaboration event"""
+
     event_id: str
     event_type: CollaborationEventType
     user_id: str
@@ -80,6 +82,7 @@ class CollaborationEvent:
 @dataclass
 class TeamSession:
     """Team collaboration session"""
+
     session_id: str
     session_type: str  # meeting, sprint, review, etc.
     participants: List[str]
@@ -99,6 +102,7 @@ class TeamSession:
 @dataclass
 class TeamInsight:
     """Team intelligence insight"""
+
     insight_id: str
     insight_type: str
     title: str
@@ -134,8 +138,9 @@ class CollaborationIntelligence:
 
         self.logger.info("Collaboration Intelligence system initialized")
 
-    async def analyze_team_collaboration(self, team_data: Dict[str, Any],
-                                       options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def analyze_team_collaboration(
+        self, team_data: Dict[str, Any], options: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Analyze team collaboration patterns and generate insights"""
         try:
             # Extract team information
@@ -147,10 +152,14 @@ class CollaborationIntelligence:
                 await self._update_team_member(member_data)
 
             # Analyze communication patterns
-            communication_analysis = await self._analyze_communication_patterns(time_period)
+            communication_analysis = await self._analyze_communication_patterns(
+                time_period
+            )
 
             # Analyze productivity patterns
-            productivity_analysis = await self._analyze_productivity_patterns(time_period)
+            productivity_analysis = await self._analyze_productivity_patterns(
+                time_period
+            )
 
             # Generate team insights
             insights = await self._generate_team_insights(team_data)
@@ -166,7 +175,7 @@ class CollaborationIntelligence:
                 "team_insights": [asdict(insight) for insight in insights],
                 "team_health_score": health_score,
                 "recommendations": await self._generate_recommendations(insights),
-                "generated_at": datetime.now().isoformat()
+                "generated_at": datetime.now().isoformat(),
             }
 
         except Exception as e:
@@ -184,21 +193,27 @@ class CollaborationIntelligence:
                 role=TeamRole(member_data.get("role", "contributor")),
                 skills=member_data.get("skills", []),
                 availability_status=member_data.get("availability_status", "available"),
-                current_project=member_data.get("current_project")
+                current_project=member_data.get("current_project"),
             )
         else:
             member = self.team_members[user_id]
             member.name = member_data.get("name", member.name)
             member.role = TeamRole(member_data.get("role", member.role.value))
             member.skills = member_data.get("skills", member.skills)
-            member.availability_status = member_data.get("availability_status", member.availability_status)
-            member.current_project = member_data.get("current_project", member.current_project)
+            member.availability_status = member_data.get(
+                "availability_status", member.availability_status
+            )
+            member.current_project = member_data.get(
+                "current_project", member.current_project
+            )
             member.last_active = datetime.now()
 
     async def _analyze_communication_patterns(self, time_period: int) -> Dict[str, Any]:
         """Analyze team communication patterns"""
         cutoff_date = datetime.now() - timedelta(days=time_period)
-        recent_events = [e for e in self.collaboration_events if e.timestamp >= cutoff_date]
+        recent_events = [
+            e for e in self.collaboration_events if e.timestamp >= cutoff_date
+        ]
 
         # Channel usage analysis
         channel_usage = Counter([e.channel.value for e in recent_events])
@@ -221,7 +236,9 @@ class CollaborationIntelligence:
             if len(thread_events) > 1:
                 sorted_events = sorted(thread_events, key=lambda x: x.timestamp)
                 for i in range(1, len(sorted_events)):
-                    time_diff = (sorted_events[i].timestamp - sorted_events[i-1].timestamp).total_seconds()
+                    time_diff = (
+                        sorted_events[i].timestamp - sorted_events[i - 1].timestamp
+                    ).total_seconds()
                     if time_diff < 3600:  # Only count responses within 1 hour
                         response_times.append(time_diff)
 
@@ -241,7 +258,9 @@ class CollaborationIntelligence:
             "member_activity": dict(member_activity),
             "average_response_time_seconds": avg_response_time,
             "communication_network_size": len(communication_network),
-            "most_active_channel": channel_usage.most_common(1)[0][0] if channel_usage else None
+            "most_active_channel": channel_usage.most_common(1)[0][0]
+            if channel_usage
+            else None,
         }
 
     async def _analyze_productivity_patterns(self, time_period: int) -> Dict[str, Any]:
@@ -249,15 +268,23 @@ class CollaborationIntelligence:
         cutoff_date = datetime.now() - timedelta(days=time_period)
 
         # Analyze sessions
-        recent_sessions = [s for s in self.active_sessions.values()
-                          if s.start_time >= cutoff_date and s.end_time]
+        recent_sessions = [
+            s
+            for s in self.active_sessions.values()
+            if s.start_time >= cutoff_date and s.end_time
+        ]
 
-        productivity_scores = [s.productivity_score for s in recent_sessions if s.productivity_score]
+        productivity_scores = [
+            s.productivity_score for s in recent_sessions if s.productivity_score
+        ]
 
         # Task completion analysis from events
-        task_events = [e for e in self.collaboration_events
-                      if e.event_type == CollaborationEventType.TASK_ASSIGNED
-                      and e.timestamp >= cutoff_date]
+        task_events = [
+            e
+            for e in self.collaboration_events
+            if e.event_type == CollaborationEventType.TASK_ASSIGNED
+            and e.timestamp >= cutoff_date
+        ]
 
         # Meeting analysis
         meetings = [s for s in recent_sessions if s.session_type == "meeting"]
@@ -268,20 +295,30 @@ class CollaborationIntelligence:
                 meeting_effectiveness.append(meeting.productivity_score)
 
         # Collaboration patterns
-        collaboration_events = [e for e in self.collaboration_events
-                               if e.timestamp >= cutoff_date
-                               and e.event_type in [CollaborationEventType.DOCUMENT_EDITED,
-                                                  CollaborationEventType.FILE_SHARED,
-                                                  CollaborationEventType.COMMENT_ADDED]]
+        collaboration_events = [
+            e
+            for e in self.collaboration_events
+            if e.timestamp >= cutoff_date
+            and e.event_type
+            in [
+                CollaborationEventType.DOCUMENT_EDITED,
+                CollaborationEventType.FILE_SHARED,
+                CollaborationEventType.COMMENT_ADDED,
+            ]
+        ]
 
         return {
             "total_sessions": len(recent_sessions),
-            "average_productivity_score": statistics.mean(productivity_scores) if productivity_scores else 0,
+            "average_productivity_score": statistics.mean(productivity_scores)
+            if productivity_scores
+            else 0,
             "total_tasks_assigned": len(task_events),
             "total_meetings": len(meetings),
-            "average_meeting_effectiveness": statistics.mean(meeting_effectiveness) if meeting_effectiveness else 0,
+            "average_meeting_effectiveness": statistics.mean(meeting_effectiveness)
+            if meeting_effectiveness
+            else 0,
             "collaboration_events_count": len(collaboration_events),
-            "most_productive_day": await self._find_most_productive_day(time_period)
+            "most_productive_day": await self._find_most_productive_day(time_period),
         }
 
     async def _find_most_productive_day(self, time_period: int) -> Optional[str]:
@@ -300,45 +337,51 @@ class CollaborationIntelligence:
 
         return None
 
-    async def _generate_team_insights(self, team_data: Dict[str, Any]) -> List[TeamInsight]:
+    async def _generate_team_insights(
+        self, team_data: Dict[str, Any]
+    ) -> List[TeamInsight]:
         """Generate intelligent insights about team collaboration"""
         insights = []
 
         # Communication bottlenecks
         comm_analysis = await self._analyze_communication_patterns(7)  # Last week
         if comm_analysis["average_response_time_seconds"] > 3600:  # Over 1 hour
-            insights.append(TeamInsight(
-                insight_id=str(uuid.uuid4()),
-                insight_type="communication_bottleneck",
-                title="Slow Response Times Detected",
-                description=f"Average response time is {comm_analysis['average_response_time_seconds']/60:.1f} minutes, indicating potential communication bottlenecks.",
-                severity="medium",
-                affected_members=list(self.team_members.keys()),
-                recommendations=[
-                    "Consider setting up dedicated communication channels",
-                    "Implement response time SLAs for urgent matters",
-                    "Use collaboration tools with better notification systems"
-                ],
-                confidence_score=0.8
-            ))
+            insights.append(
+                TeamInsight(
+                    insight_id=str(uuid.uuid4()),
+                    insight_type="communication_bottleneck",
+                    title="Slow Response Times Detected",
+                    description=f"Average response time is {comm_analysis['average_response_time_seconds']/60:.1f} minutes, indicating potential communication bottlenecks.",
+                    severity="medium",
+                    affected_members=list(self.team_members.keys()),
+                    recommendations=[
+                        "Consider setting up dedicated communication channels",
+                        "Implement response time SLAs for urgent matters",
+                        "Use collaboration tools with better notification systems",
+                    ],
+                    confidence_score=0.8,
+                )
+            )
 
         # Productivity patterns
         prod_analysis = await self._analyze_productivity_patterns(30)
         if prod_analysis["average_productivity_score"] < 0.5:
-            insights.append(TeamInsight(
-                insight_id=str(uuid.uuid4()),
-                insight_type="low_productivity",
-                title="Low Team Productivity",
-                description=f"Team productivity score is {prod_analysis['average_productivity_score']:.2f}, below recommended levels.",
-                severity="high",
-                affected_members=list(self.team_members.keys()),
-                recommendations=[
-                    "Review meeting schedules and reduce unnecessary meetings",
-                    "Implement productivity tracking tools",
-                    "Consider workload balancing across team members"
-                ],
-                confidence_score=0.9
-            ))
+            insights.append(
+                TeamInsight(
+                    insight_id=str(uuid.uuid4()),
+                    insight_type="low_productivity",
+                    title="Low Team Productivity",
+                    description=f"Team productivity score is {prod_analysis['average_productivity_score']:.2f}, below recommended levels.",
+                    severity="high",
+                    affected_members=list(self.team_members.keys()),
+                    recommendations=[
+                        "Review meeting schedules and reduce unnecessary meetings",
+                        "Implement productivity tracking tools",
+                        "Consider workload balancing across team members",
+                    ],
+                    confidence_score=0.9,
+                )
+            )
 
         # Collaboration imbalances
         member_activity = comm_analysis["member_activity"]
@@ -347,40 +390,50 @@ class CollaborationIntelligence:
             min_activity = min(member_activity.values())
 
             if max_activity > min_activity * 2:  # 2x difference
-                inactive_members = [uid for uid, count in member_activity.items()
-                                  if count < max_activity * 0.5]
-                insights.append(TeamInsight(
-                    insight_id=str(uuid.uuid4()),
-                    insight_type="collaboration_imbalance",
-                    title="Uneven Collaboration Participation",
-                    description="Some team members are significantly less active in collaboration than others.",
-                    severity="medium",
-                    affected_members=inactive_members,
-                    recommendations=[
-                        "Encourage participation from all team members",
-                        "Provide training on collaboration tools",
-                        "Schedule regular check-ins to ensure everyone is engaged"
-                    ],
-                    confidence_score=0.7
-                ))
+                inactive_members = [
+                    uid
+                    for uid, count in member_activity.items()
+                    if count < max_activity * 0.5
+                ]
+                insights.append(
+                    TeamInsight(
+                        insight_id=str(uuid.uuid4()),
+                        insight_type="collaboration_imbalance",
+                        title="Uneven Collaboration Participation",
+                        description="Some team members are significantly less active in collaboration than others.",
+                        severity="medium",
+                        affected_members=inactive_members,
+                        recommendations=[
+                            "Encourage participation from all team members",
+                            "Provide training on collaboration tools",
+                            "Schedule regular check-ins to ensure everyone is engaged",
+                        ],
+                        confidence_score=0.7,
+                    )
+                )
 
         # Meeting effectiveness
-        if prod_analysis["total_meetings"] > 0 and prod_analysis["average_meeting_effectiveness"] < 0.6:
-            insights.append(TeamInsight(
-                insight_id=str(uuid.uuid4()),
-                insight_type="ineffective_meetings",
-                title="Low Meeting Effectiveness",
-                description=f"Meeting effectiveness score is {prod_analysis['average_meeting_effectiveness']:.2f}, indicating meetings may not be productive.",
-                severity="medium",
-                affected_members=list(self.team_members.keys()),
-                recommendations=[
-                    "Set clear agendas for all meetings",
-                    "Limit meeting duration and stick to schedules",
-                    "Use meeting effectiveness surveys",
-                    "Consider async communication for routine updates"
-                ],
-                confidence_score=0.75
-            ))
+        if (
+            prod_analysis["total_meetings"] > 0
+            and prod_analysis["average_meeting_effectiveness"] < 0.6
+        ):
+            insights.append(
+                TeamInsight(
+                    insight_id=str(uuid.uuid4()),
+                    insight_type="ineffective_meetings",
+                    title="Low Meeting Effectiveness",
+                    description=f"Meeting effectiveness score is {prod_analysis['average_meeting_effectiveness']:.2f}, indicating meetings may not be productive.",
+                    severity="medium",
+                    affected_members=list(self.team_members.keys()),
+                    recommendations=[
+                        "Set clear agendas for all meetings",
+                        "Limit meeting duration and stick to schedules",
+                        "Use meeting effectiveness surveys",
+                        "Consider async communication for routine updates",
+                    ],
+                    confidence_score=0.75,
+                )
+            )
 
         return insights
 
@@ -391,9 +444,13 @@ class CollaborationIntelligence:
         # Communication health (30%)
         comm_analysis = await self._analyze_communication_patterns(7)
         if comm_analysis["total_messages"] > 0:
-            response_time_score = max(0, 1 - (comm_analysis["average_response_time_seconds"] / 7200))  # Normalize to 2 hours
-            activity_balance = 1 - (max(comm_analysis["member_activity"].values()) -
-                                  min(comm_analysis["member_activity"].values())) / max(comm_analysis["member_activity"].values())
+            response_time_score = max(
+                0, 1 - (comm_analysis["average_response_time_seconds"] / 7200)
+            )  # Normalize to 2 hours
+            activity_balance = 1 - (
+                max(comm_analysis["member_activity"].values())
+                - min(comm_analysis["member_activity"].values())
+            ) / max(comm_analysis["member_activity"].values())
             comm_score = (response_time_score + activity_balance) / 2
             scores.append(comm_score * 0.3)
 
@@ -403,11 +460,21 @@ class CollaborationIntelligence:
         scores.append(prod_score)
 
         # Collaboration health (30%)
-        collab_events = len([e for e in self.collaboration_events
-                           if e.timestamp >= datetime.now() - timedelta(days=7)
-                           and e.event_type in [CollaborationEventType.DOCUMENT_EDITED,
-                                              CollaborationEventType.FILE_SHARED]])
-        collab_score = min(collab_events / 50, 1) * 0.3  # Normalize to 50 collaborative events
+        collab_events = len(
+            [
+                e
+                for e in self.collaboration_events
+                if e.timestamp >= datetime.now() - timedelta(days=7)
+                and e.event_type
+                in [
+                    CollaborationEventType.DOCUMENT_EDITED,
+                    CollaborationEventType.FILE_SHARED,
+                ]
+            ]
+        )
+        collab_score = (
+            min(collab_events / 50, 1) * 0.3
+        )  # Normalize to 50 collaborative events
         scores.append(collab_score)
 
         return sum(scores) if scores else 0.0
@@ -419,40 +486,50 @@ class CollaborationIntelligence:
         insight_types = set([i.insight_type for i in insights])
 
         if "communication_bottleneck" in insight_types:
-            recommendations.extend([
-                "Implement structured communication protocols",
-                "Use collaboration tools with real-time notifications",
-                "Establish communication response time expectations"
-            ])
+            recommendations.extend(
+                [
+                    "Implement structured communication protocols",
+                    "Use collaboration tools with real-time notifications",
+                    "Establish communication response time expectations",
+                ]
+            )
 
         if "low_productivity" in insight_types:
-            recommendations.extend([
-                "Conduct productivity audits to identify bottlenecks",
-                "Implement time tracking and productivity monitoring",
-                "Consider workload redistribution across team members"
-            ])
+            recommendations.extend(
+                [
+                    "Conduct productivity audits to identify bottlenecks",
+                    "Implement time tracking and productivity monitoring",
+                    "Consider workload redistribution across team members",
+                ]
+            )
 
         if "collaboration_imbalance" in insight_types:
-            recommendations.extend([
-                "Create opportunities for all team members to contribute",
-                "Provide training on collaboration tools and processes",
-                "Establish rotation schedules for different types of tasks"
-            ])
+            recommendations.extend(
+                [
+                    "Create opportunities for all team members to contribute",
+                    "Provide training on collaboration tools and processes",
+                    "Establish rotation schedules for different types of tasks",
+                ]
+            )
 
         if "ineffective_meetings" in insight_types:
-            recommendations.extend([
-                "Implement meeting effectiveness metrics",
-                "Require agendas and clear objectives for all meetings",
-                "Consider meeting-free days or time blocks"
-            ])
+            recommendations.extend(
+                [
+                    "Implement meeting effectiveness metrics",
+                    "Require agendas and clear objectives for all meetings",
+                    "Consider meeting-free days or time blocks",
+                ]
+            )
 
         # General recommendations if no specific issues
         if not insights:
-            recommendations.extend([
-                "Continue monitoring team collaboration metrics",
-                "Regularly review and optimize communication channels",
-                "Maintain current productivity and collaboration practices"
-            ])
+            recommendations.extend(
+                [
+                    "Continue monitoring team collaboration metrics",
+                    "Regularly review and optimize communication channels",
+                    "Maintain current productivity and collaboration practices",
+                ]
+            )
 
         return recommendations[:10]  # Limit to top 10
 
@@ -464,7 +541,7 @@ class CollaborationIntelligence:
             user_id=event_data["user_id"],
             channel=CommunicationChannel(event_data.get("channel", "chat")),
             content=event_data.get("content", {}),
-            metadata=event_data.get("metadata", {})
+            metadata=event_data.get("metadata", {}),
         )
 
         self.collaboration_events.append(event)
@@ -482,7 +559,7 @@ class CollaborationIntelligence:
             session_type=session_data["session_type"],
             participants=session_data["participants"],
             start_time=datetime.now(),
-            objectives=session_data.get("objectives", [])
+            objectives=session_data.get("objectives", []),
         )
 
         self.active_sessions[session_id] = session
@@ -494,8 +571,12 @@ class CollaborationIntelligence:
 
         return session_id
 
-    async def end_team_session(self, session_id: str, outcomes: List[str] = None,
-                             productivity_score: float = None):
+    async def end_team_session(
+        self,
+        session_id: str,
+        outcomes: List[str] = None,
+        productivity_score: float = None,
+    ):
         """End a team session"""
         if session_id not in self.active_sessions:
             return {"error": "Session not found"}
@@ -510,7 +591,11 @@ class CollaborationIntelligence:
             if participant_id in self.team_members:
                 self.team_members[participant_id].availability_status = "available"
 
-        return {"status": "session_ended", "duration_minutes": (session.end_time - session.start_time).total_seconds() / 60}
+        return {
+            "status": "session_ended",
+            "duration_minutes": (session.end_time - session.start_time).total_seconds()
+            / 60,
+        }
 
     async def _monitor_collaboration_patterns(self):
         """Monitor collaboration patterns in the background"""
@@ -520,12 +605,17 @@ class CollaborationIntelligence:
                 await asyncio.sleep(3600)
 
                 # Update communication patterns
-                recent_events = [e for e in self.collaboration_events
-                               if e.timestamp >= datetime.now() - timedelta(hours=1)]
+                recent_events = [
+                    e
+                    for e in self.collaboration_events
+                    if e.timestamp >= datetime.now() - timedelta(hours=1)
+                ]
 
                 for event in recent_events:
                     user_patterns = self.communication_patterns[event.user_id]
-                    user_patterns["total_events"] = user_patterns.get("total_events", 0) + 1
+                    user_patterns["total_events"] = (
+                        user_patterns.get("total_events", 0) + 1
+                    )
                     user_patterns["last_activity"] = event.timestamp
 
                     # Track channel preferences
@@ -548,23 +638,33 @@ class CollaborationIntelligence:
             "role": member.role.value,
             "availability_status": member.availability_status,
             "current_project": member.current_project,
-            "last_active": member.last_active.isoformat() if member.last_active else None,
-            "skills": member.skills
+            "last_active": member.last_active.isoformat()
+            if member.last_active
+            else None,
+            "skills": member.skills,
         }
 
     async def get_team_overview(self) -> Dict[str, Any]:
         """Get overall team overview"""
         total_members = len(self.team_members)
-        active_members = len([m for m in self.team_members.values()
-                            if m.availability_status == "available"])
-        busy_members = len([m for m in self.team_members.values()
-                          if m.availability_status == "busy"])
+        active_members = len(
+            [
+                m
+                for m in self.team_members.values()
+                if m.availability_status == "available"
+            ]
+        )
+        busy_members = len(
+            [m for m in self.team_members.values() if m.availability_status == "busy"]
+        )
 
         # Role distribution
         role_distribution = Counter([m.role.value for m in self.team_members.values()])
 
         # Active sessions
-        active_sessions_count = len([s for s in self.active_sessions.values() if not s.end_time])
+        active_sessions_count = len(
+            [s for s in self.active_sessions.values() if not s.end_time]
+        )
 
         return {
             "total_members": total_members,
@@ -573,10 +673,12 @@ class CollaborationIntelligence:
             "offline_members": total_members - active_members - busy_members,
             "role_distribution": dict(role_distribution),
             "active_sessions": active_sessions_count,
-            "team_health_score": await self._calculate_team_health_score()
+            "team_health_score": await self._calculate_team_health_score(),
         }
 
-    async def optimize_team_workflow(self, project_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def optimize_team_workflow(
+        self, project_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Provide workflow optimization recommendations"""
         # Analyze current workflow and suggest improvements
         team_size = len(self.team_members)
@@ -601,5 +703,7 @@ class CollaborationIntelligence:
             "project_complexity": project_complexity,
             "deadline_pressure": deadline_pressure,
             "workflow_recommendations": recommendations,
-            "suggested_methodology": "agile" if deadline_pressure == "high" else "kanban"
+            "suggested_methodology": "agile"
+            if deadline_pressure == "high"
+            else "kanban",
         }

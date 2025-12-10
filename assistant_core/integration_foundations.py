@@ -72,15 +72,27 @@ class TokenRefreshScheduler:
     def __init__(self):
         self._tasks: Dict[str, asyncio.Task] = {}
 
-    async def schedule(self, name: str, expires_at: float, refresh_fn: Callable[[], Awaitable[Dict[str, Any]]]):
+    async def schedule(
+        self,
+        name: str,
+        expires_at: float,
+        refresh_fn: Callable[[], Awaitable[Dict[str, Any]]],
+    ):
         # Cancel any existing refresh job
         if name in self._tasks and not self._tasks[name].done():
             self._tasks[name].cancel()
 
         delay = max(0, expires_at - time.time() - 60)  # refresh one minute early
-        self._tasks[name] = asyncio.create_task(self._refresh_after_delay(delay, name, refresh_fn))
+        self._tasks[name] = asyncio.create_task(
+            self._refresh_after_delay(delay, name, refresh_fn)
+        )
 
-    async def _refresh_after_delay(self, delay: float, name: str, refresh_fn: Callable[[], Awaitable[Dict[str, Any]]]):
+    async def _refresh_after_delay(
+        self,
+        delay: float,
+        name: str,
+        refresh_fn: Callable[[], Awaitable[Dict[str, Any]]],
+    ):
         await asyncio.sleep(delay)
         await refresh_fn()
         # Task completes; caller is responsible for scheduling again with new expiry
@@ -106,10 +118,12 @@ class MicrosoftOAuthProvider(OAuthProvider):
     name = "microsoft"
 
     def __init__(self):
-        super().__init__([
-            "https://graph.microsoft.com/.default",
-            "offline_access",
-        ])
+        super().__init__(
+            [
+                "https://graph.microsoft.com/.default",
+                "offline_access",
+            ]
+        )
         self.tenant: str = "common"
 
     def set_tenant(self, tenant_id: str) -> None:
@@ -127,7 +141,9 @@ class MicrosoftOAuthProvider(OAuthProvider):
         return token
 
     async def refresh_token(self, token: Dict[str, Any]) -> Dict[str, Any]:
-        token.update({"access_token": secrets.token_hex(16), "expires_at": time.time() + 3600})
+        token.update(
+            {"access_token": secrets.token_hex(16), "expires_at": time.time() + 3600}
+        )
         return token
 
 
@@ -135,10 +151,12 @@ class GoogleOAuthProvider(OAuthProvider):
     name = "google"
 
     def __init__(self):
-        super().__init__([
-            "https://www.googleapis.com/auth/calendar",
-            "https://www.googleapis.com/auth/gmail.readonly",
-        ])
+        super().__init__(
+            [
+                "https://www.googleapis.com/auth/calendar",
+                "https://www.googleapis.com/auth/gmail.readonly",
+            ]
+        )
 
     async def authenticate(self, user_id: str) -> Dict[str, Any]:
         return {
@@ -149,7 +167,9 @@ class GoogleOAuthProvider(OAuthProvider):
         }
 
     async def refresh_token(self, token: Dict[str, Any]) -> Dict[str, Any]:
-        token.update({"access_token": secrets.token_hex(16), "expires_at": time.time() + 3500})
+        token.update(
+            {"access_token": secrets.token_hex(16), "expires_at": time.time() + 3500}
+        )
         return token
 
 
@@ -169,7 +189,9 @@ class GitHubOAuthProvider(OAuthProvider):
 
     async def refresh_token(self, token: Dict[str, Any]) -> Dict[str, Any]:
         # GitHub tokens are often long-lived; refresh by re-issuing
-        token.update({"access_token": secrets.token_hex(16), "expires_at": time.time() + 7200})
+        token.update(
+            {"access_token": secrets.token_hex(16), "expires_at": time.time() + 7200}
+        )
         return token
 
 
@@ -202,7 +224,9 @@ class UnifiedAuthManager:
         expires_at = token.get("expires_at")
         if expires_at:
             await self.refresh_scheduler.schedule(
-                f"{provider}:{user_id}", expires_at, lambda: self.refresh(provider, user_id)
+                f"{provider}:{user_id}",
+                expires_at,
+                lambda: self.refresh(provider, user_id),
             )
         return token
 
@@ -217,7 +241,9 @@ class UnifiedAuthManager:
         expires_at = refreshed.get("expires_at")
         if expires_at:
             await self.refresh_scheduler.schedule(
-                f"{provider}:{user_id}", expires_at, lambda: self.refresh(provider, user_id)
+                f"{provider}:{user_id}",
+                expires_at,
+                lambda: self.refresh(provider, user_id),
             )
         return refreshed
 
@@ -225,7 +251,9 @@ class UnifiedAuthManager:
         # Real implementation would look up tenant in a directory service
         return "common"
 
-    def _persist_token(self, provider: str, user_id: str, token: Dict[str, Any]) -> None:
+    def _persist_token(
+        self, provider: str, user_id: str, token: Dict[str, Any]
+    ) -> None:
         name = f"{provider}:{user_id}"
         self.token_store.save(name, token)
         self.token_manager.save_token(name, token)
@@ -314,7 +342,10 @@ class TokenBucketLimiter:
         async with self._lock:
             self._refill()
             while self.tokens < 1:
-                wait_time = max(0.01, (1 - self.tokens) / self.refill_rate if self.refill_rate else 1)
+                wait_time = max(
+                    0.01,
+                    (1 - self.tokens) / self.refill_rate if self.refill_rate else 1,
+                )
                 await asyncio.sleep(wait_time)
                 self._refill()
             self.tokens -= 1
@@ -387,7 +418,7 @@ class ExponentialBackoffStrategy:
         self.maximum = maximum
 
     async def backoff(self, attempt: int):
-        delay = min(self.maximum, self.base * (self.factor ** attempt))
+        delay = min(self.maximum, self.base * (self.factor**attempt))
         await asyncio.sleep(delay)
         return delay
 
@@ -416,17 +447,25 @@ class AdaptiveRateLimiter:
 
     def get_rate_limit_config(self, service: str) -> RateLimitConfig:
         if service == "microsoft":
-            return RateLimitConfig(type="sliding_window", window_size=600, max_requests=10000)
+            return RateLimitConfig(
+                type="sliding_window", window_size=600, max_requests=10000
+            )
         if service == "openai":
             return RateLimitConfig(type="token_bucket", capacity=60, refill_rate=1)
         if service == "github":
-            return RateLimitConfig(type="sliding_window", window_size=3600, max_requests=5000)
+            return RateLimitConfig(
+                type="sliding_window", window_size=3600, max_requests=5000
+            )
         return RateLimitConfig(type="token_bucket", capacity=30, refill_rate=0.5)
 
     def create_limiter(self, config: RateLimitConfig):
         if config.type == "token_bucket":
-            return TokenBucketLimiter(capacity=config.capacity, refill_rate=config.refill_rate)
-        return SlidingWindowLimiter(window_size=config.window_size, max_requests=config.max_requests)
+            return TokenBucketLimiter(
+                capacity=config.capacity, refill_rate=config.refill_rate
+            )
+        return SlidingWindowLimiter(
+            window_size=config.window_size, max_requests=config.max_requests
+        )
 
     async def apply_throttling(self, service: str, status: QuotaStatus) -> None:
         # Simple throttling: wait proportionally to how close we are to the limit
@@ -556,7 +595,9 @@ class SchemaMapping:
     source_schema: str
     target_schema: str
     field_mappings: Dict[str, str]
-    post_processors: List[Callable[[Dict[str, Any]], Awaitable[Dict[str, Any]]]] = field(default_factory=list)
+    post_processors: List[
+        Callable[[Dict[str, Any]], Awaitable[Dict[str, Any]]]
+    ] = field(default_factory=list)
 
 
 class SchemaNotSupportedException(Exception):
@@ -575,14 +616,20 @@ class SchemaMapper:
             SchemaMapping(
                 source_schema="microsoft_task",
                 target_schema="internal_task",
-                field_mappings={"subject": "title", "dueDate": "due_date", "body": "description"},
+                field_mappings={
+                    "subject": "title",
+                    "dueDate": "due_date",
+                    "body": "description",
+                },
             )
         ]
 
     async def transform_data(self, data: Dict, source_schema: str, target_schema: str):
         mapping = self.get_mapping(source_schema, target_schema)
         if not mapping:
-            raise SchemaNotSupportedException(f"No mapping from {source_schema} to {target_schema}")
+            raise SchemaNotSupportedException(
+                f"No mapping from {source_schema} to {target_schema}"
+            )
 
         transformed: Dict[str, Any] = {}
         for source_field, target_field in mapping.field_mappings.items():
@@ -598,9 +645,14 @@ class SchemaMapper:
                 transformed = await processor(transformed)
         return transformed
 
-    def get_mapping(self, source_schema: str, target_schema: str) -> Optional[SchemaMapping]:
+    def get_mapping(
+        self, source_schema: str, target_schema: str
+    ) -> Optional[SchemaMapping]:
         for mapping in self.mappings:
-            if mapping.source_schema == source_schema and mapping.target_schema == target_schema:
+            if (
+                mapping.source_schema == source_schema
+                and mapping.target_schema == target_schema
+            ):
                 return mapping
         return None
 
@@ -675,13 +727,22 @@ class VersionAwareProcessor:
     def get_generic_processor(self, file_type: str) -> FileProcessor:
         return GenericProcessor()
 
-    async def handle_unsupported_feature(self, file_path: str, operation: str, error: Exception):
-        return {"file": file_path, "operation": operation, "status": "unsupported", "error": str(error)}
+    async def handle_unsupported_feature(
+        self, file_path: str, operation: str, error: Exception
+    ):
+        return {
+            "file": file_path,
+            "operation": operation,
+            "status": "unsupported",
+            "error": str(error),
+        }
 
     async def process_file(self, file_path: str, operation: str):
         file_type = self.detect_file_type(file_path)
         version = await self.detect_version(file_path, file_type)
-        processor = self.get_processor(file_type, version) or self.get_generic_processor(file_type)
+        processor = self.get_processor(
+            file_type, version
+        ) or self.get_generic_processor(file_type)
         try:
             return await processor.process(file_path, operation)
         except UnsupportedFeatureException as exc:  # pragma: no cover - placeholder
@@ -758,7 +819,11 @@ class StreamingFileProcessor:
         combined_checksum = hashlib.sha256(
             "".join(item.get("checksum", "") for item in results).encode("utf-8")
         ).hexdigest()
-        return {"operation": operation, "size": total_size, "checksum": combined_checksum}
+        return {
+            "operation": operation,
+            "size": total_size,
+            "checksum": combined_checksum,
+        }
 
 
 # Platform compatibility
@@ -825,7 +890,9 @@ class PlatformAbstractionLayer:
             return await self.get_calendar_adapter()
         return self.adapters["calendar"]
 
-    async def find_alternative_adapter(self, operation: str) -> Optional[PlatformAdapter]:
+    async def find_alternative_adapter(
+        self, operation: str
+    ) -> Optional[PlatformAdapter]:
         return self.adapters.get("calendar")
 
     async def execute_platform_operation(self, operation: str, **kwargs):
@@ -834,7 +901,9 @@ class PlatformAbstractionLayer:
             alternative = await self.find_alternative_adapter(operation)
             if alternative:
                 return await alternative.execute(operation, **kwargs)
-            raise PlatformNotSupportedException(f"Operation {operation} not supported on {self.platform}")
+            raise PlatformNotSupportedException(
+                f"Operation {operation} not supported on {self.platform}"
+            )
         return await adapter.execute(operation, **kwargs)
 
 
@@ -904,7 +973,9 @@ class MemoryAwareTaskScheduler:
 
     def __init__(self):
         self.memory_monitor = MemoryMonitor()
-        self.task_queue: asyncio.PriorityQueue[Tuple[int, Task]] = asyncio.PriorityQueue()
+        self.task_queue: asyncio.PriorityQueue[
+            Tuple[int, Task]
+        ] = asyncio.PriorityQueue()
         self.active_tasks: Dict[str, asyncio.Task] = {}
 
     async def schedule_task(self, task: Task):
@@ -920,11 +991,15 @@ class MemoryAwareTaskScheduler:
 
     async def execute_task(self, task: Task):
         if task.executor:
-            self.active_tasks[task.id] = asyncio.create_task(task.executor(task.payload))
+            self.active_tasks[task.id] = asyncio.create_task(
+                task.executor(task.payload)
+            )
         return {"task": task.id, "scheduled": False, "status": "running"}
 
     async def memory_cleanup(self):
-        completed = [task_id for task_id, job in self.active_tasks.items() if job.done()]
+        completed = [
+            task_id for task_id, job in self.active_tasks.items() if job.done()
+        ]
         for task_id in completed:
             self.active_tasks.pop(task_id, None)
         while not self.task_queue.empty():
@@ -957,7 +1032,9 @@ class QueryCache:
 
 
 class ConnectionPool:
-    def __init__(self, db_path: str, min_connections: int = 1, max_connections: int = 5):
+    def __init__(
+        self, db_path: str, min_connections: int = 1, max_connections: int = 5
+    ):
         self.db_path = db_path
         self.pool: asyncio.Queue = asyncio.Queue(max_connections)
         self.max_connections = max_connections
@@ -1000,7 +1077,9 @@ class IndexRecommendation:
 
 
 class IndexOptimizer:
-    async def analyze(self, query_stats: List[Dict[str, Any]]) -> List[IndexRecommendation]:
+    async def analyze(
+        self, query_stats: List[Dict[str, Any]]
+    ) -> List[IndexRecommendation]:
         return []
 
 
@@ -1008,12 +1087,18 @@ class OptimizedDatabaseLayer:
     """Optimized database operations for high-performance queries."""
 
     def __init__(self, db_path: str = ":memory:"):
-        self.connection_pool = ConnectionPool(db_path, min_connections=1, max_connections=5)
+        self.connection_pool = ConnectionPool(
+            db_path, min_connections=1, max_connections=5
+        )
         self.query_cache = QueryCache()
         self.index_optimizer = IndexOptimizer()
 
     def generate_cache_key(self, query: str, params: Dict) -> str:
-        digest = hashlib.sha256(json.dumps({"query": query, "params": params}, sort_keys=True).encode("utf-8")).hexdigest()
+        digest = hashlib.sha256(
+            json.dumps({"query": query, "params": params}, sort_keys=True).encode(
+                "utf-8"
+            )
+        ).hexdigest()
         return digest
 
     def should_cache_query(self, query: str) -> bool:
@@ -1093,7 +1178,10 @@ class CircuitBreaker:
             self.state = "OPEN"
 
     def should_attempt_reset(self) -> bool:
-        return self.last_failure_time is not None and (time.time() - self.last_failure_time) >= self.timeout
+        return (
+            self.last_failure_time is not None
+            and (time.time() - self.last_failure_time) >= self.timeout
+        )
 
 
 # Security and privacy
@@ -1164,13 +1252,19 @@ class PrivacyComplianceManager:
         self.audit_logger = AuditLogger()
         self.retention_manager = DataRetentionManager()
 
-    async def check_consent(self, classification: DataClassification, user_consent: UserConsent) -> bool:
+    async def check_consent(
+        self, classification: DataClassification, user_consent: UserConsent
+    ) -> bool:
         return classification.type != "personal" or bool(user_consent.scopes)
 
-    async def minimize_data(self, data: Dict, classification: DataClassification) -> Dict:
+    async def minimize_data(
+        self, data: Dict, classification: DataClassification
+    ) -> Dict:
         if classification.type != "personal":
             return data
-        return {key: value for key, value in data.items() if key in {"email", "ssn", "dob"}}
+        return {
+            key: value for key, value in data.items() if key in {"email", "ssn", "dob"}
+        }
 
     async def process_data_with_compliance(self, data: Dict, user_consent: UserConsent):
         classification = await self.data_classifier.classify(data)

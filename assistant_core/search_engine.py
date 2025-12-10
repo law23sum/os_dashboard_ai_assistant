@@ -20,6 +20,7 @@ from .cir import CIRDocument, ContentType, SourceSystem
 @dataclass
 class ResourceRef:
     """Reference to a resource in a connector"""
+
     id: str
     name: str
     type: str
@@ -35,6 +36,7 @@ class ResourceRef:
 @dataclass
 class OperationResult:
     """Standard result format for operations"""
+
     success: bool
     data: Any = None
     error: Optional[str] = None
@@ -42,6 +44,7 @@ class OperationResult:
 
 class BaseConnector:
     """Base class for connectors"""
+
     def __init__(self):
         self.is_connected = False
 
@@ -93,7 +96,7 @@ class SearchQuery:
         if self.filters is None:
             self.filters = {}
         if self.search_types is None:
-            self.search_types = ['text', 'semantic']
+            self.search_types = ["text", "semantic"]
         if self.content_types is None:
             self.content_types = []
         if self.source_systems is None:
@@ -115,11 +118,14 @@ class EmbeddingEngine:
         """Initialize the embedding model"""
         try:
             from sentence_transformers import SentenceTransformer
+
             self.model = SentenceTransformer(self.model_name)
             self.dimension = self.model.get_sentence_embedding_dimension()
             return True
         except ImportError:
-            print("Warning: sentence-transformers not available. Semantic search disabled.")
+            print(
+                "Warning: sentence-transformers not available. Semantic search disabled."
+            )
             return False
         except Exception as e:
             print(f"Warning: Failed to initialize embedding model: {e}")
@@ -129,7 +135,7 @@ class EmbeddingEngine:
         """Load embeddings cache from disk"""
         try:
             if Path(self.cache_file).exists():
-                with open(self.cache_file, 'r') as f:
+                with open(self.cache_file, "r") as f:
                     cache_data = json.load(f)
                     # Convert lists back to numpy arrays
                     for key, value in cache_data.items():
@@ -149,7 +155,7 @@ class EmbeddingEngine:
                 else:
                     cache_data[key] = value
 
-            with open(self.cache_file, 'w') as f:
+            with open(self.cache_file, "w") as f:
                 json.dump(cache_data, f)
         except Exception:
             pass
@@ -183,7 +189,9 @@ class EmbeddingEngine:
             print(f"Error generating embedding: {e}")
             return None
 
-    def calculate_similarity(self, embedding1: np.ndarray, embedding2: np.ndarray) -> float:
+    def calculate_similarity(
+        self, embedding1: np.ndarray, embedding2: np.ndarray
+    ) -> float:
         """Calculate cosine similarity between embeddings"""
         try:
             # Normalize vectors
@@ -210,16 +218,20 @@ class SearchIndex:
         self.metadata_index = {}  # field -> value -> set of resource_ids
         self.embeddings_index = {}  # resource_id -> embedding
 
-    def add_document(self, resource_ref: ResourceRef, content: str = "",
-                    embedding: Optional[np.ndarray] = None):
+    def add_document(
+        self,
+        resource_ref: ResourceRef,
+        content: str = "",
+        embedding: Optional[np.ndarray] = None,
+    ):
         """Add document to search index"""
         resource_id = resource_ref.id
 
         # Store document data
         self.documents[resource_id] = {
-            'resource_ref': resource_ref,
-            'content': content,
-            'indexed_at': datetime.utcnow()
+            "resource_ref": resource_ref,
+            "content": content,
+            "indexed_at": datetime.utcnow(),
         }
 
         # Index text content
@@ -251,7 +263,7 @@ class SearchIndex:
             return
 
         # Remove from text index
-        content = self.documents[resource_id]['content']
+        content = self.documents[resource_id]["content"]
         if content:
             words = self._tokenize(content)
             for word in words:
@@ -261,11 +273,14 @@ class SearchIndex:
                         del self.text_index[word]
 
         # Remove from metadata index
-        resource_ref = self.documents[resource_id]['resource_ref']
+        resource_ref = self.documents[resource_id]["resource_ref"]
         if resource_ref.metadata:
             for field, value in resource_ref.metadata.items():
                 value_str = str(value).lower()
-                if field in self.metadata_index and value_str in self.metadata_index[field]:
+                if (
+                    field in self.metadata_index
+                    and value_str in self.metadata_index[field]
+                ):
                     self.metadata_index[field][value_str].discard(resource_id)
                     if not self.metadata_index[field][value_str]:
                         del self.metadata_index[field][value_str]
@@ -298,7 +313,7 @@ class SearchIndex:
         # Score documents
         doc_scores = []
         for doc_id in candidate_docs:
-            content = self.documents[doc_id]['content'].lower()
+            content = self.documents[doc_id]["content"].lower()
             score = 0
 
             for word in query_words:
@@ -344,8 +359,9 @@ class SearchIndex:
 
         return list(matching_docs) if matching_docs else []
 
-    def search_semantic(self, query_embedding: np.ndarray, limit: int = 50,
-                       threshold: float = 0.3) -> List[Tuple[str, float]]:
+    def search_semantic(
+        self, query_embedding: np.ndarray, limit: int = 50, threshold: float = 0.3
+    ) -> List[Tuple[str, float]]:
         """Search using semantic similarity"""
         if not self.embeddings_index:
             return []
@@ -364,8 +380,9 @@ class SearchIndex:
     def _tokenize(self, text: str) -> List[str]:
         """Simple tokenization"""
         import re
+
         # Convert to lowercase and extract words
-        words = re.findall(r'\b\w+\b', text.lower())
+        words = re.findall(r"\b\w+\b", text.lower())
         # Filter out very short words
         return [word for word in words if len(word) > 2]
 
@@ -407,9 +424,12 @@ class UnifiedSearchEngine:
         """Register a connector for search"""
         self.connectors[name] = connector
 
-    async def index_connector_resources(self, connector_name: str,
-                                      resource_types: List[str] = None,
-                                      force_reindex: bool = False):
+    async def index_connector_resources(
+        self,
+        connector_name: str,
+        resource_types: List[str] = None,
+        force_reindex: bool = False,
+    ):
         """Index all resources from a connector"""
         if connector_name not in self.connectors:
             raise ValueError(f"Connector {connector_name} not registered")
@@ -437,7 +457,9 @@ class UnifiedSearchEngine:
             indexed_count = 0
             for resource_ref in all_resources:
                 try:
-                    await self._index_resource(connector_name, connector, resource_ref, force_reindex)
+                    await self._index_resource(
+                        connector_name, connector, resource_ref, force_reindex
+                    )
                     indexed_count += 1
                 except Exception as e:
                     print(f"Failed to index {resource_ref.id}: {e}")
@@ -448,8 +470,13 @@ class UnifiedSearchEngine:
         except Exception as e:
             raise Exception(f"Failed to index connector {connector_name}: {e}")
 
-    async def _index_resource(self, connector_name: str, connector: BaseConnector,
-                            resource_ref: ResourceRef, force_reindex: bool = False):
+    async def _index_resource(
+        self,
+        connector_name: str,
+        connector: BaseConnector,
+        resource_ref: ResourceRef,
+        force_reindex: bool = False,
+    ):
         """Index a single resource"""
         resource_id = f"{connector_name}:{resource_ref.id}"
 
@@ -491,16 +518,20 @@ class UnifiedSearchEngine:
 
         # Perform different types of searches
         for search_type in query.search_types:
-            if search_type == 'text':
+            if search_type == "text":
                 text_results = await self._search_text(query, connectors_to_search)
                 all_results.extend(text_results)
 
-            elif search_type == 'semantic':
-                semantic_results = await self._search_semantic(query, connectors_to_search)
+            elif search_type == "semantic":
+                semantic_results = await self._search_semantic(
+                    query, connectors_to_search
+                )
                 all_results.extend(semantic_results)
 
-            elif search_type == 'metadata':
-                metadata_results = await self._search_metadata(query, connectors_to_search)
+            elif search_type == "metadata":
+                metadata_results = await self._search_metadata(
+                    query, connectors_to_search
+                )
                 all_results.extend(metadata_results)
 
         # Deduplicate and merge results
@@ -513,9 +544,11 @@ class UnifiedSearchEngine:
         filtered_results.sort(key=lambda x: x.relevance_score, reverse=True)
 
         # Limit results
-        return filtered_results[:query.limit]
+        return filtered_results[: query.limit]
 
-    async def _search_text(self, query: SearchQuery, connectors: List[str]) -> List[SearchResult]:
+    async def _search_text(
+        self, query: SearchQuery, connectors: List[str]
+    ) -> List[SearchResult]:
         """Perform text-based search"""
         results = []
 
@@ -525,27 +558,35 @@ class UnifiedSearchEngine:
         for resource_id, score in text_matches:
             if resource_id in self.search_index.documents:
                 doc_data = self.search_index.documents[resource_id]
-                resource_ref = doc_data['resource_ref']
+                resource_ref = doc_data["resource_ref"]
 
                 # Extract connector name from resource_id
-                connector_name = resource_id.split(':', 1)[0] if ':' in resource_id else 'unknown'
+                connector_name = (
+                    resource_id.split(":", 1)[0] if ":" in resource_id else "unknown"
+                )
 
                 if connector_name in connectors:
                     # Generate snippet
-                    snippet = self._generate_snippet(doc_data['content'], query.text)
+                    snippet = self._generate_snippet(doc_data["content"], query.text)
 
-                    results.append(SearchResult(
-                        resource_ref=resource_ref,
-                        relevance_score=score,
-                        search_type='text',
-                        connector_name=connector_name,
-                        snippet=snippet,
-                        highlights=self._extract_highlights(doc_data['content'], query.text)
-                    ))
+                    results.append(
+                        SearchResult(
+                            resource_ref=resource_ref,
+                            relevance_score=score,
+                            search_type="text",
+                            connector_name=connector_name,
+                            snippet=snippet,
+                            highlights=self._extract_highlights(
+                                doc_data["content"], query.text
+                            ),
+                        )
+                    )
 
         return results
 
-    async def _search_semantic(self, query: SearchQuery, connectors: List[str]) -> List[SearchResult]:
+    async def _search_semantic(
+        self, query: SearchQuery, connectors: List[str]
+    ) -> List[SearchResult]:
         """Perform semantic search using embeddings"""
         if not self.embedding_engine.model:
             return []
@@ -559,35 +600,39 @@ class UnifiedSearchEngine:
 
         # Search in embeddings index
         semantic_matches = self.search_index.search_semantic(
-            query_embedding,
-            limit=query.limit * 2,
-            threshold=0.3
+            query_embedding, limit=query.limit * 2, threshold=0.3
         )
 
         for resource_id, similarity in semantic_matches:
             if resource_id in self.search_index.documents:
                 doc_data = self.search_index.documents[resource_id]
-                resource_ref = doc_data['resource_ref']
+                resource_ref = doc_data["resource_ref"]
 
                 # Extract connector name
-                connector_name = resource_id.split(':', 1)[0] if ':' in resource_id else 'unknown'
+                connector_name = (
+                    resource_id.split(":", 1)[0] if ":" in resource_id else "unknown"
+                )
 
                 if connector_name in connectors:
                     # Generate snippet
-                    snippet = self._generate_snippet(doc_data['content'], query.text)
+                    snippet = self._generate_snippet(doc_data["content"], query.text)
 
-                    results.append(SearchResult(
-                        resource_ref=resource_ref,
-                        relevance_score=similarity,
-                        search_type='semantic',
-                        connector_name=connector_name,
-                        snippet=snippet,
-                        embedding_distance=1.0 - similarity
-                    ))
+                    results.append(
+                        SearchResult(
+                            resource_ref=resource_ref,
+                            relevance_score=similarity,
+                            search_type="semantic",
+                            connector_name=connector_name,
+                            snippet=snippet,
+                            embedding_distance=1.0 - similarity,
+                        )
+                    )
 
         return results
 
-    async def _search_metadata(self, query: SearchQuery, connectors: List[str]) -> List[SearchResult]:
+    async def _search_metadata(
+        self, query: SearchQuery, connectors: List[str]
+    ) -> List[SearchResult]:
         """Perform metadata-based search"""
         results = []
 
@@ -597,22 +642,30 @@ class UnifiedSearchEngine:
         for resource_id in metadata_matches:
             if resource_id in self.search_index.documents:
                 doc_data = self.search_index.documents[resource_id]
-                resource_ref = doc_data['resource_ref']
+                resource_ref = doc_data["resource_ref"]
 
                 # Extract connector name
-                connector_name = resource_id.split(':', 1)[0] if ':' in resource_id else 'unknown'
+                connector_name = (
+                    resource_id.split(":", 1)[0] if ":" in resource_id else "unknown"
+                )
 
                 if connector_name in connectors:
                     # Calculate metadata match score
-                    match_score = self._calculate_metadata_score(resource_ref.metadata, query.filters)
+                    match_score = self._calculate_metadata_score(
+                        resource_ref.metadata, query.filters
+                    )
 
-                    results.append(SearchResult(
-                        resource_ref=resource_ref,
-                        relevance_score=match_score,
-                        search_type='metadata',
-                        connector_name=connector_name,
-                        metadata_matches=self._find_metadata_matches(resource_ref.metadata, query.filters)
-                    ))
+                    results.append(
+                        SearchResult(
+                            resource_ref=resource_ref,
+                            relevance_score=match_score,
+                            search_type="metadata",
+                            connector_name=connector_name,
+                            metadata_matches=self._find_metadata_matches(
+                                resource_ref.metadata, query.filters
+                            ),
+                        )
+                    )
 
         return results
 
@@ -640,7 +693,9 @@ class UnifiedSearchEngine:
                 # Merge highlights
                 if result.highlights:
                     existing.highlights.extend(result.highlights)
-                    existing.highlights = list(set(existing.highlights))  # Remove duplicates
+                    existing.highlights = list(
+                        set(existing.highlights)
+                    )  # Remove duplicates
 
                 # Use better snippet if available
                 if result.snippet and len(result.snippet) > len(existing.snippet):
@@ -648,7 +703,9 @@ class UnifiedSearchEngine:
 
         return list(merged.values())
 
-    def _apply_filters(self, results: List[SearchResult], query: SearchQuery) -> List[SearchResult]:
+    def _apply_filters(
+        self, results: List[SearchResult], query: SearchQuery
+    ) -> List[SearchResult]:
         """Apply additional filters to search results"""
         filtered = results
 
@@ -656,9 +713,13 @@ class UnifiedSearchEngine:
         if query.date_range and any(query.date_range):
             start_date, end_date = query.date_range
             filtered = [
-                r for r in filtered
-                if self._date_in_range(r.resource_ref.created_at or r.resource_ref.modified_at,
-                                     start_date, end_date)
+                r
+                for r in filtered
+                if self._date_in_range(
+                    r.resource_ref.created_at or r.resource_ref.modified_at,
+                    start_date,
+                    end_date,
+                )
             ]
 
         # Filter by content types
@@ -700,7 +761,9 @@ class UnifiedSearchEngine:
 
         return snippet
 
-    def _extract_highlights(self, content: str, query: str, max_highlights: int = 5) -> List[str]:
+    def _extract_highlights(
+        self, content: str, query: str, max_highlights: int = 5
+    ) -> List[str]:
         """Extract highlighted phrases around query matches"""
         if not content or not query:
             return []
@@ -728,7 +791,9 @@ class UnifiedSearchEngine:
 
         return highlights
 
-    def _calculate_metadata_score(self, metadata: Dict[str, Any], filters: Dict[str, Any]) -> float:
+    def _calculate_metadata_score(
+        self, metadata: Dict[str, Any], filters: Dict[str, Any]
+    ) -> float:
         """Calculate relevance score based on metadata matches"""
         if not metadata or not filters:
             return 0.0
@@ -746,7 +811,9 @@ class UnifiedSearchEngine:
 
         return matches / total_filters if total_filters > 0 else 0.0
 
-    def _find_metadata_matches(self, metadata: Dict[str, Any], filters: Dict[str, Any]) -> Dict[str, Any]:
+    def _find_metadata_matches(
+        self, metadata: Dict[str, Any], filters: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Find which metadata fields match the filters"""
         matches = {}
 
@@ -763,8 +830,12 @@ class UnifiedSearchEngine:
 
         return matches
 
-    def _date_in_range(self, date: Optional[datetime], start: Optional[datetime],
-                      end: Optional[datetime]) -> bool:
+    def _date_in_range(
+        self,
+        date: Optional[datetime],
+        start: Optional[datetime],
+        end: Optional[datetime],
+    ) -> bool:
         """Check if date is within the specified range"""
         if not date:
             return True
@@ -787,14 +858,15 @@ class UnifiedSearchEngine:
             "connectors_registered": len(self.connectors),
             "embedding_model": self.embedding_engine.model_name,
             "embedding_dimension": self.embedding_engine.dimension,
-            "cache_size": len(self.embedding_engine.embeddings_cache)
+            "cache_size": len(self.embedding_engine.embeddings_cache),
         }
 
         # Per-connector statistics
         connector_stats = {}
         for connector_name in self.connectors:
             connector_docs = [
-                doc_id for doc_id in self.search_index.documents
+                doc_id
+                for doc_id in self.search_index.documents
                 if doc_id.startswith(f"{connector_name}:")
             ]
             connector_stats[connector_name] = len(connector_docs)
@@ -809,7 +881,9 @@ class UnifiedSearchEngine:
 
         for connector_name in self.connectors:
             try:
-                count = await self.index_connector_resources(connector_name, force_reindex=force)
+                count = await self.index_connector_resources(
+                    connector_name, force_reindex=force
+                )
                 total_indexed += count
                 print(f"Indexed {count} documents from {connector_name}")
             except Exception as e:
@@ -826,12 +900,16 @@ class UnifiedSearchEngine:
 
         for resource_id, doc_data in self.search_index.documents.items():
             # Check if the resource still exists
-            connector_name = resource_id.split(':', 1)[0] if ':' in resource_id else None
+            connector_name = (
+                resource_id.split(":", 1)[0] if ":" in resource_id else None
+            )
             if connector_name and connector_name in self.connectors:
                 connector = self.connectors[connector_name]
                 try:
                     # Try to get metadata to verify existence
-                    result = await connector.get_resource_metadata(doc_data['resource_ref'].id)
+                    result = await connector.get_resource_metadata(
+                        doc_data["resource_ref"].id
+                    )
                     if not result.success:
                         stale_docs.append(resource_id)
                 except Exception:

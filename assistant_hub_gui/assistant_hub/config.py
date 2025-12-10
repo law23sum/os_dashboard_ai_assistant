@@ -20,8 +20,12 @@ def _path_from_env(key: str, fallback: Path) -> Path:
 default_data_dir = _path_from_env("ASSISTANT_HUB_DATA_DIR", _DEFAULT_DATA_DIR)
 DATA_DIR = default_data_dir
 DB_PATH = _path_from_env("ASSISTANT_HUB_DB", DATA_DIR / "assistant_hub.db")
-ATTACHMENTS_DIR = _path_from_env("ASSISTANT_HUB_ATTACHMENTS_DIR", DATA_DIR / "attachments")
-INTEGRATIONS_DIR = _path_from_env("ASSISTANT_HUB_INTEGRATIONS_DIR", DATA_DIR / "integrations")
+ATTACHMENTS_DIR = _path_from_env(
+    "ASSISTANT_HUB_ATTACHMENTS_DIR", DATA_DIR / "attachments"
+)
+INTEGRATIONS_DIR = _path_from_env(
+    "ASSISTANT_HUB_INTEGRATIONS_DIR", DATA_DIR / "integrations"
+)
 FILE_CACHE_DIR = _path_from_env("ASSISTANT_HUB_FILE_CACHE_DIR", DATA_DIR / "file_cache")
 
 
@@ -41,4 +45,3 @@ def get_attachment_path(*parts: str) -> Path:
     """Return a path under the attachments directory."""
     ensure_data_directories()
     return ATTACHMENTS_DIR.joinpath(*parts)
-

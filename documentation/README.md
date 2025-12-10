@@ -1,6 +1,6 @@
 # Documentation Index
 
-This folder centralizes the reference material for the OS Dashboard AI Assistant Platform. For the consolidated product overview, installation, and feature guide, see the root-level `README.md`.
+This folder centralizes the reference material for the OS Dashboard AI Assistant Platform. The **canonical view** of every artifact is now maintained in `documentation/OS_DashboardAIAssistantTOC.md`, which mirrors the official OS DashboardAIAssistantTOC design and links each Markdown source to the spec hierarchy. For the consolidated product overview, installation, and feature guide, see the root-level `README.md`.
 
 ---
 

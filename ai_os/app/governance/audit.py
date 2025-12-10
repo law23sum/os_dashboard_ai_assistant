@@ -35,12 +35,19 @@ class AuditLog:
         triggered_by: str = "manual",
         metadata: Optional[Dict[str, Any]] = None,
     ) -> OperationRecord:
-        record = OperationRecord(actor=actor, intent=intent, triggered_by=triggered_by, metadata=metadata or {})
+        record = OperationRecord(
+            actor=actor,
+            intent=intent,
+            triggered_by=triggered_by,
+            metadata=metadata or {},
+        )
         self.records[record.id] = record
         return record
 
     def add_touch(self, op_id: str, system: str, resource_id: str, action: str):
-        self.records[op_id].touched.append({"system": system, "resource_id": resource_id, "action": action})
+        self.records[op_id].touched.append(
+            {"system": system, "resource_id": resource_id, "action": action}
+        )
 
     def add_diff(self, op_id: str, diff: Dict[str, Any]):
         self.records[op_id].diffs.append(diff)

@@ -16,7 +16,9 @@ def handle_word_command(args, conn: sqlite3.Connection) -> int:
     if args.subcommand == "draft":
         print(f"Drafting document with agent {args.agent}...")
         # This is a placeholder - would need project context
-        print("Draft functionality requires project context. Use GUI for full features.")
+        print(
+            "Draft functionality requires project context. Use GUI for full features."
+        )
         return 0
 
     elif args.subcommand == "rewrite":
@@ -27,7 +29,9 @@ def handle_word_command(args, conn: sqlite3.Connection) -> int:
 
         print(f"Rewriting {path} with agent {args.agent}...")
         try:
-            changed_files = service.rewrite_document(str(path), style="concise", actor=args.agent)
+            changed_files = service.rewrite_document(
+                str(path), style="concise", actor=args.agent
+            )
             print(f"Document rewritten. Modified files:")
             for f in changed_files:
                 print(f"  - {f}")
@@ -39,4 +43,3 @@ def handle_word_command(args, conn: sqlite3.Connection) -> int:
     else:
         print(f"Unknown Word subcommand: {args.subcommand}", file=sys.stderr)
         return 1
-

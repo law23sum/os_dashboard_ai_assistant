@@ -26,7 +26,9 @@ def _row_to_dict(row: sqlite3.Row) -> Dict[str, Any]:
     return {key: row[key] for key in row.keys()}
 
 
-def _fetch_rows(db_path: Path, query: str, params: Tuple[Any, ...] = ()) -> List[Dict[str, Any]]:
+def _fetch_rows(
+    db_path: Path, query: str, params: Tuple[Any, ...] = ()
+) -> List[Dict[str, Any]]:
     with _open_db(db_path) as conn:
         cur = conn.execute(query, params)
         return [_row_to_dict(row) for row in cur.fetchall()]
@@ -42,7 +44,9 @@ def _get_agent_runs(db_path: Path, limit: int = 20) -> List[Dict[str, Any]]:
 
 
 def _get_projects(db_path: Path) -> List[Dict[str, Any]]:
-    return _fetch_rows(db_path, "SELECT name, description, status, priority FROM projects")
+    return _fetch_rows(
+        db_path, "SELECT name, description, status, priority FROM projects"
+    )
 
 
 def _get_tasks(db_path: Path, limit: int = 100) -> List[Dict[str, Any]]:
@@ -72,7 +76,9 @@ class _DashboardAPIHandler(BaseHTTPRequestHandler):
         super().__init__(*args, **kwargs)
 
     # Disable noisy default logging
-    def log_message(self, fmt: str, *args: Any) -> None:  # pragma: no cover - debug only
+    def log_message(
+        self, fmt: str, *args: Any
+    ) -> None:  # pragma: no cover - debug only
         self.logger.debug(fmt, *args)
 
     def _send_json(self, payload: Dict[str, Any], status: int = 200) -> None:
@@ -155,7 +161,9 @@ def _handler_factory(db_path: Path) -> Callable:
     return handler
 
 
-def start_api_server(db_path: Path, host: str = "127.0.0.1", port: int = 8070) -> _ThreadedHTTPServer:
+def start_api_server(
+    db_path: Path, host: str = "127.0.0.1", port: int = 8070
+) -> _ThreadedHTTPServer:
     """Start the threaded API server in a background thread.
 
     Args:
@@ -174,5 +182,7 @@ def start_api_server(db_path: Path, host: str = "127.0.0.1", port: int = 8070) -
     thread.start()
 
     logger = get_logger("DashboardAPI")
-    logger.info("Dashboard API server started on http://%s:%s", host, server.server_address[1])
+    logger.info(
+        "Dashboard API server started on http://%s:%s", host, server.server_address[1]
+    )
     return server

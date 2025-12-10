@@ -15,6 +15,7 @@ from ..versioning.git_async import enqueue_commit
 @dataclass
 class CleanNotebookResult:
     """Result from cleaning a OneNote notebook."""
+
     notebook_id: str
     pages_updated: int
     summary: str
@@ -24,6 +25,7 @@ class CleanNotebookResult:
 @dataclass
 class ExcelSummaryResult:
     """Result from summarizing an Excel sheet."""
+
     workbook_path: str
     sheet_name: str
     summary_sheet_name: str
@@ -33,6 +35,7 @@ class ExcelSummaryResult:
 @dataclass
 class WordDraftResult:
     """Result from drafting a Word document."""
+
     document_path: str
     changed_files: List[str]
     summary: str
@@ -46,7 +49,9 @@ class NotebookCleanupWorkflow:
 
     def run(self, section_id: str, actor: str = "AIC") -> None:
         changed_files = self.onenote.clean_section(section_id, actor=actor)
-        enqueue_commit(changed_files, actor=actor, tag="onenote", reason="Clean section")
+        enqueue_commit(
+            changed_files, actor=actor, tag="onenote", reason="Clean section"
+        )
 
 
 class ExcelSummaryWorkflow:
@@ -55,9 +60,15 @@ class ExcelSummaryWorkflow:
     def __init__(self, excel: ExcelService):
         self.excel = excel
 
-    def run(self, workbook: str, sheet: str, instruction: str, actor: str = "AIC") -> None:
-        changed_files = self.excel.summarize_sheet(workbook, sheet, instruction, actor=actor)
-        enqueue_commit(changed_files, actor=actor, tag="excel", reason="Summarize sheet")
+    def run(
+        self, workbook: str, sheet: str, instruction: str, actor: str = "AIC"
+    ) -> None:
+        changed_files = self.excel.summarize_sheet(
+            workbook, sheet, instruction, actor=actor
+        )
+        enqueue_commit(
+            changed_files, actor=actor, tag="excel", reason="Summarize sheet"
+        )
 
 
 class WeeklyFinanceReportWorkflow:
@@ -67,10 +78,14 @@ class WeeklyFinanceReportWorkflow:
         self.excel = excel
         self.word = word
 
-    def run(self, workbook_path: str, sheet_name: str, output_doc: str, actor: str = "AIC") -> None:
+    def run(
+        self, workbook_path: str, sheet_name: str, output_doc: str, actor: str = "AIC"
+    ) -> None:
         # Step 1: Analyze Excel workbook
         instruction = "Group by week, sum amounts, create monthly summary"
-        excel_files = self.excel.summarize_sheet(workbook_path, sheet_name, instruction, actor=actor)
+        excel_files = self.excel.summarize_sheet(
+            workbook_path, sheet_name, instruction, actor=actor
+        )
 
         # Step 2: Generate Word summary document
         # In a real implementation, would extract summary data and format it
@@ -79,7 +94,9 @@ class WeeklyFinanceReportWorkflow:
 
         # Step 3: Commit all changes
         all_files = excel_files + word_files
-        enqueue_commit(all_files, actor=actor, tag="workflow", reason="Weekly finance report")
+        enqueue_commit(
+            all_files, actor=actor, tag="workflow", reason="Weekly finance report"
+        )
 
 
 class ProjectReviewBriefWorkflow:
@@ -99,7 +116,9 @@ class ProjectReviewBriefWorkflow:
 
         # Step 3: Commit all changes
         all_files = [str(summary_path)] + word_files
-        enqueue_commit(all_files, actor=actor, tag="workflow", reason="Project review brief")
+        enqueue_commit(
+            all_files, actor=actor, tag="workflow", reason="Project review brief"
+        )
 
 
 class CleanNotebookWorkflow:
@@ -110,6 +129,7 @@ class CleanNotebookWorkflow:
 
     def run(self, notebook_id: str, actor: str = "AIC") -> None:
         from ..integrations.onenote import OneNoteClient
+
         client = OneNoteClient()
         sections = client.list_sections(notebook_id)
 
@@ -123,4 +143,9 @@ class CleanNotebookWorkflow:
 
         # Commit all changes together
         if all_changed_files:
-            enqueue_commit(all_changed_files, actor=actor, tag="onenote", reason=f"Clean notebook {notebook_id}")
+            enqueue_commit(
+                all_changed_files,
+                actor=actor,
+                tag="onenote",
+                reason=f"Clean notebook {notebook_id}",
+            )

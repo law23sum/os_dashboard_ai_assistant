@@ -54,11 +54,14 @@ def preview_excel_data(file_path: str, sheet_name: str = "Sheet1") -> str:
             break
         rows.append([cell for cell in row])
 
-    return json.dumps({
-        "file": file_path,
-        "sheet": sheet_name,
-        "rows": rows,
-    }, indent=2)
+    return json.dumps(
+        {
+            "file": file_path,
+            "sheet": sheet_name,
+            "rows": rows,
+        },
+        indent=2,
+    )
 
 
 def preview_word_document(file_path: str) -> str:
@@ -75,11 +78,14 @@ def preview_word_document(file_path: str) -> str:
         return json.dumps({"file": file_path, "paragraphs": 0, "snippet": ""}, indent=2)
 
     snippet = document.paragraphs[0].text[:200]
-    return json.dumps({
-        "file": file_path,
-        "paragraphs": len(document.paragraphs),
-        "snippet": snippet,
-    }, indent=2)
+    return json.dumps(
+        {
+            "file": file_path,
+            "paragraphs": len(document.paragraphs),
+            "snippet": snippet,
+        },
+        indent=2,
+    )
 
 
 def preview_onenote_notebooks(access_token: Optional[str] = None) -> str:
@@ -127,7 +133,9 @@ def preview_ical_events(file_path: str) -> str:
     """Read upcoming events from an iCalendar (.ics) export."""
 
     if not file_path:
-        raise IntegrationPreviewError("Please choose an iCalendar (.ics) file to preview.")
+        raise IntegrationPreviewError(
+            "Please choose an iCalendar (.ics) file to preview."
+        )
     if not Path(file_path).exists():
         raise IntegrationPreviewError(f"iCalendar file not found at {file_path}")
 
@@ -144,17 +152,21 @@ def preview_ical_events(file_path: str) -> str:
             continue
         dtstart = dtstart_raw.dt
         if isinstance(dtstart, datetime) and dtstart >= now:
-            events.append({
-                "summary": str(component.get("summary")),
-                "start": dtstart.isoformat(),
-            })
+            events.append(
+                {
+                    "summary": str(component.get("summary")),
+                    "start": dtstart.isoformat(),
+                }
+            )
             if len(events) >= 5:
                 break
 
     return json.dumps({"file": file_path, "upcoming_events": events}, indent=2)
 
 
-def preview_adobe_assets(access_token: Optional[str] = None, api_key: Optional[str] = None) -> str:
+def preview_adobe_assets(
+    access_token: Optional[str] = None, api_key: Optional[str] = None
+) -> str:
     """Provide a lightweight description for Adobe Creative Cloud previews."""
 
     token = access_token or os.getenv("ADOBE_ACCESS_TOKEN")

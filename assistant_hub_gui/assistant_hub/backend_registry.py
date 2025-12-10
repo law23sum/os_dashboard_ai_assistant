@@ -68,7 +68,11 @@ class BackendRegistry:
                 return asyncio.run(result)
             return result
         except Exception as exc:  # noqa: BLE001 - Show failure to the UI
-            return {"error": str(exc), "capability": capability_key, "action": action_label}
+            return {
+                "error": str(exc),
+                "capability": capability_key,
+                "action": action_label,
+            }
 
     # Discovery ------------------------------------------------------------------
     def _discover_capabilities(self):
@@ -104,7 +108,9 @@ class BackendRegistry:
                 "workflows": len(orchestrator.workflows),
                 "automation_rules": len(orchestrator.automation_rules),
                 "executions": len(orchestrator.executions),
-                "tags": sorted({tag for wf in orchestrator.workflows.values() for tag in wf.tags}),
+                "tags": sorted(
+                    {tag for wf in orchestrator.workflows.values() for tag in wf.tags}
+                ),
             }
 
         async def _create_samples():
@@ -121,8 +127,12 @@ class BackendRegistry:
 
         actions = [
             BackendAction("Summarize", "Show orchestrator state", _summary),
-            BackendAction("Sample workflows", "Create sample workflows", _create_samples),
-            BackendAction("Dashboard snapshot", "Generate system dashboard", _dashboard_snapshot),
+            BackendAction(
+                "Sample workflows", "Create sample workflows", _create_samples
+            ),
+            BackendAction(
+                "Dashboard snapshot", "Generate system dashboard", _dashboard_snapshot
+            ),
         ]
 
         capability = BackendCapability(
@@ -172,7 +182,9 @@ class BackendRegistry:
             tags=["analytics", "forecast", "vision"],
             actions=[
                 BackendAction("Config", "Show model configuration", _config_snapshot),
-                BackendAction("Model cache", "List cached models/predictions", _describe_models),
+                BackendAction(
+                    "Model cache", "List cached models/predictions", _describe_models
+                ),
             ],
             documents=self._docs_for(["vision", "predictive", "analytics"]),
         )
@@ -205,7 +217,11 @@ class BackendRegistry:
             description="Semantic + metadata search engine",
             available=available,
             tags=["search", "embedding", "documents"],
-            actions=[BackendAction("Initialize", "Initialize engine + summarize", _initialize_search)],
+            actions=[
+                BackendAction(
+                    "Initialize", "Initialize engine + summarize", _initialize_search
+                )
+            ],
             documents=self._docs_for(["search", "document", "cir"]),
         )
         self._register_capability(capability)
@@ -237,7 +253,11 @@ class BackendRegistry:
             description="Governance + compliance service",
             available=available,
             tags=["audit", "compliance", "security"],
-            actions=[BackendAction("Snapshot", "Summarize audit system state", _audit_snapshot)],
+            actions=[
+                BackendAction(
+                    "Snapshot", "Summarize audit system state", _audit_snapshot
+                )
+            ],
             documents=self._docs_for(["security", "compliance", "audit"]),
         )
         self._register_capability(capability)

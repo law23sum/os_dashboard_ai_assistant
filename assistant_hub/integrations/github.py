@@ -11,7 +11,7 @@ from .base import BaseIntegration, IntegrationStatus
 
 class GitHubIntegration(BaseIntegration):
     """Integration for GitHub."""
-    
+
     def __init__(self, conn: sqlite3.Connection):
         super().__init__(conn, "GitHub", "github")
         self.token = os.getenv("GITHUB_TOKEN")
@@ -42,7 +42,9 @@ class GitHubIntegration(BaseIntegration):
             if not self.username:
                 self.username = resp.json().get("login")
         except requests.RequestException as exc:
-            self.update_status(False, f"Auth check failed: {self._safe_truncate(str(exc))}")
+            self.update_status(
+                False, f"Auth check failed: {self._safe_truncate(str(exc))}"
+            )
             return False
 
         self.update_status(True)
@@ -103,17 +105,20 @@ class GitHubIntegration(BaseIntegration):
             self.logger.exception("GitHub sync failed")
             self.update_status(False, self._safe_truncate(str(e)))
             return 0
-    
+
     def get_status(self) -> IntegrationStatus:
         """Get current status."""
-        if not hasattr(self, '_status') or not self._status:
+        if not hasattr(self, "_status") or not self._status:
             self._status = IntegrationStatus()
         return self._status
 
     @property
     def _headers(self) -> Dict[str, str]:
         token = self.token or ""
-        return {"Authorization": f"token {token}", "Accept": "application/vnd.github+json"}
+        return {
+            "Authorization": f"token {token}",
+            "Accept": "application/vnd.github+json",
+        }
 
     def _fetch_issues(self) -> List[Dict]:
         """Fetch open issues and pull requests."""
@@ -140,4 +145,3 @@ class GitHubIntegration(BaseIntegration):
             raise RuntimeError(f"GitHub commits error: {resp.status_code} {resp.text}")
 
         return resp.json()
-

@@ -95,7 +95,9 @@ def create_app(
                         }
                     )
                 elif message_type == "live_edit":
-                    result = router.broadcast_live_edit(client_id, message_data.get("payload", {}))
+                    result = router.broadcast_live_edit(
+                        client_id, message_data.get("payload", {})
+                    )
                     broadcast_targets = result.get("recipients", [])
                     payload = result.get("message")
                     for target in broadcast_targets:
@@ -103,13 +105,19 @@ def create_app(
                 elif message_type == "ai_request":
                     job_info = router.handle_ai_request(
                         client_id,
-                        MessageType(message_data.get("messageType", MessageType.AI_GENERATE_REQUEST)),
+                        MessageType(
+                            message_data.get(
+                                "messageType", MessageType.AI_GENERATE_REQUEST
+                            )
+                        ),
                         payload=message_data.get("payload", {}),
                         target=message_data.get("target"),
                     )
                     await websocket.send_json({"type": "ai_request_queued", **job_info})
                     asyncio.create_task(
-                        deliver_ai_result(router, job_info["job_id"], client_id, _send_json)
+                        deliver_ai_result(
+                            router, job_info["job_id"], client_id, _send_json
+                        )
                     )
                 else:
                     await websocket.send_json(

@@ -24,6 +24,7 @@ from abc import ABC, abstractmethod
 
 from config.logging_config import setup_logger
 
+
 class PluginType(Enum):
     INTEGRATION = "integration"
     WIDGET = "widget"
@@ -33,6 +34,7 @@ class PluginType(Enum):
     SECURITY = "security"
     UTILITY = "utility"
 
+
 class PluginStatus(Enum):
     PENDING = "pending"
     APPROVED = "approved"
@@ -40,15 +42,18 @@ class PluginStatus(Enum):
     DEPRECATED = "deprecated"
     SUSPENDED = "suspended"
 
+
 class SecurityLevel(Enum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
 
+
 @dataclass
 class PluginManifest:
     """Plugin manifest definition"""
+
     id: str
     name: str
     version: str
@@ -77,9 +82,11 @@ class PluginManifest:
     trial_period_days: int = 0
     revenue_share_percentage: float = 70.0  # percentage for plugin developer
 
+
 @dataclass
 class PluginMetadata:
     """Plugin metadata for marketplace"""
+
     manifest: PluginManifest
     status: PluginStatus
     security_level: SecurityLevel
@@ -97,9 +104,11 @@ class PluginMetadata:
     trial_conversions: int = 0
     refund_count: int = 0
 
+
 @dataclass
 class PluginReview:
     """Plugin review/rating"""
+
     id: str
     plugin_id: str
     user_id: str
@@ -107,6 +116,7 @@ class PluginReview:
     comment: str
     created_at: datetime
     helpful_votes: int = 0
+
 
 class BasePlugin(ABC):
     """Base class for all plugins"""
@@ -144,8 +154,9 @@ class BasePlugin(ABC):
         """Get plugin health status"""
         return {
             "status": "healthy" if self.enabled else "disabled",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
+
 
 class IntegrationPlugin(BasePlugin):
     """Base class for integration plugins"""
@@ -165,6 +176,7 @@ class IntegrationPlugin(BasePlugin):
         """Sync data with external service"""
         pass
 
+
 class WidgetPlugin(BasePlugin):
     """Base class for widget plugins"""
 
@@ -183,6 +195,7 @@ class WidgetPlugin(BasePlugin):
         """Get widget configuration schema"""
         pass
 
+
 class AutomationPlugin(BasePlugin):
     """Base class for automation plugins"""
 
@@ -192,7 +205,9 @@ class AutomationPlugin(BasePlugin):
         pass
 
     @abstractmethod
-    async def execute_workflow(self, workflow_id: str, context: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute_workflow(
+        self, workflow_id: str, context: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Execute automation workflow"""
         pass
 
@@ -200,6 +215,7 @@ class AutomationPlugin(BasePlugin):
     async def get_workflow_status(self, workflow_id: str) -> Dict[str, Any]:
         """Get workflow execution status"""
         pass
+
 
 class PluginMarketplace:
     """Plugin marketplace and management system"""
@@ -225,16 +241,16 @@ class PluginMarketplace:
         self.security_scanner = PluginSecurityScanner()
         self.validator = PluginValidator()
 
-
     async def initialize(self):
         """Initialize marketplace"""
         await self._load_available_plugins()
         await self._load_installed_plugins()
         self.logger.info("Plugin Marketplace initialized")
 
-
     # Plugin Publishing
-    async def submit_plugin(self, plugin_file: Path, author_info: Dict[str, Any]) -> Dict[str, Any]:
+    async def submit_plugin(
+        self, plugin_file: Path, author_info: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Submit plugin to marketplace"""
         try:
             # Extract and validate plugin
@@ -252,11 +268,13 @@ class PluginMarketplace:
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
                 file_hash=self._calculate_file_hash(plugin_file),
-                file_size=plugin_file.stat().st_size
+                file_size=plugin_file.stat().st_size,
             )
 
             # Store plugin
-            plugin_storage_path = self.plugins_dir / f"{manifest.id}_{manifest.version}.zip"
+            plugin_storage_path = (
+                self.plugins_dir / f"{manifest.id}_{manifest.version}.zip"
+            )
             plugin_file.rename(plugin_storage_path)
 
             # Add to registry
@@ -271,7 +289,8 @@ class PluginMarketplace:
                 "status": "submitted",
                 "plugin_id": manifest.id,
                 "security_level": security_result["level"].value,
-                "review_required": security_result["level"] in [SecurityLevel.HIGH, SecurityLevel.CRITICAL]
+                "review_required": security_result["level"]
+                in [SecurityLevel.HIGH, SecurityLevel.CRITICAL],
             }
 
         except Exception as e:
@@ -285,7 +304,7 @@ class PluginMarketplace:
                 temp_path = Path(temp_dir)
 
                 # Extract ZIP file
-                with zipfile.ZipFile(plugin_file, 'r') as zip_ref:
+                with zipfile.ZipFile(plugin_file, "r") as zip_ref:
                     zip_ref.extractall(temp_path)
 
                 # Find and load manifest
@@ -296,7 +315,7 @@ class PluginMarketplace:
                 if not manifest_file.exists():
                     raise Exception("No manifest file found")
 
-                with open(manifest_file, 'r') as f:
+                with open(manifest_file, "r") as f:
                     manifest_data = yaml.safe_load(f)
 
                 # Validate manifest
@@ -308,7 +327,7 @@ class PluginMarketplace:
                 return {
                     "manifest": manifest,
                     "extracted_path": temp_path,
-                    "files": list(temp_path.rglob("*"))
+                    "files": list(temp_path.rglob("*")),
                 }
 
         except Exception as e:
@@ -324,7 +343,9 @@ class PluginMarketplace:
         return sha256_hash.hexdigest()
 
     # Plugin Installation
-    async def install_plugin(self, plugin_id: str, version: str = None) -> Dict[str, Any]:
+    async def install_plugin(
+        self, plugin_id: str, version: str = None
+    ) -> Dict[str, Any]:
         """Install plugin from marketplace"""
         try:
             # Find plugin
@@ -340,25 +361,31 @@ class PluginMarketplace:
                 raise Exception(f"Version {version} not available")
 
             # Check dependencies
-            dependency_check = await self._check_dependencies(metadata.manifest.dependencies)
+            dependency_check = await self._check_dependencies(
+                metadata.manifest.dependencies
+            )
             if not dependency_check["satisfied"]:
                 return {
                     "status": "dependency_error",
-                    "missing_dependencies": dependency_check["missing"]
+                    "missing_dependencies": dependency_check["missing"],
                 }
 
             # Plugin is free to install (billing removed)
 
             # Install plugin
-            plugin_file = self.plugins_dir / f"{plugin_id}_{metadata.manifest.version}.zip"
+            plugin_file = (
+                self.plugins_dir / f"{plugin_id}_{metadata.manifest.version}.zip"
+            )
             install_path = self.installed_dir / plugin_id
 
             # Extract to installation directory
-            with zipfile.ZipFile(plugin_file, 'r') as zip_ref:
+            with zipfile.ZipFile(plugin_file, "r") as zip_ref:
                 zip_ref.extractall(install_path)
 
             # Load and initialize plugin
-            plugin_instance = await self._load_plugin_instance(install_path, metadata.manifest)
+            plugin_instance = await self._load_plugin_instance(
+                install_path, metadata.manifest
+            )
 
             if plugin_instance:
                 # Initialize plugin
@@ -378,7 +405,7 @@ class PluginMarketplace:
                         "plugin_id": plugin_id,
                         "version": metadata.manifest.version,
                         "pricing_model": metadata.manifest.pricing_model,
-                        "requires_payment": False  # Billing removed - all plugins free
+                        "requires_payment": False,  # Billing removed - all plugins free
                     }
                 else:
                     raise Exception("Plugin initialization failed")
@@ -389,8 +416,9 @@ class PluginMarketplace:
             self.logger.error(f"Plugin installation failed: {e}")
             return {"status": "error", "message": str(e)}
 
-
-    async def _load_plugin_instance(self, install_path: Path, manifest: PluginManifest) -> Optional[BasePlugin]:
+    async def _load_plugin_instance(
+        self, install_path: Path, manifest: PluginManifest
+    ) -> Optional[BasePlugin]:
         """Load plugin instance from installation path"""
         try:
             # Find entry point
@@ -406,9 +434,11 @@ class PluginMarketplace:
             # Find plugin class
             plugin_class = None
             for name, obj in inspect.getmembers(module):
-                if (inspect.isclass(obj) and
-                    issubclass(obj, BasePlugin) and
-                    obj != BasePlugin):
+                if (
+                    inspect.isclass(obj)
+                    and issubclass(obj, BasePlugin)
+                    and obj != BasePlugin
+                ):
                     plugin_class = obj
                     break
 
@@ -435,10 +465,7 @@ class PluginMarketplace:
                 if dependency not in self.available_plugins:
                     missing.append(dependency)
 
-        return {
-            "satisfied": len(missing) == 0,
-            "missing": missing
-        }
+        return {"satisfied": len(missing) == 0, "missing": missing}
 
     # Plugin Management
     async def uninstall_plugin(self, plugin_id: str) -> Dict[str, Any]:
@@ -459,6 +486,7 @@ class PluginMarketplace:
             install_path = self.installed_dir / plugin_id
             if install_path.exists():
                 import shutil
+
                 shutil.rmtree(install_path)
 
             self.logger.info(f"Plugin uninstalled: {plugin_id}")
@@ -494,10 +522,13 @@ class PluginMarketplace:
             return False
 
     # Plugin Discovery
-    async def search_plugins(self, query: str = None,
-                           plugin_type: PluginType = None,
-                           category: str = None,
-                           tags: List[str] = None) -> List[Dict[str, Any]]:
+    async def search_plugins(
+        self,
+        query: str = None,
+        plugin_type: PluginType = None,
+        category: str = None,
+        tags: List[str] = None,
+    ) -> List[Dict[str, Any]]:
         """Search plugins in marketplace"""
         try:
             results = []
@@ -525,19 +556,21 @@ class PluginMarketplace:
                         continue
 
                 # Add to results
-                results.append({
-                    "id": plugin_id,
-                    "name": manifest.name,
-                    "version": manifest.version,
-                    "description": manifest.description,
-                    "author": manifest.author,
-                    "type": manifest.type.value,
-                    "category": manifest.category,
-                    "tags": manifest.tags,
-                    "rating": metadata.rating,
-                    "download_count": metadata.download_count,
-                    "verified": metadata.verified
-                })
+                results.append(
+                    {
+                        "id": plugin_id,
+                        "name": manifest.name,
+                        "version": manifest.version,
+                        "description": manifest.description,
+                        "author": manifest.author,
+                        "type": manifest.type.value,
+                        "category": manifest.category,
+                        "tags": manifest.tags,
+                        "rating": metadata.rating,
+                        "download_count": metadata.download_count,
+                        "verified": metadata.verified,
+                    }
+                )
 
             # Sort by rating and download count
             results.sort(key=lambda x: (x["rating"], x["download_count"]), reverse=True)
@@ -548,8 +581,9 @@ class PluginMarketplace:
             self.logger.error(f"Plugin search failed: {e}")
             return []
 
-
-    async def get_plugin_revenue_report(self, plugin_id: str, period_days: int = 30) -> Dict[str, Any]:
+    async def get_plugin_revenue_report(
+        self, plugin_id: str, period_days: int = 30
+    ) -> Dict[str, Any]:
         """Get revenue report for plugin"""
         try:
             if plugin_id not in self.available_plugins:
@@ -571,20 +605,27 @@ class PluginMarketplace:
                 "period": {
                     "start": start_date.isoformat(),
                     "end": end_date.isoformat(),
-                    "days": period_days
+                    "days": period_days,
                 },
                 "metrics": {
                     "downloads": metadata.download_count,
                     "active_subscriptions": metadata.active_subscriptions,
                     "total_revenue": metadata.total_revenue,
                     "trial_conversions": metadata.trial_conversions,
-                    "refund_count": metadata.refund_count
+                    "refund_count": metadata.refund_count,
                 },
                 "calculated_metrics": {
-                    "conversion_rate": (metadata.trial_conversions / max(metadata.download_count, 1)) * 100,
-                    "refund_rate": (metadata.refund_count / max(metadata.download_count, 1)) * 100,
-                    "average_revenue_per_user": metadata.total_revenue / max(metadata.active_subscriptions, 1)
-                }
+                    "conversion_rate": (
+                        metadata.trial_conversions / max(metadata.download_count, 1)
+                    )
+                    * 100,
+                    "refund_rate": (
+                        metadata.refund_count / max(metadata.download_count, 1)
+                    )
+                    * 100,
+                    "average_revenue_per_user": metadata.total_revenue
+                    / max(metadata.active_subscriptions, 1),
+                },
             }
 
             return report
@@ -593,7 +634,9 @@ class PluginMarketplace:
             self.logger.error(f"Plugin revenue report generation failed: {e}")
             return {"error": str(e)}
 
-    async def update_plugin_revenue(self, plugin_id: str, amount: float, transaction_type: str):
+    async def update_plugin_revenue(
+        self, plugin_id: str, amount: float, transaction_type: str
+    ):
         """Update plugin revenue metrics"""
         try:
             if plugin_id in self.available_plugins:
@@ -634,8 +677,12 @@ class PluginMarketplace:
                     "rating": metadata.rating,
                     "review_count": metadata.review_count,
                     "verified": metadata.verified,
-                    "created_at": metadata.created_at.isoformat() if metadata.created_at else None,
-                    "updated_at": metadata.updated_at.isoformat() if metadata.updated_at else None
+                    "created_at": metadata.created_at.isoformat()
+                    if metadata.created_at
+                    else None,
+                    "updated_at": metadata.updated_at.isoformat()
+                    if metadata.updated_at
+                    else None,
                 },
                 "monetization": {
                     "pricing_model": manifest.pricing_model,
@@ -646,10 +693,12 @@ class PluginMarketplace:
                     "revenue_share_percentage": manifest.revenue_share_percentage,
                     "total_revenue": metadata.total_revenue,
                     "active_subscriptions": metadata.active_subscriptions,
-                    "trial_conversions": metadata.trial_conversions
+                    "trial_conversions": metadata.trial_conversions,
                 },
-                "reviews": [asdict(review) for review in reviews[-10:]],  # Last 10 reviews
-                "installed": plugin_id in self.installed_plugins
+                "reviews": [
+                    asdict(review) for review in reviews[-10:]
+                ],  # Last 10 reviews
+                "installed": plugin_id in self.installed_plugins,
             }
 
         except Exception as e:
@@ -725,7 +774,9 @@ class PluginMarketplace:
     async def _save_plugin_metadata(self, metadata: PluginMetadata):
         """Save plugin metadata to storage"""
         try:
-            metadata_file = self.marketplace_dir / f"{metadata.manifest.id}_metadata.yaml"
+            metadata_file = (
+                self.marketplace_dir / f"{metadata.manifest.id}_metadata.yaml"
+            )
 
             # Convert to dict for serialization
             metadata_dict = asdict(metadata)
@@ -740,7 +791,7 @@ class PluginMarketplace:
             if metadata_dict["updated_at"]:
                 metadata_dict["updated_at"] = metadata.updated_at.isoformat()
 
-            with open(metadata_file, 'w') as f:
+            with open(metadata_file, "w") as f:
                 yaml.dump(metadata_dict, f, default_flow_style=False)
 
         except Exception as e:
@@ -751,7 +802,7 @@ class PluginMarketplace:
         try:
             for metadata_file in self.marketplace_dir.glob("*_metadata.yaml"):
                 try:
-                    with open(metadata_file, 'r') as f:
+                    with open(metadata_file, "r") as f:
                         metadata_dict = yaml.safe_load(f)
 
                     # Convert back from dict
@@ -761,19 +812,27 @@ class PluginMarketplace:
 
                     metadata_dict["manifest"] = manifest
                     metadata_dict["status"] = PluginStatus(metadata_dict["status"])
-                    metadata_dict["security_level"] = SecurityLevel(metadata_dict["security_level"])
+                    metadata_dict["security_level"] = SecurityLevel(
+                        metadata_dict["security_level"]
+                    )
 
                     # Handle datetime deserialization
                     if metadata_dict["created_at"]:
-                        metadata_dict["created_at"] = datetime.fromisoformat(metadata_dict["created_at"])
+                        metadata_dict["created_at"] = datetime.fromisoformat(
+                            metadata_dict["created_at"]
+                        )
                     if metadata_dict["updated_at"]:
-                        metadata_dict["updated_at"] = datetime.fromisoformat(metadata_dict["updated_at"])
+                        metadata_dict["updated_at"] = datetime.fromisoformat(
+                            metadata_dict["updated_at"]
+                        )
 
                     metadata = PluginMetadata(**metadata_dict)
                     self.available_plugins[manifest.id] = metadata
 
                 except Exception as e:
-                    self.logger.error(f"Failed to load plugin metadata from {metadata_file}: {e}")
+                    self.logger.error(
+                        f"Failed to load plugin metadata from {metadata_file}: {e}"
+                    )
 
         except Exception as e:
             self.logger.error(f"Failed to load available plugins: {e}")
@@ -792,20 +851,24 @@ class PluginMarketplace:
 
                     if manifest_file.exists():
                         try:
-                            with open(manifest_file, 'r') as f:
+                            with open(manifest_file, "r") as f:
                                 manifest_data = yaml.safe_load(f)
 
                             manifest = PluginManifest(**manifest_data)
 
                             # Load plugin instance
-                            plugin_instance = await self._load_plugin_instance(plugin_dir, manifest)
+                            plugin_instance = await self._load_plugin_instance(
+                                plugin_dir, manifest
+                            )
 
                             if plugin_instance:
                                 await plugin_instance.initialize()
                                 self.installed_plugins[plugin_id] = plugin_instance
 
                         except Exception as e:
-                            self.logger.error(f"Failed to load installed plugin {plugin_id}: {e}")
+                            self.logger.error(
+                                f"Failed to load installed plugin {plugin_id}: {e}"
+                            )
 
         except Exception as e:
             self.logger.error(f"Failed to load installed plugins: {e}")
@@ -814,34 +877,46 @@ class PluginMarketplace:
         """Get marketplace statistics"""
         try:
             total_plugins = len(self.available_plugins)
-            approved_plugins = sum(1 for m in self.available_plugins.values()
-                                 if m.status == PluginStatus.APPROVED)
+            approved_plugins = sum(
+                1
+                for m in self.available_plugins.values()
+                if m.status == PluginStatus.APPROVED
+            )
             installed_plugins = len(self.installed_plugins)
 
             # Plugin types distribution
             type_distribution = {}
             for metadata in self.available_plugins.values():
                 plugin_type = metadata.manifest.type.value
-                type_distribution[plugin_type] = type_distribution.get(plugin_type, 0) + 1
+                type_distribution[plugin_type] = (
+                    type_distribution.get(plugin_type, 0) + 1
+                )
 
             # Top plugins by downloads
             top_plugins = sorted(
                 self.available_plugins.values(),
                 key=lambda x: x.download_count,
-                reverse=True
+                reverse=True,
             )[:10]
 
             # Revenue statistics
-            total_revenue = sum(p.total_revenue for p in self.available_plugins.values())
-            paid_plugins = sum(1 for p in self.available_plugins.values()
-                             if p.manifest.pricing_model != "free")
-            active_subscriptions = sum(p.active_subscriptions for p in self.available_plugins.values())
+            total_revenue = sum(
+                p.total_revenue for p in self.available_plugins.values()
+            )
+            paid_plugins = sum(
+                1
+                for p in self.available_plugins.values()
+                if p.manifest.pricing_model != "free"
+            )
+            active_subscriptions = sum(
+                p.active_subscriptions for p in self.available_plugins.values()
+            )
 
             # Top revenue plugins
             top_revenue_plugins = sorted(
                 self.available_plugins.values(),
                 key=lambda x: x.total_revenue,
-                reverse=True
+                reverse=True,
             )[:10]
 
             return {
@@ -853,14 +928,14 @@ class PluginMarketplace:
                     "total_revenue": total_revenue,
                     "paid_plugins": paid_plugins,
                     "active_subscriptions": active_subscriptions,
-                    "free_plugins": approved_plugins - paid_plugins
+                    "free_plugins": approved_plugins - paid_plugins,
                 },
                 "top_plugins": [
                     {
                         "id": p.manifest.id,
                         "name": p.manifest.name,
                         "downloads": p.download_count,
-                        "rating": p.rating
+                        "rating": p.rating,
                     }
                     for p in top_plugins
                 ],
@@ -869,10 +944,10 @@ class PluginMarketplace:
                         "id": p.manifest.id,
                         "name": p.manifest.name,
                         "revenue": p.total_revenue,
-                        "subscriptions": p.active_subscriptions
+                        "subscriptions": p.active_subscriptions,
                     }
                     for p in top_revenue_plugins
-                ]
+                ],
             }
 
         except Exception as e:
@@ -890,6 +965,7 @@ class PluginMarketplace:
 
         self.logger.info("Plugin Marketplace shutdown complete")
 
+
 class PluginSecurityScanner:
     """Security scanner for plugins"""
 
@@ -898,25 +974,25 @@ class PluginSecurityScanner:
 
         # Security patterns to detect
         self.dangerous_patterns = [
-            r'eval\s*\(',
-            r'exec\s*\(',
-            r'__import__\s*\(',
-            r'subprocess\.',
-            r'os\.system',
-            r'open\s*\(',
-            r'file\s*\(',
-            r'input\s*\(',
-            r'raw_input\s*\('
+            r"eval\s*\(",
+            r"exec\s*\(",
+            r"__import__\s*\(",
+            r"subprocess\.",
+            r"os\.system",
+            r"open\s*\(",
+            r"file\s*\(",
+            r"input\s*\(",
+            r"raw_input\s*\(",
         ]
 
         self.suspicious_imports = [
-            'subprocess',
-            'os',
-            'sys',
-            'socket',
-            'urllib',
-            'requests',
-            'http'
+            "subprocess",
+            "os",
+            "sys",
+            "socket",
+            "urllib",
+            "requests",
+            "http",
         ]
 
     async def scan_plugin(self, plugin_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -927,7 +1003,7 @@ class PluginSecurityScanner:
 
             # Scan files for dangerous patterns
             for file_path in plugin_data["files"]:
-                if file_path.suffix == '.py':
+                if file_path.suffix == ".py":
                     issues = await self._scan_python_file(file_path)
                     security_issues.extend(issues)
                     risk_score += len(issues)
@@ -942,18 +1018,14 @@ class PluginSecurityScanner:
             else:
                 level = SecurityLevel.CRITICAL
 
-            return {
-                "level": level,
-                "risk_score": risk_score,
-                "issues": security_issues
-            }
+            return {"level": level, "risk_score": risk_score, "issues": security_issues}
 
         except Exception as e:
             self.logger.error(f"Security scan failed: {e}")
             return {
                 "level": SecurityLevel.CRITICAL,
                 "risk_score": 100,
-                "issues": [f"Scan failed: {e}"]
+                "issues": [f"Scan failed: {e}"],
             }
 
     async def _scan_python_file(self, file_path: Path) -> List[str]:
@@ -961,14 +1033,17 @@ class PluginSecurityScanner:
         issues = []
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Check for dangerous patterns
             import re
+
             for pattern in self.dangerous_patterns:
                 if re.search(pattern, content):
-                    issues.append(f"Dangerous pattern found in {file_path.name}: {pattern}")
+                    issues.append(
+                        f"Dangerous pattern found in {file_path.name}: {pattern}"
+                    )
 
             # Check for suspicious imports
             for imp in self.suspicious_imports:
@@ -980,13 +1055,16 @@ class PluginSecurityScanner:
 
         return issues
 
+
 class PluginValidator:
     """Plugin structure and manifest validator"""
 
     def __init__(self):
         self.logger = setup_logger("PluginValidator")
 
-    async def validate_plugin_structure(self, plugin_path: Path, manifest: PluginManifest) -> bool:
+    async def validate_plugin_structure(
+        self, plugin_path: Path, manifest: PluginManifest
+    ) -> bool:
         """Validate plugin structure"""
         try:
             # Check required files
@@ -995,7 +1073,7 @@ class PluginValidator:
                 raise Exception(f"Entry point {manifest.entry_point} not found")
 
             # Check manifest completeness
-            required_fields = ['id', 'name', 'version', 'description', 'author', 'type']
+            required_fields = ["id", "name", "version", "description", "author", "type"]
             for field in required_fields:
                 if not getattr(manifest, field):
                     raise Exception(f"Required field '{field}' is missing or empty")
@@ -1017,6 +1095,7 @@ class PluginValidator:
             self.logger.error(f"Plugin validation failed: {e}")
             raise
 
+
 # Example plugin implementations
 class ExampleIntegrationPlugin(IntegrationPlugin):
     """Example integration plugin"""
@@ -1036,7 +1115,7 @@ class ExampleIntegrationPlugin(IntegrationPlugin):
         return {
             "name": "Example Integration",
             "version": "1.0.0",
-            "type": "integration"
+            "type": "integration",
         }
 
     async def connect(self) -> bool:

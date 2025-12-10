@@ -64,19 +64,19 @@ class GitClient:
 
             return [
                 {
-                    'id': repo.id,
-                    'name': repo.name,
-                    'full_name': repo.full_name,
-                    'description': repo.description,
-                    'url': repo.html_url,
-                    'clone_url': repo.clone_url,
-                    'ssh_url': repo.ssh_url,
-                    'private': repo.private,
-                    'language': repo.language,
-                    'stars': repo.stargazers_count,
-                    'forks': repo.forks_count,
-                    'created_at': repo.created_at.isoformat(),
-                    'updated_at': repo.updated_at.isoformat()
+                    "id": repo.id,
+                    "name": repo.name,
+                    "full_name": repo.full_name,
+                    "description": repo.description,
+                    "url": repo.html_url,
+                    "clone_url": repo.clone_url,
+                    "ssh_url": repo.ssh_url,
+                    "private": repo.private,
+                    "language": repo.language,
+                    "stars": repo.stargazers_count,
+                    "forks": repo.forks_count,
+                    "created_at": repo.created_at.isoformat(),
+                    "updated_at": repo.updated_at.isoformat(),
                 }
                 for repo in repos
             ]
@@ -85,32 +85,36 @@ class GitClient:
             self.logger.error(f"Failed to get repositories: {e}")
             raise
 
-    async def create_repository(self, name: str, description: str = "",
-                              private: bool = False, auto_init: bool = True) -> Dict[str, Any]:
+    async def create_repository(
+        self,
+        name: str,
+        description: str = "",
+        private: bool = False,
+        auto_init: bool = True,
+    ) -> Dict[str, Any]:
         """Create a new repository"""
         try:
             user = self.github_client.get_user()
             repo = user.create_repo(
-                name=name,
-                description=description,
-                private=private,
-                auto_init=auto_init
+                name=name, description=description, private=private, auto_init=auto_init
             )
 
             return {
-                'id': repo.id,
-                'name': repo.name,
-                'full_name': repo.full_name,
-                'url': repo.html_url,
-                'clone_url': repo.clone_url,
-                'ssh_url': repo.ssh_url
+                "id": repo.id,
+                "name": repo.name,
+                "full_name": repo.full_name,
+                "url": repo.html_url,
+                "clone_url": repo.clone_url,
+                "ssh_url": repo.ssh_url,
             }
 
         except Exception as e:
             self.logger.error(f"Failed to create repository: {e}")
             raise
 
-    async def get_repository_contents(self, repo_name: str, path: str = "") -> List[Dict[str, Any]]:
+    async def get_repository_contents(
+        self, repo_name: str, path: str = ""
+    ) -> List[Dict[str, Any]]:
         """Get repository contents"""
         try:
             repo = self.github_client.get_repo(repo_name)
@@ -121,12 +125,12 @@ class GitClient:
 
             return [
                 {
-                    'name': content.name,
-                    'path': content.path,
-                    'type': content.type,
-                    'size': content.size,
-                    'download_url': content.download_url,
-                    'html_url': content.html_url
+                    "name": content.name,
+                    "path": content.path,
+                    "type": content.type,
+                    "size": content.size,
+                    "download_url": content.download_url,
+                    "html_url": content.html_url,
                 }
                 for content in contents
             ]
@@ -135,30 +139,39 @@ class GitClient:
             self.logger.error(f"Failed to get repository contents: {e}")
             raise
 
-    async def create_file(self, repo_name: str, file_path: str, content: str,
-                         commit_message: str, branch: str = "main") -> Dict[str, Any]:
+    async def create_file(
+        self,
+        repo_name: str,
+        file_path: str,
+        content: str,
+        commit_message: str,
+        branch: str = "main",
+    ) -> Dict[str, Any]:
         """Create a file in repository"""
         try:
             repo = self.github_client.get_repo(repo_name)
             result = repo.create_file(
-                path=file_path,
-                message=commit_message,
-                content=content,
-                branch=branch
+                path=file_path, message=commit_message, content=content, branch=branch
             )
 
             return {
-                'commit_sha': result['commit'].sha,
-                'content_sha': result['content'].sha,
-                'html_url': result['content'].html_url
+                "commit_sha": result["commit"].sha,
+                "content_sha": result["content"].sha,
+                "html_url": result["content"].html_url,
             }
 
         except Exception as e:
             self.logger.error(f"Failed to create file: {e}")
             raise
 
-    async def update_file(self, repo_name: str, file_path: str, content: str,
-                         commit_message: str, branch: str = "main") -> Dict[str, Any]:
+    async def update_file(
+        self,
+        repo_name: str,
+        file_path: str,
+        content: str,
+        commit_message: str,
+        branch: str = "main",
+    ) -> Dict[str, Any]:
         """Update a file in repository"""
         try:
             repo = self.github_client.get_repo(repo_name)
@@ -171,44 +184,42 @@ class GitClient:
                 message=commit_message,
                 content=content,
                 sha=current_file.sha,
-                branch=branch
+                branch=branch,
             )
 
             return {
-                'commit_sha': result['commit'].sha,
-                'content_sha': result['content'].sha,
-                'html_url': result['content'].html_url
+                "commit_sha": result["commit"].sha,
+                "content_sha": result["content"].sha,
+                "html_url": result["content"].html_url,
             }
 
         except Exception as e:
             self.logger.error(f"Failed to update file: {e}")
             raise
 
-    async def create_pull_request(self, repo_name: str, title: str, body: str,
-                                head: str, base: str = "main") -> Dict[str, Any]:
+    async def create_pull_request(
+        self, repo_name: str, title: str, body: str, head: str, base: str = "main"
+    ) -> Dict[str, Any]:
         """Create a pull request"""
         try:
             repo = self.github_client.get_repo(repo_name)
-            pr = repo.create_pull(
-                title=title,
-                body=body,
-                head=head,
-                base=base
-            )
+            pr = repo.create_pull(title=title, body=body, head=head, base=base)
 
             return {
-                'id': pr.id,
-                'number': pr.number,
-                'title': pr.title,
-                'url': pr.html_url,
-                'state': pr.state
+                "id": pr.id,
+                "number": pr.number,
+                "title": pr.title,
+                "url": pr.html_url,
+                "state": pr.state,
             }
 
         except Exception as e:
             self.logger.error(f"Failed to create pull request: {e}")
             raise
 
-    async def get_issues(self, repo_name: str, state: str = "open") -> List[Dict[str, Any]]:
+    async def get_issues(
+        self, repo_name: str, state: str = "open"
+    ) -> List[Dict[str, Any]]:
         """Get repository issues"""
         try:
             repo = self.github_client.get_repo(repo_name)
@@ -216,16 +227,16 @@ class GitClient:
 
             return [
                 {
-                    'id': issue.id,
-                    'number': issue.number,
-                    'title': issue.title,
-                    'body': issue.body,
-                    'state': issue.state,
-                    'url': issue.html_url,
-                    'created_at': issue.created_at.isoformat(),
-                    'updated_at': issue.updated_at.isoformat(),
-                    'labels': [label.name for label in issue.labels],
-                    'assignees': [assignee.login for assignee in issue.assignees]
+                    "id": issue.id,
+                    "number": issue.number,
+                    "title": issue.title,
+                    "body": issue.body,
+                    "state": issue.state,
+                    "url": issue.html_url,
+                    "created_at": issue.created_at.isoformat(),
+                    "updated_at": issue.updated_at.isoformat(),
+                    "labels": [label.name for label in issue.labels],
+                    "assignees": [assignee.login for assignee in issue.assignees],
                 }
                 for issue in issues
             ]
@@ -234,24 +245,27 @@ class GitClient:
             self.logger.error(f"Failed to get issues: {e}")
             raise
 
-    async def create_issue(self, repo_name: str, title: str, body: str = "",
-                          labels: List[str] = None, assignees: List[str] = None) -> Dict[str, Any]:
+    async def create_issue(
+        self,
+        repo_name: str,
+        title: str,
+        body: str = "",
+        labels: List[str] = None,
+        assignees: List[str] = None,
+    ) -> Dict[str, Any]:
         """Create a new issue"""
         try:
             repo = self.github_client.get_repo(repo_name)
             issue = repo.create_issue(
-                title=title,
-                body=body,
-                labels=labels or [],
-                assignees=assignees or []
+                title=title, body=body, labels=labels or [], assignees=assignees or []
             )
 
             return {
-                'id': issue.id,
-                'number': issue.number,
-                'title': issue.title,
-                'url': issue.html_url,
-                'state': issue.state
+                "id": issue.id,
+                "number": issue.number,
+                "title": issue.title,
+                "url": issue.html_url,
+                "state": issue.state,
             }
 
         except Exception as e:
@@ -266,17 +280,19 @@ class GitClient:
             self.local_repos[local_path] = repo
 
             return {
-                'path': local_path,
-                'url': repo_url,
-                'branch': repo.active_branch.name,
-                'commit': repo.head.commit.hexsha
+                "path": local_path,
+                "url": repo_url,
+                "branch": repo.active_branch.name,
+                "commit": repo.head.commit.hexsha,
             }
 
         except Exception as e:
             self.logger.error(f"Failed to clone repository: {e}")
             raise
 
-    async def commit_changes(self, repo_path: str, message: str, files: List[str] = None) -> Dict[str, Any]:
+    async def commit_changes(
+        self, repo_path: str, message: str, files: List[str] = None
+    ) -> Dict[str, Any]:
         """Commit changes to local repository"""
         try:
             if repo_path not in self.local_repos:
@@ -294,17 +310,19 @@ class GitClient:
             commit = repo.index.commit(message)
 
             return {
-                'commit_sha': commit.hexsha,
-                'message': commit.message,
-                'author': str(commit.author),
-                'committed_date': commit.committed_date
+                "commit_sha": commit.hexsha,
+                "message": commit.message,
+                "author": str(commit.author),
+                "committed_date": commit.committed_date,
             }
 
         except Exception as e:
             self.logger.error(f"Failed to commit changes: {e}")
             raise
 
-    async def push_changes(self, repo_path: str, remote: str = "origin", branch: str = None) -> bool:
+    async def push_changes(
+        self, repo_path: str, remote: str = "origin", branch: str = None
+    ) -> bool:
         """Push changes to remote repository"""
         try:
             if repo_path not in self.local_repos:
@@ -324,7 +342,9 @@ class GitClient:
             self.logger.error(f"Failed to push changes: {e}")
             raise
 
-    async def pull_changes(self, repo_path: str, remote: str = "origin", branch: str = None) -> Dict[str, Any]:
+    async def pull_changes(
+        self, repo_path: str, remote: str = "origin", branch: str = None
+    ) -> Dict[str, Any]:
         """Pull changes from remote repository"""
         try:
             if repo_path not in self.local_repos:
@@ -339,9 +359,9 @@ class GitClient:
             pull_info = origin.pull(branch)[0]
 
             return {
-                'commit_sha': pull_info.commit.hexsha,
-                'message': pull_info.commit.message,
-                'flags': pull_info.flags
+                "commit_sha": pull_info.commit.hexsha,
+                "message": pull_info.commit.message,
+                "flags": pull_info.flags,
             }
 
         except Exception as e:
@@ -357,12 +377,12 @@ class GitClient:
             repo = self.local_repos[repo_path]
 
             return {
-                'branch': repo.active_branch.name,
-                'commit': repo.head.commit.hexsha,
-                'modified_files': [item.a_path for item in repo.index.diff(None)],
-                'staged_files': [item.a_path for item in repo.index.diff("HEAD")],
-                'untracked_files': repo.untracked_files,
-                'is_dirty': repo.is_dirty()
+                "branch": repo.active_branch.name,
+                "commit": repo.head.commit.hexsha,
+                "modified_files": [item.a_path for item in repo.index.diff(None)],
+                "staged_files": [item.a_path for item in repo.index.diff("HEAD")],
+                "untracked_files": repo.untracked_files,
+                "is_dirty": repo.is_dirty(),
             }
 
         except Exception as e:
@@ -373,18 +393,18 @@ class GitClient:
     async def execute_operation(self, operation: str, **kwargs) -> Any:
         """Execute Git operation"""
         operations = {
-            'get_repos': self.get_repositories,
-            'create_repo': self.create_repository,
-            'clone': self.clone_repository,
-            'commit': self.commit_changes,
-            'push': self.push_changes,
-            'pull': self.pull_changes,
-            'status': self.get_repository_status,
-            'create_issue': self.create_issue,
-            'get_issues': self.get_issues,
-            'create_pr': self.create_pull_request,
-            'create_file': self.create_file,
-            'update_file': self.update_file
+            "get_repos": self.get_repositories,
+            "create_repo": self.create_repository,
+            "clone": self.clone_repository,
+            "commit": self.commit_changes,
+            "push": self.push_changes,
+            "pull": self.pull_changes,
+            "status": self.get_repository_status,
+            "create_issue": self.create_issue,
+            "get_issues": self.get_issues,
+            "create_pr": self.create_pull_request,
+            "create_file": self.create_file,
+            "update_file": self.update_file,
         }
 
         if operation not in operations:

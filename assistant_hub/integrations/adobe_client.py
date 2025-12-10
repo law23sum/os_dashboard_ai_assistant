@@ -9,17 +9,36 @@ from datetime import datetime
 
 try:
     from adobe.pdfservices.operation.auth.credentials import Credentials
-    from adobe.pdfservices.operation.exception.exceptions import ServiceApiException, ServiceUsageException, SdkException
-    from adobe.pdfservices.operation.pdfops.options.extractpdf.extract_pdf_options import ExtractPDFOptions
-    from adobe.pdfservices.operation.pdfops.options.extractpdf.extract_element_type import ExtractElementType
+    from adobe.pdfservices.operation.exception.exceptions import (
+        ServiceApiException,
+        ServiceUsageException,
+        SdkException,
+    )
+    from adobe.pdfservices.operation.pdfops.options.extractpdf.extract_pdf_options import (
+        ExtractPDFOptions,
+    )
+    from adobe.pdfservices.operation.pdfops.options.extractpdf.extract_element_type import (
+        ExtractElementType,
+    )
     from adobe.pdfservices.operation.execution_context import ExecutionContext
     from adobe.pdfservices.operation.io.file_ref import FileRef
-    from adobe.pdfservices.operation.pdfops.extract_pdf_operation import ExtractPDFOperation
-    from adobe.pdfservices.operation.pdfops.create_pdf_operation import CreatePDFOperation
-    from adobe.pdfservices.operation.pdfops.combine_pdf_operation import CombinePDFOperation
+    from adobe.pdfservices.operation.pdfops.extract_pdf_operation import (
+        ExtractPDFOperation,
+    )
+    from adobe.pdfservices.operation.pdfops.create_pdf_operation import (
+        CreatePDFOperation,
+    )
+    from adobe.pdfservices.operation.pdfops.combine_pdf_operation import (
+        CombinePDFOperation,
+    )
     from adobe.pdfservices.operation.pdfops.split_pdf_operation import SplitPDFOperation
-    from adobe.pdfservices.operation.pdfops.options.splitpdf.split_pdf_options import SplitPDFOptions
-    from adobe.pdfservices.operation.pdfops.options.splitpdf.page_ranges import PageRanges
+    from adobe.pdfservices.operation.pdfops.options.splitpdf.split_pdf_options import (
+        SplitPDFOptions,
+    )
+    from adobe.pdfservices.operation.pdfops.options.splitpdf.page_ranges import (
+        PageRanges,
+    )
+
     ADOBE_SDK_AVAILABLE = True
 except ImportError:
     ADOBE_SDK_AVAILABLE = False
@@ -41,13 +60,17 @@ class AdobeClient:
         """Initialize Adobe client"""
         try:
             if not ADOBE_SDK_AVAILABLE:
-                self.logger.warning("Adobe PDF Services SDK not available. Install with: pip install adobe-pdfservices-sdk")
+                self.logger.warning(
+                    "Adobe PDF Services SDK not available. Install with: pip install adobe-pdfservices-sdk"
+                )
                 return False
 
             # Create credentials
-            self.credentials = Credentials.service_account_credentials_builder() \
-                .from_file(self.config.adobe_private_key_file) \
+            self.credentials = (
+                Credentials.service_account_credentials_builder()
+                .from_file(self.config.adobe_private_key_file)
                 .build()
+            )
 
             # Create execution context
             self.execution_context = ExecutionContext.create(self.credentials)
@@ -73,7 +96,9 @@ class AdobeClient:
             return False
 
     # PDF Operations
-    async def extract_text_from_pdf(self, input_file_path: str, output_dir: str = "output") -> Dict[str, Any]:
+    async def extract_text_from_pdf(
+        self, input_file_path: str, output_dir: str = "output"
+    ) -> Dict[str, Any]:
         """Extract text from PDF"""
         try:
             if not ADOBE_SDK_AVAILABLE:
@@ -87,9 +112,11 @@ class AdobeClient:
             extract_pdf_operation.set_input(source_file_ref)
 
             # Set options
-            extract_pdf_options = ExtractPDFOptions.builder() \
-                .add_element_to_extract(ExtractElementType.TEXT) \
+            extract_pdf_options = (
+                ExtractPDFOptions.builder()
+                .add_element_to_extract(ExtractElementType.TEXT)
                 .build()
+            )
             extract_pdf_operation.set_options(extract_pdf_options)
 
             # Execute operation
@@ -97,21 +124,25 @@ class AdobeClient:
 
             # Save result
             os.makedirs(output_dir, exist_ok=True)
-            output_file_path = os.path.join(output_dir, f"extracted_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip")
+            output_file_path = os.path.join(
+                output_dir, f"extracted_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+            )
             result.save_as(output_file_path)
 
             return {
-                'input_file': input_file_path,
-                'output_file': output_file_path,
-                'operation': 'extract_text',
-                'status': 'completed'
+                "input_file": input_file_path,
+                "output_file": output_file_path,
+                "operation": "extract_text",
+                "status": "completed",
             }
 
         except Exception as e:
             self.logger.error(f"PDF text extraction failed: {e}")
             raise
 
-    async def create_pdf_from_docx(self, input_file_path: str, output_dir: str = "output") -> Dict[str, Any]:
+    async def create_pdf_from_docx(
+        self, input_file_path: str, output_dir: str = "output"
+    ) -> Dict[str, Any]:
         """Create PDF from DOCX file"""
         try:
             if not ADOBE_SDK_AVAILABLE:
@@ -129,21 +160,25 @@ class AdobeClient:
 
             # Save result
             os.makedirs(output_dir, exist_ok=True)
-            output_file_path = os.path.join(output_dir, f"created_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
+            output_file_path = os.path.join(
+                output_dir, f"created_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            )
             result.save_as(output_file_path)
 
             return {
-                'input_file': input_file_path,
-                'output_file': output_file_path,
-                'operation': 'create_pdf',
-                'status': 'completed'
+                "input_file": input_file_path,
+                "output_file": output_file_path,
+                "operation": "create_pdf",
+                "status": "completed",
             }
 
         except Exception as e:
             self.logger.error(f"PDF creation failed: {e}")
             raise
 
-    async def combine_pdfs(self, input_files: List[str], output_dir: str = "output") -> Dict[str, Any]:
+    async def combine_pdfs(
+        self, input_files: List[str], output_dir: str = "output"
+    ) -> Dict[str, Any]:
         """Combine multiple PDFs into one"""
         try:
             if not ADOBE_SDK_AVAILABLE:
@@ -162,22 +197,25 @@ class AdobeClient:
 
             # Save result
             os.makedirs(output_dir, exist_ok=True)
-            output_file_path = os.path.join(output_dir, f"combined_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
+            output_file_path = os.path.join(
+                output_dir, f"combined_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            )
             result.save_as(output_file_path)
 
             return {
-                'input_files': input_files,
-                'output_file': output_file_path,
-                'operation': 'combine_pdfs',
-                'status': 'completed'
+                "input_files": input_files,
+                "output_file": output_file_path,
+                "operation": "combine_pdfs",
+                "status": "completed",
             }
 
         except Exception as e:
             self.logger.error(f"PDF combination failed: {e}")
             raise
 
-    async def split_pdf(self, input_file_path: str, page_ranges: List[tuple],
-                       output_dir: str = "output") -> Dict[str, Any]:
+    async def split_pdf(
+        self, input_file_path: str, page_ranges: List[tuple], output_dir: str = "output"
+    ) -> Dict[str, Any]:
         """Split PDF into multiple files"""
         try:
             if not ADOBE_SDK_AVAILABLE:
@@ -192,9 +230,9 @@ class AdobeClient:
                 ranges.add_range(start, end)
 
             # Create options
-            split_pdf_options = SplitPDFOptions.page_ranges_builder() \
-                .add_page_ranges(ranges) \
-                .build()
+            split_pdf_options = (
+                SplitPDFOptions.page_ranges_builder().add_page_ranges(ranges).build()
+            )
 
             # Create operation
             split_pdf_operation = SplitPDFOperation.create_new()
@@ -209,23 +247,27 @@ class AdobeClient:
             output_files = []
 
             for i, file_ref in enumerate(result.get_result()):
-                output_file_path = os.path.join(output_dir, f"split_{i+1}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
+                output_file_path = os.path.join(
+                    output_dir,
+                    f"split_{i+1}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                )
                 file_ref.save_as(output_file_path)
                 output_files.append(output_file_path)
 
             return {
-                'input_file': input_file_path,
-                'output_files': output_files,
-                'operation': 'split_pdf',
-                'status': 'completed'
+                "input_file": input_file_path,
+                "output_files": output_files,
+                "operation": "split_pdf",
+                "status": "completed",
             }
 
         except Exception as e:
             self.logger.error(f"PDF splitting failed: {e}")
             raise
 
-    async def extract_pdf_elements(self, input_file_path: str, elements: List[str],
-                                 output_dir: str = "output") -> Dict[str, Any]:
+    async def extract_pdf_elements(
+        self, input_file_path: str, elements: List[str], output_dir: str = "output"
+    ) -> Dict[str, Any]:
         """Extract specific elements from PDF"""
         try:
             if not ADOBE_SDK_AVAILABLE:
@@ -242,14 +284,16 @@ class AdobeClient:
             options_builder = ExtractPDFOptions.builder()
 
             element_mapping = {
-                'text': ExtractElementType.TEXT,
-                'tables': ExtractElementType.TABLES,
-                'text_properties': ExtractElementType.TEXT_PROPERTIES
+                "text": ExtractElementType.TEXT,
+                "tables": ExtractElementType.TABLES,
+                "text_properties": ExtractElementType.TEXT_PROPERTIES,
             }
 
             for element in elements:
                 if element.lower() in element_mapping:
-                    options_builder.add_element_to_extract(element_mapping[element.lower()])
+                    options_builder.add_element_to_extract(
+                        element_mapping[element.lower()]
+                    )
 
             extract_pdf_options = options_builder.build()
             extract_pdf_operation.set_options(extract_pdf_options)
@@ -259,15 +303,18 @@ class AdobeClient:
 
             # Save result
             os.makedirs(output_dir, exist_ok=True)
-            output_file_path = os.path.join(output_dir, f"extracted_elements_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip")
+            output_file_path = os.path.join(
+                output_dir,
+                f"extracted_elements_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip",
+            )
             result.save_as(output_file_path)
 
             return {
-                'input_file': input_file_path,
-                'output_file': output_file_path,
-                'extracted_elements': elements,
-                'operation': 'extract_elements',
-                'status': 'completed'
+                "input_file": input_file_path,
+                "output_file": output_file_path,
+                "extracted_elements": elements,
+                "operation": "extract_elements",
+                "status": "completed",
             }
 
         except Exception as e:
@@ -284,11 +331,11 @@ class AdobeClient:
 
             return [
                 {
-                    'id': 'placeholder_1',
-                    'name': 'Sample Asset',
-                    'type': 'image',
-                    'created_date': datetime.now().isoformat(),
-                    'status': 'placeholder'
+                    "id": "placeholder_1",
+                    "name": "Sample Asset",
+                    "type": "image",
+                    "created_date": datetime.now().isoformat(),
+                    "status": "placeholder",
                 }
             ]
 
@@ -296,17 +343,19 @@ class AdobeClient:
             self.logger.error(f"Failed to get Creative Cloud assets: {e}")
             raise
 
-    async def upload_to_creative_cloud(self, file_path: str, asset_type: str = "image") -> Dict[str, Any]:
+    async def upload_to_creative_cloud(
+        self, file_path: str, asset_type: str = "image"
+    ) -> Dict[str, Any]:
         """Upload asset to Creative Cloud (placeholder)"""
         try:
             # This would require Creative Cloud API integration
             self.logger.warning("Creative Cloud upload not yet implemented")
 
             return {
-                'file_path': file_path,
-                'asset_type': asset_type,
-                'upload_status': 'placeholder',
-                'message': 'Creative Cloud API integration pending'
+                "file_path": file_path,
+                "asset_type": asset_type,
+                "upload_status": "placeholder",
+                "message": "Creative Cloud API integration pending",
             }
 
         except Exception as e:
@@ -314,25 +363,33 @@ class AdobeClient:
             raise
 
     # Unified PDF processing method
-    async def process_pdf(self, file_path: str, operation: str = "extract_text", **kwargs) -> Any:
+    async def process_pdf(
+        self, file_path: str, operation: str = "extract_text", **kwargs
+    ) -> Any:
         """Process PDF with specified operation"""
         operations = {
-            'extract_text': self.extract_text_from_pdf,
-            'create_from_docx': self.create_pdf_from_docx,
-            'combine': self.combine_pdfs,
-            'split': self.split_pdf,
-            'extract_elements': self.extract_pdf_elements
+            "extract_text": self.extract_text_from_pdf,
+            "create_from_docx": self.create_pdf_from_docx,
+            "combine": self.combine_pdfs,
+            "split": self.split_pdf,
+            "extract_elements": self.extract_pdf_elements,
         }
 
         if operation not in operations:
             raise ValueError(f"Unknown PDF operation: {operation}")
 
-        if operation == 'combine':
-            return await operations[operation](kwargs.get('input_files', [file_path]), **kwargs)
-        elif operation == 'split':
-            return await operations[operation](file_path, kwargs.get('page_ranges', [(1, 1)]), **kwargs)
-        elif operation == 'extract_elements':
-            return await operations[operation](file_path, kwargs.get('elements', ['text']), **kwargs)
+        if operation == "combine":
+            return await operations[operation](
+                kwargs.get("input_files", [file_path]), **kwargs
+            )
+        elif operation == "split":
+            return await operations[operation](
+                file_path, kwargs.get("page_ranges", [(1, 1)]), **kwargs
+            )
+        elif operation == "extract_elements":
+            return await operations[operation](
+                file_path, kwargs.get("elements", ["text"]), **kwargs
+            )
         else:
             return await operations[operation](file_path, **kwargs)
 

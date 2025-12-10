@@ -2,6 +2,9 @@ python main.py                             # Main application
 python_os assistant_hub_gui/main.py        # Web dashboard (`./python_os` or add repo to PATH)
 pytest tests/                              # Run tests
 
+# GUI demo showcase (mirrors `python examples/demo_usage.py`)
+# Open the GUI Tools tab → Demo Showcase to stream demo output without a terminal.
+
 
 python security_monitor.py dashboard
 python security_monitor.py compliance gdpr

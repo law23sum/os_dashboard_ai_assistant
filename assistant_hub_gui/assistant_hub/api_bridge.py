@@ -73,17 +73,29 @@ def mark_ai_edit_complete(
 
 
 def get_operation_feed(
-    conn: sqlite3.Connection, *, status: Optional[str] = None, integration_type: Optional[str] = None, limit: int = 50
+    conn: sqlite3.Connection,
+    *,
+    status: Optional[str] = None,
+    integration_type: Optional[str] = None,
+    limit: int = 50,
 ) -> List[DocumentOperation]:
     """Fetch a list of recent operations for API/GUI consumption."""
 
-    return db_list_document_operations(conn, limit=limit, status=status, integration_type=integration_type)
+    return db_list_document_operations(
+        conn, limit=limit, status=status, integration_type=integration_type
+    )
 
 
 def summarize_operation_counts(conn: sqlite3.Connection) -> Dict[str, int]:
     """Aggregate operation counts by status for quick badges in the GUI."""
 
-    counts: Dict[str, int] = {"queued": 0, "running": 0, "succeeded": 0, "failed": 0, "needs_review": 0}
+    counts: Dict[str, int] = {
+        "queued": 0,
+        "running": 0,
+        "succeeded": 0,
+        "failed": 0,
+        "needs_review": 0,
+    }
     operations = db_list_document_operations(conn, limit=250)
     for op in operations:
         if op.status in counts:

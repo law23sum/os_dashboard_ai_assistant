@@ -68,7 +68,9 @@ class OfficeAIProcessingService:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def process_message(self, message: AIOfficeMessage | Dict[str, Any]) -> Dict[str, Any]:
+    def process_message(
+        self, message: AIOfficeMessage | Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Process an AIOfficeMessage or dict payload into a structured response."""
         if isinstance(message, dict):
             message = self._dict_to_message(message)
@@ -99,7 +101,9 @@ class OfficeAIProcessingService:
         text = self._extract_text(payload)
         content_type = payload.get("content_type", "text")
 
-        validation_results = self.validator.validate_content(text, content_type=content_type)
+        validation_results = self.validator.validate_content(
+            text, content_type=content_type
+        )
         accessibility_results: List[ValidationResult] = []
         if content_type.lower() == "html":
             accessibility_results = self.accessibility_checker.check_accessibility(text)
@@ -112,7 +116,9 @@ class OfficeAIProcessingService:
             "score": self._score_validation(validation_results + accessibility_results),
         }
 
-        recommendations = self._build_recommendations(validation_results, accessibility_results)
+        recommendations = self._build_recommendations(
+            validation_results, accessibility_results
+        )
         return {
             "status": "analyzed",
             "message_type": message.type.value,
@@ -127,7 +133,11 @@ class OfficeAIProcessingService:
         document_type = (payload.get("document_type") or message.target.value).lower()
 
         try:
-            if document_type in ("powerpoint", "presentation", ApplicationType.POWERPOINT.value):
+            if document_type in (
+                "powerpoint",
+                "presentation",
+                ApplicationType.POWERPOINT.value,
+            ):
                 meta = self._generate_presentation(payload)
             elif document_type in ("excel", ApplicationType.EXCEL.value):
                 meta = self._generate_excel(payload)
@@ -151,7 +161,9 @@ class OfficeAIProcessingService:
         payload = message.payload or {}
         text = self._extract_text(payload)
         content_type = payload.get("content_type", "text")
-        validation_results = self.validator.validate_content(text, content_type=content_type)
+        validation_results = self.validator.validate_content(
+            text, content_type=content_type
+        )
 
         suggestions = [
             {
@@ -192,7 +204,11 @@ class OfficeAIProcessingService:
             theme=payload.get("theme", "professional"),
         )
         generator = PresentationGenerator(config)
-        sections = payload.get("sections") or payload.get("slides") or self._default_sections(payload)
+        sections = (
+            payload.get("sections")
+            or payload.get("slides")
+            or self._default_sections(payload)
+        )
 
         generator.add_title_slide(
             payload.get("title", "Executive Summary"),
@@ -202,7 +218,9 @@ class OfficeAIProcessingService:
         for section in sections:
             generator.add_content_slide(
                 section.get("title", "Details"),
-                section.get("bullets") or section.get("content") or section.get("points", []),
+                section.get("bullets")
+                or section.get("content")
+                or section.get("points", []),
                 image_url=section.get("image"),
                 chart_data=section.get("chart"),
             )
@@ -253,9 +271,19 @@ class OfficeAIProcessingService:
                 continue
             worksheet_id = generator.add_worksheet(sheet.get("name", "Sheet"), data)
             for chart in sheet.get("charts", []):
-                generator.add_chart(sheet.get("name", "Sheet"), chart.get("type", "bar"), chart.get("data_range", "A1:B5"), chart)
+                generator.add_chart(
+                    sheet.get("name", "Sheet"),
+                    chart.get("type", "bar"),
+                    chart.get("data_range", "A1:B5"),
+                    chart,
+                )
             for fmt in sheet.get("conditional_formats", []):
-                generator.add_conditional_formatting(sheet.get("name", "Sheet"), fmt.get("range", "A2:A10"), fmt.get("type", "color_scale"), fmt.get("config", {}))
+                generator.add_conditional_formatting(
+                    sheet.get("name", "Sheet"),
+                    fmt.get("range", "A2:A10"),
+                    fmt.get("type", "color_scale"),
+                    fmt.get("config", {}),
+                )
 
         output_path = self._workspace_file("dashboard", "xlsx")
         success = generator.generate_excel(str(output_path))
@@ -299,7 +327,9 @@ class OfficeAIProcessingService:
             return plain
         return plain[: max_len - 3] + "..."
 
-    def _serialize_validation_results(self, results: Sequence[ValidationResult]) -> List[Dict[str, Any]]:
+    def _serialize_validation_results(
+        self, results: Sequence[ValidationResult]
+    ) -> List[Dict[str, Any]]:
         serialized = []
         for result in results:
             serialized.append(

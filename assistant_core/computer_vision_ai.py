@@ -24,9 +24,11 @@ import pytesseract
 import torch
 import torchvision.transforms as transforms
 from transformers import (
-    BlipProcessor, BlipForConditionalGeneration,
-    CLIPProcessor, CLIPModel,
-    pipeline
+    BlipProcessor,
+    BlipForConditionalGeneration,
+    CLIPProcessor,
+    CLIPModel,
+    pipeline,
 )
 from sentence_transformers import SentenceTransformer
 
@@ -69,6 +71,7 @@ class ContentType(Enum):
 @dataclass
 class BoundingBox:
     """Bounding box coordinates"""
+
     x: float
     y: float
     width: float
@@ -79,6 +82,7 @@ class BoundingBox:
 @dataclass
 class DetectedObject:
     """Detected object information"""
+
     object_id: str
     label: str
     confidence: float
@@ -89,6 +93,7 @@ class DetectedObject:
 @dataclass
 class ExtractedText:
     """Extracted text information"""
+
     text: str
     confidence: float
     bounding_box: BoundingBox
@@ -99,6 +104,7 @@ class ExtractedText:
 @dataclass
 class DocumentField:
     """Extracted document field"""
+
     field_name: str
     field_value: str
     confidence: float
@@ -109,6 +115,7 @@ class DocumentField:
 @dataclass
 class AnalysisResult:
     """Computer vision analysis result"""
+
     analysis_id: str
     analysis_type: AnalysisType
     content_type: ContentType
@@ -142,7 +149,7 @@ class ComputerVisionMultimodalAI:
             "batch_processing": True,
             "gpu_enabled": torch.cuda.is_available(),
             "confidence_threshold": 0.7,
-            "max_objects_per_image": 50
+            "max_objects_per_image": 50,
         }
 
         # Document templates
@@ -152,16 +159,16 @@ class ComputerVisionMultimodalAI:
                 "patterns": {
                     "invoice_number": r"(?:invoice|inv)[\s#:]*(\w+)",
                     "total_amount": r"(?:total|amount)[\s:$]*(\d+\.?\d*)",
-                    "date": r"(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})"
-                }
+                    "date": r"(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",
+                },
             },
             DocumentType.RECEIPT: {
                 "fields": ["merchant", "date", "total", "items", "payment_method"],
                 "patterns": {
                     "total": r"(?:total|amount)[\s:$]*(\d+\.?\d*)",
-                    "date": r"(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})"
-                }
-            }
+                    "date": r"(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",
+                },
+            },
         }
 
     async def initialize(self):
@@ -181,30 +188,40 @@ class ComputerVisionMultimodalAI:
 
             # Image captioning model
             try:
-                self.processors['blip'] = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-                self.models['blip'] = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base").to(device)
+                self.processors["blip"] = BlipProcessor.from_pretrained(
+                    "Salesforce/blip-image-captioning-base"
+                )
+                self.models["blip"] = BlipForConditionalGeneration.from_pretrained(
+                    "Salesforce/blip-image-captioning-base"
+                ).to(device)
             except Exception as e:
                 self.logger.warning(f"BLIP model loading failed: {e}")
 
             # CLIP for image-text understanding
             try:
-                self.processors['clip'] = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-                self.models['clip'] = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
+                self.processors["clip"] = CLIPProcessor.from_pretrained(
+                    "openai/clip-vit-base-patch32"
+                )
+                self.models["clip"] = CLIPModel.from_pretrained(
+                    "openai/clip-vit-base-patch32"
+                ).to(device)
             except Exception as e:
                 self.logger.warning(f"CLIP model loading failed: {e}")
 
             # Sentence transformer for embeddings
             try:
-                self.models['sentence_transformer'] = SentenceTransformer('clip-ViT-B-32')
+                self.models["sentence_transformer"] = SentenceTransformer(
+                    "clip-ViT-B-32"
+                )
             except Exception as e:
                 self.logger.warning(f"Sentence transformer loading failed: {e}")
 
             # Object detection pipeline
             try:
-                self.models['object_detection'] = pipeline(
+                self.models["object_detection"] = pipeline(
                     "object-detection",
                     model="facebook/detr-resnet-50",
-                    device=0 if self.config["gpu_enabled"] else -1
+                    device=0 if self.config["gpu_enabled"] else -1,
                 )
             except Exception as e:
                 self.logger.warning(f"Object detection model loading failed: {e}")
@@ -219,9 +236,12 @@ class ComputerVisionMultimodalAI:
 
     # Core Analysis Methods
 
-    async def analyze_image(self, image_data: Union[str, bytes, Image.Image],
-                          analysis_types: List[AnalysisType],
-                          options: Dict[str, Any] = None) -> AnalysisResult:
+    async def analyze_image(
+        self,
+        image_data: Union[str, bytes, Image.Image],
+        analysis_types: List[AnalysisType],
+        options: Dict[str, Any] = None,
+    ) -> AnalysisResult:
         """Comprehensive image analysis"""
         try:
             start_time = datetime.now()
@@ -250,17 +270,25 @@ class ComputerVisionMultimodalAI:
                     elif analysis_type == AnalysisType.TEXT_EXTRACTION:
                         results["text"] = await self._extract_text(image, options)
                     elif analysis_type == AnalysisType.IMAGE_CAPTIONING:
-                        results["caption"] = await self._generate_caption(image, options)
+                        results["caption"] = await self._generate_caption(
+                            image, options
+                        )
                     elif analysis_type == AnalysisType.SCENE_UNDERSTANDING:
                         results["scene"] = await self._understand_scene(image, options)
                     elif analysis_type == AnalysisType.FACE_DETECTION:
                         results["faces"] = await self._detect_faces(image, options)
                     elif analysis_type == AnalysisType.EMOTION_RECOGNITION:
-                        results["emotions"] = await self._recognize_emotions(image, options)
+                        results["emotions"] = await self._recognize_emotions(
+                            image, options
+                        )
                     elif analysis_type == AnalysisType.CONTENT_MODERATION:
-                        results["moderation"] = await self._moderate_content(image, options)
+                        results["moderation"] = await self._moderate_content(
+                            image, options
+                        )
                     elif analysis_type == AnalysisType.SIMILARITY_SEARCH:
-                        results["similarity"] = await self._compute_similarity(image, options)
+                        results["similarity"] = await self._compute_similarity(
+                            image, options
+                        )
 
                 except Exception as e:
                     self.logger.warning(f"Analysis {analysis_type.value} failed: {e}")
@@ -283,7 +311,9 @@ class ComputerVisionMultimodalAI:
 
             analysis_result = AnalysisResult(
                 analysis_id=analysis_id,
-                analysis_type=analysis_types[0] if len(analysis_types) == 1 else AnalysisType.SCENE_UNDERSTANDING,
+                analysis_type=analysis_types[0]
+                if len(analysis_types) == 1
+                else AnalysisType.SCENE_UNDERSTANDING,
                 content_type=ContentType.IMAGE,
                 results=results,
                 confidence_score=overall_confidence,
@@ -291,25 +321,30 @@ class ComputerVisionMultimodalAI:
                 metadata={
                     "image_size": image.size,
                     "analysis_types": [t.value for t in analysis_types],
-                    "options": options or {}
+                    "options": options or {},
                 },
-                created_at=start_time
+                created_at=start_time,
             )
 
             # Cache result
             if self.config["cache_enabled"]:
                 self.analysis_cache[cache_key] = analysis_result
 
-            self.logger.info(f"Image analysis completed: {analysis_id} in {processing_time:.2f}s")
+            self.logger.info(
+                f"Image analysis completed: {analysis_id} in {processing_time:.2f}s"
+            )
             return analysis_result
 
         except Exception as e:
             self.logger.error(f"Image analysis failed: {e}")
             raise
 
-    async def analyze_document(self, document_data: Union[str, bytes, Image.Image],
-                             document_type: DocumentType = DocumentType.GENERAL,
-                             extract_fields: List[str] = None) -> AnalysisResult:
+    async def analyze_document(
+        self,
+        document_data: Union[str, bytes, Image.Image],
+        document_type: DocumentType = DocumentType.GENERAL,
+        extract_fields: List[str] = None,
+    ) -> AnalysisResult:
         """Comprehensive document analysis"""
         try:
             start_time = datetime.now()
@@ -324,7 +359,9 @@ class ComputerVisionMultimodalAI:
             extracted_text = await self._extract_text(image, {"detailed": True})
 
             # Analyze document structure
-            document_structure = await self._analyze_document_structure(image, extracted_text)
+            document_structure = await self._analyze_document_structure(
+                image, extracted_text
+            )
 
             # Extract specific fields
             extracted_fields = {}
@@ -335,10 +372,14 @@ class ComputerVisionMultimodalAI:
 
             # Classify document type if not specified
             if document_type == DocumentType.GENERAL:
-                document_type = await self._classify_document_type(image, extracted_text)
+                document_type = await self._classify_document_type(
+                    image, extracted_text
+                )
 
             # Generate document summary
-            summary = await self._generate_document_summary(extracted_text, extracted_fields)
+            summary = await self._generate_document_summary(
+                extracted_text, extracted_fields
+            )
 
             results = {
                 "document_type": document_type.value,
@@ -346,7 +387,7 @@ class ComputerVisionMultimodalAI:
                 "document_structure": document_structure,
                 "extracted_fields": extracted_fields,
                 "summary": summary,
-                "confidence": 0.8  # Placeholder confidence
+                "confidence": 0.8,  # Placeholder confidence
             }
 
             processing_time = (datetime.now() - start_time).total_seconds()
@@ -361,20 +402,23 @@ class ComputerVisionMultimodalAI:
                 metadata={
                     "document_type": document_type.value,
                     "image_size": image.size,
-                    "text_length": len(extracted_text.get("text", ""))
+                    "text_length": len(extracted_text.get("text", "")),
                 },
-                created_at=start_time
+                created_at=start_time,
             )
 
-            self.logger.info(f"Document analysis completed: {analysis_id} in {processing_time:.2f}s")
+            self.logger.info(
+                f"Document analysis completed: {analysis_id} in {processing_time:.2f}s"
+            )
             return analysis_result
 
         except Exception as e:
             self.logger.error(f"Document analysis failed: {e}")
             raise
 
-    async def visual_question_answering(self, image_data: Union[str, bytes, Image.Image],
-                                      question: str) -> Dict[str, Any]:
+    async def visual_question_answering(
+        self, image_data: Union[str, bytes, Image.Image], question: str
+    ) -> Dict[str, Any]:
         """Answer questions about images"""
         try:
             image = await self._process_image_input(image_data)
@@ -391,7 +435,9 @@ class ComputerVisionMultimodalAI:
 
             # Detect objects
             objects_result = await self._detect_objects(image)
-            objects = [obj.get("label", "") for obj in objects_result.get("objects", [])]
+            objects = [
+                obj.get("label", "") for obj in objects_result.get("objects", [])
+            ]
 
             # Combine all information
             context = f"Image description: {caption}\n"
@@ -407,7 +453,7 @@ class ComputerVisionMultimodalAI:
                 "question": question,
                 "answer": answer,
                 "context": context,
-                "confidence": 0.7
+                "confidence": 0.7,
             }
 
         except Exception as e:
@@ -416,45 +462,51 @@ class ComputerVisionMultimodalAI:
 
     # Individual Analysis Methods
 
-    async def _detect_objects(self, image: Image.Image, options: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def _detect_objects(
+        self, image: Image.Image, options: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """Detect objects in image"""
         try:
-            if 'object_detection' not in self.models:
+            if "object_detection" not in self.models:
                 return {"error": "Object detection model not available"}
 
             # Run object detection
-            results = self.models['object_detection'](image)
+            results = self.models["object_detection"](image)
 
             detected_objects = []
             for result in results:
-                if result['score'] >= self.config["confidence_threshold"]:
-                    bbox = result['box']
+                if result["score"] >= self.config["confidence_threshold"]:
+                    bbox = result["box"]
                     detected_object = DetectedObject(
                         object_id=str(uuid.uuid4()),
-                        label=result['label'],
-                        confidence=result['score'],
+                        label=result["label"],
+                        confidence=result["score"],
                         bounding_box=BoundingBox(
-                            x=bbox['xmin'],
-                            y=bbox['ymin'],
-                            width=bbox['xmax'] - bbox['xmin'],
-                            height=bbox['ymax'] - bbox['ymin'],
-                            confidence=result['score']
+                            x=bbox["xmin"],
+                            y=bbox["ymin"],
+                            width=bbox["xmax"] - bbox["xmin"],
+                            height=bbox["ymax"] - bbox["ymin"],
+                            confidence=result["score"],
                         ),
-                        attributes={}
+                        attributes={},
                     )
                     detected_objects.append(asdict(detected_object))
 
             return {
                 "objects": detected_objects,
                 "count": len(detected_objects),
-                "confidence": np.mean([obj["confidence"] for obj in detected_objects]) if detected_objects else 0.0
+                "confidence": np.mean([obj["confidence"] for obj in detected_objects])
+                if detected_objects
+                else 0.0,
             }
 
         except Exception as e:
             self.logger.error(f"Object detection failed: {e}")
             return {"error": str(e)}
 
-    async def _extract_text(self, image: Image.Image, options: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def _extract_text(
+        self, image: Image.Image, options: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """Extract text from image using OCR"""
         try:
             # Convert PIL image to OpenCV format
@@ -471,25 +523,27 @@ class ComputerVisionMultimodalAI:
 
             if detailed:
                 # Get detailed information including bounding boxes
-                data = pytesseract.image_to_data(enhanced, output_type=pytesseract.Output.DICT)
+                data = pytesseract.image_to_data(
+                    enhanced, output_type=pytesseract.Output.DICT
+                )
 
                 extracted_texts = []
                 full_text = ""
 
-                for i in range(len(data['text'])):
-                    if int(data['conf'][i]) > 30:  # Confidence threshold
-                        text = data['text'][i].strip()
+                for i in range(len(data["text"])):
+                    if int(data["conf"][i]) > 30:  # Confidence threshold
+                        text = data["text"][i].strip()
                         if text:
                             extracted_text = ExtractedText(
                                 text=text,
-                                confidence=int(data['conf'][i]) / 100.0,
+                                confidence=int(data["conf"][i]) / 100.0,
                                 bounding_box=BoundingBox(
-                                    x=data['left'][i],
-                                    y=data['top'][i],
-                                    width=data['width'][i],
-                                    height=data['height'][i],
-                                    confidence=int(data['conf'][i]) / 100.0
-                                )
+                                    x=data["left"][i],
+                                    y=data["top"][i],
+                                    width=data["width"][i],
+                                    height=data["height"][i],
+                                    confidence=int(data["conf"][i]) / 100.0,
+                                ),
                             )
                             extracted_texts.append(asdict(extracted_text))
                             full_text += text + " "
@@ -497,48 +551,51 @@ class ComputerVisionMultimodalAI:
                 return {
                     "text": full_text.strip(),
                     "detailed_text": extracted_texts,
-                    "confidence": np.mean([t["confidence"] for t in extracted_texts]) if extracted_texts else 0.0
+                    "confidence": np.mean([t["confidence"] for t in extracted_texts])
+                    if extracted_texts
+                    else 0.0,
                 }
             else:
                 # Simple text extraction
                 text = pytesseract.image_to_string(enhanced)
                 return {
                     "text": text.strip(),
-                    "confidence": 0.8  # Placeholder confidence
+                    "confidence": 0.8,  # Placeholder confidence
                 }
 
         except Exception as e:
             self.logger.error(f"Text extraction failed: {e}")
             return {"error": str(e)}
 
-    async def _generate_caption(self, image: Image.Image, options: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def _generate_caption(
+        self, image: Image.Image, options: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """Generate image caption"""
         try:
-            if 'blip' not in self.models:
+            if "blip" not in self.models:
                 return {"error": "Image captioning model not available"}
 
             # Process image
-            inputs = self.processors['blip'](image, return_tensors="pt")
+            inputs = self.processors["blip"](image, return_tensors="pt")
 
             # Generate caption
-            device = next(self.models['blip'].parameters()).device
+            device = next(self.models["blip"].parameters()).device
             inputs = {k: v.to(device) for k, v in inputs.items()}
 
             with torch.no_grad():
-                out = self.models['blip'].generate(**inputs, max_length=50)
+                out = self.models["blip"].generate(**inputs, max_length=50)
 
-            caption = self.processors['blip'].decode(out[0], skip_special_tokens=True)
+            caption = self.processors["blip"].decode(out[0], skip_special_tokens=True)
 
-            return {
-                "caption": caption,
-                "confidence": 0.8  # Placeholder confidence
-            }
+            return {"caption": caption, "confidence": 0.8}  # Placeholder confidence
 
         except Exception as e:
             self.logger.error(f"Caption generation failed: {e}")
             return {"error": str(e)}
 
-    async def _understand_scene(self, image: Image.Image, options: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def _understand_scene(
+        self, image: Image.Image, options: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """Understand scene context"""
         try:
             # Combine multiple analyses for scene understanding
@@ -550,9 +607,13 @@ class ComputerVisionMultimodalAI:
                 "description": caption_result.get("caption", ""),
                 "objects": [obj["label"] for obj in objects_result.get("objects", [])],
                 "object_count": objects_result.get("count", 0),
-                "scene_type": self._classify_scene_type(caption_result.get("caption", "")),
-                "complexity": self._assess_scene_complexity(objects_result.get("objects", [])),
-                "confidence": 0.7
+                "scene_type": self._classify_scene_type(
+                    caption_result.get("caption", "")
+                ),
+                "complexity": self._assess_scene_complexity(
+                    objects_result.get("objects", [])
+                ),
+                "confidence": 0.7,
             }
 
             return scene_analysis
@@ -561,7 +622,9 @@ class ComputerVisionMultimodalAI:
             self.logger.error(f"Scene understanding failed: {e}")
             return {"error": str(e)}
 
-    async def _detect_faces(self, image: Image.Image, options: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def _detect_faces(
+        self, image: Image.Image, options: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """Detect faces in image"""
         try:
             # Convert to OpenCV format
@@ -569,13 +632,15 @@ class ComputerVisionMultimodalAI:
             gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
 
             # Load face cascade classifier
-            face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+            face_cascade = cv2.CascadeClassifier(
+                cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+            )
 
             # Detect faces
             faces = face_cascade.detectMultiScale(gray, 1.1, 4)
 
             detected_faces = []
-            for (x, y, w, h) in faces:
+            for x, y, w, h in faces:
                 face_data = {
                     "face_id": str(uuid.uuid4()),
                     "bounding_box": {
@@ -583,23 +648,25 @@ class ComputerVisionMultimodalAI:
                         "y": int(y),
                         "width": int(w),
                         "height": int(h),
-                        "confidence": 0.8
+                        "confidence": 0.8,
                     },
-                    "confidence": 0.8
+                    "confidence": 0.8,
                 }
                 detected_faces.append(face_data)
 
             return {
                 "faces": detected_faces,
                 "count": len(detected_faces),
-                "confidence": 0.8
+                "confidence": 0.8,
             }
 
         except Exception as e:
             self.logger.error(f"Face detection failed: {e}")
             return {"error": str(e)}
 
-    async def _recognize_emotions(self, image: Image.Image, options: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def _recognize_emotions(
+        self, image: Image.Image, options: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """Recognize emotions in image"""
         try:
             # First detect faces
@@ -614,12 +681,14 @@ class ComputerVisionMultimodalAI:
             for face in faces:
                 # Extract face region
                 bbox = face["bounding_box"]
-                face_region = image.crop((
-                    bbox["x"],
-                    bbox["y"],
-                    bbox["x"] + bbox["width"],
-                    bbox["y"] + bbox["height"]
-                ))
+                face_region = image.crop(
+                    (
+                        bbox["x"],
+                        bbox["y"],
+                        bbox["x"] + bbox["width"],
+                        bbox["y"] + bbox["height"],
+                    )
+                )
 
                 # Simulate emotion recognition (in production, use proper emotion model)
                 emotions = {
@@ -627,12 +696,12 @@ class ComputerVisionMultimodalAI:
                     "sad": np.random.uniform(0.0, 0.3),
                     "angry": np.random.uniform(0.0, 0.2),
                     "surprised": np.random.uniform(0.0, 0.4),
-                    "neutral": np.random.uniform(0.2, 0.8)
+                    "neutral": np.random.uniform(0.2, 0.8),
                 }
 
                 # Normalize emotions
                 total = sum(emotions.values())
-                emotions = {k: v/total for k, v in emotions.items()}
+                emotions = {k: v / total for k, v in emotions.items()}
 
                 dominant_emotion = max(emotions.items(), key=lambda x: x[1])
 
@@ -640,20 +709,22 @@ class ComputerVisionMultimodalAI:
                     "face_id": face["face_id"],
                     "emotions": emotions,
                     "dominant_emotion": dominant_emotion[0],
-                    "confidence": dominant_emotion[1]
+                    "confidence": dominant_emotion[1],
                 }
                 emotions_data.append(emotion_data)
 
             return {
                 "emotions": emotions_data,
-                "confidence": np.mean([e["confidence"] for e in emotions_data])
+                "confidence": np.mean([e["confidence"] for e in emotions_data]),
             }
 
         except Exception as e:
             self.logger.error(f"Emotion recognition failed: {e}")
             return {"error": str(e)}
 
-    async def _moderate_content(self, image: Image.Image, options: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def _moderate_content(
+        self, image: Image.Image, options: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """Moderate image content"""
         try:
             # Simulate content moderation
@@ -663,9 +734,9 @@ class ComputerVisionMultimodalAI:
                     "adult": 0.1,
                     "violence": 0.05,
                     "hate": 0.02,
-                    "spam": 0.03
+                    "spam": 0.03,
                 },
-                "confidence": 0.9
+                "confidence": 0.9,
             }
 
             # Check if any category exceeds threshold
@@ -681,14 +752,16 @@ class ComputerVisionMultimodalAI:
             self.logger.error(f"Content moderation failed: {e}")
             return {"error": str(e)}
 
-    async def _compute_similarity(self, image: Image.Image, options: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def _compute_similarity(
+        self, image: Image.Image, options: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """Compute image similarity embeddings"""
         try:
-            if 'sentence_transformer' not in self.models:
+            if "sentence_transformer" not in self.models:
                 return {"error": "Similarity model not available"}
 
             # Generate image embedding
-            embedding = self.models['sentence_transformer'].encode(image)
+            embedding = self.models["sentence_transformer"].encode(image)
 
             # Store embedding for future similarity searches
             image_id = str(uuid.uuid4())
@@ -706,14 +779,19 @@ class ComputerVisionMultimodalAI:
                         similarities[stored_id] = similarity
 
                 # Get top similar images
-                top_similar = sorted(similarities.items(), key=lambda x: x[1], reverse=True)[:5]
-                similar_images = [{"image_id": img_id, "similarity": sim} for img_id, sim in top_similar]
+                top_similar = sorted(
+                    similarities.items(), key=lambda x: x[1], reverse=True
+                )[:5]
+                similar_images = [
+                    {"image_id": img_id, "similarity": sim}
+                    for img_id, sim in top_similar
+                ]
 
             return {
                 "image_id": image_id,
                 "embedding_size": len(embedding),
                 "similar_images": similar_images,
-                "confidence": 1.0
+                "confidence": 1.0,
             }
 
         except Exception as e:
@@ -722,8 +800,9 @@ class ComputerVisionMultimodalAI:
 
     # Document Analysis Methods
 
-    async def _analyze_document_structure(self, image: Image.Image,
-                                        extracted_text: Dict[str, Any]) -> Dict[str, Any]:
+    async def _analyze_document_structure(
+        self, image: Image.Image, extracted_text: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Analyze document structure"""
         try:
             structure = {
@@ -731,7 +810,7 @@ class ComputerVisionMultimodalAI:
                 "sections": [],
                 "tables": [],
                 "headers": [],
-                "footers": []
+                "footers": [],
             }
 
             # Analyze text layout if detailed text is available
@@ -742,7 +821,9 @@ class ComputerVisionMultimodalAI:
                 y_positions = [t["bounding_box"]["y"] for t in detailed_texts]
                 if y_positions:
                     # Simple section detection based on y-position gaps
-                    sorted_texts = sorted(detailed_texts, key=lambda x: x["bounding_box"]["y"])
+                    sorted_texts = sorted(
+                        detailed_texts, key=lambda x: x["bounding_box"]["y"]
+                    )
 
                     sections = []
                     current_section = []
@@ -765,10 +846,9 @@ class ComputerVisionMultimodalAI:
                         {
                             "section_id": i,
                             "text_count": len(section),
-                            "text": " ".join([t["text"] for t in section])
+                            "text": " ".join([t["text"] for t in section]),
                         }
                         for i, section in enumerate(sections)
-
                     ]
 
             return structure
@@ -777,10 +857,13 @@ class ComputerVisionMultimodalAI:
             self.logger.error(f"Document structure analysis failed: {e}")
             return {"error": str(e)}
 
-    async def _extract_document_fields(self, image: Image.Image,
-                                     extracted_text: Dict[str, Any],
-                                     document_type: DocumentType,
-                                     extract_fields: List[str] = None) -> Dict[str, Any]:
+    async def _extract_document_fields(
+        self,
+        image: Image.Image,
+        extracted_text: Dict[str, Any],
+        document_type: DocumentType,
+        extract_fields: List[str] = None,
+    ) -> Dict[str, Any]:
         """Extract specific fields from document"""
         try:
             extracted_fields = {}
@@ -804,24 +887,21 @@ class ComputerVisionMultimodalAI:
                     extracted_fields[field_name] = {
                         "value": matches[0] if len(matches) == 1 else matches,
                         "confidence": 0.8,
-                        "pattern_used": pattern
+                        "pattern_used": pattern,
                     }
 
             # Additional field extraction for specific document types
             if document_type == DocumentType.INVOICE:
                 # Extract line items
-                lines = text.split('\n')
+                lines = text.split("\n")
                 items = []
                 for line in lines:
                     # Simple item detection (description + amount)
-                    if re.search(r'\$?\d+\.?\d*', line) and len(line.split()) > 2:
+                    if re.search(r"\$?\d+\.?\d*", line) and len(line.split()) > 2:
                         items.append(line.strip())
 
                 if items:
-                    extracted_fields["items"] = {
-                        "value": items,
-                        "confidence": 0.6
-                    }
+                    extracted_fields["items"] = {"value": items, "confidence": 0.6}
 
             return extracted_fields
 
@@ -829,8 +909,9 @@ class ComputerVisionMultimodalAI:
             self.logger.error(f"Document field extraction failed: {e}")
             return {"error": str(e)}
 
-    async def _classify_document_type(self, image: Image.Image,
-                                    extracted_text: Dict[str, Any]) -> DocumentType:
+    async def _classify_document_type(
+        self, image: Image.Image, extracted_text: Dict[str, Any]
+    ) -> DocumentType:
         """Classify document type"""
         try:
             text = extracted_text.get("text", "").lower()
@@ -853,14 +934,15 @@ class ComputerVisionMultimodalAI:
             self.logger.error(f"Document type classification failed: {e}")
             return DocumentType.GENERAL
 
-    async def _generate_document_summary(self, extracted_text: Dict[str, Any],
-                                       extracted_fields: Dict[str, Any]) -> Dict[str, Any]:
+    async def _generate_document_summary(
+        self, extracted_text: Dict[str, Any], extracted_fields: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Generate document summary"""
         try:
             text = extracted_text.get("text", "")
 
             # Simple summary generation
-            sentences = text.split('.')
+            sentences = text.split(".")
             key_sentences = [s.strip() for s in sentences if len(s.strip()) > 20][:3]
 
             summary = {
@@ -868,7 +950,7 @@ class ComputerVisionMultimodalAI:
                 "word_count": len(text.split()),
                 "character_count": len(text),
                 "extracted_fields_count": len(extracted_fields),
-                "confidence": 0.7
+                "confidence": 0.7,
             }
 
             # Add field-based insights
@@ -886,7 +968,9 @@ class ComputerVisionMultimodalAI:
 
     # Utility Methods
 
-    async def _process_image_input(self, image_data: Union[str, bytes, Image.Image]) -> Optional[Image.Image]:
+    async def _process_image_input(
+        self, image_data: Union[str, bytes, Image.Image]
+    ) -> Optional[Image.Image]:
         """Process various image input formats"""
         try:
             if isinstance(image_data, Image.Image):
@@ -901,8 +985,8 @@ class ComputerVisionMultimodalAI:
                 return None
 
             # Convert to RGB if necessary
-            if image.mode != 'RGB':
-                image = image.convert('RGB')
+            if image.mode != "RGB":
+                image = image.convert("RGB")
 
             # Resize if too large
             max_size = self.config["max_image_size"]
@@ -915,7 +999,9 @@ class ComputerVisionMultimodalAI:
             self.logger.error(f"Image processing failed: {e}")
             return None
 
-    def _generate_cache_key(self, image: Image.Image, analysis_types: List[AnalysisType]) -> str:
+    def _generate_cache_key(
+        self, image: Image.Image, analysis_types: List[AnalysisType]
+    ) -> str:
         """Generate cache key for analysis"""
         try:
             # Simple hash based on image size and analysis types
@@ -940,11 +1026,17 @@ class ComputerVisionMultimodalAI:
         """Classify scene type from caption"""
         caption_lower = caption.lower()
 
-        if any(word in caption_lower for word in ["indoor", "room", "kitchen", "office"]):
+        if any(
+            word in caption_lower for word in ["indoor", "room", "kitchen", "office"]
+        ):
             return "indoor"
-        elif any(word in caption_lower for word in ["outdoor", "street", "park", "nature"]):
+        elif any(
+            word in caption_lower for word in ["outdoor", "street", "park", "nature"]
+        ):
             return "outdoor"
-        elif any(word in caption_lower for word in ["person", "people", "man", "woman"]):
+        elif any(
+            word in caption_lower for word in ["person", "people", "man", "woman"]
+        ):
             return "people"
         elif any(word in caption_lower for word in ["car", "vehicle", "transport"]):
             return "transportation"
@@ -962,7 +1054,9 @@ class ComputerVisionMultimodalAI:
         else:
             return "complex"
 
-    async def _answer_visual_question(self, question: str, context: str, image: Image.Image) -> str:
+    async def _answer_visual_question(
+        self, question: str, context: str, image: Image.Image
+    ) -> str:
         """Answer visual question using context"""
         try:
             question_lower = question.lower()
@@ -972,7 +1066,8 @@ class ComputerVisionMultimodalAI:
             if "how many" in question_lower:
                 # Count objects
                 import re
-                numbers = re.findall(r'\d+', context)
+
+                numbers = re.findall(r"\d+", context)
                 if numbers:
                     return f"I can see {numbers[0]} items in the image."
                 else:
@@ -989,7 +1084,9 @@ class ComputerVisionMultimodalAI:
             elif "what is" in question_lower or "what are" in question_lower:
                 # Object identification
                 if "objects detected:" in context_lower:
-                    objects_part = context_lower.split("objects detected:")[1].split("\n")[0]
+                    objects_part = context_lower.split("objects detected:")[1].split(
+                        "\n"
+                    )[0]
                     return f"I can see: {objects_part}"
                 else:
                     return "I can analyze the image content but need more specific information."
@@ -1004,7 +1101,9 @@ class ComputerVisionMultimodalAI:
 
     # Batch Processing
 
-    async def batch_analyze_images(self, image_list: List[Dict[str, Any]]) -> List[AnalysisResult]:
+    async def batch_analyze_images(
+        self, image_list: List[Dict[str, Any]]
+    ) -> List[AnalysisResult]:
         """Batch process multiple images"""
         try:
             if not self.config["batch_processing"]:
@@ -1014,7 +1113,7 @@ class ComputerVisionMultimodalAI:
                     result = await self.analyze_image(
                         image_data["data"],
                         image_data["analysis_types"],
-                        image_data.get("options")
+                        image_data.get("options"),
                     )
                     results.append(result)
                 return results
@@ -1026,7 +1125,7 @@ class ComputerVisionMultimodalAI:
                     self.analyze_image(
                         image_data["data"],
                         image_data["analysis_types"],
-                        image_data.get("options")
+                        image_data.get("options"),
                     )
                 )
                 tasks.append(task)
@@ -1037,7 +1136,9 @@ class ComputerVisionMultimodalAI:
             processed_results = []
             for i, result in enumerate(results):
                 if isinstance(result, Exception):
-                    self.logger.error(f"Batch processing failed for image {i}: {result}")
+                    self.logger.error(
+                        f"Batch processing failed for image {i}: {result}"
+                    )
                     # Create error result
                     error_result = AnalysisResult(
                         analysis_id=str(uuid.uuid4()),
@@ -1047,7 +1148,7 @@ class ComputerVisionMultimodalAI:
                         confidence_score=0.0,
                         processing_time=0.0,
                         metadata={"batch_index": i},
-                        created_at=datetime.now()
+                        created_at=datetime.now(),
                     )
                     processed_results.append(error_result)
                 else:
@@ -1076,7 +1177,9 @@ class ComputerVisionMultimodalAI:
                     del self.analysis_cache[key]
 
                 if expired_keys:
-                    self.logger.info(f"Cleaned up {len(expired_keys)} expired cache entries")
+                    self.logger.info(
+                        f"Cleaned up {len(expired_keys)} expired cache entries"
+                    )
 
                 await asyncio.sleep(3600)  # Run every hour
 
@@ -1105,22 +1208,22 @@ class ComputerVisionMultimodalAI:
         try:
             # Sort by creation time
             sorted_results = sorted(
-                self.analysis_cache.values(),
-                key=lambda x: x.created_at,
-                reverse=True
+                self.analysis_cache.values(), key=lambda x: x.created_at, reverse=True
             )
 
             # Convert to dict format
             history = []
             for result in sorted_results[:limit]:
-                history.append({
-                    "analysis_id": result.analysis_id,
-                    "analysis_type": result.analysis_type.value,
-                    "content_type": result.content_type.value,
-                    "confidence_score": result.confidence_score,
-                    "processing_time": result.processing_time,
-                    "created_at": result.created_at.isoformat()
-                })
+                history.append(
+                    {
+                        "analysis_id": result.analysis_id,
+                        "analysis_type": result.analysis_type.value,
+                        "content_type": result.content_type.value,
+                        "confidence_score": result.confidence_score,
+                        "processing_time": result.processing_time,
+                        "created_at": result.created_at.isoformat(),
+                    }
+                )
 
             return history
 
@@ -1141,7 +1244,7 @@ class ComputerVisionMultimodalAI:
                 "gpu_enabled": self.config["gpu_enabled"],
                 "supported_formats": self.config["supported_formats"],
                 "max_image_size": self.config["max_image_size"],
-                "confidence_threshold": self.config["confidence_threshold"]
+                "confidence_threshold": self.config["confidence_threshold"],
             }
 
         except Exception as e:

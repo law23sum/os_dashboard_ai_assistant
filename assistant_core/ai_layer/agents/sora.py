@@ -23,14 +23,16 @@ def prioritize_tasks(context: str, model: str = "gpt-4.1-mini") -> str:
     return response.choices[0].message.content
 
 
-def handle_planning(project: Project, intent: Optional[Intent] = None, model: str = "gpt-4.1-mini") -> str:
+def handle_planning(
+    project: Project, intent: Optional[Intent] = None, model: str = "gpt-4.1-mini"
+) -> str:
     """Plan the next steps for a project, suggesting concrete actions and integration usage."""
     client = get_default_client()
-    
+
     context = f"Project: {project.name}\nDescription: {project.description}\nStatus: {project.status}"
     if intent and intent.context:
         context += f"\n\nUser request: {intent.context}"
-    
+
     messages = [
         {"role": "system", "content": SORA_SYSTEM_PROMPT},
         {
@@ -42,6 +44,6 @@ def handle_planning(project: Project, intent: Optional[Intent] = None, model: st
             ),
         },
     ]
-    
+
     response = client.chat(model=model, messages=messages)
     return response.choices[0].message.content

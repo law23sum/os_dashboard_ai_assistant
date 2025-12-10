@@ -11,10 +11,12 @@ from .base import BaseIntegration, IntegrationStatus
 
 class GmailIntegration(BaseIntegration):
     """Integration for Gmail."""
-    
+
     def __init__(self, conn: sqlite3.Connection):
         super().__init__(conn, "Gmail", "mail")
-        self.credentials_path = os.path.expanduser("~/.assistant_hub/gmail_credentials.json")
+        self.credentials_path = os.path.expanduser(
+            "~/.assistant_hub/gmail_credentials.json"
+        )
         self.token_path = os.path.expanduser("~/.assistant_hub/gmail_token.json")
         self._api_base = "https://gmail.googleapis.com/gmail/v1"
 
@@ -34,7 +36,9 @@ class GmailIntegration(BaseIntegration):
                 self.update_status(False, f"Token invalid: {resp.text[:120]}")
                 return False
         except requests.RequestException as exc:
-            self.update_status(False, f"Auth check failed: {self._safe_truncate(str(exc))}")
+            self.update_status(
+                False, f"Auth check failed: {self._safe_truncate(str(exc))}"
+            )
             return False
 
         self.update_status(True)
@@ -54,7 +58,10 @@ class GmailIntegration(BaseIntegration):
                     continue
 
                 details = self._fetch_message_detail(msg_id)
-                headers = {h.get("name"): h.get("value") for h in details.get("payload", {}).get("headers", [])}
+                headers = {
+                    h.get("name"): h.get("value")
+                    for h in details.get("payload", {}).get("headers", [])
+                }
                 subject = headers.get("Subject", "(No subject)")
                 sender = headers.get("From", "")
                 date = headers.get("Date", "")
@@ -81,7 +88,7 @@ class GmailIntegration(BaseIntegration):
 
     def get_status(self) -> IntegrationStatus:
         """Get current status."""
-        if not hasattr(self, '_status') or not self._status:
+        if not hasattr(self, "_status") or not self._status:
             self._status = IntegrationStatus()
         return self._status
 
@@ -115,7 +122,10 @@ class GmailIntegration(BaseIntegration):
         resp = requests.get(
             f"{self._api_base}/users/me/messages/{message_id}",
             headers=headers,
-            params={"format": "metadata", "metadataHeaders": ["Subject", "From", "Date"]},
+            params={
+                "format": "metadata",
+                "metadataHeaders": ["Subject", "From", "Date"],
+            },
             timeout=10,
         )
 
@@ -143,4 +153,3 @@ class GmailIntegration(BaseIntegration):
 
         self.update_status(False, "No Gmail token configured")
         return None
-

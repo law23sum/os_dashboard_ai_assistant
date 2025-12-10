@@ -4,6 +4,7 @@ from typing import Optional
 from .db import DATE_FORMAT, Task, AssistantState, Project, db_upsert_project
 import sqlite3
 
+
 def parse_date(date_str: str) -> Optional[datetime]:
     try:
         return datetime.strptime(date_str, DATE_FORMAT)
@@ -11,7 +12,9 @@ def parse_date(date_str: str) -> Optional[datetime]:
         return None
 
 
-def ensure_project_exists(conn: sqlite3.Connection, state: AssistantState, name: str) -> Project:
+def ensure_project_exists(
+    conn: sqlite3.Connection, state: AssistantState, name: str
+) -> Project:
     proj = find_project(state, name)
     if proj is not None:
         return proj
