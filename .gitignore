@@ -209,3 +209,7 @@ __marimo__/
 # React frontend artifacts
 frontend/node_modules/
 frontend/dist/
+
+# Large PDF files
+Technical Spec Sheet (Version 6 Latest Version).pdf
+*.pdf
