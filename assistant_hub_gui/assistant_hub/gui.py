@@ -669,8 +669,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             },
             {
                 "label": "Setup script",
-                "command": "python setup.py",
-                "description": "Run setup script to initialize the project from source.",
+                "command": "python tools/bootstrap.py",
+                "description": "Run bootstrap script to initialize the project from source.",
             },
             {
                 "label": "Install dependencies",
@@ -4323,7 +4323,80 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         messagebox.showinfo("Audit Refresh", "Audit events refreshed successfully.")
 
     def _send_chat_message(self):
-        messagebox.showinfo("AI Chat", "Message sent to AI assistant!")
+        """Handle AI Console input submissions."""
+        if not hasattr(self, "chat_input") or not hasattr(self, "chat_display"):
+            messagebox.showerror("AI Console", "Chat interface is not ready yet.")
+            return
+
+        user_text = self.chat_input.get().strip()
+        if not user_text or user_text == "Ask me anything...":
+            messagebox.showwarning("AI Console", "Please enter a question or command first.")
+            return
+
+        self.chat_input.delete(0, tk.END)
+
+        # Initialize lightweight history storage for the simplified console
+        history = getattr(self, "_ai_console_history", [])
+        next_id = getattr(self, "_ai_console_message_id", 0) + 1
+        persona = getattr(self.state_obj, "active_persona", "AIC")
+
+        user_message = ChatMessage(
+            id=next_id,
+            persona=persona,
+            role="user",
+            content=user_text,
+            created_at=datetime.now().isoformat(timespec="seconds"),
+        )
+        history.append(user_message)
+        self._ai_console_history = history
+        self._ai_console_message_id = next_id
+
+        # Append the user entry to the transcript immediately
+        self._append_ai_console_line(f"👤 You: {user_text}\n\n")
+
+        def handle_response(reply_text: str, error: Optional[str]):
+            if error:
+                messagebox.showerror("AI Console", f"Assistant error: {error}")
+                return
+
+            assistant_id = getattr(self, "_ai_console_message_id", next_id) + 1
+            assistant_msg = ChatMessage(
+                id=assistant_id,
+                persona=persona,
+                role="assistant",
+                content=reply_text,
+                created_at=datetime.now().isoformat(timespec="seconds"),
+            )
+            self._ai_console_message_id = assistant_id
+            self._ai_console_history.append(assistant_msg)
+            self._append_ai_console_line(f"🤖 Assistant: {reply_text}\n\n")
+
+        def worker(history_snapshot: List[ChatMessage]):
+            if openai_available():
+                reply, error, _ = generate_ai_reply(
+                    history_snapshot,
+                    persona=persona,
+                    append_prompt=False,
+                    fallback_prompt=user_text,
+                    system_prompt="You are the OS Dashboard AI Console assistant. Keep answers concise and helpful.",
+                    enable_shell=False,
+                )
+            else:
+                reply = f"(offline) I noted: '{user_text}'. Once connectivity is restored I can take action."
+                error = None
+
+            self.after(0, lambda r=reply, e=error: handle_response(r, e))
+
+        threading.Thread(target=worker, args=(list(self._ai_console_history),), daemon=True).start()
+
+    def _append_ai_console_line(self, text: str) -> None:
+        """Utility to append text to the chat display safely."""
+        if not hasattr(self, "chat_display"):
+            return
+        self.chat_display.config(state=tk.NORMAL)
+        self.chat_display.insert(tk.END, text)
+        self.chat_display.see(tk.END)
+        self.chat_display.config(state=tk.DISABLED)
 
     def _retrain_models(self):
         messagebox.showinfo("Model Training", "Model retraining initiated!")
@@ -6568,9 +6641,6 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
     def _refresh_audit_events(self):
         messagebox.showinfo("Audit Refresh", "Audit events refreshed successfully.")
 
-    def _send_chat_message(self):
-        messagebox.showinfo("AI Chat", "Message sent to AI assistant!")
-
     def _retrain_models(self):
         messagebox.showinfo("Model Training", "Model retraining initiated!")
 
@@ -8813,9 +8883,6 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
 
     def _refresh_audit_events(self):
         messagebox.showinfo("Audit Refresh", "Audit events refreshed successfully.")
-
-    def _send_chat_message(self):
-        messagebox.showinfo("AI Chat", "Message sent to AI assistant!")
 
     def _retrain_models(self):
         messagebox.showinfo("Model Training", "Model retraining initiated!")
@@ -11005,9 +11072,6 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
     def _refresh_audit_events(self):
         messagebox.showinfo("Audit Refresh", "Audit events refreshed successfully.")
 
-    def _send_chat_message(self):
-        messagebox.showinfo("AI Chat", "Message sent to AI assistant!")
-
     def _retrain_models(self):
         messagebox.showinfo("Model Training", "Model retraining initiated!")
 
@@ -13184,9 +13248,6 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
 
     def _refresh_audit_events(self):
         messagebox.showinfo("Audit Refresh", "Audit events refreshed successfully.")
-
-    def _send_chat_message(self):
-        messagebox.showinfo("AI Chat", "Message sent to AI assistant!")
 
     def _retrain_models(self):
         messagebox.showinfo("Model Training", "Model retraining initiated!")

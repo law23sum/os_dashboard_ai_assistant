@@ -43,8 +43,20 @@ class ColoredFormatter(logging.Formatter):
         with the ``colorlog`` API so callers can rely on the same
         signature and behavior shape.
         """
-
-        return super().format(record)
+        # ``colorlog`` injects ``log_color`` into the record prior to
+        # formatting. Some format strings shipped in the repo rely on
+        # this placeholder, so we populate it with a best-effort value
+        # (or an empty string) using the configured mapping.
+        color = self.log_colors.get(record.levelname.lower()) or self.log_colors.get(record.levelname) or ""
+        setattr(record, "log_color", color)
+        try:
+            return super().format(record)
+        finally:
+            # Remove the attribute to avoid leaking state into other formatters
+            try:
+                delattr(record, "log_color")
+            except AttributeError:
+                pass
 
 
 __all__ = ["StreamHandler", "ColoredFormatter"]

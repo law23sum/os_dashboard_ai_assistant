@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from fastapi import FastAPI
+from pydantic import BaseModel
 
 from ai_os.app.cir import CIRDocument, CIRNode
 from ai_os.app.connectors.notes import NotesConnector
@@ -14,6 +15,8 @@ from ai_os.app.orchestration.events import EventBus
 from ai_os.app.orchestration.runner import Orchestrator
 from ai_os.app.search.index import InMemoryVectorIndex
 from ai_os.app.governance.audit import AuditLog
+from ai_os.app.system_monitor import get_system_stats
+from ai_os.app.ai_proxy import ask_ai
 
 
 class DummyStorage:
@@ -71,6 +74,10 @@ reg_daemon = RegulationIngestDaemon(pdf_connector=pdf, word_connector=word, inde
 orch.register_daemon("pdf.added.regulations", reg_daemon)
 
 
+class ChatRequest(BaseModel):
+    prompt: str
+
+
 @app.post("/notes")
 def create_note(payload: Dict[str, Any]):
     title = payload.get("title", "Untitled Note")
@@ -112,3 +119,17 @@ def get_audit(op_id: str):
         "diffs": record.diffs,
         "metadata": record.metadata,
     }
+
+
+@app.get("/system")
+def system_snapshot():
+    """Expose psutil stats for the React dashboard and external clients."""
+
+    return get_system_stats()
+
+
+@app.post("/ai/ask")
+def ask_ai_endpoint(payload: ChatRequest):
+    """Simple passthrough to the lightweight chat proxy."""
+
+    return ask_ai(payload.prompt)
