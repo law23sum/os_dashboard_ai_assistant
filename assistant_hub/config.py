@@ -6,7 +6,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Iterable, Optional
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -111,6 +112,7 @@ class APISettings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "allow"
 
 
 # Global configuration instances

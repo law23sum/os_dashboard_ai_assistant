@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { FileText, Search, ArrowUpRight, ExternalLink } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { docManifest, parityMeta, sourceLabel } from '../data/docManifest'
+import { docManifest, parityMeta, sourceLabel, type DocParity } from '../data/docManifest'
+import { futureTierDocs, legacyDocGroups } from '../data/legacyMaps'
 
 const resolveHtmlHref = (path: string, explicitHref?: string) => {
   if (explicitHref) return explicitHref
@@ -9,6 +10,50 @@ const resolveHtmlHref = (path: string, explicitHref?: string) => {
     return `/docs/${path}`
   }
   return `/docs/${path}.html`
+}
+
+const categorySequence = [
+  {
+    label: 'Core System',
+    complexity: 'Foundation',
+    description: 'Dashboards, tasks, projects, and landing pages that ground every workflow.',
+  },
+  {
+    label: 'Operations',
+    complexity: 'Platform',
+    description: 'Billing, settings, and orchestration controls shared between desktop + web.',
+  },
+  {
+    label: 'Intelligence',
+    complexity: 'AI/ML',
+    description: 'Research, NAS, and AI cockpit tooling layered on top of the system surfaces.',
+  },
+  {
+    label: 'Vision Deck',
+    complexity: 'Future',
+    description: 'Foresight decks arranged from advanced → meta horizons for roadmap planning.',
+  },
+  {
+    label: 'Engineering Notes',
+    complexity: 'Specs',
+    description: 'Migration, deployment, and compliance specs that wire the stack together.',
+  },
+  {
+    label: 'Legacy Views',
+    complexity: 'Parity',
+    description: 'Tkinter + HTML mirrors used to validate parity and cross-check regressions.',
+  },
+]
+
+const categoryRank = categorySequence.reduce<Record<string, number>>((acc, stage, index) => {
+  acc[stage.label] = index
+  return acc
+}, {})
+
+const parityPriority: Record<DocParity, number> = {
+  full: 0,
+  partial: 1,
+  legacy: 2,
 }
 
 export default function Docs() {
@@ -41,13 +86,24 @@ export default function Docs() {
 
   const groupedDocs = useMemo(() => {
     const sections: Record<string, typeof docManifest> = {}
-    const order: string[] = []
     filteredDocs.forEach((doc) => {
       if (!sections[doc.category]) {
         sections[doc.category] = []
-        order.push(doc.category)
       }
       sections[doc.category].push(doc)
+    })
+    const order = Object.keys(sections).sort((a, b) => {
+      const rankDiff = (categoryRank[a] ?? categorySequence.length) - (categoryRank[b] ?? categorySequence.length)
+      if (rankDiff !== 0) return rankDiff
+      return a.localeCompare(b)
+    })
+    order.forEach((category) => {
+      const docs = sections[category]
+      docs.sort((a, b) => {
+        const parityDiff = (parityPriority[a.parity] ?? 99) - (parityPriority[b.parity] ?? 99)
+        if (parityDiff !== 0) return parityDiff
+        return a.title.localeCompare(b.title)
+      })
     })
     return { order, sections }
   }, [filteredDocs])
@@ -82,7 +138,34 @@ export default function Docs() {
         </div>
       </section>
 
-  <section className="glass-card space-y-4">
+      <section className="glass-card space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-white">Sequence & Complexity</h2>
+            <p className="text-sm text-slate-300">
+              Follow the stack from foundational surfaces down to advanced futures.
+            </p>
+          </div>
+          <span className="pill-muted">Top-to-bottom execution order</span>
+        </div>
+        <div className="space-y-3">
+          {categorySequence.map((stage, index) => (
+            <div
+              key={stage.label}
+              className="flex items-start gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+            >
+              <div className="text-2xl font-mono text-slate-300">{String(index + 1).padStart(2, '0')}</div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{stage.complexity}</p>
+                <p className="text-lg font-semibold text-white">{stage.label}</p>
+                <p className="text-sm text-slate-300">{stage.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="glass-card space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-xl font-semibold text-white">Browse the archive</h2>
@@ -112,13 +195,16 @@ export default function Docs() {
 
       {groupedDocs.order.map((category) => {
         const docs = groupedDocs.sections[category]
+        const stageMeta = categorySequence.find((stage) => stage.label === category)
         return (
           <section key={category} className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="eyebrow-text">{category}</p>
+                <p className="eyebrow-text">
+                  {stageMeta ? `${stageMeta.complexity} · ${category}` : category}
+                </p>
                 <h3 className="text-xl font-semibold text-white">
-                  {category === 'Vision Deck' ? 'Future-facing concept decks' : 'Operational references'}
+                  {stageMeta?.description ?? 'Operational references'}
                 </h3>
               </div>
               <span className="pill-muted">{docs.length} pages</span>
@@ -189,6 +275,98 @@ export default function Docs() {
           </section>
         )
       })}
+
+      <section className="glass-card space-y-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-white">AI OS page map</h2>
+            <p className="text-sm text-slate-300">
+              Mirrors the Tkinter dropdown that launched Markdown/PDF specs from the AI OS cockpit.
+            </p>
+          </div>
+          <span className="pill-muted">Pulled from /documentation</span>
+        </div>
+        <div className="space-y-6">
+          {legacyDocGroups.map((group) => (
+            <div key={group.title} className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="eyebrow-text">{group.title}</p>
+                  <p className="text-sm text-slate-300">{group.summary}</p>
+                </div>
+                <span className="pill-muted">{group.items.length} references</span>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {group.items.map((item) => (
+                  <article
+                    key={item.label}
+                    className="rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-white/30"
+                  >
+                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-slate-400">
+                      <span>{group.title}</span>
+                      <span className="rounded-full border border-white/15 px-2 py-0.5 text-[0.65rem] text-slate-300">
+                        {item.kind}
+                      </span>
+                    </div>
+                    <h4 className="mt-2 text-lg font-semibold text-white">{item.label}</h4>
+                    <p className="mt-1 text-sm text-slate-300">{item.description}</p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white hover:border-white/40"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Open
+                      </a>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="glass-card space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-white">Future tier decks</h2>
+            <p className="text-sm text-slate-300">
+              Every Tkinter future horizon now links to both its React canvas and preserved HTML.
+            </p>
+          </div>
+          <span className="pill-muted">Parity with `_build_future_feature_tier_doc_map`</span>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {futureTierDocs.map((tier) => (
+            <article key={tier.slug} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Future Tier</p>
+              <h3 className="mt-2 text-xl font-semibold text-white">{tier.label}</h3>
+              <p className="text-sm text-slate-300">{tier.summary}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link
+                  to={`/future/${tier.slug}`}
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white hover:border-white/40"
+                >
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                  React canvas
+                </Link>
+                <a
+                  href={tier.htmlHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white hover:border-white/40"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Legacy HTML
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <section className="glass-card flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">

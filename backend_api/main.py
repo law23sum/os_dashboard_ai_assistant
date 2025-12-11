@@ -51,6 +51,7 @@ from backend_api.routers import (
     ai_systems,
     terminal,
     intelligence,
+    reasoning,
     audit,
     search,
     computer_vision,
@@ -58,6 +59,8 @@ from backend_api.routers import (
     security_threat,
     edge_computing,
     workflow_orchestration,
+    platform,
+    personas,
 )
 
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
@@ -76,6 +79,7 @@ app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"]
 app.include_router(writer.router, prefix="/api/writer", tags=["writer"])
 app.include_router(research.router, prefix="/api/research", tags=["research"])
 app.include_router(intelligence.router, prefix="/api/intelligence", tags=["intelligence"])
+app.include_router(reasoning.router, prefix="/api/reasoning", tags=["reasoning"])
 app.include_router(
     api_connectors.router, prefix="/api/api-connectors", tags=["api_connectors"]
 )
@@ -98,6 +102,8 @@ app.include_router(
 app.include_router(
     workflow_orchestration.router, prefix="/api/workflows", tags=["workflows"]
 )
+app.include_router(platform.router, prefix="/api", tags=["platform"])
+app.include_router(personas.router, prefix="/api/personas", tags=["personas"])
 
 # Mount static files
 docs_dir = REPO_ROOT / "docs"

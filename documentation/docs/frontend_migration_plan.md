@@ -66,7 +66,7 @@ For every Tkinter tab we need a REST (or WebSocket) surface:
 | Writer Workspace | `/api/writer/documents`, `/api/writer/suggestions`, `/api/writer/pipeline` leveraging `document_manager.py` and `writer` state variables. |
 | AI Ops / Daemons | `/api/ai-ops/events`, `/api/ai-ops/daemons`, `/api/ai-ops/actions` to replicate `_render_ai_os_daemon_view` interactions. WebSocket streaming recommended. |
 | Analytics | `/api/analytics/productivity`, `/api/analytics/projects`, `/api/analytics/reports` mirroring the helpers in `analytics.py`. |
-| Settings | Already exposed but needs sections for automation, governance banners, theme overrides, and persona defaults. |
+| Settings | `/api/settings` now drives automation controls, governance banners, theme overrides, and persona defaults (parity with Tkinter). |
 
 ### 2.3 Shared Concerns
 - **Auth**: API is currently local-only. React should support API tokens or OS-native auth when introduced.

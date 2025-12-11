@@ -4,10 +4,14 @@ from __future__ import annotations
 
 import json
 import random
-from typing import Dict, Any, List, Optional
+from collections import Counter, defaultdict
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field, validator, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, validator
+
+from backend_api.db import db_session  # pylint: disable=wrong-import-position
 
 router = APIRouter()
 
@@ -59,6 +63,46 @@ class CollaborationRequest(IntelligenceBase):
     project_complexity: str = Field(
         default="medium", pattern="^(low|medium|high|very_high)$"
     )
+
+
+class CollaborationMember(BaseModel):
+    name: str
+    role: str
+    tenant: str
+    active_projects: int
+    open_tasks: int
+    last_active: str
+
+
+class TenantSummary(BaseModel):
+    name: str
+    projects: List[str]
+    active_members: int
+    critical_tasks: int
+    regulator_view: bool
+
+
+class FederationLink(BaseModel):
+    tenant: str
+    scope: str
+    status: str
+    last_sync: str
+
+
+class AnnotationEvent(BaseModel):
+    id: str
+    project: str
+    persona: str
+    note: str
+    timestamp: str
+
+
+class CollaborationState(BaseModel):
+    spec_refs: List[str]
+    tenants: List[TenantSummary]
+    members: List[CollaborationMember]
+    federation: List[FederationLink]
+    annotations: List[AnnotationEvent]
 
 
 @router.post("/monitoring")
@@ -161,6 +205,109 @@ async def run_collaboration(payload: CollaborationRequest) -> Dict[str, Any]:
         ],
         "next_review_days": random.randint(3, 7),
     }
+
+
+def _tenant_for_project(project: str) -> str:
+    lowered = (project or "").lower()
+    if any(keyword in lowered for keyword in ("security", "audit", "compliance")):
+        return "Regulator Liaison"
+    if any(keyword in lowered for keyword in ("edge", "compute", "simulation")):
+        return "Edge Lab"
+    return "Core Studio"
+
+
+def _collaboration_topology() -> CollaborationState:
+    with db_session() as conn:
+        project_rows = conn.execute("SELECT name, priority FROM projects").fetchall()
+        task_rows = conn.execute("SELECT project, priority, status, owner FROM tasks").fetchall()
+
+    tenant_projects: Dict[str, List[str]] = defaultdict(list)
+    tenant_members: Dict[str, set] = defaultdict(set)
+    critical_by_tenant: Dict[str, int] = defaultdict(int)
+    member_stats: Dict[str, Dict[str, Any]] = defaultdict(lambda: {"open": 0, "critical": 0, "projects": set()})
+
+    for row in project_rows:
+        tenant = _tenant_for_project(row["name"])
+        tenant_projects[tenant].append(row["name"])
+
+    for task in task_rows:
+        tenant = _tenant_for_project(task["project"])
+        owner = task["owner"] or "Chris"
+        tenant_members[tenant].add(owner)
+        member_stats[owner]["open"] += 1 if (task["status"] or "").upper() != "DONE" else 0
+        if (task["priority"] or "").upper() == "CRITICAL":
+            member_stats[owner]["critical"] += 1
+            critical_by_tenant[tenant] += 1
+        member_stats[owner]["projects"].add(task["project"] or "General")
+
+    now = datetime.utcnow()
+    members: List[CollaborationMember] = []
+    for idx, (name, stats) in enumerate(member_stats.items()):
+        last_active = (now - timedelta(minutes=min(240, stats["open"] * 5 + idx * 7))).isoformat() + "Z"
+        tenant = _tenant_for_project(next(iter(stats["projects"])) if stats["projects"] else "Core")
+        members.append(
+            CollaborationMember(
+                name=name,
+                role="Persona" if name.lower() in {"aic", "aria", "sora"} else "Contributor",
+                tenant=tenant,
+                active_projects=len(stats["projects"]),
+                open_tasks=stats["open"],
+                last_active=last_active,
+            )
+        )
+
+    tenants: List[TenantSummary] = []
+    for tenant, projects in tenant_projects.items():
+        tenants.append(
+            TenantSummary(
+                name=tenant,
+                projects=sorted(projects),
+                active_members=len(tenant_members[tenant]),
+                critical_tasks=critical_by_tenant.get(tenant, 0),
+                regulator_view="Regulator" in tenant,
+            )
+        )
+
+    annotations: List[AnnotationEvent] = []
+    for idx, task in enumerate(task_rows[:10]):
+        annotations.append(
+            AnnotationEvent(
+                id=f"annotation-{idx}",
+                project=task["project"] or "General",
+                persona=(task["owner"] or "AIC"),
+                note=f"Shared {task['priority']} intent with tenant { _tenant_for_project(task['project']) }",
+                timestamp=(now - timedelta(minutes=idx * 13)).isoformat() + "Z",
+            )
+        )
+
+    federation = [
+        FederationLink(
+            tenant="Regulator Liaison",
+            scope="Evidence Packs",
+            status="synced" if critical_by_tenant.get("Regulator Liaison", 0) < 3 else "degraded",
+            last_sync=(now - timedelta(minutes=15)).isoformat() + "Z",
+        ),
+        FederationLink(
+            tenant="Edge Lab",
+            scope="Simulation Capsules",
+            status="synced",
+            last_sync=(now - timedelta(minutes=7)).isoformat() + "Z",
+        ),
+    ]
+
+    return CollaborationState(
+        spec_refs=["§7.12"],
+        tenants=sorted(tenants, key=lambda row: row.name),
+        members=sorted(members, key=lambda row: row.open_tasks, reverse=True),
+        federation=federation,
+        annotations=annotations,
+    )
+
+
+@router.get("/collaboration/state", response_model=CollaborationState)
+async def get_collaboration_state() -> CollaborationState:
+    """Expose tenant + member state so the Collaboration view mirrors Tkinter."""
+    return _collaboration_topology()
 
 
 @router.post("/mlops")

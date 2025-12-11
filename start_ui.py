@@ -13,6 +13,11 @@ import time
 from pathlib import Path
 from typing import Callable, Dict, Optional, Tuple
 
+from assistant_hub_gui.autofix_monitor import (
+    start_auto_fix_monitor,
+    stop_auto_fix_monitor,
+)
+
 REPO_ROOT = Path(__file__).resolve().parent
 FRONTEND_DIR = REPO_ROOT / "frontend"
 FRONTEND_DIST = FRONTEND_DIR / "dist"
@@ -306,15 +311,23 @@ For more information, see README.md and DEPLOYMENT.md
     )
     args = parser.parse_args()
 
-    mode = _resolve_mode(args.mode)
-    label, runner = MODE_LOOKUP[mode]
-    print(f"\n🚀 Launching {label} ({mode})...")
-    print(f"📍 API Server: http://{DEFAULT_API_HOST}:{DEFAULT_API_PORT}")
-    if mode in ["web", "web-build"]:
-        print(f"🌐 Web Interface: http://localhost:5173" if mode == "web" else "🌐 Serving from: frontend/dist/")
-    print()
-    result = runner()
-    return int(result or 0)
+    monitor = start_auto_fix_monitor()
+    try:
+        mode = _resolve_mode(args.mode)
+        label, runner = MODE_LOOKUP[mode]
+        print(f"\n🚀 Launching {label} ({mode})...")
+        print(f"📍 API Server: http://{DEFAULT_API_HOST}:{DEFAULT_API_PORT}")
+        if mode in ["web", "web-build"]:
+            print(
+                "🌐 Web Interface: http://localhost:5173"
+                if mode == "web"
+                else "🌐 Serving from: frontend/dist/"
+            )
+        print()
+        result = runner()
+        return int(result or 0)
+    finally:
+        stop_auto_fix_monitor(monitor)
 
 
 if __name__ == "__main__":

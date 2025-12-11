@@ -19,7 +19,14 @@ except Exception:  # pragma: no cover - handled gracefully when dependency missi
         pass
 
 
-from .db import ChatMessage, CHAT_ROLES, PERSONAS
+from .db import (
+    ChatMessage,
+    CHAT_ROLES,
+    PERSONAS,
+    init_db,
+    load_openai_api_key,
+    save_openai_api_key,
+)
 from .terminal import run_bash_command
 
 # Model assignments per agent
@@ -27,13 +34,13 @@ from .terminal import run_bash_command
 AGENT_MODELS = {
     "Sora": "gpt-4o",  # Using gpt-4o (closest to "5.1" - latest GPT-4)
     "Aria": "gpt-4o",
-    "AIC": "o1-mini",  # Using o1-mini for reasoning model (latest stable o1)
+    "AIC": "gpt-4o",  # Use widely available model for automation/AIC persona
     "Chris": "gpt-4o-mini",  # Default for human user
 }
 
 # Fallback models if primary model unavailable
 AGENT_MODEL_FALLBACKS = {
-    "AIC": "gpt-4o",  # Fallback if o1-mini unavailable
+    "AIC": "gpt-4o-mini",  # Fallback if the primary model is unavailable
 }
 
 DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-4o-mini")
@@ -50,11 +57,51 @@ DEFAULT_SYSTEM_PROMPT = os.getenv(
 _client: Optional[OpenAI] = None
 
 
+def _cache_api_key(key: str) -> None:
+    try:
+        conn = init_db()
+    except Exception:
+        return
+    try:
+        existing = load_openai_api_key(conn)
+        if existing != key:
+            save_openai_api_key(conn, key)
+    except Exception:
+        pass
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def _fetch_key_from_db() -> Optional[str]:
+    try:
+        conn = init_db()
+    except Exception:
+        return None
+    try:
+        return load_openai_api_key(conn)
+    except Exception:
+        return None
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
 def _get_api_key() -> str:
     key = os.getenv("OPENAI_API_KEY") or os.getenv("AI_CHAT_OPENAI_API_KEY")
+    if key:
+        _cache_api_key(key)
+        return key
+
+    key = _fetch_key_from_db()
     if not key:
         raise ValueError(
-            "OpenAI API key missing. Set OPENAI_API_KEY or AI_CHAT_OPENAI_API_KEY in your environment."
+            "OpenAI API key missing. Set OPENAI_API_KEY or AI_CHAT_OPENAI_API_KEY in your environment, "
+            "or store one in the database via assistant_hub.db.save_openai_api_key()."
         )
     return key
 

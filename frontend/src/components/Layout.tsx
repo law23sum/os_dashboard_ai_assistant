@@ -221,9 +221,40 @@ export default function Layout({ children }: LayoutProps) {
       ],
     },
     {
+      path: '/integrations',
+      icon: Plug,
+      label: 'Integrations',
+      children: [
+        { path: '/integrations', icon: Plug, label: 'Overview' },
+        { path: '/integrations/api-connectors', icon: Network, label: 'API Connectors' },
+      ],
+    },
+    {
+      path: '/analytics',
+      icon: BarChart3,
+      label: 'Insights',
+      children: [
+        { path: '/analytics', icon: BarChart3, label: 'Analytics' },
+        { path: '/monitoring', icon: Activity, label: 'Monitoring' },
+        { path: '/billing', icon: CreditCard, label: 'Billing' },
+        { path: '/audit', icon: ClipboardList, label: 'Audit' },
+      ],
+    },
+    {
+      path: '/collaboration',
+      icon: Users,
+      label: 'Engagement',
+      children: [
+        { path: '/collaboration', icon: Users, label: 'Collaboration' },
+        { path: '/personalization', icon: Target, label: 'Personalization' },
+        { path: '/search', icon: SearchIcon, label: 'Search' },
+        { path: '/computer-vision', icon: Eye, label: 'Computer Vision' },
+      ],
+    },
+    {
       path: '/ai',
       icon: Brain,
-      label: 'AI',
+      label: 'AI Stack',
       groups: [
         {
           label: 'Ops & Control',
@@ -242,6 +273,24 @@ export default function Layout({ children }: LayoutProps) {
             { path: '/ai/systems', icon: Layers, label: 'Systems Map' },
           ],
         },
+        {
+          label: 'Research & NAS',
+          description: 'Tkinter NAS dashboards mirrored in React',
+          items: [
+            { path: '/ai/nas', icon: Dna, label: 'NAS Dashboard' },
+            { path: '/ai/nas/experiments', icon: FlaskConical, label: 'Experiment Console' },
+          ],
+        },
+        {
+          label: 'Edge & Security',
+          description: 'Edge orchestration, workflows, and security operations',
+          items: [
+            { path: '/ai/security', icon: Shield, label: 'Security' },
+            { path: '/ai/edge', icon: Satellite, label: 'Edge Computing' },
+            { path: '/ai/workflows', icon: Workflow, label: 'Workflows' },
+            { path: '/ai/vision', icon: Eye, label: 'Computer Vision' },
+          ],
+        },
       ],
     },
     {
@@ -251,8 +300,10 @@ export default function Layout({ children }: LayoutProps) {
       groups: [
         {
           label: 'Research & Simulation',
+          description: 'Backend NAS experiments + simulator surfaces',
           items: [
-            { path: '/systems/nas', icon: Dna, label: 'Neural Architecture' },
+            { path: '/ai/nas', icon: Dna, label: 'NAS Experiments' },
+            { path: '/systems/nas', icon: Layers, label: 'NAS Simulator' },
             { path: '/systems/edge', icon: Satellite, label: 'Edge Computing' },
           ],
         },
@@ -266,27 +317,11 @@ export default function Layout({ children }: LayoutProps) {
       ],
     },
     {
-      path: '/integrations',
-      icon: Plug,
-      label: 'Integrations',
-      children: [
-        { path: '/integrations', icon: Plug, label: 'Overview' },
-        { path: '/integrations/api-connectors', icon: Network, label: 'API Connectors' },
-      ],
-    },
-    { path: '/analytics', icon: BarChart3, label: 'Analytics' },
-    { path: '/billing', icon: CreditCard, label: 'Billing' },
-    { path: '/search', icon: SearchIcon, label: 'Search' },
-    { path: '/computer-vision', icon: Eye, label: 'Vision' },
-    { path: '/audit', icon: ClipboardList, label: 'Audit' },
-    { path: '/monitoring', icon: Activity, label: 'Monitoring' },
-    { path: '/collaboration', icon: Users, label: 'Collaboration' },
-    { path: '/personalization', icon: Target, label: 'Personalization' },
-    {
-      path: '/future',
+      path: '/vision',
       icon: Sparkles,
       label: 'Vision',
       children: [
+        { path: '/vision', icon: Compass, label: 'Vision Deck Hub' },
         { path: '/future/core_os', icon: Layers, label: 'Core OS Engines' },
         { path: '/future/advanced', icon: Brain, label: 'Advanced Horizons' },
         { path: '/future/super', icon: Dna, label: 'Super Capabilities' },
@@ -307,6 +342,13 @@ export default function Layout({ children }: LayoutProps) {
           items: [
             { path: '/docs', icon: FileText, label: 'Docs Hub' },
             { path: '/docs/spec-sheet', icon: Compass, label: 'Technical Spec Sheet' },
+          ],
+        },
+        {
+          label: 'Vision & Futures',
+          items: [
+            { path: '/vision', icon: Sparkles, label: 'Vision Deck' },
+            { path: '/future/core_os', icon: Layers, label: 'Core OS Envelope' },
           ],
         },
         {

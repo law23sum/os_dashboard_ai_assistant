@@ -212,3 +212,9 @@ frontend/dist/
 
 # Large PDF files
 Technical Spec Sheet (Version 6 Latest Version).pdf
+
+# Generated documentation mirrors for React Docs hub
+frontend/public/docs/**/*.md
+frontend/public/docs/**/*.pdf
+frontend/public/docs/project_directory_structure
+frontend/public/docs/CyberChef_v10.19.4/

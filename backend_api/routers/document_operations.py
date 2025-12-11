@@ -114,6 +114,17 @@ async def list_document_operations(
     return operations
 
 
+@router.get("", response_model=List[DocumentOperationResponse], include_in_schema=False)
+async def list_document_operations_no_slash(
+    limit: int = 50,
+    status: Optional[str] = None,
+    integration_type: Optional[str] = None,
+):
+    """Alias that prevents FastAPI redirect loops when the slash is omitted."""
+
+    return await list_document_operations(limit=limit, status=status, integration_type=integration_type)
+
+
 @router.post("/", response_model=DocumentOperationResponse, status_code=201)
 async def create_document_operation(operation: DocumentOperationCreate):
     """Record a new document operation initiated by an integration/daemon."""

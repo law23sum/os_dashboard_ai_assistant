@@ -12,54 +12,15 @@ The new React interface preserves the Tkinter color palette and design language 
 
 ## Getting Started
 
-### Single Entry Point (Recommended)
+### Launch the Application
 
-Use `python run.py` for an interactive launcher that lets you choose between web and desktop modes:
-
-```bash
-python run.py              # Interactive mode selection
-# or skip the prompt with environment variables
-python run.py --mode web
-DEV_MODE=desktop python run.py
-```
-
-The launcher will display:
-```
-🚀 OS Dashboard AI Assistant — Unified Launcher
-==================================================================
-
-📋 Available Launch Modes:
-
-  🌐 1) React · Web Dev (FastAPI + Vite) ⭐ (default)
-  🖥️ 2) React · Desktop Dev (FastAPI + Electron)
-  📦 3) Serve built React in browser
-  📦 4) Serve built React in desktop shell
-```
-
-Need the legacy Tkinter GUI? Pass `--legacy` to `run.py`:
-
-The script:
-1. Checks prerequisites (Node.js/npm as needed)
-2. Boots the shared FastAPI backend that serves the React bundle
-3. Prompts for one of the following modes:
-   - **React · Web Dev** (Vite @ http://localhost:5173 + FastAPI proxy)
-   - **React · Desktop Dev** (Electron shell talking to the same dev server)
-   - **Serve Web Build** (FastAPI + `frontend/dist/`)
-   - **Serve Desktop Build** (pywebview shell bundling the built React assets)
-
-Environment overrides: set `DEV_MODE=web|desktop|web-build|desktop-build` (or `OSDASH_UI_MODE`) to bypass the prompt in CI or packaging jobs.
-
-### Manual Launch (Alternative)
-
-If you prefer to launch manually:
+Use the canonical launcher to start the experience on both web and desktop (Tkinter shell):
 
 ```bash
-cd frontend
-npm install
-npm run dev
+python -m assistant_hub_gui.main
 ```
 
-Then choose web or desktop when prompted.
+This single command configures the environment, boots the required services, and opens the interface.
 
 ### Backend API Server
 
@@ -91,7 +52,7 @@ npm install
 npm run dev
 ```
 
-The dev script will ask whether to launch the browser or Electron shell. See `frontend/QUICK_START.md` for more.
+This workflow is only for frontend contributors iterating on React components; it does **not** replace the canonical runtime (`python -m assistant_hub_gui.main`). The dev script will ask whether to launch the browser or Electron shell. See `frontend/QUICK_START.md` for more.
 
 ### Features
 

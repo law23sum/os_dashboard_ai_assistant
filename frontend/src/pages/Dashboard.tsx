@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
   Activity,
@@ -14,27 +14,35 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import { API } from '../api'
 import apiClient, { apiPath } from '../lib/apiClient'
+import { extractArray } from '../lib/responseHelpers'
 import { useState } from 'react'
-import type { BillingUsage } from '../types'
+import type {
+  BillingUsage,
+  DashboardStats as DashboardStatsType,
+  PersonasResponse,
+  PersonaInfo,
+} from '../types'
+import { toast } from '../utils/toast'
 
-interface DashboardStats {
-  total_tasks: number
-  tasks_by_status: Record<string, number>
-  tasks_by_priority: Record<string, number>
-  total_projects: number
-  active_projects: number
-  system_stats: {
-    cpu_percent: number
-    memory_percent: number
-    disk_percent: number
-  }
-  security_status: {
-    status: string
-    message: string
-    updated_at: string
-    source: string
-  }
+const PERSONA_ROLES: Record<string, string> = {
+  Chris: 'Human Owner · executive decisions',
+  AIC: 'Auditor · validates outputs',
+  Aria: 'Assistant · executes the day-to-day',
+  Sora: 'Archive · protects lineage + memory',
 }
+
+const PERSONA_COLORS: Record<string, string> = {
+  Chris: 'from-rose-500/30 via-transparent to-orange-500/20',
+  AIC: 'from-indigo-500/30 via-transparent to-blue-500/20',
+  Aria: 'from-emerald-500/30 via-transparent to-teal-500/20',
+  Sora: 'from-cyan-500/30 via-transparent to-sky-500/20',
+}
+
+const PERSONA_ORDER = Object.keys(PERSONA_ROLES)
+const DEFAULT_PERSONA_DEFINITIONS: PersonaInfo[] = PERSONA_ORDER.map((name) => ({
+  name,
+  role: PERSONA_ROLES[name] || 'Persona',
+}))
 
 interface ControlData {
   system: any
@@ -44,7 +52,7 @@ interface ControlData {
   billing: BillingUsage | null
 }
 
-const fetchDashboardStats = async (): Promise<DashboardStats> => {
+const fetchDashboardStats = async (): Promise<DashboardStatsType> => {
   try {
     const response = await apiClient.get(apiPath('dashboard/stats'))
     if (response.data) {
@@ -58,11 +66,11 @@ const fetchDashboardStats = async (): Promise<DashboardStats> => {
     const [tasks, projects, system] = await Promise.all([
       apiClient
         .get(apiPath('tasks'))
-        .then((res) => res.data || [])
+        .then((res) => extractArray(res.data, ['tasks', 'items']))
         .catch(() => []),
       apiClient
         .get(apiPath('projects'))
-        .then((res) => res.data || [])
+        .then((res) => extractArray(res.data, ['projects', 'items']))
         .catch(() => []),
       API.system().catch(() => ({
         cpu_percent: 0,
@@ -80,6 +88,11 @@ const fetchDashboardStats = async (): Promise<DashboardStats> => {
       acc[task.priority] = (acc[task.priority] || 0) + 1
       return acc
     }, {})
+    const personaLoad = tasks.reduce((acc: Record<string, number>, task: any) => {
+      const owner = task.owner || 'AIC'
+      acc[owner] = (acc[owner] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
 
     const memory = (system as any)?.memory || {}
     const disk = (system as any)?.disk || {}
@@ -103,6 +116,8 @@ const fetchDashboardStats = async (): Promise<DashboardStats> => {
         updated_at: new Date().toISOString(),
         source: 'local',
       },
+      persona_load: personaLoad,
+      active_persona: 'AIC',
     }
   } catch (error) {
     return {
@@ -122,13 +137,38 @@ const fetchDashboardStats = async (): Promise<DashboardStats> => {
         updated_at: new Date().toISOString(),
         source: 'local',
       },
+      persona_load: {},
+      active_persona: 'AIC',
     }
   }
 }
 
+const fetchPersonas = async (): Promise<PersonasResponse> => {
+  const { data } = await apiClient.get<PersonasResponse>(apiPath('personas'))
+  return data
+}
+
+const updateActivePersona = async (persona: string): Promise<PersonasResponse> => {
+  const { data } = await apiClient.post<PersonasResponse>(apiPath('personas'), { persona })
+  return data
+}
+
+const coerceList = <T = any>(payload: unknown, key?: string): T[] => {
+  if (Array.isArray(payload)) {
+    return payload as T[]
+  }
+  if (key && payload && typeof payload === 'object') {
+    const container = payload as Record<string, unknown>
+    if (Array.isArray(container[key])) {
+      return container[key] as T[]
+    }
+  }
+  return []
+}
+
 const fetchControlData = async (): Promise<ControlData> => {
   try {
-    const [system, planes, daemons, operations, billing] = await Promise.all([
+    const [system, planes, daemonsPayload, operationsPayload, billingPayload] = await Promise.all([
       API.system().catch(() => ({
         cpu_percent: 0,
         memory: { used: 0, total: 1 },
@@ -142,9 +182,12 @@ const fetchControlData = async (): Promise<ControlData> => {
     return {
       system,
       planes,
-      daemons,
-      operations,
-      billing,
+      daemons: coerceList(daemonsPayload, 'daemons'),
+      operations: coerceList(operationsPayload, 'operations'),
+      billing:
+        billingPayload && typeof billingPayload === 'object'
+          ? (billingPayload as BillingUsage)
+          : { estimated_cost: 0, currency: 'USD', records: [] },
     }
   } catch (error) {
     return {
@@ -168,6 +211,23 @@ export default function Dashboard() {
     queryKey: ['dashboard-control'],
     queryFn: fetchControlData,
     refetchInterval: 30000,
+  })
+  const personaQuery = useQuery({
+    queryKey: ['personas'],
+    queryFn: fetchPersonas,
+    refetchInterval: 60000,
+  })
+  const personaMutation = useMutation({
+    mutationFn: (persona: string) => updateActivePersona(persona),
+    onSuccess: (payload) => {
+      toast.success(`Switched to ${payload.active}`)
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['personas'] })
+    },
+    onError: (mutationError) => {
+      const message = mutationError instanceof Error ? mutationError.message : 'Unable to switch persona.'
+      toast.error(message)
+    },
   })
 
   const [searchTerm, setSearchTerm] = useState('')
@@ -211,6 +271,18 @@ export default function Dashboard() {
   }
 
   const totalTasks = data.total_tasks || 0
+  const personaLoad = data.persona_load || {}
+  const fallbackActivePersona = data.active_persona || 'AIC'
+  const personaDefinitions = personaQuery.data?.personas ?? DEFAULT_PERSONA_DEFINITIONS
+  const activePersona = personaQuery.data?.active || fallbackActivePersona
+  const personaError =
+    personaQuery.error instanceof Error ? personaQuery.error.message : personaQuery.error ? 'Unable to load personas.' : null
+  const handlePersonaChange = (nextPersona: string) => {
+    if (!nextPersona || nextPersona === activePersona) {
+      return
+    }
+    personaMutation.mutate(nextPersona)
+  }
   const statusEntries = Object.entries(data.tasks_by_status || {})
   const priorityEntries = Object.entries(data.tasks_by_priority || {})
   const statCards: DashboardStat[] = [
@@ -426,19 +498,29 @@ export default function Dashboard() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[2fr,1fr]">
-        <section className="glass-card space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="eyebrow-text">Work Pulse</p>
-              <h3 className="text-xl font-semibold text-white">Tasks & Priorities</h3>
+        <div className="space-y-6">
+          <section className="glass-card space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="eyebrow-text">Work Pulse</p>
+                <h3 className="text-xl font-semibold text-white">Tasks & Priorities</h3>
+              </div>
+              <span className="pill-muted">Auto refresh · 30s</span>
             </div>
-            <span className="pill-muted">Auto refresh · 30s</span>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            <ProgressGroup label="Status" entries={statusEntries} total={totalTasks} />
-            <ProgressGroup label="Priority" entries={priorityEntries} total={totalTasks} />
-          </div>
-        </section>
+            <div className="grid gap-6 md:grid-cols-2">
+              <ProgressGroup label="Status" entries={statusEntries} total={totalTasks} />
+              <ProgressGroup label="Priority" entries={priorityEntries} total={totalTasks} />
+            </div>
+          </section>
+          <PersonaLoadSection
+            personaLoad={personaLoad}
+            activePersona={activePersona}
+            personas={personaDefinitions}
+            onPersonaChange={handlePersonaChange}
+            isUpdatingPersona={personaMutation.isPending}
+            personaError={personaError}
+          />
+        </div>
 
         <div className="space-y-6">
           <section className="glass-card space-y-4">
@@ -708,6 +790,108 @@ function DashboardStatCard({ title, value, detail, icon: Icon, accent }: Dashboa
   )
 }
 
+function PersonaLoadSection({
+  personaLoad,
+  activePersona,
+  personas,
+  onPersonaChange,
+  isUpdatingPersona,
+  personaError,
+}: {
+  personaLoad: Record<string, number>
+  activePersona?: string
+  personas: PersonaInfo[]
+  onPersonaChange?: (persona: string) => void
+  isUpdatingPersona?: boolean
+  personaError?: string | null
+}) {
+  const personaOrder = personas.length ? personas : DEFAULT_PERSONA_DEFINITIONS
+  const personaRoleMap = personaOrder.reduce<Record<string, string>>((acc, entry) => {
+    acc[entry.name] = entry.role || PERSONA_ROLES[entry.name] || 'Persona'
+    return acc
+  }, { ...PERSONA_ROLES })
+  const baseNames = personaOrder.map((entry) => entry.name)
+  const additionalNames = Object.keys(personaLoad).filter((name) => !baseNames.includes(name))
+  const personasToDisplay = [...baseNames, ...additionalNames]
+  const total = personasToDisplay.reduce((sum, persona) => sum + (personaLoad[persona] || 0), 0)
+
+  return (
+    <section className="glass-card space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="eyebrow-text">Persona Focus</p>
+          <h3 className="text-xl font-semibold text-white">Load by Persona</h3>
+          <p className="text-sm text-slate-300">
+            Mirrors the Tkinter dashboard chip showing how many incomplete tasks each persona owns.
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-2 text-xs text-slate-300">
+          <label className="flex flex-col gap-1 text-right">
+            Active Persona
+            <select
+              value={activePersona || ''}
+              onChange={(event) => onPersonaChange?.(event.target.value)}
+              disabled={isUpdatingPersona}
+              className="rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-sm text-white focus:border-white/40 focus:outline-none"
+            >
+              {personasToDisplay.map((persona) => (
+                <option key={persona} value={persona}>
+                  {persona}
+                </option>
+              ))}
+            </select>
+          </label>
+          {isUpdatingPersona && <span className="text-[0.65rem] uppercase tracking-[0.3em] text-slate-400">Switching…</span>}
+        </div>
+      </div>
+      {personaError && (
+        <p className="rounded-2xl border border-amber-400/40 bg-amber-500/10 px-4 py-2 text-xs text-amber-100">
+          Persona directory unavailable: {personaError}
+        </p>
+      )}
+      {total === 0 && (
+        <p className="rounded-2xl border border-dashed border-white/10 px-4 py-3 text-sm text-slate-400">
+          No active tasks yet — once Capsules assign work, persona load shows up here.
+        </p>
+      )}
+      <div className="space-y-3">
+        {personasToDisplay.map((persona) => {
+          const count = personaLoad[persona] || 0
+          const percent = total ? Math.round((count / total) * 100) : 0
+          const isActive = persona === activePersona
+          const gradient =
+            PERSONA_COLORS[persona] || 'from-slate-500/25 via-transparent to-slate-700/10'
+          return (
+            <div
+              key={persona}
+              className={`rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white transition ${
+                isActive ? 'ring-1 ring-[color:var(--osd-accent)]' : ''
+              }`}
+            >
+              <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-base font-semibold">{persona}</p>
+                <p className="text-xs text-slate-300">{personaRoleMap[persona] || 'Persona'}</p>
+              </div>
+              <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs">
+                {count} open
+              </span>
+            </div>
+              <div className="mt-3 h-2 rounded-full bg-white/10">
+                <div
+                  className={`h-full rounded-full bg-gradient-to-r ${gradient}`}
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-slate-300">{percent}% of incomplete tasks</p>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
 function ProgressGroup({
   label,
   entries,
@@ -727,7 +911,7 @@ function ProgressGroup({
   }
 
   return (
-    <div className="space-y-3">
+      <div className="space-y-3">
       <p className="text-sm font-semibold text-white">{label}</p>
       {entries.map(([name, count]) => (
         <div key={name}>

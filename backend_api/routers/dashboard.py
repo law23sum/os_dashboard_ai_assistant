@@ -9,10 +9,8 @@ import psutil
 parent_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
-from assistant_hub_gui.assistant_hub.db import (
-    load_state,
-    load_security_status,
-)
+from assistant_hub.dashboard_workspace import build_dashboard_snapshot
+from assistant_hub_gui.assistant_hub.db import load_state, load_security_status
 from backend_api.db import db_session
 
 router = APIRouter()
@@ -25,6 +23,8 @@ class DashboardStats(BaseModel):
     active_projects: int
     system_stats: Dict[str, Any]
     security_status: Dict[str, Any]
+    persona_load: Dict[str, int]
+    active_persona: str
 
 @router.get("/stats", response_model=DashboardStats)
 async def get_dashboard_stats():
@@ -32,6 +32,7 @@ async def get_dashboard_stats():
     with db_session() as db:
         state = load_state(db)
         security_status = load_security_status(db)
+        snapshot = build_dashboard_snapshot(state)
 
         # Count tasks by status
         cursor = db.execute("SELECT status, COUNT(*) FROM tasks GROUP BY status")
@@ -72,4 +73,6 @@ async def get_dashboard_stats():
             "updated_at": security_status.updated_at,
             "source": security_status.source,
         },
+        persona_load=snapshot.persona_load,
+        active_persona=state.active_persona,
     )

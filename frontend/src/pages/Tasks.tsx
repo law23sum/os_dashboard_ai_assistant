@@ -3,21 +3,28 @@ import { Plus, RefreshCw, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from '../utils/toast'
 import apiClient, { apiPath } from '../lib/apiClient'
+import { extractArray } from '../lib/responseHelpers'
 import { Task } from '../types'
 
 const fetchTasks = async (): Promise<Task[]> => {
-  const { data } = await apiClient.get<Task[]>(apiPath('tasks'))
-  return data
+  const { data } = await apiClient.get(apiPath('tasks'))
+  return extractArray<Task>(data, ['tasks', 'items'])
 }
 
 const createTask = async (task: Partial<Task>): Promise<Task> => {
-  const { data } = await apiClient.post<Task>(apiPath('tasks'), task)
-  return data
+  const { data } = await apiClient.post(apiPath('tasks'), task)
+  if (data && typeof data === 'object' && 'task' in data && data.task) {
+    return data.task as Task
+  }
+  return data as Task
 }
 
 const updateTask = async (id: number, task: Partial<Task>): Promise<Task> => {
-  const { data } = await apiClient.put<Task>(apiPath(`tasks/${id}`), task)
-  return data
+  const { data } = await apiClient.put(apiPath(`tasks/${id}`), task)
+  if (data && typeof data === 'object' && 'task' in data && data.task) {
+    return data.task as Task
+  }
+  return data as Task
 }
 
 const deleteTask = async (id: number): Promise<void> => {

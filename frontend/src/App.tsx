@@ -36,6 +36,35 @@ import NAS from './pages/NAS'
 import AdvancedSystems from './pages/AdvancedSystems'
 import Billing from './pages/Billing'
 import FutureDeck from './pages/FutureDeck'
+import NeuralArchitectureSearch from './pages/NeuralArchitectureSearch'
+import VisionDeck from './pages/VisionDeck'
+
+const normalizeBasePath = (value?: string | null): string => {
+  if (!value || value === '.' || value === './') return '/'
+  try {
+    const url = new URL(value, 'http://placeholder')
+    let pathname = url.pathname || '/'
+    pathname = pathname.replace(/\/+$/, '')
+    return pathname || '/'
+  } catch {
+    if (value.startsWith('/')) {
+      const trimmed = value.replace(/\/+$/, '')
+      return trimmed || '/'
+    }
+    return '/'
+  }
+}
+
+const resolveRouterBasePath = (): string => {
+  if (typeof document !== 'undefined') {
+    const baseHref = document.querySelector('base')?.getAttribute('href')
+    if (baseHref) {
+      return normalizeBasePath(baseHref)
+    }
+  }
+  const envBase = import.meta.env.BASE_URL || '/'
+  return normalizeBasePath(envBase)
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,10 +84,11 @@ function App() {
   useEffect(() => {
     applyTheme(defaultTheme)
   }, [])
+  const basePath = resolveRouterBasePath()
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter basename={basePath}>
         <Layout>
           <Routes>
             {/* Root & Core Pages */}
@@ -86,7 +116,9 @@ function App() {
             <Route path="/ai/advanced" element={<AdvancedAI />} />
             <Route path="/ai/systems" element={<AdvancedSystems />} />
             <Route path="/ai/mlops" element={<MLOps />} />
-            <Route path="/ai/nas" element={<NAS />} />
+            <Route path="/ai/nas" element={<NeuralArchitectureSearch />} />
+            <Route path="/ai/nas/experiments" element={<NeuralArchitectureSearch />} />
+            <Route path="/ai/nas/simulator" element={<NAS />} />
             <Route path="/ai/security" element={<Security />} />
             <Route path="/ai/edge" element={<EdgeComputing />} />
             <Route path="/ai/edge-computing" element={<EdgeComputing />} />
@@ -99,6 +131,9 @@ function App() {
             <Route path="/ai-systems" element={<Navigate to="/ai/systems" replace />} />
             <Route path="/mlops" element={<Navigate to="/ai/mlops" replace />} />
             <Route path="/nas" element={<Navigate to="/ai/nas" replace />} />
+            <Route path="/nas/experiments" element={<Navigate to="/ai/nas" replace />} />
+            <Route path="/nas/simulator" element={<Navigate to="/ai/nas/simulator" replace />} />
+            <Route path="/neural-architecture" element={<Navigate to="/ai/nas" replace />} />
             <Route path="/security" element={<Navigate to="/ai/security" replace />} />
             <Route path="/edge-computing" element={<Navigate to="/ai/edge-computing" replace />} />
             <Route path="/workflows" element={<Navigate to="/ai/workflows" replace />} />
@@ -143,6 +178,9 @@ function App() {
             <Route path="/systems/edge" element={<EdgeComputing />} />
             <Route path="/systems/workflows" element={<Workflows />} />
             <Route path="/systems/nas" element={<NAS />} />
+            <Route path="/vision" element={<VisionDeck />} />
+            <Route path="/vision-deck" element={<Navigate to="/vision" replace />} />
+            <Route path="/future" element={<Navigate to="/vision" replace />} />
             <Route path="/future/:slug" element={<FutureDeck />} />
 
             {/* Settings */}

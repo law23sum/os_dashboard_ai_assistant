@@ -7,7 +7,7 @@ Tkinter remains available for legacy/offline workflows during the transition.
 
 | Tkinter Tab / Section (`gui.py`) | React Feature Slice | Status | API Work Required | Notes |
 | --- | --- | --- | --- | --- |
-| `_build_dashboard_tab` | `frontend/src/pages/Dashboard` | ✅ Parity UI (needs persona stats polish) | Extend `/api/dashboard/stats` to include persona summaries | Widgets, persona chips, and quick links mirror Tk layout |
+| `_build_dashboard_tab` | `frontend/src/pages/Dashboard` | ✅ Parity UI w/ persona load | `/api/dashboard/stats` includes persona summaries | Widgets, persona chips, and quick links mirror Tk layout |
 | `_build_tasks_tab` | `frontend/src/pages/Tasks` | ✅ CRUD + filters shipped | Bulk update endpoints, template CRUD | React view uses Tk palette tokens and shared task templates |
 | `_build_projects_tab` | `frontend/src/pages/Projects` | ✅ Core grid complete | `/api/projects` enhancements (ordering, dependencies) | Include OneNote/Doc links pulled from `/api/projects/{id}/links` |
 | `_build_chat_tab` | `frontend/src/pages/Chat` | ✅ UI migrated (streaming TBD) | WebSockets for `/ws/chat`, file upload route | Tk role badges + terminal output replicated |
@@ -16,7 +16,7 @@ Tkinter remains available for legacy/offline workflows during the transition.
 | `_build_writer_workspace_tab` | `frontend/src/pages/Writer` | ✅ Editor + stats in React | `/api/writer/*` endpoints from Tk helpers | Governance badges + AI suggestions wired through shared state |
 | `_build_ai_operations_tab` | `frontend/src/pages/AIOps` | ✅ Feed + filters migrated | Already exposed via `ai_os.app` (`/operations`, `/daemons`, `/search`, `/planes/status`) | React cards reuse Tk neon-glass style |
 | `_build_analytics_tab` | `frontend/src/pages/Analytics` | ✅ Charts + metrics live | `/api/analytics/*` for drilldowns | Purple/teal sparkline gradients match Tk |
-| `_build_settings_tab` | `frontend/src/pages/Settings` | ✅ Theme + prefs ported | `/api/settings`, `/api/preferences` | React switches adopt Tk accent colors; writing theme updates default |
+| `_build_settings_tab` | `frontend/src/pages/Settings` | ✅ Theme + prefs + persona defaults | `/api/settings`, `/api/preferences` | React switches adopt Tk accent colors; persona default + governance banner editors mirror Tk controls |
 | `_build_ai_systems_tab` & additive tabs | `/ai/*` routes (`AdvancedAI`, `NAS`, `Security`, `EdgeComputing`, `Workflows`, `AdvancedSystems`) | ✅ UI placeholders implemented | `/api/advanced/{system}` endpoints powered by existing Python helpers | `AdvancedSystems` aggregates parity checklist + documentation links |
 | `_build_neural_architecture_search_tab` | `frontend/src/pages/NAS` | ✅ Simulation controls migrated | `/api/nas/experiments`, `/api/nas/results` (placeholder) | Buttons, metrics, and logs keep Tk styling |
 | `_build_security_threat_detection_tab` | `frontend/src/pages/Security` | ✅ Threat & scan UI live | `/api/security/threats`, `/api/security/scan`, `/api/security/report` | Detection list + risk metrics mirror Tk panes |

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Dna,
   Play,
@@ -14,6 +15,7 @@ import {
   Activity,
   Target,
   Clock,
+  FlaskConical,
 } from 'lucide-react'
 import { toast } from '../utils/toast'
 
@@ -123,6 +125,18 @@ export default function NAS() {
           for your datasets and tasks through genetic optimization, random search, reinforcement learning,
           or Bayesian optimization strategies.
         </p>
+        <div className="mt-4 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+          <p className="text-xs uppercase tracking-[0.25em] text-[color:var(--osd-muted)]">
+            FastAPI · <code className="rounded bg-black/30 px-2 py-0.5 text-[0.65rem]">/neural-architecture/nas/*</code>
+          </p>
+          <Link
+            to="/ai/nas/experiments"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 hover:opacity-95"
+          >
+            <FlaskConical className="h-4 w-4" />
+            Open Experiment Console
+          </Link>
+        </div>
       </div>
 
       {/* Control Panel */}

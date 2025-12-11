@@ -96,6 +96,45 @@ export interface ProjectIntelligence {
   summary: string
 }
 
+export interface TRFHeuristic {
+  label: string
+  status: string
+  detail: string
+  spec_ref: string
+}
+
+export interface PersonaHealthState {
+  persona: string
+  role: string
+  status: string
+  utilization: number
+  context: string
+}
+
+export interface ProjectTRFTrace {
+  trace_id: string
+  project_id: string
+  operator: string
+  persona: string
+  premise: string
+  conclusion: string
+  evidence: string
+  confidence: number
+  compliance_gate: string
+  created_at: string
+}
+
+export interface ProjectTRFResponse {
+  project_id: string
+  spec_refs: string[]
+  entropy: number
+  resonance: number
+  continuity: number
+  heuristics: TRFHeuristic[]
+  personas: PersonaHealthState[]
+  traces: ProjectTRFTrace[]
+}
+
 export interface ChatMessage {
   id: number
   persona: string
@@ -118,6 +157,8 @@ export interface Settings {
   change_permission_mode?: ChangePermissionMode
   continuity_mode?: ContinuityMode
   risk_appetite?: RiskAppetite
+  default_persona?: string
+  governance_banner?: string
 }
 
 export interface IntegrationStatus {
@@ -198,6 +239,145 @@ export interface AuditLogEntry {
   status: string
 }
 
+export interface EvidencePackArtifact {
+  name: string
+  description: string
+  size_bytes: number
+}
+
+export interface EvidencePackResponse {
+  reference: string
+  generated_at: string
+  spec_refs: string[]
+  artifacts: EvidencePackArtifact[]
+  archive_b64: string
+}
+
+export interface DriverQueueMetric {
+  driver_id: string
+  label: string
+  queue_depth: number
+  max_concurrency: number
+  avg_latency_ms: number
+  backlog_seconds: number
+  admission_rate: number
+  throttled: boolean
+  priority_mix: Record<string, number>
+  spec_refs: string[]
+}
+
+export interface DriverThrottleRecommendation {
+  driver_id: string
+  action: string
+  recommendation: string
+  severity: string
+}
+
+export interface DriverSchedulingSnapshot {
+  updated_at: string
+  queues: DriverQueueMetric[]
+  recommendations: DriverThrottleRecommendation[]
+  guardrails: Record<string, unknown>
+}
+
+export interface CollaborationMember {
+  name: string
+  role: string
+  tenant: string
+  active_projects: number
+  open_tasks: number
+  last_active: string
+}
+
+export interface TenantSummary {
+  name: string
+  projects: string[]
+  active_members: number
+  critical_tasks: number
+  regulator_view: boolean
+}
+
+export interface FederationLink {
+  tenant: string
+  scope: string
+  status: string
+  last_sync: string
+}
+
+export interface CollaborationAnnotation {
+  id: string
+  project: string
+  persona: string
+  note: string
+  timestamp: string
+}
+
+export interface CollaborationState {
+  spec_refs: string[]
+  tenants: TenantSummary[]
+  members: CollaborationMember[]
+  federation: FederationLink[]
+  annotations: CollaborationAnnotation[]
+}
+
+export interface ReasoningStep {
+  id: string
+  operator: string
+  premises: string[]
+  conclusion: string
+  confidence: number
+  evidence: Record<string, unknown>
+  timestamp: string
+}
+
+export interface ReasoningTrace {
+  id: string
+  query: string
+  persona_id?: string | null
+  persona_label?: string | null
+  created_at: string
+  final_conclusion: string
+  overall_confidence: number
+  steps: ReasoningStep[]
+}
+
+export interface ReasoningPersona {
+  id: string
+  type: string
+  label: string
+  decision_threshold: number
+  interaction_style: string
+  capabilities: string[]
+  active: boolean
+}
+
+export interface ReasoningStep {
+  id: string
+  operator: string
+  premises: string[]
+  conclusion: string
+  confidence: number
+  timestamp: string
+}
+
+export interface ReasoningTrace {
+  id: string
+  query: string
+  persona_type?: string | null
+  steps: ReasoningStep[]
+  final_conclusion: string
+  overall_confidence: number
+  created_at: string
+}
+
+export interface ReasoningStatus {
+  available: boolean
+  initialized: boolean
+  personas: { id: string; type: string }[]
+  daemons: { id: string; type?: string; status?: string; execution_count?: number }[]
+  recent_traces: number
+}
+
 export interface AuditCheckResponse {
   started_at: string
   completed_at: string
@@ -222,6 +402,18 @@ export interface DashboardStats {
     updated_at: string
     source: string
   }
+  persona_load?: Record<string, number>
+  active_persona?: string
+}
+
+export interface PersonaInfo {
+  name: string
+  role: string
+}
+
+export interface PersonasResponse {
+  personas: PersonaInfo[]
+  active: string
 }
 
 export interface DocumentOperation {
@@ -264,6 +456,45 @@ export interface BillingUsage {
   estimated_cost: number
   currency: string
   records: AgentRun[]
+}
+
+export interface TRFHeuristic {
+  label: string
+  status: string
+  detail: string
+  spec_ref: string
+}
+
+export interface PersonaHealthSnapshot {
+  persona: string
+  role: string
+  status: string
+  utilization: number
+  context: string
+}
+
+export interface ProjectTRFTraceEntry {
+  trace_id: string
+  project_id: string
+  operator: string
+  persona: string
+  premise: string
+  conclusion: string
+  evidence: string
+  confidence: number
+  compliance_gate: string
+  created_at: string
+}
+
+export interface ProjectTRFResponse {
+  project_id: string
+  spec_refs: string[]
+  entropy: number
+  resonance: number
+  continuity: number
+  heuristics: TRFHeuristic[]
+  personas: PersonaHealthSnapshot[]
+  traces: ProjectTRFTraceEntry[]
 }
 
 export interface SearchStatus {

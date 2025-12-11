@@ -1,23 +1,26 @@
 """FastAPI application that exposes assistant_hub data to the React desktop client."""
 from __future__ import annotations
 
+import logging
 import sqlite3
 from contextlib import closing
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Literal
+from typing import Any, Dict, List, Optional, Literal, Tuple
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict
+from starlette.types import ASGIApp, Scope, Receive, Send
 
 from ai_os.app.system_monitor import get_system_stats
 from assistant_core.cognitive_framework import CognitiveFrameworkManager, DaemonStatus
 
 from ..ai import DEFAULT_SYSTEM_PROMPT, generate_ai_reply
 from ..db import (
+    CHAT_ROLES,
     ChatMessage,
     PERSONAS,
     Project,
@@ -31,6 +34,7 @@ from ..db import (
     init_db,
     load_state,
     load_settings,
+    load_security_status,
     save_settings,
     Settings,
 )
@@ -52,6 +56,48 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_DIST = REPO_ROOT / "frontend" / "dist"
 LEGACY_UI_DIST = REPO_ROOT / "ui" / "web" / "dist"
 SPEC_SHEET_PATH = REPO_ROOT / "Technical Spec Sheet (Version 6 Latest Version).pdf"
+logger = logging.getLogger(__name__)
+
+
+class StripPrefixMiddleware:
+    """Allow clients to access routes with an optional leading prefix (e.g., /api)."""
+
+    def __init__(
+        self,
+        app: ASGIApp,
+        prefix: str = "/api",
+        exclusions: Tuple[str, ...] = (),
+    ) -> None:
+        if not prefix.startswith("/"):
+            raise ValueError("Prefix must start with '/'.")
+        if prefix != "/" and prefix.endswith("/"):
+            prefix = prefix.rstrip("/")
+        self.app = app
+        self.prefix = prefix
+        self.exclusions = tuple(exclusions)
+        logger.info("StripPrefixMiddleware enabled for prefix '%s'", self.prefix)
+
+    def _should_strip(self, path: str) -> bool:
+        if not path.startswith(self.prefix):
+            return False
+        if self.exclusions:
+            for excluded in self.exclusions:
+                if path.startswith(excluded):
+                    return False
+        return path == self.prefix or path.startswith(f"{self.prefix}/")
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] in {"http", "websocket"}:
+            path = scope.get("path") or ""
+            if self._should_strip(path):
+                new_scope = dict(scope)
+                trimmed = path[len(self.prefix) :] or "/"
+                new_scope["path"] = trimmed
+                raw_path = scope.get("raw_path")
+                if isinstance(raw_path, (bytes, bytearray)):
+                    new_scope["raw_path"] = trimmed.encode("utf-8")
+                scope = new_scope
+        await self.app(scope, receive, send)
 
 
 class TaskPayload(BaseModel):
@@ -77,6 +123,22 @@ class ChatPayload(BaseModel):
     system_prompt: Optional[str] = DEFAULT_SYSTEM_PROMPT
 
 
+class ChatMessageRequest(BaseModel):
+    persona: str = "Chris"
+    role: str = "user"
+    kind: str = "chat"
+    content: str
+
+
+class ChatMessageResponse(BaseModel):
+    id: int
+    persona: str
+    role: str
+    kind: str
+    content: str
+    created_at: str
+
+
 class CommandPayload(BaseModel):
     command: str
     cwd: Optional[str] = None
@@ -91,6 +153,20 @@ class SimulationRequest(BaseModel):
 
 class ExperimentDesignRequest(BaseModel):
     type: str = Field("parameter_sweep", description="Design template name")
+    variables: List[str] = Field(default_factory=list)
+
+
+class SimulationRequestCompat(BaseModel):
+    """Compatible request model for frontend that uses sim_type instead of type."""
+    model_config = ConfigDict(protected_namespaces=())
+    sim_type: str = Field(..., description="Simulation type identifier")
+    model_id: str = Field(..., description="Model identifier to run")
+    iterations: int = Field(ge=1, default=1000)
+
+
+class ExperimentDesignRequestCompat(BaseModel):
+    """Compatible request model for frontend that uses design_type instead of type."""
+    design_type: str = Field("parameter_sweep", description="Design template name")
     variables: List[str] = Field(default_factory=list)
 
 
@@ -186,6 +262,11 @@ def create_app(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(
+        StripPrefixMiddleware,
+        prefix="/api",
+        exclusions=("/api/docs",),
+    )
 
     docs_dir = REPO_ROOT / "docs"
     if docs_dir.exists():
@@ -229,21 +310,65 @@ def create_app(
         dist_path = Path(frontend_dist)
         if dist_path.exists():
             candidate = dist_path / "index.html"
-            app.mount(
-                "/app",
-                StaticFiles(directory=dist_path, html=True),
-                name="spa",
-            )
             if candidate.exists():
                 index_path = candidate
+                
+                def _get_index_html() -> str:
+                    """Get index.html content with base tag injected."""
+                    html_content = index_path.read_text(encoding="utf-8")
+                    # Inject base tag if not present to ensure relative paths work correctly
+                    if "<base" not in html_content.lower():
+                        # Insert base tag right after <head>
+                        html_content = html_content.replace(
+                            "<head>",
+                            '<head>\n    <base href="/app/">',
+                            1
+                        )
+                    return html_content
 
                 @app.get("/", include_in_schema=False)
                 async def serve_root():
-                    return FileResponse(index_path)
+                    return Response(content=_get_index_html(), media_type="text/html")
 
+                @app.get("/app", include_in_schema=False)
+                async def serve_app_redirect():
+                    """Redirect /app to /app/."""
+                    from fastapi.responses import RedirectResponse
+                    return RedirectResponse(url="/app/", status_code=301)
+
+                @app.get("/app/", include_in_schema=False)
+                async def serve_app_index():
+                    """Serve index.html with base tag for proper asset resolution."""
+                    return Response(content=_get_index_html(), media_type="text/html")
+
+                # Mount static files for assets - this must come after the route handlers
+                # Mount assets directory separately to ensure they're served correctly
+                assets_dir = dist_path / "assets"
+                if assets_dir.exists():
+                    app.mount(
+                        "/app/assets",
+                        StaticFiles(directory=assets_dir),
+                        name="spa-assets",
+                    )
+                
+                # Mount other static directories
+                for static_dir in ["docs"]:
+                    static_path = dist_path / static_dir
+                    if static_path.exists():
+                        app.mount(
+                            f"/app/{static_dir}",
+                            StaticFiles(directory=static_path),
+                            name=f"spa-{static_dir}",
+                        )
+                
+                # Mount root for SPA routing (fallback to index.html for non-asset routes)
                 @app.get("/app/{full_path:path}", include_in_schema=False)
-                async def serve_spa(full_path: str):
-                    return FileResponse(index_path)
+                async def serve_spa_routes(full_path: str):
+                    """Serve index.html for SPA routes, but not for assets."""
+                    # Don't serve index.html for asset requests (they should be handled by mounts)
+                    if full_path.startswith("assets/") or full_path.startswith("docs/"):
+                        raise HTTPException(status_code=404, detail="Asset not found")
+                    return Response(content=_get_index_html(), media_type="text/html")
 
     @app.on_event("startup")
     async def _initialize_framework():
@@ -256,6 +381,29 @@ def create_app(
     def _load_settings_state() -> Settings:
         with closing(connect()) as conn:
             return load_settings(conn)
+
+    def _chat_row_to_response(row: sqlite3.Row) -> ChatMessageResponse:
+        payload = dict(row)
+        return ChatMessageResponse(**payload)
+
+    def _fetch_chat_messages(
+        persona: Optional[str],
+        limit: int,
+        conn: sqlite3.Connection,
+    ) -> List[ChatMessageResponse]:
+        query = """
+            SELECT id, persona, role, kind, content, created_at
+            FROM chat_messages
+        """
+        params: List[Any] = []
+        if persona:
+            query += " WHERE persona = ?"
+            params.append(persona)
+        query += " ORDER BY created_at DESC LIMIT ?"
+        params.append(limit)
+        cursor = conn.execute(query, params)
+        rows = cursor.fetchall()
+        return list(reversed([_chat_row_to_response(row) for row in rows]))
 
     @app.get("/settings", response_model=SettingsResponse)
     async def get_settings():
@@ -572,6 +720,43 @@ def create_app(
     def operations(limit: int = Query(25, ge=1, le=200)):
         return {"operations": _fetch_agent_runs(limit), "limit": limit}
 
+    @app.get("/chat", response_model=List[ChatMessageResponse])
+    def list_chat_messages(
+        persona: Optional[str] = Query(None, description="Filter by persona"),
+        limit: int = Query(100, ge=1, le=500),
+    ):
+        with closing(connect()) as conn:
+            return _fetch_chat_messages(persona, limit, conn)
+
+    @app.post("/chat", response_model=ChatMessageResponse, status_code=201)
+    def create_chat_message(payload: ChatMessageRequest):
+        if payload.persona not in PERSONAS:
+            raise HTTPException(status_code=400, detail="Unknown persona")
+        if payload.role not in CHAT_ROLES:
+            raise HTTPException(status_code=400, detail="Invalid role")
+
+        chat_message = ChatMessage(
+            id=0,
+            persona=payload.persona,
+            role=payload.role,
+            kind=payload.kind,
+            content=payload.content,
+        )
+        with closing(connect()) as conn:
+            new_id = db_insert_chat_message(conn, chat_message)
+            cursor = conn.execute(
+                """
+                SELECT id, persona, role, kind, content, created_at
+                FROM chat_messages
+                WHERE id = ?
+                """,
+                (new_id,),
+            )
+            row = cursor.fetchone()
+            if not row:
+                raise HTTPException(status_code=500, detail="Failed to load chat message")
+            return _chat_row_to_response(row)
+
     @app.get("/audit/{operation_id}")
     def audit_detail(operation_id: int):
         with closing(connect()) as conn:
@@ -686,14 +871,31 @@ def create_app(
     def research_workspace():
         return research_state.snapshot()
 
+    @app.get("/research/snapshot")
+    def research_snapshot():
+        """Alias for /research/workspace to match frontend expectations."""
+        return research_state.snapshot()
+
     @app.post("/research/run-simulation")
     def run_simulation(request: SimulationRequest):
         experiment = research_state.start_simulation(request.type, request.model_id, request.iterations)
         return {"experiment": experiment, "workspace": research_state.snapshot()}
 
+    @app.post("/research/run")
+    def run_simulation_compat(request: SimulationRequestCompat):
+        """Compatible endpoint for frontend that uses sim_type instead of type."""
+        experiment = research_state.start_simulation(request.sim_type, request.model_id, request.iterations)
+        return {"experiment": experiment, "workspace": research_state.snapshot()}
+
     @app.post("/research/design-experiment")
     def design_experiment(request: ExperimentDesignRequest):
         design = research_state.design_experiment(request.type, request.variables)
+        return {"design": design, "workspace": research_state.snapshot()}
+
+    @app.post("/research/design")
+    def design_experiment_compat(request: ExperimentDesignRequestCompat):
+        """Compatible endpoint for frontend that uses design_type instead of type."""
+        design = research_state.design_experiment(request.design_type, request.variables)
         return {"design": design, "workspace": research_state.snapshot()}
 
     @app.get("/writer/snapshot")
@@ -732,6 +934,52 @@ def create_app(
     def writer_nudge_stats():
         delta = writer_state.simulate_activity()
         return {"delta_words": delta, "stats": writer_state.stats}
+
+    @app.get("/dashboard/stats")
+    def dashboard_stats():
+        state = _load_state()
+        tasks = list(getattr(state, "tasks", []) or [])
+        projects = list(getattr(state, "projects", []) or [])
+
+        tasks_by_status: Dict[str, int] = {}
+        tasks_by_priority: Dict[str, int] = {}
+        for task in tasks:
+            tasks_by_status[task.status] = tasks_by_status.get(task.status, 0) + 1
+            tasks_by_priority[task.priority] = tasks_by_priority.get(task.priority, 0) + 1
+
+        total_projects = len(projects)
+        active_projects = sum(1 for proj in projects if getattr(proj, "status", "").lower() == "active")
+
+        system_stats = get_system_stats()
+        memory = system_stats.get("memory") or {}
+        disk = system_stats.get("disk") or {}
+        mem_percent = memory.get("percent")
+        if mem_percent is None and memory.get("total"):
+            mem_percent = round((memory.get("used", 0) / max(memory.get("total", 1), 1)) * 100, 2)
+        disk_percent = disk.get("percent")
+        if disk_percent is None and disk.get("total"):
+            disk_percent = round((disk.get("used", 0) / max(disk.get("total", 1), 1)) * 100, 2)
+        with closing(connect()) as conn:
+            security_status = load_security_status(conn)
+
+        return {
+            "total_tasks": len(tasks),
+            "tasks_by_status": tasks_by_status,
+            "tasks_by_priority": tasks_by_priority,
+            "total_projects": total_projects,
+            "active_projects": active_projects,
+            "system_stats": {
+                "cpu_percent": system_stats.get("cpu_percent", 0),
+                "memory_percent": mem_percent or 0,
+                "disk_percent": disk_percent or 0,
+            },
+            "security_status": {
+                "status": security_status.status,
+                "message": security_status.message,
+                "updated_at": security_status.updated_at,
+                "source": security_status.source,
+            },
+        }
 
     @app.get("/dashboard/summary")
     def dashboard_summary():

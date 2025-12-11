@@ -8,7 +8,10 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
-DB_FILE = os.path.join(os.path.dirname(__file__), "..", "assistant_hub.db")
+from assistant_hub.config import DB_PATH, ensure_data_directories
+
+ensure_data_directories()
+DB_FILE = str(DB_PATH)
 
 PERSONAS = ["Chris", "AIC", "Aria", "Sora"]
 PERSONA_ROLES = {
@@ -133,6 +136,8 @@ class Settings:
     data_preferences: Dict[str, bool] = field(
         default_factory=lambda: DEFAULT_FETCH_PREFERENCES.copy()
     )
+    default_persona: str = "AIC"
+    governance_banner: str = GOVERNANCE_BANNER
 
 
 @dataclass
@@ -668,6 +673,27 @@ def set_meta(conn: sqlite3.Connection, key: str, value: str):
     conn.commit()
 
 
+OPENAI_API_KEY_META = "openai.api_key"
+
+
+def save_openai_api_key(conn: sqlite3.Connection, api_key: str) -> None:
+    if not api_key:
+        raise ValueError("api_key must be provided")
+    set_meta(conn, OPENAI_API_KEY_META, api_key)
+
+
+def load_openai_api_key(
+    conn: sqlite3.Connection, default: Optional[str] = None
+) -> Optional[str]:
+    return get_meta(conn, OPENAI_API_KEY_META, default)
+
+
+def clear_openai_api_key(conn: sqlite3.Connection) -> None:
+    c = conn.cursor()
+    c.execute("DELETE FROM state_meta WHERE key = ?", (OPENAI_API_KEY_META,))
+    conn.commit()
+
+
 def load_state(conn: sqlite3.Connection) -> AssistantState:
     c = conn.cursor()
 
@@ -792,9 +818,12 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
             )
         )
 
-    active_persona = get_meta(conn, "active_persona", "AIC") or "AIC"
+    default_persona = get_meta(conn, "setting.default_persona", "AIC") or "AIC"
+    if default_persona not in PERSONAS:
+        default_persona = "AIC"
+    active_persona = get_meta(conn, "active_persona", default_persona) or default_persona
     if active_persona not in PERSONAS:
-        active_persona = "AIC"
+        active_persona = default_persona
 
     return AssistantState(
         tasks=tasks,
@@ -820,12 +849,21 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
                     data_preferences[key] = bool(val)
         except json.JSONDecodeError:
             pass
+    default_persona = get_meta(conn, "setting.default_persona", "AIC") or "AIC"
+    if default_persona not in PERSONAS:
+        default_persona = "AIC"
+    governance_banner = (
+        get_meta(conn, "setting.governance_banner", GOVERNANCE_BANNER)
+        or GOVERNANCE_BANNER
+    )
     return Settings(
         theme=theme,
         default_view=default_view,
         show_system_status=show_system_status,
         font_scale=font_scale,
         data_preferences=data_preferences,
+        default_persona=default_persona,
+        governance_banner=governance_banner,
     )
 
 
@@ -841,6 +879,8 @@ def save_settings(conn: sqlite3.Connection, settings: Settings):
         "setting.data_preferences",
         json.dumps(settings.data_preferences, ensure_ascii=False),
     )
+    set_meta(conn, "setting.default_persona", settings.default_persona)
+    set_meta(conn, "setting.governance_banner", settings.governance_banner)
 
 
 def save_active_persona(conn: sqlite3.Connection, state: AssistantState):

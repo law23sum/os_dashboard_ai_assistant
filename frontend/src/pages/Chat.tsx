@@ -3,12 +3,13 @@ import { Send, MessageSquare } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { toast } from '../utils/toast'
 import apiClient, { apiPath } from '../lib/apiClient'
+import { extractArray } from '../lib/responseHelpers'
 import { ChatMessage } from '../types'
 
 const fetchChatHistory = async (persona?: string): Promise<ChatMessage[]> => {
   const params = persona ? { persona } : undefined
-  const { data } = await apiClient.get<ChatMessage[]>(apiPath('chat/'), { params })
-  return data
+  const { data } = await apiClient.get(apiPath('chat/'), { params })
+  return extractArray<ChatMessage>(data, ['messages', 'items'])
 }
 
 const sendMessage = async (message: { persona: string; content: string }): Promise<ChatMessage> => {
@@ -18,8 +19,11 @@ const sendMessage = async (message: { persona: string; content: string }): Promi
     kind: 'chat',
     content: message.content,
   }
-  const { data } = await apiClient.post<ChatMessage>(apiPath('chat/'), payload)
-  return data
+  const { data } = await apiClient.post(apiPath('chat/'), payload)
+  if (data && typeof data === 'object' && 'message' in data && data.message) {
+    return data.message as ChatMessage
+  }
+  return data as ChatMessage
 }
 
 export default function Chat() {

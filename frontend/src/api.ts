@@ -1,12 +1,6 @@
-// Use the same API base URL logic as apiClient
-const API_BASE = (() => {
-  const configured = import.meta.env.VITE_API_BASE_URL
-  if (configured) {
-    return configured.endsWith('/') ? configured.slice(0, -1) : configured
-  }
-  // Default to empty string for relative paths (Vite proxy handles /api in dev)
-  return ""
-})()
+import { resolveApiBase } from './lib/apiClient'
+
+const API_BASE = resolveApiBase()
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path.startsWith("/") ? path : `/${path}`}`, {

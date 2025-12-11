@@ -112,6 +112,14 @@ async def run_search(payload: SearchRequest, state=Depends(get_state)) -> Search
     )
 
 
+@router.get("/", response_model=SearchResponse, include_in_schema=False)
+async def legacy_search(q: str, limit: int = 10, state=Depends(get_state)) -> SearchResponse:
+    """Compatibility endpoint for the Tkinter-era `/search?q=` pattern."""
+
+    payload = SearchRequest(query=q, limit=limit)
+    return await run_search(payload, state)
+
+
 @router.get("/status", response_model=SearchStatus)
 async def search_status(state=Depends(get_state)) -> SearchStatus:
     """Return metadata for the index management section."""

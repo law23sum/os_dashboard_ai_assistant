@@ -13,11 +13,161 @@ const resolveHtmlHref = (slug: string, explicit?: string) => {
   return `/docs/${slug}.html`
 }
 
+const escapeHtml = (value: string) =>
+  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+const escapeAttribute = (value: string) => escapeHtml(value).replace(/"/g, '&quot;')
+
+const formatInline = (value: string) => {
+  let output = escapeHtml(value)
+  output = output.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => {
+    return `<a href="${escapeAttribute(url)}" target="_blank" rel="noreferrer">${label}</a>`
+  })
+  output = output.replace(/`([^`]+)`/g, (_, code) => `<code>${code}</code>`)
+  output = output.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+  output = output.replace(/\*([^*]+)\*/g, '<em>$1</em>')
+  return output
+}
+
+const renderMarkdownTable = (rows: string[]) => {
+  const cleanRow = (line: string) =>
+    line
+      .trim()
+      .replace(/^\|/, '')
+      .replace(/\|$/, '')
+      .split('|')
+      .map((cell) => formatInline(cell.trim()))
+
+  if (rows.length < 2) {
+    return `<p>${formatInline(rows.join(' '))}</p>`
+  }
+  const header = cleanRow(rows[0])
+  const body = rows.slice(2).map(cleanRow)
+
+  const headerHtml = header.map((cell) => `<th class="px-3 py-2 text-left font-semibold">${cell}</th>`).join('')
+  const bodyHtml = body
+    .map(
+      (row) =>
+        `<tr class="border-t border-white/10">${row
+          .map((cell) => `<td class="px-3 py-2 align-top">${cell}</td>`)
+          .join('')}</tr>`,
+    )
+    .join('')
+  return `<table class="w-full text-sm text-slate-200 border border-white/10 rounded-xl overflow-hidden my-4"><thead class="bg-white/5"><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`
+}
+
+const markdownToHtml = (markdown: string): string => {
+  const lines = markdown.split(/\r?\n/)
+  const html: string[] = []
+  let inList = false
+  let listType: 'ul' | 'ol' = 'ul'
+  let inCode = false
+  let codeLang = ''
+  const codeBuffer: string[] = []
+
+  const closeList = () => {
+    if (inList) {
+      html.push(`</${listType}>`)
+      inList = false
+    }
+  }
+
+  const closeCode = () => {
+    if (inCode) {
+      const langAttr = codeLang ? ` class="language-${codeLang}"` : ''
+      html.push(`<pre><code${langAttr}>${escapeHtml(codeBuffer.join('\n'))}</code></pre>`)
+      inCode = false
+      codeLang = ''
+      codeBuffer.length = 0
+    }
+  }
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const raw = lines[i]
+    const line = raw.trim()
+
+    if (line.startsWith('```')) {
+      if (inCode) {
+        closeCode()
+      } else {
+        closeList()
+        inCode = true
+        codeLang = line.replace(/```/, '').trim()
+      }
+      continue
+    }
+
+    if (inCode) {
+      codeBuffer.push(raw)
+      continue
+    }
+
+    if (!line) {
+      closeList()
+      continue
+    }
+
+    if (/^\|/.test(line) && i + 1 < lines.length && /^\s*\|?\s*:?-{3,}/.test(lines[i + 1])) {
+      const tableLines = [lines[i]]
+      i += 1
+      while (i < lines.length && lines[i].trim().startsWith('|')) {
+        tableLines.push(lines[i])
+        i += 1
+      }
+      i -= 1
+      closeList()
+      html.push(renderMarkdownTable(tableLines))
+      continue
+    }
+
+    const headingMatch = line.match(/^(#{1,6})\s+(.*)$/)
+    if (headingMatch) {
+      closeList()
+      const level = Math.min(6, headingMatch[1].length)
+      html.push(`<h${level}>${formatInline(headingMatch[2])}</h${level}>`)
+      continue
+    }
+
+    if (/^>/.test(line)) {
+      closeList()
+      html.push(`<blockquote>${formatInline(line.replace(/^>\s?/, ''))}</blockquote>`)
+      continue
+    }
+
+    if (/^(-{3,}|_{3,}|\*{3,})$/.test(line)) {
+      closeList()
+      html.push('<hr />')
+      continue
+    }
+
+    const listMatch = line.match(/^(\*|-|\d+\.)\s+(.*)/)
+    if (listMatch) {
+      const nextType: 'ul' | 'ol' = /\d+\./.test(listMatch[1]) ? 'ol' : 'ul'
+      if (!inList || nextType !== listType) {
+        closeList()
+        inList = true
+        listType = nextType
+        html.push(`<${listType}>`)
+      }
+      html.push(`<li>${formatInline(listMatch[2])}</li>`)
+      continue
+    }
+
+    closeList()
+    html.push(`<p>${formatInline(line)}</p>`)
+  }
+
+  closeList()
+  closeCode()
+  return html.join('\n')
+}
+
 export default function Documentation({ page: propPage }: DocumentationPageProps) {
   const { page: paramPage } = useParams<{ page?: string }>()
   const pageName = propPage || paramPage || 'index'
   const entry = getDocEntry(pageName)
   const htmlHref = resolveHtmlHref(pageName, entry?.href)
+  const isMarkdown = htmlHref.endsWith('.md') || (entry?.path?.endsWith('.md') ?? false)
 
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(true)
@@ -33,7 +183,7 @@ export default function Documentation({ page: propPage }: DocumentationPageProps
           throw new Error(`Failed to load ${htmlHref}`)
         }
         const text = await response.text()
-        setContent(text)
+        setContent(isMarkdown ? markdownToHtml(text) : text)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load documentation')
       } finally {
@@ -41,7 +191,7 @@ export default function Documentation({ page: propPage }: DocumentationPageProps
       }
     }
     loadPage()
-  }, [htmlHref])
+  }, [htmlHref, isMarkdown])
 
   const parity = entry ? parityMeta[entry.parity] : null
 

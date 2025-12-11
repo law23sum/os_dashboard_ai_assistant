@@ -9,7 +9,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
-DB_FILE = str((Path(__file__).resolve().parent.parent / "assistant_hub.db"))
+from assistant_hub.config import DB_PATH, ensure_data_directories
+
+ensure_data_directories()
+DB_FILE = str(DB_PATH)
 
 PERSONAS = ["Chris", "AIC", "Aria", "Sora"]
 PERSONA_ROLES = {
@@ -411,6 +414,30 @@ def set_meta(conn: sqlite3.Connection, key: str, value: str):
         "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
         (key, value),
     )
+    conn.commit()
+
+
+OPENAI_API_KEY_META = "openai.api_key"
+
+
+def save_openai_api_key(conn: sqlite3.Connection, api_key: str) -> None:
+    """Persist the OpenAI API key in the shared metadata table."""
+    if not api_key:
+        raise ValueError("api_key must be provided")
+    set_meta(conn, OPENAI_API_KEY_META, api_key)
+
+
+def load_openai_api_key(
+    conn: sqlite3.Connection, default: Optional[str] = None
+) -> Optional[str]:
+    """Fetch the OpenAI API key from the database, if present."""
+    return get_meta(conn, OPENAI_API_KEY_META, default)
+
+
+def clear_openai_api_key(conn: sqlite3.Connection) -> None:
+    """Remove the stored OpenAI API key."""
+    c = conn.cursor()
+    c.execute("DELETE FROM state_meta WHERE key = ?", (OPENAI_API_KEY_META,))
     conn.commit()
 
 
