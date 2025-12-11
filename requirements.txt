@@ -141,7 +141,7 @@ streamlit>=1.0.0
 
 # Optional: Machine Learning
 torch==2.1.1; extra == "ml"
-transformers==4.35.2; extra == "ml"
+transformers==4.53.0; extra == "ml"
 
 # Optional: Advanced PDF processing
 pymupdf==1.23.8; extra == "advanced-pdf"
