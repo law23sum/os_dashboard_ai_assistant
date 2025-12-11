@@ -13,4 +13,3 @@ __all__ = [
     "handle_projects_command",
     "handle_history_command",
 ]
-

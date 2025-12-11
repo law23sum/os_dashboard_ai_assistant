@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS Dashboard AI Assistant - Install Guide</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-content">
+            <a href="home.html" class="logo">OS Dashboard AI</a>
+            <nav class="main-nav" aria-label="Primary">
+                <ul class="nav-links">
+                    <li><a href="home.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="subscription.html">Subscriptions</a></li>
+                    <li><a href="install.html" class="active">Install</a></li>
+                    <li><a href="index.html">Downloads</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <span class="badge">Post-Purchase Setup</span>
+            <h1>Install the OS Dashboard AI Assistant in four steps.</h1>
+            <p>Already purchased a subscription? Use this checklist to get your workspace online and connect it to your identity provider.</p>
+            <div class="hero-actions">
+                <a href="index.html" class="btn btn-primary">Download the app</a>
+                <a href="subscription.html" class="btn btn-secondary">Need a license?</a>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Installation workflow</h2>
+            <div class="step-list">
+                <div class="step">
+                    <h3>1. Download artifacts</h3>
+                    <p>Grab the installer for your platform plus the license file from the customer portal.</p>
+                </div>
+                <div class="step">
+                    <h3>2. Authenticate</h3>
+                    <p>Run <code>osdash login</code> or sign in through the desktop UI to link your workspace.</p>
+                </div>
+                <div class="step">
+                    <h3>3. Configure connectors</h3>
+                    <p>Use the setup wizard to add Microsoft, Google, Slack, ServiceNow, or custom APIs.</p>
+                </div>
+                <div class="step">
+                    <h3>4. Invite your team</h3>
+                    <p>Sync groups from Azure AD/Okta or add members manually with role-based policies.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section section-muted">
+            <h2>System prep checklist</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Network</td>
+                        <td>Allow outbound HTTPS to api.osdash.local and hub.osdash.local.</td>
+                    </tr>
+                    <tr>
+                        <td>Ports</td>
+                        <td>Open 443, 4222 (NATS), and 5432 (Postgres) on self-hosted deployments.</td>
+                    </tr>
+                    <tr>
+                        <td>Service account</td>
+                        <td>Create a least-privileged identity for automation secrets.</td>
+                    </tr>
+                    <tr>
+                        <td>Observability</td>
+                        <td>Send logs to your SIEM via syslog or the built-in Splunk integration.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>Need help?</h2>
+            <p>Follow the in-product installer, reference the docs at <a href="dashboard.html" style="color:#fff; text-decoration: underline;">dashboard.html</a>, or reach us at <a href="mailto:support@example.com" style="color:#fff; text-decoration: underline;">support@example.com</a>.</p>
+            <div class="hero-actions" style="margin-top: 24px;">
+                <a href="products.html" class="btn btn-secondary">Review features</a>
+                <a href="subscription.html" class="btn btn-primary">Upgrade subscription</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>© 2024 OS Dashboard AI Assistant.</p>
+    </footer>
+</body>
+</html>

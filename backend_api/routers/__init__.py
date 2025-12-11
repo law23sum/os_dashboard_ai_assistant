@@ -1,0 +1,41 @@
+"""API routers package."""
+
+from . import (
+    ai_systems,
+    analytics,
+    api_connectors,
+    audit,
+    chat,
+    dashboard,
+    document_operations,
+    integrations,
+    intelligence,
+    projects,
+    research,
+    search,
+    templates,
+    settings,
+    tasks,
+    terminal,
+    writer,
+)
+
+__all__ = [
+    "ai_systems",
+    "analytics",
+    "api_connectors",
+    "audit",
+    "chat",
+    "dashboard",
+    "document_operations",
+    "integrations",
+    "intelligence",
+    "projects",
+    "research",
+    "search",
+    "templates",
+    "settings",
+    "tasks",
+    "terminal",
+    "writer",
+]

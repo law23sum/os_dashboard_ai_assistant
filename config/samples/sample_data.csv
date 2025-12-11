@@ -1,0 +1,11 @@
+id,name,value,timestamp,ai_confidence,validated_by,change_reason,ai_insights,governance_status
+1,"Sample Data Point Alpha",42.5,2024-12-07T10:30:00Z,0.95,human_reviewer,"Initial data import","Normal range, high confidence","compliant"
+2,"Sample Data Point Beta",37.8,2024-12-07T10:31:00Z,0.89,ai_validated,"Automated sensor reading","Slightly below average, monitor trend","compliant"
+3,"Sample Data Point Gamma",51.2,2024-12-07T10:32:00Z,0.97,human_approved,"Manual quality control entry","Above normal range, investigate cause","requires_review"
+4,"Sample Data Point Delta",44.1,2024-12-07T10:33:00Z,0.92,system_generated,"API data feed","Within expected parameters","compliant"
+5,"Sample Data Point Epsilon",39.7,2024-12-07T10:34:00Z,0.88,ai_validated,"Machine learning prediction","Approaching lower threshold","monitor"
+6,"Sample Data Point Zeta",47.3,2024-12-07T10:35:00Z,0.94,human_reviewer,"Field technician measurement","Stable readings, no action needed","compliant"
+7,"Sample Data Point Eta",35.9,2024-12-07T10:36:00Z,0.85,ai_validated,"IoT device transmission","Below normal, check equipment calibration","requires_attention"
+8,"Sample Data Point Theta",49.8,2024-12-07T10:37:00Z,0.96,system_generated,"Scheduled data collection","Peak performance indicators","compliant"
+9,"Sample Data Point Iota",41.2,2024-12-07T10:38:00Z,0.91,human_approved,"Quality assurance audit","Acceptable variance, within tolerance","compliant"
+10,"Sample Data Point Kappa",46.7,2024-12-07T10:39:00Z,0.93,ai_validated,"Real-time monitoring update","Consistent with historical patterns","compliant"

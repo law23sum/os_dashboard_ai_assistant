@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Billing & Usage – OS Dashboard</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        color: #f8fafc;
+      }
+      .shell {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      .card {
+        background: rgba(15, 23, 42, 0.75);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 18px;
+        padding: 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+      button {
+        border: none;
+        border-radius: 12px;
+        padding: 0.5rem 1rem;
+        background: linear-gradient(120deg, #38bdf8, #6366f1);
+        color: white;
+        cursor: pointer;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0 0;
+      }
+      li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <h1>Billing & Usage Fabric</h1>
+        <p>Live data from `/billing/usage`.</p>
+        <button id="refresh">Refresh</button>
+      </header>
+      <div id="summary" class="card"></div>
+      <div id="records" class="card"></div>
+    </div>
+    <script>
+      const summaryEl = document.getElementById('summary');
+      const recordsEl = document.getElementById('records');
+      document.getElementById('refresh').addEventListener('click', loadBilling);
+
+      async function loadBilling() {
+        summaryEl.textContent = 'Loading…';
+        recordsEl.textContent = '';
+        try {
+          const data = await fetch('/billing/usage').then((res) => res.json());
+          summaryEl.innerHTML = `<h2>Estimated Cost</h2><p style="font-size:2.5rem;">$${(data.estimated_cost || 0).toFixed(4)}</p>`;
+          if (!data.records?.length) {
+            recordsEl.textContent = 'No usage records.';
+            return;
+          }
+          recordsEl.innerHTML = '<h2>Usage Records</h2>';
+          const list = document.createElement('ul');
+          data.records.forEach((record) => {
+            const li = document.createElement('li');
+            li.textContent = `${record.category}: ${record.quantity} ${record.unit} — ${new Date(record.ts).toLocaleString()}`;
+            list.appendChild(li);
+          });
+          recordsEl.appendChild(list);
+        } catch (error) {
+          summaryEl.textContent = 'Failed to load billing data. Ensure the backend is running.';
+        }
+      }
+
+      loadBilling();
+    </script>
+  </body>
+</html>

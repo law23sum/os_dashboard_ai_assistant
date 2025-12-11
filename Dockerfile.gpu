@@ -1,0 +1,89 @@
+# GPU-enabled Dockerfile for AI workloads
+FROM nvidia/cuda:11.8-runtime-ubuntu20.04
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV DEBIAN_FRONTEND=noninteractive
+ENV CUDA_HOME=/usr/local/cuda
+ENV PATH=$CUDA_HOME/bin:$PATH
+ENV LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    # Python and build tools
+    python3.11 \
+    python3.11-dev \
+    python3-pip \
+    build-essential \
+    # GUI dependencies (for tkinter)
+    tk-dev \
+    # Image processing dependencies
+    libjpeg-dev \
+    libpng-dev \
+    # PDF processing dependencies
+    libpoppler-cpp-dev \
+    # OCR dependencies
+    tesseract-ocr \
+    libtesseract-dev \
+    # Git
+    git \
+    # PostgreSQL client
+    postgresql-client \
+    # Redis client
+    redis-tools \
+    # Additional dependencies
+    libpq-dev \
+    libffi-dev \
+    libssl-dev \
+    curl \
+    wget \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    libgthread-2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create symbolic links for Python
+RUN ln -s /usr/bin/python3.11 /usr/bin/python3 && \
+    ln -s /usr/bin/python3.11 /usr/bin/python
+
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash appuser
+
+# Set work directory
+WORKDIR /app
+
+# Copy requirements first for better caching
+COPY requirements.txt pyproject.toml ./
+
+# Install Python dependencies with GPU support
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# Copy source code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p /app/config/credentials /app/logs /app/data /app/file_cache
+
+# Set proper permissions
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Health check
+HEALTH_CHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import torch; print('GPU available:', torch.cuda.is_available())" || exit 1
+
+# Expose port for web services
+EXPOSE 8000
+
+# Default command - can be overridden
+CMD ["python", "main.py"]

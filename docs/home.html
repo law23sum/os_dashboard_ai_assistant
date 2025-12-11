@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS Dashboard AI Assistant - Home</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-content">
+            <a href="home.html" class="logo">OS Dashboard AI</a>
+            <nav class="main-nav" aria-label="Primary">
+                <ul class="nav-links">
+                    <li><a href="home.html" class="active">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="subscription.html">Subscriptions</a></li>
+                    <li><a href="install.html">Install</a></li>
+                    <li><a href="index.html">Downloads</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <span class="badge">Technical Spec Sheet · Version 6</span>
+            <h1>Personalize the OS Dashboard AI Assistant for every product.</h1>
+            <p>The canonical Technical Spec Sheet defines each 10.x engine, so this page lets you explore a single product at a time—purpose, functions, examples, free trials, and subscription pricing without digging through long lists.</p>
+            <div class="hero-actions">
+                <a href="subscription.html" class="btn btn-primary">Start a subscription</a>
+                <a href="../Technical%20Spec%20Sheet%20(Version%206%20Latest%20Version).pdf" class="btn btn-secondary" target="_blank" rel="noopener">Open the spec sheet</a>
+            </div>
+        </section>
+
+        <section class="section" id="product-spotlight">
+            <div class="spotlight-header">
+                <div>
+                    <h2>Product spotlight</h2>
+                    <p>Choose any capability from the Technical Spec Sheet portfolio to view its purpose, functions, feature notes, sample use case, and the subscription guidance derived from the lifetime-value model.</p>
+                </div>
+                <label class="spotlight-controls" for="spotlight-select">
+                    <span>Product</span>
+                    <select id="spotlight-select" aria-label="Select a product"></select>
+                </label>
+            </div>
+
+            <article class="spotlight-card" aria-live="polite">
+                <div class="spotlight-meta">
+                    <div>
+                        <span class="pill" id="spotlight-category">Core</span>
+                        <h3 id="spotlight-title">Product title</h3>
+                        <p id="spotlight-purpose">Purpose details appear here once you select a capability.</p>
+                    </div>
+                    <div class="spotlight-spec">
+                        <p><strong>Lifetime value</strong><br><span id="spotlight-ltv">$0B – $0B</span></p>
+                        <p><strong>Ideal audiences</strong><br><span id="spotlight-audiences">—</span></p>
+                    </div>
+                </div>
+
+                <div class="spotlight-columns">
+                    <div class="spotlight-column">
+                        <h4>Functions</h4>
+                        <ul id="spotlight-functions">
+                            <li>Functions will render per product.</li>
+                        </ul>
+                    </div>
+                    <div class="spotlight-column">
+                        <h4>Feature highlights</h4>
+                        <ul id="spotlight-features">
+                            <li>Feature highlights will reference the Technical Spec Sheet.</li>
+                        </ul>
+                    </div>
+                    <div class="spotlight-column">
+                        <h4>Examples & samples</h4>
+                        <p id="spotlight-example">An example workflow plus free-trial sample will display here.</p>
+                        <p id="spotlight-sample" class="sample-note">Free trial sample details pending selection.</p>
+                    </div>
+                </div>
+                <div class="spotlight-pricing">
+                    <h4>Subscription pricing guidance</h4>
+                    <div class="pricing-grid spotlight-pricing-grid">
+                        <div>
+                            <h5>Customer seats</h5>
+                            <p class="pricing-line"><span>Monthly</span><span id="spotlight-customer-monthly">$0</span></p>
+                            <p class="pricing-line"><span>Bi-Annual</span><span id="spotlight-customer-biannual">$0</span></p>
+                            <p class="pricing-line"><span>Annual</span><span id="spotlight-customer-annual">$0</span></p>
+                        </div>
+                        <div>
+                            <h5>Enterprise / Gov / Military</h5>
+                            <p class="pricing-line"><span>Monthly</span><span id="spotlight-enterprise-monthly">$0</span></p>
+                            <p class="pricing-line"><span>Bi-Annual</span><span id="spotlight-enterprise-biannual">$0</span></p>
+                            <p class="pricing-line"><span>Annual</span><span id="spotlight-enterprise-annual">$0</span></p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="section section-muted dream-reality">
+            <h2>OS Dashboard AI Assistant · Dream & Reality</h2>
+            <div class="dream-reality-grid">
+                <div class="card dream">
+                    <span class="badge">Dream · Spec vision</span>
+                    <h3>Inspired by Technical Spec Sheet §0–§2</h3>
+                    <ul>
+                        <li>Govern every document, workflow, and Capsule across local + enterprise deployments through one cognitive OS.</li>
+                        <li>Persona stack (Chris, Aria, Sora, AIC) closes the loop between intent, reasoning, and policy with auditable TRF operators.</li>
+                        <li>Marketplace-era automation connects drivers, packages, and regulated ecosystems so civilization-scale collaboration feels native.</li>
+                    </ul>
+                </div>
+                <div class="card reality">
+                    <span class="badge">Reality · Shipping now</span>
+                    <h3>Grounded in Spec Sheet §4–§6</h3>
+                    <ul>
+                        <li>Master Stack, Merge Advisor, Capsules marketplace, Billing, and Governance engines already ship as modular workspaces.</li>
+                        <li>14-day free trial Capsules recreate spec scenarios so teams can test ledgering, task sync, and environment drivers safely.</li>
+                        <li>Hybrid deployments pair the Tk desktop with FastAPI services, matching the layered architecture outlined in the spec.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>© 2024 OS Dashboard AI Assistant.</p>
+    </footer>
+
+    <script src="scripts/product-data.js"></script>
+    <script>
+        (function setupSpotlight() {
+            const select = document.getElementById('spotlight-select');
+            if (!select || !window.osProductData) return;
+
+            const sortedProducts = [...window.osProductData].sort((a, b) => parseFloat(a.id) - parseFloat(b.id));
+            const lookup = {};
+
+            sortedProducts.forEach(product => {
+                lookup[product.id] = product;
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.id} · ${product.name}`;
+                select.appendChild(option);
+            });
+
+            if (sortedProducts.length === 0) {
+                select.disabled = true;
+                return;
+            }
+
+            const featureAnchor = {
+                Core: '§4',
+                Advanced: '§5',
+                Super: '§6',
+                Hyper: '§7',
+                Ultra: '§8',
+                Supreme: '§9'
+            };
+
+            const exampleTemplates = {
+                Core: 'Launch {product} for {audience} teams to {purpose}.',
+                Advanced: '{audience} labs pilot {product} to {purpose}.',
+                Super: '{product} lets {audience} leaders {purpose}.',
+                Hyper: 'Consortia deploy {product} so they can {purpose}.',
+                Ultra: '{product} unlocks {purpose} for {audience}.',
+                Supreme: '{product} extends the full-stack mission so teams can {purpose}.'
+            };
+
+            const sampleTemplates = {
+                Core: 'Free trial sample: run the spec Capsule pack so you can {feature} under governance.',
+                Advanced: 'Free trial sample: spin up the GPU + notebook sandbox to {feature}.',
+                Super: 'Free trial sample: emulate a strategic program that {feature}.',
+                Hyper: 'Free trial sample: federation sandbox lets you {feature}.',
+                Ultra: 'Free trial sample: cross-tier experience shows how you {feature}.',
+                Supreme: 'Free trial sample: systems lab demonstrates how you {feature}.'
+            };
+
+            const formatLower = (text) => {
+                if (!text) return '';
+                const clean = text.trim().replace(/\.$/, '');
+                return clean.charAt(0).toLowerCase() + clean.slice(1);
+            };
+
+            const updateList = (element, items, fallbackText) => {
+                element.innerHTML = '';
+                if (!items || items.length === 0) {
+                    const li = document.createElement('li');
+                    li.textContent = fallbackText;
+                    element.appendChild(li);
+                    return;
+                }
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    element.appendChild(li);
+                });
+            };
+
+            const renderPricing = (product) => {
+                const customer = window.osComputePricing(product.lifetimeValue, 'customer');
+                const enterprise = window.osComputePricing(product.lifetimeValue, 'enterprise');
+                document.getElementById('spotlight-customer-monthly').textContent = window.osFormatCurrency(customer.monthly);
+                document.getElementById('spotlight-customer-biannual').textContent = window.osFormatCurrency(customer.biannual);
+                document.getElementById('spotlight-customer-annual').textContent = window.osFormatCurrency(customer.annual);
+                document.getElementById('spotlight-enterprise-monthly').textContent = window.osFormatCurrency(enterprise.monthly);
+                document.getElementById('spotlight-enterprise-biannual').textContent = window.osFormatCurrency(enterprise.biannual);
+                document.getElementById('spotlight-enterprise-annual').textContent = window.osFormatCurrency(enterprise.annual);
+            };
+
+            const render = (productId) => {
+                const product = lookup[productId] || sortedProducts[0];
+                if (!product) return;
+                document.getElementById('spotlight-category').textContent = product.category;
+                document.getElementById('spotlight-title').textContent = `${product.id} · ${product.name}`;
+                document.getElementById('spotlight-purpose').textContent = product.purpose;
+                document.getElementById('spotlight-ltv').textContent = `$${product.lifetimeValue[0]}B – $${product.lifetimeValue[1]}B`;
+                document.getElementById('spotlight-audiences').textContent = product.audiences.join(', ');
+
+                const audience = product.audiences[0] || 'cross-functional';
+                const template = exampleTemplates[product.category] || exampleTemplates.Core;
+                const exampleText = template
+                    .replace('{product}', product.name)
+                    .replace('{audience}', audience)
+                    .replace('{purpose}', formatLower(product.purpose));
+                document.getElementById('spotlight-example').textContent = exampleText;
+
+                const sampleTemplate = sampleTemplates[product.category] || sampleTemplates.Core;
+                const sampleText = sampleTemplate
+                    .replace('{feature}', formatLower(product.features[0] || product.purpose));
+                document.getElementById('spotlight-sample').textContent = sampleText;
+
+                const functionLines = [
+                    `${product.name} orchestrates the ${product.category.toLowerCase()} track for ${product.audiences.join(', ')}.`,
+                    ...product.features.slice(0, 2).map(feature => `It ${formatLower(feature)}.`)
+                ];
+                updateList(
+                    document.getElementById('spotlight-functions'),
+                    functionLines,
+                    'Refer to the Technical Spec Sheet for function details.'
+                );
+
+                const specSection = featureAnchor[product.category] || '§4';
+                const featureLines = [
+                    ...product.features,
+                    `Category: ${product.category} track (${specSection}, Technical Spec Sheet v6).`,
+                    `Ideal audiences: ${product.audiences.join(', ')}.`,
+                    `Lifetime value corridor: $${product.lifetimeValue[0]}B – $${product.lifetimeValue[1]}B fueling the subscription guidance.`
+                ];
+                updateList(
+                    document.getElementById('spotlight-features'),
+                    featureLines,
+                    'This product references the Technical Spec Sheet for its key feature map.'
+                );
+
+                renderPricing(product);
+            };
+
+            select.addEventListener('change', (event) => render(event.target.value));
+            render(sortedProducts[0].id);
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+id: "weather-integration"
+name: "Weather Integration Plugin"
+version: "1.0.0"
+description: "Integrates weather data from OpenWeatherMap API into the OS Dashboard"
+author: "OS Dashboard Team"
+author_email: "plugins@osdashboard.ai"
+website: "https://osdashboard.ai/plugins/weather"
+license: "MIT"
+type: "integration"
+category: "utilities"
+tags: ["weather", "forecast", "api", "openweathermap"]
+dependencies: []
+permissions: ["network", "api_calls"]
+api_version: "1.0"
+min_dashboard_version: "1.0.0"
+entry_point: "main.py"
+config_schema:
+  api_key:
+    type: "string"
+    description: "OpenWeatherMap API key"
+    required: true
+  location:
+    type: "string"
+    description: "Default location (city,country)"
+    default: "New York,US"
+    required: false
+  units:
+    type: "string"
+    description: "Temperature units"
+    enum: ["metric", "imperial", "kelvin"]
+    default: "metric"
+    required: false

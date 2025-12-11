@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS Dashboard AI Assistant - Downloads</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-content">
+            <a href="home.html" class="logo">OS Dashboard AI</a>
+            <nav class="main-nav" aria-label="Primary">
+                <ul class="nav-links">
+                    <li><a href="home.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="subscription.html">Subscriptions</a></li>
+                    <li><a href="install.html">Install</a></li>
+                    <li><a href="index.html" class="active">Downloads</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <span class="badge">Download Center</span>
+            <h1>🚀 OS Dashboard AI Assistant</h1>
+            <p>Get the latest release for your platform and connect it to your subscription in minutes.</p>
+            <div>
+                <label for="nav-select" style="color: white; margin-right: 8px;">Explore live views:</label>
+                <select id="nav-select" onchange="if(this.value){window.location=this.value;}">
+                    <option value="">Pick a view</option>
+                    <option value="dashboard.html">Live Dashboard</option>
+                    <option value="projects.html">Projects &amp; Workspaces</option>
+                    <option value="billing.html">Billing &amp; Usage</option>
+                </select>
+            </div>
+            <div class="hero-actions">
+                <a href="subscription.html" class="btn btn-secondary">Pick a subscription</a>
+                <a href="install.html" class="btn btn-primary">Review install guide</a>
+            </div>
+        </section>
+
+        <section class="section download-section">
+            <h2 style="text-align: center; margin-bottom: 10px;">Download Now</h2>
+            <p style="text-align: center; margin-bottom: 30px; color: var(--text-muted);">Choose your platform and get started in minutes.</p>
+
+            <div class="grid">
+                <div class="download-card">
+                    <h3>🪟 Windows</h3>
+                    <p>Download the Windows executable. No installation required.</p>
+                    <a href="https://github.com/yourusername/os-dashboard-ai-assistant/releases/latest/download/OS-Dashboard-AI-Assistant-Windows.zip" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Download for Windows</a>
+                </div>
+
+                <div class="download-card">
+                    <h3>🍎 macOS</h3>
+                    <p>Download the macOS application. Drag to Applications folder.</p>
+                    <a href="https://github.com/yourusername/os-dashboard-ai-assistant/releases/latest/download/OS-Dashboard-AI-Assistant-macOS.zip" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Download for macOS</a>
+                </div>
+
+                <div class="download-card">
+                    <h3>🐧 Linux</h3>
+                    <p>Download the AppImage. Make executable and run.</p>
+                    <a href="https://github.com/yourusername/os-dashboard-ai-assistant/releases/latest/download/OS-Dashboard-AI-Assistant.AppImage" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Download for Linux</a>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <p style="color: var(--text-muted); margin-bottom: 16px;">Prefer to build from source?</p>
+                <a href="https://github.com/yourusername/os-dashboard-ai-assistant" style="color: #fff; text-decoration: underline;">View on GitHub →</a>
+            </div>
+        </section>
+
+        <section class="requirements">
+            <h2>System Requirements</h2>
+            <ul>
+                <li><strong>Operating System:</strong> Windows 10+, macOS 10.15+, Linux (Ubuntu 18.04+)</li>
+                <li><strong>RAM:</strong> 4GB minimum, 8GB recommended</li>
+                <li><strong>Storage:</strong> 2GB free space</li>
+                <li><strong>Internet:</strong> Required for AI features and integrations</li>
+                <li><strong>Python:</strong> 3.9+ (only if building from source)</li>
+            </ul>
+        </section>
+
+        <section class="section section-muted">
+            <h2>Included Features</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>🤖 AI-Powered Assistant</h3>
+                    <p>Intelligent task management and document processing with OpenAI integration.</p>
+                </div>
+                <div class="card">
+                    <h3>📊 Dashboard Analytics</h3>
+                    <p>Comprehensive analytics and reporting for productivity insights.</p>
+                </div>
+                <div class="card">
+                    <h3>🔗 Multi-Platform Integration</h3>
+                    <p>Connect with Microsoft 365, Google Workspace, Git, and custom APIs.</p>
+                </div>
+                <div class="card">
+                    <h3>🔒 Enterprise Security</h3>
+                    <p>Role-based access, audit-ready logging, and compliance monitoring.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>© 2024 OS Dashboard AI Assistant. Open source and free to use.</p>
+    </footer>
+
+    <script>
+        document.querySelectorAll('.btn.btn-primary').forEach(btn => {
+            if (btn.textContent.includes('Download')) {
+                btn.addEventListener('click', function() {
+                    console.log('Download started for:', this.textContent.trim());
+                });
+            }
+        });
+    </script>
+</body>
+</html>

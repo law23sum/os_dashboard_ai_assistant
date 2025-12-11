@@ -1,0 +1,257 @@
+export type DocParity = 'full' | 'partial' | 'legacy'
+export type DocSource = 'docs' | 'ui' | 'spec'
+
+export interface DocEntry {
+  path: string
+  title: string
+  description: string
+  category: string
+  tags: string[]
+  source: DocSource
+  accent: string
+  href?: string
+  reactRoute?: string
+  reactLabel?: string
+  parity: DocParity
+}
+
+export const docManifest: DocEntry[] = [
+  {
+    path: 'index',
+    title: 'Mission Control Overview',
+    description: 'Landing page that explains the OS Dashboard operating model and Tkinter roots.',
+    category: 'Core System',
+    tags: ['overview', 'mission'],
+    source: 'docs',
+    accent: 'from-indigo-500/30 via-sky-500/10 to-transparent',
+    reactRoute: '/dashboard',
+    reactLabel: 'Dashboard',
+    parity: 'full',
+  },
+  {
+    path: 'dashboard',
+    title: 'Operational Dashboard',
+    description: 'Snapshots, KPIs, and real-time telemetry mirrored from the Tkinter cockpit.',
+    category: 'Core System',
+    tags: ['metrics', 'status'],
+    source: 'docs',
+    accent: 'from-blue-500/30 via-cyan-400/10 to-transparent',
+    reactRoute: '/dashboard',
+    reactLabel: 'Dashboard',
+    parity: 'full',
+  },
+  {
+    path: 'projects',
+    title: 'Projects Workspace',
+    description: 'Legacy HTML for managing initiatives, dependencies, and delivery cadence.',
+    category: 'Core System',
+    tags: ['projects', 'delivery'],
+    source: 'docs',
+    accent: 'from-emerald-400/30 via-lime-400/5 to-transparent',
+    reactRoute: '/projects',
+    reactLabel: 'Projects',
+    parity: 'full',
+  },
+  {
+    path: 'settings',
+    title: 'Settings Reference',
+    description: 'Original configuration page that inspired today’s React settings surface.',
+    category: 'Operations',
+    tags: ['configuration'],
+    source: 'docs',
+    accent: 'from-purple-500/30 via-indigo-500/10 to-transparent',
+    reactRoute: '/settings',
+    reactLabel: 'Settings',
+    parity: 'full',
+  },
+  {
+    path: 'billing',
+    title: 'Billing Console',
+    description: 'Exports the finance and billing view from the Tkinter stack.',
+    category: 'Operations',
+    tags: ['finance'],
+    source: 'docs',
+    accent: 'from-amber-400/30 via-orange-500/5 to-transparent',
+    reactRoute: '/billing',
+    reactLabel: 'Billing',
+    parity: 'full',
+  },
+  {
+    path: 'ai_capabilities',
+    title: 'AI Capabilities Matrix',
+    description: 'Deep-dive on AI agent roles, lifted directly from the Tkinter help panes.',
+    category: 'Intelligence',
+    tags: ['ai', 'capabilities'],
+    source: 'docs',
+    accent: 'from-fuchsia-400/30 via-pink-500/10 to-transparent',
+    reactRoute: '/ai/advanced',
+    reactLabel: 'Advanced AI',
+    parity: 'full',
+  },
+  {
+    path: 'future_meta',
+    title: 'Future · Meta State',
+    description: 'Speculative roadmap describing the “Meta” phase of the OS.',
+    category: 'Vision Deck',
+    tags: ['future'],
+    source: 'docs',
+    accent: 'from-rose-400/30 via-purple-500/5 to-transparent',
+    reactRoute: '/future/meta',
+    reactLabel: 'Vision Deck',
+    parity: 'full',
+  },
+  {
+    path: 'future_god',
+    title: 'Future · GOD Mode',
+    description: 'Ambitious blueprint for hyperscale orchestration.',
+    category: 'Vision Deck',
+    tags: ['future', 'orchestration'],
+    source: 'docs',
+    accent: 'from-sky-500/30 via-indigo-600/10 to-transparent',
+    reactRoute: '/future/god',
+    reactLabel: 'Vision Deck',
+    parity: 'full',
+  },
+  {
+    path: 'future_ultra',
+    title: 'Future · Ultra Automation',
+    description: 'Automation-first horizon taken from the Tkinter planning docs.',
+    category: 'Vision Deck',
+    tags: ['automation'],
+    source: 'docs',
+    accent: 'from-emerald-400/30 via-teal-500/5 to-transparent',
+    reactRoute: '/future/ultra',
+    reactLabel: 'Vision Deck',
+    parity: 'full',
+  },
+  {
+    path: 'future_hyper',
+    title: 'Future · Hyper Intelligence',
+    description: 'Research memo about hyper-intelligent copilots.',
+    category: 'Vision Deck',
+    tags: ['research'],
+    source: 'docs',
+    accent: 'from-cyan-400/30 via-blue-500/10 to-transparent',
+    reactRoute: '/future/hyper',
+    reactLabel: 'Vision Deck',
+    parity: 'full',
+  },
+  {
+    path: 'future_super',
+    title: 'Future · Super Alignment',
+    description: 'Narrative about super-aligned, multi-agent systems.',
+    category: 'Vision Deck',
+    tags: ['alignment'],
+    source: 'docs',
+    accent: 'from-purple-400/30 via-violet-500/10 to-transparent',
+    reactRoute: '/future/super',
+    reactLabel: 'Vision Deck',
+    parity: 'full',
+  },
+  {
+    path: 'future_advanced',
+    title: 'Future · Advanced Workforce',
+    description: 'How the OS scales across advanced teams and domains.',
+    category: 'Vision Deck',
+    tags: ['workforce'],
+    source: 'docs',
+    accent: 'from-blue-400/30 via-emerald-400/10 to-transparent',
+    reactRoute: '/future/advanced',
+    reactLabel: 'Vision Deck',
+    parity: 'full',
+  },
+  {
+    path: 'future_core_os',
+    title: 'Future · Core OS',
+    description: 'The canonical Core OS plan preserved from the Tkinter days.',
+    category: 'Vision Deck',
+    tags: ['core', 'strategy'],
+    source: 'docs',
+    accent: 'from-slate-400/30 via-indigo-500/10 to-transparent',
+    reactRoute: '/future/core_os',
+    reactLabel: 'Vision Deck',
+    parity: 'full',
+  },
+  {
+    path: 'legacy_ui',
+    title: 'Legacy Tkinter Web Shell',
+    description: 'Opens the preserved Tkinter HTML so nothing from the classic UI is lost.',
+    category: 'Legacy Views',
+    tags: ['tkinter', 'web'],
+    source: 'ui',
+    accent: 'from-amber-400/30 via-yellow-500/10 to-transparent',
+    href: '/ui/index.html',
+    parity: 'legacy',
+  },
+  {
+    path: 'frontend_migration_plan.md',
+    title: 'Frontend Migration Plan',
+    description: 'Step-by-step playbook for porting Tkinter UI elements into React/Electron.',
+    category: 'Engineering Notes',
+    tags: ['migration', 'plan'],
+    source: 'docs',
+    accent: 'from-teal-400/30 via-emerald-400/10 to-transparent',
+    parity: 'full',
+  },
+  {
+    path: 'migration_continued.md',
+    title: 'Tkinter → React Migration Continued',
+    description:
+      'Live backlog tracking spec references and remaining deliverables for the Tkinter to React rollout.',
+    category: 'Engineering Notes',
+    tags: ['migration', 'spec'],
+    source: 'docs',
+    accent: 'from-indigo-400/30 via-purple-500/10 to-transparent',
+    parity: 'partial',
+  },
+  {
+    path: 'tk_to_react_mapping.md',
+    title: 'Tkinter → React Mapping',
+    description: 'Comparison table mapping each Tkinter widget/tab to the modern React route.',
+    category: 'Engineering Notes',
+    tags: ['mapping', 'comparison'],
+    source: 'docs',
+    accent: 'from-indigo-400/30 via-purple-500/10 to-transparent',
+    parity: 'full',
+  },
+  {
+    path: 'ui_deployment.md',
+    title: 'UI Deployment Guide',
+    description: 'Instructions for publishing both browser and Electron builds across OSes.',
+    category: 'Engineering Notes',
+    tags: ['deployment'],
+    source: 'docs',
+    accent: 'from-blue-400/30 via-sky-400/10 to-transparent',
+    parity: 'full',
+  },
+  {
+    path: 'technical_spec_sheet',
+    title: 'Technical Spec Sheet v6',
+    description: 'Canonical system specification mirrored by FastAPI for regulators.',
+    category: 'Engineering Notes',
+    tags: ['spec', 'pdf'],
+    source: 'spec',
+    accent: 'from-rose-400/30 via-indigo-500/10 to-transparent',
+    parity: 'full',
+    href: '/api/docs/technical-spec-sheet',
+    reactRoute: '/docs/spec-sheet',
+    reactLabel: 'Inline Viewer',
+  },
+]
+
+export const sourceLabel: Record<DocSource, string> = {
+  docs: 'HTML Mirror',
+  ui: 'Legacy Tkinter',
+  spec: 'Spec Sheet',
+}
+
+export const parityMeta: Record<DocParity, { label: string; chipClass: string }> = {
+  full: { label: 'Full Parity', chipClass: 'border-emerald-400/50 text-emerald-200' },
+  partial: { label: 'In Progress', chipClass: 'border-amber-300/60 text-amber-200' },
+  legacy: { label: 'Legacy Only', chipClass: 'border-slate-300/40 text-slate-200' },
+}
+
+export const getDocEntry = (slug?: string): DocEntry | undefined => {
+  if (!slug) return undefined
+  return docManifest.find((doc) => doc.path === slug)
+}

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS Dashboard AI Assistant</title>
+    <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Top 2/3: Dashboard Content -->
+        <div class="dashboard-top">
+            <header class="dashboard-header">
+                <h1>OS Dashboard AI Assistant</h1>
+                <div class="status-bar">
+                    <span id="last-updated">Last updated: Never</span>
+                    <button id="refresh-btn">Refresh Data</button>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                <!-- Summary Cards -->
+                <div class="summary-cards">
+                    <div class="card">
+                        <h3>Today's Events</h3>
+                        <div class="count" id="events-count">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Recent Emails</h3>
+                        <div class="count" id="emails-count">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Recent Documents</h3>
+                        <div class="count" id="docs-count">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>OneNote Links</h3>
+                        <div class="count" id="onenote-count">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Security Score</h3>
+                        <div class="count" id="security-score">85</div>
+                    </div>
+                </div>
+
+                <!-- Main Content Areas -->
+                <div class="content-grid">
+                    <!-- Calendar Events -->
+                    <div class="panel">
+                        <h3>Today's Calendar Events</h3>
+                        <div id="events-list" class="item-list">
+                            <p class="empty-state">No events today</p>
+                        </div>
+                    </div>
+
+                    <!-- Recent Emails -->
+                    <div class="panel">
+                        <h3>Recent Emails</h3>
+                        <div id="emails-list" class="item-list">
+                            <p class="empty-state">No recent emails</p>
+                        </div>
+                    </div>
+
+                    <!-- Recent Documents -->
+                    <div class="panel">
+                        <h3>Recent Documents</h3>
+                        <div id="documents-list" class="item-list">
+                            <p class="empty-state">No recent documents</p>
+                        </div>
+                    </div>
+
+                    <!-- OneNote Links -->
+                    <div class="panel">
+                        <h3>OneNote Shared Links</h3>
+                        <div id="onenote-list" class="item-list">
+                            <p class="empty-state">No OneNote links configured</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom 1/3: Input Text Box -->
+        <div class="dashboard-bottom">
+            <div class="input-section">
+                <h3>AI Assistant Input</h3>
+                <div class="input-container">
+                    <textarea
+                        id="ai-input"
+                        placeholder="Ask the AI assistant anything... (e.g., 'What meetings do I have today?', 'Summarize my recent emails', 'Check system security status')"
+                        rows="4"
+                    ></textarea>
+                    <div class="input-controls">
+                        <button id="send-btn" class="send-button">Send</button>
+                        <button id="clear-btn" class="clear-button">Clear</button>
+                    </div>
+                </div>
+                <div id="response-area" class="response-area">
+                    <div class="response-placeholder">
+                        AI responses will appear here...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

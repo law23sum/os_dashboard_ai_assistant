@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+import hashlib
 import os
 import sqlite3
 import json
-from dataclasses import dataclass, field
+import uuid
+from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
@@ -18,6 +20,7 @@ PERSONA_ROLES = {
 
 STATUS_OPTIONS = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE"]
 PRIORITY_OPTIONS = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+OPERATION_STATUS_OPTIONS = ["queued", "running", "succeeded", "failed", "needs_review"]
 DATE_FORMAT = "%Y-%m-%d"
 
 CHAT_ROLES = ["user", "assistant", "system", "tool"]
@@ -30,6 +33,28 @@ DEFAULT_FETCH_PREFERENCES = {
     "mail": False,
     "files": False,
 }
+
+
+GOVERNANCE_BANNER = (
+    "every AI edit is tracked | every change is diffed | every document has a version "
+    "history | every operation has a timestamp | every action is reversible | every "
+    "output is accountable"
+)
+
+OPERATING_ROLES = (
+    "OneNote becomes the living structured memory; Word becomes the formatted deliverable "
+    "engine; Excel becomes the analytical substrate; Git becomes the brain stem holding the "
+    "lineage of every thought; ChatGPT becomes the reasoning center; Daemons become the "
+    "continuous active cortex; AIC/Sora/Aria become the interpretive personalities that guide "
+    "knowledge formation"
+)
+
+OPERATING_BEHAVIORS = (
+    "notices missing documents | drafts proposals | updates reports | summarizes notebooks | "
+    "analyzes spreadsheets | reorganizes folders | updates tasks | alerts the user when "
+    "something's outdated | tracks version history | suggests improvements | predicts next "
+    "steps | executes workflows"
+)
 
 
 @dataclass
@@ -58,6 +83,7 @@ class Project:
     description: str = ""
     status: str = "active"
     priority: str = "MEDIUM"
+    order_num: int = 0
 
 
 @dataclass
@@ -71,6 +97,26 @@ class ChatMessage:
 
 
 @dataclass
+class DocumentOperation:
+    """Track AI-driven document operations with governance metadata."""
+
+    id: int
+    title: str
+    project_id: str
+    integration_type: str
+    external_id: str
+    operation: str
+    status: str = "queued"  # queued | running | succeeded | failed | needs_review
+    persona: str = "AIC"
+    version_tag: Optional[str] = None
+    diff_path: Optional[str] = None
+    external_company: Optional[str] = None
+    started_at: str = datetime.now().isoformat(timespec="seconds")
+    completed_at: Optional[str] = None
+    notes: str = ""
+
+
+@dataclass
 class AssistantState:
     tasks: List[Task]
     projects: List[Project]
@@ -80,11 +126,13 @@ class AssistantState:
 
 @dataclass
 class Settings:
-    theme: str = "plain"              # plain | light | dark
-    default_view: str = "dashboard"   # dashboard | tasks | projects
-    show_system_status: bool = True   # show CPU/RAM/Disk in dashboard
-    font_scale: str = "medium"        # small | medium | large
-    data_preferences: Dict[str, bool] = field(default_factory=lambda: DEFAULT_FETCH_PREFERENCES.copy())
+    theme: str = "plain"  # plain | light | dark
+    default_view: str = "dashboard"  # dashboard | tasks | projects
+    show_system_status: bool = True  # show CPU/RAM/Disk in dashboard
+    font_scale: str = "medium"  # small | medium | large
+    data_preferences: Dict[str, bool] = field(
+        default_factory=lambda: DEFAULT_FETCH_PREFERENCES.copy()
+    )
 
 
 @dataclass
@@ -107,6 +155,7 @@ class ExternalConnection:
 @dataclass
 class NoteLink:
     """Link between a project and an external integration resource."""
+
     id: int
     project_id: str  # References Project.name
     integration_type: str  # "onenote" | "excel" | "word" | "filesystem" | ...
@@ -120,6 +169,7 @@ class NoteLink:
 @dataclass
 class AgentRun:
     """Record of an AI agent action/operation."""
+
     id: int
     agent: str  # "AIC" | "Sora" | "Aria" | "User"
     action_type: str  # "ONENOTE_CLEANUP" | "EXCEL_SUMMARY" | "WORD_DRAFT" | ...
@@ -130,19 +180,56 @@ class AgentRun:
     created_at: str = datetime.now().isoformat(timespec="seconds")
 
 
+@dataclass
+class DocumentSample:
+    """A materialized sample document definition for every supported file type."""
+
+    id: int
+    file_type: str
+    title: str
+    category: str
+    description: str
+    sample_content: str
+    governance: str
+    created_at: str = datetime.now().isoformat(timespec="seconds")
+
+
+@dataclass
+class DocumentOperation:
+    """Track AI-driven document operations with governance metadata."""
+
+    id: int
+    title: str
+    project_id: str
+    integration_type: str
+    external_id: str
+    operation: str
+    status: str = "queued"  # queued | running | succeeded | failed | needs_review
+    persona: str = "AIC"
+    version_tag: Optional[str] = None
+    diff_path: Optional[str] = None
+    external_company: Optional[str] = None
+    started_at: str = datetime.now().isoformat(timespec="seconds")
+    completed_at: Optional[str] = None
+    notes: str = ""
+
+
 def init_db() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(DB_FILE, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS state_meta (
             key TEXT PRIMARY KEY,
             value TEXT
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
@@ -160,8 +247,9 @@ def init_db() -> sqlite3.Connection:
             time_logged INTEGER,
             template_id TEXT
         )
-    """)
-    
+    """
+    )
+
     # Add new columns if they don't exist (for existing databases)
     c.execute("PRAGMA table_info(tasks)")
     columns = [row[1] for row in c.fetchall()]
@@ -176,9 +264,10 @@ def init_db() -> sqlite3.Connection:
     for col_name, col_type in new_columns:
         if col_name not in columns:
             c.execute(f"ALTER TABLE tasks ADD COLUMN {col_name} {col_type}")
-    
+
     # Create task_templates table
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS task_templates (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -189,18 +278,34 @@ def init_db() -> sqlite3.Connection:
             time_estimated INTEGER,
             created_at TEXT
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS projects (
             name TEXT PRIMARY KEY,
             description TEXT,
             status TEXT,
-            priority TEXT
+            priority TEXT,
+            order_num INTEGER DEFAULT 0
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    # Add new columns if they don't exist (for existing databases)
+    c.execute("PRAGMA table_info(projects)")
+    columns = [row[1] for row in c.fetchall()]
+    new_columns = [
+        ("priority", "TEXT DEFAULT 'MEDIUM'"),
+        ("order_num", "INTEGER DEFAULT 0"),
+    ]
+    for col_name, col_type in new_columns:
+        if col_name not in columns:
+            c.execute(f"ALTER TABLE projects ADD COLUMN {col_name} {col_type}")
+
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS external_sources (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE,
@@ -208,9 +313,11 @@ def init_db() -> sqlite3.Connection:
             connected INTEGER DEFAULT 1,
             last_sync TEXT
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS external_items (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             source_id INTEGER,
@@ -222,9 +329,11 @@ def init_db() -> sqlite3.Connection:
             last_seen_at TEXT,
             FOREIGN KEY(source_id) REFERENCES external_sources(id)
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS chat_messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             persona TEXT,
@@ -233,9 +342,11 @@ def init_db() -> sqlite3.Connection:
             content TEXT,
             created_at TEXT
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS note_links (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             project_id TEXT NOT NULL,
@@ -247,15 +358,41 @@ def init_db() -> sqlite3.Connection:
             last_synced TEXT,
             FOREIGN KEY(project_id) REFERENCES projects(name)
         )
-    """)
-    
+    """
+    )
+
     # Add description column if it doesn't exist (for existing databases)
     c.execute("PRAGMA table_info(note_links)")
     columns = [row[1] for row in c.fetchall()]
     if "description" not in columns:
         c.execute("ALTER TABLE note_links ADD COLUMN description TEXT DEFAULT ''")
 
-    c.execute("""
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS project_events (
+            id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            event_type TEXT NOT NULL,
+            entity_type TEXT,
+            entity_id TEXT,
+            payload TEXT,
+            created_at TEXT NOT NULL,
+            hash_prev TEXT,
+            hash_curr TEXT,
+            FOREIGN KEY(project_id) REFERENCES projects(name)
+        )
+    """
+    )
+
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_project_events_project_time
+        ON project_events(project_id, created_at DESC)
+        """
+    )
+
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS agent_runs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             agent TEXT NOT NULL,
@@ -266,13 +403,253 @@ def init_db() -> sqlite3.Connection:
             git_commit_hash TEXT,
             created_at TEXT
         )
-    """)
+    """
+    )
+
+    # Document operations table for AI-driven updates and external sync
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS document_operations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            project_id TEXT NOT NULL,
+            integration_type TEXT NOT NULL,
+            external_id TEXT NOT NULL,
+            operation TEXT NOT NULL,
+            status TEXT NOT NULL,
+            persona TEXT NOT NULL,
+            version_tag TEXT,
+            diff_path TEXT,
+            external_company TEXT,
+            started_at TEXT NOT NULL,
+            completed_at TEXT,
+            notes TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_document_operations_status
+        ON document_operations(status, started_at DESC)
+        """
+    )
+
+    # Document operations table for AI-driven updates and external sync
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS document_operations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            project_id TEXT NOT NULL,
+            integration_type TEXT NOT NULL,
+            external_id TEXT NOT NULL,
+            operation TEXT NOT NULL,
+            status TEXT NOT NULL,
+            persona TEXT NOT NULL,
+            version_tag TEXT,
+            diff_path TEXT,
+            external_company TEXT,
+            started_at TEXT NOT NULL,
+            completed_at TEXT,
+            notes TEXT
+        )
+    """
+    )
+
+    # Document versions table for tracking document history
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS document_versions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            note_link_id INTEGER NOT NULL,
+            version_number INTEGER NOT NULL,
+            file_path TEXT NOT NULL,
+            file_size INTEGER,
+            checksum TEXT,
+            created_at TEXT NOT NULL,
+            created_by TEXT,
+            description TEXT,
+            FOREIGN KEY(note_link_id) REFERENCES note_links(id) ON DELETE CASCADE,
+            UNIQUE(note_link_id, version_number)
+        )
+    """
+    )
+
+    # Create index for faster lookups
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_document_versions_link 
+        ON document_versions(note_link_id, version_number DESC)
+    """
+    )
+
+    # Comments table for tasks and projects
+    # Note: No FOREIGN KEY constraint since entity_id can reference either tasks(id) or projects(name)
+    # with different types (INTEGER vs TEXT). Application-level integrity is maintained.
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            entity_type TEXT NOT NULL,
+            entity_id TEXT NOT NULL,
+            author TEXT NOT NULL,
+            content TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """
+    )
+
+    # Create index for faster comment lookups
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_comments_entity 
+        ON comments(entity_type, entity_id, created_at DESC)
+    """
+    )
+
+    # Document templates table
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS document_templates (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            category TEXT,
+            content TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT
+        )
+    """
+    )
+
+    # Create index for document templates
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_document_templates_category 
+        ON document_templates(category)
+    """
+    )
+
+    # Initialize default document templates
+    try:
+        from .document_templates import initialize_default_templates
+
+        initialize_default_templates(conn)
+    except Exception:
+        pass  # Don't fail if templates can't be initialized
+
+    # Document sample definitions for each file type
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS document_samples (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            file_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            category TEXT NOT NULL,
+            description TEXT,
+            sample_content TEXT,
+            governance TEXT,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_document_samples_file_type
+        ON document_samples(file_type, category)
+        """
+    )
+
+    try:
+        initialize_document_samples(conn)
+        # Seed sample document operations so the AI Ops board is never empty
+        c.execute("SELECT COUNT(*) as count FROM document_operations")
+        row = c.fetchone()
+        op_count = row["count"] if row else 0
+        if op_count == 0:
+            now = datetime.now().isoformat(timespec="seconds")
+            seed_operations = [
+                (
+                    "Proposal drafting daemon",
+                    "General",
+                    "word",
+                    "governance/proposals/proposal_v1.docx",
+                    "drafts proposals",
+                    "running",
+                    "Aria",
+                    None,
+                    None,
+                    "Acme Corp",
+                    now,
+                    None,
+                    "every AI edit is tracked, every change is diffed, every output is accountable",
+                ),
+                (
+                    "Compliance watchdog",
+                    "Compliance",
+                    "pdf",
+                    "regulations/latest_regulation.pdf",
+                    "notices missing documents",
+                    "queued",
+                    "AIC",
+                    None,
+                    None,
+                    "Regulatory Affairs",
+                    now,
+                    None,
+                    "every document has a version history and every action is reversible",
+                ),
+                (
+                    "Notebook curator",
+                    "Research",
+                    "onenote",
+                    "ideas/notebook",
+                    "summarizes notebooks",
+                    "running",
+                    "Sora",
+                    None,
+                    None,
+                    "Internal",
+                    now,
+                    None,
+                    "OneNote becomes the living structured memory; Git holds the lineage",
+                ),
+                (
+                    "Spreadsheet analyst",
+                    "Finance",
+                    "excel",
+                    "models/q4_forecast.xlsx",
+                    "analyzes spreadsheets",
+                    "needs_review",
+                    "AIC",
+                    None,
+                    None,
+                    "Finance Partner",
+                    now,
+                    None,
+                    "Excel becomes the analytical substrate; alerts the user when something's outdated",
+                ),
+            ]
+            c.executemany(
+                """
+                INSERT INTO document_operations (
+                    title, project_id, integration_type, external_id, operation, status, persona,
+                    version_tag, diff_path, external_company, started_at, completed_at, notes
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                seed_operations,
+            )
+    except Exception:
+        pass
 
     conn.commit()
     return conn
 
 
-def get_meta(conn: sqlite3.Connection, key: str, default: Optional[str] = None) -> Optional[str]:
+def get_meta(
+    conn: sqlite3.Connection, key: str, default: Optional[str] = None
+) -> Optional[str]:
     c = conn.cursor()
     c.execute("SELECT value FROM state_meta WHERE key = ?", (key,))
     row = c.fetchone()
@@ -313,32 +690,34 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
             depends_on = r["depends_on"] if r["depends_on"] else None
         except (KeyError, IndexError):
             depends_on = None
-        
+
         try:
             recurrence_pattern = r["recurrence_pattern"] or None
         except (KeyError, IndexError):
             recurrence_pattern = None
-        
+
         try:
             recurrence_end = r["recurrence_end"] or None
         except (KeyError, IndexError):
             recurrence_end = None
-        
+
         try:
-            time_estimated = r["time_estimated"] if r["time_estimated"] is not None else None
+            time_estimated = (
+                r["time_estimated"] if r["time_estimated"] is not None else None
+            )
         except (KeyError, IndexError):
             time_estimated = None
-        
+
         try:
             time_logged = r["time_logged"] if r["time_logged"] is not None else None
         except (KeyError, IndexError):
             time_logged = None
-        
+
         try:
             template_id = r["template_id"] or None
         except (KeyError, IndexError):
             template_id = None
-        
+
         tasks.append(
             Task(
                 id=r["id"],
@@ -349,7 +728,8 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
                 due_date=r["due_date"] or "",
                 notes=r["notes"] or "",
                 owner=owner,
-                created_at=r["created_at"] or datetime.now().isoformat(timespec="seconds"),
+                created_at=r["created_at"]
+                or datetime.now().isoformat(timespec="seconds"),
                 depends_on=depends_on,
                 recurrence_pattern=recurrence_pattern,
                 recurrence_end=recurrence_end,
@@ -370,12 +750,20 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
             priority = "MEDIUM"
         if priority not in PRIORITY_OPTIONS:
             priority = "MEDIUM"
+
+        # Check if order_num column exists by trying to access it
+        try:
+            order_num = r["order_num"] if r["order_num"] is not None else 0
+        except (KeyError, IndexError):
+            order_num = 0
+
         projects.append(
             Project(
                 name=r["name"],
                 description=r["description"] or "",
                 status=r["status"] or "active",
                 priority=priority,
+                order_num=order_num,
             )
         )
 
@@ -399,7 +787,8 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
                 role=role,
                 kind=kind,
                 content=r["content"] or "",
-                created_at=r["created_at"] or datetime.now().isoformat(timespec="seconds"),
+                created_at=r["created_at"]
+                or datetime.now().isoformat(timespec="seconds"),
             )
         )
 
@@ -419,7 +808,7 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
     theme = get_meta(conn, "setting.theme", "plain") or "plain"
     default_view = get_meta(conn, "setting.default_view", "dashboard") or "dashboard"
     show_system_status_raw = get_meta(conn, "setting.show_system_status", "1") or "1"
-    show_system_status = (show_system_status_raw == "1")
+    show_system_status = show_system_status_raw == "1"
     font_scale = get_meta(conn, "setting.font_scale", "medium") or "medium"
     data_pref_raw = get_meta(conn, "setting.data_preferences", None)
     data_preferences = DEFAULT_FETCH_PREFERENCES.copy()
@@ -443,9 +832,15 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
 def save_settings(conn: sqlite3.Connection, settings: Settings):
     set_meta(conn, "setting.theme", settings.theme)
     set_meta(conn, "setting.default_view", settings.default_view)
-    set_meta(conn, "setting.show_system_status", "1" if settings.show_system_status else "0")
+    set_meta(
+        conn, "setting.show_system_status", "1" if settings.show_system_status else "0"
+    )
     set_meta(conn, "setting.font_scale", settings.font_scale)
-    set_meta(conn, "setting.data_preferences", json.dumps(settings.data_preferences, ensure_ascii=False))
+    set_meta(
+        conn,
+        "setting.data_preferences",
+        json.dumps(settings.data_preferences, ensure_ascii=False),
+    )
 
 
 def save_active_persona(conn: sqlite3.Connection, state: AssistantState):
@@ -456,10 +851,15 @@ def load_security_status(conn: sqlite3.Connection) -> SecurityStatus:
     status = (get_meta(conn, "security.status", "offline") or "offline").lower()
     if status not in SECURITY_STATUS_CHOICES:
         status = "offline"
-    message = get_meta(conn, "security.message", "Telemetry not available yet.") or "Telemetry not available yet."
+    message = (
+        get_meta(conn, "security.message", "Telemetry not available yet.")
+        or "Telemetry not available yet."
+    )
     updated_at = get_meta(conn, "security.updated_at", "") or ""
     source = get_meta(conn, "security.source", "mac_guard") or "mac_guard"
-    return SecurityStatus(status=status, message=message, updated_at=updated_at, source=source)
+    return SecurityStatus(
+        status=status, message=message, updated_at=updated_at, source=source
+    )
 
 
 def save_security_status(conn: sqlite3.Connection, status: SecurityStatus):
@@ -471,23 +871,27 @@ def save_security_status(conn: sqlite3.Connection, status: SecurityStatus):
 
 def db_upsert_project(conn: sqlite3.Connection, proj: Project):
     c = conn.cursor()
-    # Check if priority column exists, if not add it
+    # Check if new columns exist, if not add them
     c.execute("PRAGMA table_info(projects)")
     columns = [row[1] for row in c.fetchall()]
     if "priority" not in columns:
         c.execute("ALTER TABLE projects ADD COLUMN priority TEXT DEFAULT 'MEDIUM'")
         conn.commit()
-    
+    if "order_num" not in columns:
+        c.execute("ALTER TABLE projects ADD COLUMN order_num INTEGER DEFAULT 0")
+        conn.commit()
+
     c.execute(
         """
-        INSERT INTO projects (name, description, status, priority)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO projects (name, description, status, priority, order_num)
+        VALUES (?, ?, ?, ?, ?)
         ON CONFLICT(name) DO UPDATE SET
             description = excluded.description,
             status = excluded.status,
-            priority = excluded.priority
+            priority = excluded.priority,
+            order_num = excluded.order_num
         """,
-        (proj.name, proj.description, proj.status, proj.priority),
+        (proj.name, proj.description, proj.status, proj.priority, proj.order_num),
     )
     conn.commit()
 
@@ -507,8 +911,22 @@ def db_insert_task(conn: sqlite3.Connection, t: Task) -> int:
          depends_on, recurrence_pattern, recurrence_end, time_estimated, time_logged, template_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (t.title, t.project, t.status, t.priority, t.due_date, t.notes, t.owner, t.created_at,
-         t.depends_on, t.recurrence_pattern, t.recurrence_end, t.time_estimated, t.time_logged, t.template_id),
+        (
+            t.title,
+            t.project,
+            t.status,
+            t.priority,
+            t.due_date,
+            t.notes,
+            t.owner,
+            t.created_at,
+            t.depends_on,
+            t.recurrence_pattern,
+            t.recurrence_end,
+            t.time_estimated,
+            t.time_logged,
+            t.template_id,
+        ),
     )
     conn.commit()
     return c.lastrowid
@@ -525,9 +943,22 @@ def db_update_task(conn: sqlite3.Connection, t: Task):
             time_estimated = ?, time_logged = ?, template_id = ?
         WHERE id = ?
         """,
-        (t.title, t.project, t.status, t.priority, t.due_date, t.notes, t.owner,
-         t.depends_on, t.recurrence_pattern, t.recurrence_end,
-         t.time_estimated, t.time_logged, t.template_id, t.id),
+        (
+            t.title,
+            t.project,
+            t.status,
+            t.priority,
+            t.due_date,
+            t.notes,
+            t.owner,
+            t.depends_on,
+            t.recurrence_pattern,
+            t.recurrence_end,
+            t.time_estimated,
+            t.time_logged,
+            t.template_id,
+            t.id,
+        ),
     )
     conn.commit()
 
@@ -555,6 +986,40 @@ def db_insert_chat_message(conn: sqlite3.Connection, msg: ChatMessage) -> int:
 def db_clear_chat_history(conn: sqlite3.Connection):
     c = conn.cursor()
     c.execute("DELETE FROM chat_messages")
+    conn.commit()
+
+
+# Azure/Microsoft Graph credentials storage
+def save_azure_credentials(
+    conn: sqlite3.Connection, tenant_id: str, client_id: str, client_secret: str
+):
+    """Save Azure credentials to the database."""
+    set_meta(conn, "azure.tenant_id", tenant_id)
+    set_meta(conn, "azure.client_id", client_id)
+    set_meta(conn, "azure.client_secret", client_secret)
+
+
+def load_azure_credentials(conn: sqlite3.Connection) -> Optional[Dict[str, str]]:
+    """Load Azure credentials from the database. Returns dict with tenant_id, client_id, client_secret or None."""
+    tenant_id = get_meta(conn, "azure.tenant_id")
+    client_id = get_meta(conn, "azure.client_id")
+    client_secret = get_meta(conn, "azure.client_secret")
+
+    if tenant_id and client_id and client_secret:
+        return {
+            "tenant_id": tenant_id,
+            "client_id": client_id,
+            "client_secret": client_secret,
+        }
+    return None
+
+
+def delete_azure_credentials(conn: sqlite3.Connection):
+    """Delete Azure credentials from the database."""
+    c = conn.cursor()
+    c.execute(
+        "DELETE FROM state_meta WHERE key IN ('azure.tenant_id', 'azure.client_id', 'azure.client_secret')"
+    )
     conn.commit()
 
 
@@ -620,7 +1085,9 @@ def record_external_item(
     conn.commit()
 
 
-def load_external_connections(conn: sqlite3.Connection) -> Dict[str, ExternalConnection]:
+def load_external_connections(
+    conn: sqlite3.Connection,
+) -> Dict[str, ExternalConnection]:
     raw = get_meta(conn, "external.connections", "{}") or "{}"
     try:
         payload = json.loads(raw)
@@ -652,3 +1119,550 @@ def save_external_connections(
             "notes": conn_obj.notes,
         }
     set_meta(conn, "external.connections", json.dumps(payload, ensure_ascii=False))
+
+
+# Document Operations (AI governance) Functions
+def db_record_document_operation(
+    conn: sqlite3.Connection,
+    *,
+    title: str,
+    project_id: str,
+    integration_type: str,
+    external_id: str,
+    operation: str,
+    status: str = "queued",
+    persona: str = "AIC",
+    version_tag: Optional[str] = None,
+    diff_path: Optional[str] = None,
+    external_company: Optional[str] = None,
+    notes: str = "",
+) -> int:
+    """Record a document operation so it can be surfaced in the GUI/API."""
+
+    if status not in OPERATION_STATUS_OPTIONS:
+        status = "queued"
+
+    started_at = datetime.now().isoformat(timespec="seconds")
+    c = conn.cursor()
+    c.execute(
+        """
+        INSERT INTO document_operations (
+            title, project_id, integration_type, external_id, operation, status, persona,
+            version_tag, diff_path, external_company, started_at, completed_at, notes
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            title,
+            project_id,
+            integration_type,
+            external_id,
+            operation,
+            status,
+            persona,
+            version_tag,
+            diff_path,
+            external_company,
+            started_at,
+            None,
+            notes,
+        ),
+    )
+    conn.commit()
+    return c.lastrowid
+
+
+def db_update_document_operation_status(
+    conn: sqlite3.Connection,
+    operation_id: int,
+    *,
+    status: Optional[str] = None,
+    version_tag: Optional[str] = None,
+    diff_path: Optional[str] = None,
+    external_company: Optional[str] = None,
+    notes: Optional[str] = None,
+    mark_complete: bool = False,
+):
+    """Update status/metadata for a document operation."""
+
+    updates: List[Any] = []
+    params: List[Any] = []
+
+    if status:
+        if status not in OPERATION_STATUS_OPTIONS:
+            status = "needs_review"
+        updates.append("status = ?")
+        params.append(status)
+
+    if version_tag is not None:
+        updates.append("version_tag = ?")
+        params.append(version_tag)
+
+    if diff_path is not None:
+        updates.append("diff_path = ?")
+        params.append(diff_path)
+
+    if external_company is not None:
+        updates.append("external_company = ?")
+        params.append(external_company)
+
+    if notes is not None:
+        updates.append("notes = ?")
+        params.append(notes)
+
+    if mark_complete:
+        updates.append("completed_at = ?")
+        params.append(datetime.now().isoformat(timespec="seconds"))
+
+    if not updates:
+        return
+
+    params.append(operation_id)
+    query = f"UPDATE document_operations SET {', '.join(updates)} WHERE id = ?"
+    c = conn.cursor()
+    c.execute(query, params)
+    conn.commit()
+
+
+def db_list_document_operations(
+    conn: sqlite3.Connection,
+    limit: int = 50,
+    status: Optional[str] = None,
+    integration_type: Optional[str] = None,
+) -> List[DocumentOperation]:
+    """Return recent document operations for dashboards and APIs."""
+
+    c = conn.cursor()
+    query = "SELECT * FROM document_operations WHERE 1=1"
+    params: List[Any] = []
+
+    if status and status in OPERATION_STATUS_OPTIONS:
+        query += " AND status = ?"
+        params.append(status)
+
+    if integration_type:
+        query += " AND integration_type = ?"
+        params.append(integration_type)
+
+    query += " ORDER BY started_at DESC"
+    query += " LIMIT ?"
+    params.append(limit)
+
+    c.execute(query, params)
+    rows = c.fetchall()
+    operations: List[DocumentOperation] = []
+    for row in rows:
+        operations.append(
+            DocumentOperation(
+                id=row["id"],
+                title=row["title"],
+                project_id=row["project_id"],
+                integration_type=row["integration_type"],
+                external_id=row["external_id"],
+                operation=row["operation"],
+                status=row["status"],
+                persona=row["persona"],
+                version_tag=row["version_tag"],
+                diff_path=row["diff_path"],
+                external_company=row["external_company"],
+                started_at=row["started_at"],
+                completed_at=row["completed_at"],
+                notes=row["notes"] or "",
+            )
+        )
+
+    return operations
+
+
+# Note Links (Document Management) Functions
+# Note Links (Document Management) Functions
+def db_create_note_link(
+    conn: sqlite3.Connection,
+    project_id: str,
+    integration_type: str,
+    external_id: str,
+    title: str = "",
+    description: str = "",
+) -> int:
+    """Create a note link (document reference) in the database."""
+    c = conn.cursor()
+    created_at = datetime.now().isoformat(timespec="seconds")
+    c.execute(
+        """
+        INSERT INTO note_links (project_id, integration_type, external_id, title, description, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (project_id, integration_type, external_id, title, description, created_at),
+    )
+    conn.commit()
+    return c.lastrowid
+
+
+def db_get_note_links(
+    conn: sqlite3.Connection,
+    project_id: Optional[str] = None,
+    integration_type: Optional[str] = None,
+) -> List[NoteLink]:
+    """Get note links, optionally filtered by project and/or integration type."""
+    c = conn.cursor()
+    query = "SELECT * FROM note_links WHERE 1=1"
+    params = []
+
+    if project_id:
+        query += " AND project_id = ?"
+        params.append(project_id)
+
+    if integration_type:
+        query += " AND integration_type = ?"
+        params.append(integration_type)
+
+    query += " ORDER BY created_at DESC"
+
+    c.execute(query, params)
+    rows = c.fetchall()
+
+    links = []
+    for r in rows:
+        links.append(
+            NoteLink(
+                id=r["id"],
+                project_id=r["project_id"],
+                integration_type=r["integration_type"],
+                external_id=r["external_id"],
+                title=r["title"] or "",
+                description=r["description"] or "",
+                created_at=r["created_at"]
+                or datetime.now().isoformat(timespec="seconds"),
+                last_synced=r["last_synced"],
+            )
+        )
+    return links
+
+
+def db_get_note_link(conn: sqlite3.Connection, link_id: int) -> Optional[NoteLink]:
+    """Get a single note link by ID."""
+    c = conn.cursor()
+    c.execute("SELECT * FROM note_links WHERE id = ?", (link_id,))
+    row = c.fetchone()
+    if not row:
+        return None
+
+    return NoteLink(
+        id=row["id"],
+        project_id=row["project_id"],
+        integration_type=row["integration_type"],
+        external_id=row["external_id"],
+        title=row["title"] or "",
+        description=row["description"] or "",
+        created_at=row["created_at"] or datetime.now().isoformat(timespec="seconds"),
+        last_synced=row["last_synced"],
+    )
+
+
+def db_update_note_link(
+    conn: sqlite3.Connection,
+    link_id: int,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+):
+    """Update a note link's metadata."""
+    c = conn.cursor()
+    updates = []
+    params = []
+
+    if title is not None:
+        updates.append("title = ?")
+        params.append(title)
+
+    if description is not None:
+        updates.append("description = ?")
+        params.append(description)
+
+    if not updates:
+        return
+
+    params.append(link_id)
+    query = f"UPDATE note_links SET {', '.join(updates)} WHERE id = ?"
+    c.execute(query, params)
+    conn.commit()
+
+
+def db_delete_note_link(conn: sqlite3.Connection, link_id: int):
+    """Delete a note link from the database."""
+    c = conn.cursor()
+    c.execute("DELETE FROM note_links WHERE id = ?", (link_id,))
+    conn.commit()
+
+
+# ---------------------------------------------------------------------------
+# Project Ledger helpers (Spec 3.7 / 6.3 / 8.7)
+# ---------------------------------------------------------------------------
+def db_record_project_event(
+    conn: sqlite3.Connection,
+    project_id: str,
+    event_type: str,
+    entity_type: Optional[str] = None,
+    entity_id: Optional[str] = None,
+    payload: Optional[Dict[str, Any]] = None,
+) -> str:
+    """Append a hash-chained event to the project ledger."""
+    project_ref = project_id or "General"
+    event_id = str(uuid.uuid4())
+    created_at = datetime.now().isoformat(timespec="seconds")
+    payload_json = json.dumps(payload or {}, ensure_ascii=False)
+
+    c = conn.cursor()
+    c.execute(
+        """
+        SELECT hash_curr FROM project_events
+        WHERE project_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        (project_ref,),
+    )
+    row = c.fetchone()
+    hash_prev = row["hash_curr"] if row else None
+
+    hash_source = f"{event_id}{project_ref}{event_type}{created_at}"
+    if entity_type:
+        hash_source += entity_type
+    if entity_id:
+        hash_source += entity_id
+    if hash_prev:
+        hash_source += hash_prev
+    hash_curr = hashlib.sha256(hash_source.encode("utf-8")).hexdigest()
+
+    c.execute(
+        """
+        INSERT INTO project_events (
+            id, project_id, event_type, entity_type, entity_id,
+            payload, created_at, hash_prev, hash_curr
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            event_id,
+            project_ref,
+            event_type,
+            entity_type,
+            entity_id,
+            payload_json,
+            created_at,
+            hash_prev,
+            hash_curr,
+        ),
+    )
+    conn.commit()
+    return event_id
+
+
+def db_list_project_events(
+    conn: sqlite3.Connection,
+    project_id: Optional[str] = None,
+    limit: int = 50,
+) -> List[Dict[str, Any]]:
+    """Return the newest project ledger events."""
+    c = conn.cursor()
+    params: List[Any] = []
+    query = "SELECT * FROM project_events"
+    if project_id:
+        query += " WHERE project_id = ?"
+        params.append(project_id)
+    query += " ORDER BY datetime(created_at) DESC, rowid DESC LIMIT ?"
+    params.append(limit)
+    c.execute(query, params)
+    rows = c.fetchall()
+    events: List[Dict[str, Any]] = []
+    for row in rows:
+        payload: Dict[str, Any] = {}
+        if row["payload"]:
+            try:
+                payload = json.loads(row["payload"])
+            except json.JSONDecodeError:
+                payload = {"raw": row["payload"]}
+        events.append(
+            {
+                "id": row["id"],
+                "project_id": row["project_id"],
+                "event_type": row["event_type"],
+                "entity_type": row["entity_type"],
+                "entity_id": row["entity_id"],
+                "payload": payload,
+                "created_at": row["created_at"],
+                "hash_prev": row["hash_prev"],
+                "hash_curr": row["hash_curr"],
+            }
+        )
+    return events
+
+
+# ---------------- Document sample helpers -----------------
+
+DEFAULT_DOCUMENT_SAMPLES = [
+    {
+        "file_type": "csv",
+        "title": "Compliance Report Snapshot",
+        "category": "compliance reports",
+        "description": "CSV seed capturing auditable compliance metrics and lineage cues.",
+        "sample_content": (
+            "section,metric,value,owner,version,governance\n"
+            "Controls,Passed,24,Chris,v1,Every AI edit is tracked\n"
+            "Exceptions,Open,3,AIC,v1,Every change is diffed\n"
+            "Notes,Ledger,{governance},Sora,v1,{roles}"
+        ),
+    },
+    {
+        "file_type": "json",
+        "title": "Risk Assessment Outline",
+        "category": "risk assessments",
+        "description": "JSON blueprint for AI-led risk reviews with provenance and personas.",
+        "sample_content": (
+            "{{\n"
+            '  "title": "Risk Assessment",\n'
+            '  "versioning": "{governance}",\n'
+            '  "operating_model": "{roles}",\n'
+            '  "behaviors": "{behaviors}",\n'
+            '  "sections": ["briefs", "proposals", "compliance reports", "patient summaries", "risk assessments", "regulatory filings", "engineering specs", "technical documents", "product updates", "operational manuals"]\n'
+            "}}"
+        ),
+    },
+    {
+        "file_type": "pdf",
+        "title": "Regulatory Filing Shell",
+        "category": "regulatory filings",
+        "description": "Text payload ready to be exported as PDF with governance header.",
+        "sample_content": (
+            "Regulatory Filing (Sample)\n"
+            "Governance: {governance}\n"
+            "Roles: {roles}\n"
+            "Behaviors: {behaviors}\n"
+            "Sections covered: compliance reports, patient summaries, risk assessments, regulatory filings,\n"
+            "engineering specs, technical documents, product updates, operational manuals."
+        ),
+    },
+    {
+        "file_type": "xlsx",
+        "title": "Operational Metrics Workbook",
+        "category": "operational manuals",
+        "description": "Workbook-style text scaffold the AI can expand into XLSX.",
+        "sample_content": (
+            "Sheet: Executive Dashboard\n"
+            "Metric,Owner,Value,Last Updated\n"
+            "AI Drafted Proposals,Aria,7,Today\n"
+            "Notebook Summaries,Sora,12,Today\n"
+            "Workflow Executions,AIC,5,Today\n"
+            "Governance,{governance},{roles},Now\n"
+        ),
+    },
+    {
+        "file_type": "docx",
+        "title": "Governed Brief Template",
+        "category": "briefs",
+        "description": "Docx-style outline for briefs, proposals, and updates with AI accountability.",
+        "sample_content": (
+            "# Brief / Proposal / Update\n"
+            "Governance: {governance}\n"
+            "Operating Model: {roles}\n"
+            "Behaviors: {behaviors}\n\n"
+            "Use for: briefs, proposals, compliance reports, patient summaries, risk assessments, regulatory filings,\n"
+            "engineering specs, technical documents, product updates, operational manuals."
+        ),
+    },
+    {
+        "file_type": "txt",
+        "title": "Notes Inbox Seed",
+        "category": "notes",
+        "description": "Lightweight TXT starter for raw ideas that daemons will promote into formal docs.",
+        "sample_content": (
+            "Raw ideas captured here.\n"
+            "Governance: {governance}\n"
+            "Roles: {roles}\n"
+            "Behaviors: {behaviors}\n"
+            "The assistant notices missing documents, drafts proposals, updates reports, summarizes notebooks,"
+            " analyzes spreadsheets, reorganizes folders, updates tasks, alerts the user when something's outdated,"
+            " tracks version history, suggests improvements, predicts next steps, and executes workflows."
+        ),
+    },
+]
+
+
+def initialize_document_samples(conn: sqlite3.Connection):
+    """Seed the database with a sample definition for each supported file type."""
+
+    c = conn.cursor()
+    for sample in DEFAULT_DOCUMENT_SAMPLES:
+        c.execute(
+            "SELECT id FROM document_samples WHERE file_type = ? AND title = ?",
+            (sample["file_type"], sample["title"]),
+        )
+        if c.fetchone():
+            continue
+
+        payload = sample["sample_content"].format(
+            governance=GOVERNANCE_BANNER,
+            roles=OPERATING_ROLES,
+            behaviors=OPERATING_BEHAVIORS,
+        )
+
+        c.execute(
+            """
+            INSERT INTO document_samples (
+                file_type, title, category, description, sample_content, governance, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                sample["file_type"],
+                sample["title"],
+                sample["category"],
+                sample["description"],
+                payload,
+                GOVERNANCE_BANNER,
+                datetime.now().isoformat(timespec="seconds"),
+            ),
+        )
+
+    conn.commit()
+
+
+def db_get_document_samples(
+    conn: sqlite3.Connection,
+    file_type: Optional[str] = None,
+    category: Optional[str] = None,
+) -> List[DocumentSample]:
+    """Return document sample definitions with optional filtering."""
+
+    c = conn.cursor()
+    query = "SELECT * FROM document_samples WHERE 1=1"
+    params: List[Any] = []
+    if file_type:
+        query += " AND file_type = ?"
+        params.append(file_type)
+    if category:
+        query += " AND category = ?"
+        params.append(category)
+    query += " ORDER BY file_type, title"
+    c.execute(query, params)
+    rows = c.fetchall()
+    samples: List[DocumentSample] = []
+    for row in rows:
+        samples.append(
+            DocumentSample(
+                id=row["id"],
+                file_type=row["file_type"],
+                title=row["title"],
+                category=row["category"],
+                description=row["description"] or "",
+                sample_content=row["sample_content"] or "",
+                governance=row["governance"] or GOVERNANCE_BANNER,
+                created_at=row["created_at"]
+                or datetime.now().isoformat(timespec="seconds"),
+            )
+        )
+    return samples
+
+
+def db_document_samples_asdict(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
+    """Convenience helper for API responses."""
+
+    return [asdict(sample) for sample in db_get_document_samples(conn)]

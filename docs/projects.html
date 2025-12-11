@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Projects & Workspaces – OS Dashboard</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      .shell {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      header {
+        margin-bottom: 2rem;
+      }
+      .card {
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      ul {
+        margin: 0.5rem 0 0;
+        padding-left: 1.25rem;
+      }
+      button {
+        border: none;
+        border-radius: 12px;
+        padding: 0.5rem 1rem;
+        background: linear-gradient(120deg, #38bdf8, #6366f1);
+        color: white;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <h1>Projects & Workspaces</h1>
+        <p>Snapshot pulled directly from the FastAPI backend.</p>
+        <button id="refresh">Refresh</button>
+      </header>
+      <div id="projects"></div>
+    </div>
+    <script>
+      const list = document.getElementById('projects');
+      document.getElementById('refresh').addEventListener('click', fetchProjects);
+
+      async function fetchProjects() {
+        list.textContent = 'Loading…';
+        try {
+          const projects = await fetch('/projects').then((res) => res.json());
+          if (!projects.length) {
+            list.textContent = 'No projects registered.';
+            return;
+          }
+          list.innerHTML = '';
+          projects.forEach((project) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+              <h2>${project.name}</h2>
+              <p>Owner: ${project.owner_id}</p>
+              <p>${(project.tasks || []).length} task(s)</p>
+              <ul>
+                ${(project.tasks || []).slice(0, 4).map((task) => `<li>${task.title} – <em>${task.state}</em></li>`).join('')}
+              </ul>
+            `;
+            list.appendChild(card);
+          });
+        } catch (error) {
+          list.textContent = 'Failed to load projects. Ensure the backend is running.';
+        }
+      }
+
+      fetchProjects();
+    </script>
+  </body>
+</html>

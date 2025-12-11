@@ -1,0 +1,67 @@
+{
+  "family": "os-dashboard-gpu-task",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ECSTaskRole",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ECSTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["EC2"],
+  "cpu": "4096",
+  "memory": "16384",
+  "containerDefinitions": [
+    {
+      "name": "web-gpu",
+      "image": "ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/os-dashboard:gpu",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {"name": "ENVIRONMENT", "value": "production"},
+        {"name": "LOG_LEVEL", "value": "INFO"},
+        {"name": "USE_GPU", "value": "true"}
+      ],
+      "secrets": [
+        {"name": "DATABASE_URL", "valueFrom": "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/prod/db/url"},
+        {"name": "REDIS_URL", "valueFrom": "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/prod/redis/url"},
+        {"name": "OPENAI_API_KEY", "valueFrom": "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/prod/openai/key"},
+        {"name": "SECRET_KEY", "valueFrom": "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/prod/secret/key"}
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/prod-os-dashboard-gpu",
+          "awslogs-region": "REGION",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "python -c \"import torch; print('GPU available:', torch.cuda.is_available())\""],
+        "interval": 60,
+        "timeout": 10,
+        "retries": 3,
+        "startPeriod": 120
+      },
+      "linuxParameters": {
+        "devices": [
+          {
+            "hostPath": "/dev/nvidia0",
+            "containerPath": "/dev/nvidia0",
+            "permissions": ["read", "write", "mknod"]
+          },
+          {
+            "hostPath": "/dev/nvidiactl",
+            "containerPath": "/dev/nvidiactl",
+            "permissions": ["read", "write", "mknod"]
+          },
+          {
+            "hostPath": "/dev/nvidia-uvm",
+            "containerPath": "/dev/nvidia-uvm",
+            "permissions": ["read", "write", "mknod"]
+          }
+        ]
+      }
+    }
+  ]
+}
