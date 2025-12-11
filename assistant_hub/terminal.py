@@ -45,7 +45,9 @@ def _resolve_shell() -> str:
     return "/bin/sh"
 
 
-def run_bash_command(command: str, *, cwd: Optional[str] = None, timeout: int = 180) -> CommandResult:
+def run_bash_command(
+    command: str, *, cwd: Optional[str] = None, timeout: int = 180
+) -> CommandResult:
     """Run a command through bash -lc and capture output for the terminal pane."""
     shell_path = _resolve_shell()
     exec_cmd = [shell_path, "-lc", command]

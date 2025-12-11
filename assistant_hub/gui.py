@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 import base64
+import copy
 import json
 import os
+import random
 import sqlite3
 import subprocess
+import sys
 import threading
 import uuid
+import webbrowser
 from datetime import datetime
-from typing import Dict, Optional, Any
+from pathlib import Path
+from typing import Dict, Optional, Any, List
 from queue import Queue
 
 import tkinter as tk
@@ -16,16 +21,19 @@ from tkinter import ttk, messagebox, font as tkfont, filedialog
 try:
     import ttkbootstrap as ttkb
     from ttkbootstrap.tooltip import ToolTip
+
     TTKBOOTSTRAP_AVAILABLE = True
 except ImportError:
     TTKBOOTSTRAP_AVAILABLE = False
     import tkinter.ttk as ttkb
+
     # Fallback tooltip class
     class ToolTip:
         def __init__(self, widget, text=""):
             self.widget = widget
             self.text = text
             self.tipwindow = None
+
 
 from .config import DB_PATH
 from .core.api_server import start_api_server
@@ -82,7 +90,13 @@ from .integrations import (
     preview_for_integration,
 )
 from .task_automation import process_recurring_tasks, check_task_dependencies
-from .task_templates import load_templates, save_template, delete_template, create_task_from_template, TaskTemplate
+from .task_templates import (
+    load_templates,
+    save_template,
+    delete_template,
+    create_task_from_template,
+    TaskTemplate,
+)
 from .ai_task_creation import create_task_from_ai_message
 from .analytics import (
     get_task_completion_stats,
@@ -106,6 +120,9 @@ from .export_import import (
     import_tasks_from_json,
 )
 from .daemon import start_daemon_system
+from .project_insights import analyze_project_risks, predict_project_completion
+from .smart_prioritization import get_smart_priority_order
+from .research_workspace import default_workspace_snapshot
 
 try:
     import psutil
@@ -114,35 +131,43 @@ except ImportError:
 
 try:
     import customtkinter as ctk
+
     CUSTOMTKINTER_AVAILABLE = True
 except ImportError:
     CUSTOMTKINTER_AVAILABLE = False
 
 MAX_IMPORTED_FILE_CHARS = int(os.getenv("ASSISTANT_HUB_FILE_CHAR_LIMIT", "60000"))
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DOC_ROOT = REPO_ROOT / "documentation"
+WEB_DOCS_ROOT = REPO_ROOT / "docs"
+
+
 
 
 # Animation helper class
 class AnimationHelper:
     """Helper class for smooth animations and transitions"""
+
     @staticmethod
     def fade_in(widget, duration=300, steps=10):
         """Fade in animation for widgets"""
         try:
-            widget.attributes('-alpha', 0.0)
+            widget.attributes("-alpha", 0.0)
             delta = 1.0 / steps
             delay = duration // steps
-            
+
             def step(alpha=0.0):
                 if alpha < 1.0:
-                    widget.attributes('-alpha', alpha)
+                    widget.attributes("-alpha", alpha)
                     widget.after(delay, lambda: step(alpha + delta))
                 else:
-                    widget.attributes('-alpha', 1.0)
+                    widget.attributes("-alpha", 1.0)
+
             step()
         except tk.TclError:
             # Some systems don't support alpha
             pass
-    
+
     @staticmethod
     def pulse_button(widget, original_bg=None, pulse_color="#4CAF50"):
         """Add a pulsing animation effect to buttons"""
@@ -150,33 +175,36 @@ class AnimationHelper:
             return
         try:
             # Get current style
-            current_bootstyle = getattr(widget, 'cget', lambda x: None)('bootstyle')
+            current_bootstyle = getattr(widget, "cget", lambda x: None)("bootstyle")
             # Temporarily change color
             widget.configure(bootstyle="success")
-            widget.after(200, lambda: widget.configure(bootstyle=current_bootstyle or "primary"))
+            widget.after(
+                200, lambda: widget.configure(bootstyle=current_bootstyle or "primary")
+            )
         except:
             pass
-    
+
     @staticmethod
     def add_hover_effect(button, enter_color=None, leave_color=None):
         """Add hover effect to buttons"""
+
         def on_enter(e):
             try:
-                if TTKBOOTSTRAP_AVAILABLE and hasattr(button, 'configure'):
+                if TTKBOOTSTRAP_AVAILABLE and hasattr(button, "configure"):
                     # Slightly increase size or change style
                     if enter_color:
                         button.configure(bootstyle="primary")
             except:
                 pass
-        
+
         def on_leave(e):
             try:
-                if TTKBOOTSTRAP_AVAILABLE and hasattr(button, 'configure'):
+                if TTKBOOTSTRAP_AVAILABLE and hasattr(button, "configure"):
                     if leave_color:
                         button.configure(bootstyle="secondary")
             except:
                 pass
-        
+
         button.bind("<Enter>", on_enter)
         button.bind("<Leave>", on_leave)
         return button
@@ -185,41 +213,36 @@ class AnimationHelper:
 # Progress indicator helper
 class ProgressIndicator:
     """Progress indicator for async operations"""
+
     def __init__(self, parent):
         self.parent = parent
         self.progress_var = tk.StringVar(value="")
         self.progress_bar = None
         self.indicator_label = None
-    
+
     def create(self, container, row=0, column=0, columnspan=1):
         """Create progress indicator in container"""
         if TTKBOOTSTRAP_AVAILABLE:
             self.progress_bar = ttkb.Progressbar(
-                container, 
-                mode='indeterminate',
-                bootstyle="primary-striped",
-                length=200
+                container, mode="indeterminate", bootstyle="primary-striped", length=200
             )
             self.indicator_label = ttkb.Label(
-                container,
-                textvariable=self.progress_var,
-                bootstyle="info"
+                container, textvariable=self.progress_var, bootstyle="info"
             )
         else:
             self.progress_bar = ttk.Progressbar(
-                container,
-                mode='indeterminate',
-                length=200
+                container, mode="indeterminate", length=200
             )
-            self.indicator_label = ttk.Label(
-                container,
-                textvariable=self.progress_var
-            )
-        
-        self.progress_bar.grid(row=row, column=column, columnspan=columnspan, padx=4, pady=4, sticky="ew")
-        self.indicator_label.grid(row=row+1, column=column, columnspan=columnspan, padx=4, pady=2)
+            self.indicator_label = ttk.Label(container, textvariable=self.progress_var)
+
+        self.progress_bar.grid(
+            row=row, column=column, columnspan=columnspan, padx=4, pady=4, sticky="ew"
+        )
+        self.indicator_label.grid(
+            row=row + 1, column=column, columnspan=columnspan, padx=4, pady=2
+        )
         return self
-    
+
     def start(self, message="Processing..."):
         """Start progress indicator"""
         if self.progress_bar:
@@ -227,7 +250,7 @@ class ProgressIndicator:
             self.progress_bar.start(10)
             self.progress_bar.grid()
             self.indicator_label.grid()
-    
+
     def stop(self, message=""):
         """Stop progress indicator"""
         if self.progress_bar:
@@ -240,21 +263,19 @@ class ProgressIndicator:
 class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def __init__(self):
         # Determine theme based on settings
-        theme_map = {
-            "plain": "cosmo",
-            "light": "litera",
-            "dark": "darkly"
-        }
+        theme_map = {"plain": "cosmo", "light": "litera", "dark": "darkly"}
         theme = theme_map.get("plain", "cosmo")  # Default to cosmo
-        
+
         if TTKBOOTSTRAP_AVAILABLE:
-            super().__init__(themename=theme, title="Assistant Hub (GUI)", resizable=(True, True))
+            super().__init__(
+                themename=theme, title="Assistant Hub (GUI)", resizable=(True, True)
+            )
             # ttkbootstrap's style is already available as self.style (read-only property)
         else:
             super().__init__()
             self.title("Assistant Hub (GUI)")
             self.style = ttk.Style()
-        
+
         self.geometry("1200x700")
         self.minsize(1150, 720)
 
@@ -280,6 +301,17 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.file_preview_text = None
         self.command_var = tk.StringVar()
         self.cwd_var = tk.StringVar(value=os.getcwd())
+        self.project_insights_text = None
+        self.project_priority_tree = None
+        self.project_prediction_var = tk.StringVar(
+            value="Select a project to view completion predictions."
+        )
+        self.project_intel_status_var = tk.StringVar(
+            value="Select a project to see risk analysis."
+        )
+        self.reference_links = self._build_reference_links()
+        self.reference_var = tk.StringVar(value="Open Reference…")
+        self._init_dashboard_state()
 
         # Initialize fonts before building tabs (needed by all tabs)
         scale_map = {"small": 10, "medium": 12, "large": 14}
@@ -313,7 +345,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self._build_analytics_tab()
         self._build_templates_tab()
         self._build_settings_tab()
-        
+
         # Update tab labels with icons if available
         if TTKBOOTSTRAP_AVAILABLE:
             self.notebook.tab(0, text="📊 Dashboard")
@@ -323,10 +355,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         # Initialize sync scheduler
         self.sync_scheduler = create_default_scheduler(self.conn)
-        self.integration_api = IntegrationAPIGateway(self.conn, scheduler=self.sync_scheduler)
+        self.integration_api = IntegrationAPIGateway(
+            self.conn, scheduler=self.sync_scheduler
+        )
         # Start scheduler in background (optional - can be started manually)
         # self.sync_scheduler.start()
-        
+
         # Process recurring tasks on startup
         try:
             process_recurring_tasks(self.conn)
@@ -347,17 +381,25 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
             start_git_worker()
             get_git_manager().ensure_repo()
-            print("[GUI] Git versioning initialized - all changes will be automatically tracked")
+            print(
+                "[GUI] Git versioning initialized - all changes will be automatically tracked"
+            )
         except Exception as e:
             print(f"[GUI] Warning: Could not initialize Git versioning: {e}")
 
         self.api_server = None
-        api_enabled = os.getenv("ASSISTANT_HUB_API_ENABLED", "1").lower() not in ("0", "false", "off")
+        api_enabled = os.getenv("ASSISTANT_HUB_API_ENABLED", "1").lower() not in (
+            "0",
+            "false",
+            "off",
+        )
         if api_enabled:
             try:
                 api_host = os.getenv("ASSISTANT_HUB_API_HOST", "127.0.0.1")
                 api_port = int(os.getenv("ASSISTANT_HUB_API_PORT", "8070"))
-                self.api_server = start_api_server(DB_PATH, host=api_host, port=api_port)
+                self.api_server = start_api_server(
+                    DB_PATH, host=api_host, port=api_port
+                )
                 print(
                     f"[GUI] Dashboard API server available at http://{api_host}:{self.api_server.server_address[1]}"
                 )
@@ -368,9 +410,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.refresh_all()
         self._update_chat_status()
         # Initialize agent model display after UI is built
-        if hasattr(self, 'chat_agent_var'):
+        if hasattr(self, "chat_agent_var"):
             self.after(100, self.on_agent_change)
-        
+
         # Add fade-in animation to main window if supported
         try:
             AnimationHelper.fade_in(self)
@@ -379,14 +421,65 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     # ---------- Top bar ----------
 
+    def _init_dashboard_state(self):
+        snapshot = default_workspace_snapshot()
+        sim_config = snapshot["simulation_config"]
+        metrics = snapshot["metrics"]
+        analytics = snapshot["analytics"]
+
+        self.dashboard_status_var = tk.StringVar(
+            value=snapshot.get("status_message", "Configure and run research simulations.")
+        )
+        self.simulation_type_var = tk.StringVar(value=sim_config.get("type", "monte_carlo"))
+        self.model_select_var = tk.StringVar(value=sim_config.get("model", "financial_risk"))
+        self.confidence_level_var = tk.StringVar(value=str(sim_config.get("confidence", "0.95")))
+        self.iterations_var = tk.StringVar(value=str(sim_config.get("iterations", "1000")))
+
+        default_model_name = next(
+            (
+                model["name"]
+                for model in snapshot["models"]
+                if model.get("id") == sim_config.get("model")
+            ),
+            "Financial Risk Model v2.1",
+        )
+        self.selected_model_var = tk.StringVar(value=default_model_name)
+
+        self.active_experiments = copy.deepcopy(snapshot["experiments"])
+        self.model_registry_data = copy.deepcopy(snapshot["models"])
+        self.research_reports_data = copy.deepcopy(snapshot["reports"])
+
+        ci_low, ci_high = metrics.get("confidence_interval", (40.2, 45.1))
+        self.simulation_metric_vars = {
+            "mean": tk.StringVar(value=f"{metrics.get('mean', 42.7):.1f}"),
+            "std": tk.StringVar(value=f"{metrics.get('std', 3.2):.1f}"),
+            "min": tk.StringVar(value=f"{metrics.get('min', 35.1):.1f}"),
+            "max": tk.StringVar(value=f"{metrics.get('max', 48.9):.1f}"),
+            "confidence": tk.StringVar(value=f"[{ci_low:.1f}, {ci_high:.1f}]"),
+        }
+
+        self.simulation_series = list(analytics.get("series", []))
+        self.simulation_bounds = list(analytics.get("bounds", []))
+
+        knowledge = snapshot["knowledge_graph"]
+        self.knowledge_nodes = [
+            (node["x"], node["y"], node["label"].replace(" ", "\n"))
+            for node in knowledge.get("nodes", [])
+        ]
+        self.knowledge_edges = list(knowledge.get("edges", []))
+
+        self.parameters_container = None
+        self.parameter_rows: List[tk.Frame] = []
+        self.experiments_tree = None
+        self.model_registry_tree = None
+        self.reports_tree = None
+        self.analytics_canvas = None
+        self.knowledge_canvas = None
+
     def _configure_style(self):
         if TTKBOOTSTRAP_AVAILABLE:
             # ttkbootstrap handles themes automatically
-            theme_map = {
-                "plain": "cosmo",
-                "light": "litera", 
-                "dark": "darkly"
-            }
+            theme_map = {"plain": "cosmo", "light": "litera", "dark": "darkly"}
             theme = theme_map.get(self.settings.theme, "cosmo")
             self.style.theme_use(theme)
         else:
@@ -401,8 +494,14 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         heading_font.configure(size=base_size + 1, weight="bold")
 
         self.option_add("*Font", self.base_font)
-        self.style.configure("Treeview", rowheight=base_size + 12, font=(self.base_font.actual("family"), base_size))
-        self.style.configure("Treeview.Heading", font=(heading_font.actual("family"), base_size))
+        self.style.configure(
+            "Treeview",
+            rowheight=base_size + 12,
+            font=(self.base_font.actual("family"), base_size),
+        )
+        self.style.configure(
+            "Treeview.Heading", font=(heading_font.actual("family"), base_size)
+        )
         self.style.configure("TNotebook.Tab", padding=(18, 8))
         self.style.configure("TLabel", padding=(4, 2))
         self.style.configure("TButton", padding=(8, 6))
@@ -416,7 +515,67 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             colors = palette.get(self.settings.theme, palette["plain"])
             self.configure(bg=colors["bg"])
             for style_name in ["TFrame", "TLabelframe", "TLabelframe.Label", "TLabel"]:
-                self.style.configure(style_name, background=colors["bg"], foreground=colors["fg"])
+                self.style.configure(
+                    style_name, background=colors["bg"], foreground=colors["fg"]
+                )
+
+    def _build_reference_links(self) -> Dict[str, Any]:
+        """Curated list of documentation/web surfaces referenced by the TOC."""
+        links: Dict[str, Any] = {
+            "Canonical Spec · OS DashboardAIAssistantTOC": DOC_ROOT
+            / "OS_DashboardAIAssistantTOC.md",
+            "Mission & Vision Brief": DOC_ROOT / "VISION.md",
+            "Driver & System Architecture": DOC_ROOT / "ARCHITECTURE_IMPLEMENTATION.md",
+            "Cognitive Daemon System": DOC_ROOT / "COGNITIVE_DAEMON_SYSTEM.md",
+            "AI OS Dashboard (HTML preview)": WEB_DOCS_ROOT / "dashboard.html",
+        }
+        resolved: Dict[str, Any] = {}
+        for label, target in links.items():
+            if isinstance(target, Path):
+                if target.exists():
+                    resolved[label] = target
+            else:
+                resolved[label] = target
+        return resolved
+
+    def _on_reference_selected(self, event=None):
+        """Handle dropdown selection for reference/document links."""
+        label = self.reference_var.get()
+        target = self.reference_links.get(label)
+        if not target:
+            return
+        self._open_reference_target(target)
+        self.after(150, lambda: self.reference_var.set("Open Reference…"))
+
+    def _open_reference_target(self, target: Any):
+        """Open local documentation or remote links with sensible defaults."""
+        try:
+            if isinstance(target, Path):
+                path = target
+            else:
+                target_str = str(target)
+                if target_str.startswith("http"):
+                    webbrowser.open(target_str)
+                    return
+                path = Path(target_str)
+            if not path.exists():
+                messagebox.showwarning(
+                    "Reference", f"Unable to locate reference file:\n{path}"
+                )
+                return
+            if path.suffix.lower() in {".html", ".htm"}:
+                webbrowser.open(path.as_uri())
+                return
+            if os.name == "nt":
+                os.startfile(path)  # type: ignore[attr-defined]
+            elif sys.platform == "darwin":
+                subprocess.run(["open", str(path)], check=False)
+            else:
+                subprocess.run(["xdg-open", str(path)], check=False)
+        except Exception as exc:
+            messagebox.showerror(
+                "Reference", f"Failed to open reference '{target}':\n{exc}"
+            )
 
     def _build_topbar(self):
         if TTKBOOTSTRAP_AVAILABLE:
@@ -431,7 +590,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             persona_label = ttk.Label(top, text="Active Persona:")
         persona_label.grid(row=0, column=0, sticky="w", padx=(0, 4))
-        
+
         self.persona_var = tk.StringVar(value=self.state_obj.active_persona)
         if TTKBOOTSTRAP_AVAILABLE:
             self.persona_combo = ttkb.Combobox(
@@ -440,7 +599,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 values=PERSONAS,
                 state="readonly",
                 width=12,
-                bootstyle="primary"
+                bootstyle="primary",
             )
         else:
             self.persona_combo = ttk.Combobox(
@@ -464,28 +623,71 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             value=PERSONA_ROLES.get(self.state_obj.active_persona, "")
         )
         if TTKBOOTSTRAP_AVAILABLE:
-            self.persona_role_display = ttkb.Label(top, textvariable=self.persona_role_var, bootstyle="info")
+            self.persona_role_display = ttkb.Label(
+                top, textvariable=self.persona_role_var, bootstyle="info"
+            )
         else:
-            self.persona_role_display = ttk.Label(top, textvariable=self.persona_role_var)
+            self.persona_role_display = ttk.Label(
+                top, textvariable=self.persona_role_var
+            )
         self.persona_role_display.grid(row=0, column=3, sticky="w", padx=4)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            save_btn = ttkb.Button(top, text="💾 Save", command=self._save_with_feedback, bootstyle="success")
-            refresh_btn = ttkb.Button(top, text="🔄 Refresh", command=self._refresh_with_feedback, bootstyle="info")
+            save_btn = ttkb.Button(
+                top,
+                text="💾 Save",
+                command=self._save_with_feedback,
+                bootstyle="success",
+            )
+            refresh_btn = ttkb.Button(
+                top,
+                text="🔄 Refresh",
+                command=self._refresh_with_feedback,
+                bootstyle="info",
+            )
         else:
             save_btn = ttk.Button(top, text="Save", command=self._save_with_feedback)
-            refresh_btn = ttk.Button(top, text="Refresh", command=self._refresh_with_feedback)
+            refresh_btn = ttk.Button(
+                top, text="Refresh", command=self._refresh_with_feedback
+            )
         save_btn.grid(row=0, column=4, sticky="e", padx=(10, 5))
         refresh_btn.grid(row=0, column=5, sticky="e", padx=(5, 0))
-        
+
         # Add hover effects
         AnimationHelper.add_hover_effect(save_btn)
         AnimationHelper.add_hover_effect(refresh_btn)
-        
+
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(save_btn, text="Save current state and settings")
             ToolTip(refresh_btn, text="Refresh all views with latest data")
 
+        # Global docs/web dropdown sourced from the canonical TOC
+        if self.reference_links:
+            values = ["Open Reference…", *self.reference_links.keys()]
+            if TTKBOOTSTRAP_AVAILABLE:
+                self.reference_combo = ttkb.Combobox(
+                    top,
+                    textvariable=self.reference_var,
+                    values=values,
+                    state="readonly",
+                    width=32,
+                    bootstyle="secondary",
+                )
+            else:
+                self.reference_combo = ttk.Combobox(
+                    top,
+                    textvariable=self.reference_var,
+                    values=values,
+                    state="readonly",
+                    width=32,
+                )
+            self.reference_combo.grid(row=0, column=6, sticky="e", padx=(10, 0))
+            self.reference_combo.bind("<<ComboboxSelected>>", self._on_reference_selected)
+            if TTKBOOTSTRAP_AVAILABLE:
+                ToolTip(
+                    self.reference_combo,
+                    text="Open canonical documentation/web pages from the TOC",
+                )
     def on_persona_change(self, event=None):
         val = self.persona_var.get()
         if val in PERSONAS:
@@ -497,289 +699,398 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 self.on_agent_change()
             self.refresh_dashboard()
             self.refresh_task_list()
-    
+
     def on_agent_change(self, event=None):
         """Update model when agent changes."""
         agent = self.chat_agent_var.get()
         if agent and self.chat_model_var.get() == "auto":
             model = get_agent_model(agent)
-            self._update_chat_status(f'Agent: {agent} | Model: {model} (auto)')
+            self._update_chat_status(f"Agent: {agent} | Model: {model} (auto)")
 
     def _save_with_feedback(self):
         """Save with visual feedback"""
-        AnimationHelper.pulse_button(getattr(self, '_save_btn_ref', None))
+        AnimationHelper.pulse_button(getattr(self, "_save_btn_ref", None))
         self.on_save()
-    
+
     def on_save(self):
         save_active_persona(self.conn, self.state_obj)
         save_settings(self.conn, self.settings)
         messagebox.showinfo("Saved", "Assistant state & settings saved.")
-    
+
     def _refresh_with_feedback(self):
         """Refresh with visual feedback"""
-        AnimationHelper.pulse_button(getattr(self, '_refresh_btn_ref', None))
+        AnimationHelper.pulse_button(getattr(self, "_refresh_btn_ref", None))
         self.refresh_all()
 
     # ---------- Dashboard Tab ----------
 
+
     def _build_dashboard_tab(self):
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.dashboard_frame = ttkb.Frame(self.notebook)
-        else:
-            self.dashboard_frame = ttk.Frame(self.notebook)
+        frame_cls = ttkb.Frame if TTKBOOTSTRAP_AVAILABLE else ttk.Frame
+        label_cls = ttkb.Label if TTKBOOTSTRAP_AVAILABLE else ttk.Label
+        button_cls = ttkb.Button if TTKBOOTSTRAP_AVAILABLE else ttk.Button
+        combo_cls = ttkb.Combobox if TTKBOOTSTRAP_AVAILABLE else ttk.Combobox
+
+        self.dashboard_frame = frame_cls(self.notebook, padding=12)
         self.notebook.add(self.dashboard_frame, text="Dashboard")
-
-        self.dashboard_frame.columnconfigure(0, weight=1)
+        self.dashboard_frame.columnconfigure(0, weight=2)
         self.dashboard_frame.columnconfigure(1, weight=1)
-        self.dashboard_frame.rowconfigure(0, weight=1)
-        self.dashboard_frame.rowconfigure(1, weight=1)
-        self.dashboard_frame.rowconfigure(2, weight=0)
-        self.dashboard_frame.rowconfigure(3, weight=0)
 
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.today_box = ttkb.Labelframe(self.dashboard_frame, text="📋 Today's Focus", bootstyle="primary")
-            self.upcoming_box = ttkb.Labelframe(self.dashboard_frame, text="📅 Upcoming Deadlines", bootstyle="info")
-            self.status_box = ttkb.Labelframe(self.dashboard_frame, text="📊 Status Overview", bootstyle="success")
-            self.load_box = ttkb.Labelframe(self.dashboard_frame, text="👥 Load by Persona", bootstyle="secondary")
-            self.cyber_box = ttkb.Labelframe(self.dashboard_frame, text="🛡️ Cyber Defense Status", bootstyle="warning")
-        else:
-            self.today_box = ttk.LabelFrame(self.dashboard_frame, text="Today's Focus")
-            self.upcoming_box = ttk.LabelFrame(self.dashboard_frame, text="Upcoming Deadlines")
-            self.status_box = ttk.LabelFrame(self.dashboard_frame, text="Status Overview")
-            self.load_box = ttk.LabelFrame(self.dashboard_frame, text="Load by Persona")
-            self.cyber_box = ttk.LabelFrame(self.dashboard_frame, text="Cyber Defense Status")
-        self.today_box.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
-        self.today_text = tk.Text(self.today_box, height=10, wrap="word", font=self.text_font)
-        self.today_text.pack(fill="both", expand=True, padx=4, pady=4)
-
-        self.upcoming_box.grid(row=0, column=1, sticky="nsew", padx=8, pady=8)
-        self.upcoming_text = tk.Text(self.upcoming_box, height=10, wrap="word", font=self.text_font)
-        self.upcoming_text.pack(fill="both", expand=True, padx=4, pady=4)
-
-        self.status_box.grid(row=1, column=0, sticky="nsew", padx=8, pady=8)
-        self.status_text = tk.Text(self.status_box, height=8, wrap="word", font=self.text_font)
-        self.status_text.pack(fill="both", expand=True, padx=4, pady=4)
-
-        self.load_box.grid(row=1, column=1, sticky="nsew", padx=8, pady=8)
-        self.load_text = tk.Text(self.load_box, height=8, wrap="word", font=self.text_font)
-        self.load_text.pack(fill="both", expand=True, padx=4, pady=4)
-        self.cyber_box.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=8, pady=(0, 8))
-        self.cyber_box.columnconfigure(0, weight=1)
-
-        self.cyber_status_var = tk.StringVar(value="Status: offline")
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.cyber_status_label = ttkb.Label(
-                self.cyber_box,
-                textvariable=self.cyber_status_var,
-                font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
-                bootstyle="info"
-            )
-        else:
-            self.cyber_status_label = ttk.Label(
-                self.cyber_box,
-                textvariable=self.cyber_status_var,
-                font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
-            )
-        self.cyber_status_label.grid(row=0, column=0, sticky="w", padx=6, pady=(4, 2))
-
-        self.cyber_message_var = tk.StringVar(value="Telemetry not available.")
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.cyber_message_label = ttkb.Label(
-                self.cyber_box,
-                textvariable=self.cyber_message_var,
-                wraplength=800,
-                justify="left",
-                bootstyle="secondary"
-            )
-        else:
-            self.cyber_message_label = ttk.Label(
-                self.cyber_box,
-                textvariable=self.cyber_message_var,
-                wraplength=800,
-                justify="left",
-            )
-        self.cyber_message_label.grid(row=1, column=0, sticky="w", padx=6, pady=2)
-
-        self.cyber_updated_var = tk.StringVar(value="Updated: n/a")
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.cyber_updated_label = ttkb.Label(
-                self.cyber_box,
-                textvariable=self.cyber_updated_var,
-                font=(self.base_font.actual("family"), self.base_font.actual("size") - 1),
-                bootstyle="secondary"
-            )
-        else:
-            self.cyber_updated_label = ttk.Label(
-                self.cyber_box,
-                textvariable=self.cyber_updated_var,
-                font=(self.base_font.actual("family"), self.base_font.actual("size") - 1),
-            )
-        self.cyber_updated_label.grid(row=2, column=0, sticky="w", padx=6, pady=(0, 4))
-
-        if TTKBOOTSTRAP_AVAILABLE:
-            self.sys_box = ttkb.Labelframe(self.dashboard_frame, text="💻 System Status (Optional)", bootstyle="secondary")
-        else:
-            self.sys_box = ttk.LabelFrame(self.dashboard_frame, text="System Status (Optional)")
-        self.sys_box.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=8, pady=(0, 8))
-        self.sys_text = tk.Text(self.sys_box, height=4, wrap="word", font=self.text_font)
-        self.sys_text.pack(fill="both", expand=True, padx=4, pady=4)
-
-    def refresh_dashboard(self):
-        state = self.state_obj
-        tasks = state.tasks
-        today_str = datetime.now().strftime("%Y-%m-%d")
-
-        today_tasks = [t for t in tasks if t.due_date == today_str and t.status != "DONE"]
-        priority_weight = {p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)}
-        incomplete = [t for t in tasks if t.status != "DONE"]
-        incomplete_sorted = sorted(
-            incomplete,
-            key=lambda t: (priority_weight.get(t.priority, 1), t.due_date or "9999-99-99", t.id),
-            reverse=True,
+        hero = frame_cls(self.dashboard_frame)
+        hero.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 12))
+        hero.columnconfigure(0, weight=1)
+        label_cls(
+            hero,
+            text="Research & Simulation Workspace",
+            font=(self.base_font.actual("family"), self.base_font.actual("size") + 6, "bold"),
+        ).grid(row=0, column=0, sticky="w")
+        label_cls(
+            hero,
+            text="Advanced simulation tools, experiment design, and model validation",
+            font=(self.base_font.actual("family"), self.base_font.actual("size") + 1),
+            foreground="#6c757d",
+        ).grid(row=1, column=0, sticky="w")
+        self.dashboard_status_label = label_cls(
+            hero, textvariable=self.dashboard_status_var, foreground="#6c757d"
+        )
+        self.dashboard_status_label.grid(row=2, column=0, sticky="w")
+        hero_actions = frame_cls(hero)
+        hero_actions.grid(row=0, column=1, rowspan=3, sticky="e")
+        button_cls(hero_actions, text="Design Experiment", command=self.on_design_experiment).grid(
+            row=0, column=0, padx=(0, 8)
+        )
+        button_cls(hero_actions, text="Run Simulation", command=self.on_run_simulation).grid(
+            row=0, column=1
         )
 
-        upcoming = [t for t in tasks if t.due_date and t.due_date > today_str and t.status != "DONE"]
-        upcoming_sorted = sorted(upcoming, key=lambda t: t.due_date)[:5]
+        sim_controls = ttk.LabelFrame(self.dashboard_frame, text="Simulation Configuration")
+        sim_controls.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 16))
+        for col in range(4):
+            sim_controls.columnconfigure(col, weight=1)
+        combo_cls(
+            sim_controls,
+            textvariable=self.simulation_type_var,
+            values=["monte_carlo", "agent_based", "discrete_event", "system_dynamics"],
+            state="readonly",
+        ).grid(row=0, column=0, padx=8, pady=6, sticky="ew")
+        combo_cls(
+            sim_controls,
+            textvariable=self.model_select_var,
+            values=["financial_risk", "population_dynamics", "network_analysis", "optimization"],
+            state="readonly",
+        ).grid(row=0, column=1, padx=8, pady=6, sticky="ew")
+        ttk.Entry(sim_controls, textvariable=self.iterations_var).grid(
+            row=0, column=2, padx=8, pady=6, sticky="ew"
+        )
+        combo_cls(
+            sim_controls,
+            textvariable=self.confidence_level_var,
+            values=["0.90", "0.95", "0.99"],
+            state="readonly",
+        ).grid(row=0, column=3, padx=8, pady=6, sticky="ew")
+        label_cls(sim_controls, text="Parameters").grid(
+            row=1, column=0, columnspan=2, sticky="w", padx=8
+        )
+        self.parameters_container = frame_cls(sim_controls)
+        self.parameters_container.grid(
+            row=2, column=0, columnspan=3, sticky="ew", padx=8, pady=(0, 8)
+        )
+        self._add_parameter_row("volatility", "0.1", "0.5")
+        self._add_parameter_row("drift_rate", "0.05", "0.15")
+        button_cls(sim_controls, text="+ Add Parameter", command=self._add_parameter_row).grid(
+            row=2, column=3, padx=8, pady=(0, 8), sticky="e"
+        )
 
-        status_counts: Dict[str, int] = {s: 0 for s in STATUS_OPTIONS}
-        for t in tasks:
-            status_counts[t.status] = status_counts.get(t.status, 0) + 1
+        experiments_frame = ttk.LabelFrame(self.dashboard_frame, text="Active Experiments")
+        experiments_frame.grid(row=2, column=0, sticky="nsew", padx=(0, 12))
+        experiments_frame.columnconfigure(0, weight=1)
+        experiments_frame.rowconfigure(0, weight=1)
+        columns = ("name", "status", "progress", "eta")
+        self.experiments_tree = ttk.Treeview(
+            experiments_frame, columns=columns, show="headings", height=6
+        )
+        for col in columns:
+            self.experiments_tree.heading(col, text=col.title())
+            self.experiments_tree.column(col, anchor="w" if col in ("name", "status") else "center")
+        self.experiments_tree.grid(row=0, column=0, sticky="nsew")
+        ttk.Scrollbar(experiments_frame, orient="vertical", command=self.experiments_tree.yview).grid(
+            row=0, column=1, sticky="ns"
+        )
 
-        persona_load: Dict[str, int] = {p: 0 for p in PERSONAS}
-        for t in incomplete:
-            persona_load[t.owner] = persona_load.get(t.owner, 0) + 1
+        results_frame = ttk.LabelFrame(self.dashboard_frame, text="Simulation Results")
+        results_frame.grid(row=2, column=1, sticky="nsew")
+        metrics = [
+            ("Mean Value", "mean"),
+            ("Std Dev", "std"),
+            ("Min Value", "min"),
+            ("Max Value", "max"),
+        ]
+        for idx, (label, key) in enumerate(metrics):
+            card = frame_cls(results_frame, padding=6)
+            card.grid(row=idx // 2, column=idx % 2, sticky="nsew", padx=6, pady=6)
+            label_cls(card, text=label, foreground="#6c757d").grid(sticky="w")
+            label_cls(
+                card,
+                textvariable=self.simulation_metric_vars[key],
+                font=(self.base_font.actual("family"), self.base_font.actual("size") + 6, "bold"),
+                foreground="#4facfe",
+            ).grid(sticky="w")
+        label_cls(
+            results_frame, text="95% Confidence Interval", foreground="#6c757d"
+        ).grid(row=2, column=0, sticky="w", padx=6, pady=(4, 0))
+        label_cls(
+            results_frame,
+            textvariable=self.simulation_metric_vars["confidence"],
+            font=(self.base_font.actual("family"), self.base_font.actual("size") + 1, "bold"),
+            foreground="#38a3a5",
+        ).grid(row=2, column=1, sticky="w", padx=6, pady=(4, 0))
 
-        self.today_text.config(state="normal")
-        self.today_text.delete("1.0", "end")
-        if today_tasks:
-            self.today_text.insert("end", "Tasks due today:\n\n")
-            for t in today_tasks:
-                self.today_text.insert(
-                    "end",
-                    f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner})\n",
-                )
-        elif incomplete_sorted[:3]:
-            self.today_text.insert("end", "No tasks explicitly due today.\nShowing top 3 priorities:\n\n")
-            for t in incomplete_sorted[:3]:
-                self.today_text.insert(
-                    "end",
-                    f"- #{t.id} [{t.priority}] {t.title} (Project: {t.project}, Owner: {t.owner}, Due: {t.due_date or 'None'})\n",
-                )
-        else:
-            self.today_text.insert("end", "No active tasks. System is idle.")
-        self.today_text.config(state="disabled")
+        registry_frame = ttk.LabelFrame(self.dashboard_frame, text="Model Registry")
+        registry_frame.grid(row=3, column=0, sticky="nsew", padx=(0, 12), pady=(12, 0))
+        registry_frame.columnconfigure(0, weight=1)
+        columns = ("model", "status", "accuracy", "updated")
+        self.model_registry_tree = ttk.Treeview(
+            registry_frame, columns=columns, show="headings", height=6
+        )
+        for col in columns:
+            width = 220 if col == "model" else 110
+            self.model_registry_tree.heading(col, text=col.title())
+            self.model_registry_tree.column(col, width=width, anchor="center")
+        self.model_registry_tree.grid(row=0, column=0, sticky="nsew")
+        ttk.Scrollbar(registry_frame, orient="vertical", command=self.model_registry_tree.yview).grid(
+            row=0, column=1, sticky="ns"
+        )
+        self.model_registry_tree.bind("<<TreeviewSelect>>", self._on_model_selected)
 
-        self.upcoming_text.config(state="normal")
-        self.upcoming_text.delete("1.0", "end")
-        if upcoming_sorted:
-            self.upcoming_text.insert("end", "Next deadlines:\n\n")
-            for t in upcoming_sorted:
-                self.upcoming_text.insert(
-                    "end",
-                    f"- #{t.id} [{t.priority}] {t.title} (Due: {t.due_date}, Project: {t.project}, Owner: {t.owner})\n",
-                )
-        else:
-            self.upcoming_text.insert("end", "No upcoming deadlines logged.")
-        self.upcoming_text.config(state="disabled")
+        analytics_frame = ttk.LabelFrame(self.dashboard_frame, text="Simulation Analytics")
+        analytics_frame.grid(row=3, column=1, sticky="nsew", pady=(12, 0))
+        self.analytics_canvas = tk.Canvas(
+            analytics_frame, height=240, background="white", highlightthickness=0
+        )
+        self.analytics_canvas.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
+        self.analytics_canvas.bind("<Configure>", lambda _e: self._update_analytics_chart())
 
-        self.status_text.config(state="normal")
-        self.status_text.delete("1.0", "end")
-        total = len(tasks)
-        self.status_text.insert("end", f"Total tasks: {total}\n\n")
-        for s in STATUS_OPTIONS:
-            self.status_text.insert("end", f"{s:12}: {status_counts.get(s, 0)}\n")
-        self.status_text.config(state="disabled")
+        knowledge_frame = ttk.LabelFrame(self.dashboard_frame, text="Research Knowledge Graph")
+        knowledge_frame.grid(row=4, column=0, columnspan=2, sticky="nsew", pady=(16, 0))
+        self.knowledge_canvas = tk.Canvas(
+            knowledge_frame, height=320, background="#f8f9fa", highlightthickness=0
+        )
+        self.knowledge_canvas.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
+        self.knowledge_canvas.bind("<Configure>", lambda _e: self._render_knowledge_graph())
 
-        self.load_text.config(state="normal")
-        self.load_text.delete("1.0", "end")
-        self.load_text.insert("end", "Incomplete tasks per persona:\n\n")
-        for p in PERSONAS:
-            marker = "◉" if p == state.active_persona else "○"
-            self.load_text.insert("end", f"{marker} {p:8}: {persona_load.get(p, 0)}\n")
-        self.load_text.config(state="disabled")
-        
-        # Show external data items if preferences enabled
-        if self.settings.data_preferences.get("calendar", False) or \
-           self.settings.data_preferences.get("mail", False) or \
-           self.settings.data_preferences.get("notes", False):
-            try:
-                from .db import get_meta
-                import json
-                # Get recent external items
-                c = self.conn.cursor()
-                c.execute("""
-                    SELECT ei.title, ei.kind, es.name, ei.last_seen_at
-                    FROM external_items ei
-                    JOIN external_sources es ON ei.source_id = es.id
-                    ORDER BY ei.last_seen_at DESC
-                    LIMIT 5
-                """)
-                items = c.fetchall()
-                if items:
-                    self.load_text.config(state="normal")
-                    self.load_text.insert("end", "\n--- Recent External Items ---\n")
-                    for item in items:
-                        self.load_text.insert("end", f"• {item[0][:40]} ({item[2]})\n")
-                    self.load_text.config(state="disabled")
-            except Exception:
-                pass
+        reports_frame = ttk.LabelFrame(self.dashboard_frame, text="Research Reports & Publications")
+        reports_frame.grid(row=5, column=0, columnspan=2, sticky="nsew", pady=(16, 0))
+        columns = ("title", "summary", "generated")
+        self.reports_tree = ttk.Treeview(
+            reports_frame, columns=columns, show="headings", height=4
+        )
+        for col in columns:
+            width = 300 if col != "generated" else 140
+            self.reports_tree.heading(col, text=col.title())
+            self.reports_tree.column(col, width=width, anchor="w")
+        self.reports_tree.grid(row=0, column=0, sticky="nsew")
+        ttk.Scrollbar(reports_frame, orient="vertical", command=self.reports_tree.yview).grid(
+            row=0, column=1, sticky="ns"
+        )
 
-        self.sys_text.config(state="normal")
-        self.sys_text.delete("1.0", "end")
-        if self.settings.show_system_status and psutil is not None:
-            cpu = psutil.cpu_percent(interval=0.1)
-            mem = psutil.virtual_memory()
-            self.sys_text.insert(
-                "end",
-                f"CPU: {cpu:.1f}%   RAM: {mem.percent:.1f}% "
-                f"({mem.used // (1024**2)}MB / {mem.total // (1024**2)}MB)\n",
-            )
-            self.sys_text.insert("end", "(Toggle in Settings if you want this hidden.)")
-        else:
-            self.sys_text.insert("end", "System status disabled. Enable from Settings.")
-        self.sys_text.config(state="disabled")
+    def _add_parameter_row(self, name: str = "", minimum: str = "", maximum: str = ""):
+        if not getattr(self, "parameters_container", None):
+            return
+        frame_cls = ttkb.Frame if TTKBOOTSTRAP_AVAILABLE else ttk.Frame
+        row = frame_cls(self.parameters_container)
+        row.grid(sticky="ew", pady=2)
+        row.columnconfigure(0, weight=1)
+        name_entry = ttk.Entry(row, width=18)
+        name_entry.insert(0, name)
+        name_entry.grid(row=0, column=0, padx=4, sticky="ew")
+        min_entry = ttk.Entry(row, width=10)
+        min_entry.insert(0, minimum)
+        min_entry.grid(row=0, column=1, padx=4)
+        max_entry = ttk.Entry(row, width=10)
+        max_entry.insert(0, maximum)
+        max_entry.grid(row=0, column=2, padx=4)
+        remove_btn = ttk.Button(
+            row, text="✕", width=3, command=lambda r=row: self._remove_parameter_row(r)
+        )
+        remove_btn.grid(row=0, column=3, padx=4)
+        self.parameter_rows.append(row)
 
-        # Cyber defense status tile
-        self.security_status = load_security_status(self.conn)
-        status_text = self.security_status.status.upper()
-        status_emoji = {
-            "secure": "✅",
-            "vulnerable": "⚠️",
-            "exploited": "🔴",
-            "offline": "⚫",
+    def _remove_parameter_row(self, row: tk.Frame):
+        if row in self.parameter_rows:
+            self.parameter_rows.remove(row)
+        row.destroy()
+
+    def on_design_experiment(self):
+        sim_type = self.simulation_type_var.get()
+        self.dashboard_status_var.set(
+            f"Experiment design prepared for {sim_type.replace('_', ' ').title()}."
+        )
+        messagebox.showinfo(
+            "Experiment Design",
+            f"Designed a parameter sweep for {sim_type.replace('_', ' ').title()}.",
+        )
+
+    def on_run_simulation(self):
+        sim_type = self.simulation_type_var.get()
+        iterations = int(self.iterations_var.get() or 1000)
+        entry = {
+            "name": f"{sim_type.replace('_', ' ').title()} Simulation",
+            "status": "running",
+            "progress": 0,
+            "total": iterations,
+            "eta": "starting...",
+            "description": f"{iterations} iteration run",
         }
-        emoji = status_emoji.get(self.security_status.status, "⚫")
-        self.cyber_status_var.set(f"{emoji} Status: {status_text}")
-        
-        if TTKBOOTSTRAP_AVAILABLE:
-            bootstyle_map = {
-                "secure": "success",
-                "vulnerable": "warning",
-                "exploited": "danger",
-                "offline": "secondary",
-            }
-            bootstyle = bootstyle_map.get(self.security_status.status, "secondary")
-            self.cyber_status_label.configure(bootstyle=bootstyle)
-        else:
-            color_map = {
-                "secure": "#2e7d32",
-                "vulnerable": "#ef6c00",
-                "exploited": "#b71c1c",
-                "offline": "#616161",
-            }
-            self.cyber_status_label.configure(foreground=color_map.get(self.security_status.status, "#202020"))
+        self.active_experiments.insert(0, entry)
+        self.dashboard_status_var.set(
+            f"Running {sim_type.replace('_', ' ').title()} simulation with {iterations} iterations."
+        )
+        self._update_experiments_tree()
+        self._update_simulation_metric_cards()
 
-        message = self.security_status.message.strip() or "Telemetry not available."
-        self.cyber_message_var.set(message)
-        if self.security_status.updated_at:
-            human_ts = self.security_status.updated_at.replace("T", " ")
-        else:
-            human_ts = "n/a"
-        source = self.security_status.source or "mac_guard"
-        self.cyber_updated_var.set(f"Updated: {human_ts} via {source}")
+    def _on_model_selected(self, _event=None):
+        selection = self.model_registry_tree.selection()
+        if not selection:
+            return
+        item = self.model_registry_tree.item(selection[0], "values")
+        if item:
+            self.selected_model_var.set(item[0])
+            self.dashboard_status_var.set(f"Selected model: {item[0]} ({item[1]})")
 
-    # ---------- Tasks Tab ----------
+    def _update_experiments_tree(self):
+        if not self.experiments_tree:
+            return
+        self.experiments_tree.delete(*self.experiments_tree.get_children())
+        for exp in self.active_experiments:
+            if exp["total"]:
+                pct = int((exp["progress"] / exp["total"]) * 100)
+            else:
+                pct = 0
+            progress_text = f"{exp['progress']:,}/{exp['total']:,} ({pct}%)"
+            self.experiments_tree.insert(
+                "",
+                "end",
+                values=(exp["name"], exp["status"].title(), progress_text, exp["eta"]),
+            )
 
+    def _update_model_registry(self):
+        if not self.model_registry_tree:
+            return
+        self.model_registry_tree.delete(*self.model_registry_tree.get_children())
+        for model in self.model_registry_data:
+            self.model_registry_tree.insert(
+                "",
+                "end",
+                values=(model["name"], model["status"], model["accuracy"], model["updated"]),
+            )
+
+    def _update_reports(self):
+        if not self.reports_tree:
+            return
+        self.reports_tree.delete(*self.reports_tree.get_children())
+        for report in self.research_reports_data:
+            self.reports_tree.insert(
+                "",
+                "end",
+                values=(report["title"], report["summary"], report["generated"]),
+            )
+
+    def _update_simulation_metric_cards(self):
+        mean = 40 + random.random() * 5
+        std = 2 + random.random() * 2
+        span = std * 2
+        self.simulation_metric_vars["mean"].set(f"{mean:.1f}")
+        self.simulation_metric_vars["std"].set(f"{std:.1f}")
+        self.simulation_metric_vars["min"].set(f"{mean - span:.1f}")
+        self.simulation_metric_vars["max"].set(f"{mean + span:.1f}")
+        self.simulation_metric_vars["confidence"].set(
+            f"[{mean - std:.1f}, {mean + std:.1f}]"
+        )
+
+    def _update_analytics_chart(self):
+        canvas = getattr(self, "analytics_canvas", None)
+        if not canvas:
+            return
+        canvas.delete("all")
+        width = canvas.winfo_width() or 400
+        height = canvas.winfo_height() or 200
+        margin = 20
+        series = self.simulation_series
+        bounds = self.simulation_bounds
+        if len(series) < 2:
+            return
+        max_val = max(series + bounds) or 1
+        points = []
+        for idx, value in enumerate(series):
+            x = margin + (idx / (len(series) - 1)) * (width - 2 * margin)
+            y = height - margin - (value / max_val) * (height - 2 * margin)
+            points.append((x, y))
+        for i in range(len(points) - 1):
+            canvas.create_line(*points[i], *points[i + 1], fill="#4facfe", width=2)
+        for x, y in points:
+            canvas.create_oval(x - 3, y - 3, x + 3, y + 3, fill="#4facfe", outline="")
+        canvas.create_text(
+            margin,
+            margin,
+            anchor="nw",
+            text="Convergence",
+            fill="#4facfe",
+            font=("TkDefaultFont", 10, "bold"),
+        )
+
+    def _render_knowledge_graph(self):
+        canvas = getattr(self, "knowledge_canvas", None)
+        if not canvas:
+            return
+        canvas.delete("all")
+        for start_idx, end_idx in self.knowledge_edges:
+            x1, y1, _ = self.knowledge_nodes[start_idx]
+            x2, y2, _ = self.knowledge_nodes[end_idx]
+            canvas.create_line(x1, y1, x2, y2, fill="#cbd5e0", width=2)
+        for x, y, label in self.knowledge_nodes:
+            canvas.create_oval(
+                x - 50, y - 40, x + 50, y + 40, fill="#667eea", outline="", width=0
+            )
+            canvas.create_text(
+                x,
+                y,
+                text=label,
+                fill="white",
+                font=("TkDefaultFont", 10, "bold"),
+                justify="center",
+            )
+
+    def refresh_dashboard(self):
+        tasks = self.state_obj.tasks
+        total_tasks = len(tasks)
+        active_tasks = sum(1 for t in tasks if t.status != "DONE")
+        projects = len(self.state_obj.projects)
+        today = datetime.now().strftime("%Y-%m-%d")
+        due_today = sum(1 for t in tasks if t.due_date == today and t.status != "DONE")
+        self.dashboard_status_var.set(
+            f"{total_tasks} tasks tracked · {active_tasks} active · {projects} projects · {due_today} due today"
+        )
+        self._update_experiment_progress()
+        self._update_simulation_metric_cards()
+        self._refresh_dashboard_views()
+
+    def _update_experiment_progress(self):
+        for exp in self.active_experiments:
+            if exp["status"] != "running":
+                continue
+            increment = random.randint(exp["total"] // 40, exp["total"] // 20)
+            exp["progress"] = min(exp["progress"] + increment, exp["total"])
+            if exp["progress"] >= exp["total"]:
+                exp["status"] = "completed"
+                exp["eta"] = "Complete"
+        self._update_experiments_tree()
+
+    def _refresh_dashboard_views(self):
+        self._update_experiments_tree()
+        self._update_model_registry()
+        self._update_reports()
+        self._update_analytics_chart()
+        self._render_knowledge_graph()
     def _build_tasks_tab(self):
         if TTKBOOTSTRAP_AVAILABLE:
             self.tasks_frame = ttkb.Frame(self.notebook)
@@ -799,41 +1110,73 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         filters.columnconfigure(3, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            ttkb.Label(filters, text="Project:", bootstyle="secondary").grid(row=0, column=0, padx=(0, 4))
+            ttkb.Label(filters, text="Project:", bootstyle="secondary").grid(
+                row=0, column=0, padx=(0, 4)
+            )
             self.filter_project_var = tk.StringVar()
-            self.filter_project_combo = ttkb.Combobox(filters, textvariable=self.filter_project_var, state="readonly", bootstyle="secondary")
+            self.filter_project_combo = ttkb.Combobox(
+                filters,
+                textvariable=self.filter_project_var,
+                state="readonly",
+                bootstyle="secondary",
+            )
             self.filter_project_combo.grid(row=0, column=1, padx=(0, 10))
 
-            ttkb.Label(filters, text="Owner:", bootstyle="secondary").grid(row=0, column=2, padx=(0, 4))
+            ttkb.Label(filters, text="Owner:", bootstyle="secondary").grid(
+                row=0, column=2, padx=(0, 4)
+            )
             self.filter_owner_var = tk.StringVar()
-            self.filter_owner_combo = ttkb.Combobox(filters, textvariable=self.filter_owner_var, state="readonly", bootstyle="secondary")
+            self.filter_owner_combo = ttkb.Combobox(
+                filters,
+                textvariable=self.filter_owner_var,
+                state="readonly",
+                bootstyle="secondary",
+            )
             self.filter_owner_combo.grid(row=0, column=3, sticky="w", padx=(0, 10))
 
             self.show_done_var = tk.BooleanVar(value=True)
             show_done_check = ttkb.Checkbutton(
-                filters, text="Show Done", variable=self.show_done_var, command=self.refresh_task_list, bootstyle="primary-round-toggle"
+                filters,
+                text="Show Done",
+                variable=self.show_done_var,
+                command=self.refresh_task_list,
+                bootstyle="primary-round-toggle",
             )
         else:
             ttk.Label(filters, text="Project:").grid(row=0, column=0, padx=(0, 4))
             self.filter_project_var = tk.StringVar()
-            self.filter_project_combo = ttk.Combobox(filters, textvariable=self.filter_project_var, state="readonly")
+            self.filter_project_combo = ttk.Combobox(
+                filters, textvariable=self.filter_project_var, state="readonly"
+            )
             self.filter_project_combo.grid(row=0, column=1, padx=(0, 10))
 
             ttk.Label(filters, text="Owner:").grid(row=0, column=2, padx=(0, 4))
             self.filter_owner_var = tk.StringVar()
-            self.filter_owner_combo = ttk.Combobox(filters, textvariable=self.filter_owner_var, state="readonly")
+            self.filter_owner_combo = ttk.Combobox(
+                filters, textvariable=self.filter_owner_var, state="readonly"
+            )
             self.filter_owner_combo.grid(row=0, column=3, sticky="w", padx=(0, 10))
 
             self.show_done_var = tk.BooleanVar(value=True)
             show_done_check = ttk.Checkbutton(
-                filters, text="Show Done", variable=self.show_done_var, command=self.refresh_task_list
+                filters,
+                text="Show Done",
+                variable=self.show_done_var,
+                command=self.refresh_task_list,
             )
         show_done_check.grid(row=0, column=4, padx=(0, 10))
 
         if TTKBOOTSTRAP_AVAILABLE:
-            refresh_btn = ttkb.Button(filters, text="🔍 Apply Filters", command=self.refresh_task_list, bootstyle="info-outline")
+            refresh_btn = ttkb.Button(
+                filters,
+                text="🔍 Apply Filters",
+                command=self.refresh_task_list,
+                bootstyle="info-outline",
+            )
         else:
-            refresh_btn = ttk.Button(filters, text="Apply Filters", command=self.refresh_task_list)
+            refresh_btn = ttk.Button(
+                filters, text="Apply Filters", command=self.refresh_task_list
+            )
         refresh_btn.grid(row=0, column=5, padx=(4, 0))
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(refresh_btn, text="Apply filters and refresh the task list")
@@ -847,7 +1190,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         list_frame.columnconfigure(0, weight=1)
 
         columns = ("id", "title", "project", "owner", "status", "priority", "due")
-        self.task_tree = ttk.Treeview(list_frame, columns=columns, show="headings", selectmode="browse")
+        self.task_tree = ttk.Treeview(
+            list_frame, columns=columns, show="headings", selectmode="browse"
+        )
         for col in columns:
             self.task_tree.heading(col, text=col.upper())
         self.task_tree.column("id", width=40, anchor="center")
@@ -860,20 +1205,42 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         self.task_tree.grid(row=0, column=0, sticky="nsew")
         if TTKBOOTSTRAP_AVAILABLE:
-            scrollbar = ttkb.Scrollbar(list_frame, orient="vertical", command=self.task_tree.yview, bootstyle="primary-round")
+            scrollbar = ttkb.Scrollbar(
+                list_frame,
+                orient="vertical",
+                command=self.task_tree.yview,
+                bootstyle="primary-round",
+            )
         else:
-            scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.task_tree.yview)
+            scrollbar = ttk.Scrollbar(
+                list_frame, orient="vertical", command=self.task_tree.yview
+            )
         self.task_tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=0, column=1, sticky="ns")
         self.task_tree.bind("<<TreeviewSelect>>", self.on_task_select)
         # Add double-click to edit
-        self.task_tree.bind("<Double-1>", lambda e: self.on_save_task_changes() if self.task_tree.selection() else None)
+        self.task_tree.bind(
+            "<Double-1>",
+            lambda e: self.on_save_task_changes()
+            if self.task_tree.selection()
+            else None,
+        )
         # Add keyboard shortcuts
-        self.task_tree.bind("<Return>", lambda e: self.on_save_task_changes() if self.task_tree.selection() else None)
-        self.task_tree.bind("<Delete>", lambda e: self.on_delete_task() if self.task_tree.selection() else None)
+        self.task_tree.bind(
+            "<Return>",
+            lambda e: self.on_save_task_changes()
+            if self.task_tree.selection()
+            else None,
+        )
+        self.task_tree.bind(
+            "<Delete>",
+            lambda e: self.on_delete_task() if self.task_tree.selection() else None,
+        )
 
         if TTKBOOTSTRAP_AVAILABLE:
-            detail = ttkb.Labelframe(self.tasks_frame, text="📝 Task Details", bootstyle="primary")
+            detail = ttkb.Labelframe(
+                self.tasks_frame, text="📝 Task Details", bootstyle="primary"
+            )
         else:
             detail = ttk.LabelFrame(self.tasks_frame, text="Task Details")
         detail.grid(row=1, column=1, sticky="nsew", padx=8, pady=4)
@@ -881,42 +1248,64 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             detail.columnconfigure(i, weight=1)
 
         row = 0
-        ttk.Label(detail, text="ID:").grid(row=row, column=0, sticky="e", padx=4, pady=2)
+        ttk.Label(detail, text="ID:").grid(
+            row=row, column=0, sticky="e", padx=4, pady=2
+        )
         self.task_id_var = tk.StringVar()
-        ttk.Label(detail, textvariable=self.task_id_var).grid(row=row, column=1, sticky="w", padx=4, pady=2)
+        ttk.Label(detail, textvariable=self.task_id_var).grid(
+            row=row, column=1, sticky="w", padx=4, pady=2
+        )
 
         row += 1
-        ttk.Label(detail, text="Title:").grid(row=row, column=0, sticky="e", padx=4, pady=2)
+        ttk.Label(detail, text="Title:").grid(
+            row=row, column=0, sticky="e", padx=4, pady=2
+        )
         self.title_entry = ttk.Entry(detail)
         self.title_entry.grid(row=row, column=1, sticky="ew", padx=4, pady=2)
 
         row += 1
-        ttk.Label(detail, text="Project:").grid(row=row, column=0, sticky="e", padx=4, pady=2)
+        ttk.Label(detail, text="Project:").grid(
+            row=row, column=0, sticky="e", padx=4, pady=2
+        )
         self.project_entry = ttk.Entry(detail)
         self.project_entry.grid(row=row, column=1, sticky="ew", padx=4, pady=2)
 
         row += 1
-        ttk.Label(detail, text="Owner:").grid(row=row, column=0, sticky="e", padx=4, pady=2)
+        ttk.Label(detail, text="Owner:").grid(
+            row=row, column=0, sticky="e", padx=4, pady=2
+        )
         self.owner_combo = ttk.Combobox(detail, values=PERSONAS, state="readonly")
         self.owner_combo.grid(row=row, column=1, sticky="ew", padx=4, pady=2)
 
         row += 1
-        ttk.Label(detail, text="Status:").grid(row=row, column=0, sticky="e", padx=4, pady=2)
-        self.status_combo = ttk.Combobox(detail, values=STATUS_OPTIONS, state="readonly")
+        ttk.Label(detail, text="Status:").grid(
+            row=row, column=0, sticky="e", padx=4, pady=2
+        )
+        self.status_combo = ttk.Combobox(
+            detail, values=STATUS_OPTIONS, state="readonly"
+        )
         self.status_combo.grid(row=row, column=1, sticky="ew", padx=4, pady=2)
 
         row += 1
-        ttk.Label(detail, text="Priority:").grid(row=row, column=0, sticky="e", padx=4, pady=2)
-        self.priority_combo = ttk.Combobox(detail, values=PRIORITY_OPTIONS, state="readonly")
+        ttk.Label(detail, text="Priority:").grid(
+            row=row, column=0, sticky="e", padx=4, pady=2
+        )
+        self.priority_combo = ttk.Combobox(
+            detail, values=PRIORITY_OPTIONS, state="readonly"
+        )
         self.priority_combo.grid(row=row, column=1, sticky="ew", padx=4, pady=2)
 
         row += 1
-        ttk.Label(detail, text="Due (YYYY-MM-DD):").grid(row=row, column=0, sticky="e", padx=4, pady=2)
+        ttk.Label(detail, text="Due (YYYY-MM-DD):").grid(
+            row=row, column=0, sticky="e", padx=4, pady=2
+        )
         self.due_entry = ttk.Entry(detail)
         self.due_entry.grid(row=row, column=1, sticky="ew", padx=4, pady=2)
 
         row += 1
-        ttk.Label(detail, text="Notes:").grid(row=row, column=0, sticky="ne", padx=4, pady=2)
+        ttk.Label(detail, text="Notes:").grid(
+            row=row, column=0, sticky="ne", padx=4, pady=2
+        )
         self.notes_text = tk.Text(detail, height=5, wrap="word", font=self.text_font)
         self.notes_text.grid(row=row, column=1, sticky="nsew", padx=4, pady=2)
         detail.rowconfigure(row, weight=1)
@@ -925,23 +1314,42 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             btns = ttkb.Frame(detail)
         else:
             btns = ttk.Frame(detail)
-        btns.grid(row=row+1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+        btns.grid(row=row + 1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
         btns.columnconfigure(0, weight=1)
         btns.columnconfigure(1, weight=1)
         btns.columnconfigure(2, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            add_btn = ttkb.Button(btns, text="➕ New Task", command=self.on_new_task, bootstyle="primary-outline")
-            save_btn = ttkb.Button(btns, text="💾 Save Changes", command=self._save_task_with_feedback, bootstyle="success")
-            delete_btn = ttkb.Button(btns, text="🗑️ Delete Task", command=self._delete_task_with_feedback, bootstyle="danger-outline")
+            add_btn = ttkb.Button(
+                btns,
+                text="➕ New Task",
+                command=self.on_new_task,
+                bootstyle="primary-outline",
+            )
+            save_btn = ttkb.Button(
+                btns,
+                text="💾 Save Changes",
+                command=self._save_task_with_feedback,
+                bootstyle="success",
+            )
+            delete_btn = ttkb.Button(
+                btns,
+                text="🗑️ Delete Task",
+                command=self._delete_task_with_feedback,
+                bootstyle="danger-outline",
+            )
         else:
             add_btn = ttk.Button(btns, text="New Task", command=self.on_new_task)
-            save_btn = ttk.Button(btns, text="Save Changes", command=self._save_task_with_feedback)
-            delete_btn = ttk.Button(btns, text="Delete Task", command=self._delete_task_with_feedback)
+            save_btn = ttk.Button(
+                btns, text="Save Changes", command=self._save_task_with_feedback
+            )
+            delete_btn = ttk.Button(
+                btns, text="Delete Task", command=self._delete_task_with_feedback
+            )
         add_btn.grid(row=0, column=0, padx=4, sticky="ew")
         save_btn.grid(row=0, column=1, padx=4, sticky="ew")
         delete_btn.grid(row=0, column=2, padx=4, sticky="ew")
-        
+
         # Add hover effects and store references
         AnimationHelper.add_hover_effect(add_btn)
         AnimationHelper.add_hover_effect(save_btn)
@@ -949,7 +1357,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self._task_add_btn = add_btn
         self._task_save_btn = save_btn
         self._task_delete_btn = delete_btn
-        
+
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(add_btn, text="Create a new task")
             ToolTip(save_btn, text="Save changes to the current task")
@@ -988,10 +1396,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if not show_done:
             tasks = [t for t in tasks if t.status != "DONE"]
 
-        priority_weight = {p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)}
+        priority_weight = {
+            p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)
+        }
         tasks_sorted = sorted(
             tasks,
-            key=lambda t: (priority_weight.get(t.priority, 1), t.due_date or "9999-99-99", t.id),
+            key=lambda t: (
+                priority_weight.get(t.priority, 1),
+                t.due_date or "9999-99-99",
+                t.id,
+            ),
             reverse=True,
         )
 
@@ -1000,7 +1414,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 "",
                 "end",
                 iid=str(t.id),
-                values=(t.id, t.title, t.project, t.owner, t.status, t.priority, t.due_date or ""),
+                values=(
+                    t.id,
+                    t.title,
+                    t.project,
+                    t.owner,
+                    t.status,
+                    t.priority,
+                    t.due_date or "",
+                ),
             )
 
     def on_task_select(self, event=None):
@@ -1038,28 +1460,28 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.status_combo.set("TODO")
         self.priority_combo.set("MEDIUM")
         self.due_entry.delete(0, "end")
-        if hasattr(self, 'time_estimated_entry'):
+        if hasattr(self, "time_estimated_entry"):
             self.time_estimated_entry.delete(0, "end")
-        if hasattr(self, 'time_logged_entry'):
+        if hasattr(self, "time_logged_entry"):
             self.time_logged_entry.delete(0, "end")
-        if hasattr(self, 'depends_on_entry'):
+        if hasattr(self, "depends_on_entry"):
             self.depends_on_entry.delete(0, "end")
-        if hasattr(self, 'recurrence_pattern_var'):
+        if hasattr(self, "recurrence_pattern_var"):
             self.recurrence_pattern_var.set("")
-        if hasattr(self, 'recurrence_end_entry'):
+        if hasattr(self, "recurrence_end_entry"):
             self.recurrence_end_entry.delete(0, "end")
         self.notes_text.delete("1.0", "end")
 
     def _save_task_with_feedback(self):
         """Save task with visual feedback"""
-        AnimationHelper.pulse_button(getattr(self, '_task_save_btn', None))
+        AnimationHelper.pulse_button(getattr(self, "_task_save_btn", None))
         self.on_save_task_changes()
-    
+
     def _delete_task_with_feedback(self):
         """Delete task with visual feedback"""
-        AnimationHelper.pulse_button(getattr(self, '_task_delete_btn', None))
+        AnimationHelper.pulse_button(getattr(self, "_task_delete_btn", None))
         self.on_delete_task()
-    
+
     def on_save_task_changes(self):
         title = self.title_entry.get().strip()
         if not title:
@@ -1081,47 +1503,49 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         due = self.due_entry.get().strip()
         if due and not parse_date(due):
-            messagebox.showwarning("Invalid Date", "Due date must be YYYY-MM-DD or blank.")
+            messagebox.showwarning(
+                "Invalid Date", "Due date must be YYYY-MM-DD or blank."
+            )
             return
 
         # Get time tracking values
         time_estimated = None
-        if hasattr(self, 'time_estimated_entry'):
+        if hasattr(self, "time_estimated_entry"):
             time_est_str = self.time_estimated_entry.get().strip()
             if time_est_str:
                 try:
                     time_estimated = int(time_est_str)
                 except ValueError:
                     pass
-        
+
         time_logged = None
-        if hasattr(self, 'time_logged_entry'):
+        if hasattr(self, "time_logged_entry"):
             time_log_str = self.time_logged_entry.get().strip()
             if time_log_str:
                 try:
                     time_logged = int(time_log_str)
                 except ValueError:
                     pass
-        
+
         # Get dependency
         depends_on = None
-        if hasattr(self, 'depends_on_entry'):
+        if hasattr(self, "depends_on_entry"):
             dep_str = self.depends_on_entry.get().strip()
             if dep_str:
                 try:
                     depends_on = int(dep_str)
                 except ValueError:
                     pass
-        
+
         # Get recurrence
         recurrence_pattern = None
-        if hasattr(self, 'recurrence_pattern_var'):
+        if hasattr(self, "recurrence_pattern_var"):
             rec_pattern = self.recurrence_pattern_var.get().strip()
             if rec_pattern:
                 recurrence_pattern = rec_pattern
-        
+
         recurrence_end = None
-        if hasattr(self, 'recurrence_end_entry'):
+        if hasattr(self, "recurrence_end_entry"):
             rec_end = self.recurrence_end_entry.get().strip()
             if rec_end:
                 if parse_date(rec_end):
@@ -1203,90 +1627,105 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.status_combo.set("")
         self.priority_combo.set("")
         self.due_entry.delete(0, "end")
-        if hasattr(self, 'time_estimated_entry'):
+        if hasattr(self, "time_estimated_entry"):
             self.time_estimated_entry.delete(0, "end")
-        if hasattr(self, 'time_logged_entry'):
+        if hasattr(self, "time_logged_entry"):
             self.time_logged_entry.delete(0, "end")
-        if hasattr(self, 'depends_on_entry'):
+        if hasattr(self, "depends_on_entry"):
             self.depends_on_entry.delete(0, "end")
-        if hasattr(self, 'recurrence_pattern_var'):
+        if hasattr(self, "recurrence_pattern_var"):
             self.recurrence_pattern_var.set("")
-        if hasattr(self, 'recurrence_end_entry'):
+        if hasattr(self, "recurrence_end_entry"):
             self.recurrence_end_entry.delete(0, "end")
         self.notes_text.delete("1.0", "end")
         self.refresh_all()
-    
+
     def on_start_timer(self):
         """Start a timer for the current task."""
         id_str = self.task_id_var.get()
         if not id_str or id_str == "NEW":
             messagebox.showinfo("No Task", "Select a task to start timer.")
             return
-        
+
         try:
             tid = int(id_str)
         except ValueError:
             return
-        
+
         task = next((t for t in self.state_obj.tasks if t.id == tid), None)
         if not task:
             return
-        
+
         # Store start time
-        if not hasattr(self, '_timer_start_time'):
+        if not hasattr(self, "_timer_start_time"):
             self._timer_start_time = {}
         self._timer_start_time[tid] = datetime.now()
-        
-        messagebox.showinfo("Timer Started", f"Timer started for task #{tid}. Click 'Stop Timer' when done.")
-        
+
+        messagebox.showinfo(
+            "Timer Started",
+            f"Timer started for task #{tid}. Click 'Stop Timer' when done.",
+        )
+
         # Update button
-        if hasattr(self, '_timer_button'):
+        if hasattr(self, "_timer_button"):
             if TTKBOOTSTRAP_AVAILABLE:
-                self._timer_button.config(text="⏹️ Stop Timer", command=self.on_stop_timer, bootstyle="danger-outline")
+                self._timer_button.config(
+                    text="⏹️ Stop Timer",
+                    command=self.on_stop_timer,
+                    bootstyle="danger-outline",
+                )
             else:
                 self._timer_button.config(text="Stop Timer", command=self.on_stop_timer)
-    
+
     def on_stop_timer(self):
         """Stop the timer and add time to the task."""
         id_str = self.task_id_var.get()
         if not id_str or id_str == "NEW":
             return
-        
+
         try:
             tid = int(id_str)
         except ValueError:
             return
-        
-        if not hasattr(self, '_timer_start_time') or tid not in self._timer_start_time:
+
+        if not hasattr(self, "_timer_start_time") or tid not in self._timer_start_time:
             return
-        
+
         start_time = self._timer_start_time[tid]
         elapsed = (datetime.now() - start_time).total_seconds() / 60  # minutes
         elapsed_minutes = int(elapsed)
-        
+
         task = next((t for t in self.state_obj.tasks if t.id == tid), None)
         if task:
             current_logged = task.time_logged or 0
             task.time_logged = current_logged + elapsed_minutes
             db_update_task(self.conn, task)
-            
+
             # Update UI
-            if hasattr(self, 'time_logged_entry'):
+            if hasattr(self, "time_logged_entry"):
                 self.time_logged_entry.delete(0, "end")
                 self.time_logged_entry.insert(0, str(task.time_logged))
-            
-            messagebox.showinfo("Timer Stopped", f"Added {elapsed_minutes} minutes to task #{tid}.")
-        
+
+            messagebox.showinfo(
+                "Timer Stopped", f"Added {elapsed_minutes} minutes to task #{tid}."
+            )
+
         # Remove from timer dict
         del self._timer_start_time[tid]
-        
+
         # Update button
-        if hasattr(self, '_timer_button'):
+        if hasattr(self, "_timer_button"):
             if TTKBOOTSTRAP_AVAILABLE:
-                self._timer_button.config(text="⏱️ Start Timer", command=self.on_start_timer, bootstyle="info-outline")
+                self._timer_button.config(
+                    text="⏱️ Start Timer",
+                    command=self.on_start_timer,
+                    bootstyle="info-outline",
+                )
             else:
-                self._timer_button.config(text="Start Timer", command=self.on_start_timer)
-        
+                self._timer_button.config(
+                    text="Start Timer", command=self.on_start_timer
+                )
+
         self.refresh_all()
 
     # ---------- Projects Tab ----------
@@ -1310,7 +1749,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         list_frame.columnconfigure(0, weight=1)
 
         columns = ("name", "priority", "status", "tasks")
-        self.project_tree = ttk.Treeview(list_frame, columns=columns, show="headings", selectmode="browse")
+        self.project_tree = ttk.Treeview(
+            list_frame, columns=columns, show="headings", selectmode="browse"
+        )
         self.project_tree.heading("name", text="NAME")
         self.project_tree.heading("priority", text="PRIORITY")
         self.project_tree.heading("status", text="STATUS")
@@ -1323,20 +1764,40 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         self.project_tree.grid(row=0, column=0, sticky="nsew")
         if TTKBOOTSTRAP_AVAILABLE:
-            scrollbar = ttkb.Scrollbar(list_frame, orient="vertical", command=self.project_tree.yview, bootstyle="primary-round")
+            scrollbar = ttkb.Scrollbar(
+                list_frame,
+                orient="vertical",
+                command=self.project_tree.yview,
+                bootstyle="primary-round",
+            )
         else:
-            scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.project_tree.yview)
+            scrollbar = ttk.Scrollbar(
+                list_frame, orient="vertical", command=self.project_tree.yview
+            )
         self.project_tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=0, column=1, sticky="ns")
         self.project_tree.bind("<<TreeviewSelect>>", self.on_project_select)
         # Add double-click to edit
-        self.project_tree.bind("<Double-1>", lambda e: self.on_save_project() if self.project_tree.selection() else None)
+        self.project_tree.bind(
+            "<Double-1>",
+            lambda e: self.on_save_project() if self.project_tree.selection() else None,
+        )
         # Add keyboard shortcuts
-        self.project_tree.bind("<Return>", lambda e: self.on_save_project() if self.project_tree.selection() else None)
-        self.project_tree.bind("<Delete>", lambda e: self.on_delete_project() if self.project_tree.selection() else None)
+        self.project_tree.bind(
+            "<Return>",
+            lambda e: self.on_save_project() if self.project_tree.selection() else None,
+        )
+        self.project_tree.bind(
+            "<Delete>",
+            lambda e: self.on_delete_project()
+            if self.project_tree.selection()
+            else None,
+        )
 
         if TTKBOOTSTRAP_AVAILABLE:
-            detail = ttkb.Labelframe(self.projects_frame, text="📁 Project Details", bootstyle="primary")
+            detail = ttkb.Labelframe(
+                self.projects_frame, text="📁 Project Details", bootstyle="primary"
+            )
         else:
             detail = ttk.LabelFrame(self.projects_frame, text="Project Details")
         detail.grid(row=0, column=1, sticky="nsew", padx=8, pady=8)
@@ -1344,23 +1805,37 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             detail.columnconfigure(i, weight=1)
 
         row = 0
-        ttk.Label(detail, text="Name:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
+        ttk.Label(detail, text="Name:").grid(
+            row=row, column=0, sticky="e", padx=4, pady=4
+        )
         self.proj_name_entry = ttk.Entry(detail)
         self.proj_name_entry.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
 
         row += 1
-        ttk.Label(detail, text="Priority:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
-        self.proj_priority_combo = ttk.Combobox(detail, values=PRIORITY_OPTIONS, state="readonly")
+        ttk.Label(detail, text="Priority:").grid(
+            row=row, column=0, sticky="e", padx=4, pady=4
+        )
+        self.proj_priority_combo = ttk.Combobox(
+            detail, values=PRIORITY_OPTIONS, state="readonly"
+        )
         self.proj_priority_combo.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
 
         row += 1
-        ttk.Label(detail, text="Status:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
-        self.proj_status_combo = ttk.Combobox(detail, values=["active", "paused", "archived"], state="readonly")
+        ttk.Label(detail, text="Status:").grid(
+            row=row, column=0, sticky="e", padx=4, pady=4
+        )
+        self.proj_status_combo = ttk.Combobox(
+            detail, values=["active", "paused", "archived"], state="readonly"
+        )
         self.proj_status_combo.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
 
         row += 1
-        ttk.Label(detail, text="Description:").grid(row=row, column=0, sticky="ne", padx=4, pady=4)
-        self.proj_desc_text = tk.Text(detail, height=6, wrap="word", font=self.text_font)
+        ttk.Label(detail, text="Description:").grid(
+            row=row, column=0, sticky="ne", padx=4, pady=4
+        )
+        self.proj_desc_text = tk.Text(
+            detail, height=6, wrap="word", font=self.text_font
+        )
         self.proj_desc_text.grid(row=row, column=1, sticky="nsew", padx=4, pady=4)
         detail.rowconfigure(row, weight=1)
 
@@ -1368,36 +1843,137 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             btns = ttkb.Frame(detail)
         else:
             btns = ttk.Frame(detail)
-        btns.grid(row=row+1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+        btns.grid(row=row + 1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
         btns.columnconfigure(0, weight=1)
         btns.columnconfigure(1, weight=1)
         btns.columnconfigure(2, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            new_btn = ttkb.Button(btns, text="➕ New Project", command=self.on_new_project, bootstyle="primary-outline")
-            save_btn = ttkb.Button(btns, text="💾 Save Project", command=self._save_project_with_feedback, bootstyle="success")
-            delete_btn = ttkb.Button(btns, text="🗑️ Delete Project", command=self._delete_project_with_feedback, bootstyle="danger-outline")
+            new_btn = ttkb.Button(
+                btns,
+                text="➕ New Project",
+                command=self.on_new_project,
+                bootstyle="primary-outline",
+            )
+            save_btn = ttkb.Button(
+                btns,
+                text="💾 Save Project",
+                command=self._save_project_with_feedback,
+                bootstyle="success",
+            )
+            delete_btn = ttkb.Button(
+                btns,
+                text="🗑️ Delete Project",
+                command=self._delete_project_with_feedback,
+                bootstyle="danger-outline",
+            )
         else:
             new_btn = ttk.Button(btns, text="New Project", command=self.on_new_project)
-            save_btn = ttk.Button(btns, text="Save Project", command=self._save_project_with_feedback)
-            delete_btn = ttk.Button(btns, text="Delete Project", command=self._delete_project_with_feedback)
+            save_btn = ttk.Button(
+                btns, text="Save Project", command=self._save_project_with_feedback
+            )
+            delete_btn = ttk.Button(
+                btns, text="Delete Project", command=self._delete_project_with_feedback
+            )
         new_btn.grid(row=0, column=0, padx=4, sticky="ew")
         save_btn.grid(row=0, column=1, padx=4, sticky="ew")
         delete_btn.grid(row=0, column=2, padx=4, sticky="ew")
-        
+
         # Add hover effects
         AnimationHelper.add_hover_effect(new_btn)
         AnimationHelper.add_hover_effect(save_btn)
         AnimationHelper.add_hover_effect(delete_btn)
         self._project_save_btn = save_btn
         self._project_delete_btn = delete_btn
-        
+
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(new_btn, text="Create a new project")
             ToolTip(save_btn, text="Save changes to the current project")
             ToolTip(delete_btn, text="Delete the selected project")
 
+        # Project intelligence panel connects backend insights to the GUI
+        intel_row = row + 2
+        if TTKBOOTSTRAP_AVAILABLE:
+            intel_frame = ttkb.Labelframe(
+                detail, text="🧠 Project Intelligence", bootstyle="secondary"
+            )
+        else:
+            intel_frame = ttk.LabelFrame(detail, text="Project Intelligence")
+        intel_frame.grid(
+            row=intel_row, column=0, columnspan=2, sticky="nsew", pady=(12, 0)
+        )
+        intel_frame.columnconfigure(0, weight=1)
+        intel_frame.rowconfigure(1, weight=1)
+        detail.rowconfigure(intel_row, weight=2)
+
+        status_label = ttk.Label(
+            intel_frame,
+            textvariable=self.project_intel_status_var,
+            wraplength=420,
+            justify="left",
+        )
+        status_label.grid(row=0, column=0, sticky="w", padx=6, pady=(6, 2))
+
+        self.project_insights_text = tk.Text(
+            intel_frame,
+            height=6,
+            wrap="word",
+            font=self.text_font,
+            state=tk.DISABLED,
+        )
+        self.project_insights_text.grid(row=1, column=0, sticky="nsew", padx=6, pady=4)
+
+        prediction_row = ttk.Frame(intel_frame)
+        prediction_row.grid(row=2, column=0, sticky="ew", padx=6, pady=(2, 4))
+        prediction_row.columnconfigure(0, weight=1)
+        ttk.Label(prediction_row, text="📅 Completion Forecast:").grid(
+            row=0, column=0, sticky="w"
+        )
+        ttk.Label(
+            prediction_row,
+            textvariable=self.project_prediction_var,
+            wraplength=380,
+            justify="left",
+        ).grid(row=0, column=1, sticky="w", padx=(4, 0))
+
+        priority_frame = ttk.Frame(intel_frame)
+        priority_frame.grid(row=3, column=0, sticky="nsew", padx=6, pady=(4, 6))
+        priority_frame.columnconfigure(0, weight=1)
+        priority_frame.rowconfigure(0, weight=1)
+
+        columns = ("task", "score", "due")
+        self.project_priority_tree = ttk.Treeview(
+            priority_frame,
+            columns=columns,
+            show="headings",
+            height=4,
+            selectmode="none",
+        )
+        self.project_priority_tree.heading("task", text="Task")
+        self.project_priority_tree.heading("score", text="Score")
+        self.project_priority_tree.heading("due", text="Due")
+        self.project_priority_tree.column("task", width=260)
+        self.project_priority_tree.column("score", width=70, anchor="center")
+        self.project_priority_tree.column("due", width=80, anchor="center")
+        self.project_priority_tree.grid(row=0, column=0, sticky="nsew")
+        priority_scroll = ttk.Scrollbar(
+            priority_frame, orient="vertical", command=self.project_priority_tree.yview
+        )
+        self.project_priority_tree.configure(yscrollcommand=priority_scroll.set)
+        priority_scroll.grid(row=0, column=1, sticky="ns")
+
+        refresh_btn = ttk.Button(
+            intel_frame,
+            text="🔎 Refresh Intelligence",
+            command=self._refresh_selected_project_intel,
+        )
+        refresh_btn.grid(row=4, column=0, sticky="e", padx=6, pady=(0, 6))
+        AnimationHelper.add_hover_effect(refresh_btn)
+        self._clear_project_intelligence()
+
     def refresh_project_list(self):
+        selected = self.project_tree.selection()
+        selected_name = selected[0] if selected else None
         for row in self.project_tree.get_children():
             self.project_tree.delete(row)
 
@@ -1405,7 +1981,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         for t in self.state_obj.tasks:
             counts[t.project] = counts.get(t.project, 0) + 1
 
-        priority_weight = {p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)}
+        priority_weight = {
+            p: len(PRIORITY_OPTIONS) - i for i, p in enumerate(PRIORITY_OPTIONS)
+        }
         projects_sorted = sorted(
             self.state_obj.projects,
             key=lambda p: (priority_weight.get(p.priority, 1), p.name),
@@ -1419,6 +1997,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 iid=p.name,
                 values=(p.name, p.priority, p.status, counts.get(p.name, 0)),
             )
+        if selected_name and self.project_tree.exists(selected_name):
+            self.project_tree.selection_set(selected_name)
+            self._refresh_project_intelligence(selected_name)
+        else:
+            self._clear_project_intelligence()
 
     def on_project_select(self, event=None):
         sel = self.project_tree.selection()
@@ -1437,6 +2020,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.proj_desc_text.delete("1.0", "end")
         if proj.description:
             self.proj_desc_text.insert("1.0", proj.description)
+        self._refresh_project_intelligence(name)
 
     def on_new_project(self):
         self.project_tree.selection_remove(*self.project_tree.selection())
@@ -1444,17 +2028,18 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.proj_priority_combo.set("MEDIUM")
         self.proj_status_combo.set("active")
         self.proj_desc_text.delete("1.0", "end")
+        self._clear_project_intelligence()
 
     def _save_project_with_feedback(self):
         """Save project with visual feedback"""
-        AnimationHelper.pulse_button(getattr(self, '_project_save_btn', None))
+        AnimationHelper.pulse_button(getattr(self, "_project_save_btn", None))
         self.on_save_project()
-    
+
     def _delete_project_with_feedback(self):
         """Delete project with visual feedback"""
-        AnimationHelper.pulse_button(getattr(self, '_project_delete_btn', None))
+        AnimationHelper.pulse_button(getattr(self, "_project_delete_btn", None))
         self.on_delete_project()
-    
+
     def on_save_project(self):
         name = self.proj_name_entry.get().strip()
         if not name:
@@ -1474,10 +2059,14 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             existing.status = status
             existing.description = desc
         else:
-            new_proj = Project(name=name, description=desc, status=status, priority=priority)
+            new_proj = Project(
+                name=name, description=desc, status=status, priority=priority
+            )
             self.state_obj.projects.append(new_proj)
 
-        db_upsert_project(self.conn, next(p for p in self.state_obj.projects if p.name == name))
+        db_upsert_project(
+            self.conn, next(p for p in self.state_obj.projects if p.name == name)
+        )
         self.refresh_project_list()
 
     def on_delete_project(self):
@@ -1497,6 +2086,108 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.refresh_project_list()
         self.on_new_project()
 
+    def _refresh_selected_project_intel(self):
+        sel = self.project_tree.selection()
+        project_name = sel[0] if sel else self.proj_name_entry.get().strip()
+        self._refresh_project_intelligence(project_name)
+
+    def _clear_project_intelligence(self):
+        if self.project_insights_text:
+            self.project_insights_text.config(state=tk.NORMAL)
+            self.project_insights_text.delete("1.0", "end")
+            self.project_insights_text.insert(
+                "1.0", "Select a project to analyze risk, forecasts, and priorities."
+            )
+            self.project_insights_text.config(state=tk.DISABLED)
+        self.project_intel_status_var.set("Select a project to see risk analysis.")
+        self.project_prediction_var.set(
+            "Select a project to view completion predictions."
+        )
+        if self.project_priority_tree:
+            for row in self.project_priority_tree.get_children():
+                self.project_priority_tree.delete(row)
+
+    def _refresh_project_intelligence(self, project_name: Optional[str]):
+        if not project_name:
+            self._clear_project_intelligence()
+            return
+        if not self.project_insights_text or not self.project_priority_tree:
+            return
+        try:
+            insights = analyze_project_risks(self.state_obj, project_name)
+        except Exception as exc:
+            self.project_intel_status_var.set(f"Risk analysis failed: {exc}")
+            self._clear_project_intelligence()
+            return
+
+        summary_lines = [
+            f"Risk Score: {insights.get('risk_score', 0)}/100",
+            f"Severity: {insights.get('severity', 'unknown').title()}",
+        ]
+        risks = insights.get("risks") or []
+        if risks:
+            summary_lines.append("\nKey Risks:")
+            for item in risks:
+                summary_lines.append(
+                    f"- {item.get('message','Unknown')} (Severity: {item.get('severity','n/a')})"
+                )
+        recommendations = insights.get("recommendations", "").strip()
+        if recommendations:
+            summary_lines.append("\nRecommendations:")
+            summary_lines.append(recommendations)
+
+        self.project_intel_status_var.set(
+            f"Live intelligence for {project_name} · {insights.get('severity','low').title()} risk"
+        )
+        self.project_insights_text.config(state=tk.NORMAL)
+        self.project_insights_text.delete("1.0", "end")
+        self.project_insights_text.insert("1.0", "\n".join(summary_lines))
+        self.project_insights_text.config(state=tk.DISABLED)
+
+        try:
+            prediction = predict_project_completion(self.state_obj, project_name)
+        except Exception as exc:
+            self.project_prediction_var.set(f"Prediction unavailable: {exc}")
+        else:
+            predicted_date = prediction.get("predicted_date")
+            if predicted_date:
+                confidence = prediction.get("confidence", "low").title()
+                reasoning = prediction.get("reasoning", "")
+                self.project_prediction_var.set(
+                    f"{predicted_date} ({confidence} confidence) {reasoning}"
+                )
+            else:
+                self.project_prediction_var.set(prediction.get("reasoning", "No data"))
+
+        for row in self.project_priority_tree.get_children():
+            self.project_priority_tree.delete(row)
+        try:
+            ranked = [
+                item
+                for item in get_smart_priority_order(self.state_obj)
+                if item["task"].project == project_name and item["task"].status != "DONE"
+            ][:5]
+        except Exception as exc:
+            self.project_priority_tree.insert(
+                "",
+                "end",
+                values=(f"Unable to load priorities: {exc}", "-", "-"),
+            )
+            return
+        if not ranked:
+            self.project_priority_tree.insert(
+                "", "end", values=("No active tasks for this project.", "-", "-")
+            )
+            return
+        for entry in ranked:
+            task = entry["task"]
+            score = entry.get("priority_score", 0)
+            due = task.due_date or "—"
+            label = f"#{task.id} {task.title}"
+            self.project_priority_tree.insert(
+                "", "end", values=(label, score, due)
+            )
+
     # ---------- AI Chat + Terminal Tab ----------
 
     def _build_chat_tab(self):
@@ -1510,7 +2201,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_frame.rowconfigure(0, weight=1)
 
         # Two-column layout: documents on the left, conversation on the right
-        chat_container = ttkb.Frame(self.chat_frame) if TTKBOOTSTRAP_AVAILABLE else ttk.Frame(self.chat_frame)
+        chat_container = (
+            ttkb.Frame(self.chat_frame)
+            if TTKBOOTSTRAP_AVAILABLE
+            else ttk.Frame(self.chat_frame)
+        )
         chat_container.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
         chat_container.columnconfigure(0, weight=1)
         chat_container.columnconfigure(1, weight=2)
@@ -1525,37 +2220,57 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def _build_document_panel(self, parent):
         if TTKBOOTSTRAP_AVAILABLE:
-            doc_frame = ttkb.Labelframe(parent, text="📁 Document Intake", bootstyle="info")
+            doc_frame = ttkb.Labelframe(
+                parent, text="📁 Document Intake", bootstyle="info"
+            )
         else:
             doc_frame = ttk.LabelFrame(parent, text="Document Intake")
         doc_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 8), pady=4)
         doc_frame.columnconfigure(0, weight=1)
 
-        help_text = (
-            "Import snippets directly into the prompt or upload reference files for agents."
+        help_text = "Import snippets directly into the prompt or upload reference files for agents."
+        ttk.Label(doc_frame, text=help_text, wraplength=280, justify="left").grid(
+            row=0, column=0, sticky="w", padx=6, pady=4
         )
-        ttk.Label(doc_frame, text=help_text, wraplength=280, justify="left").grid(row=0, column=0, sticky="w", padx=6, pady=4)
 
         btns = ttkb.Frame(doc_frame) if TTKBOOTSTRAP_AVAILABLE else ttk.Frame(doc_frame)
         btns.grid(row=1, column=0, sticky="ew", padx=4, pady=4)
         btns.columnconfigure((0, 1), weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            import_btn = ttkb.Button(btns, text="📥 Import to Prompt", command=self.on_import_chat_file, bootstyle="secondary-outline")
-            upload_btn = ttkb.Button(btns, text="☁️ Upload to Agents", command=self._upload_file_with_feedback, bootstyle="primary")
+            import_btn = ttkb.Button(
+                btns,
+                text="📥 Import to Prompt",
+                command=self.on_import_chat_file,
+                bootstyle="secondary-outline",
+            )
+            upload_btn = ttkb.Button(
+                btns,
+                text="☁️ Upload to Agents",
+                command=self._upload_file_with_feedback,
+                bootstyle="primary",
+            )
         else:
-            import_btn = ttk.Button(btns, text="Import to Prompt", command=self.on_import_chat_file)
-            upload_btn = ttk.Button(btns, text="Upload to Agents", command=self._upload_file_with_feedback)
+            import_btn = ttk.Button(
+                btns, text="Import to Prompt", command=self.on_import_chat_file
+            )
+            upload_btn = ttk.Button(
+                btns, text="Upload to Agents", command=self._upload_file_with_feedback
+            )
         import_btn.grid(row=0, column=0, padx=4, pady=2, sticky="ew")
         upload_btn.grid(row=0, column=1, padx=4, pady=2, sticky="ew")
 
         if TTKBOOTSTRAP_AVAILABLE:
-            ToolTip(import_btn, text="Load a file's content directly into the chat input")
+            ToolTip(
+                import_btn, text="Load a file's content directly into the chat input"
+            )
             ToolTip(upload_btn, text="Send a file to AI agents for reference")
 
         # Uploaded file list
         if TTKBOOTSTRAP_AVAILABLE:
-            list_label = ttkb.Label(doc_frame, text="Uploaded Files", bootstyle="secondary")
+            list_label = ttkb.Label(
+                doc_frame, text="Uploaded Files", bootstyle="secondary"
+            )
         else:
             list_label = ttk.Label(doc_frame, text="Uploaded Files")
         list_label.grid(row=2, column=0, sticky="w", padx=6, pady=(6, 2))
@@ -1565,11 +2280,27 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         doc_frame.rowconfigure(3, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            preview_btn = ttkb.Button(doc_frame, text="👁️ Preview Selected", command=self.on_preview_selected_upload, bootstyle="secondary-outline")
-            clear_btn = ttkb.Button(doc_frame, text="🗑️ Clear List", command=self._clear_uploaded_files, bootstyle="danger-outline")
+            preview_btn = ttkb.Button(
+                doc_frame,
+                text="👁️ Preview Selected",
+                command=self.on_preview_selected_upload,
+                bootstyle="secondary-outline",
+            )
+            clear_btn = ttkb.Button(
+                doc_frame,
+                text="🗑️ Clear List",
+                command=self._clear_uploaded_files,
+                bootstyle="danger-outline",
+            )
         else:
-            preview_btn = ttk.Button(doc_frame, text="Preview Selected", command=self.on_preview_selected_upload)
-            clear_btn = ttk.Button(doc_frame, text="Clear List", command=self._clear_uploaded_files)
+            preview_btn = ttk.Button(
+                doc_frame,
+                text="Preview Selected",
+                command=self.on_preview_selected_upload,
+            )
+            clear_btn = ttk.Button(
+                doc_frame, text="Clear List", command=self._clear_uploaded_files
+            )
         preview_btn.grid(row=4, column=0, sticky="ew", padx=6, pady=(2, 2))
         clear_btn.grid(row=5, column=0, sticky="ew", padx=6, pady=(0, 4))
 
@@ -1577,50 +2308,77 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def _build_conversation_panel(self, parent):
         if TTKBOOTSTRAP_AVAILABLE:
-            convo_frame = ttkb.Labelframe(parent, text="💬 Chat & Terminal", bootstyle="primary")
-            compose = ttkb.Labelframe(parent, text="✍️ Compose Message & Terminal", bootstyle="info")
+            convo_frame = ttkb.Labelframe(
+                parent, text="💬 Chat & Terminal", bootstyle="primary"
+            )
+            compose = ttkb.Labelframe(
+                parent, text="✍️ Compose Message & Terminal", bootstyle="info"
+            )
         else:
             convo_frame = ttk.LabelFrame(parent, text="Chat & Terminal")
             compose = ttk.LabelFrame(parent, text="Compose Message & Terminal")
         convo_frame.grid(row=0, column=1, sticky="nsew", padx=(0, 0), pady=4)
         convo_frame.columnconfigure(0, weight=1)
         convo_frame.rowconfigure(0, weight=1)
-        self.chat_text = tk.Text(convo_frame, wrap="word", state="disabled", font=self.text_font)
+        self.chat_text = tk.Text(
+            convo_frame, wrap="word", state="disabled", font=self.text_font
+        )
         self.chat_text.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
         if TTKBOOTSTRAP_AVAILABLE:
-            chat_scroll = ttkb.Scrollbar(convo_frame, orient="vertical", command=self.chat_text.yview, bootstyle="primary-round")
+            chat_scroll = ttkb.Scrollbar(
+                convo_frame,
+                orient="vertical",
+                command=self.chat_text.yview,
+                bootstyle="primary-round",
+            )
         else:
-            chat_scroll = ttk.Scrollbar(convo_frame, orient="vertical", command=self.chat_text.yview)
+            chat_scroll = ttk.Scrollbar(
+                convo_frame, orient="vertical", command=self.chat_text.yview
+            )
         self.chat_text.configure(yscrollcommand=chat_scroll.set)
         chat_scroll.grid(row=0, column=1, sticky="ns")
         compose.grid(row=1, column=1, sticky="nsew", padx=(0, 0), pady=(4, 4))
         compose.columnconfigure(1, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            ttkb.Label(compose, text="From:", bootstyle="secondary").grid(row=0, column=0, sticky="e", padx=4, pady=2)
+            ttkb.Label(compose, text="From:", bootstyle="secondary").grid(
+                row=0, column=0, sticky="e", padx=4, pady=2
+            )
             sender_combo = ttkb.Combobox(
                 compose,
                 textvariable=self.chat_sender_var,
                 values=PERSONAS,
                 state="readonly",
                 width=12,
-                bootstyle="primary"
+                bootstyle="primary",
             )
-            ttkb.Label(compose, text="AI Persona:", bootstyle="secondary").grid(row=0, column=2, sticky="e", padx=4, pady=2)
-            agent_label = ttkb.Label(compose, textvariable=self.chat_agent_var, bootstyle="info")
-            ttkb.Label(compose, text="Model:", bootstyle="secondary").grid(row=0, column=4, sticky="e", padx=4, pady=2)
+            ttkb.Label(compose, text="AI Persona:", bootstyle="secondary").grid(
+                row=0, column=2, sticky="e", padx=4, pady=2
+            )
+            agent_label = ttkb.Label(
+                compose, textvariable=self.chat_agent_var, bootstyle="info"
+            )
+            ttkb.Label(compose, text="Model:", bootstyle="secondary").grid(
+                row=0, column=4, sticky="e", padx=4, pady=2
+            )
             self.model_combo = ttkb.Combobox(
                 compose,
                 textvariable=self.chat_model_var,
                 values=["auto", "gpt-4o", "gpt-4o-mini", "o1-preview", "gpt-4-turbo"],
                 state="readonly",
                 width=16,
-                bootstyle="success"
+                bootstyle="success",
             )
-            ttkb.Label(compose, text="System Prompt:", bootstyle="secondary").grid(row=1, column=0, sticky="ne", padx=4, pady=2)
-            ttkb.Label(compose, text="Message:", bootstyle="secondary").grid(row=2, column=0, sticky="ne", padx=4, pady=(4, 2))
+            ttkb.Label(compose, text="System Prompt:", bootstyle="secondary").grid(
+                row=1, column=0, sticky="ne", padx=4, pady=2
+            )
+            ttkb.Label(compose, text="Message:", bootstyle="secondary").grid(
+                row=2, column=0, sticky="ne", padx=4, pady=(4, 2)
+            )
         else:
-            ttk.Label(compose, text="From:").grid(row=0, column=0, sticky="e", padx=4, pady=2)
+            ttk.Label(compose, text="From:").grid(
+                row=0, column=0, sticky="e", padx=4, pady=2
+            )
             sender_combo = ttk.Combobox(
                 compose,
                 textvariable=self.chat_sender_var,
@@ -1628,9 +2386,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 state="readonly",
                 width=12,
             )
-            ttk.Label(compose, text="AI Persona:").grid(row=0, column=2, sticky="e", padx=4, pady=2)
+            ttk.Label(compose, text="AI Persona:").grid(
+                row=0, column=2, sticky="e", padx=4, pady=2
+            )
             agent_label = ttk.Label(compose, textvariable=self.chat_agent_var)
-            ttk.Label(compose, text="Model:").grid(row=0, column=4, sticky="e", padx=4, pady=2)
+            ttk.Label(compose, text="Model:").grid(
+                row=0, column=4, sticky="e", padx=4, pady=2
+            )
             self.model_combo = ttk.Combobox(
                 compose,
                 textvariable=self.chat_model_var,
@@ -1638,59 +2400,94 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 state="readonly",
                 width=16,
             )
-            ttk.Label(compose, text="System Prompt:").grid(row=1, column=0, sticky="ne", padx=4, pady=2)
-            ttk.Label(compose, text="Input:").grid(row=2, column=0, sticky="ne", padx=4, pady=(4, 2))
+            ttk.Label(compose, text="System Prompt:").grid(
+                row=1, column=0, sticky="ne", padx=4, pady=2
+            )
+            ttk.Label(compose, text="Input:").grid(
+                row=2, column=0, sticky="ne", padx=4, pady=(4, 2)
+            )
         sender_combo.grid(row=0, column=1, sticky="w", padx=(0, 10), pady=2)
         agent_label.grid(row=0, column=3, sticky="w", padx=(0, 4), pady=2)
         self.model_combo.grid(row=0, column=5, sticky="w", padx=(0, 4), pady=2)
         self.model_combo.set("auto")
         self.model_combo.bind("<<ComboboxSelected>>", self.on_agent_change)
-        
-        self.system_prompt_text = tk.Text(compose, height=3, wrap="word", font=self.text_font)
-        self.system_prompt_text.grid(row=1, column=1, columnspan=5, sticky="nsew", padx=4, pady=2)
+
+        self.system_prompt_text = tk.Text(
+            compose, height=3, wrap="word", font=self.text_font
+        )
+        self.system_prompt_text.grid(
+            row=1, column=1, columnspan=5, sticky="nsew", padx=4, pady=2
+        )
         self.system_prompt_text.insert("1.0", DEFAULT_SYSTEM_PROMPT)
-        
+
         # Combined input section - CWD selector and unified input field
         if TTKBOOTSTRAP_AVAILABLE:
             input_meta_frame = ttkb.Frame(compose)
         else:
             input_meta_frame = ttk.Frame(compose)
-        input_meta_frame.grid(row=2, column=1, columnspan=5, sticky="ew", padx=4, pady=(4, 2))
+        input_meta_frame.grid(
+            row=2, column=1, columnspan=5, sticky="ew", padx=4, pady=(4, 2)
+        )
         input_meta_frame.columnconfigure(1, weight=1)
-        
+
         # CWD selector (compact, on same row as input hint)
         if TTKBOOTSTRAP_AVAILABLE:
             cwd_label = ttkb.Label(input_meta_frame, text="CWD:", bootstyle="secondary")
-            self.cwd_entry = ttkb.Entry(input_meta_frame, textvariable=self.cwd_var, bootstyle="primary", width=20)
-            browse_btn = ttkb.Button(input_meta_frame, text="📂", command=self.on_browse_cwd, bootstyle="secondary-outline", width=3)
+            self.cwd_entry = ttkb.Entry(
+                input_meta_frame,
+                textvariable=self.cwd_var,
+                bootstyle="primary",
+                width=20,
+            )
+            browse_btn = ttkb.Button(
+                input_meta_frame,
+                text="📂",
+                command=self.on_browse_cwd,
+                bootstyle="secondary-outline",
+                width=3,
+            )
         else:
             cwd_label = ttk.Label(input_meta_frame, text="CWD:")
-            self.cwd_entry = ttk.Entry(input_meta_frame, textvariable=self.cwd_var, width=20)
-            browse_btn = ttk.Button(input_meta_frame, text="📂", command=self.on_browse_cwd, width=3)
+            self.cwd_entry = ttk.Entry(
+                input_meta_frame, textvariable=self.cwd_var, width=20
+            )
+            browse_btn = ttk.Button(
+                input_meta_frame, text="📂", command=self.on_browse_cwd, width=3
+            )
         cwd_label.grid(row=0, column=0, sticky="w", padx=(0, 4))
         self.cwd_entry.grid(row=0, column=1, sticky="w", padx=(0, 4))
         browse_btn.grid(row=0, column=2, sticky="w", padx=(0, 0))
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(browse_btn, text="Browse for working directory")
-        
+
         # Combined input field (replaces both chat_input and command_entry)
         # Use Text widget for multi-line support (both messages and commands)
         self.chat_input = tk.Text(compose, height=4, wrap="word", font=self.text_font)
-        self.chat_input.grid(row=3, column=1, columnspan=5, sticky="nsew", padx=4, pady=(4, 2))
+        self.chat_input.grid(
+            row=3, column=1, columnspan=5, sticky="nsew", padx=4, pady=(4, 2)
+        )
         # Ctrl+Enter sends as chat message, Enter alone checks if it's a command
-        self.chat_input.bind("<Control-Return>", lambda e: (self.on_handle_combined_input(chat_mode=True), "break"))
-        self.chat_input.bind("<Return>", lambda e: self.on_handle_combined_input_enter(e))
-        
+        self.chat_input.bind(
+            "<Control-Return>",
+            lambda e: (self.on_handle_combined_input(chat_mode=True), "break"),
+        )
+        self.chat_input.bind(
+            "<Return>", lambda e: self.on_handle_combined_input_enter(e)
+        )
+
         # Placeholder hint
-        placeholder_text = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder_text = (
+            "Type a message for the AI. Prefix shell commands with '$'. "
+            "Shift+Enter adds a newline."
+        )
+        self.chat_placeholder = placeholder_text
         self.chat_input.insert("1.0", placeholder_text)
         self.chat_input.config(foreground="gray")
         self.chat_input.bind("<FocusIn>", self.on_input_focus_in)
         self.chat_input.bind("<FocusOut>", self.on_input_focus_out)
-        
+
         # Keep command_var for backward compatibility but use chat_input
         self.command_var = tk.StringVar()
-
 
         # Buttons row - consolidated and no duplicates
         if TTKBOOTSTRAP_AVAILABLE:
@@ -1704,17 +2501,40 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             btns.columnconfigure(idx, weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            import_btn = ttkb.Button(btns, text="📁 Import", command=self.on_import_chat_file, bootstyle="info-outline")
-            send_btn = ttkb.Button(btns, text="🚀 Send", command=lambda: self.on_handle_combined_input(chat_mode=True), bootstyle="primary")
-            clear_btn = ttkb.Button(btns, text="🗑️ Clear", command=self.on_clear_chat_history, bootstyle="danger-outline")
+            import_btn = ttkb.Button(
+                btns,
+                text="📁 Import",
+                command=self.on_import_chat_file,
+                bootstyle="info-outline",
+            )
+            send_btn = ttkb.Button(
+                btns,
+                text="🚀 Send",
+                command=lambda: self.on_handle_combined_input(chat_mode=True),
+                bootstyle="primary",
+            )
+            clear_btn = ttkb.Button(
+                btns,
+                text="🗑️ Clear",
+                command=self.on_clear_chat_history,
+                bootstyle="danger-outline",
+            )
         else:
-            import_btn = ttk.Button(btns, text="Import", command=self.on_import_chat_file)
-            send_btn = ttk.Button(btns, text="Send", command=lambda: self.on_handle_combined_input(chat_mode=True))
-            clear_btn = ttk.Button(btns, text="Clear", command=self.on_clear_chat_history)
+            import_btn = ttk.Button(
+                btns, text="Import", command=self.on_import_chat_file
+            )
+            send_btn = ttk.Button(
+                btns,
+                text="Send",
+                command=lambda: self.on_handle_combined_input(chat_mode=True),
+            )
+            clear_btn = ttk.Button(
+                btns, text="Clear", command=self.on_clear_chat_history
+            )
         import_btn.grid(row=0, column=0, padx=4, sticky="ew")
         send_btn.grid(row=0, column=1, padx=4, sticky="ew")
         clear_btn.grid(row=0, column=2, padx=4, sticky="ew")
-        
+
         # Add hover effects to chat buttons
         AnimationHelper.add_hover_effect(import_btn)
         AnimationHelper.add_hover_effect(send_btn)
@@ -1723,48 +2543,93 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(import_btn, text="Import file content into input")
-            ToolTip(send_btn, text="Send message (Ctrl+Enter) or run command (Enter for single-line, prefix with $)")
+            ToolTip(
+                send_btn,
+                text="Send message (Ctrl+Enter). Prefix with '$' to run shell commands. Shift+Enter inserts a newline.",
+            )
             ToolTip(clear_btn, text="Clear all chat history")
 
         if TTKBOOTSTRAP_AVAILABLE:
-            self.chat_status_label = ttkb.Label(compose, textvariable=self.chat_status_var, bootstyle="info")
+            self.chat_status_label = ttkb.Label(
+                compose, textvariable=self.chat_status_var, bootstyle="info"
+            )
         else:
-            self.chat_status_label = ttk.Label(compose, textvariable=self.chat_status_var)
-        self.chat_status_label.grid(row=5, column=0, columnspan=6, sticky="w", padx=4, pady=(2, 0))
-        
+            self.chat_status_label = ttk.Label(
+                compose, textvariable=self.chat_status_var
+            )
+        self.chat_status_label.grid(
+            row=5, column=0, columnspan=6, sticky="w", padx=4, pady=(2, 0)
+        )
+
         # Add progress indicator for AI responses
-        progress_container = ttkb.Frame(compose) if TTKBOOTSTRAP_AVAILABLE else ttk.Frame(compose)
-        progress_container.grid(row=6, column=0, columnspan=6, sticky="ew", padx=4, pady=(2, 0))
+        progress_container = (
+            ttkb.Frame(compose) if TTKBOOTSTRAP_AVAILABLE else ttk.Frame(compose)
+        )
+        progress_container.grid(
+            row=6, column=0, columnspan=6, sticky="ew", padx=4, pady=(2, 0)
+        )
         progress_container.columnconfigure(0, weight=1)
-        self.chat_progress = ProgressIndicator(self).create(progress_container, row=0, column=0, columnspan=1)
+        self.chat_progress = ProgressIndicator(self).create(
+            progress_container, row=0, column=0, columnspan=1
+        )
         self.chat_progress.progress_bar.grid_remove()
         self.chat_progress.indicator_label.grid_remove()
 
     def _build_file_preview_panel(self, parent):
         if TTKBOOTSTRAP_AVAILABLE:
-            preview_frame = ttkb.Labelframe(parent, text="📄 Active File", bootstyle="secondary")
+            preview_frame = ttkb.Labelframe(
+                parent, text="📄 Active File", bootstyle="secondary"
+            )
         else:
             preview_frame = ttk.LabelFrame(parent, text="Active File")
         preview_frame.grid(row=0, column=2, sticky="nsew", padx=(6, 0), pady=4)
         preview_frame.columnconfigure(0, weight=1)
 
-        status_row = ttkb.Frame(preview_frame) if TTKBOOTSTRAP_AVAILABLE else ttk.Frame(preview_frame)
+        status_row = (
+            ttkb.Frame(preview_frame)
+            if TTKBOOTSTRAP_AVAILABLE
+            else ttk.Frame(preview_frame)
+        )
         status_row.grid(row=0, column=0, sticky="ew", padx=4, pady=(4, 0))
         status_row.columnconfigure(0, weight=1)
 
-        status_label = ttkb.Label(status_row, textvariable=self.active_file_status, bootstyle="info") if TTKBOOTSTRAP_AVAILABLE else ttk.Label(status_row, textvariable=self.active_file_status)
+        status_label = (
+            ttkb.Label(
+                status_row, textvariable=self.active_file_status, bootstyle="info"
+            )
+            if TTKBOOTSTRAP_AVAILABLE
+            else ttk.Label(status_row, textvariable=self.active_file_status)
+        )
         status_label.grid(row=0, column=0, sticky="w")
 
-        btn_row = ttkb.Frame(preview_frame) if TTKBOOTSTRAP_AVAILABLE else ttk.Frame(preview_frame)
+        btn_row = (
+            ttkb.Frame(preview_frame)
+            if TTKBOOTSTRAP_AVAILABLE
+            else ttk.Frame(preview_frame)
+        )
         btn_row.grid(row=1, column=0, sticky="ew", padx=4, pady=2)
         btn_row.columnconfigure((0, 1), weight=1)
 
         if TTKBOOTSTRAP_AVAILABLE:
-            choose_btn = ttkb.Button(btn_row, text="🔍 Choose File", command=self.on_choose_active_file, bootstyle="info-outline")
-            refresh_btn = ttkb.Button(btn_row, text="🔄 Refresh", command=self._render_active_file_content, bootstyle="secondary-outline")
+            choose_btn = ttkb.Button(
+                btn_row,
+                text="🔍 Choose File",
+                command=self.on_choose_active_file,
+                bootstyle="info-outline",
+            )
+            refresh_btn = ttkb.Button(
+                btn_row,
+                text="🔄 Refresh",
+                command=self._render_active_file_content,
+                bootstyle="secondary-outline",
+            )
         else:
-            choose_btn = ttk.Button(btn_row, text="Choose File", command=self.on_choose_active_file)
-            refresh_btn = ttk.Button(btn_row, text="Refresh", command=self._render_active_file_content)
+            choose_btn = ttk.Button(
+                btn_row, text="Choose File", command=self.on_choose_active_file
+            )
+            refresh_btn = ttk.Button(
+                btn_row, text="Refresh", command=self._render_active_file_content
+            )
         choose_btn.grid(row=0, column=0, padx=2, sticky="ew")
         refresh_btn.grid(row=0, column=1, padx=2, sticky="ew")
 
@@ -1772,36 +2637,65 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             ToolTip(choose_btn, text="Pick a file to watch and share with the AI")
             ToolTip(refresh_btn, text="Manually refresh the live preview")
 
-        self.file_preview_text = tk.Text(preview_frame, height=18, wrap="word", state="disabled", font=self.text_font)
+        self.file_preview_text = tk.Text(
+            preview_frame, height=18, wrap="word", state="disabled", font=self.text_font
+        )
         self.file_preview_text.grid(row=2, column=0, sticky="nsew", padx=4, pady=(4, 6))
         preview_frame.rowconfigure(2, weight=1)
 
-        scroll = ttk.Scrollbar(preview_frame, orient="vertical", command=self.file_preview_text.yview)
+        scroll = ttk.Scrollbar(
+            preview_frame, orient="vertical", command=self.file_preview_text.yview
+        )
         self.file_preview_text.configure(yscrollcommand=scroll.set)
         scroll.grid(row=2, column=1, sticky="ns")
 
     def _build_change_monitor(self, parent):
         if TTKBOOTSTRAP_AVAILABLE:
-            change_frame = ttkb.Labelframe(parent, text="🛠️ Live Change Log", bootstyle="secondary")
+            change_frame = ttkb.Labelframe(
+                parent, text="🛠️ Live Change Log", bootstyle="secondary"
+            )
         else:
             change_frame = ttk.LabelFrame(parent, text="Live Change Log")
-        change_frame.grid(row=1, column=0, columnspan=3, sticky="nsew", padx=2, pady=(0, 4))
+        change_frame.grid(
+            row=1, column=0, columnspan=3, sticky="nsew", padx=2, pady=(0, 4)
+        )
         change_frame.columnconfigure(0, weight=1)
         change_frame.rowconfigure(0, weight=1)
 
-        self.change_log_text = tk.Text(change_frame, height=8, wrap="word", state="disabled", font=self.text_font)
+        self.change_log_text = tk.Text(
+            change_frame, height=8, wrap="word", state="disabled", font=self.text_font
+        )
         self.change_log_text.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
-        scrollbar = ttk.Scrollbar(change_frame, orient="vertical", command=self.change_log_text.yview)
+        scrollbar = ttk.Scrollbar(
+            change_frame, orient="vertical", command=self.change_log_text.yview
+        )
         self.change_log_text.configure(yscrollcommand=scrollbar.set)
         scrollbar.grid(row=0, column=1, sticky="ns")
 
-        refresh_btn = ttkb.Button(change_frame, text="🔄 Refresh", command=self.refresh_change_log, bootstyle="secondary-outline") if TTKBOOTSTRAP_AVAILABLE else ttk.Button(change_frame, text="Refresh", command=self.refresh_change_log)
+        refresh_btn = (
+            ttkb.Button(
+                change_frame,
+                text="🔄 Refresh",
+                command=self.refresh_change_log,
+                bootstyle="secondary-outline",
+            )
+            if TTKBOOTSTRAP_AVAILABLE
+            else ttk.Button(
+                change_frame, text="Refresh", command=self.refresh_change_log
+            )
+        )
         refresh_btn.grid(row=1, column=0, columnspan=2, sticky="e", padx=4, pady=(0, 4))
         self.after(50, self.refresh_change_log)
 
     def _get_git_output(self, args):
         try:
-            completed = subprocess.run(["git", *args], cwd=os.getcwd(), capture_output=True, text=True, check=False)
+            completed = subprocess.run(
+                ["git", *args],
+                cwd=os.getcwd(),
+                capture_output=True,
+                text=True,
+                check=False,
+            )
             if completed.returncode != 0:
                 return None
             return completed.stdout.strip()
@@ -1809,12 +2703,18 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             return None
 
     def _summarize_agent_activity(self) -> str:
-        recent_actions = [msg for msg in self.state_obj.chat_messages if msg.kind in ("terminal", "terminal_result")][-10:]
+        recent_actions = [
+            msg
+            for msg in self.state_obj.chat_messages
+            if msg.kind in ("terminal", "terminal_result")
+        ][-10:]
         if not recent_actions:
             return "No recent agent commands yet."
         lines = []
         for msg in recent_actions:
-            lines.append(f"[{msg.created_at}] {msg.persona}: {msg.content.splitlines()[0]}")
+            lines.append(
+                f"[{msg.created_at}] {msg.persona}: {msg.content.splitlines()[0]}"
+            )
         return "\n".join(lines)
 
     def refresh_change_log(self):
@@ -1842,147 +2742,169 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.change_log_text.config(state="disabled")
 
     def _update_chat_status(self, message: Optional[str] = None):
-        if not hasattr(self, 'chat_status_var'):
+        if not hasattr(self, "chat_status_var"):
             return
         if message:
             self.chat_status_var.set(message)
         elif openai_available():
-            agent = self.chat_agent_var.get() if hasattr(self, 'chat_agent_var') else None
+            agent = (
+                self.chat_agent_var.get() if hasattr(self, "chat_agent_var") else None
+            )
             if agent:
-                model = get_agent_model(agent) if self.chat_model_var.get() == "auto" else self.chat_model_var.get()
-                self.chat_status_var.set(f'ChatGPT ready. Agent: {agent} | Model: {model}')
+                model = (
+                    get_agent_model(agent)
+                    if self.chat_model_var.get() == "auto"
+                    else self.chat_model_var.get()
+                )
+                self.chat_status_var.set(
+                    f"ChatGPT ready. Agent: {agent} | Model: {model}"
+                )
             else:
-                self.chat_status_var.set('ChatGPT ready.')
+                self.chat_status_var.set("ChatGPT ready.")
         else:
-            self.chat_status_var.set('OpenAI key missing – offline fallback only.')
+            self.chat_status_var.set("OpenAI key missing – offline fallback only.")
 
     def refresh_chat_history(self):
         if not self.chat_text:
             return
-        self.chat_text.config(state='normal')
-        self.chat_text.delete('1.0', 'end')
+        self.chat_text.config(state="normal")
+        self.chat_text.delete("1.0", "end")
         for msg in self.state_obj.chat_messages[-400:]:
-            timestamp = msg.created_at.replace('T', ' ')
-            if msg.kind == 'terminal':
-                kind_label = ' [TERMINAL COMMAND]'
-            elif msg.kind == 'terminal_result':
-                kind_label = ' [TERMINAL OUTPUT]'
-            elif msg.kind == 'file':
-                kind_label = ' [FILE]'
+            timestamp = msg.created_at.replace("T", " ")
+            if msg.kind == "terminal":
+                kind_label = " [TERMINAL COMMAND]"
+            elif msg.kind == "terminal_result":
+                kind_label = " [TERMINAL OUTPUT]"
+            elif msg.kind == "file":
+                kind_label = " [FILE]"
             else:
-                kind_label = ''
-            self.chat_text.insert('end', f"[{timestamp}] {msg.persona}{kind_label}\n{msg.content}\n\n")
-        self.chat_text.config(state='disabled')
+                kind_label = ""
+            self.chat_text.insert(
+                "end", f"[{timestamp}] {msg.persona}{kind_label}\n{msg.content}\n\n"
+            )
+        self.chat_text.config(state="disabled")
 
     def on_import_chat_file(self):
         """Import file content into chat input."""
-        initial_dir = self.cwd_var.get().strip() if hasattr(self, 'cwd_var') else ''
+        initial_dir = self.cwd_var.get().strip() if hasattr(self, "cwd_var") else ""
         path = filedialog.askopenfilename(initialdir=initial_dir or os.getcwd())
         if not path:
-            self._update_chat_status('File import cancelled.')
+            self._update_chat_status("File import cancelled.")
             return
         try:
             content, descriptor = self._read_file_for_chat(path)
         except OSError as exc:
-            messagebox.showerror('Import File', f'Unable to read file:\n{exc}')
-            self._update_chat_status('Import failed.')
+            messagebox.showerror("Import File", f"Unable to read file:\n{exc}")
+            self._update_chat_status("Import failed.")
             return
 
         truncated = False
         raw_len = len(content)
         if raw_len > MAX_IMPORTED_FILE_CHARS:
-            content = content[:MAX_IMPORTED_FILE_CHARS] + '\n... [truncated for length]'
+            content = content[:MAX_IMPORTED_FILE_CHARS] + "\n... [truncated for length]"
             truncated = True
 
         label = os.path.basename(path)
         block = f"\n[Imported file: {label}{descriptor}]\n{content}\n"
-        
+
         # Clear placeholder if present
-        current = self.chat_input.get('1.0', 'end').strip()
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        current = self.chat_input.get("1.0", "end").strip()
+        placeholder = getattr(
+            self,
+            "chat_placeholder",
+            "Type a message for the AI. Prefix shell commands with '$'.",
+        )
         if current == placeholder:
-            self.chat_input.delete('1.0', 'end')
+            self.chat_input.delete("1.0", "end")
             self.chat_input.config(foreground="black")
-        
-        self.chat_input.insert('end', block)
+
+        self.chat_input.insert("end", block)
         if truncated:
-            self.chat_input.insert('end', '\n[Note: content truncated to fit limit]\n')
+            self.chat_input.insert("end", "\n[Note: content truncated to fit limit]\n")
         self._set_active_file(path, reason="Imported to prompt")
-        self._update_chat_status(f"Imported '{label}' ({'truncated' if truncated else 'full'}).")
-    
+        self._update_chat_status(
+            f"Imported '{label}' ({'truncated' if truncated else 'full'})."
+        )
+
     def on_upload_file(self):
         """Upload file to OpenAI and attach to conversation."""
-        initial_dir = self.cwd_var.get().strip() if hasattr(self, 'cwd_var') else ''
+        initial_dir = self.cwd_var.get().strip() if hasattr(self, "cwd_var") else ""
         path = filedialog.askopenfilename(initialdir=initial_dir or os.getcwd())
         if not path:
-            self._update_chat_status('File upload cancelled.')
+            self._update_chat_status("File upload cancelled.")
             return
-        
+
         try:
             from .ai import get_openai_client
+
             client = get_openai_client()
-            
+
             # Upload file to OpenAI
-            with open(path, 'rb') as f:
-                file_obj = client.files.create(
-                    file=f,
-                    purpose='assistants'
-                )
-            
+            with open(path, "rb") as f:
+                file_obj = client.files.create(file=f, purpose="assistants")
+
             label = os.path.basename(path)
             self.uploaded_files.append({"name": label, "id": file_obj.id, "path": path})
             self._refresh_upload_list()
 
             # Add file reference to chat input
-            self.chat_input.insert('end', f"\n[Uploaded file: {label} (ID: {file_obj.id})]\n")
-            self._update_chat_status(f"Uploaded '{label}' to OpenAI (ID: {file_obj.id})")
+            self.chat_input.insert(
+                "end", f"\n[Uploaded file: {label} (ID: {file_obj.id})]\n"
+            )
+            self._update_chat_status(
+                f"Uploaded '{label}' to OpenAI (ID: {file_obj.id})"
+            )
             self._set_active_file(path, reason="Uploaded to agents")
-            
+
             # Store file info in chat
             self._store_chat_message(
-                'System',
-                'system',
+                "System",
+                "system",
                 f"File uploaded: {label} (OpenAI ID: {file_obj.id})",
-                kind='file'
+                kind="file",
             )
             self.refresh_chat_history()
-            
+
         except Exception as exc:
-            messagebox.showerror('Upload File', f'Failed to upload file:\n{exc}')
-            self._update_chat_status('File upload failed.')
+            messagebox.showerror("Upload File", f"Failed to upload file:\n{exc}")
+            self._update_chat_status("File upload failed.")
 
     def _read_file_for_chat(self, path: str):
         try:
-            with open(path, 'r', encoding='utf-8') as fh:
+            with open(path, "r", encoding="utf-8") as fh:
                 data = fh.read()
-            return data, ''
+            return data, ""
         except UnicodeDecodeError:
-            with open(path, 'rb') as fh:
+            with open(path, "rb") as fh:
                 binary = fh.read()
-        encoded = base64.b64encode(binary).decode('ascii')
-        notice = ' (base64 encoded)'
+        encoded = base64.b64encode(binary).decode("ascii")
+        notice = " (base64 encoded)"
         return f"(base64)\n{encoded}", notice
 
-    def _store_chat_message(self, persona: str, role: str, content: str, kind: str = 'chat') -> ChatMessage:
-        role = (role or 'user').lower()
-        now = datetime.now().isoformat(timespec='seconds')
-        msg = ChatMessage(id=0, persona=persona, role=role, kind=kind, content=content, created_at=now)
+    def _store_chat_message(
+        self, persona: str, role: str, content: str, kind: str = "chat"
+    ) -> ChatMessage:
+        role = (role or "user").lower()
+        now = datetime.now().isoformat(timespec="seconds")
+        msg = ChatMessage(
+            id=0, persona=persona, role=role, kind=kind, content=content, created_at=now
+        )
         msg.id = db_insert_chat_message(self.conn, msg)
         self.state_obj.chat_messages.append(msg)
         return msg
 
     def _send_chat_with_feedback(self, invoke_ai: bool = True):
         """Send chat message with visual feedback"""
-        AnimationHelper.pulse_button(getattr(self, '_chat_send_btn', None))
+        AnimationHelper.pulse_button(getattr(self, "_chat_send_btn", None))
         self.on_send_chat_message(invoke_ai)
-    
+
     def _upload_file_with_feedback(self):
         """Upload file with visual feedback"""
         self.on_upload_file()
 
     def _run_terminal_with_feedback(self, event=None):
         """Run terminal command with visual feedback"""
-        AnimationHelper.pulse_button(getattr(self, '_terminal_run_btn', None))
+        AnimationHelper.pulse_button(getattr(self, "_terminal_run_btn", None))
         self.on_run_terminal_command(event)
 
     def _is_command_low_risk(self, command: str) -> bool:
@@ -2042,7 +2964,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def on_preview_selected_upload(self):
         selection = self.upload_list.curselection()
         if not selection:
-            messagebox.showinfo("Preview", "Select an uploaded file with a known path to preview.")
+            messagebox.showinfo(
+                "Preview", "Select an uploaded file with a known path to preview."
+            )
             return
         idx = selection[0]
         if idx >= len(self.uploaded_files):
@@ -2050,7 +2974,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         entry = self.uploaded_files[idx]
         path = entry.get("path") if isinstance(entry, dict) else None
         if not path:
-            messagebox.showwarning("Preview", "This upload does not have a local path to watch.")
+            messagebox.showwarning(
+                "Preview", "This upload does not have a local path to watch."
+            )
             return
         if not os.path.exists(path):
             messagebox.showerror("Preview", f"File not found: {path}")
@@ -2059,7 +2985,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def on_choose_active_file(self):
         """Let the user pick a file to preview and feed into AI context."""
-        initial_dir = self.cwd_var.get().strip() if hasattr(self, "cwd_var") else os.getcwd()
+        initial_dir = (
+            self.cwd_var.get().strip() if hasattr(self, "cwd_var") else os.getcwd()
+        )
         path = filedialog.askopenfilename(initialdir=initial_dir or os.getcwd())
         if not path:
             self.active_file_status.set("Active file selection cancelled")
@@ -2105,7 +3033,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if self.active_file_path:
             status_parts.append(f"Watching {self.active_file_path}")
             if self.active_file_mtime:
-                status_parts.append(f"updated {datetime.fromtimestamp(self.active_file_mtime).strftime('%Y-%m-%d %H:%M:%S')}")
+                status_parts.append(
+                    f"updated {datetime.fromtimestamp(self.active_file_mtime).strftime('%Y-%m-%d %H:%M:%S')}"
+                )
         else:
             status_parts.append("No active file selected")
         self.active_file_status.set(" — ".join(status_parts))
@@ -2143,7 +3073,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.active_file_mtime = current_mtime
             self._load_active_file_content()
             self.after(0, self.refresh_chat_history)
-            self._update_chat_status(f"Active file changed: {os.path.basename(self.active_file_path)}")
+            self._update_chat_status(
+                f"Active file changed: {os.path.basename(self.active_file_path)}"
+            )
         self._schedule_active_file_watch()
 
     def _append_active_file_context(self, messages):
@@ -2169,56 +3101,59 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             ),
         )
         return messages + [context]
-    
+
     def on_send_chat_message(self, invoke_ai: bool = True):
-        if not hasattr(self, 'chat_input'):
+        if not hasattr(self, "chat_input"):
             return
-        text = self.chat_input.get('1.0', 'end').strip()
-        
+        text = self.chat_input.get("1.0", "end").strip()
+
         # Ignore placeholder text
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        placeholder = getattr(
+            self,
+            "chat_placeholder",
+            "Type a message for the AI. Prefix shell commands with '$'.",
+        )
         if not text or text == placeholder:
-            messagebox.showinfo('Chat', 'Type a message first.')
+            messagebox.showinfo("Chat", "Type a message first.")
             return
-        sender = self.chat_sender_var.get().strip() or 'Chris'
+        sender = self.chat_sender_var.get().strip() or "Chris"
         if sender not in PERSONAS:
-            sender = 'Chris'
-        user_msg = self._store_chat_message(sender, 'user', text)
-        
+            sender = "Chris"
+        user_msg = self._store_chat_message(sender, "user", text)
+
         # Try to extract and create tasks from the message
         try:
             created_tasks = create_task_from_ai_message(
-                self.conn,
-                text,
-                default_project="General",
-                default_owner=sender
+                self.conn, text, default_project="General", default_owner=sender
             )
             if created_tasks:
-                self._update_chat_status(f'Created {len(created_tasks)} task(s) from message.')
+                self._update_chat_status(
+                    f"Created {len(created_tasks)} task(s) from message."
+                )
                 self.refresh_task_list()
                 self.refresh_dashboard()
         except Exception:
             pass
-        
-        self.chat_input.delete('1.0', 'end')
+
+        self.chat_input.delete("1.0", "end")
         self.on_input_focus_out()  # Restore placeholder if empty
         self.refresh_chat_history()
         if not invoke_ai:
-            self._update_chat_status('Message logged without contacting ChatGPT.')
+            self._update_chat_status("Message logged without contacting ChatGPT.")
             return
 
         responder = self.chat_agent_var.get().strip() or self.state_obj.active_persona
         instruction = None
         if responder and responder != sender:
-            instruction = f'Please respond as {responder}.'
+            instruction = f"Please respond as {responder}."
 
-        system_prompt = self.system_prompt_text.get('1.0', 'end').strip()
+        system_prompt = self.system_prompt_text.get("1.0", "end").strip()
         model_input = self.chat_model_var.get().strip()
         if model_input == "auto" or not model_input:
             model = get_agent_model(responder)
         else:
             model = model_input
-        
+
         cwd = os.path.expanduser(self.cwd_var.get().strip() or os.getcwd())
         self._start_ai_response(
             user_msg=user_msg,
@@ -2240,20 +3175,22 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         fallback_prompt: str,
         cwd: str,
     ):
-        self._update_chat_status(f'Contacting ChatGPT ({model})...')
+        self._update_chat_status(f"Contacting ChatGPT ({model})...")
         # Start progress indicator
-        if hasattr(self, 'chat_progress'):
-            self.chat_progress.start(f'Generating response with {model}...')
+        if hasattr(self, "chat_progress"):
+            self.chat_progress.start(f"Generating response with {model}...")
 
         def worker():
             # Interactive loop: handle tool calls
             max_iterations = 10  # Prevent infinite loops
             iteration = 0
-            
+
             while iteration < max_iterations:
                 # Refresh messages from state for each iteration and inject live context
-                current_messages = self._append_active_file_context(self.state_obj.chat_messages.copy())
-                
+                current_messages = self._append_active_file_context(
+                    self.state_obj.chat_messages.copy()
+                )
+
                 reply, error, tool_calls = generate_ai_reply(
                     current_messages,
                     persona=user_msg.persona,
@@ -2265,11 +3202,14 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     cwd=cwd,
                     enable_shell=True,
                 )
-                
+
                 if error:
-                    self.after(0, lambda r=reply, e=error: self._handle_ai_reply(r, e, responder))
+                    self.after(
+                        0,
+                        lambda r=reply, e=error: self._handle_ai_reply(r, e, responder),
+                    )
                     return
-                
+
                 # If there are tool calls, execute them
                 if tool_calls:
                     tool_results = []
@@ -2282,8 +3222,18 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                             except Exception:
                                 command_preview = None
 
-                            if command_preview and not self._request_overwrite_permission(command_preview, cwd):
-                                self._store_chat_message(responder, 'assistant', f"Skipped command: {command_preview}", kind='terminal_result')
+                            if (
+                                command_preview
+                                and not self._request_overwrite_permission(
+                                    command_preview, cwd
+                                )
+                            ):
+                                self._store_chat_message(
+                                    responder,
+                                    "assistant",
+                                    f"Skipped command: {command_preview}",
+                                    kind="terminal_result",
+                                )
                                 continue
 
                         result = execute_tool_call(tool_call, cwd=cwd)
@@ -2295,53 +3245,74 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                                 args = json.loads(tool_call.function.arguments)
                                 cmd = args.get("command", "")
                                 if cmd:
-                                    header = f'$ {cmd}\n(cwd: {cwd})'
-                                    self._store_chat_message(responder, 'user', header, kind='terminal')
-                                    self._store_chat_message(responder, 'assistant', result["content"], kind='terminal_result')
+                                    header = f"$ {cmd}\n(cwd: {cwd})"
+                                    self._store_chat_message(
+                                        responder, "user", header, kind="terminal"
+                                    )
+                                    self._store_chat_message(
+                                        responder,
+                                        "assistant",
+                                        result["content"],
+                                        kind="terminal_result",
+                                    )
                                     self.after(0, self.refresh_chat_history)
                                     self.after(0, self.refresh_change_log)
                             except Exception:
                                 pass
-                    
+
                     # Store tool results in chat for next iteration
                     for result in tool_results:
-                        self._store_chat_message(responder, 'tool', result["content"], kind='tool_result')
-                    
+                        self._store_chat_message(
+                            responder, "tool", result["content"], kind="tool_result"
+                        )
+
                     self.after(0, self.refresh_chat_history)
                     iteration += 1
                     import time
+
                     time.sleep(0.5)  # Brief pause to allow UI update
                     continue
                 else:
                     # No more tool calls, return the final reply
-                    self.after(0, lambda r=reply, e=error: self._handle_ai_reply(r, e, responder))
+                    self.after(
+                        0,
+                        lambda r=reply, e=error: self._handle_ai_reply(r, e, responder),
+                    )
                     return
-            
+
             # Max iterations reached
-            final_reply = reply if 'reply' in locals() and reply else "Maximum interaction iterations reached."
-            self.after(0, lambda r=final_reply: self._handle_ai_reply(r, None, responder))
+            final_reply = (
+                reply
+                if "reply" in locals() and reply
+                else "Maximum interaction iterations reached."
+            )
+            self.after(
+                0, lambda r=final_reply: self._handle_ai_reply(r, None, responder)
+            )
 
         threading.Thread(target=worker, daemon=True).start()
 
     def _handle_ai_reply(self, reply_text: str, error: Optional[str], responder: str):
         # Stop progress indicator
-        if hasattr(self, 'chat_progress'):
+        if hasattr(self, "chat_progress"):
             if error:
                 self.chat_progress.stop("Error occurred")
             else:
                 self.chat_progress.stop("Response received")
-        
-        persona = responder or self.chat_agent_var.get().strip() or 'AI Team'
-        text = reply_text.strip() if reply_text else '(no response)'
-        self._store_chat_message(persona, 'assistant', text)
+
+        persona = responder or self.chat_agent_var.get().strip() or "AI Team"
+        text = reply_text.strip() if reply_text else "(no response)"
+        self._store_chat_message(persona, "assistant", text)
         self.refresh_chat_history()
         if error:
-            self._update_chat_status(f'ChatGPT error (fallback used): {error}')
+            self._update_chat_status(f"ChatGPT error (fallback used): {error}")
         else:
-            self._update_chat_status('ChatGPT response ready.')
+            self._update_chat_status("ChatGPT response ready.")
 
     def on_clear_chat_history(self):
-        if not messagebox.askyesno('Clear Chat', 'Delete the entire chat + terminal log?'):
+        if not messagebox.askyesno(
+            "Clear Chat", "Delete the entire chat + terminal log?"
+        ):
             return
         db_clear_chat_history(self.conn)
         self.state_obj.chat_messages.clear()
@@ -2350,32 +3321,34 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
     def on_run_terminal_command(self, event=None):
         command = self.command_var.get().strip()
         if not command:
-            messagebox.showinfo('Terminal', 'Enter a command to run.')
+            messagebox.showinfo("Terminal", "Enter a command to run.")
             return
         cwd = os.path.expanduser(self.cwd_var.get().strip() or os.getcwd())
         if not os.path.isdir(cwd):
-            messagebox.showerror('Terminal', f'Working directory not found: {cwd}')
+            messagebox.showerror("Terminal", f"Working directory not found: {cwd}")
             return
         try:
             result = run_bash_command(command, cwd=cwd)
         except Exception as exc:
-            messagebox.showerror('Terminal', f'Failed to execute command: {exc}')
+            messagebox.showerror("Terminal", f"Failed to execute command: {exc}")
             return
 
-        header = f'$ {command}\n(cwd: {result.cwd})'
-        self._store_chat_message('Terminal', 'user', header, kind='terminal')
+        header = f"$ {command}\n(cwd: {result.cwd})"
+        self._store_chat_message("Terminal", "user", header, kind="terminal")
 
-        parts = [f'shell: {result.shell_path}', f'exit: {result.returncode}']
+        parts = [f"shell: {result.shell_path}", f"exit: {result.returncode}"]
         output = result.stdout.strip()
         err = result.stderr.strip()
-        body = ' | '.join(parts)
+        body = " | ".join(parts)
         if output:
             body += f"\n{output}"
         if err:
             body += f"\n[stderr]\n{err}"
-        self._store_chat_message('Terminal', 'assistant', body or '(no output)', kind='terminal_result')
+        self._store_chat_message(
+            "Terminal", "assistant", body or "(no output)", kind="terminal_result"
+        )
 
-        self.command_var.set('')
+        self.command_var.set("")
         self.refresh_chat_history()
         self.refresh_change_log()
 
@@ -2387,38 +3360,51 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
     def on_input_focus_in(self, event=None):
         """Clear placeholder text when input gains focus."""
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
-        current_text = self.chat_input.get('1.0', 'end').strip()
+        placeholder = getattr(
+            self,
+            "chat_placeholder",
+            "Type a message for the AI. Prefix shell commands with '$'.",
+        )
+        current_text = self.chat_input.get("1.0", "end").strip()
         if current_text == placeholder:
-            self.chat_input.delete('1.0', 'end')
+            self.chat_input.delete("1.0", "end")
             self.chat_input.config(foreground="black")
 
     def on_input_focus_out(self, event=None):
         """Restore placeholder text if input is empty."""
-        current_text = self.chat_input.get('1.0', 'end').strip()
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
+        current_text = self.chat_input.get("1.0", "end").strip()
+        placeholder = getattr(
+            self,
+            "chat_placeholder",
+            "Type a message for the AI. Prefix shell commands with '$'.",
+        )
         if not current_text:
             self.chat_input.insert("1.0", placeholder)
             self.chat_input.config(foreground="gray")
 
-    def on_handle_combined_input(self, chat_mode=False):
+    def on_handle_combined_input(self, chat_mode=True):
         """Handle combined input field - can be either chat message or terminal command."""
-        if not hasattr(self, 'chat_input'):
+        if not hasattr(self, "chat_input"):
             return
-        
-        text = self.chat_input.get('1.0', 'end').strip()
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
-        
+
+        text = self.chat_input.get("1.0", "end").strip()
+        placeholder = getattr(
+            self,
+            "chat_placeholder",
+            "Type a message for the AI. Prefix shell commands with '$'.",
+        )
+
         # Ignore placeholder text
         if not text or text == placeholder:
             return
-        
-        # Check if it's a command (starts with $ or chat_mode is False and it's a single line)
-        is_command = text.startswith('$') or (not chat_mode and '\n' not in text)
-        
+
+        # Check if it's a command (starts with $ or explicitly forced)
+        starts_with_dollar = text.startswith("$")
+        is_command = starts_with_dollar or not chat_mode
+
         if is_command:
             # Remove $ prefix if present
-            command = text.lstrip('$').strip()
+            command = text[1:].strip() if starts_with_dollar else text.strip()
             if command:
                 # Update command_var for backward compatibility
                 self.command_var.set(command)
@@ -2427,43 +3413,38 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             # Send as chat message
             self.on_send_chat_message(invoke_ai=True)
-        
+
         # Clear input and restore placeholder
-        self.chat_input.delete('1.0', 'end')
+        self.chat_input.delete("1.0", "end")
         self.on_input_focus_out()
 
     def on_handle_combined_input_enter(self, event):
         """Handle Enter key in combined input - check if it's a command or newline."""
-        if not hasattr(self, 'chat_input'):
+        if not hasattr(self, "chat_input"):
             return None
-        
-        text = self.chat_input.get('1.0', 'end').strip()
-        placeholder = "Type a message or command here. Prefix commands with '$' or press Enter for single-line commands."
-        
+
+        text = self.chat_input.get("1.0", "end").strip()
+        placeholder = getattr(
+            self,
+            "chat_placeholder",
+            "Type a message for the AI. Prefix shell commands with '$'.",
+        )
+
         # Ignore placeholder text
         if not text or text == placeholder:
             return "break"  # Prevent default Enter behavior
-        
-        # If Ctrl is pressed, always allow newline (user wants multi-line)
-        if event.state & 0x4:  # Ctrl pressed
-            return None  # Allow default Enter behavior (newline)
-        
-        # Check if it's a single-line command
-        # If it starts with $, it's definitely a command
-        # If it's a single line (no newlines), treat as command
-        has_newlines = '\n' in text
-        starts_with_dollar = text.startswith('$')
-        
-        if starts_with_dollar or (not has_newlines and len(text) > 0):
-            # Treat as command - execute it
+
+        # Shift+Enter inserts newline for multi-line prompts
+        if event.state & 0x1:  # Shift modifier
+            return None
+
+        if text.startswith("$"):
             self.on_handle_combined_input(chat_mode=False)
-            return "break"  # Prevent default Enter behavior
-        
-        # Otherwise, allow Enter to create a newline (default behavior for multi-line messages)
-        return None
+        else:
+            self.on_handle_combined_input(chat_mode=True)
+        return "break"
 
-
-# ---------- Integrations Tab ----------
+    # ---------- Integrations Tab ----------
 
     def _build_integrations_tab(self):
         if TTKBOOTSTRAP_AVAILABLE:
@@ -2471,14 +3452,14 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             self.integrations_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.integrations_frame, text="🔌 Integrations")
-        
+
         self.integrations_frame.columnconfigure(0, weight=1)
         self.integrations_frame.rowconfigure(0, weight=1)
-        
+
         # Use existing scheduler from __init__
-        if not hasattr(self, 'sync_scheduler'):
+        if not hasattr(self, "sync_scheduler"):
             self.sync_scheduler = create_default_scheduler(self.conn)
-        
+
         # Main container
         if TTKBOOTSTRAP_AVAILABLE:
             main_container = ttkb.Frame(self.integrations_frame)
@@ -2487,37 +3468,58 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         main_container.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
         main_container.columnconfigure(0, weight=1)
         main_container.rowconfigure(1, weight=1)
-        
+
         # Header
         if TTKBOOTSTRAP_AVAILABLE:
-            header = ttkb.Label(main_container, text="External Data Integrations", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            header = ttkb.Label(
+                main_container,
+                text="External Data Integrations",
+                bootstyle="primary",
+                font=(
+                    self.base_font.actual("family"),
+                    self.base_font.actual("size") + 2,
+                    "bold",
+                ),
+            )
         else:
-            header = ttk.Label(main_container, text="External Data Integrations", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            header = ttk.Label(
+                main_container,
+                text="External Data Integrations",
+                font=(
+                    self.base_font.actual("family"),
+                    self.base_font.actual("size") + 2,
+                    "bold",
+                ),
+            )
         header.grid(row=0, column=0, sticky="w", pady=(0, 8))
-        
+
         # Integrations list
         list_frame = ttk.Frame(main_container)
         list_frame.grid(row=1, column=0, sticky="nsew")
         list_frame.columnconfigure(0, weight=1)
         list_frame.rowconfigure(0, weight=1)
-        
+
         columns = ("service", "status", "last_sync", "items")
-        self.integrations_tree = ttk.Treeview(list_frame, columns=columns, show="headings", selectmode="browse")
+        self.integrations_tree = ttk.Treeview(
+            list_frame, columns=columns, show="headings", selectmode="browse"
+        )
         self.integrations_tree.heading("service", text="SERVICE")
         self.integrations_tree.heading("status", text="STATUS")
         self.integrations_tree.heading("last_sync", text="LAST SYNC")
         self.integrations_tree.heading("items", text="ITEMS")
-        
+
         self.integrations_tree.column("service", width=200)
         self.integrations_tree.column("status", width=120)
         self.integrations_tree.column("last_sync", width=150)
         self.integrations_tree.column("items", width=80)
-        
+
         self.integrations_tree.grid(row=0, column=0, sticky="nsew")
-        scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.integrations_tree.yview)
+        scrollbar = ttk.Scrollbar(
+            list_frame, orient="vertical", command=self.integrations_tree.yview
+        )
         self.integrations_tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=0, column=1, sticky="ns")
-        
+
         # Buttons
         if TTKBOOTSTRAP_AVAILABLE:
             btn_frame = ttkb.Frame(main_container)
@@ -2526,15 +3528,45 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         btn_frame.grid(row=2, column=0, sticky="ew", pady=(8, 0))
 
         if TTKBOOTSTRAP_AVAILABLE:
-            sync_btn = ttkb.Button(btn_frame, text="🔄 Sync All", command=self.on_sync_all_integrations, bootstyle="primary")
-            sync_selected_btn = ttkb.Button(btn_frame, text="🔄 Sync Selected", command=self.on_sync_selected_integration, bootstyle="info-outline")
-            refresh_btn = ttkb.Button(btn_frame, text="🔄 Refresh", command=self.refresh_integrations_list, bootstyle="secondary-outline")
-            preview_btn = ttkb.Button(btn_frame, text="👁️ Preview Data", command=self.on_preview_integration_data, bootstyle="warning-outline")
+            sync_btn = ttkb.Button(
+                btn_frame,
+                text="🔄 Sync All",
+                command=self.on_sync_all_integrations,
+                bootstyle="primary",
+            )
+            sync_selected_btn = ttkb.Button(
+                btn_frame,
+                text="🔄 Sync Selected",
+                command=self.on_sync_selected_integration,
+                bootstyle="info-outline",
+            )
+            refresh_btn = ttkb.Button(
+                btn_frame,
+                text="🔄 Refresh",
+                command=self.refresh_integrations_list,
+                bootstyle="secondary-outline",
+            )
+            preview_btn = ttkb.Button(
+                btn_frame,
+                text="👁️ Preview Data",
+                command=self.on_preview_integration_data,
+                bootstyle="warning-outline",
+            )
         else:
-            sync_btn = ttk.Button(btn_frame, text="Sync All", command=self.on_sync_all_integrations)
-            sync_selected_btn = ttk.Button(btn_frame, text="Sync Selected", command=self.on_sync_selected_integration)
-            refresh_btn = ttk.Button(btn_frame, text="Refresh", command=self.refresh_integrations_list)
-            preview_btn = ttk.Button(btn_frame, text="Preview Data", command=self.on_preview_integration_data)
+            sync_btn = ttk.Button(
+                btn_frame, text="Sync All", command=self.on_sync_all_integrations
+            )
+            sync_selected_btn = ttk.Button(
+                btn_frame,
+                text="Sync Selected",
+                command=self.on_sync_selected_integration,
+            )
+            refresh_btn = ttk.Button(
+                btn_frame, text="Refresh", command=self.refresh_integrations_list
+            )
+            preview_btn = ttk.Button(
+                btn_frame, text="Preview Data", command=self.on_preview_integration_data
+            )
 
         sync_btn.grid(row=0, column=0, padx=4)
         sync_selected_btn.grid(row=0, column=1, padx=4)
@@ -2543,7 +3575,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         # API console to trigger integration actions programmatically
         if TTKBOOTSTRAP_AVAILABLE:
-            api_box = ttkb.Labelframe(main_container, text="🛰️ Integration API", bootstyle="secondary")
+            api_box = ttkb.Labelframe(
+                main_container, text="🛰️ Integration API", bootstyle="secondary"
+            )
         else:
             api_box = ttk.LabelFrame(main_container, text="Integration API")
         api_box.grid(row=3, column=0, sticky="ew", pady=(12, 0))
@@ -2555,19 +3589,32 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.integration_api_action_var = tk.StringVar(value="status")
         self.integration_api_options_var = tk.StringVar(value="")
 
-        ttk.Label(api_box, text="Target:").grid(row=0, column=0, sticky="e", padx=4, pady=4)
-        target_combo = ttk.Combobox(api_box, textvariable=self.integration_api_target_var, values=targets, state="readonly")
+        ttk.Label(api_box, text="Target:").grid(
+            row=0, column=0, sticky="e", padx=4, pady=4
+        )
+        target_combo = ttk.Combobox(
+            api_box,
+            textvariable=self.integration_api_target_var,
+            values=targets,
+            state="readonly",
+        )
         target_combo.grid(row=0, column=1, sticky="w", padx=4, pady=4)
 
-        ttk.Label(api_box, text="Action:").grid(row=1, column=0, sticky="e", padx=4, pady=4)
+        ttk.Label(api_box, text="Action:").grid(
+            row=1, column=0, sticky="e", padx=4, pady=4
+        )
         self.integration_api_action_combo = ttk.Combobox(
             api_box,
             textvariable=self.integration_api_action_var,
             values=self._get_integration_actions_for_target(targets[0]),
             state="readonly",
         )
-        self.integration_api_action_combo.grid(row=1, column=1, sticky="w", padx=4, pady=4)
-        actions = self.integration_api.integration_actions().get(self.integration_api_target_var.get(), [])
+        self.integration_api_action_combo.grid(
+            row=1, column=1, sticky="w", padx=4, pady=4
+        )
+        actions = self.integration_api.integration_actions().get(
+            self.integration_api_target_var.get(), []
+        )
         action_values = [action.get("name") for action in actions] or ["status", "sync"]
         self.integration_api_action_combo = ttk.Combobox(
             api_box,
@@ -2575,9 +3622,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             values=action_values,
             state="readonly",
         )
-        self.integration_api_action_combo.grid(row=1, column=1, sticky="w", padx=4, pady=4)
+        self.integration_api_action_combo.grid(
+            row=1, column=1, sticky="w", padx=4, pady=4
+        )
 
-        ttk.Label(api_box, text="Options (JSON):").grid(row=2, column=0, sticky="e", padx=4, pady=4)
+        ttk.Label(api_box, text="Options (JSON):").grid(
+            row=2, column=0, sticky="e", padx=4, pady=4
+        )
         options_entry = ttk.Entry(
             api_box,
             textvariable=self.integration_api_options_var,
@@ -2585,19 +3636,40 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         )
         options_entry.grid(row=2, column=1, sticky="we", padx=4, pady=4)
 
-        call_btn = ttkb.Button(api_box, text="Invoke", command=self.on_call_integration_api, bootstyle="success") if TTKBOOTSTRAP_AVAILABLE else ttk.Button(api_box, text="Invoke", command=self.on_call_integration_api)
+        call_btn = (
+            ttkb.Button(
+                api_box,
+                text="Invoke",
+                command=self.on_call_integration_api,
+                bootstyle="success",
+            )
+            if TTKBOOTSTRAP_AVAILABLE
+            else ttk.Button(
+                api_box, text="Invoke", command=self.on_call_integration_api
+            )
+        )
         call_btn.grid(row=0, column=2, rowspan=3, padx=4, pady=4, sticky="ns")
 
         self.integration_action_fields_frame = ttk.Frame(api_box)
-        self.integration_action_fields_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 0))
+        self.integration_action_fields_frame.grid(
+            row=2, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 0)
+        )
         self.integration_action_field_vars: Dict[str, tk.StringVar] = {}
-        self._render_integration_action_fields(targets[0], self.integration_api_action_var.get())
+        self._render_integration_action_fields(
+            targets[0], self.integration_api_action_var.get()
+        )
 
-        self.integration_api_output = tk.Text(api_box, height=4, wrap="word", state="disabled")
-        self.integration_api_output.grid(row=3, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 6))
+        self.integration_api_output = tk.Text(
+            api_box, height=4, wrap="word", state="disabled"
+        )
+        self.integration_api_output.grid(
+            row=3, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 6)
+        )
 
         target_combo.bind("<<ComboboxSelected>>", self._on_integration_target_change)
-        self.integration_api_action_combo.bind("<<ComboboxSelected>>", self._on_integration_action_change)
+        self.integration_api_action_combo.bind(
+            "<<ComboboxSelected>>", self._on_integration_action_change
+        )
 
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(sync_btn, text="Sync all enabled integrations")
@@ -2639,7 +3711,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         # Get integration statuses via the API gateway
         if not hasattr(self, "integration_api"):
-            self.integration_api = IntegrationAPIGateway(self.conn, scheduler=self.sync_scheduler)
+            self.integration_api = IntegrationAPIGateway(
+                self.conn, scheduler=self.sync_scheduler
+            )
         self.integration_actions_metadata = self.integration_api.list_actions()
 
         display_map = {
@@ -2660,7 +3734,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             status_data = statuses.get(slug)
             if not status_data:
                 continue
-            status_text = "✅ Connected" if status_data.get("connected") else "❌ Disconnected"
+            status_text = (
+                "✅ Connected" if status_data.get("connected") else "❌ Disconnected"
+            )
             if status_data.get("error"):
                 status_text += f" ({str(status_data.get('error'))[:30]})"
 
@@ -2672,12 +3748,21 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 "",
                 "end",
                 iid=display,
-                values=(display, status_text, last_sync, status_data.get("item_count", 0)),
+                values=(
+                    display,
+                    status_text,
+                    last_sync,
+                    status_data.get("item_count", 0),
+                ),
             )
-    
+
     def on_sync_all_integrations(self):
         """Sync all enabled integrations."""
-        results = self.integration_api.call_action("all", action="sync") if hasattr(self, "integration_api") else self.sync_scheduler.sync_now()
+        results = (
+            self.integration_api.call_action("all", action="sync")
+            if hasattr(self, "integration_api")
+            else self.sync_scheduler.sync_now()
+        )
         message = "Sync completed:\n"
         for name, count in results.items():
             if count >= 0:
@@ -2685,13 +3770,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             else:
                 message += f"  {name}: Error\n"
         try:
-            self._write_integration_output(json.dumps({"sync_results": results}, indent=2))
+            self._write_integration_output(
+                json.dumps({"sync_results": results}, indent=2)
+            )
         except Exception:
             # Defensive: the GUI output box should not block sync notifications
             pass
         messagebox.showinfo("Sync Complete", message)
         self.refresh_integrations_list()
-    
+
     def on_sync_selected_integration(self):
         """Sync the selected integration."""
         sel = self.integrations_tree.selection()
@@ -2708,7 +3795,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             results = self.sync_scheduler.sync_now(key)
             count = results.get(key, -1)
         try:
-            self._write_integration_output(json.dumps({"sync_results": results}, indent=2))
+            self._write_integration_output(
+                json.dumps({"sync_results": results}, indent=2)
+            )
         except Exception:
             pass
         if count >= 0:
@@ -2722,7 +3811,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         sel = self.integrations_tree.selection()
         if not sel:
-            messagebox.showinfo("No Selection", "Please select an integration to preview.")
+            messagebox.showinfo(
+                "No Selection", "Please select an integration to preview."
+            )
             return
 
         display_name = sel[0]
@@ -2761,7 +3852,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if not hasattr(self, "integration_api_action_combo"):
             return
 
-        actions = self.integration_api.integration_actions().get(self.integration_api_target_var.get(), [])
+        actions = self.integration_api.integration_actions().get(
+            self.integration_api_target_var.get(), []
+        )
         values = [action.get("name") for action in actions] or ["status", "sync"]
         self.integration_api_action_combo.configure(values=values)
         if self.integration_api_action_var.get() not in values:
@@ -2784,10 +3877,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             try:
                 options = json.loads(options_raw)
             except json.JSONDecodeError:
-                messagebox.showerror("Invalid Options", "Options must be valid JSON (e.g., {\"limit\": 10}).")
+                messagebox.showerror(
+                    "Invalid Options",
+                    'Options must be valid JSON (e.g., {"limit": 10}).',
+                )
                 return
         try:
-            result = self.integration_api.call_action(target, action=action, options=options)
+            result = self.integration_api.call_action(
+                target, action=action, options=options
+            )
             text = json.dumps(result, indent=2, ensure_ascii=False)
         except Exception as exc:
             text = f"Error: {exc}"
@@ -2804,7 +3902,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.integration_api_action_combo.configure(values=actions)
         if actions:
             self.integration_api_action_var.set(actions[0])
-        self._render_integration_action_fields(target, self.integration_api_action_var.get())
+        self._render_integration_action_fields(
+            target, self.integration_api_action_var.get()
+        )
 
     def _on_integration_action_change(self, event=None):
         target = self.integration_api_target_var.get()
@@ -2816,7 +3916,11 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if target == "all":
             return base_actions
 
-        actions = list(self.integration_actions_metadata.get(target, {}).keys()) if hasattr(self, "integration_actions_metadata") else []
+        actions = (
+            list(self.integration_actions_metadata.get(target, {}).keys())
+            if hasattr(self, "integration_actions_metadata")
+            else []
+        )
         # Always include core actions for consistency
         for action in base_actions:
             if action not in actions:
@@ -2836,11 +3940,17 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.integration_action_field_definitions: Dict[str, Dict[str, Any]] = {}
 
         if not fields:
-            ttk.Label(self.integration_action_fields_frame, text="No options required for this action").grid(row=0, column=0, sticky="w", padx=4, pady=2)
+            ttk.Label(
+                self.integration_action_fields_frame,
+                text="No options required for this action",
+            ).grid(row=0, column=0, sticky="w", padx=4, pady=2)
             return
 
         for idx, field in enumerate(fields):
-            label = ttk.Label(self.integration_action_fields_frame, text=f"{field.get('label', field['name'])}:")
+            label = ttk.Label(
+                self.integration_action_fields_frame,
+                text=f"{field.get('label', field['name'])}:",
+            )
             label.grid(row=idx, column=0, sticky="e", padx=4, pady=2)
 
             var = tk.StringVar()
@@ -2850,17 +3960,23 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             choices = field.get("choices", [])
 
             if ftype == "select" and choices:
-                entry = ttk.Combobox(self.integration_action_fields_frame, textvariable=var, values=choices, state="readonly")
+                entry = ttk.Combobox(
+                    self.integration_action_fields_frame,
+                    textvariable=var,
+                    values=choices,
+                    state="readonly",
+                )
             else:
-                entry = ttk.Entry(self.integration_action_fields_frame, textvariable=var)
+                entry = ttk.Entry(
+                    self.integration_action_fields_frame, textvariable=var
+                )
                 placeholder = field.get("placeholder")
                 if placeholder:
                     var.set(placeholder)
 
             entry.grid(row=idx, column=1, sticky="w", padx=4, pady=2)
 
-
-# ---------- Analytics Tab ----------
+    # ---------- Analytics Tab ----------
 
     def _build_analytics_tab(self):
         if TTKBOOTSTRAP_AVAILABLE:
@@ -2868,10 +3984,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             self.analytics_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.analytics_frame, text="📊 Analytics")
-        
+
         self.analytics_frame.columnconfigure(0, weight=1)
         self.analytics_frame.rowconfigure(0, weight=1)
-        
+
         # Main container with scrollable text
         if TTKBOOTSTRAP_AVAILABLE:
             main_container = ttkb.Frame(self.analytics_frame)
@@ -2880,55 +3996,93 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         main_container.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
         main_container.columnconfigure(0, weight=1)
         main_container.rowconfigure(1, weight=1)
-        
+
         # Header
         if TTKBOOTSTRAP_AVAILABLE:
-            header = ttkb.Label(main_container, text="Analytics & Reports", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            header = ttkb.Label(
+                main_container,
+                text="Analytics & Reports",
+                bootstyle="primary",
+                font=(
+                    self.base_font.actual("family"),
+                    self.base_font.actual("size") + 2,
+                    "bold",
+                ),
+            )
         else:
-            header = ttk.Label(main_container, text="Analytics & Reports", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            header = ttk.Label(
+                main_container,
+                text="Analytics & Reports",
+                font=(
+                    self.base_font.actual("family"),
+                    self.base_font.actual("size") + 2,
+                    "bold",
+                ),
+            )
         header.grid(row=0, column=0, sticky="w", pady=(0, 8))
-        
+
         # Text widget for displaying analytics
         text_frame = ttk.Frame(main_container)
         text_frame.grid(row=1, column=0, sticky="nsew")
         text_frame.columnconfigure(0, weight=1)
         text_frame.rowconfigure(0, weight=1)
-        
-        self.analytics_text = tk.Text(text_frame, wrap="word", font=("Courier", 10), bg="#f5f5f5" if not TTKBOOTSTRAP_AVAILABLE else None)
+
+        self.analytics_text = tk.Text(
+            text_frame,
+            wrap="word",
+            font=("Courier", 10),
+            bg="#f5f5f5" if not TTKBOOTSTRAP_AVAILABLE else None,
+        )
         self.analytics_text.grid(row=0, column=0, sticky="nsew")
-        
-        scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=self.analytics_text.yview)
+
+        scrollbar = ttk.Scrollbar(
+            text_frame, orient="vertical", command=self.analytics_text.yview
+        )
         self.analytics_text.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=0, column=1, sticky="ns")
-        
+
         # Buttons
         if TTKBOOTSTRAP_AVAILABLE:
             btn_frame = ttkb.Frame(main_container)
         else:
             btn_frame = ttk.Frame(main_container)
         btn_frame.grid(row=2, column=0, sticky="ew", pady=(8, 0))
-        
+
         if TTKBOOTSTRAP_AVAILABLE:
-            refresh_btn = ttkb.Button(btn_frame, text="🔄 Refresh", command=self.refresh_analytics, bootstyle="primary")
-            export_btn = ttkb.Button(btn_frame, text="💾 Export Report", command=self.on_export_analytics_report, bootstyle="info-outline")
+            refresh_btn = ttkb.Button(
+                btn_frame,
+                text="🔄 Refresh",
+                command=self.refresh_analytics,
+                bootstyle="primary",
+            )
+            export_btn = ttkb.Button(
+                btn_frame,
+                text="💾 Export Report",
+                command=self.on_export_analytics_report,
+                bootstyle="info-outline",
+            )
         else:
-            refresh_btn = ttk.Button(btn_frame, text="Refresh", command=self.refresh_analytics)
-            export_btn = ttk.Button(btn_frame, text="Export Report", command=self.on_export_analytics_report)
-        
+            refresh_btn = ttk.Button(
+                btn_frame, text="Refresh", command=self.refresh_analytics
+            )
+            export_btn = ttk.Button(
+                btn_frame, text="Export Report", command=self.on_export_analytics_report
+            )
+
         refresh_btn.grid(row=0, column=0, padx=4)
         export_btn.grid(row=0, column=1, padx=4)
-        
+
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(refresh_btn, text="Refresh analytics data")
             ToolTip(export_btn, text="Export report to text file")
-    
+
     def refresh_analytics(self):
         """Refresh the analytics display."""
-        if not hasattr(self, 'analytics_text'):
+        if not hasattr(self, "analytics_text"):
             return
-        
-        self.analytics_text.delete('1.0', 'end')
-        
+
+        self.analytics_text.delete("1.0", "end")
+
         try:
             # Get all analytics data
             task_stats = get_task_completion_stats(self.state_obj)
@@ -2939,7 +4093,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             workload = get_workload_balance(self.state_obj)
             project_health = get_project_health(self.state_obj)
             suggestions = get_smart_prioritization_suggestions(self.state_obj)
-            
+
             # Build display text
             lines = []
             lines.append("=" * 70)
@@ -2947,7 +4101,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             lines.append("=" * 70)
             lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             lines.append("")
-            
+
             # Task Statistics
             lines.append("TASK STATISTICS")
             lines.append("-" * 70)
@@ -2958,82 +4112,116 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             lines.append(f"  ⛔ Blocked: {task_stats['blocked']}")
             lines.append(f"Completion Rate: {task_stats['completion_rate']}%")
             lines.append("")
-            
+
             # Project Statistics
             lines.append("PROJECT STATISTICS")
             lines.append("-" * 70)
-            for project_name, stats in sorted(project_stats.items(), key=lambda x: x[1]["total"], reverse=True):
+            for project_name, stats in sorted(
+                project_stats.items(), key=lambda x: x[1]["total"], reverse=True
+            ):
                 lines.append(f"{project_name}:")
-                lines.append(f"  Total: {stats['total']}, Done: {stats['done']}, Completion: {stats['completion_rate']}%")
+                lines.append(
+                    f"  Total: {stats['total']}, Done: {stats['done']}, Completion: {stats['completion_rate']}%"
+                )
             lines.append("")
-            
+
             # Time Tracking
             lines.append("TIME TRACKING")
             lines.append("-" * 70)
-            lines.append(f"Estimated: {time_stats['estimated_hours']} hours ({time_stats['total_estimated_minutes']} minutes)")
-            lines.append(f"Logged: {time_stats['logged_hours']} hours ({time_stats['total_logged_minutes']} minutes)")
+            lines.append(
+                f"Estimated: {time_stats['estimated_hours']} hours ({time_stats['total_estimated_minutes']} minutes)"
+            )
+            lines.append(
+                f"Logged: {time_stats['logged_hours']} hours ({time_stats['total_logged_minutes']} minutes)"
+            )
             lines.append(f"Tasks with time data: {time_stats['tasks_with_time']}")
-            if time_stats['total_estimated_minutes'] > 0:
-                variance = ((time_stats['total_logged_minutes'] - time_stats['total_estimated_minutes']) / time_stats['total_estimated_minutes']) * 100
+            if time_stats["total_estimated_minutes"] > 0:
+                variance = (
+                    (
+                        time_stats["total_logged_minutes"]
+                        - time_stats["total_estimated_minutes"]
+                    )
+                    / time_stats["total_estimated_minutes"]
+                ) * 100
                 lines.append(f"Time variance: {variance:+.1f}%")
             lines.append("")
-            
+
             # Productivity Metrics
             lines.append("PRODUCTIVITY METRICS")
             lines.append("-" * 70)
             lines.append(f"Completion Rate: {productivity['completion_rate']}%")
             lines.append(f"Tasks Completed: {productivity['tasks_completed']}")
             lines.append(f"Tasks In Progress: {productivity['tasks_in_progress']}")
-            lines.append(f"Total Time Logged: {productivity['total_time_logged_hours']} hours")
-            lines.append(f"Average Time per Task: {productivity['average_time_per_task_minutes']} minutes")
+            lines.append(
+                f"Total Time Logged: {productivity['total_time_logged_hours']} hours"
+            )
+            lines.append(
+                f"Average Time per Task: {productivity['average_time_per_task_minutes']} minutes"
+            )
             lines.append("")
-            
+
             # Deadline Reminders
             if deadline_reminders:
                 lines.append("DEADLINE REMINDERS (Next 7 Days)")
                 lines.append("-" * 70)
                 for reminder in deadline_reminders[:10]:  # Top 10
-                    task = reminder['task']
-                    urgency = reminder['urgency'].upper()
-                    days = reminder['days_until']
-                    lines.append(f"[{urgency}] Task #{task.id}: {task.title[:50]} - {days} day(s) until due")
+                    task = reminder["task"]
+                    urgency = reminder["urgency"].upper()
+                    days = reminder["days_until"]
+                    lines.append(
+                        f"[{urgency}] Task #{task.id}: {task.title[:50]} - {days} day(s) until due"
+                    )
                 lines.append("")
-            
+
             # Workload Balance
             lines.append("WORKLOAD BALANCE")
             lines.append("-" * 70)
             for persona, data in workload.items():
-                status = "⚠️ OVERLOADED" if data['overloaded'] else "✓ OK"
+                status = "⚠️ OVERLOADED" if data["overloaded"] else "✓ OK"
                 lines.append(f"{persona}: {status}")
-                lines.append(f"  Tasks: {data['task_count']}, Est. Hours: {data['estimated_hours']}, Logged: {data['logged_hours']}")
+                lines.append(
+                    f"  Tasks: {data['task_count']}, Est. Hours: {data['estimated_hours']}, Logged: {data['logged_hours']}"
+                )
                 lines.append(f"  High Priority: {data['high_priority_count']}")
             lines.append("")
-            
+
             # Project Health
             lines.append("PROJECT HEALTH")
             lines.append("-" * 70)
-            for project_name, health in sorted(project_health.items(), key=lambda x: x[1]['health_score']):
-                status_icon = "✓" if health['health_status'] == "healthy" else "⚠" if health['health_status'] == "warning" else "✗"
-                lines.append(f"{status_icon} {project_name}: {health['health_status'].upper()} (Score: {health['health_score']})")
-                lines.append(f"  Total: {health['total_tasks']}, Completed: {health['completed']}, Blocked: {health['blocked']}, Overdue: {health['overdue']}")
+            for project_name, health in sorted(
+                project_health.items(), key=lambda x: x[1]["health_score"]
+            ):
+                status_icon = (
+                    "✓"
+                    if health["health_status"] == "healthy"
+                    else "⚠"
+                    if health["health_status"] == "warning"
+                    else "✗"
+                )
+                lines.append(
+                    f"{status_icon} {project_name}: {health['health_status'].upper()} (Score: {health['health_score']})"
+                )
+                lines.append(
+                    f"  Total: {health['total_tasks']}, Completed: {health['completed']}, Blocked: {health['blocked']}, Overdue: {health['overdue']}"
+                )
             lines.append("")
-            
+
             # Smart Suggestions
             if suggestions:
                 lines.append("SMART SUGGESTIONS")
                 lines.append("-" * 70)
                 for suggestion in suggestions[:10]:  # Top 10
-                    priority = suggestion['priority'].upper()
+                    priority = suggestion["priority"].upper()
                     lines.append(f"[{priority}] {suggestion['message']}")
                 lines.append("")
-            
+
             # Display the report
-            self.analytics_text.insert('1.0', '\n'.join(lines))
-            self.analytics_text.see('1.0')
-            
+            self.analytics_text.insert("1.0", "\n".join(lines))
+            self.analytics_text.see("1.0")
+
         except Exception as e:
-            self.analytics_text.insert('1.0', f"Error generating analytics: {e}")
-    
+            self.analytics_text.insert("1.0", f"Error generating analytics: {e}")
+
     def on_export_analytics_report(self):
         """Export analytics report to a text file."""
         try:
@@ -3041,17 +4229,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             filename = filedialog.asksaveasfilename(
                 defaultextension=".txt",
                 filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
-                initialfile=f"analytics_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+                initialfile=f"analytics_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
             )
             if filename:
-                with open(filename, 'w') as f:
+                with open(filename, "w") as f:
                     f.write(report)
                 messagebox.showinfo("Export", f"Report exported to {filename}")
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export report: {e}")
 
-
-# ---------- Templates Tab ----------
+    # ---------- Templates Tab ----------
 
     def _build_templates_tab(self):
         if TTKBOOTSTRAP_AVAILABLE:
@@ -3059,10 +4246,10 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         else:
             self.templates_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.templates_frame, text="📋 Templates")
-        
+
         self.templates_frame.columnconfigure(0, weight=1)
         self.templates_frame.rowconfigure(0, weight=1)
-        
+
         # Main container
         if TTKBOOTSTRAP_AVAILABLE:
             main_container = ttkb.Frame(self.templates_frame)
@@ -3072,124 +4259,201 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         main_container.columnconfigure(0, weight=1)
         main_container.columnconfigure(1, weight=2)
         main_container.rowconfigure(1, weight=1)
-        
+
         # Header
         if TTKBOOTSTRAP_AVAILABLE:
-            header = ttkb.Label(main_container, text="Task Templates", bootstyle="primary", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            header = ttkb.Label(
+                main_container,
+                text="Task Templates",
+                bootstyle="primary",
+                font=(
+                    self.base_font.actual("family"),
+                    self.base_font.actual("size") + 2,
+                    "bold",
+                ),
+            )
         else:
-            header = ttk.Label(main_container, text="Task Templates", font=(self.base_font.actual("family"), self.base_font.actual("size") + 2, "bold"))
+            header = ttk.Label(
+                main_container,
+                text="Task Templates",
+                font=(
+                    self.base_font.actual("family"),
+                    self.base_font.actual("size") + 2,
+                    "bold",
+                ),
+            )
         header.grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 8))
-        
+
         # Left: Template list
         list_frame = ttk.Frame(main_container)
         list_frame.grid(row=1, column=0, sticky="nsew", padx=(0, 4))
         list_frame.columnconfigure(0, weight=1)
         list_frame.rowconfigure(0, weight=1)
-        
+
         columns = ("name", "project", "priority")
-        self.templates_tree = ttk.Treeview(list_frame, columns=columns, show="headings", selectmode="browse")
+        self.templates_tree = ttk.Treeview(
+            list_frame, columns=columns, show="headings", selectmode="browse"
+        )
         self.templates_tree.heading("name", text="TEMPLATE NAME")
         self.templates_tree.heading("project", text="PROJECT")
         self.templates_tree.heading("priority", text="PRIORITY")
-        
+
         self.templates_tree.column("name", width=150)
         self.templates_tree.column("project", width=100)
         self.templates_tree.column("priority", width=80)
-        
+
         self.templates_tree.grid(row=0, column=0, sticky="nsew")
         self.templates_tree.bind("<<TreeviewSelect>>", self.on_template_select)
-        
-        scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.templates_tree.yview)
+
+        scrollbar = ttk.Scrollbar(
+            list_frame, orient="vertical", command=self.templates_tree.yview
+        )
         self.templates_tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=0, column=1, sticky="ns")
-        
+
         # Right: Template details form
         if TTKBOOTSTRAP_AVAILABLE:
-            form_frame = ttkb.Labelframe(main_container, text="Template Details", bootstyle="info")
+            form_frame = ttkb.Labelframe(
+                main_container, text="Template Details", bootstyle="info"
+            )
         else:
             form_frame = ttk.LabelFrame(main_container, text="Template Details")
         form_frame.grid(row=1, column=1, sticky="nsew", padx=(4, 0))
         form_frame.columnconfigure(1, weight=1)
-        
+
         row = 0
-        ttk.Label(form_frame, text="Name:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
+        ttk.Label(form_frame, text="Name:").grid(
+            row=row, column=0, sticky="e", padx=4, pady=4
+        )
         self.template_name_var = tk.StringVar()
         template_name_entry = ttk.Entry(form_frame, textvariable=self.template_name_var)
         template_name_entry.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
-        
+
         row += 1
-        ttk.Label(form_frame, text="Title:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
+        ttk.Label(form_frame, text="Title:").grid(
+            row=row, column=0, sticky="e", padx=4, pady=4
+        )
         self.template_title_var = tk.StringVar()
-        template_title_entry = ttk.Entry(form_frame, textvariable=self.template_title_var)
+        template_title_entry = ttk.Entry(
+            form_frame, textvariable=self.template_title_var
+        )
         template_title_entry.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
-        
+
         row += 1
-        ttk.Label(form_frame, text="Project:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
+        ttk.Label(form_frame, text="Project:").grid(
+            row=row, column=0, sticky="e", padx=4, pady=4
+        )
         self.template_project_var = tk.StringVar()
-        template_project_combo = ttk.Combobox(form_frame, textvariable=self.template_project_var, state="readonly")
+        template_project_combo = ttk.Combobox(
+            form_frame, textvariable=self.template_project_var, state="readonly"
+        )
         template_project_combo.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
         self.template_project_combo = template_project_combo
-        
+
         row += 1
-        ttk.Label(form_frame, text="Priority:").grid(row=row, column=0, sticky="e", padx=4, pady=4)
+        ttk.Label(form_frame, text="Priority:").grid(
+            row=row, column=0, sticky="e", padx=4, pady=4
+        )
         self.template_priority_var = tk.StringVar()
-        template_priority_combo = ttk.Combobox(form_frame, textvariable=self.template_priority_var, values=PRIORITY_OPTIONS, state="readonly")
+        template_priority_combo = ttk.Combobox(
+            form_frame,
+            textvariable=self.template_priority_var,
+            values=PRIORITY_OPTIONS,
+            state="readonly",
+        )
         template_priority_combo.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
-        
+
         row += 1
-        ttk.Label(form_frame, text="Time Est. (min):").grid(row=row, column=0, sticky="e", padx=4, pady=4)
+        ttk.Label(form_frame, text="Time Est. (min):").grid(
+            row=row, column=0, sticky="e", padx=4, pady=4
+        )
         self.template_time_estimated_var = tk.StringVar()
-        template_time_entry = ttk.Entry(form_frame, textvariable=self.template_time_estimated_var)
+        template_time_entry = ttk.Entry(
+            form_frame, textvariable=self.template_time_estimated_var
+        )
         template_time_entry.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
-        
+
         row += 1
-        ttk.Label(form_frame, text="Notes:").grid(row=row, column=0, sticky="ne", padx=4, pady=4)
+        ttk.Label(form_frame, text="Notes:").grid(
+            row=row, column=0, sticky="ne", padx=4, pady=4
+        )
         self.template_notes_text = tk.Text(form_frame, height=6, wrap="word")
         self.template_notes_text.grid(row=row, column=1, sticky="ew", padx=4, pady=4)
-        
+
         # Buttons
         if TTKBOOTSTRAP_AVAILABLE:
             btn_frame = ttkb.Frame(main_container)
         else:
             btn_frame = ttk.Frame(main_container)
         btn_frame.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(8, 0))
-        
+
         if TTKBOOTSTRAP_AVAILABLE:
-            new_btn = ttkb.Button(btn_frame, text="➕ New", command=self.on_new_template, bootstyle="success-outline")
-            save_btn = ttkb.Button(btn_frame, text="💾 Save", command=self.on_save_template, bootstyle="primary")
-            delete_btn = ttkb.Button(btn_frame, text="🗑️ Delete", command=self.on_delete_template, bootstyle="danger-outline")
-            create_task_btn = ttkb.Button(btn_frame, text="✅ Create Task", command=self.on_create_task_from_template, bootstyle="info")
-            refresh_btn = ttkb.Button(btn_frame, text="🔄 Refresh", command=self.refresh_templates_list, bootstyle="secondary-outline")
+            new_btn = ttkb.Button(
+                btn_frame,
+                text="➕ New",
+                command=self.on_new_template,
+                bootstyle="success-outline",
+            )
+            save_btn = ttkb.Button(
+                btn_frame,
+                text="💾 Save",
+                command=self.on_save_template,
+                bootstyle="primary",
+            )
+            delete_btn = ttkb.Button(
+                btn_frame,
+                text="🗑️ Delete",
+                command=self.on_delete_template,
+                bootstyle="danger-outline",
+            )
+            create_task_btn = ttkb.Button(
+                btn_frame,
+                text="✅ Create Task",
+                command=self.on_create_task_from_template,
+                bootstyle="info",
+            )
+            refresh_btn = ttkb.Button(
+                btn_frame,
+                text="🔄 Refresh",
+                command=self.refresh_templates_list,
+                bootstyle="secondary-outline",
+            )
         else:
             new_btn = ttk.Button(btn_frame, text="New", command=self.on_new_template)
             save_btn = ttk.Button(btn_frame, text="Save", command=self.on_save_template)
-            delete_btn = ttk.Button(btn_frame, text="Delete", command=self.on_delete_template)
-            create_task_btn = ttk.Button(btn_frame, text="Create Task", command=self.on_create_task_from_template)
-            refresh_btn = ttk.Button(btn_frame, text="Refresh", command=self.refresh_templates_list)
-        
+            delete_btn = ttk.Button(
+                btn_frame, text="Delete", command=self.on_delete_template
+            )
+            create_task_btn = ttk.Button(
+                btn_frame, text="Create Task", command=self.on_create_task_from_template
+            )
+            refresh_btn = ttk.Button(
+                btn_frame, text="Refresh", command=self.refresh_templates_list
+            )
+
         new_btn.grid(row=0, column=0, padx=4)
         save_btn.grid(row=0, column=1, padx=4)
         delete_btn.grid(row=0, column=2, padx=4)
         create_task_btn.grid(row=0, column=3, padx=4)
         refresh_btn.grid(row=0, column=4, padx=4)
-        
+
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(new_btn, text="Create a new template")
             ToolTip(save_btn, text="Save the current template")
             ToolTip(delete_btn, text="Delete the selected template")
             ToolTip(create_task_btn, text="Create a task from this template")
             ToolTip(refresh_btn, text="Refresh the templates list")
-        
+
         self.current_template_id = None
-    
+
     def refresh_templates_list(self):
         """Refresh the templates list display."""
-        if not hasattr(self, 'templates_tree'):
+        if not hasattr(self, "templates_tree"):
             return
-        
+
         for row in self.templates_tree.get_children():
             self.templates_tree.delete(row)
-        
+
         templates = load_templates(self.conn)
         for template in templates:
             self.templates_tree.insert(
@@ -3198,23 +4462,23 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 iid=template.id,
                 values=(template.name, template.project or "", template.priority or ""),
             )
-        
+
         # Update project combo
-        if hasattr(self, 'template_project_combo'):
+        if hasattr(self, "template_project_combo"):
             projects = [p.name for p in self.state_obj.projects]
-            self.template_project_combo['values'] = projects
-    
+            self.template_project_combo["values"] = projects
+
     def on_template_select(self, event=None):
         """Handle template selection."""
         sel = self.templates_tree.selection()
         if not sel:
             self.current_template_id = None
             return
-        
+
         template_id = sel[0]
         templates = load_templates(self.conn)
         template = next((t for t in templates if t.id == template_id), None)
-        
+
         if template:
             self.current_template_id = template.id
             self.template_name_var.set(template.name)
@@ -3222,9 +4486,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.template_project_var.set(template.project or "")
             self.template_priority_var.set(template.priority or "")
             self.template_time_estimated_var.set(str(template.time_estimated or ""))
-            self.template_notes_text.delete('1.0', 'end')
-            self.template_notes_text.insert('1.0', template.notes or "")
-    
+            self.template_notes_text.delete("1.0", "end")
+            self.template_notes_text.insert("1.0", template.notes or "")
+
     def on_new_template(self):
         """Create a new template."""
         self.current_template_id = None
@@ -3233,58 +4497,63 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.template_project_var.set("")
         self.template_priority_var.set("")
         self.template_time_estimated_var.set("")
-        self.template_notes_text.delete('1.0', 'end')
+        self.template_notes_text.delete("1.0", "end")
         self.templates_tree.selection_remove(self.templates_tree.selection())
-    
+
     def on_save_template(self):
         """Save the current template."""
         name = self.template_name_var.get().strip()
         if not name:
             messagebox.showerror("Error", "Template name is required.")
             return
-        
+
         template = TaskTemplate(
             id=self.current_template_id or str(uuid.uuid4()),
             name=name,
             title=self.template_title_var.get().strip() or None,
             project=self.template_project_var.get().strip() or None,
             priority=self.template_priority_var.get().strip() or None,
-            time_estimated=int(self.template_time_estimated_var.get()) if self.template_time_estimated_var.get().strip() else None,
-            notes=self.template_notes_text.get('1.0', 'end').strip() or None,
+            time_estimated=int(self.template_time_estimated_var.get())
+            if self.template_time_estimated_var.get().strip()
+            else None,
+            notes=self.template_notes_text.get("1.0", "end").strip() or None,
         )
-        
+
         save_template(self.conn, template)
         self.refresh_templates_list()
         messagebox.showinfo("Success", "Template saved.")
-    
+
     def on_delete_template(self):
         """Delete the selected template."""
         if not self.current_template_id:
             messagebox.showinfo("No Selection", "Please select a template to delete.")
             return
-        
+
         if messagebox.askyesno("Confirm", "Delete this template?"):
             delete_template(self.conn, self.current_template_id)
             self.on_new_template()
             self.refresh_templates_list()
             messagebox.showinfo("Success", "Template deleted.")
-    
+
     def on_create_task_from_template(self):
         """Create a task from the selected template."""
         if not self.current_template_id:
-            messagebox.showinfo("No Selection", "Please select a template to create a task from.")
+            messagebox.showinfo(
+                "No Selection", "Please select a template to create a task from."
+            )
             return
-        
+
         try:
-            task = create_task_from_template(self.conn, self.current_template_id, owner=self.state_obj.active_persona)
+            task = create_task_from_template(
+                self.conn, self.current_template_id, owner=self.state_obj.active_persona
+            )
             self.refresh_task_list()
             self.refresh_dashboard()
             messagebox.showinfo("Success", f"Task created: {task.title}")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to create task: {e}")
 
-
-# ---------- Settings Tab ----------
+    # ---------- Settings Tab ----------
 
     def _build_settings_tab(self):
         if TTKBOOTSTRAP_AVAILABLE:
@@ -3297,7 +4566,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
 
         row = 0
         if TTKBOOTSTRAP_AVAILABLE:
-            ttkb.Label(self.settings_frame, text="Theme:", bootstyle="primary").grid(row=row, column=0, sticky="e", padx=8, pady=8)
+            ttkb.Label(self.settings_frame, text="Theme:", bootstyle="primary").grid(
+                row=row, column=0, sticky="e", padx=8, pady=8
+            )
             self.theme_var = tk.StringVar(value=self.settings.theme)
             # Provide more theme options with ttkbootstrap
             theme_values = ["plain", "light", "dark"]
@@ -3307,10 +4578,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 textvariable=self.theme_var,
                 values=theme_values,
                 state="readonly",
-                bootstyle="primary"
+                bootstyle="primary",
             )
         else:
-            ttk.Label(self.settings_frame, text="Theme:").grid(row=row, column=0, sticky="e", padx=8, pady=8)
+            ttk.Label(self.settings_frame, text="Theme:").grid(
+                row=row, column=0, sticky="e", padx=8, pady=8
+            )
             self.theme_var = tk.StringVar(value=self.settings.theme)
             theme_combo = ttk.Combobox(
                 self.settings_frame,
@@ -3320,10 +4593,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             )
         theme_combo.grid(row=row, column=1, sticky="w", padx=8, pady=8)
         if TTKBOOTSTRAP_AVAILABLE:
-            ToolTip(theme_combo, text="Choose UI theme: plain (cosmo), light (litera), or dark (darkly)")
+            ToolTip(
+                theme_combo,
+                text="Choose UI theme: plain (cosmo), light (litera), or dark (darkly)",
+            )
 
         row += 1
-        ttk.Label(self.settings_frame, text="Default View:").grid(row=row, column=0, sticky="e", padx=8, pady=8)
+        ttk.Label(self.settings_frame, text="Default View:").grid(
+            row=row, column=0, sticky="e", padx=8, pady=8
+        )
         self.default_view_var = tk.StringVar(value=self.settings.default_view)
         defview_combo = ttk.Combobox(
             self.settings_frame,
@@ -3334,7 +4612,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         defview_combo.grid(row=row, column=1, sticky="w", padx=8, pady=8)
 
         row += 1
-        ttk.Label(self.settings_frame, text="Font Scale:").grid(row=row, column=0, sticky="e", padx=8, pady=8)
+        ttk.Label(self.settings_frame, text="Font Scale:").grid(
+            row=row, column=0, sticky="e", padx=8, pady=8
+        )
         self.font_scale_var = tk.StringVar(value=self.settings.font_scale)
         font_combo = ttk.Combobox(
             self.settings_frame,
@@ -3354,8 +4634,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         show_sys_check.grid(row=row, column=1, sticky="w", padx=8, pady=8)
 
         row += 1
-        ttk.Label(self.settings_frame, text="AI change approvals:").grid(row=row, column=0, sticky="e", padx=8, pady=8)
-        self.approval_mode_var = tk.StringVar(value=self.settings.change_permission_mode)
+        ttk.Label(self.settings_frame, text="AI change approvals:").grid(
+            row=row, column=0, sticky="e", padx=8, pady=8
+        )
+        self.approval_mode_var = tk.StringVar(
+            value=self.settings.change_permission_mode
+        )
         approval_combo = ttk.Combobox(
             self.settings_frame,
             textvariable=self.approval_mode_var,
@@ -3364,11 +4648,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         )
         approval_combo.grid(row=row, column=1, sticky="w", padx=8, pady=8)
         if TTKBOOTSTRAP_AVAILABLE:
-            ToolTip(approval_combo, text="Choose when the AI should pause for approval before running commands")
+            ToolTip(
+                approval_combo,
+                text="Choose when the AI should pause for approval before running commands",
+            )
 
         row += 1
         if TTKBOOTSTRAP_AVAILABLE:
-            pref_box = ttkb.Labelframe(self.settings_frame, text="📊 Data Preferences", bootstyle="info")
+            pref_box = ttkb.Labelframe(
+                self.settings_frame, text="📊 Data Preferences", bootstyle="info"
+            )
         else:
             pref_box = ttk.LabelFrame(self.settings_frame, text="Data Preferences")
         pref_box.grid(row=row, column=0, columnspan=2, sticky="ew", padx=8, pady=8)
@@ -3382,44 +4671,104 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         ]
         self.data_pref_vars: Dict[str, tk.BooleanVar] = {}
         for idx, (key, label) in enumerate(pref_labels):
-            var = tk.BooleanVar(value=self.settings.data_preferences.get(key, DEFAULT_FETCH_PREFERENCES.get(key, True)))
+            var = tk.BooleanVar(
+                value=self.settings.data_preferences.get(
+                    key, DEFAULT_FETCH_PREFERENCES.get(key, True)
+                )
+            )
             chk = ttk.Checkbutton(pref_box, text=label, variable=var)
             chk.grid(row=idx // 2, column=idx % 2, sticky="w", padx=8, pady=4)
             self.data_pref_vars[key] = var
 
         row += 1
         if TTKBOOTSTRAP_AVAILABLE:
-            export_import_box = ttkb.Labelframe(self.settings_frame, text="💾 Export & Import", bootstyle="secondary")
+            export_import_box = ttkb.Labelframe(
+                self.settings_frame, text="💾 Export & Import", bootstyle="secondary"
+            )
         else:
-            export_import_box = ttk.LabelFrame(self.settings_frame, text="Export & Import")
-        export_import_box.grid(row=row, column=0, columnspan=2, sticky="ew", padx=8, pady=8)
+            export_import_box = ttk.LabelFrame(
+                self.settings_frame, text="Export & Import"
+            )
+        export_import_box.grid(
+            row=row, column=0, columnspan=2, sticky="ew", padx=8, pady=8
+        )
         export_import_box.columnconfigure(0, weight=1)
         export_import_box.columnconfigure(1, weight=1)
-        
+
         if TTKBOOTSTRAP_AVAILABLE:
-            export_tasks_csv_btn = ttkb.Button(export_import_box, text="📥 Export Tasks (CSV)", command=lambda: self.on_export_tasks("csv"), bootstyle="info-outline")
-            export_tasks_json_btn = ttkb.Button(export_import_box, text="📥 Export Tasks (JSON)", command=lambda: self.on_export_tasks("json"), bootstyle="info-outline")
-            export_projects_btn = ttkb.Button(export_import_box, text="📥 Export Projects", command=self.on_export_projects, bootstyle="info-outline")
-            export_backup_btn = ttkb.Button(export_import_box, text="💾 Full Backup", command=self.on_export_backup, bootstyle="success-outline")
-            import_tasks_btn = ttkb.Button(export_import_box, text="📤 Import Tasks", command=self.on_import_tasks, bootstyle="warning-outline")
+            export_tasks_csv_btn = ttkb.Button(
+                export_import_box,
+                text="📥 Export Tasks (CSV)",
+                command=lambda: self.on_export_tasks("csv"),
+                bootstyle="info-outline",
+            )
+            export_tasks_json_btn = ttkb.Button(
+                export_import_box,
+                text="📥 Export Tasks (JSON)",
+                command=lambda: self.on_export_tasks("json"),
+                bootstyle="info-outline",
+            )
+            export_projects_btn = ttkb.Button(
+                export_import_box,
+                text="📥 Export Projects",
+                command=self.on_export_projects,
+                bootstyle="info-outline",
+            )
+            export_backup_btn = ttkb.Button(
+                export_import_box,
+                text="💾 Full Backup",
+                command=self.on_export_backup,
+                bootstyle="success-outline",
+            )
+            import_tasks_btn = ttkb.Button(
+                export_import_box,
+                text="📤 Import Tasks",
+                command=self.on_import_tasks,
+                bootstyle="warning-outline",
+            )
         else:
-            export_tasks_csv_btn = ttk.Button(export_import_box, text="Export Tasks (CSV)", command=lambda: self.on_export_tasks("csv"))
-            export_tasks_json_btn = ttk.Button(export_import_box, text="Export Tasks (JSON)", command=lambda: self.on_export_tasks("json"))
-            export_projects_btn = ttk.Button(export_import_box, text="Export Projects", command=self.on_export_projects)
-            export_backup_btn = ttk.Button(export_import_box, text="Full Backup", command=self.on_export_backup)
-            import_tasks_btn = ttk.Button(export_import_box, text="Import Tasks", command=self.on_import_tasks)
-        
+            export_tasks_csv_btn = ttk.Button(
+                export_import_box,
+                text="Export Tasks (CSV)",
+                command=lambda: self.on_export_tasks("csv"),
+            )
+            export_tasks_json_btn = ttk.Button(
+                export_import_box,
+                text="Export Tasks (JSON)",
+                command=lambda: self.on_export_tasks("json"),
+            )
+            export_projects_btn = ttk.Button(
+                export_import_box,
+                text="Export Projects",
+                command=self.on_export_projects,
+            )
+            export_backup_btn = ttk.Button(
+                export_import_box, text="Full Backup", command=self.on_export_backup
+            )
+            import_tasks_btn = ttk.Button(
+                export_import_box, text="Import Tasks", command=self.on_import_tasks
+            )
+
         export_tasks_csv_btn.grid(row=0, column=0, padx=4, pady=4, sticky="ew")
         export_tasks_json_btn.grid(row=0, column=1, padx=4, pady=4, sticky="ew")
         export_projects_btn.grid(row=1, column=0, padx=4, pady=4, sticky="ew")
         export_backup_btn.grid(row=1, column=1, padx=4, pady=4, sticky="ew")
-        import_tasks_btn.grid(row=2, column=0, columnspan=2, padx=4, pady=4, sticky="ew")
-        
+        import_tasks_btn.grid(
+            row=2, column=0, columnspan=2, padx=4, pady=4, sticky="ew"
+        )
+
         row += 1
         if TTKBOOTSTRAP_AVAILABLE:
-            save_btn = ttkb.Button(self.settings_frame, text="💾 Save Settings", command=self.on_save_settings, bootstyle="success")
+            save_btn = ttkb.Button(
+                self.settings_frame,
+                text="💾 Save Settings",
+                command=self.on_save_settings,
+                bootstyle="success",
+            )
         else:
-            save_btn = ttk.Button(self.settings_frame, text="Save Settings", command=self.on_save_settings)
+            save_btn = ttk.Button(
+                self.settings_frame, text="Save Settings", command=self.on_save_settings
+            )
         save_btn.grid(row=row, column=1, sticky="w", padx=8, pady=8)
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(save_btn, text="Save all settings and apply changes")
@@ -3429,18 +4778,16 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.settings.default_view = self.default_view_var.get()
         self.settings.show_system_status = self.show_sys_var.get()
         self.settings.font_scale = self.font_scale_var.get()
-        self.settings.data_preferences = {k: var.get() for k, var in self.data_pref_vars.items()}
+        self.settings.data_preferences = {
+            k: var.get() for k, var in self.data_pref_vars.items()
+        }
         self.settings.change_permission_mode = self.approval_mode_var.get()
         self.settings.auto_overwrite = self.settings.change_permission_mode == "auto"
         save_settings(self.conn, self.settings)
-        
+
         # Apply theme change if ttkbootstrap is available
         if TTKBOOTSTRAP_AVAILABLE:
-            theme_map = {
-                "plain": "cosmo",
-                "light": "litera",
-                "dark": "darkly"
-            }
+            theme_map = {"plain": "cosmo", "light": "litera", "dark": "darkly"}
             theme = theme_map.get(self.settings.theme, "cosmo")
             self.style.theme_use(theme)
         else:
@@ -3455,7 +4802,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 filename = filedialog.asksaveasfilename(
                     defaultextension=".csv",
                     filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
-                    initialfile=f"tasks_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+                    initialfile=f"tasks_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 )
                 if filename:
                     export_tasks_to_csv(self.conn, filename)
@@ -3464,7 +4811,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 filename = filedialog.asksaveasfilename(
                     defaultextension=".json",
                     filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-                    initialfile=f"tasks_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                    initialfile=f"tasks_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
                 )
                 if filename:
                     export_tasks_to_json(self.conn, filename)
@@ -3478,7 +4825,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             filename = filedialog.asksaveasfilename(
                 defaultextension=".json",
                 filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-                initialfile=f"projects_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                initialfile=f"projects_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
             )
             if filename:
                 export_projects_to_json(self.conn, filename)
@@ -3492,7 +4839,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             filename = filedialog.asksaveasfilename(
                 defaultextension=".json",
                 filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-                initialfile=f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                initialfile=f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
             )
             if filename:
                 export_full_backup(self.conn, filename)
@@ -3507,24 +4854,31 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 filetypes=[
                     ("CSV files", "*.csv"),
                     ("JSON files", "*.json"),
-                    ("All files", "*.*")
+                    ("All files", "*.*"),
                 ]
             )
             if filename:
                 imported = 0
-                if filename.endswith('.csv'):
+                if filename.endswith(".csv"):
                     imported = import_tasks_from_csv(self.conn, filename)
-                elif filename.endswith('.json'):
+                elif filename.endswith(".json"):
                     imported = import_tasks_from_json(self.conn, filename)
                 else:
-                    messagebox.showwarning("Import Error", "Please select a CSV or JSON file.")
+                    messagebox.showwarning(
+                        "Import Error", "Please select a CSV or JSON file."
+                    )
                     return
-                
+
                 if imported > 0:
-                    messagebox.showinfo("Import", f"Successfully imported {imported} task(s).")
+                    messagebox.showinfo(
+                        "Import", f"Successfully imported {imported} task(s)."
+                    )
                     self.refresh_all()
                 else:
-                    messagebox.showwarning("Import", "No tasks were imported. Please check the file format.")
+                    messagebox.showwarning(
+                        "Import",
+                        "No tasks were imported. Please check the file format.",
+                    )
         except Exception as e:
             messagebox.showerror("Import Error", f"Failed to import tasks: {e}")
 
@@ -3535,13 +4889,13 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.refresh_task_list()
         self.refresh_project_list()
         self.refresh_chat_history()
-        if hasattr(self, 'refresh_integrations_list'):
+        if hasattr(self, "refresh_integrations_list"):
             self.refresh_integrations_list()
-        if hasattr(self, 'refresh_analytics'):
+        if hasattr(self, "refresh_analytics"):
             self.refresh_analytics()
-        if hasattr(self, 'refresh_templates_list'):
+        if hasattr(self, "refresh_templates_list"):
             self.refresh_templates_list()
-        if hasattr(self, 'refresh_change_log'):
+        if hasattr(self, "refresh_change_log"):
             self.refresh_change_log()
 
     def _apply_default_view(self):

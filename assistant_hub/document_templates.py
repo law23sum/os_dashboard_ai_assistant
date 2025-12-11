@@ -142,16 +142,46 @@ def _base_samples(doc_type: str) -> List[TemplateSample]:
 document_templates: List[DocumentTemplateProfile] = []
 
 for template_name, purpose in [
-    ("briefs", "Fast, high-signal summaries that outline context, intent, and next actions."),
-    ("proposals", "Persuasive narratives with problem framing, solution options, and acceptance criteria."),
-    ("compliance reports", "Evidence-backed reporting aligned to regulatory controls and audit trails."),
-    ("patient summaries", "Concise clinical snapshots with diagnostics, care plans, and consent provenance."),
-    ("risk assessments", "Structured identification, scoring, and mitigation planning for known risks."),
-    ("regulatory filings", "Formal submissions with references to statutes, controls, and supporting evidence."),
-    ("engineering specs", "Technical requirements with architecture notes, interfaces, and test criteria."),
-    ("technical documents", "Implementation details, runbooks, and troubleshooting guides."),
-    ("product updates", "Release notes, customer impact, rollout plans, and observability checks."),
-    ("operational manuals", "Step-by-step procedures with safety, rollback, and training references."),
+    (
+        "briefs",
+        "Fast, high-signal summaries that outline context, intent, and next actions.",
+    ),
+    (
+        "proposals",
+        "Persuasive narratives with problem framing, solution options, and acceptance criteria.",
+    ),
+    (
+        "compliance reports",
+        "Evidence-backed reporting aligned to regulatory controls and audit trails.",
+    ),
+    (
+        "patient summaries",
+        "Concise clinical snapshots with diagnostics, care plans, and consent provenance.",
+    ),
+    (
+        "risk assessments",
+        "Structured identification, scoring, and mitigation planning for known risks.",
+    ),
+    (
+        "regulatory filings",
+        "Formal submissions with references to statutes, controls, and supporting evidence.",
+    ),
+    (
+        "engineering specs",
+        "Technical requirements with architecture notes, interfaces, and test criteria.",
+    ),
+    (
+        "technical documents",
+        "Implementation details, runbooks, and troubleshooting guides.",
+    ),
+    (
+        "product updates",
+        "Release notes, customer impact, rollout plans, and observability checks.",
+    ),
+    (
+        "operational manuals",
+        "Step-by-step procedures with safety, rollback, and training references.",
+    ),
 ]:
     document_templates.append(
         DocumentTemplateProfile(

@@ -3,188 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OS Dashboard AI Assistant - Download</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .hero {
-            text-align: center;
-            color: white;
-            padding: 80px 20px;
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 40px;
-            opacity: 0.9;
-        }
-
-        .download-section {
-            background: white;
-            border-radius: 15px;
-            padding: 40px;
-            margin: 40px 0;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-
-        .download-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
-
-        .download-card {
-            border: 2px solid #f0f0f0;
-            border-radius: 10px;
-            padding: 30px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .download-card:hover {
-            border-color: #667eea;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-
-        .download-card h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-        }
-
-        .download-card p {
-            color: #666;
-            margin-bottom: 20px;
-        }
-
-        .download-btn {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .requirements {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 30px;
-            margin: 40px 0;
-        }
-
-        .requirements h2 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .requirements ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .requirements li {
-            padding: 8px 0;
-            position: relative;
-            padding-left: 25px;
-        }
-
-        .requirements li:before {
-            content: "✓";
-            color: #28a745;
-            font-weight: bold;
-            position: absolute;
-            left: 0;
-        }
-
-        .footer {
-            text-align: center;
-            color: white;
-            padding: 40px 0;
-            opacity: 0.8;
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .download-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <title>OS Dashboard AI Assistant - Downloads</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
+    <header class="site-header">
+        <div class="container header-content">
+            <a href="home.html" class="logo">OS Dashboard AI</a>
+            <nav class="main-nav" aria-label="Primary">
+                <ul class="nav-links">
+                    <li><a href="home.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="subscription.html">Subscriptions</a></li>
+                    <li><a href="install.html">Install</a></li>
+                    <li><a href="index.html" class="active">Downloads</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
         <section class="hero">
+            <span class="badge">Download Center</span>
             <h1>🚀 OS Dashboard AI Assistant</h1>
-            <p>Your intelligent operating system dashboard for task management, document processing, and workflow automation</p>
+            <p>Get the latest release for your platform and connect it to your subscription in minutes.</p>
+            <div>
+                <label for="nav-select" style="color: white; margin-right: 8px;">Explore live views:</label>
+                <select id="nav-select" onchange="if(this.value){window.location=this.value;}">
+                    <option value="">Pick a view</option>
+                    <option value="dashboard.html">Live Dashboard</option>
+                    <option value="projects.html">Projects &amp; Workspaces</option>
+                    <option value="billing.html">Billing &amp; Usage</option>
+                </select>
+            </div>
+            <div class="hero-actions">
+                <a href="subscription.html" class="btn btn-secondary">Pick a subscription</a>
+                <a href="install.html" class="btn btn-primary">Review install guide</a>
+            </div>
         </section>
 
-        <section class="download-section">
-            <h2 style="text-align: center; margin-bottom: 10px; color: #333;">Download Now</h2>
-            <p style="text-align: center; color: #666; margin-bottom: 40px;">Choose your platform and get started in minutes</p>
+        <section class="section download-section">
+            <h2 style="text-align: center; margin-bottom: 10px;">Download Now</h2>
+            <p style="text-align: center; margin-bottom: 30px; color: var(--text-muted);">Choose your platform and get started in minutes.</p>
 
-            <div class="download-grid">
+            <div class="grid">
                 <div class="download-card">
                     <h3>🪟 Windows</h3>
                     <p>Download the Windows executable. No installation required.</p>
-                    <br>
-                    <a href="https://github.com/yourusername/os-dashboard-ai-assistant/releases/latest/download/OS-Dashboard-AI-Assistant-Windows.zip" class="download-btn">Download for Windows</a>
+                    <a href="https://github.com/yourusername/os-dashboard-ai-assistant/releases/latest/download/OS-Dashboard-AI-Assistant-Windows.zip" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Download for Windows</a>
                 </div>
 
                 <div class="download-card">
                     <h3>🍎 macOS</h3>
                     <p>Download the macOS application. Drag to Applications folder.</p>
-                    <br>
-                    <a href="https://github.com/yourusername/os-dashboard-ai-assistant/releases/latest/download/OS-Dashboard-AI-Assistant-macOS.zip" class="download-btn">Download for macOS</a>
+                    <a href="https://github.com/yourusername/os-dashboard-ai-assistant/releases/latest/download/OS-Dashboard-AI-Assistant-macOS.zip" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Download for macOS</a>
                 </div>
 
                 <div class="download-card">
                     <h3>🐧 Linux</h3>
                     <p>Download the AppImage. Make executable and run.</p>
-                    <br>
-                    <a href="https://github.com/yourusername/os-dashboard-ai-assistant/releases/latest/download/OS-Dashboard-AI-Assistant.AppImage" class="download-btn">Download for Linux</a>
+                    <a href="https://github.com/yourusername/os-dashboard-ai-assistant/releases/latest/download/OS-Dashboard-AI-Assistant.AppImage" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Download for Linux</a>
                 </div>
             </div>
 
             <div style="text-align: center; margin-top: 40px;">
-                <p style="color: #666; margin-bottom: 20px;">Prefer to build from source?</p>
-                <a href="https://github.com/yourusername/os-dashboard-ai-assistant" style="color: #667eea; text-decoration: none; font-weight: 600;">View on GitHub →</a>
+                <p style="color: var(--text-muted); margin-bottom: 16px;">Prefer to build from source?</p>
+                <a href="https://github.com/yourusername/os-dashboard-ai-assistant" style="color: #fff; text-decoration: underline;">View on GitHub →</a>
             </div>
         </section>
 
@@ -199,40 +83,40 @@
             </ul>
         </section>
 
-        <section class="requirements">
-            <h2>Features</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
-                <div>
+        <section class="section section-muted">
+            <h2>Included Features</h2>
+            <div class="grid">
+                <div class="card">
                     <h3>🤖 AI-Powered Assistant</h3>
-                    <p>Intelligent task management and document processing with OpenAI integration</p>
+                    <p>Intelligent task management and document processing with OpenAI integration.</p>
                 </div>
-                <div>
+                <div class="card">
                     <h3>📊 Dashboard Analytics</h3>
-                    <p>Comprehensive analytics and reporting for productivity insights</p>
+                    <p>Comprehensive analytics and reporting for productivity insights.</p>
                 </div>
-                <div>
+                <div class="card">
                     <h3>🔗 Multi-Platform Integration</h3>
-                    <p>Connect with Microsoft Office, Google Workspace, Git, and more</p>
+                    <p>Connect with Microsoft 365, Google Workspace, Git, and custom APIs.</p>
                 </div>
-                <div>
+                <div class="card">
                     <h3>🔒 Enterprise Security</h3>
-                    <p>Built-in security framework with compliance monitoring</p>
+                    <p>Role-based access, audit-ready logging, and compliance monitoring.</p>
                 </div>
             </div>
         </section>
-    </div>
+    </main>
 
     <footer class="footer">
-        <p>&copy; 2024 OS Dashboard AI Assistant. Open source and free to use.</p>
+        <p>© 2024 OS Dashboard AI Assistant. Open source and free to use.</p>
     </footer>
 
     <script>
-        // Add download tracking (optional)
-        document.querySelectorAll('.download-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                // You could add analytics tracking here
-                console.log('Download started for:', this.textContent.trim());
-            });
+        document.querySelectorAll('.btn.btn-primary').forEach(btn => {
+            if (btn.textContent.includes('Download')) {
+                btn.addEventListener('click', function() {
+                    console.log('Download started for:', this.textContent.trim());
+                });
+            }
         });
     </script>
 </body>

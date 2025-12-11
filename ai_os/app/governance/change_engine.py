@@ -7,7 +7,9 @@ from ai_os.app.cir import CIRDocument
 
 
 class ChangeEngine:
-    def build_write_payload(self, before: CIRDocument, after: CIRDocument) -> Dict[str, Any]:
+    def build_write_payload(
+        self, before: CIRDocument, after: CIRDocument
+    ) -> Dict[str, Any]:
         return {
             "before_title": before.root.title,
             "after_title": after.root.title,

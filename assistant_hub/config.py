@@ -25,8 +25,12 @@ def _path_from_env(key: str, fallback: Path) -> Path:
 default_data_dir = _path_from_env("ASSISTANT_HUB_DATA_DIR", _DEFAULT_DATA_DIR)
 DATA_DIR = default_data_dir
 DB_PATH = _path_from_env("ASSISTANT_HUB_DB", DATA_DIR / "assistant_hub.db")
-ATTACHMENTS_DIR = _path_from_env("ASSISTANT_HUB_ATTACHMENTS_DIR", DATA_DIR / "attachments")
-INTEGRATIONS_DIR = _path_from_env("ASSISTANT_HUB_INTEGRATIONS_DIR", DATA_DIR / "integrations")
+ATTACHMENTS_DIR = _path_from_env(
+    "ASSISTANT_HUB_ATTACHMENTS_DIR", DATA_DIR / "attachments"
+)
+INTEGRATIONS_DIR = _path_from_env(
+    "ASSISTANT_HUB_INTEGRATIONS_DIR", DATA_DIR / "integrations"
+)
 FILE_CACHE_DIR = _path_from_env("ASSISTANT_HUB_FILE_CACHE_DIR", DATA_DIR / "file_cache")
 
 
@@ -58,18 +62,26 @@ class APISettings(BaseSettings):
 
     # Microsoft Graph API Configuration
     microsoft_client_id: Optional[str] = Field(default=None, env="MICROSOFT_CLIENT_ID")
-    microsoft_client_secret: Optional[str] = Field(default=None, env="MICROSOFT_CLIENT_SECRET")
+    microsoft_client_secret: Optional[str] = Field(
+        default=None, env="MICROSOFT_CLIENT_SECRET"
+    )
     microsoft_tenant_id: Optional[str] = Field(default=None, env="MICROSOFT_TENANT_ID")
-    microsoft_redirect_uri: str = Field(default="http://localhost:8000/auth/callback", env="MICROSOFT_REDIRECT_URI")
+    microsoft_redirect_uri: str = Field(
+        default="http://localhost:8000/auth/callback", env="MICROSOFT_REDIRECT_URI"
+    )
 
     # Google APIs Configuration
-    google_credentials_file: Optional[str] = Field(default="credentials.json", env="GOOGLE_CREDENTIALS_FILE")
+    google_credentials_file: Optional[str] = Field(
+        default="credentials.json", env="GOOGLE_CREDENTIALS_FILE"
+    )
     google_token_file: str = Field(default="token.json", env="GOOGLE_TOKEN_FILE")
-    google_scopes: list = Field(default=[
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/gmail.send',
-        'https://www.googleapis.com/auth/calendar'
-    ])
+    google_scopes: list = Field(
+        default=[
+            "https://www.googleapis.com/auth/gmail.readonly",
+            "https://www.googleapis.com/auth/gmail.send",
+            "https://www.googleapis.com/auth/calendar",
+        ]
+    )
 
     # GitHub Configuration
     github_token: Optional[str] = Field(default=None, env="GITHUB_TOKEN")
@@ -78,9 +90,13 @@ class APISettings(BaseSettings):
     # Adobe Configuration
     adobe_client_id: Optional[str] = Field(default=None, env="ADOBE_CLIENT_ID")
     adobe_client_secret: Optional[str] = Field(default=None, env="ADOBE_CLIENT_SECRET")
-    adobe_organization_id: Optional[str] = Field(default=None, env="ADOBE_ORGANIZATION_ID")
+    adobe_organization_id: Optional[str] = Field(
+        default=None, env="ADOBE_ORGANIZATION_ID"
+    )
     adobe_account_id: Optional[str] = Field(default=None, env="ADOBE_ACCOUNT_ID")
-    adobe_private_key_file: Optional[str] = Field(default="private.key", env="ADOBE_PRIVATE_KEY_FILE")
+    adobe_private_key_file: Optional[str] = Field(
+        default="private.key", env="ADOBE_PRIVATE_KEY_FILE"
+    )
 
     # Apple Calendar (CalDAV) Configuration
     caldav_url: Optional[str] = Field(default=None, env="CALDAV_URL")
@@ -110,11 +126,20 @@ def validate_api_config() -> dict[str, bool]:
     """Validate that required API credentials are present"""
     validation_results = {
         "openai": bool(api_config.openai_api_key),
-        "microsoft": bool(api_config.microsoft_client_id and api_config.microsoft_client_secret and api_config.microsoft_tenant_id),
-        "google": bool(os.path.exists(api_config.google_credentials_file or "credentials.json")),
+        "microsoft": bool(
+            api_config.microsoft_client_id
+            and api_config.microsoft_client_secret
+            and api_config.microsoft_tenant_id
+        ),
+        "google": bool(
+            os.path.exists(api_config.google_credentials_file or "credentials.json")
+        ),
         "github": bool(api_config.github_token),
         "adobe": bool(api_config.adobe_client_id and api_config.adobe_client_secret),
-        "caldav": bool(api_config.caldav_url and api_config.caldav_username and api_config.caldav_password)
+        "caldav": bool(
+            api_config.caldav_url
+            and api_config.caldav_username
+            and api_config.caldav_password
+        ),
     }
     return validation_results
-

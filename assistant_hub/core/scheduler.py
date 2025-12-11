@@ -12,6 +12,7 @@ from enum import Enum
 
 class JobType(Enum):
     """Types of scheduled jobs."""
+
     REPEATING = "repeating"
     ONESHOT = "oneshot"
 
@@ -19,6 +20,7 @@ class JobType(Enum):
 @dataclass
 class Job:
     """A scheduled job."""
+
     id: str
     job_type: JobType
     func: Callable
@@ -116,7 +118,9 @@ class Scheduler:
                     if job.job_type == JobType.REPEATING:
                         if job.last_run is None:
                             jobs_to_run.append(job)
-                        elif (now - job.last_run).total_seconds() >= job.interval_seconds:
+                        elif (
+                            now - job.last_run
+                        ).total_seconds() >= job.interval_seconds:
                             jobs_to_run.append(job)
                     elif job.job_type == JobType.ONESHOT:
                         if job.run_at and now >= job.run_at:
@@ -133,4 +137,3 @@ class Scheduler:
                     pass
 
             time.sleep(1)  # Check every second
-

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
+import hashlib
 import os
 import sqlite3
 import json
+import uuid
 from dataclasses import dataclass, field, asdict
-import os
-from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
@@ -96,8 +96,6 @@ class ChatMessage:
     created_at: str = datetime.now().isoformat(timespec="seconds")
 
 
-
-
 @dataclass
 class DocumentOperation:
     """Track AI-driven document operations with governance metadata."""
@@ -116,6 +114,8 @@ class DocumentOperation:
     started_at: str = datetime.now().isoformat(timespec="seconds")
     completed_at: Optional[str] = None
     notes: str = ""
+
+
 @dataclass
 class AssistantState:
     tasks: List[Task]
@@ -126,11 +126,13 @@ class AssistantState:
 
 @dataclass
 class Settings:
-    theme: str = "plain"              # plain | light | dark
-    default_view: str = "dashboard"   # dashboard | tasks | projects
-    show_system_status: bool = True   # show CPU/RAM/Disk in dashboard
-    font_scale: str = "medium"        # small | medium | large
-    data_preferences: Dict[str, bool] = field(default_factory=lambda: DEFAULT_FETCH_PREFERENCES.copy())
+    theme: str = "plain"  # plain | light | dark
+    default_view: str = "dashboard"  # dashboard | tasks | projects
+    show_system_status: bool = True  # show CPU/RAM/Disk in dashboard
+    font_scale: str = "medium"  # small | medium | large
+    data_preferences: Dict[str, bool] = field(
+        default_factory=lambda: DEFAULT_FETCH_PREFERENCES.copy()
+    )
 
 
 @dataclass
@@ -153,6 +155,7 @@ class ExternalConnection:
 @dataclass
 class NoteLink:
     """Link between a project and an external integration resource."""
+
     id: int
     project_id: str  # References Project.name
     integration_type: str  # "onenote" | "excel" | "word" | "filesystem" | ...
@@ -166,6 +169,7 @@ class NoteLink:
 @dataclass
 class AgentRun:
     """Record of an AI agent action/operation."""
+
     id: int
     agent: str  # "AIC" | "Sora" | "Aria" | "User"
     action_type: str  # "ONENOTE_CLEANUP" | "EXCEL_SUMMARY" | "WORD_DRAFT" | ...
@@ -189,6 +193,7 @@ class DocumentSample:
     governance: str
     created_at: str = datetime.now().isoformat(timespec="seconds")
 
+
 @dataclass
 class DocumentOperation:
     """Track AI-driven document operations with governance metadata."""
@@ -210,18 +215,21 @@ class DocumentOperation:
 
 
 def init_db() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(DB_FILE, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS state_meta (
             key TEXT PRIMARY KEY,
             value TEXT
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
@@ -239,8 +247,9 @@ def init_db() -> sqlite3.Connection:
             time_logged INTEGER,
             template_id TEXT
         )
-    """)
-    
+    """
+    )
+
     # Add new columns if they don't exist (for existing databases)
     c.execute("PRAGMA table_info(tasks)")
     columns = [row[1] for row in c.fetchall()]
@@ -255,9 +264,10 @@ def init_db() -> sqlite3.Connection:
     for col_name, col_type in new_columns:
         if col_name not in columns:
             c.execute(f"ALTER TABLE tasks ADD COLUMN {col_name} {col_type}")
-    
+
     # Create task_templates table
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS task_templates (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -268,9 +278,11 @@ def init_db() -> sqlite3.Connection:
             time_estimated INTEGER,
             created_at TEXT
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS projects (
             name TEXT PRIMARY KEY,
             description TEXT,
@@ -278,7 +290,8 @@ def init_db() -> sqlite3.Connection:
             priority TEXT,
             order_num INTEGER DEFAULT 0
         )
-    """)
+    """
+    )
 
     # Add new columns if they don't exist (for existing databases)
     c.execute("PRAGMA table_info(projects)")
@@ -291,7 +304,8 @@ def init_db() -> sqlite3.Connection:
         if col_name not in columns:
             c.execute(f"ALTER TABLE projects ADD COLUMN {col_name} {col_type}")
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS external_sources (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE,
@@ -299,9 +313,11 @@ def init_db() -> sqlite3.Connection:
             connected INTEGER DEFAULT 1,
             last_sync TEXT
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS external_items (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             source_id INTEGER,
@@ -313,9 +329,11 @@ def init_db() -> sqlite3.Connection:
             last_seen_at TEXT,
             FOREIGN KEY(source_id) REFERENCES external_sources(id)
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS chat_messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             persona TEXT,
@@ -324,9 +342,11 @@ def init_db() -> sqlite3.Connection:
             content TEXT,
             created_at TEXT
         )
-    """)
+    """
+    )
 
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS note_links (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             project_id TEXT NOT NULL,
@@ -338,15 +358,41 @@ def init_db() -> sqlite3.Connection:
             last_synced TEXT,
             FOREIGN KEY(project_id) REFERENCES projects(name)
         )
-    """)
-    
+    """
+    )
+
     # Add description column if it doesn't exist (for existing databases)
     c.execute("PRAGMA table_info(note_links)")
     columns = [row[1] for row in c.fetchall()]
     if "description" not in columns:
         c.execute("ALTER TABLE note_links ADD COLUMN description TEXT DEFAULT ''")
 
-    c.execute("""
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS project_events (
+            id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            event_type TEXT NOT NULL,
+            entity_type TEXT,
+            entity_id TEXT,
+            payload TEXT,
+            created_at TEXT NOT NULL,
+            hash_prev TEXT,
+            hash_curr TEXT,
+            FOREIGN KEY(project_id) REFERENCES projects(name)
+        )
+    """
+    )
+
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_project_events_project_time
+        ON project_events(project_id, created_at DESC)
+        """
+    )
+
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS agent_runs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             agent TEXT NOT NULL,
@@ -357,7 +403,8 @@ def init_db() -> sqlite3.Connection:
             git_commit_hash TEXT,
             created_at TEXT
         )
-    """)
+    """
+    )
 
     # Document operations table for AI-driven updates and external sync
     c.execute(
@@ -387,9 +434,10 @@ def init_db() -> sqlite3.Connection:
         ON document_operations(status, started_at DESC)
         """
     )
-    
+
     # Document operations table for AI-driven updates and external sync
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS document_operations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
@@ -406,10 +454,12 @@ def init_db() -> sqlite3.Connection:
             completed_at TEXT,
             notes TEXT
         )
-    """)
-    
+    """
+    )
+
     # Document versions table for tracking document history
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS document_versions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             note_link_id INTEGER NOT NULL,
@@ -423,18 +473,22 @@ def init_db() -> sqlite3.Connection:
             FOREIGN KEY(note_link_id) REFERENCES note_links(id) ON DELETE CASCADE,
             UNIQUE(note_link_id, version_number)
         )
-    """)
-    
+    """
+    )
+
     # Create index for faster lookups
-    c.execute("""
+    c.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_document_versions_link 
         ON document_versions(note_link_id, version_number DESC)
-    """)
-    
+    """
+    )
+
     # Comments table for tasks and projects
     # Note: No FOREIGN KEY constraint since entity_id can reference either tasks(id) or projects(name)
     # with different types (INTEGER vs TEXT). Application-level integrity is maintained.
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             entity_type TEXT NOT NULL,
@@ -443,16 +497,20 @@ def init_db() -> sqlite3.Connection:
             content TEXT NOT NULL,
             created_at TEXT NOT NULL
         )
-    """)
-    
+    """
+    )
+
     # Create index for faster comment lookups
-    c.execute("""
+    c.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_comments_entity 
         ON comments(entity_type, entity_id, created_at DESC)
-    """)
-    
+    """
+    )
+
     # Document templates table
-    c.execute("""
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS document_templates (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -461,17 +519,21 @@ def init_db() -> sqlite3.Connection:
             created_at TEXT NOT NULL,
             updated_at TEXT
         )
-    """)
-    
+    """
+    )
+
     # Create index for document templates
-    c.execute("""
+    c.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_document_templates_category 
         ON document_templates(category)
-    """)
-    
+    """
+    )
+
     # Initialize default document templates
     try:
         from .document_templates import initialize_default_templates
+
         initialize_default_templates(conn)
     except Exception:
         pass  # Don't fail if templates can't be initialized
@@ -500,7 +562,7 @@ def init_db() -> sqlite3.Connection:
 
     try:
         initialize_document_samples(conn)
-    # Seed sample document operations so the AI Ops board is never empty
+        # Seed sample document operations so the AI Ops board is never empty
         c.execute("SELECT COUNT(*) as count FROM document_operations")
         row = c.fetchone()
         op_count = row["count"] if row else 0
@@ -581,12 +643,13 @@ def init_db() -> sqlite3.Connection:
     except Exception:
         pass
 
-
     conn.commit()
     return conn
 
 
-def get_meta(conn: sqlite3.Connection, key: str, default: Optional[str] = None) -> Optional[str]:
+def get_meta(
+    conn: sqlite3.Connection, key: str, default: Optional[str] = None
+) -> Optional[str]:
     c = conn.cursor()
     c.execute("SELECT value FROM state_meta WHERE key = ?", (key,))
     row = c.fetchone()
@@ -627,32 +690,34 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
             depends_on = r["depends_on"] if r["depends_on"] else None
         except (KeyError, IndexError):
             depends_on = None
-        
+
         try:
             recurrence_pattern = r["recurrence_pattern"] or None
         except (KeyError, IndexError):
             recurrence_pattern = None
-        
+
         try:
             recurrence_end = r["recurrence_end"] or None
         except (KeyError, IndexError):
             recurrence_end = None
-        
+
         try:
-            time_estimated = r["time_estimated"] if r["time_estimated"] is not None else None
+            time_estimated = (
+                r["time_estimated"] if r["time_estimated"] is not None else None
+            )
         except (KeyError, IndexError):
             time_estimated = None
-        
+
         try:
             time_logged = r["time_logged"] if r["time_logged"] is not None else None
         except (KeyError, IndexError):
             time_logged = None
-        
+
         try:
             template_id = r["template_id"] or None
         except (KeyError, IndexError):
             template_id = None
-        
+
         tasks.append(
             Task(
                 id=r["id"],
@@ -663,7 +728,8 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
                 due_date=r["due_date"] or "",
                 notes=r["notes"] or "",
                 owner=owner,
-                created_at=r["created_at"] or datetime.now().isoformat(timespec="seconds"),
+                created_at=r["created_at"]
+                or datetime.now().isoformat(timespec="seconds"),
                 depends_on=depends_on,
                 recurrence_pattern=recurrence_pattern,
                 recurrence_end=recurrence_end,
@@ -721,7 +787,8 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
                 role=role,
                 kind=kind,
                 content=r["content"] or "",
-                created_at=r["created_at"] or datetime.now().isoformat(timespec="seconds"),
+                created_at=r["created_at"]
+                or datetime.now().isoformat(timespec="seconds"),
             )
         )
 
@@ -741,7 +808,7 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
     theme = get_meta(conn, "setting.theme", "plain") or "plain"
     default_view = get_meta(conn, "setting.default_view", "dashboard") or "dashboard"
     show_system_status_raw = get_meta(conn, "setting.show_system_status", "1") or "1"
-    show_system_status = (show_system_status_raw == "1")
+    show_system_status = show_system_status_raw == "1"
     font_scale = get_meta(conn, "setting.font_scale", "medium") or "medium"
     data_pref_raw = get_meta(conn, "setting.data_preferences", None)
     data_preferences = DEFAULT_FETCH_PREFERENCES.copy()
@@ -765,9 +832,15 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
 def save_settings(conn: sqlite3.Connection, settings: Settings):
     set_meta(conn, "setting.theme", settings.theme)
     set_meta(conn, "setting.default_view", settings.default_view)
-    set_meta(conn, "setting.show_system_status", "1" if settings.show_system_status else "0")
+    set_meta(
+        conn, "setting.show_system_status", "1" if settings.show_system_status else "0"
+    )
     set_meta(conn, "setting.font_scale", settings.font_scale)
-    set_meta(conn, "setting.data_preferences", json.dumps(settings.data_preferences, ensure_ascii=False))
+    set_meta(
+        conn,
+        "setting.data_preferences",
+        json.dumps(settings.data_preferences, ensure_ascii=False),
+    )
 
 
 def save_active_persona(conn: sqlite3.Connection, state: AssistantState):
@@ -778,10 +851,15 @@ def load_security_status(conn: sqlite3.Connection) -> SecurityStatus:
     status = (get_meta(conn, "security.status", "offline") or "offline").lower()
     if status not in SECURITY_STATUS_CHOICES:
         status = "offline"
-    message = get_meta(conn, "security.message", "Telemetry not available yet.") or "Telemetry not available yet."
+    message = (
+        get_meta(conn, "security.message", "Telemetry not available yet.")
+        or "Telemetry not available yet."
+    )
     updated_at = get_meta(conn, "security.updated_at", "") or ""
     source = get_meta(conn, "security.source", "mac_guard") or "mac_guard"
-    return SecurityStatus(status=status, message=message, updated_at=updated_at, source=source)
+    return SecurityStatus(
+        status=status, message=message, updated_at=updated_at, source=source
+    )
 
 
 def save_security_status(conn: sqlite3.Connection, status: SecurityStatus):
@@ -833,8 +911,22 @@ def db_insert_task(conn: sqlite3.Connection, t: Task) -> int:
          depends_on, recurrence_pattern, recurrence_end, time_estimated, time_logged, template_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (t.title, t.project, t.status, t.priority, t.due_date, t.notes, t.owner, t.created_at,
-         t.depends_on, t.recurrence_pattern, t.recurrence_end, t.time_estimated, t.time_logged, t.template_id),
+        (
+            t.title,
+            t.project,
+            t.status,
+            t.priority,
+            t.due_date,
+            t.notes,
+            t.owner,
+            t.created_at,
+            t.depends_on,
+            t.recurrence_pattern,
+            t.recurrence_end,
+            t.time_estimated,
+            t.time_logged,
+            t.template_id,
+        ),
     )
     conn.commit()
     return c.lastrowid
@@ -851,9 +943,22 @@ def db_update_task(conn: sqlite3.Connection, t: Task):
             time_estimated = ?, time_logged = ?, template_id = ?
         WHERE id = ?
         """,
-        (t.title, t.project, t.status, t.priority, t.due_date, t.notes, t.owner,
-         t.depends_on, t.recurrence_pattern, t.recurrence_end,
-         t.time_estimated, t.time_logged, t.template_id, t.id),
+        (
+            t.title,
+            t.project,
+            t.status,
+            t.priority,
+            t.due_date,
+            t.notes,
+            t.owner,
+            t.depends_on,
+            t.recurrence_pattern,
+            t.recurrence_end,
+            t.time_estimated,
+            t.time_logged,
+            t.template_id,
+            t.id,
+        ),
     )
     conn.commit()
 
@@ -885,7 +990,9 @@ def db_clear_chat_history(conn: sqlite3.Connection):
 
 
 # Azure/Microsoft Graph credentials storage
-def save_azure_credentials(conn: sqlite3.Connection, tenant_id: str, client_id: str, client_secret: str):
+def save_azure_credentials(
+    conn: sqlite3.Connection, tenant_id: str, client_id: str, client_secret: str
+):
     """Save Azure credentials to the database."""
     set_meta(conn, "azure.tenant_id", tenant_id)
     set_meta(conn, "azure.client_id", client_id)
@@ -897,7 +1004,7 @@ def load_azure_credentials(conn: sqlite3.Connection) -> Optional[Dict[str, str]]
     tenant_id = get_meta(conn, "azure.tenant_id")
     client_id = get_meta(conn, "azure.client_id")
     client_secret = get_meta(conn, "azure.client_secret")
-    
+
     if tenant_id and client_id and client_secret:
         return {
             "tenant_id": tenant_id,
@@ -910,7 +1017,9 @@ def load_azure_credentials(conn: sqlite3.Connection) -> Optional[Dict[str, str]]
 def delete_azure_credentials(conn: sqlite3.Connection):
     """Delete Azure credentials from the database."""
     c = conn.cursor()
-    c.execute("DELETE FROM state_meta WHERE key IN ('azure.tenant_id', 'azure.client_id', 'azure.client_secret')")
+    c.execute(
+        "DELETE FROM state_meta WHERE key IN ('azure.tenant_id', 'azure.client_id', 'azure.client_secret')"
+    )
     conn.commit()
 
 
@@ -976,7 +1085,9 @@ def record_external_item(
     conn.commit()
 
 
-def load_external_connections(conn: sqlite3.Connection) -> Dict[str, ExternalConnection]:
+def load_external_connections(
+    conn: sqlite3.Connection,
+) -> Dict[str, ExternalConnection]:
     raw = get_meta(conn, "external.connections", "{}") or "{}"
     try:
         payload = json.loads(raw)
@@ -1008,7 +1119,6 @@ def save_external_connections(
             "notes": conn_obj.notes,
         }
     set_meta(conn, "external.connections", json.dumps(payload, ensure_ascii=False))
-
 
 
 # Document Operations (AI governance) Functions
@@ -1172,7 +1282,7 @@ def db_create_note_link(
     integration_type: str,
     external_id: str,
     title: str = "",
-    description: str = ""
+    description: str = "",
 ) -> int:
     """Create a note link (document reference) in the database."""
     c = conn.cursor()
@@ -1191,26 +1301,26 @@ def db_create_note_link(
 def db_get_note_links(
     conn: sqlite3.Connection,
     project_id: Optional[str] = None,
-    integration_type: Optional[str] = None
+    integration_type: Optional[str] = None,
 ) -> List[NoteLink]:
     """Get note links, optionally filtered by project and/or integration type."""
     c = conn.cursor()
     query = "SELECT * FROM note_links WHERE 1=1"
     params = []
-    
+
     if project_id:
         query += " AND project_id = ?"
         params.append(project_id)
-    
+
     if integration_type:
         query += " AND integration_type = ?"
         params.append(integration_type)
-    
+
     query += " ORDER BY created_at DESC"
-    
+
     c.execute(query, params)
     rows = c.fetchall()
-    
+
     links = []
     for r in rows:
         links.append(
@@ -1221,7 +1331,8 @@ def db_get_note_links(
                 external_id=r["external_id"],
                 title=r["title"] or "",
                 description=r["description"] or "",
-                created_at=r["created_at"] or datetime.now().isoformat(timespec="seconds"),
+                created_at=r["created_at"]
+                or datetime.now().isoformat(timespec="seconds"),
                 last_synced=r["last_synced"],
             )
         )
@@ -1235,7 +1346,7 @@ def db_get_note_link(conn: sqlite3.Connection, link_id: int) -> Optional[NoteLin
     row = c.fetchone()
     if not row:
         return None
-    
+
     return NoteLink(
         id=row["id"],
         project_id=row["project_id"],
@@ -1252,24 +1363,24 @@ def db_update_note_link(
     conn: sqlite3.Connection,
     link_id: int,
     title: Optional[str] = None,
-    description: Optional[str] = None
+    description: Optional[str] = None,
 ):
     """Update a note link's metadata."""
     c = conn.cursor()
     updates = []
     params = []
-    
+
     if title is not None:
         updates.append("title = ?")
         params.append(title)
-    
+
     if description is not None:
         updates.append("description = ?")
         params.append(description)
-    
+
     if not updates:
         return
-    
+
     params.append(link_id)
     query = f"UPDATE note_links SET {', '.join(updates)} WHERE id = ?"
     c.execute(query, params)
@@ -1281,6 +1392,109 @@ def db_delete_note_link(conn: sqlite3.Connection, link_id: int):
     c = conn.cursor()
     c.execute("DELETE FROM note_links WHERE id = ?", (link_id,))
     conn.commit()
+
+
+# ---------------------------------------------------------------------------
+# Project Ledger helpers (Spec 3.7 / 6.3 / 8.7)
+# ---------------------------------------------------------------------------
+def db_record_project_event(
+    conn: sqlite3.Connection,
+    project_id: str,
+    event_type: str,
+    entity_type: Optional[str] = None,
+    entity_id: Optional[str] = None,
+    payload: Optional[Dict[str, Any]] = None,
+) -> str:
+    """Append a hash-chained event to the project ledger."""
+    project_ref = project_id or "General"
+    event_id = str(uuid.uuid4())
+    created_at = datetime.now().isoformat(timespec="seconds")
+    payload_json = json.dumps(payload or {}, ensure_ascii=False)
+
+    c = conn.cursor()
+    c.execute(
+        """
+        SELECT hash_curr FROM project_events
+        WHERE project_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        (project_ref,),
+    )
+    row = c.fetchone()
+    hash_prev = row["hash_curr"] if row else None
+
+    hash_source = f"{event_id}{project_ref}{event_type}{created_at}"
+    if entity_type:
+        hash_source += entity_type
+    if entity_id:
+        hash_source += entity_id
+    if hash_prev:
+        hash_source += hash_prev
+    hash_curr = hashlib.sha256(hash_source.encode("utf-8")).hexdigest()
+
+    c.execute(
+        """
+        INSERT INTO project_events (
+            id, project_id, event_type, entity_type, entity_id,
+            payload, created_at, hash_prev, hash_curr
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            event_id,
+            project_ref,
+            event_type,
+            entity_type,
+            entity_id,
+            payload_json,
+            created_at,
+            hash_prev,
+            hash_curr,
+        ),
+    )
+    conn.commit()
+    return event_id
+
+
+def db_list_project_events(
+    conn: sqlite3.Connection,
+    project_id: Optional[str] = None,
+    limit: int = 50,
+) -> List[Dict[str, Any]]:
+    """Return the newest project ledger events."""
+    c = conn.cursor()
+    params: List[Any] = []
+    query = "SELECT * FROM project_events"
+    if project_id:
+        query += " WHERE project_id = ?"
+        params.append(project_id)
+    query += " ORDER BY datetime(created_at) DESC, rowid DESC LIMIT ?"
+    params.append(limit)
+    c.execute(query, params)
+    rows = c.fetchall()
+    events: List[Dict[str, Any]] = []
+    for row in rows:
+        payload: Dict[str, Any] = {}
+        if row["payload"]:
+            try:
+                payload = json.loads(row["payload"])
+            except json.JSONDecodeError:
+                payload = {"raw": row["payload"]}
+        events.append(
+            {
+                "id": row["id"],
+                "project_id": row["project_id"],
+                "event_type": row["event_type"],
+                "entity_type": row["entity_type"],
+                "entity_id": row["entity_id"],
+                "payload": payload,
+                "created_at": row["created_at"],
+                "hash_prev": row["hash_prev"],
+                "hash_curr": row["hash_curr"],
+            }
+        )
+    return events
 
 
 # ---------------- Document sample helpers -----------------
@@ -1305,11 +1519,11 @@ DEFAULT_DOCUMENT_SAMPLES = [
         "description": "JSON blueprint for AI-led risk reviews with provenance and personas.",
         "sample_content": (
             "{{\n"
-            "  \"title\": \"Risk Assessment\",\n"
-            "  \"versioning\": \"{governance}\",\n"
-            "  \"operating_model\": \"{roles}\",\n"
-            "  \"behaviors\": \"{behaviors}\",\n"
-            "  \"sections\": [\"briefs\", \"proposals\", \"compliance reports\", \"patient summaries\", \"risk assessments\", \"regulatory filings\", \"engineering specs\", \"technical documents\", \"product updates\", \"operational manuals\"]\n"
+            '  "title": "Risk Assessment",\n'
+            '  "versioning": "{governance}",\n'
+            '  "operating_model": "{roles}",\n'
+            '  "behaviors": "{behaviors}",\n'
+            '  "sections": ["briefs", "proposals", "compliance reports", "patient summaries", "risk assessments", "regulatory filings", "engineering specs", "technical documents", "product updates", "operational manuals"]\n'
             "}}"
         ),
     },
@@ -1412,7 +1626,9 @@ def initialize_document_samples(conn: sqlite3.Connection):
 
 
 def db_get_document_samples(
-    conn: sqlite3.Connection, file_type: Optional[str] = None, category: Optional[str] = None
+    conn: sqlite3.Connection,
+    file_type: Optional[str] = None,
+    category: Optional[str] = None,
 ) -> List[DocumentSample]:
     """Return document sample definitions with optional filtering."""
 
@@ -1439,7 +1655,8 @@ def db_get_document_samples(
                 description=row["description"] or "",
                 sample_content=row["sample_content"] or "",
                 governance=row["governance"] or GOVERNANCE_BANNER,
-                created_at=row["created_at"] or datetime.now().isoformat(timespec="seconds"),
+                created_at=row["created_at"]
+                or datetime.now().isoformat(timespec="seconds"),
             )
         )
     return samples

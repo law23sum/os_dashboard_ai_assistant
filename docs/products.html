@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS Dashboard AI Assistant - Products &amp; Features</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-content">
+            <a href="home.html" class="logo">OS Dashboard AI</a>
+            <nav class="main-nav" aria-label="Primary">
+                <ul class="nav-links">
+                    <li><a href="home.html">Home</a></li>
+                    <li><a href="products.html" class="active">Products</a></li>
+                    <li><a href="subscription.html">Subscriptions</a></li>
+                    <li><a href="install.html">Install</a></li>
+                    <li><a href="index.html">Downloads</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <span class="badge">Product Overview</span>
+            <h1>Everything you need to orchestrate AI-native operations.</h1>
+            <p>Each module is built to be standalone yet composable so you can deploy just what your team needs.</p>
+            <div class="hero-actions">
+                <a href="subscription.html" class="btn btn-primary">Choose a plan</a>
+                <a href="install.html" class="btn btn-secondary">See it in action</a>
+            </div>
+        </section>
+
+        <section class="section section-muted">
+            <h2>Lifetime value & pricing framework</h2>
+            <p>The pricing guidance below follows your requested model: take each product’s projected lifetime value (in billions), divide by the assumed customer base, then divide by a 50-year operating horizon (age 30 → 80). Monthly, bi-annual, and annual rates flow from that yearly baseline.</p>
+            <div class="grid">
+                <div class="card">
+                    <h3>Customer footprint</h3>
+                    <p>5,000,000 individual seats worldwide (creators, prosumers, departmental buyers).</p>
+                </div>
+                <div class="card">
+                    <h3>Enterprise footprint</h3>
+                    <p>50,000 government, business, and military tenants spanning every sector.</p>
+                </div>
+                <div class="card">
+                    <h3>Time horizon</h3>
+                    <p>50 years of value capture spreads investment across generations of automation.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="catalog-header">
+                <h2>Product catalog</h2>
+                <div class="search-row">
+                    <div class="catalog-controls">
+                        <label for="category-filter">Track</label>
+                        <select id="category-filter">
+                            <option value="all">All</option>
+                            <option value="Core">Core</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="Super">Super</option>
+                            <option value="Hyper">Hyper</option>
+                            <option value="Ultra">Ultra</option>
+                            <option value="Supreme">Supreme</option>
+                        </select>
+                    </div>
+                    <div class="catalog-controls">
+                        <label for="product-search">Search</label>
+                        <input type="search" id="product-search" placeholder="Type an ID, capability, or keyword">
+                    </div>
+                </div>
+            </div>
+            <div id="product-cards" class="catalog-list"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>© 2024 OS Dashboard AI Assistant.</p>
+    </footer>
+
+    <script src="scripts/product-data.js"></script>
+    <script>
+        (function renderProducts() {
+            const container = document.getElementById('product-cards');
+            const filterSelect = document.getElementById('category-filter');
+            const searchInput = document.getElementById('product-search');
+
+            const render = () => {
+                const category = filterSelect.value;
+                const query = searchInput.value.trim().toLowerCase();
+                container.innerHTML = '';
+                const filtered = window.osProductData
+                    .filter(product => category === 'all' || product.category === category)
+                    .filter(product => {
+                        if (!query) return false;
+                        const haystack = [
+                            product.id,
+                            product.name,
+                            product.purpose,
+                            product.features.join(' '),
+                            product.audiences.join(' ')
+                        ].join(' ').toLowerCase();
+                        return haystack.includes(query);
+                    });
+
+                if (!query) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>Search to reveal a product</h3>
+                            <p>Pick a track or start typing the ID/name (e.g., “10.10”, “Capsules”, “Security”) to focus on a single capability without other cards in the way.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (filtered.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No matches</h3>
+                            <p>Try another keyword or switch tracks to see if the capability lives elsewhere.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                filtered
+                    .forEach(product => {
+                        const card = document.createElement('article');
+                        card.className = 'product-card';
+
+                        const header = document.createElement('div');
+                        header.className = 'product-header';
+                        header.innerHTML = `
+                            <div class="product-title">
+                                <span class="badge">${product.category}</span>
+                                <h3>${product.id} · ${product.name}</h3>
+                            </div>
+                            <p>${product.purpose}</p>
+                        `;
+
+                        const meta = document.createElement('div');
+                        meta.className = 'product-meta';
+                        meta.innerHTML = `
+                            <div>
+                                <strong>Lifetime Value</strong>
+                                <p>$${product.lifetimeValue[0]}B – $${product.lifetimeValue[1]}B</p>
+                            </div>
+                            <div>
+                                <strong>Ideal audiences</strong>
+                                <p>${product.audiences.join(', ')}</p>
+                            </div>
+                        `;
+
+                        const features = document.createElement('div');
+                        features.className = 'product-features';
+                        const featureItems = product.features.map(item => `<li>${item}</li>`).join('');
+                        features.innerHTML = `
+                            <strong>Key features</strong>
+                            <ul>${featureItems}</ul>
+                        `;
+
+                        const pricing = document.createElement('div');
+                        pricing.className = 'pricing-grid';
+                        const customerPricing = window.osComputePricing(product.lifetimeValue, 'customer');
+                        const enterprisePricing = window.osComputePricing(product.lifetimeValue, 'enterprise');
+
+                        const formatBlock = (label, values) => `
+                            <div>
+                                <h4>${label}</h4>
+                                <p><span class="pricing-label">Monthly:</span> ${window.osFormatCurrency(values.monthly)}</p>
+                                <p><span class="pricing-label">Bi-Annual:</span> ${window.osFormatCurrency(values.biannual)}</p>
+                                <p><span class="pricing-label">Annual:</span> ${window.osFormatCurrency(values.annual)}</p>
+                            </div>
+                        `;
+                        pricing.innerHTML = formatBlock('Customer subscriptions', customerPricing) + formatBlock('Enterprise / Gov / Military', enterprisePricing);
+
+                        card.appendChild(header);
+                        card.appendChild(meta);
+                        card.appendChild(features);
+                        card.appendChild(pricing);
+                        container.appendChild(card);
+                    });
+            };
+
+            const rerender = () => render();
+
+            filterSelect.addEventListener('change', rerender);
+            searchInput.addEventListener('input', rerender);
+            render();
+        })();
+    </script>
+</body>
+</html>

@@ -30,21 +30,33 @@ def create_cli_parser() -> argparse.ArgumentParser:
     projects_parser = subparsers.add_parser("projects", help="Manage projects")
     projects_sub = projects_parser.add_subparsers(dest="subcommand")
     projects_sub.add_parser("list", help="List all projects")
-    projects_sub.add_parser("view", help="View a project").add_argument("id", help="Project name or ID")
-    projects_sub.add_parser("create", help="Create a new project").add_argument("name", help="Project name")
+    projects_sub.add_parser("view", help="View a project").add_argument(
+        "id", help="Project name or ID"
+    )
+    projects_sub.add_parser("create", help="Create a new project").add_argument(
+        "name", help="Project name"
+    )
 
     # OneNote command
     onenote_parser = subparsers.add_parser("onenote", help="OneNote operations")
     onenote_sub = onenote_parser.add_subparsers(dest="subcommand")
     onenote_sub.add_parser("list-notebooks", help="List all notebooks")
-    onenote_sub.add_parser("list-sections", help="List sections").add_argument("notebook_id", help="Notebook ID")
-    onenote_sub.add_parser("list-pages", help="List pages").add_argument("section_id", help="Section ID")
+    onenote_sub.add_parser("list-sections", help="List sections").add_argument(
+        "notebook_id", help="Notebook ID"
+    )
+    onenote_sub.add_parser("list-pages", help="List pages").add_argument(
+        "section_id", help="Section ID"
+    )
     clean_parser = onenote_sub.add_parser("clean-section", help="Clean a section")
     clean_parser.add_argument("section_id", help="Section ID")
-    clean_parser.add_argument("--agent", default="AIC", choices=["AIC", "Aria", "Sora"], help="Agent to use")
+    clean_parser.add_argument(
+        "--agent", default="AIC", choices=["AIC", "Aria", "Sora"], help="Agent to use"
+    )
     summarize_parser = onenote_sub.add_parser("summarize-page", help="Summarize a page")
     summarize_parser.add_argument("page_id", help="Page ID")
-    summarize_parser.add_argument("--agent", default="AIC", choices=["AIC", "Aria", "Sora"], help="Agent to use")
+    summarize_parser.add_argument(
+        "--agent", default="AIC", choices=["AIC", "Aria", "Sora"], help="Agent to use"
+    )
 
     # Excel command
     excel_parser = subparsers.add_parser("excel", help="Excel operations")
@@ -52,7 +64,9 @@ def create_cli_parser() -> argparse.ArgumentParser:
     summarize_excel = excel_sub.add_parser("summarize", help="Summarize a workbook")
     summarize_excel.add_argument("path", help="Path to Excel file")
     summarize_excel.add_argument("--sheet", help="Sheet name (optional)")
-    summarize_excel.add_argument("--agent", default="AIC", choices=["AIC", "Aria", "Sora"], help="Agent to use")
+    summarize_excel.add_argument(
+        "--agent", default="AIC", choices=["AIC", "Aria", "Sora"], help="Agent to use"
+    )
 
     # Word command
     word_parser = subparsers.add_parser("word", help="Word document operations")
@@ -60,16 +74,24 @@ def create_cli_parser() -> argparse.ArgumentParser:
     draft_parser = word_sub.add_parser("draft", help="Draft a document")
     draft_parser.add_argument("--project", help="Project ID")
     draft_parser.add_argument("--template", help="Template name")
-    draft_parser.add_argument("--agent", default="Aria", choices=["AIC", "Aria", "Sora"], help="Agent to use")
+    draft_parser.add_argument(
+        "--agent", default="Aria", choices=["AIC", "Aria", "Sora"], help="Agent to use"
+    )
     rewrite_parser = word_sub.add_parser("rewrite", help="Rewrite a document")
     rewrite_parser.add_argument("path", help="Path to Word document")
-    rewrite_parser.add_argument("--agent", default="Aria", choices=["AIC", "Aria", "Sora"], help="Agent to use")
+    rewrite_parser.add_argument(
+        "--agent", default="Aria", choices=["AIC", "Aria", "Sora"], help="Agent to use"
+    )
 
     # History command
     history_parser = subparsers.add_parser("history", help="View action history")
-    history_parser.add_argument("--limit", type=int, default=20, help="Number of entries to show")
+    history_parser.add_argument(
+        "--limit", type=int, default=20, help="Number of entries to show"
+    )
     history_parser.add_argument("--agent", help="Filter by agent")
-    history_parser.add_argument("--tag", help="Filter by tag (onenote, excel, word, etc.)")
+    history_parser.add_argument(
+        "--tag", help="Filter by tag (onenote, excel, word, etc.)"
+    )
 
     return parser
 
@@ -107,4 +129,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

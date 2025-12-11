@@ -7,9 +7,11 @@ from config import get_api_config
 
 try:
     import colorlog
+
     HAS_COLORLOG = True
 except ImportError:
     HAS_COLORLOG = False
+
 
 def setup_logger(name: str = "assistant_hub") -> logging.Logger:
     """Setup colored logger with proper formatting"""
@@ -30,21 +32,21 @@ def setup_logger(name: str = "assistant_hub") -> logging.Logger:
     if HAS_COLORLOG:
         # Create colored formatter
         formatter = colorlog.ColoredFormatter(
-            '%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S',
+            "%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
             log_colors={
-                'DEBUG': 'cyan',
-                'INFO': 'green',
-                'WARNING': 'yellow',
-                'ERROR': 'red',
-                'CRITICAL': 'red,bg_white',
-            }
+                "DEBUG": "cyan",
+                "INFO": "green",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "red,bg_white",
+            },
         )
     else:
         # Create standard formatter
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
 
     handler.setFormatter(formatter)

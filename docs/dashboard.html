@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OS Dashboard – Live Overview</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: radial-gradient(circle at top, #020617, #0f172a 55%, #111827 90%);
+        color: #e2e8f0;
+        min-height: 100vh;
+      }
+      .shell {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2.5rem 1.5rem 4rem;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+      header h1 {
+        margin: 0.25rem 0;
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.35em;
+        font-size: 0.7rem;
+        color: #94a3b8;
+      }
+      section.grid {
+        display: grid;
+        gap: 1rem;
+      }
+      .summary {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        margin: 2rem 0;
+      }
+      .card {
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 20px;
+        padding: 1.25rem;
+        box-shadow: 0 25px 80px rgba(2, 6, 23, 0.35);
+      }
+      textarea,
+      input {
+        width: 100%;
+        padding: 0.65rem 0.8rem;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: rgba(255, 255, 255, 0.05);
+        color: inherit;
+      }
+      button {
+        border: none;
+        border-radius: 12px;
+        padding: 0.55rem 1rem;
+        background: linear-gradient(120deg, #38bdf8, #6366f1);
+        color: white;
+        cursor: pointer;
+      }
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+        margin-top: 1rem;
+        max-height: 320px;
+        overflow-y: auto;
+      }
+      .list article {
+        background: rgba(15, 23, 42, 0.5);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 14px;
+        padding: 0.75rem 1rem;
+      }
+      pre {
+        background: rgba(15, 23, 42, 0.45);
+        border-radius: 14px;
+        padding: 1rem;
+        font-family: "JetBrains Mono", monospace;
+        color: #cbd5f5;
+        max-height: 320px;
+        overflow-y: auto;
+      }
+      .row {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+      }
+      .plane-grid {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        gap: 0.35rem 0.75rem;
+        margin-top: 0.75rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <div>
+          <p class="eyebrow">OS Dashboard</p>
+          <h1>Driver-Aware Orchestrator</h1>
+          <p>Unified visibility for knowledge operations, daemons, and audits.</p>
+        </div>
+        <div>
+          <button id="refresh">Refresh</button>
+        </div>
+      </header>
+
+      <section class="grid summary" id="summary"></section>
+
+      <section class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem;">
+        <div class="card" id="system-card"></div>
+        <div class="card">
+          <h3>Quick AI Assistant</h3>
+          <textarea id="chat-input" rows="4" placeholder="Ask about tasks, incidents, or plans"></textarea>
+          <div class="row" style="margin-top: 0.75rem;">
+            <button id="chat-send">Send</button>
+            <button id="chat-clear" style="background: transparent; border: 1px solid rgba(148,163,184,0.4);">Clear</button>
+          </div>
+          <div id="chat-response" style="margin-top: 0.75rem;"></div>
+        </div>
+      </section>
+
+      <section class="card" id="plane-card" style="margin: 1.5rem 0;"></section>
+
+      <section class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem;">
+        <div class="card">
+          <h3>Unified Search</h3>
+          <div class="row" style="margin-bottom: 0.75rem;">
+            <input id="search-input" placeholder="Search notes, PDFs, etc." />
+            <button id="search-btn">Search</button>
+          </div>
+          <div class="list" id="search-results"></div>
+        </div>
+        <div class="card">
+          <h3>Daemon Control</h3>
+          <div class="list" id="daemon-list"></div>
+        </div>
+      </section>
+
+      <section class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+        <div class="card">
+          <div class="row" style="justify-content: space-between;">
+            <h3>Activity Timeline</h3>
+            <button id="ops-refresh">Refresh</button>
+          </div>
+          <div class="list" id="ops-list"></div>
+        </div>
+        <div class="card">
+          <h3>Audit Detail</h3>
+          <pre id="audit-detail">Select an operation to view details.</pre>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const summaryEl = document.getElementById('summary');
+      const systemEl = document.getElementById('system-card');
+      const planeEl = document.getElementById('plane-card');
+      const daemonListEl = document.getElementById('daemon-list');
+      const searchInput = document.getElementById('search-input');
+      const searchBtn = document.getElementById('search-btn');
+      const searchResultsEl = document.getElementById('search-results');
+      const opsListEl = document.getElementById('ops-list');
+      const auditDetailEl = document.getElementById('audit-detail');
+      const chatInput = document.getElementById('chat-input');
+      const chatSend = document.getElementById('chat-send');
+      const chatClear = document.getElementById('chat-clear');
+      const chatResponse = document.getElementById('chat-response');
+
+      const API = {
+        get: (path) => fetch(path).then(res => {
+          if (!res.ok) throw new Error('Request failed');
+          return res.json();
+        })
+      };
+
+      const formatBytes = (value = 0) => {
+        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        let num = Number(value) || 0;
+        let idx = 0;
+        while (num >= 1024 && idx < units.length - 1) {
+          num /= 1024;
+          idx++;
+        }
+        return `${num.toFixed(1)} ${units[idx]}`;
+      };
+
+      async function refreshAll() {
+        try {
+          const [system, planes, projects, billing, daemons, operations] = await Promise.all([
+            API.get('/system'),
+            API.get('/planes/status'),
+            API.get('/projects'),
+            API.get('/billing/usage'),
+            API.get('/daemons'),
+            API.get('/operations?limit=20')
+          ]);
+
+          renderSummary({
+            daemons: `${daemons.filter(d => d.enabled).length}/${daemons.length}`,
+            searchHits: searchResultsEl.childElementCount,
+            operations: operations.length,
+            attention: daemons.find(d => !d.enabled)?.name || 'All covered'
+          });
+          renderSystem(system);
+          renderPlanes(planes);
+          renderDaemons(daemons);
+          renderOperations(operations);
+        } catch (err) {
+          console.error(err);
+          alert('Failed to refresh dashboard. Ensure the FastAPI backend is running.');
+        }
+      }
+
+      function renderSummary(stats) {
+        summaryEl.innerHTML = '';
+        const entries = [
+          { title: 'Daemons', value: stats.daemons, desc: 'Active automations' },
+          { title: 'Search Hits', value: stats.searchHits, desc: 'Current query results' },
+          { title: 'Recent Ops', value: stats.operations, desc: 'Past 24h' },
+          { title: 'Needs attention', value: stats.attention, desc: 'Next review target' },
+        ];
+        for (const entry of entries) {
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.innerHTML = `<p class="eyebrow">${entry.title}</p><h2>${entry.value}</h2><p>${entry.desc}</p>`;
+          summaryEl.appendChild(div);
+        }
+      }
+
+      function renderSystem(system = {}) {
+        const mem = system.memory || {};
+        const disk = system.disk || {};
+        systemEl.innerHTML = `
+          <h3>System Health</h3>
+          <p>CPU: ${Math.round(system.cpu_percent || 0)}%</p>
+          <p>Memory: ${formatBytes(mem.used)} / ${formatBytes(mem.total)}</p>
+          <p>Disk: ${formatBytes(disk.used)} / ${formatBytes(disk.total)}</p>
+        `;
+      }
+
+      function renderPlanes(planes = {}) {
+        planeEl.innerHTML = `
+          <h3>Plane Status</h3>
+          <div class="plane-grid">
+            <span>Data Plane</span><span>${(planes.data_plane?.collections || []).join(', ') || '—'}</span>
+            <span>Control Plane</span><span>${planes.control_plane?.middlewares || 0} middleware(s)</span>
+            <span>Governance</span><span>${planes.governance_plane?.policy || 'Unknown'}</span>
+          </div>
+        `;
+      }
+
+      function renderDaemons(daemons = []) {
+        daemonListEl.innerHTML = '';
+        daemons.forEach((daemon) => {
+          const card = document.createElement('article');
+          card.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong>${daemon.name}</strong>
+              <small>${daemon.risk_level || 'risk'}</small>
+            </div>
+            <p>${daemon.description}</p>
+            <div class="row">
+              <button data-action="toggle">${daemon.enabled ? 'Disable' : 'Enable'}</button>
+              <button data-action="run">Run now</button>
+            </div>
+          `;
+          card.querySelector('[data-action="toggle"]').addEventListener('click', async () => {
+            await fetch(`/daemons/${daemon.name}/${daemon.enabled ? 'disable' : 'enable'}`, { method: 'POST' });
+            refreshAll();
+          });
+          card.querySelector('[data-action="run"]').addEventListener('click', async () => {
+            await fetch(`/daemons/${daemon.name}/run`, { method: 'POST' });
+            refreshAll();
+          });
+          daemonListEl.appendChild(card);
+        });
+      }
+
+      function renderOperations(operations = []) {
+        opsListEl.innerHTML = '';
+        operations.forEach((op) => {
+          const article = document.createElement('article');
+          article.textContent = `${op.intent} • ${new Date(op.started_at).toLocaleString()}`;
+          article.addEventListener('click', async () => {
+            const detail = await API.get(`/audit/${op.id}`);
+            auditDetailEl.textContent = JSON.stringify(detail, null, 2);
+          });
+          opsListEl.appendChild(article);
+        });
+      }
+
+      searchBtn.addEventListener('click', async () => {
+        if (!searchInput.value.trim()) return;
+        searchResultsEl.innerHTML = 'Searching…';
+        try {
+          const data = await API.get(`/search?q=${encodeURIComponent(searchInput.value.trim())}`);
+          searchResultsEl.innerHTML = '';
+          data.forEach((result) => {
+            const article = document.createElement('article');
+            article.innerHTML = `<strong>${result.node_title}</strong><p>${result.text_snippet}</p>`;
+            searchResultsEl.appendChild(article);
+          });
+          refreshAll();
+        } catch (error) {
+          searchResultsEl.textContent = 'Search failed.';
+        }
+      });
+
+      chatSend.addEventListener('click', async () => {
+        if (!chatInput.value.trim()) return;
+        chatResponse.textContent = 'Sending…';
+        try {
+          const reply = await fetch('/ai/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: chatInput.value.trim() }),
+          }).then((res) => res.json());
+          chatResponse.textContent = reply.response || 'No response.';
+        } catch (error) {
+          chatResponse.textContent = 'Assistant unavailable.';
+        }
+      });
+
+      chatClear.addEventListener('click', () => {
+        chatInput.value = '';
+        chatResponse.textContent = '';
+      });
+
+      document.getElementById('refresh').addEventListener('click', refreshAll);
+      document.getElementById('ops-refresh').addEventListener('click', refreshAll);
+
+      refreshAll();
+    </script>
+  </body>
+</html>

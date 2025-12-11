@@ -13,7 +13,11 @@ from typing import Dict, Any, List, Optional, Tuple, Union
 from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
 from enum import Enum
-import psutil
+
+try:
+    import psutil  # type: ignore
+except Exception:  # pragma: no cover - fallback when psutil missing
+    from utils.psutil_stub import psutil  # type: ignore
 import socket
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -52,6 +56,7 @@ class ModelFormat(Enum):
 @dataclass
 class EdgeDevice:
     """Edge device information"""
+
     device_id: str
     device_type: EdgeDeviceType
     hostname: str
@@ -71,6 +76,7 @@ class EdgeDevice:
 @dataclass
 class ModelDeployment:
     """Model deployment configuration"""
+
     deployment_id: str
     model_name: str
     model_version: str
@@ -93,6 +99,7 @@ class ModelDeployment:
 @dataclass
 class FederatedLearningConfig:
     """Federated learning configuration"""
+
     rounds: int
     clients_per_round: int
     learning_rate: float
@@ -142,11 +149,13 @@ class EdgeComputingDistributedAI:
                 device_type=device_type,
                 hostname=hostname,
                 ip_address=ip_address,
-                capabilities=capabilities
+                capabilities=capabilities,
             )
 
             self.devices[device.device_id] = device
-            self.logger.info(f"Registered local device: {device.hostname} ({device.device_type.value})")
+            self.logger.info(
+                f"Registered local device: {device.hostname} ({device.device_type.value})"
+            )
 
         except Exception as e:
             self.logger.error(f"Failed to register local device: {e}")
@@ -174,14 +183,18 @@ class EdgeComputingDistributedAI:
             "cpu_freq": psutil.cpu_freq().max if psutil.cpu_freq() else None,
             "memory_total": psutil.virtual_memory().total,
             "gpu_available": False,
-            "supported_formats": [ModelFormat.TENSORFLOW_LITE.value, ModelFormat.ONNX.value],
+            "supported_formats": [
+                ModelFormat.TENSORFLOW_LITE.value,
+                ModelFormat.ONNX.value,
+            ],
             "platform": platform.platform(),
-            "python_version": platform.python_version()
+            "python_version": platform.python_version(),
         }
 
         # Check for GPU
         try:
             import torch
+
             capabilities["gpu_available"] = torch.cuda.is_available()
             if capabilities["gpu_available"]:
                 capabilities["gpu_count"] = torch.cuda.device_count()
@@ -192,6 +205,7 @@ class EdgeComputingDistributedAI:
         # Check for specialized hardware
         try:
             import tflite_runtime.interpreter as tflite
+
             capabilities["tpu_available"] = True
             capabilities["supported_formats"].append(ModelFormat.TENSORFLOW_LITE.value)
         except ImportError:
@@ -212,9 +226,14 @@ class EdgeComputingDistributedAI:
                 # Check for offline devices
                 offline_threshold = timedelta(minutes=5)
                 for device in self.devices.values():
-                    if device.last_seen and (current_time - device.last_seen) > offline_threshold:
+                    if (
+                        device.last_seen
+                        and (current_time - device.last_seen) > offline_threshold
+                    ):
                         device.status = "offline"
-                        self.logger.warning(f"Device {device.hostname} marked as offline")
+                        self.logger.warning(
+                            f"Device {device.hostname} marked as offline"
+                        )
 
                 await asyncio.sleep(60)  # Check every minute
 
@@ -222,8 +241,12 @@ class EdgeComputingDistributedAI:
                 self.logger.error(f"Error in device monitoring: {e}")
                 await asyncio.sleep(60)
 
-    async def manage_edge_deployment(self, operation: str, config: Dict[str, Any],
-                                   options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def manage_edge_deployment(
+        self,
+        operation: str,
+        config: Dict[str, Any],
+        options: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """Manage edge deployments"""
         try:
             if operation == "deploy":
@@ -241,7 +264,9 @@ class EdgeComputingDistributedAI:
             self.logger.error(f"Error in edge deployment management: {e}")
             return {"error": str(e)}
 
-    async def _deploy_model(self, config: Dict[str, Any], options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def _deploy_model(
+        self, config: Dict[str, Any], options: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Deploy a model to edge devices"""
         model_name = config.get("model_name")
         target_devices = config.get("target_devices", [])
@@ -251,7 +276,9 @@ class EdgeComputingDistributedAI:
             return {"error": "Model name is required"}
 
         # Convert string device types to enum
-        device_types = [EdgeDeviceType(dt) if isinstance(dt, str) else dt for dt in target_devices]
+        device_types = [
+            EdgeDeviceType(dt) if isinstance(dt, str) else dt for dt in target_devices
+        ]
 
         # Find suitable devices
         suitable_devices = []
@@ -271,7 +298,7 @@ class EdgeComputingDistributedAI:
             target_devices=device_types,
             model_format=ModelFormat(model_format),
             model_data=b"",  # Would be loaded from storage
-            config=config
+            config=config,
         )
 
         self.deployments[deployment_id] = deployment
@@ -283,17 +310,21 @@ class EdgeComputingDistributedAI:
             "deployment_id": deployment_id,
             "status": "deployment_started",
             "target_devices_count": len(suitable_devices),
-            "estimated_completion": "5-10 minutes"
+            "estimated_completion": "5-10 minutes",
         }
 
-    async def _execute_deployment(self, deployment: ModelDeployment, devices: List[EdgeDevice]):
+    async def _execute_deployment(
+        self, deployment: ModelDeployment, devices: List[EdgeDevice]
+    ):
         """Execute the actual deployment"""
         try:
             deployment.status = DeploymentStatus.DEPLOYING
 
             # Simulate deployment process
             for device in devices:
-                self.logger.info(f"Deploying {deployment.model_name} to {device.hostname}")
+                self.logger.info(
+                    f"Deploying {deployment.model_name} to {device.hostname}"
+                )
 
                 # In real implementation, this would:
                 # 1. Transfer model files to device
@@ -308,13 +339,17 @@ class EdgeComputingDistributedAI:
             deployment.status = DeploymentStatus.RUNNING
             deployment.deployed_at = datetime.now()
 
-            self.logger.info(f"Successfully deployed {deployment.model_name} to {len(devices)} devices")
+            self.logger.info(
+                f"Successfully deployed {deployment.model_name} to {len(devices)} devices"
+            )
 
         except Exception as e:
             self.logger.error(f"Deployment failed: {e}")
             deployment.status = DeploymentStatus.FAILED
 
-    async def _update_model(self, config: Dict[str, Any], options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def _update_model(
+        self, config: Dict[str, Any], options: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Update an existing model deployment"""
         deployment_id = config.get("deployment_id")
         new_version = config.get("new_version")
@@ -328,16 +363,20 @@ class EdgeComputingDistributedAI:
         # Simulate update process
         await asyncio.sleep(3)
 
-        deployment.model_version = new_version or f"{float(deployment.model_version) + 0.1:.1f}"
+        deployment.model_version = (
+            new_version or f"{float(deployment.model_version) + 0.1:.1f}"
+        )
         deployment.status = DeploymentStatus.RUNNING
 
         return {
             "deployment_id": deployment_id,
             "status": "updated",
-            "new_version": deployment.model_version
+            "new_version": deployment.model_version,
         }
 
-    async def _monitor_deployment(self, config: Dict[str, Any], options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def _monitor_deployment(
+        self, config: Dict[str, Any], options: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Monitor deployment performance"""
         deployment_id = config.get("deployment_id")
 
@@ -353,7 +392,7 @@ class EdgeComputingDistributedAI:
             "cpu_usage_percent": 68.5,
             "memory_usage_mb": 234.1,
             "error_rate_percent": 0.02,
-            "uptime_hours": 24.5
+            "uptime_hours": 24.5,
         }
 
         deployment.performance_metrics.update(metrics)
@@ -362,10 +401,12 @@ class EdgeComputingDistributedAI:
             "deployment_id": deployment_id,
             "status": deployment.status.value,
             "performance_metrics": metrics,
-            "device_health": self._get_device_health_summary()
+            "device_health": self._get_device_health_summary(),
         }
 
-    async def _scale_deployment(self, config: Dict[str, Any], options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def _scale_deployment(
+        self, config: Dict[str, Any], options: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Scale deployment resources"""
         deployment_id = config.get("deployment_id")
         scale_action = config.get("scale_action", "up")  # up or down
@@ -378,15 +419,26 @@ class EdgeComputingDistributedAI:
 
         # Find additional devices if scaling up
         if scale_action == "up":
-            current_device_count = len([d for d in self.devices.values()
-                                      if deployment.model_name in d.models_deployed])
+            current_device_count = len(
+                [
+                    d
+                    for d in self.devices.values()
+                    if deployment.model_name in d.models_deployed
+                ]
+            )
 
             if target_instances > current_device_count:
-                available_devices = [d for d in self.devices.values()
-                                   if d.status == "online" and deployment.model_name not in d.models_deployed
-                                   and d.device_type in deployment.target_devices]
+                available_devices = [
+                    d
+                    for d in self.devices.values()
+                    if d.status == "online"
+                    and deployment.model_name not in d.models_deployed
+                    and d.device_type in deployment.target_devices
+                ]
 
-                devices_to_add = available_devices[:target_instances - current_device_count]
+                devices_to_add = available_devices[
+                    : target_instances - current_device_count
+                ]
 
                 if devices_to_add:
                     await self._execute_deployment(deployment, devices_to_add)
@@ -395,8 +447,13 @@ class EdgeComputingDistributedAI:
             "deployment_id": deployment_id,
             "scale_action": scale_action,
             "target_instances": target_instances,
-            "current_instances": len([d for d in self.devices.values()
-                                    if deployment.model_name in d.models_deployed])
+            "current_instances": len(
+                [
+                    d
+                    for d in self.devices.values()
+                    if deployment.model_name in d.models_deployed
+                ]
+            ),
         }
 
     def _get_device_health_summary(self) -> Dict[str, Any]:
@@ -409,11 +466,14 @@ class EdgeComputingDistributedAI:
             "total_devices": total_devices,
             "online_devices": online_devices,
             "offline_devices": offline_devices,
-            "health_percentage": (online_devices / total_devices * 100) if total_devices > 0 else 0
+            "health_percentage": (online_devices / total_devices * 100)
+            if total_devices > 0
+            else 0,
         }
 
-    async def start_federated_learning(self, config: FederatedLearningConfig,
-                                     model_config: Dict[str, Any]) -> Dict[str, Any]:
+    async def start_federated_learning(
+        self, config: FederatedLearningConfig, model_config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Start a federated learning process"""
         try:
             # This would coordinate federated learning across edge devices
@@ -423,8 +483,10 @@ class EdgeComputingDistributedAI:
                 "federated_learning_id": str(uuid.uuid4()),
                 "status": "started",
                 "config": asdict(config),
-                "participants": len([d for d in self.devices.values() if d.status == "online"]),
-                "estimated_completion": f"{config.rounds * 10} minutes"
+                "participants": len(
+                    [d for d in self.devices.values() if d.status == "online"]
+                ),
+                "estimated_completion": f"{config.rounds * 10} minutes",
             }
 
         except Exception as e:
@@ -435,10 +497,20 @@ class EdgeComputingDistributedAI:
         """Get overall system status"""
         return {
             "total_devices": len(self.devices),
-            "online_devices": len([d for d in self.devices.values() if d.status == "online"]),
-            "active_deployments": len([d for d in self.deployments.values() if d.status == DeploymentStatus.RUNNING]),
+            "online_devices": len(
+                [d for d in self.devices.values() if d.status == "online"]
+            ),
+            "active_deployments": len(
+                [
+                    d
+                    for d in self.deployments.values()
+                    if d.status == DeploymentStatus.RUNNING
+                ]
+            ),
             "total_deployments": len(self.deployments),
-            "system_health": "healthy" if any(d.status == "online" for d in self.devices.values()) else "degraded"
+            "system_health": "healthy"
+            if any(d.status == "online" for d in self.devices.values())
+            else "degraded",
         }
 
     async def shutdown(self):

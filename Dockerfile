@@ -104,10 +104,11 @@ USER osdashboard
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD python -c "import sys; print('Health check passed'); sys.exit(0)" || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Expose port for optional web services
 EXPOSE 8000
 
-# Default command
-CMD ["python", "main.py"]
+# Default command - run FastAPI server for web deployment
+# Override with CMD in docker-compose or ECS task definition if needed
+CMD ["gunicorn", "ai_os.app.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]

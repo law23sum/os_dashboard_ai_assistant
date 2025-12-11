@@ -1,0 +1,145 @@
+name: Build Electron Desktop Apps
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        default: 'v1.0.0'
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  build-electron-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install frontend dependencies
+      working-directory: frontend
+      run: npm ci
+
+    - name: Build frontend
+      working-directory: frontend
+      run: npm run build
+
+    - name: Build Electron app (Windows)
+      working-directory: frontend
+      run: npm run build:desktop:windows
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: electron-windows
+        path: frontend/dist-electron/
+
+  build-electron-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install frontend dependencies
+      working-directory: frontend
+      run: npm ci
+
+    - name: Build frontend
+      working-directory: frontend
+      run: npm run build
+
+    - name: Build Electron app (macOS)
+      working-directory: frontend
+      run: npm run build:desktop:mac
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: electron-macos
+        path: frontend/dist-electron/
+
+  build-electron-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install frontend dependencies
+      working-directory: frontend
+      run: npm ci
+
+    - name: Build frontend
+      working-directory: frontend
+      run: npm run build
+
+    - name: Build Electron app (Linux)
+      working-directory: frontend
+      run: npm run build:desktop:linux
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: electron-linux
+        path: frontend/dist-electron/
+
+  release-electron:
+    needs: [build-electron-windows, build-electron-macos, build-electron-linux]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Create release archives
+      run: |
+        mkdir -p electron-release
+
+        # Windows
+        cd electron-windows
+        zip -r ../electron-release/OS-Dashboard-Electron-Windows.zip .
+        cd ..
+
+        # macOS
+        cd electron-macos
+        zip -r ../electron-release/OS-Dashboard-Electron-macOS.zip .
+        cd ..
+
+        # Linux
+        cd electron-linux
+        zip -r ../electron-release/OS-Dashboard-Electron-Linux.zip .
+        cd ..
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          electron-release/OS-Dashboard-Electron-Windows.zip
+          electron-release/OS-Dashboard-Electron-macOS.zip
+          electron-release/OS-Dashboard-Electron-Linux.zip
+        generate_release_notes: true
+        tag_name: ${{ github.ref_name }}-electron
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

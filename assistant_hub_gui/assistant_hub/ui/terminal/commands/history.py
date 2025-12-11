@@ -45,7 +45,3 @@ def handle_history_command(args, conn: sqlite3.Connection) -> int:
     except Exception as e:
         print(f"Error reading history: {e}", file=sys.stderr)
         return 1
-
-
-
-

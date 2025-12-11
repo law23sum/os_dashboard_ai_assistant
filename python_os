@@ -1,0 +1,4 @@
+#!/bin/bash
+# Wrapper script for python_os alias
+/Library/Frameworks/Python.framework/Versions/3.11/bin/python3 "$@"
+

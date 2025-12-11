@@ -13,10 +13,10 @@ from ....config import DATA_DIR
 def handle_onenote_command(args, conn: sqlite3.Connection) -> int:
     """Handle OneNote CLI commands."""
     from ....versioning import start_worker
-    
+
     # Start git worker if not already running
     start_worker()
-    
+
     client = OneNoteClient()
     mirror_root = DATA_DIR / "onenote_mirror"
     service = OneNoteService(str(mirror_root), client)
@@ -32,7 +32,9 @@ def handle_onenote_command(args, conn: sqlite3.Connection) -> int:
         sections = client.list_sections(args.notebook_id)
         print(f"Found {len(sections)} sections:")
         for sec in sections:
-            print(f"  - {sec.get('displayName', 'Unknown')} (ID: {sec.get('id', 'N/A')})")
+            print(
+                f"  - {sec.get('displayName', 'Unknown')} (ID: {sec.get('id', 'N/A')})"
+            )
         return 0
 
     elif args.subcommand == "list-pages":
@@ -59,4 +61,3 @@ def handle_onenote_command(args, conn: sqlite3.Connection) -> int:
     else:
         print(f"Unknown OneNote subcommand: {args.subcommand}", file=sys.stderr)
         return 1
-

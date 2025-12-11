@@ -29,16 +29,36 @@ import shutil
 
 # ML Libraries
 import sklearn
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, RandomizedSearchCV
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder, OneHotEncoder
+from sklearn.model_selection import (
+    train_test_split,
+    cross_val_score,
+    GridSearchCV,
+    RandomizedSearchCV,
+)
+from sklearn.preprocessing import (
+    StandardScaler,
+    MinMaxScaler,
+    LabelEncoder,
+    OneHotEncoder,
+)
 from sklearn.feature_selection import SelectKBest, RFE, RFECV
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, VotingClassifier
+from sklearn.ensemble import (
+    RandomForestClassifier,
+    GradientBoostingClassifier,
+    VotingClassifier,
+)
 from sklearn.linear_model import LogisticRegression, LinearRegression, Ridge, Lasso
 from sklearn.svm import SVC, SVR
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering
 from sklearn.decomposition import PCA, TruncatedSVD, FactorAnalysis
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+)
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.pipeline import Pipeline
 
@@ -50,6 +70,7 @@ try:
     import torch
     import torch.nn as nn
     import torch.optim as optim
+
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
@@ -99,6 +120,7 @@ class ModelStatus(Enum):
 @dataclass
 class Dataset:
     """Dataset metadata and information"""
+
     dataset_id: str
     name: str
     description: str
@@ -122,6 +144,7 @@ class Dataset:
 @dataclass
 class Experiment:
     """ML experiment tracking"""
+
     experiment_id: str
     name: str
     description: str
@@ -142,6 +165,7 @@ class Experiment:
 @dataclass
 class Model:
     """ML model metadata"""
+
     model_id: str
     name: str
     model_type: ModelType
@@ -164,6 +188,7 @@ class Model:
 @dataclass
 class Pipeline:
     """ML pipeline definition"""
+
     pipeline_id: str
     name: str
     description: str
@@ -181,6 +206,7 @@ class Pipeline:
 @dataclass
 class DataDrift:
     """Data drift detection result"""
+
     drift_id: str
     model_id: str
     feature_name: str
@@ -197,6 +223,7 @@ class DataDrift:
 @dataclass
 class ModelPerformance:
     """Model performance monitoring"""
+
     performance_id: str
     model_id: str
     metrics: Dict[str, float]
@@ -226,7 +253,9 @@ class DataScienceAgent:
         self.performance_history: Dict[str, List[ModelPerformance]] = defaultdict(list)
 
         # Model registry and versioning
-        self.model_registry: Dict[str, List[str]] = defaultdict(list)  # model_name -> model_ids
+        self.model_registry: Dict[str, List[str]] = defaultdict(
+            list
+        )  # model_name -> model_ids
         self.deployed_models: Dict[str, str] = {}  # endpoint -> model_id
 
         # Feature store
@@ -257,56 +286,56 @@ class DataScienceAgent:
             "feature_selection_k": 10,
             "ensemble_models_count": 3,
             "monitoring_interval_minutes": 15,
-            "cleanup_interval_hours": 24
+            "cleanup_interval_hours": 24,
         }
 
         # ML algorithms registry
         self.algorithms = {
             ModelType.CLASSIFICATION: {
-                'random_forest': RandomForestClassifier,
-                'gradient_boosting': GradientBoostingClassifier,
-                'logistic_regression': LogisticRegression,
-                'svm': SVC,
-                'mlp': MLPClassifier,
-                'xgboost': xgb.XGBClassifier,
-                'lightgbm': lgb.LGBMClassifier
+                "random_forest": RandomForestClassifier,
+                "gradient_boosting": GradientBoostingClassifier,
+                "logistic_regression": LogisticRegression,
+                "svm": SVC,
+                "mlp": MLPClassifier,
+                "xgboost": xgb.XGBClassifier,
+                "lightgbm": lgb.LGBMClassifier,
             },
             ModelType.REGRESSION: {
-                'random_forest': RandomForestClassifier,  # Note: Using classifier for now, would need regressor
-                'gradient_boosting': GradientBoostingClassifier,
-                'linear_regression': LinearRegression,
-                'ridge': Ridge,
-                'lasso': Lasso,
-                'svr': SVR,
-                'mlp': MLPRegressor,
-                'xgboost': xgb.XGBRegressor,
-                'lightgbm': lgb.LGBMRegressor
+                "random_forest": RandomForestClassifier,  # Note: Using classifier for now, would need regressor
+                "gradient_boosting": GradientBoostingClassifier,
+                "linear_regression": LinearRegression,
+                "ridge": Ridge,
+                "lasso": Lasso,
+                "svr": SVR,
+                "mlp": MLPRegressor,
+                "xgboost": xgb.XGBRegressor,
+                "lightgbm": lgb.LGBMRegressor,
             },
             ModelType.CLUSTERING: {
-                'kmeans': KMeans,
-                'dbscan': DBSCAN,
-                'agglomerative': AgglomerativeClustering
+                "kmeans": KMeans,
+                "dbscan": DBSCAN,
+                "agglomerative": AgglomerativeClustering,
             },
             ModelType.DIMENSIONALITY_REDUCTION: {
-                'pca': PCA,
-                'truncated_svd': TruncatedSVD,
-                'factor_analysis': FactorAnalysis
-            }
+                "pca": PCA,
+                "truncated_svd": TruncatedSVD,
+                "factor_analysis": FactorAnalysis,
+            },
         }
 
         # Preprocessing components
         self.preprocessors = {
-            'standard_scaler': StandardScaler,
-            'minmax_scaler': MinMaxScaler,
-            'label_encoder': LabelEncoder,
-            'onehot_encoder': OneHotEncoder
+            "standard_scaler": StandardScaler,
+            "minmax_scaler": MinMaxScaler,
+            "label_encoder": LabelEncoder,
+            "onehot_encoder": OneHotEncoder,
         }
 
         # Feature selection methods
         self.feature_selectors = {
-            'select_k_best': SelectKBest,
-            'rfe': RFE,
-            'rfecv': RFECV
+            "select_k_best": SelectKBest,
+            "rfe": RFE,
+            "rfecv": RFECV,
         }
 
     async def initialize(self):
@@ -325,17 +354,25 @@ class DataScienceAgent:
 
         self.logger.info("Data Science Agent initialized")
 
-    async def process_request(self, user_input: str, context: Dict[str, Any] = None) -> str:
+    async def process_request(
+        self, user_input: str, context: Dict[str, Any] = None
+    ) -> str:
         """Process user requests for data science and ML operations"""
         try:
             user_input_lower = user_input.lower()
 
             # Route requests to appropriate methods
-            if "dataset" in user_input_lower and ("register" in user_input_lower or "upload" in user_input_lower):
+            if "dataset" in user_input_lower and (
+                "register" in user_input_lower or "upload" in user_input_lower
+            ):
                 return await self._handle_dataset_registration(user_input, context)
-            elif "experiment" in user_input_lower and ("create" in user_input_lower or "run" in user_input_lower):
+            elif "experiment" in user_input_lower and (
+                "create" in user_input_lower or "run" in user_input_lower
+            ):
                 return await self._handle_experiment_creation(user_input, context)
-            elif "model" in user_input_lower and ("train" in user_input_lower or "build" in user_input_lower):
+            elif "model" in user_input_lower and (
+                "train" in user_input_lower or "build" in user_input_lower
+            ):
                 return await self._handle_model_training(user_input, context)
             elif "predict" in user_input_lower or "inference" in user_input_lower:
                 return await self._handle_prediction(user_input, context)
@@ -352,7 +389,9 @@ class DataScienceAgent:
             self.logger.error(f"Request processing failed: {e}")
             return f"Error processing request: {str(e)}"
 
-    async def _handle_dataset_registration(self, user_input: str, context: Dict[str, Any]) -> str:
+    async def _handle_dataset_registration(
+        self, user_input: str, context: Dict[str, Any]
+    ) -> str:
         """Handle dataset registration requests"""
         try:
             # Extract dataset information from user input or context
@@ -378,7 +417,9 @@ The dataset is ready for ML experiments!"""
         except Exception as e:
             return f"Dataset registration failed: {str(e)}"
 
-    async def _handle_experiment_creation(self, user_input: str, context: Dict[str, Any]) -> str:
+    async def _handle_experiment_creation(
+        self, user_input: str, context: Dict[str, Any]
+    ) -> str:
         """Handle experiment creation requests"""
         try:
             experiment_info = context.get("experiment_info", {})
@@ -404,21 +445,25 @@ Model ID: {result['model_id']}"""
         except Exception as e:
             return f"Experiment creation failed: {str(e)}"
 
-    async def _handle_model_training(self, user_input: str, context: Dict[str, Any]) -> str:
+    async def _handle_model_training(
+        self, user_input: str, context: Dict[str, Any]
+    ) -> str:
         """Handle model training requests"""
         try:
             training_info = context.get("training_info", {})
 
             if not training_info:
-                return "Please provide training information (dataset_id, algorithm, etc.)"
+                return (
+                    "Please provide training information (dataset_id, algorithm, etc.)"
+                )
 
             # Create experiment
             experiment_data = {
-                'name': f"Training_{training_info.get('algorithm', 'unknown')}",
-                'description': 'User-initiated model training',
-                'model_type': training_info.get('model_type', 'classification'),
-                'dataset_id': training_info['dataset_id'],
-                'parameters': training_info.get('parameters', {})
+                "name": f"Training_{training_info.get('algorithm', 'unknown')}",
+                "description": "User-initiated model training",
+                "model_type": training_info.get("model_type", "classification"),
+                "dataset_id": training_info["dataset_id"],
+                "parameters": training_info.get("parameters", {}),
             }
 
             experiment_id = await self.create_experiment(experiment_data)
@@ -426,8 +471,8 @@ Model ID: {result['model_id']}"""
             # Run experiment
             result = await self.run_experiment(
                 experiment_id,
-                algorithm=training_info.get('algorithm'),
-                hyperparameters=training_info.get('hyperparameters')
+                algorithm=training_info.get("algorithm"),
+                hyperparameters=training_info.get("hyperparameters"),
             )
 
             return f"""Model training completed!
@@ -450,8 +495,7 @@ Ready for deployment or further evaluation."""
                 return "Please provide prediction information (endpoint, input_data)"
 
             result = await self.predict(
-                prediction_info['endpoint'],
-                prediction_info['input_data']
+                prediction_info["endpoint"], prediction_info["input_data"]
             )
 
             return f"""Prediction completed!
@@ -472,10 +516,10 @@ Ready for deployment or further evaluation."""
                 return "Please provide AutoML information (dataset_id, target_column, model_type)"
 
             result = await self.run_automl(
-                automl_info['dataset_id'],
-                automl_info['target_column'],
-                ModelType(automl_info['model_type']),
-                time_limit_minutes=automl_info.get('time_limit', 10)
+                automl_info["dataset_id"],
+                automl_info["target_column"],
+                ModelType(automl_info["model_type"]),
+                time_limit_minutes=automl_info.get("time_limit", 10),
             )
 
             return f"""AutoML completed!
@@ -490,7 +534,9 @@ The optimal model has been trained and is ready for deployment!"""
         except Exception as e:
             return f"AutoML failed: {str(e)}"
 
-    async def _handle_dashboard_request(self, user_input: str, context: Dict[str, Any]) -> str:
+    async def _handle_dashboard_request(
+        self, user_input: str, context: Dict[str, Any]
+    ) -> str:
         """Handle dashboard requests"""
         try:
             dashboard = await self.get_ml_dashboard()
@@ -514,7 +560,9 @@ The optimal model has been trained and is ready for deployment!"""
         except Exception as e:
             return f"Dashboard retrieval failed: {str(e)}"
 
-    async def _handle_model_deployment(self, user_input: str, context: Dict[str, Any]) -> str:
+    async def _handle_model_deployment(
+        self, user_input: str, context: Dict[str, Any]
+    ) -> str:
         """Handle model deployment requests"""
         try:
             deployment_info = context.get("deployment_info", {})
@@ -523,8 +571,7 @@ The optimal model has been trained and is ready for deployment!"""
                 return "Please provide deployment information (model_id, endpoint)"
 
             endpoint = await self.deploy_model(
-                deployment_info['model_id'],
-                deployment_info.get('endpoint')
+                deployment_info["model_id"], deployment_info.get("endpoint")
             )
 
             return f"""🚀 Model deployed successfully!
@@ -581,7 +628,7 @@ Provide specific parameters in the context for detailed operations."""
         """Register dataset for ML operations"""
         try:
             dataset_id = str(uuid.uuid4())
-            file_path = dataset_data['file_path']
+            file_path = dataset_data["file_path"]
 
             # Load and analyze dataset
             df = await self._load_dataset(file_path)
@@ -591,23 +638,25 @@ Provide specific parameters in the context for detailed operations."""
 
             dataset = Dataset(
                 dataset_id=dataset_id,
-                name=dataset_data['name'],
-                description=dataset_data.get('description', ''),
+                name=dataset_data["name"],
+                description=dataset_data.get("description", ""),
                 file_path=file_path,
-                format=dataset_data.get('format', 'csv'),
-                size_bytes=os.path.getsize(file_path) if os.path.exists(file_path) else 0,
+                format=dataset_data.get("format", "csv"),
+                size_bytes=os.path.getsize(file_path)
+                if os.path.exists(file_path)
+                else 0,
                 rows=len(df),
                 columns=len(df.columns),
-                target_column=dataset_data.get('target_column'),
-                feature_columns=dataset_data.get('feature_columns', list(df.columns)),
-                categorical_columns=dataset_stats['categorical_columns'],
-                numerical_columns=dataset_stats['numerical_columns'],
-                missing_values=dataset_stats['missing_values'],
-                data_types=dataset_stats['data_types'],
-                statistics=dataset_stats['statistics'],
+                target_column=dataset_data.get("target_column"),
+                feature_columns=dataset_data.get("feature_columns", list(df.columns)),
+                categorical_columns=dataset_stats["categorical_columns"],
+                numerical_columns=dataset_stats["numerical_columns"],
+                missing_values=dataset_stats["missing_values"],
+                data_types=dataset_stats["data_types"],
+                statistics=dataset_stats["statistics"],
                 created_at=datetime.now(),
                 last_modified=datetime.now(),
-                metadata=dataset_data.get('metadata', {})
+                metadata=dataset_data.get("metadata", {}),
             )
 
             self.datasets[dataset_id] = dataset
@@ -629,11 +678,11 @@ Provide specific parameters in the context for detailed operations."""
 
             experiment = Experiment(
                 experiment_id=experiment_id,
-                name=experiment_data['name'],
-                description=experiment_data.get('description', ''),
-                model_type=ModelType(experiment_data['model_type']),
-                dataset_id=experiment_data['dataset_id'],
-                parameters=experiment_data.get('parameters', {}),
+                name=experiment_data["name"],
+                description=experiment_data.get("description", ""),
+                model_type=ModelType(experiment_data["model_type"]),
+                dataset_id=experiment_data["dataset_id"],
+                parameters=experiment_data.get("parameters", {}),
                 metrics={},
                 artifacts={},
                 status=ExperimentStatus.CREATED,
@@ -642,13 +691,15 @@ Provide specific parameters in the context for detailed operations."""
                 completed_at=None,
                 duration_seconds=None,
                 error_message=None,
-                metadata=experiment_data.get('metadata', {})
+                metadata=experiment_data.get("metadata", {}),
             )
 
             self.experiments[experiment_id] = experiment
 
             # Create experiment directory
-            experiment_dir = os.path.join(self.config["experiments_directory"], experiment_id)
+            experiment_dir = os.path.join(
+                self.config["experiments_directory"], experiment_id
+            )
             os.makedirs(experiment_dir, exist_ok=True)
 
             self.logger.info(f"Experiment created: {experiment_id}")
@@ -658,8 +709,12 @@ Provide specific parameters in the context for detailed operations."""
             self.logger.error(f"Experiment creation failed: {e}")
             raise
 
-    async def run_experiment(self, experiment_id: str, algorithm: str = None,
-                           hyperparameters: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def run_experiment(
+        self,
+        experiment_id: str,
+        algorithm: str = None,
+        hyperparameters: Dict[str, Any] = None,
+    ) -> Dict[str, Any]:
         """Run ML experiment"""
         try:
             experiment = self.experiments.get(experiment_id)
@@ -687,7 +742,9 @@ Provide specific parameters in the context for detailed operations."""
 
             # Select algorithm
             if not algorithm:
-                algorithm = await self._select_best_algorithm(X_train, y_train, experiment.model_type)
+                algorithm = await self._select_best_algorithm(
+                    X_train, y_train, experiment.model_type
+                )
 
             # Get hyperparameters
             if not hyperparameters:
@@ -717,28 +774,35 @@ Provide specific parameters in the context for detailed operations."""
 
             # Create model record
             model_id = await self._create_model_record(
-                experiment, algorithm, hyperparameters, metrics,
-                feature_importance, model_path, preprocessing_path
+                experiment,
+                algorithm,
+                hyperparameters,
+                metrics,
+                feature_importance,
+                model_path,
+                preprocessing_path,
             )
 
             # Update experiment
             experiment.metrics = metrics
             experiment.artifacts = {
-                'model_path': model_path,
-                'preprocessing_path': preprocessing_path
+                "model_path": model_path,
+                "preprocessing_path": preprocessing_path,
             }
             experiment.status = ExperimentStatus.COMPLETED
             experiment.completed_at = datetime.now()
-            experiment.duration_seconds = (experiment.completed_at - experiment.started_at).total_seconds()
+            experiment.duration_seconds = (
+                experiment.completed_at - experiment.started_at
+            ).total_seconds()
 
             result = {
-                'experiment_id': experiment_id,
-                'model_id': model_id,
-                'algorithm': algorithm,
-                'hyperparameters': hyperparameters,
-                'metrics': metrics,
-                'feature_importance': feature_importance,
-                'duration_seconds': experiment.duration_seconds
+                "experiment_id": experiment_id,
+                "model_id": model_id,
+                "algorithm": algorithm,
+                "hyperparameters": hyperparameters,
+                "metrics": metrics,
+                "feature_importance": feature_importance,
+                "duration_seconds": experiment.duration_seconds,
             }
 
             self.logger.info(f"Experiment completed: {experiment_id}")
@@ -755,8 +819,13 @@ Provide specific parameters in the context for detailed operations."""
             self.logger.error(f"Experiment failed: {e}")
             raise
 
-    async def run_automl(self, dataset_id: str, target_column: str,
-                        model_type: ModelType, time_limit_minutes: int = 60) -> Dict[str, Any]:
+    async def run_automl(
+        self,
+        dataset_id: str,
+        target_column: str,
+        model_type: ModelType,
+        time_limit_minutes: int = 60,
+    ) -> Dict[str, Any]:
         """Run automated machine learning"""
         try:
             automl_id = str(uuid.uuid4())
@@ -810,9 +879,9 @@ Provide specific parameters in the context for detailed operations."""
 
                     # Get primary metric
                     if model_type == ModelType.CLASSIFICATION:
-                        score = metrics.get('accuracy', 0)
+                        score = metrics.get("accuracy", 0)
                     elif model_type == ModelType.REGRESSION:
-                        score = metrics.get('r2_score', 0)
+                        score = metrics.get("r2_score", 0)
                     else:
                         score = 0
 
@@ -831,12 +900,15 @@ Provide specific parameters in the context for detailed operations."""
 
             # Create experiment for best model
             experiment_data = {
-                'name': f'AutoML_{dataset.name}_{model_type.value}',
-                'description': f'AutoML experiment for {dataset.name}',
-                'model_type': model_type.value,
-                'dataset_id': dataset_id,
-                'parameters': best_params,
-                'metadata': {'automl_id': automl_id, 'time_limit_minutes': time_limit_minutes}
+                "name": f"AutoML_{dataset.name}_{model_type.value}",
+                "description": f"AutoML experiment for {dataset.name}",
+                "model_type": model_type.value,
+                "dataset_id": dataset_id,
+                "parameters": best_params,
+                "metadata": {
+                    "automl_id": automl_id,
+                    "time_limit_minutes": time_limit_minutes,
+                },
             }
 
             experiment_id = await self.create_experiment(experiment_data)
@@ -858,8 +930,13 @@ Provide specific parameters in the context for detailed operations."""
 
             # Create model record
             model_id = await self._create_model_record(
-                self.experiments[experiment_id], best_algorithm, best_params,
-                final_metrics, feature_importance, model_path, preprocessing_path
+                self.experiments[experiment_id],
+                best_algorithm,
+                best_params,
+                final_metrics,
+                feature_importance,
+                model_path,
+                preprocessing_path,
             )
 
             # Update experiment
@@ -870,14 +947,14 @@ Provide specific parameters in the context for detailed operations."""
             experiment.duration_seconds = time.time() - start_time
 
             result = {
-                'automl_id': automl_id,
-                'experiment_id': experiment_id,
-                'model_id': model_id,
-                'best_algorithm': best_algorithm,
-                'best_parameters': best_params,
-                'metrics': final_metrics,
-                'feature_importance': feature_importance,
-                'duration_seconds': experiment.duration_seconds
+                "automl_id": automl_id,
+                "experiment_id": experiment_id,
+                "model_id": model_id,
+                "best_algorithm": best_algorithm,
+                "best_parameters": best_params,
+                "metrics": final_metrics,
+                "feature_importance": feature_importance,
+                "duration_seconds": experiment.duration_seconds,
             }
 
             self.automl_jobs[automl_id] = result
@@ -919,7 +996,9 @@ Provide specific parameters in the context for detailed operations."""
             self.logger.error(f"Model deployment failed: {e}")
             raise
 
-    async def predict(self, endpoint: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def predict(
+        self, endpoint: str, input_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Make prediction using deployed model"""
         try:
             model_id = self.deployed_models.get(endpoint)
@@ -948,7 +1027,7 @@ Provide specific parameters in the context for detailed operations."""
 
             # Get prediction probability if available
             prediction_proba = None
-            if hasattr(trained_model, 'predict_proba'):
+            if hasattr(trained_model, "predict_proba"):
                 try:
                     prediction_proba = trained_model.predict_proba(input_df).tolist()
                 except:
@@ -956,21 +1035,21 @@ Provide specific parameters in the context for detailed operations."""
 
             # Log prediction
             prediction_log = {
-                'model_id': model_id,
-                'endpoint': endpoint,
-                'input_data': input_data,
-                'prediction': prediction.tolist(),
-                'prediction_proba': prediction_proba,
-                'prediction_time_ms': prediction_time,
-                'timestamp': datetime.now()
+                "model_id": model_id,
+                "endpoint": endpoint,
+                "input_data": input_data,
+                "prediction": prediction.tolist(),
+                "prediction_proba": prediction_proba,
+                "prediction_time_ms": prediction_time,
+                "timestamp": datetime.now(),
             }
             self.prediction_logs.append(prediction_log)
 
             result = {
-                'prediction': prediction.tolist(),
-                'prediction_proba': prediction_proba,
-                'model_id': model_id,
-                'prediction_time_ms': prediction_time
+                "prediction": prediction.tolist(),
+                "prediction_proba": prediction_proba,
+                "model_id": model_id,
+                "prediction_time_ms": prediction_time,
             }
 
             return result
@@ -984,13 +1063,15 @@ Provide specific parameters in the context for detailed operations."""
         try:
             # Recent activity
             recent_experiments = [
-                exp for exp in self.experiments.values()
+                exp
+                for exp in self.experiments.values()
                 if (datetime.now() - exp.created_at).total_seconds() < 86400
             ]
 
             recent_predictions = [
-                log for log in self.prediction_logs
-                if (datetime.now() - log['timestamp']).total_seconds() < 3600
+                log
+                for log in self.prediction_logs
+                if (datetime.now() - log["timestamp"]).total_seconds() < 3600
             ]
 
             # Model performance summary
@@ -999,46 +1080,66 @@ Provide specific parameters in the context for detailed operations."""
                 if performances:
                     latest = performances[-1]
                     model_performance_summary[model_id] = {
-                        'avg_latency_ms': latest.latency_ms,
-                        'predictions_count': latest.predictions_count,
-                        'last_measured': latest.measured_at.isoformat()
+                        "avg_latency_ms": latest.latency_ms,
+                        "predictions_count": latest.predictions_count,
+                        "last_measured": latest.measured_at.isoformat(),
                     }
 
             return {
-                'timestamp': datetime.now().isoformat(),
-                'summary': {
-                    'total_datasets': len(self.datasets),
-                    'total_experiments': len(self.experiments),
-                    'total_models': len(self.models),
-                    'deployed_models': len(self.deployed_models),
-                    'active_pipelines': len([p for p in self.pipelines.values() if p.is_active])
+                "timestamp": datetime.now().isoformat(),
+                "summary": {
+                    "total_datasets": len(self.datasets),
+                    "total_experiments": len(self.experiments),
+                    "total_models": len(self.models),
+                    "deployed_models": len(self.deployed_models),
+                    "active_pipelines": len(
+                        [p for p in self.pipelines.values() if p.is_active]
+                    ),
                 },
-                'recent_activity': {
-                    'experiments_24h': len(recent_experiments),
-                    'predictions_1h': len(recent_predictions),
-                    'completed_experiments': len([exp for exp in recent_experiments if exp.status == ExperimentStatus.COMPLETED]),
-                    'failed_experiments': len([exp for exp in recent_experiments if exp.status == ExperimentStatus.FAILED])
+                "recent_activity": {
+                    "experiments_24h": len(recent_experiments),
+                    "predictions_1h": len(recent_predictions),
+                    "completed_experiments": len(
+                        [
+                            exp
+                            for exp in recent_experiments
+                            if exp.status == ExperimentStatus.COMPLETED
+                        ]
+                    ),
+                    "failed_experiments": len(
+                        [
+                            exp
+                            for exp in recent_experiments
+                            if exp.status == ExperimentStatus.FAILED
+                        ]
+                    ),
                 },
-                'model_performance': model_performance_summary,
-                'system_metrics': getattr(self, 'system_metrics', {}),
-                'drift_alerts': len([drift for drifts in self.data_drift_results.values()
-                                   for drift in drifts if drift.is_drift and
-                                   (datetime.now() - drift.detected_at).total_seconds() < 86400])
+                "model_performance": model_performance_summary,
+                "system_metrics": getattr(self, "system_metrics", {}),
+                "drift_alerts": len(
+                    [
+                        drift
+                        for drifts in self.data_drift_results.values()
+                        for drift in drifts
+                        if drift.is_drift
+                        and (datetime.now() - drift.detected_at).total_seconds() < 86400
+                    ]
+                ),
             }
 
         except Exception as e:
             self.logger.error(f"ML dashboard generation failed: {e}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     # Supporting methods (simplified versions)
     async def _load_dataset(self, file_path: str) -> pd.DataFrame:
         """Load dataset from file"""
         try:
-            if file_path.endswith('.csv'):
+            if file_path.endswith(".csv"):
                 return pd.read_csv(file_path)
-            elif file_path.endswith('.json'):
+            elif file_path.endswith(".json"):
                 return pd.read_json(file_path)
-            elif file_path.endswith('.xlsx'):
+            elif file_path.endswith(".xlsx"):
                 return pd.read_excel(file_path)
             else:
                 raise ValueError(f"Unsupported file format: {file_path}")
@@ -1053,32 +1154,34 @@ Provide specific parameters in the context for detailed operations."""
             numerical_columns = []
 
             for col in df.columns:
-                if df[col].dtype in ['object', 'category']:
+                if df[col].dtype in ["object", "category"]:
                     categorical_columns.append(col)
-                elif df[col].dtype in ['int64', 'float64']:
+                elif df[col].dtype in ["int64", "float64"]:
                     numerical_columns.append(col)
 
             missing_values = df.isnull().sum().to_dict()
             data_types = df.dtypes.astype(str).to_dict()
 
             statistics = {
-                'numerical_stats': df.describe().to_dict() if numerical_columns else {},
-                'categorical_stats': {},
-                'correlation_matrix': df.corr().to_dict() if numerical_columns else {}
+                "numerical_stats": df.describe().to_dict() if numerical_columns else {},
+                "categorical_stats": {},
+                "correlation_matrix": df.corr().to_dict() if numerical_columns else {},
             }
 
             return {
-                'categorical_columns': categorical_columns,
-                'numerical_columns': numerical_columns,
-                'missing_values': missing_values,
-                'data_types': data_types,
-                'statistics': statistics
+                "categorical_columns": categorical_columns,
+                "numerical_columns": numerical_columns,
+                "missing_values": missing_values,
+                "data_types": data_types,
+                "statistics": statistics,
             }
         except Exception as e:
             self.logger.error(f"Dataset analysis failed: {e}")
             return {}
 
-    async def _prepare_data(self, df: pd.DataFrame, dataset: Dataset, model_type: ModelType):
+    async def _prepare_data(
+        self, df: pd.DataFrame, dataset: Dataset, model_type: ModelType
+    ):
         """Prepare data for training"""
         if dataset.target_column and dataset.target_column in df.columns:
             y = df[dataset.target_column]
@@ -1090,19 +1193,24 @@ Provide specific parameters in the context for detailed operations."""
         # Basic preprocessing
         for col in X.columns:
             if X[col].isnull().sum() > 0:
-                if X[col].dtype in ['int64', 'float64']:
+                if X[col].dtype in ["int64", "float64"]:
                     X[col].fillna(X[col].median(), inplace=True)
                 else:
-                    X[col].fillna(X[col].mode()[0] if len(X[col].mode()) > 0 else 'unknown', inplace=True)
+                    X[col].fillna(
+                        X[col].mode()[0] if len(X[col].mode()) > 0 else "unknown",
+                        inplace=True,
+                    )
 
         return X, y
 
     async def _select_best_algorithm(self, X, y, model_type: ModelType) -> str:
         """Select best algorithm"""
         algorithms = self.algorithms.get(model_type, {})
-        return list(algorithms.keys())[0] if algorithms else 'random_forest'
+        return list(algorithms.keys())[0] if algorithms else "random_forest"
 
-    async def _optimize_hyperparameters(self, X, y, model_type, algorithm) -> Dict[str, Any]:
+    async def _optimize_hyperparameters(
+        self, X, y, model_type, algorithm
+    ) -> Dict[str, Any]:
         """Basic hyperparameter optimization"""
         return {}
 
@@ -1119,9 +1227,9 @@ Provide specific parameters in the context for detailed operations."""
         predictions = model.predict(X_test)
         if model_type == ModelType.CLASSIFICATION:
             accuracy = accuracy_score(y_test, predictions)
-            return {'accuracy': accuracy}
+            return {"accuracy": accuracy}
         else:
-            return {'score': 0.8}  # Placeholder
+            return {"score": 0.8}  # Placeholder
 
     async def _calculate_feature_importance(self, model, features, model_type):
         """Basic feature importance"""
@@ -1134,7 +1242,16 @@ Provide specific parameters in the context for detailed operations."""
         joblib.dump(model, model_path)
         return model_path, None
 
-    async def _create_model_record(self, experiment, algorithm, params, metrics, importance, model_path, preprocessing_path):
+    async def _create_model_record(
+        self,
+        experiment,
+        algorithm,
+        params,
+        metrics,
+        importance,
+        model_path,
+        preprocessing_path,
+    ):
         """Create model record"""
         model_id = str(uuid.uuid4())
         model = Model(
@@ -1154,7 +1271,7 @@ Provide specific parameters in the context for detailed operations."""
             created_at=datetime.now(),
             deployed_at=None,
             performance_history=[],
-            metadata={}
+            metadata={},
         )
         self.models[model_id] = model
         return model_id

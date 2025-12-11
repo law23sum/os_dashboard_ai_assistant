@@ -5,12 +5,206 @@ import uuid
 import re
 from datetime import datetime
 from typing import Dict, List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+# Shared governance constants to stay aligned with backend templates
+GOVERNANCE_CONTROLS: List[str] = [
+    "every AI edit is tracked",
+    "every change is diffed",
+    "every document has a version history",
+    "every operation has a timestamp",
+    "every action is reversible",
+    "every output is accountable",
+]
+
+TOOLCHAIN_ALIGNMENT: List[str] = [
+    "OneNote becomes the living structured memory",
+    "Word becomes the formatted deliverable engine",
+    "Excel becomes the analytical substrate",
+    "Git becomes the brain stem holding the lineage of every thought",
+    "ChatGPT becomes the reasoning center",
+    "Daemons become the continuous active cortex",
+    "AIC/Sora/Aria become the interpretive personalities that guide knowledge formation",
+]
+
+DAEMON_ROLES: List[str] = [
+    "notices missing documents",
+    "drafts proposals",
+    "updates reports",
+    "summarizes notebooks",
+    "analyzes spreadsheets",
+    "reorganizes folders",
+    "updates tasks",
+    "alerts the user when something's outdated",
+    "tracks version history",
+    "suggests improvements",
+    "predicts next steps",
+    "executes workflows",
+]
+
+
+@dataclass
+class TemplateSample:
+    """A single sample artifact for a file type."""
+
+    extension: str
+    filename: str
+    description: str
+
+
+@dataclass
+class DocumentTemplateProfile:
+    """Structured definition of a deliverable template."""
+
+    name: str
+    purpose: str
+    governance: List[str] = field(default_factory=list)
+    toolchain_alignment: List[str] = field(default_factory=list)
+    daemon_support: List[str] = field(default_factory=list)
+    sample_files: List[TemplateSample] = field(default_factory=list)
+
+    def sample_map(self) -> Dict[str, TemplateSample]:
+        """Return sample files keyed by extension for quick lookup."""
+        return {sample.extension: sample for sample in self.sample_files}
+
+
+def _base_samples(doc_type: str) -> List[TemplateSample]:
+    """Create baseline samples for all supported file types."""
+    normalized = doc_type.lower()
+    title = doc_type.title()
+    return [
+        TemplateSample(
+            extension="csv",
+            filename=f"{normalized.replace(' ', '_')}_template.csv",
+            description=(
+                f"CSV table for {title} with columns: section, owner, status, "
+                "last_updated (ISO timestamp), and audit_reference. Includes rows "
+                "for scope, assumptions, risks, decisions, and governance notes."
+            ),
+        ),
+        TemplateSample(
+            extension="json",
+            filename=f"{normalized.replace(' ', '_')}_template.json",
+            description=(
+                "JSON payload capturing metadata, governance controls, and "
+                f"structured sections for {title}. Includes placeholders for "
+                "version_tag, source_links, and change_log entries."
+            ),
+        ),
+        TemplateSample(
+            extension="pdf",
+            filename=f"{normalized.replace(' ', '_')}_template.pdf",
+            description=(
+                f"PDF rendering of the {title} starter content with a cover page, "
+                "executive highlights, change summary, and a footer showing the "
+                "latest commit hash for auditability."
+            ),
+        ),
+        TemplateSample(
+            extension="xlsx",
+            filename=f"{normalized.replace(' ', '_')}_template.xlsx",
+            description=(
+                f"Workbook with tabs for metrics, risks, decisions, and actions for {title}. "
+                "Each tab includes timestamp columns and diff-friendly change notes."
+            ),
+        ),
+        TemplateSample(
+            extension="docx",
+            filename=f"{normalized.replace(' ', '_')}_template.docx",
+            description=(
+                f"Formatted Word starter with title page, overview, objectives, current status, "
+                "open questions, and appendix that documents diffs and AI-assisted edits."
+            ),
+        ),
+        TemplateSample(
+            extension="txt",
+            filename=f"{normalized.replace(' ', '_')}_template.txt",
+            description=(
+                f"Plain text scaffold for {title} outlining sections and governance reminders "
+                "so edits remain accountable even in lightweight contexts."
+            ),
+        ),
+        TemplateSample(
+            extension="pptx",
+            filename=f"{normalized.replace(' ', '_')}_template.pptx",
+            description=(
+                f"Slide deck with agenda, problem statement, insights, actions, and risk/mitigation slides "
+                f"tailored to {title}. Notes fields remind presenters that AI edits are tracked and diffed."
+            ),
+        ),
+    ]
+
+
+document_templates: List[DocumentTemplateProfile] = []
+for template_name, purpose in [
+    (
+        "briefs",
+        "Fast, high-signal summaries that outline context, intent, and next actions.",
+    ),
+    (
+        "proposals",
+        "Persuasive narratives with problem framing, solution options, and acceptance criteria.",
+    ),
+    (
+        "compliance reports",
+        "Evidence-backed reporting aligned to regulatory controls and audit trails.",
+    ),
+    (
+        "patient summaries",
+        "Concise clinical snapshots with diagnostics, care plans, and consent provenance.",
+    ),
+    (
+        "risk assessments",
+        "Structured identification, scoring, and mitigation planning for known risks.",
+    ),
+    (
+        "regulatory filings",
+        "Formal submissions with references to statutes, controls, and supporting evidence.",
+    ),
+    (
+        "engineering specs",
+        "Technical requirements with architecture notes, interfaces, and test criteria.",
+    ),
+    (
+        "technical documents",
+        "Implementation details, runbooks, and troubleshooting guides.",
+    ),
+    (
+        "product updates",
+        "Release notes, customer impact, rollout plans, and observability checks.",
+    ),
+    (
+        "operational manuals",
+        "Step-by-step procedures with safety, rollback, and training references.",
+    ),
+]:
+    document_templates.append(
+        DocumentTemplateProfile(
+            name=template_name,
+            purpose=purpose,
+            governance=GOVERNANCE_CONTROLS.copy(),
+            toolchain_alignment=TOOLCHAIN_ALIGNMENT.copy(),
+            daemon_support=DAEMON_ROLES.copy(),
+            sample_files=_base_samples(template_name),
+        )
+    )
+
+__all__ = [
+    "DocumentTemplateProfile",
+    "TemplateSample",
+    "GOVERNANCE_CONTROLS",
+    "TOOLCHAIN_ALIGNMENT",
+    "DAEMON_ROLES",
+    "document_templates",
+    "DocumentTemplate",
+    "DEFAULT_TEMPLATES",
+]
 
 
 @dataclass
 class DocumentTemplate:
     """A template for generating documents."""
+
     id: str
     name: str
     category: str
@@ -64,7 +258,7 @@ DEFAULT_TEMPLATES = {
 ---
 
 *Document ID: {document_id} | Generated by AIC Daemon Framework | {timestamp}*
-"""
+""",
     },
     "governed_os_manifest": {
         "name": "Governed Document OS Manifest",
@@ -101,7 +295,7 @@ DEFAULT_TEMPLATES = {
 - Regulatory Filings | Engineering Specs | Technical Documents | Product Updates | Operational Manuals
 
 *Document ID: {document_id} | Persona: {persona} | Timestamp: {timestamp}*
-"""
+""",
     },
     "meeting_notes": {
         "name": "Meeting Notes",
@@ -149,7 +343,7 @@ DEFAULT_TEMPLATES = {
 ---
 
 *AI Audit Trail: {audit_trail} | Document ID: {document_id} | {timestamp}*
-"""
+""",
     },
     "progress_report": {
         "name": "Progress Report",
@@ -203,7 +397,7 @@ DEFAULT_TEMPLATES = {
 ---
 
 *AI Oversight: {ai_oversight_status} | Document ID: {document_id} | Generated: {timestamp}*
-"""
+""",
     },
     "proposal": {
         "name": "Business Proposal",
@@ -270,9 +464,8 @@ DEFAULT_TEMPLATES = {
 ---
 
 *Proposal ID: {proposal_id} | AI Confidence Score: {confidence_score}% | Generated: {timestamp}*
-"""
+""",
     },
-
     # New comprehensive templates as requested
     "compliance_report": {
         "name": "Compliance Report",
@@ -332,7 +525,7 @@ DEFAULT_TEMPLATES = {
 ---
 
 *Compliance Report ID: {report_id} | AI Validation Score: {validation_score}% | {timestamp}*
-"""
+""",
     },
     "patient_summary": {
         "name": "Patient Summary",
@@ -403,7 +596,7 @@ DEFAULT_TEMPLATES = {
 ---
 
 *Medical Record ID: {record_id} | AI Clinical Validation: {clinical_validation} | {timestamp}*
-"""
+""",
     },
     "risk_assessment": {
         "name": "Risk Assessment Report",
@@ -472,7 +665,7 @@ DEFAULT_TEMPLATES = {
 ---
 
 *Risk Assessment ID: {assessment_id} | AI Risk Score: {ai_risk_score} | Generated: {timestamp}*
-"""
+""",
     },
     "regulatory_filing": {
         "name": "Regulatory Filing Document",
@@ -538,7 +731,7 @@ DEFAULT_TEMPLATES = {
 ---
 
 *Filing Reference: {filing_reference} | AI Compliance Score: {compliance_score}% | {timestamp}*
-"""
+""",
     },
     "engineering_spec": {
         "name": "Engineering Specification",
@@ -607,7 +800,7 @@ DEFAULT_TEMPLATES = {
 ---
 
 *Specification ID: {spec_id} | AI Technical Validation: {technical_validation} | {timestamp}*
-"""
+""",
     },
     "technical_document": {
         "name": "Technical Documentation",
@@ -679,7 +872,7 @@ DEFAULT_TEMPLATES = {
 ---
 
 *Document ID: {doc_id} | AI Content Validation: {content_validation} | {timestamp}*
-"""
+""",
     },
     "product_update": {
         "name": "Product Update Announcement",
@@ -751,7 +944,7 @@ DEFAULT_TEMPLATES = {
 ---
 
 *Release ID: {release_id} | AI Product Score: {product_score}/10 | {timestamp}*
-"""
+""",
     },
     "operational_manual": {
         "name": "Operational Manual",
@@ -823,9 +1016,8 @@ DEFAULT_TEMPLATES = {
 ---
 
 *Manual ID: {manual_id} | AI Process Score: {process_score}/10 | Last Reviewed: {last_reviewed}*
-"""
+""",
     },
-
     # Sample templates for different file formats
     "sample_csv_data": {
         "name": "CSV Data Template",
@@ -858,7 +1050,7 @@ DEFAULT_TEMPLATES = {
 # change_reason: Description of why this data point was added/modified
 
 # Export this template to CSV format for actual data storage
-"""
+""",
     },
     "sample_json_schema": {
         "name": "JSON Schema Template",
@@ -914,7 +1106,7 @@ DEFAULT_TEMPLATES = {
     "retention_policy": "7_years",
     "access_log": []
   }
-}"""
+}""",
     },
     "sample_pdf_template": {
         "name": "PDF Document Template",
@@ -980,7 +1172,7 @@ This PDF document has been processed and validated by our AI governance framewor
 
 ---
 *Document ID: {document_id} | AI Validation: ✅ Complete | Generated: {timestamp}*
-"""
+""",
     },
     "sample_excel_template": {
         "name": "Excel Workbook Template",
@@ -1057,7 +1249,7 @@ This PDF document has been processed and validated by our AI governance framewor
 
 ---
 *Workbook ID: {workbook_id} | AI Validation: ✅ Complete | Last Updated: {timestamp}*
-"""
+""",
     },
     "sample_word_template": {
         "name": "Word Document Template",
@@ -1139,7 +1331,7 @@ This Word document has been enhanced by our comprehensive AI governance framewor
 
 ---
 *Document ID: {document_id} | AI Enhancement Score: {enhancement_score}/10 | Generated: {timestamp}*
-"""
+""",
     },
     "sample_powerpoint_template": {
         "name": "PowerPoint Presentation Template",
@@ -1231,7 +1423,7 @@ This PowerPoint presentation has been optimized by our AI governance framework:
 
 ---
 *Presentation ID: {presentation_id} | AI Design Score: {design_score}/10 | Generated: {timestamp}*
-"""
+""",
     },
     "sample_docx_template": {
         "name": "Word Document Template",
@@ -1275,7 +1467,7 @@ This PowerPoint presentation has been optimized by our AI governance framework:
 | {version} | {modified_date} | {author} | Initial AI-enhanced draft |
 
 *Document ID: {document_id} | Managed by AI Ops Feed*
-"""
+""",
     },
     "sample_xlsx_template": {
         "name": "Excel Workbook Template",
@@ -1316,7 +1508,7 @@ This PowerPoint presentation has been optimized by our AI governance framework:
 - executes workflows
 
 *Workbook ID: {workbook_id} | Diff Path: {diff_path} | Managed by AI Ops Feed*
-"""
+""",
     },
     "sample_text_template": {
         "name": "Plain Text Document Template",
@@ -1382,8 +1574,8 @@ Version {version} - {created_date} - {author}
 AI VALIDATION: ✅ PASSED
 Document ID: {document_id}
 Generated: {timestamp}
-"""
-    }
+""",
+    },
 }
 
 
@@ -1395,18 +1587,20 @@ def initialize_default_templates(conn: sqlite3.Connection):
         c.execute("SELECT id FROM document_templates WHERE id = ?", (template_id,))
         if c.fetchone():
             continue  # Skip if already exists
-        
+
         # Insert default template
         created_at = datetime.now().isoformat(timespec="seconds")
 
         # Extract placeholders from template content
-        placeholders = get_template_placeholders(DocumentTemplate(
-            id=template_id,
-            name=template_data["name"],
-            category=template_data["category"],
-            content=template_data["content"],
-            created_at=created_at
-        ))
+        placeholders = get_template_placeholders(
+            DocumentTemplate(
+                id=template_id,
+                name=template_data["name"],
+                category=template_data["category"],
+                content=template_data["content"],
+                created_at=created_at,
+            )
+        )
 
         # Generate description based on template category and name
         descriptions = {
@@ -1424,88 +1618,108 @@ def initialize_default_templates(conn: sqlite3.Connection):
             "operations": "Operational manual template with process optimization",
             "data": "Data structure template with governance and validation",
             "document": "General document template with AI enhancement features",
-            "presentation": "Presentation template with design optimization"
+            "presentation": "Presentation template with design optimization",
         }
 
-        description = descriptions.get(template_data["category"], f"{template_data['name']} template with AI governance")
+        description = descriptions.get(
+            template_data["category"],
+            f"{template_data['name']} template with AI governance",
+        )
 
-        c.execute("""
+        c.execute(
+            """
             INSERT INTO document_templates (id, name, category, content, description, placeholders, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
-            template_id,
-            template_data["name"],
-            template_data["category"],
-            template_data["content"],
-            description,
-            ",".join(placeholders),
-            created_at
-        ))
-    
+        """,
+            (
+                template_id,
+                template_data["name"],
+                template_data["category"],
+                template_data["content"],
+                description,
+                ",".join(placeholders),
+                created_at,
+            ),
+        )
+
     conn.commit()
 
 
-def get_templates(conn: sqlite3.Connection, category: Optional[str] = None) -> List[DocumentTemplate]:
+def get_templates(
+    conn: sqlite3.Connection, category: Optional[str] = None
+) -> List[DocumentTemplate]:
     """Get all templates, optionally filtered by category.
-    
+
     Args:
         conn: Database connection
         category: Optional category filter
-    
+
     Returns:
         List of DocumentTemplate objects
     """
     c = conn.cursor()
-    
+
     if category:
-        c.execute("""
+        c.execute(
+            """
             SELECT id, name, category, content, created_at, updated_at
             FROM document_templates
             WHERE category = ?
             ORDER BY name
-        """, (category,))
+        """,
+            (category,),
+        )
     else:
-        c.execute("""
+        c.execute(
+            """
             SELECT id, name, category, content, created_at, updated_at
             FROM document_templates
             ORDER BY category, name
-        """)
-    
+        """
+        )
+
     rows = c.fetchall()
     templates = []
     for row in rows:
-        templates.append(DocumentTemplate(
-            id=row["id"],
-            name=row["name"],
-            category=row["category"],
-            content=row["content"],
-            created_at=row["created_at"],
-            updated_at=row.get("updated_at")
-        ))
-    
+        templates.append(
+            DocumentTemplate(
+                id=row["id"],
+                name=row["name"],
+                category=row["category"],
+                content=row["content"],
+                created_at=row["created_at"],
+                updated_at=row.get("updated_at"),
+            )
+        )
+
     return templates
 
 
-def get_template(conn: sqlite3.Connection, template_id: str) -> Optional[DocumentTemplate]:
+def get_template(
+    conn: sqlite3.Connection, template_id: str
+) -> Optional[DocumentTemplate]:
     """Get a specific template by ID."""
     c = conn.cursor()
-    c.execute("""
+    c.execute(
+        """
         SELECT id, name, category, content, created_at, updated_at
         FROM document_templates
         WHERE id = ?
-    """, (template_id,))
-    
+    """,
+        (template_id,),
+    )
+
     row = c.fetchone()
     if not row:
         return None
-    
+
     return DocumentTemplate(
         id=row["id"],
         name=row["name"],
         category=row["category"],
         content=row["content"],
         created_at=row["created_at"],
-        updated_at=row.get("updated_at")
+        updated_at=row.get("updated_at"),
     )
 
 
@@ -1514,31 +1728,34 @@ def create_template(
     name: str,
     category: str,
     content: str,
-    template_id: Optional[str] = None
+    template_id: Optional[str] = None,
 ) -> str:
     """Create a new template.
-    
+
     Args:
         conn: Database connection
         name: Template name
         category: Template category
         content: Template content with {placeholders}
         template_id: Optional custom ID (auto-generated if not provided)
-    
+
     Returns:
         Template ID
     """
     if template_id is None:
         template_id = str(uuid.uuid4())
-    
+
     created_at = datetime.now().isoformat(timespec="seconds")
-    
+
     c = conn.cursor()
-    c.execute("""
+    c.execute(
+        """
         INSERT INTO document_templates (id, name, category, content, created_at)
         VALUES (?, ?, ?, ?, ?)
-    """, (template_id, name, category, content, created_at))
-    
+    """,
+        (template_id, name, category, content, created_at),
+    )
+
     conn.commit()
     return template_id
 
@@ -1548,39 +1765,42 @@ def update_template(
     template_id: str,
     name: Optional[str] = None,
     category: Optional[str] = None,
-    content: Optional[str] = None
+    content: Optional[str] = None,
 ) -> bool:
     """Update an existing template."""
     updates = []
     params = []
-    
+
     if name is not None:
         updates.append("name = ?")
         params.append(name)
-    
+
     if category is not None:
         updates.append("category = ?")
         params.append(category)
-    
+
     if content is not None:
         updates.append("content = ?")
         params.append(content)
-    
+
     if not updates:
         return False
-    
+
     updated_at = datetime.now().isoformat(timespec="seconds")
     updates.append("updated_at = ?")
     params.append(updated_at)
     params.append(template_id)
-    
+
     c = conn.cursor()
-    c.execute(f"""
+    c.execute(
+        f"""
         UPDATE document_templates
         SET {', '.join(updates)}
         WHERE id = ?
-    """, params)
-    
+    """,
+        params,
+    )
+
     conn.commit()
     return c.rowcount > 0
 
@@ -1595,30 +1815,32 @@ def delete_template(conn: sqlite3.Connection, template_id: str) -> bool:
 
 def render_template(template: DocumentTemplate, values: Dict[str, str]) -> str:
     """Render a template with provided values.
-    
+
     Args:
         template: DocumentTemplate object
         values: Dict mapping placeholder names to values
-    
+
     Returns:
         Rendered document as string
     """
     content = template.content
-    
+
     # Find all placeholders in the template
-    placeholders = re.findall(r'\{(\w+)\}', content)
-    
+    placeholders = re.findall(r"\{(\w+)\}", content)
+
     # Replace placeholders with values
     for placeholder in placeholders:
-        value = values.get(placeholder, f"{{{{ {placeholder} }}}}")  # Keep placeholder if not found
+        value = values.get(
+            placeholder, f"{{{{ {placeholder} }}}}"
+        )  # Keep placeholder if not found
         content = content.replace(f"{{{placeholder}}}", str(value))
-    
+
     return content
 
 
 def get_template_placeholders(template: DocumentTemplate) -> List[str]:
     """Extract all placeholder names from a template."""
-    placeholders = re.findall(r'\{(\w+)\}', template.content)
+    placeholders = re.findall(r"\{(\w+)\}", template.content)
     return list(set(placeholders))  # Remove duplicates
 
 
@@ -1628,6 +1850,3 @@ def get_categories(conn: sqlite3.Connection) -> List[str]:
     c.execute("SELECT DISTINCT category FROM document_templates ORDER BY category")
     rows = c.fetchall()
     return [row["category"] for row in rows]
-
-
-

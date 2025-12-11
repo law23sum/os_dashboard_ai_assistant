@@ -15,7 +15,7 @@ from msgraph.generated.models.workbook import Workbook
 from msgraph.generated.models.notebook import Notebook
 
 from config import get_api_config
-from ..logging_config import setup_logger
+from ...logging_config import setup_logger
 
 
 class MicrosoftClient:
@@ -35,7 +35,7 @@ class MicrosoftClient:
             self.app = msal.ConfidentialClientApplication(
                 client_id=self.config.microsoft_client_id,
                 client_credential=self.config.microsoft_client_secret,
-                authority=f"https://login.microsoftonline.com/{self.config.microsoft_tenant_id}"
+                authority=f"https://login.microsoftonline.com/{self.config.microsoft_tenant_id}",
             )
 
             # Get access token
@@ -44,7 +44,7 @@ class MicrosoftClient:
             # Initialize Graph client
             self.graph_client = GraphServiceClient(
                 credentials=self._get_credentials(),
-                scopes=['https://graph.microsoft.com/.default']
+                scopes=["https://graph.microsoft.com/.default"],
             )
 
             self.logger.info("Microsoft Graph client initialized successfully")
@@ -58,13 +58,15 @@ class MicrosoftClient:
         """Get access token using client credentials flow"""
         try:
             result = self.app.acquire_token_for_client(
-                scopes=['https://graph.microsoft.com/.default']
+                scopes=["https://graph.microsoft.com/.default"]
             )
 
             if "access_token" in result:
                 self.access_token = result["access_token"]
             else:
-                raise Exception(f"Failed to acquire token: {result.get('error_description', 'Unknown error')}")
+                raise Exception(
+                    f"Failed to acquire token: {result.get('error_description', 'Unknown error')}"
+                )
 
         except Exception as e:
             self.logger.error(f"Token acquisition failed: {e}")
@@ -72,6 +74,7 @@ class MicrosoftClient:
 
     def _get_credentials(self):
         """Get credentials for Graph client"""
+
         class TokenCredential:
             def __init__(self, token):
                 self.token = token
@@ -97,7 +100,9 @@ class MicrosoftClient:
             return False
 
     # Word Document Operations
-    async def create_word_document(self, title: str, content: str, folder_path: str = None) -> Dict[str, Any]:
+    async def create_word_document(
+        self, title: str, content: str, folder_path: str = None
+    ) -> Dict[str, Any]:
         """Create a new Word document"""
         try:
             # Create document content
@@ -113,13 +118,15 @@ class MicrosoftClient:
 
             # Upload to OneDrive
             file_name = f"{title}.docx"
-            drive_item = await self._upload_file(file_name, doc_content.encode(), folder_path)
+            drive_item = await self._upload_file(
+                file_name, doc_content.encode(), folder_path
+            )
 
             return {
                 "id": drive_item.id,
                 "name": drive_item.name,
                 "web_url": drive_item.web_url,
-                "type": "word_document"
+                "type": "word_document",
             }
 
         except Exception as e:
@@ -129,16 +136,20 @@ class MicrosoftClient:
     async def get_word_document(self, document_id: str) -> Dict[str, Any]:
         """Get Word document content"""
         try:
-            drive_item = await self.graph_client.me.drive.items.by_drive_item_id(document_id).get()
+            drive_item = await self.graph_client.me.drive.items.by_drive_item_id(
+                document_id
+            ).get()
 
             # Get document content
-            content_response = await self.graph_client.me.drive.items.by_drive_item_id(document_id).content.get()
+            content_response = await self.graph_client.me.drive.items.by_drive_item_id(
+                document_id
+            ).content.get()
 
             return {
                 "id": drive_item.id,
                 "name": drive_item.name,
                 "content": content_response,
-                "last_modified": drive_item.last_modified_date_time
+                "last_modified": drive_item.last_modified_date_time,
             }
 
         except Exception as e:
@@ -146,14 +157,13 @@ class MicrosoftClient:
             raise
 
     # PowerPoint Operations
-    async def create_powerpoint_presentation(self, title: str, slides_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    async def create_powerpoint_presentation(
+        self, title: str, slides_data: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Create a new PowerPoint presentation"""
         try:
             # Create basic presentation structure
-            presentation_content = {
-                "title": title,
-                "slides": slides_data
-            }
+            presentation_content = {"title": title, "slides": slides_data}
 
             # Convert to basic format and upload
             file_name = f"{title}.pptx"
@@ -165,7 +175,7 @@ class MicrosoftClient:
                 "id": drive_item.id,
                 "name": drive_item.name,
                 "web_url": drive_item.web_url,
-                "type": "powerpoint_presentation"
+                "type": "powerpoint_presentation",
             }
 
         except Exception as e:
@@ -173,14 +183,13 @@ class MicrosoftClient:
             raise
 
     # Excel Operations
-    async def create_excel_workbook(self, title: str, worksheets_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    async def create_excel_workbook(
+        self, title: str, worksheets_data: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Create a new Excel workbook"""
         try:
             # Create workbook structure
-            workbook_content = {
-                "title": title,
-                "worksheets": worksheets_data
-            }
+            workbook_content = {"title": title, "worksheets": worksheets_data}
 
             file_name = f"{title}.xlsx"
             content = json.dumps(workbook_content).encode()
@@ -191,21 +200,30 @@ class MicrosoftClient:
                 "id": drive_item.id,
                 "name": drive_item.name,
                 "web_url": drive_item.web_url,
-                "type": "excel_workbook"
+                "type": "excel_workbook",
             }
 
         except Exception as e:
             self.logger.error(f"Excel workbook creation failed: {e}")
             raise
 
-    async def update_excel_worksheet(self, workbook_id: str, worksheet_name: str,
-                                   range_address: str, values: List[List[Any]]) -> bool:
+    async def update_excel_worksheet(
+        self,
+        workbook_id: str,
+        worksheet_name: str,
+        range_address: str,
+        values: List[List[Any]],
+    ) -> bool:
         """Update Excel worksheet data"""
         try:
             # Update worksheet range
-            await self.graph_client.me.drive.items.by_drive_item_id(workbook_id).workbook.worksheets.by_worksheet_id(worksheet_name).range(address=range_address).patch({
-                "values": values
-            })
+            await self.graph_client.me.drive.items.by_drive_item_id(
+                workbook_id
+            ).workbook.worksheets.by_worksheet_id(worksheet_name).range(
+                address=range_address
+            ).patch(
+                {"values": values}
+            )
 
             return True
 
@@ -214,8 +232,9 @@ class MicrosoftClient:
             raise
 
     # OneNote Operations
-    async def create_onenote_page(self, notebook_id: str, section_id: str,
-                                title: str, content: str) -> Dict[str, Any]:
+    async def create_onenote_page(
+        self, notebook_id: str, section_id: str, title: str, content: str
+    ) -> Dict[str, Any]:
         """Create a new OneNote page"""
         try:
             page_content = f"""
@@ -234,16 +253,15 @@ class MicrosoftClient:
             </html>
             """
 
-            page = await self.graph_client.me.onenote.sections.by_onenote_section_id(section_id).pages.post({
-                "title": title,
-                "content": page_content
-            })
+            page = await self.graph_client.me.onenote.sections.by_onenote_section_id(
+                section_id
+            ).pages.post({"title": title, "content": page_content})
 
             return {
                 "id": page.id,
                 "title": page.title,
                 "web_url": page.links.one_note_web_url.href,
-                "type": "onenote_page"
+                "type": "onenote_page",
             }
 
         except Exception as e:
@@ -259,7 +277,7 @@ class MicrosoftClient:
                 {
                     "id": notebook.id,
                     "name": notebook.display_name,
-                    "web_url": notebook.links.one_note_web_url.href
+                    "web_url": notebook.links.one_note_web_url.href,
                 }
                 for notebook in notebooks.value
             ]
@@ -269,7 +287,9 @@ class MicrosoftClient:
             raise
 
     # File Operations
-    async def _upload_file(self, file_name: str, content: bytes, folder_path: str = None) -> DriveItem:
+    async def _upload_file(
+        self, file_name: str, content: bytes, folder_path: str = None
+    ) -> DriveItem:
         """Upload file to OneDrive"""
         try:
             if folder_path:
@@ -277,7 +297,9 @@ class MicrosoftClient:
             else:
                 upload_path = file_name
 
-            drive_item = await self.graph_client.me.drive.root.item_with_path(upload_path).content.put(content)
+            drive_item = await self.graph_client.me.drive.root.item_with_path(
+                upload_path
+            ).content.put(content)
 
             return drive_item
 
@@ -289,7 +311,9 @@ class MicrosoftClient:
         """List files in OneDrive"""
         try:
             if folder_path:
-                items = await self.graph_client.me.drive.root.item_with_path(folder_path).children.get()
+                items = await self.graph_client.me.drive.root.item_with_path(
+                    folder_path
+                ).children.get()
             else:
                 items = await self.graph_client.me.drive.root.children.get()
 
@@ -300,7 +324,7 @@ class MicrosoftClient:
                     "type": item.file.mime_type if item.file else "folder",
                     "size": item.size,
                     "web_url": item.web_url,
-                    "last_modified": item.last_modified_date_time
+                    "last_modified": item.last_modified_date_time,
                 }
                 for item in items.value
             ]
@@ -310,7 +334,9 @@ class MicrosoftClient:
             raise
 
     # Unified document creation method
-    async def create_document(self, title: str, content: str, doc_type: str = "word") -> Dict[str, Any]:
+    async def create_document(
+        self, title: str, content: str, doc_type: str = "word"
+    ) -> Dict[str, Any]:
         """Create document of specified type"""
         if doc_type.lower() == "word":
             return await self.create_word_document(title, content)
@@ -330,3 +356,8 @@ class MicrosoftClient:
         self.access_token = None
         self.graph_client = None
         self.logger.info("Microsoft client shutdown complete")
+
+
+class GraphClient(MicrosoftClient):
+    """Backward compatible alias for existing integrations."""
+    pass

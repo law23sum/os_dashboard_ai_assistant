@@ -3,15 +3,16 @@
 
 import os
 import sys
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from assistant_hub.db import (
-    init_db, 
-    db_insert_task, 
+    init_db,
+    db_insert_task,
     db_upsert_project,
-    Task, 
+    Task,
     Project,
-    load_state
+    load_state,
 )
 from datetime import datetime
 
@@ -468,17 +469,18 @@ PROJECT_TASKS = {
     ],
 }
 
+
 def add_tasks_for_all_projects():
     """Add tasks for all projects in the database."""
     conn = init_db()
     state = load_state(conn)
-    
+
     # Get all projects from database
     existing_projects = {p.name: p for p in state.projects}
-    
+
     tasks_added = 0
     projects_processed = 0
-    
+
     # Process each project that has tasks defined
     for project_name, task_titles in PROJECT_TASKS.items():
         # Check if project exists, if not create it
@@ -487,40 +489,55 @@ def add_tasks_for_all_projects():
             found = False
             for existing_name in existing_projects.keys():
                 # Check if the core name matches (ignoring number prefix)
-                core_name = project_name.split(". ", 1)[-1] if ". " in project_name else project_name
-                existing_core = existing_name.split(". ", 1)[-1] if ". " in existing_name else existing_name
+                core_name = (
+                    project_name.split(". ", 1)[-1]
+                    if ". " in project_name
+                    else project_name
+                )
+                existing_core = (
+                    existing_name.split(". ", 1)[-1]
+                    if ". " in existing_name
+                    else existing_name
+                )
                 if core_name == existing_core:
                     project_name = existing_name
                     found = True
                     break
-            
+
             if not found:
                 # Create the project
                 proj = Project(
                     name=project_name,
                     description=f"Project from AIC Master Canon Roadmap",
                     priority="MEDIUM",
-                    status="active"
+                    status="active",
                 )
                 db_upsert_project(conn, proj)
                 existing_projects[project_name] = proj
                 print(f"Created project: {project_name}")
-        
+
         # Check if tasks already exist for this project
         existing_tasks = [t for t in state.tasks if t.project == project_name]
         existing_task_titles = {t.title for t in existing_tasks}
-        
+
         # Add tasks that don't already exist
         for task_title in task_titles:
             if task_title not in existing_task_titles:
                 # Determine priority based on project priority
                 project = existing_projects[project_name]
-                task_priority = project.priority if project.priority in ["LOW", "MEDIUM", "HIGH", "CRITICAL"] else "MEDIUM"
-                
+                task_priority = (
+                    project.priority
+                    if project.priority in ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+                    else "MEDIUM"
+                )
+
                 # Set higher priority for critical projects' foundational tasks
-                if project.priority == "CRITICAL" and any(keyword in task_title.lower() for keyword in ["define", "finalize", "develop", "create"]):
+                if project.priority == "CRITICAL" and any(
+                    keyword in task_title.lower()
+                    for keyword in ["define", "finalize", "develop", "create"]
+                ):
                     task_priority = "HIGH"
-                
+
                 task = Task(
                     id=0,  # Will be auto-generated
                     title=task_title,
@@ -530,17 +547,19 @@ def add_tasks_for_all_projects():
                     due_date="",
                     notes="",
                     owner="Chris",
-                    created_at=datetime.now().isoformat(timespec="seconds")
+                    created_at=datetime.now().isoformat(timespec="seconds"),
                 )
                 db_insert_task(conn, task)
                 tasks_added += 1
-        
+
         projects_processed += 1
-        print(f"Processed {project_name}: {len([t for t in task_titles if t not in existing_task_titles])} new tasks added")
-    
+        print(
+            f"Processed {project_name}: {len([t for t in task_titles if t not in existing_task_titles])} new tasks added"
+        )
+
     conn.close()
     print(f"\nTotal: {tasks_added} tasks added across {projects_processed} projects")
 
+
 if __name__ == "__main__":
     add_tasks_for_all_projects()
-

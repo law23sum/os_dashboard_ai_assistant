@@ -13,6 +13,7 @@ from .db import Task, db_insert_task, DB_FILE
 @dataclass
 class TaskTemplate:
     """A template for creating tasks."""
+
     id: str
     name: str
     title: str
@@ -38,8 +39,16 @@ def save_template(conn: sqlite3.Connection, template: TaskTemplate):
             notes = excluded.notes,
             time_estimated = excluded.time_estimated
         """,
-        (template.id, template.name, template.title, template.project,
-         template.priority, template.notes, template.time_estimated, template.created_at),
+        (
+            template.id,
+            template.name,
+            template.title,
+            template.project,
+            template.priority,
+            template.notes,
+            template.time_estimated,
+            template.created_at,
+        ),
     )
     conn.commit()
 
@@ -49,20 +58,22 @@ def load_templates(conn: sqlite3.Connection) -> List[TaskTemplate]:
     c = conn.cursor()
     c.execute("SELECT * FROM task_templates ORDER BY name")
     rows = c.fetchall()
-    
+
     templates = []
     for r in rows:
-        templates.append(TaskTemplate(
-            id=r["id"],
-            name=r["name"],
-            title=r["title"],
-            project=r.get("project") or "General",
-            priority=r.get("priority") or "MEDIUM",
-            notes=r.get("notes") or "",
-            time_estimated=r.get("time_estimated"),
-            created_at=r.get("created_at") or "",
-        ))
-    
+        templates.append(
+            TaskTemplate(
+                id=r["id"],
+                name=r["name"],
+                title=r["title"],
+                project=r.get("project") or "General",
+                priority=r.get("priority") or "MEDIUM",
+                notes=r.get("notes") or "",
+                time_estimated=r.get("time_estimated"),
+                created_at=r.get("created_at") or "",
+            )
+        )
+
     return templates
 
 
@@ -77,7 +88,7 @@ def create_task_from_template(
     conn: sqlite3.Connection,
     template: TaskTemplate,
     owner: str = "Chris",
-    due_date: Optional[str] = None
+    due_date: Optional[str] = None,
 ) -> Task:
     """Create a task from a template."""
     task = Task(
@@ -99,4 +110,3 @@ def create_task_from_template(
     )
     task.id = db_insert_task(conn, task)
     return task
-

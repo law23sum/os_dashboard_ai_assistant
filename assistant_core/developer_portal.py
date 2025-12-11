@@ -48,6 +48,7 @@ class SupportTicketType(Enum):
 @dataclass
 class DocumentationPage:
     """Documentation page structure"""
+
     id: str
     title: str
     slug: str
@@ -67,6 +68,7 @@ class DocumentationPage:
 @dataclass
 class CodeExample:
     """Code example with multiple language support"""
+
     id: str
     title: str
     description: str
@@ -80,6 +82,7 @@ class CodeExample:
 @dataclass
 class APIEndpoint:
     """API endpoint documentation"""
+
     id: str
     path: str
     method: str
@@ -96,6 +99,7 @@ class APIEndpoint:
 @dataclass
 class DeveloperTicket:
     """Developer support ticket"""
+
     id: str
     developer_id: str
     type: SupportTicketType
@@ -126,7 +130,7 @@ class DeveloperPortalSystem:
         template_dir.mkdir(exist_ok=True)
         self.jinja_env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(template_dir),
-            autoescape=jinja2.select_autoescape(['html', 'xml'])
+            autoescape=jinja2.select_autoescape(["html", "xml"]),
         )
 
         # Configuration
@@ -137,7 +141,7 @@ class DeveloperPortalSystem:
             "search_enabled": True,
             "analytics_enabled": True,
             "feedback_enabled": True,
-            "auto_generate_sdk": True
+            "auto_generate_sdk": True,
         }
 
         # Analytics
@@ -167,19 +171,19 @@ class DeveloperPortalSystem:
 
             page = DocumentationPage(
                 id=page_id,
-                title=page_data['title'],
-                slug=self._generate_slug(page_data['title']),
-                content=page_data['content'],
-                type=DocumentationType(page_data['type']),
-                status=ContentStatus(page_data.get('status', 'draft')),
-                author=page_data['author'],
-                tags=page_data.get('tags', []),
-                parent_id=page_data.get('parent_id'),
-                order=page_data.get('order', 0),
+                title=page_data["title"],
+                slug=self._generate_slug(page_data["title"]),
+                content=page_data["content"],
+                type=DocumentationType(page_data["type"]),
+                status=ContentStatus(page_data.get("status", "draft")),
+                author=page_data["author"],
+                tags=page_data.get("tags", []),
+                parent_id=page_data.get("parent_id"),
+                order=page_data.get("order", 0),
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
-                version=page_data.get('version', '1.0'),
-                metadata=page_data.get('metadata', {})
+                version=page_data.get("version", "1.0"),
+                metadata=page_data.get("metadata", {}),
             )
 
             self.documentation_pages[page_id] = page
@@ -198,12 +202,15 @@ class DeveloperPortalSystem:
     def _generate_slug(self, title: str) -> str:
         """Generate URL-friendly slug from title"""
         import re
-        slug = title.lower()
-        slug = re.sub(r'[^\w\s-]', '', slug)
-        slug = re.sub(r'[-\s]+', '-', slug)
-        return slug.strip('-')
 
-    async def update_documentation_page(self, page_id: str, updates: Dict[str, Any]) -> bool:
+        slug = title.lower()
+        slug = re.sub(r"[^\w\s-]", "", slug)
+        slug = re.sub(r"[-\s]+", "-", slug)
+        return slug.strip("-")
+
+    async def update_documentation_page(
+        self, page_id: str, updates: Dict[str, Any]
+    ) -> bool:
         """Update documentation page"""
         try:
             page = self.documentation_pages.get(page_id)
@@ -236,7 +243,8 @@ class DeveloperPortalSystem:
 
             # Get published pages only
             published_pages = [
-                page for page in self.documentation_pages.values()
+                page
+                for page in self.documentation_pages.values()
                 if page.status == ContentStatus.PUBLISHED
             ]
 
@@ -251,8 +259,7 @@ class DeveloperPortalSystem:
             # Build tree recursively
             def build_subtree(parent_id: str) -> List[Dict[str, Any]]:
                 children = [
-                    page for page in published_pages
-                    if page.parent_id == parent_id
+                    page for page in published_pages if page.parent_id == parent_id
                 ]
                 children.sort(key=lambda x: x.order)
 
@@ -263,7 +270,7 @@ class DeveloperPortalSystem:
                         "title": child.title,
                         "slug": child.slug,
                         "type": child.type.value,
-                        "children": build_subtree(child.id)
+                        "children": build_subtree(child.id),
                     }
                     result.append(child_data)
 
@@ -277,7 +284,7 @@ class DeveloperPortalSystem:
                     "title": page.title,
                     "slug": page.slug,
                     "type": page.type.value,
-                    "children": build_subtree(page.id)
+                    "children": build_subtree(page.id),
                 }
                 tree[page.type.value].append(page_data)
 
@@ -296,16 +303,16 @@ class DeveloperPortalSystem:
 
             endpoint = APIEndpoint(
                 id=endpoint_id,
-                path=endpoint_data['path'],
-                method=endpoint_data['method'].upper(),
-                summary=endpoint_data['summary'],
-                description=endpoint_data['description'],
-                parameters=endpoint_data.get('parameters', []),
-                request_body=endpoint_data.get('request_body'),
-                responses=endpoint_data.get('responses', {}),
-                examples=endpoint_data.get('examples', []),
-                tags=endpoint_data.get('tags', []),
-                deprecated=endpoint_data.get('deprecated', False)
+                path=endpoint_data["path"],
+                method=endpoint_data["method"].upper(),
+                summary=endpoint_data["summary"],
+                description=endpoint_data["description"],
+                parameters=endpoint_data.get("parameters", []),
+                request_body=endpoint_data.get("request_body"),
+                responses=endpoint_data.get("responses", {}),
+                examples=endpoint_data.get("examples", []),
+                tags=endpoint_data.get("tags", []),
+                deprecated=endpoint_data.get("deprecated", False),
             )
 
             self.api_endpoints[endpoint_id] = endpoint
@@ -339,7 +346,7 @@ class DeveloperPortalSystem:
                 content += "|------|------|----------|-------------|\n"
 
                 for param in endpoint.parameters:
-                    required = "Yes" if param.get('required', False) else "No"
+                    required = "Yes" if param.get("required", False) else "No"
                     content += f"| {param['name']} | {param.get('type', 'string')} | {required} | {param.get('description', '')} |\n"
             else:
                 content += "No parameters required.\n"
@@ -357,9 +364,9 @@ class DeveloperPortalSystem:
                 content += f"### {status_code}\n\n"
                 content += f"{response.get('description', '')}\n\n"
 
-                if 'schema' in response:
+                if "schema" in response:
                     content += "```json\n"
-                    content += json.dumps(response['schema'], indent=2)
+                    content += json.dumps(response["schema"], indent=2)
                     content += "\n```\n\n"
 
             # Add examples
@@ -381,10 +388,7 @@ class DeveloperPortalSystem:
                 "status": "published",
                 "author": "system",
                 "tags": endpoint.tags + ["api", endpoint.method.lower()],
-                "metadata": {
-                    "endpoint_id": endpoint.id,
-                    "auto_generated": True
-                }
+                "metadata": {"endpoint_id": endpoint.id, "auto_generated": True},
             }
 
             await self.create_documentation_page(page_data)
@@ -401,14 +405,12 @@ class DeveloperPortalSystem:
                     "title": "Dashboard AI API",
                     "version": "1.0.0",
                     "description": "Comprehensive API for Dashboard AI Assistant",
-                    "contact": {
-                        "email": self.config["support_email"]
-                    }
+                    "contact": {"email": self.config["support_email"]},
                 },
                 "servers": [
                     {
                         "url": self.config["api_base_url"],
-                        "description": "Production server"
+                        "description": "Production server",
                     }
                 ],
                 "paths": {},
@@ -417,10 +419,10 @@ class DeveloperPortalSystem:
                         "bearerAuth": {
                             "type": "http",
                             "scheme": "bearer",
-                            "bearerFormat": "JWT"
+                            "bearerFormat": "JWT",
                         }
                     }
-                }
+                },
             }
 
             # Add endpoints
@@ -435,11 +437,13 @@ class DeveloperPortalSystem:
                     "tags": endpoint.tags,
                     "parameters": endpoint.parameters,
                     "responses": endpoint.responses,
-                    "security": [{"bearerAuth": []}]
+                    "security": [{"bearerAuth": []}],
                 }
 
                 if endpoint.request_body:
-                    spec["paths"][endpoint.path][method]["requestBody"] = endpoint.request_body
+                    spec["paths"][endpoint.path][method][
+                        "requestBody"
+                    ] = endpoint.request_body
 
                 if endpoint.deprecated:
                     spec["paths"][endpoint.path][method]["deprecated"] = True
@@ -459,13 +463,13 @@ class DeveloperPortalSystem:
 
             example = CodeExample(
                 id=example_id,
-                title=example_data['title'],
-                description=example_data['description'],
-                languages=example_data['languages'],
-                tags=example_data.get('tags', []),
-                category=example_data.get('category', 'general'),
-                difficulty=example_data.get('difficulty', 'beginner'),
-                created_at=datetime.now()
+                title=example_data["title"],
+                description=example_data["description"],
+                languages=example_data["languages"],
+                tags=example_data.get("tags", []),
+                category=example_data.get("category", "general"),
+                difficulty=example_data.get("difficulty", "beginner"),
+                created_at=datetime.now(),
             )
 
             self.code_examples[example_id] = example
@@ -478,7 +482,9 @@ class DeveloperPortalSystem:
             self.logger.error(f"Code example creation failed: {e}")
             raise
 
-    async def get_code_examples_by_category(self, category: str = None) -> List[Dict[str, Any]]:
+    async def get_code_examples_by_category(
+        self, category: str = None
+    ) -> List[Dict[str, Any]]:
         """Get code examples by category"""
         try:
             examples = list(self.code_examples.values())
@@ -489,15 +495,17 @@ class DeveloperPortalSystem:
             # Convert to dict format
             result = []
             for example in examples:
-                result.append({
-                    "id": example.id,
-                    "title": example.title,
-                    "description": example.description,
-                    "category": example.category,
-                    "difficulty": example.difficulty,
-                    "languages": list(example.languages.keys()),
-                    "tags": example.tags
-                })
+                result.append(
+                    {
+                        "id": example.id,
+                        "title": example.title,
+                        "description": example.description,
+                        "category": example.category,
+                        "difficulty": example.difficulty,
+                        "languages": list(example.languages.keys()),
+                        "tags": example.tags,
+                    }
+                )
 
             return result
 
@@ -507,15 +515,15 @@ class DeveloperPortalSystem:
 
     # Search Functionality
 
-    async def search_documentation(self, query: str, filters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    async def search_documentation(
+        self, query: str, filters: Dict[str, Any] = None
+    ) -> List[Dict[str, Any]]:
         """Search documentation content"""
         try:
             # Record search query for analytics
-            self.search_queries.append({
-                "query": query,
-                "timestamp": datetime.now(),
-                "filters": filters or {}
-            })
+            self.search_queries.append(
+                {"query": query, "timestamp": datetime.now(), "filters": filters or {}}
+            )
 
             results = []
             query_lower = query.lower()
@@ -542,21 +550,25 @@ class DeveloperPortalSystem:
 
                 # Apply filters
                 if filters:
-                    if 'type' in filters and page.type.value != filters['type']:
+                    if "type" in filters and page.type.value != filters["type"]:
                         continue
-                    if 'tags' in filters and not any(tag in page.tags for tag in filters['tags']):
+                    if "tags" in filters and not any(
+                        tag in page.tags for tag in filters["tags"]
+                    ):
                         continue
 
                 if score > 0:
-                    results.append({
-                        "id": page.id,
-                        "title": page.title,
-                        "slug": page.slug,
-                        "type": page.type.value,
-                        "excerpt": self._generate_excerpt(page.content, query),
-                        "score": score,
-                        "url": f"/docs/{page.slug}"
-                    })
+                    results.append(
+                        {
+                            "id": page.id,
+                            "title": page.title,
+                            "slug": page.slug,
+                            "type": page.type.value,
+                            "excerpt": self._generate_excerpt(page.content, query),
+                            "score": score,
+                            "url": f"/docs/{page.slug}",
+                        }
+                    )
 
             # Search API endpoints
             for endpoint in self.api_endpoints.values():
@@ -570,17 +582,19 @@ class DeveloperPortalSystem:
                     score += 4
 
                 if score > 0:
-                    results.append({
-                        "id": endpoint.id,
-                        "title": f"{endpoint.method} {endpoint.path}",
-                        "type": "api_endpoint",
-                        "excerpt": endpoint.summary,
-                        "score": score,
-                        "url": f"/api-reference/{endpoint.method.lower()}-{endpoint.path.replace('/', '-')}"
-                    })
+                    results.append(
+                        {
+                            "id": endpoint.id,
+                            "title": f"{endpoint.method} {endpoint.path}",
+                            "type": "api_endpoint",
+                            "excerpt": endpoint.summary,
+                            "score": score,
+                            "url": f"/api-reference/{endpoint.method.lower()}-{endpoint.path.replace('/', '-')}",
+                        }
+                    )
 
             # Sort by score
-            results.sort(key=lambda x: x['score'], reverse=True)
+            results.sort(key=lambda x: x["score"], reverse=True)
 
             return results[:20]  # Return top 20 results
 
@@ -597,7 +611,11 @@ class DeveloperPortalSystem:
             # Find query position
             pos = content_lower.find(query_lower)
             if pos == -1:
-                return content[:max_length] + "..." if len(content) > max_length else content
+                return (
+                    content[:max_length] + "..."
+                    if len(content) > max_length
+                    else content
+                )
 
             # Extract excerpt around query
             start = max(0, pos - max_length // 2)
@@ -661,7 +679,7 @@ class DeveloperPortalSystem:
                 doc_tree=doc_tree,
                 popular_pages=popular_pages,
                 recent_updates=recent_updates,
-                config=self.config
+                config=self.config,
             )
 
             return html
@@ -675,8 +693,7 @@ class DeveloperPortalSystem:
         try:
             # Convert markdown to HTML
             html_content = markdown.markdown(
-                page.content,
-                extensions=['codehilite', 'toc', 'tables', 'fenced_code']
+                page.content, extensions=["codehilite", "toc", "tables", "fenced_code"]
             )
 
             # Get navigation
@@ -692,7 +709,7 @@ class DeveloperPortalSystem:
                 content=html_content,
                 page=page,
                 doc_tree=doc_tree,
-                config=self.config
+                config=self.config,
             )
 
             return html
@@ -723,15 +740,15 @@ class DeveloperPortalSystem:
 
             ticket = DeveloperTicket(
                 id=ticket_id,
-                developer_id=ticket_data['developer_id'],
-                type=SupportTicketType(ticket_data['type']),
-                title=ticket_data['title'],
-                description=ticket_data['description'],
-                priority=ticket_data.get('priority', 'medium'),
-                status='open',
-                assigned_to='',
+                developer_id=ticket_data["developer_id"],
+                type=SupportTicketType(ticket_data["type"]),
+                title=ticket_data["title"],
+                description=ticket_data["description"],
+                priority=ticket_data.get("priority", "medium"),
+                status="open",
+                assigned_to="",
                 created_at=datetime.now(),
-                updated_at=datetime.now()
+                updated_at=datetime.now(),
             )
 
             self.developer_tickets[ticket_id] = ticket
@@ -755,11 +772,11 @@ class DeveloperPortalSystem:
             feedback = {
                 "id": str(uuid.uuid4()),
                 "page_id": page_id,
-                "rating": feedback_data.get('rating'),
-                "comment": feedback_data.get('comment', ''),
-                "helpful": feedback_data.get('helpful'),
+                "rating": feedback_data.get("rating"),
+                "comment": feedback_data.get("comment", ""),
+                "helpful": feedback_data.get("helpful"),
                 "timestamp": datetime.now(),
-                "user_id": feedback_data.get('user_id', 'anonymous')
+                "user_id": feedback_data.get("user_id", "anonymous"),
             }
 
             self.feedback_data.append(feedback)
@@ -778,29 +795,25 @@ class DeveloperPortalSystem:
 
             # Popular pages
             popular_pages = sorted(
-                self.page_views.items(),
-                key=lambda x: x[1],
-                reverse=True
+                self.page_views.items(), key=lambda x: x[1], reverse=True
             )[:10]
 
             # Search analytics
             recent_searches = [
-                s for s in self.search_queries
-                if s['timestamp'] > cutoff_date
+                s for s in self.search_queries if s["timestamp"] > cutoff_date
             ]
 
             search_terms = {}
             for search in recent_searches:
-                query = search['query'].lower()
+                query = search["query"].lower()
                 search_terms[query] = search_terms.get(query, 0) + 1
 
             # Feedback analytics
             recent_feedback = [
-                f for f in self.feedback_data
-                if f['timestamp'] > cutoff_date
+                f for f in self.feedback_data if f["timestamp"] > cutoff_date
             ]
 
-            ratings = [f['rating'] for f in recent_feedback if f['rating']]
+            ratings = [f["rating"] for f in recent_feedback if f["rating"]]
             avg_rating = sum(ratings) / len(ratings) if ratings else 0
 
             return {
@@ -813,24 +826,25 @@ class DeveloperPortalSystem:
                     {
                         "page_id": page_id,
                         "views": views,
-                        "title": self._get_page_title(page_id)
+                        "title": self._get_page_title(page_id),
                     }
                     for page_id, views in popular_pages
                 ],
                 "top_search_terms": sorted(
-                    search_terms.items(),
-                    key=lambda x: x[1],
-                    reverse=True
+                    search_terms.items(), key=lambda x: x[1], reverse=True
                 )[:10],
                 "documentation_stats": {
                     "total_pages": len(self.documentation_pages),
-                    "published_pages": len([
-                        p for p in self.documentation_pages.values()
-                        if p.status == ContentStatus.PUBLISHED
-                    ]),
+                    "published_pages": len(
+                        [
+                            p
+                            for p in self.documentation_pages.values()
+                            if p.status == ContentStatus.PUBLISHED
+                        ]
+                    ),
                     "api_endpoints": len(self.api_endpoints),
-                    "code_examples": len(self.code_examples)
-                }
+                    "code_examples": len(self.code_examples),
+                },
             }
 
         except Exception as e:
@@ -875,22 +889,22 @@ class DeveloperPortalSystem:
     async def _get_popular_pages(self) -> List[Dict[str, Any]]:
         """Get popular documentation pages"""
         try:
-            popular = sorted(
-                self.page_views.items(),
-                key=lambda x: x[1],
-                reverse=True
-            )[:5]
+            popular = sorted(self.page_views.items(), key=lambda x: x[1], reverse=True)[
+                :5
+            ]
 
             result = []
             for page_id, views in popular:
                 page = self.documentation_pages.get(page_id)
                 if page and page.status == ContentStatus.PUBLISHED:
-                    result.append({
-                        "title": page.title,
-                        "slug": page.slug,
-                        "views": views,
-                        "type": page.type.value
-                    })
+                    result.append(
+                        {
+                            "title": page.title,
+                            "slug": page.slug,
+                            "views": views,
+                            "type": page.type.value,
+                        }
+                    )
 
             return result
 
@@ -902,9 +916,13 @@ class DeveloperPortalSystem:
         """Get recently updated pages"""
         try:
             recent = sorted(
-                [p for p in self.documentation_pages.values() if p.status == ContentStatus.PUBLISHED],
+                [
+                    p
+                    for p in self.documentation_pages.values()
+                    if p.status == ContentStatus.PUBLISHED
+                ],
                 key=lambda x: x.updated_at,
-                reverse=True
+                reverse=True,
             )[:5]
 
             return [
@@ -912,7 +930,7 @@ class DeveloperPortalSystem:
                     "title": page.title,
                     "slug": page.slug,
                     "updated_at": page.updated_at.strftime("%Y-%m-%d"),
-                    "type": page.type.value
+                    "type": page.type.value,
                 }
                 for page in recent
             ]
@@ -960,7 +978,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" https://api.dashboard-ai.com/v1/
                 "type": "guide",
                 "status": "published",
                 "author": "Dashboard AI Team",
-                "tags": ["getting-started", "authentication", "quickstart"]
+                "tags": ["getting-started", "authentication", "quickstart"],
             }
         ]
 
@@ -981,7 +999,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" https://api.dashboard-ai.com/v1/
                         "name": "limit",
                         "type": "integer",
                         "required": False,
-                        "description": "Maximum number of results to return"
+                        "description": "Maximum number of results to return",
                     }
                 ],
                 "responses": {
@@ -994,13 +1012,13 @@ curl -H "Authorization: Bearer YOUR_API_KEY" https://api.dashboard-ai.com/v1/
                                 "properties": {
                                     "id": {"type": "string"},
                                     "name": {"type": "string"},
-                                    "status": {"type": "string"}
-                                }
-                            }
-                        }
+                                    "status": {"type": "string"},
+                                },
+                            },
+                        },
                     }
                 },
-                "tags": ["partners"]
+                "tags": ["partners"],
             }
         ]
 
@@ -1037,11 +1055,11 @@ fetch('https://api.dashboard-ai.com/v1/partners', { headers })
 curl -H "Authorization: Bearer YOUR_API_KEY" \\
      -H "Content-Type": 'application/json' \\
      https://api.dashboard-ai.com/v1/partners
-"""
+""",
                 },
                 "category": "authentication",
                 "difficulty": "beginner",
-                "tags": ["auth", "api", "getting-started"]
+                "tags": ["auth", "api", "getting-started"],
             }
         ]
 
@@ -1194,42 +1212,68 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \\
                 "timestamp": datetime.now().isoformat(),
                 "documentation": {
                     "total_pages": len(self.documentation_pages),
-                    "published_pages": len([
-                        p for p in self.documentation_pages.values()
-                        if p.status == ContentStatus.PUBLISHED
-                    ]),
-                    "draft_pages": len([
-                        p for p in self.documentation_pages.values()
-                        if p.status == ContentStatus.DRAFT
-                    ])
+                    "published_pages": len(
+                        [
+                            p
+                            for p in self.documentation_pages.values()
+                            if p.status == ContentStatus.PUBLISHED
+                        ]
+                    ),
+                    "draft_pages": len(
+                        [
+                            p
+                            for p in self.documentation_pages.values()
+                            if p.status == ContentStatus.DRAFT
+                        ]
+                    ),
                 },
                 "api_documentation": {
                     "total_endpoints": len(self.api_endpoints),
-                    "deprecated_endpoints": len([
-                        e for e in self.api_endpoints.values()
-                        if e.deprecated
-                    ])
+                    "deprecated_endpoints": len(
+                        [e for e in self.api_endpoints.values() if e.deprecated]
+                    ),
                 },
                 "code_examples": {
                     "total_examples": len(self.code_examples),
                     "by_difficulty": {
-                        "beginner": len([e for e in self.code_examples.values() if e.difficulty == "beginner"]),
-                        "intermediate": len([e for e in self.code_examples.values() if e.difficulty == "intermediate"]),
-                        "advanced": len([e for e in self.code_examples.values() if e.difficulty == "advanced"])
-                    }
+                        "beginner": len(
+                            [
+                                e
+                                for e in self.code_examples.values()
+                                if e.difficulty == "beginner"
+                            ]
+                        ),
+                        "intermediate": len(
+                            [
+                                e
+                                for e in self.code_examples.values()
+                                if e.difficulty == "intermediate"
+                            ]
+                        ),
+                        "advanced": len(
+                            [
+                                e
+                                for e in self.code_examples.values()
+                                if e.difficulty == "advanced"
+                            ]
+                        ),
+                    },
                 },
                 "analytics": {
                     "total_page_views": sum(self.page_views.values()),
                     "total_searches": len(self.search_queries),
-                    "total_feedback": len(self.feedback_data)
+                    "total_feedback": len(self.feedback_data),
                 },
                 "support": {
-                    "open_tickets": len([
-                        t for t in self.developer_tickets.values()
-                        if t.status == "open"
-                    ]),
-                    "total_tickets": len(self.developer_tickets)
-                }
+                    "open_tickets": len(
+                        [
+                            t
+                            for t in self.developer_tickets.values()
+                            if t.status == "open"
+                        ]
+                    ),
+                    "total_tickets": len(self.developer_tickets),
+                },
             }
 
         except Exception as e:
@@ -1266,4 +1310,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
