@@ -157,6 +157,12 @@ change_engine = ChangeEngine()
 observability = ObservabilityService()
 
 
+@app.get("/health")
+def health_check():
+    """Health check endpoint for load balancers and monitoring."""
+    return {"status": "healthy", "service": "os-dashboard-ai-assistant"}
+
+
 class SimpleDataBackend:
     def __init__(self):
         self.store: Dict[str, Dict[str, Any]] = {}

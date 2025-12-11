@@ -35,6 +35,7 @@ import Workflows from './pages/Workflows'
 import NAS from './pages/NAS'
 import AdvancedSystems from './pages/AdvancedSystems'
 import Billing from './pages/Billing'
+import FutureDeck from './pages/FutureDeck'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -142,6 +143,7 @@ function App() {
             <Route path="/systems/edge" element={<EdgeComputing />} />
             <Route path="/systems/workflows" element={<Workflows />} />
             <Route path="/systems/nas" element={<NAS />} />
+            <Route path="/future/:slug" element={<FutureDeck />} />
 
             {/* Settings */}
             <Route path="/settings" element={<Settings />} />

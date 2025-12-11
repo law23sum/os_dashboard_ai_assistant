@@ -220,10 +220,21 @@ export default function SettingsPage() {
     },
   })
 
-  if (isLoading || !settings) {
+  if (!settings && isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-400" />
+      </div>
+    )
+  }
+
+  if (!settings) {
+    return (
+      <div className="glass-card mx-4 my-8 space-y-3 p-6 text-center text-slate-300">
+        <h2 className="text-xl font-semibold text-white">Settings service unavailable</h2>
+        <p className="text-sm">
+          FastAPI could not return `/api/settings`. Check the backend logs and reload once the shared state is online.
+        </p>
       </div>
     )
   }

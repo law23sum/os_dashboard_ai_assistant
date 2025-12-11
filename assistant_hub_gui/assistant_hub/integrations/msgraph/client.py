@@ -15,7 +15,17 @@ from msgraph.generated.models.workbook import Workbook
 from msgraph.generated.models.notebook import Notebook
 
 from config import get_api_config
-from ...logging_config import setup_logger
+
+try:
+    from ...logging_config import setup_logger
+except ImportError:
+    try:
+        from assistant_hub_gui.assistant_hub.logging_config import setup_logger  # type: ignore
+    except ImportError:
+        import logging
+
+        def setup_logger(name: str) -> logging.Logger:
+            return logging.getLogger(name)
 
 
 class MicrosoftClient:

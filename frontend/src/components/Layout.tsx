@@ -34,6 +34,7 @@ import {
   CreditCard,
   Compass,
   ExternalLink,
+  Sparkles,
 } from 'lucide-react'
 import { applyTheme, defaultTheme } from '../theme'
 import { useAppSettings } from '../hooks/useSettings'
@@ -281,6 +282,21 @@ export default function Layout({ children }: LayoutProps) {
     { path: '/monitoring', icon: Activity, label: 'Monitoring' },
     { path: '/collaboration', icon: Users, label: 'Collaboration' },
     { path: '/personalization', icon: Target, label: 'Personalization' },
+    {
+      path: '/future',
+      icon: Sparkles,
+      label: 'Vision',
+      children: [
+        { path: '/future/core_os', icon: Layers, label: 'Core OS Engines' },
+        { path: '/future/advanced', icon: Brain, label: 'Advanced Horizons' },
+        { path: '/future/super', icon: Dna, label: 'Super Capabilities' },
+        { path: '/future/hyper', icon: Satellite, label: 'Hyper Network' },
+        { path: '/future/ultra', icon: Workflow, label: 'Ultra Scale' },
+        { path: '/future/supreme', icon: Shield, label: 'Supreme' },
+        { path: '/future/ascend', icon: Shield, label: 'Ascend' },
+        { path: '/future/meta', icon: Compass, label: 'Meta Envelope' },
+      ],
+    },
     {
       path: '/docs',
       icon: FileText,

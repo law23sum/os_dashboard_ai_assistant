@@ -253,6 +253,9 @@ class AutoFixOrchestrator:
         verify_seconds: int = 45,
         buffer_lines: int = 400,
         context_lines: int = 160,
+        log_dir: Optional[Path] = None,
+        log_pattern: str = "*.log",
+        log_poll_interval: float = 0.5,
     ) -> None:
         if not specs:
             raise ValueError("At least one process must be specified")
@@ -264,6 +267,17 @@ class AutoFixOrchestrator:
         self.buffers: Dict[str, LineBuffer] = {}
         self.processes: Dict[str, ProcessRunner] = {}
         self.events: queue.Queue = queue.Queue()
+        self.log_watcher: Optional[LogDirectoryWatcher] = None
+        if log_dir:
+            self.log_watcher = LogDirectoryWatcher(
+                log_dir=log_dir,
+                pattern=log_pattern,
+                error_re=self.ERROR_RE,
+                buffer_lines=self.buffer_lines,
+                context_lines=self.context_lines,
+                poll_interval=log_poll_interval,
+                event_callback=self._handle_log_event,
+            )
 
     def run(self, max_attempts: int) -> int:
         for attempt in range(1, max_attempts + 1):
@@ -298,8 +312,12 @@ class AutoFixOrchestrator:
             )
             runner.start()
             self.processes[spec.name] = runner
+        if self.log_watcher:
+            self.log_watcher.start()
 
     def _stop_processes(self) -> None:
+        if self.log_watcher:
+            self.log_watcher.stop()
         for runner in self.processes.values():
             runner.stop()
         self.processes.clear()
@@ -329,6 +347,119 @@ class AutoFixOrchestrator:
         context = f"{component} exited with code {code}\n\n{snapshot}"
         self.events.put(("exit", component, context))
 
+    def _handle_log_event(self, component: str, snapshot: str) -> None:
+        self.events.put(("log", component, snapshot))
+
+
+@dataclass
+class LogFileState:
+    path: Path
+    handle: object
+    buffer: LineBuffer
+    position: int = 0
+
+
+class LogDirectoryWatcher:
+    """Poll a log directory and emit events when error patterns appear."""
+
+    def __init__(
+        self,
+        *,
+        log_dir: Path,
+        pattern: str,
+        error_re: re.Pattern,
+        buffer_lines: int,
+        context_lines: int,
+        poll_interval: float,
+        event_callback,
+    ) -> None:
+        self.log_dir = log_dir
+        self.pattern = pattern
+        self.error_re = error_re
+        self.buffer_lines = buffer_lines
+        self.context_lines = context_lines
+        self.poll_interval = poll_interval
+        self.event_callback = event_callback
+        self.files: Dict[Path, LogFileState] = {}
+        self.thread: Optional[threading.Thread] = None
+        self._stop_event = threading.Event()
+
+    def start(self) -> None:
+        if not self.log_dir.exists():
+            return
+        if self.thread and self.thread.is_alive():
+            return
+        self._stop_event.clear()
+        self.thread = threading.Thread(target=self._run, daemon=True)
+        self.thread.start()
+
+    def stop(self) -> None:
+        self._stop_event.set()
+        if self.thread:
+            self.thread.join(timeout=1)
+        for state in self.files.values():
+            try:
+                state.handle.close()
+            except Exception:
+                pass
+        self.files.clear()
+
+    def _run(self) -> None:
+        while not self._stop_event.is_set():
+            try:
+                self._scan_once()
+            except Exception as exc:
+                print(f"[log-watcher] warning: {exc}")
+            self._stop_event.wait(self.poll_interval)
+
+    def _scan_once(self) -> None:
+        if not self.log_dir.exists():
+            return
+        current_paths = set(self.files.keys())
+        discovered_paths = set()
+        for path in sorted(self.log_dir.glob(self.pattern)):
+            if not path.is_file():
+                continue
+            discovered_paths.add(path)
+            state = self.files.get(path)
+            if state is None:
+                handle = path.open("r", encoding="utf-8", errors="replace")
+                buffer = LineBuffer(self.buffer_lines)
+                state = LogFileState(path=path, handle=handle, buffer=buffer, position=0)
+                self.files[path] = state
+            self._consume_file(state)
+
+        stale = current_paths - discovered_paths
+        for path in stale:
+            state = self.files.pop(path, None)
+            if state:
+                try:
+                    state.handle.close()
+                except Exception:
+                    pass
+
+    def _consume_file(self, state: LogFileState) -> None:
+        handle = state.handle
+        try:
+            handle.seek(state.position)
+        except Exception:
+            handle.close()
+            handle = state.path.open("r", encoding="utf-8", errors="replace")
+            state.handle = handle
+            state.buffer = LineBuffer(self.buffer_lines)
+            state.position = 0
+
+        while True:
+            line = handle.readline()
+            if not line:
+                break
+            state.position = handle.tell()
+            stripped = line.rstrip("\n")
+            state.buffer.push(stripped)
+            if self.error_re.search(stripped):
+                snapshot = state.buffer.snapshot(self.context_lines)
+                component = f"log:{state.path.name}"
+                self.event_callback(component, snapshot)
 
 def _parse_specs(args: argparse.Namespace) -> List[ProcessSpec]:
     specs: List[ProcessSpec] = []
@@ -419,6 +550,27 @@ def _build_parser() -> argparse.ArgumentParser:
         default=160,
         help="Maximum number of log lines to send to the AI when an error is detected.",
     )
+    parser.add_argument(
+        "--log-dir",
+        default="logs",
+        help="Directory of log files to mirror into the AI context (set to 'none' to disable).",
+    )
+    parser.add_argument(
+        "--log-pattern",
+        default="*.log",
+        help="Glob pattern for log files inside --log-dir.",
+    )
+    parser.add_argument(
+        "--log-poll-interval",
+        type=float,
+        default=0.5,
+        help="Seconds between log file scans.",
+    )
+    parser.add_argument(
+        "--disable-log-watch",
+        action="store_true",
+        help="Disable reading log files from --log-dir.",
+    )
     return parser
 
 
@@ -432,12 +584,19 @@ def main(argv: Optional[List[str]] = None) -> int:
         parser.error(str(exc))
 
     fixer = AIFixer(persona=args.persona, diff_limit=args.diff_limit)
+    log_dir: Optional[Path] = None
+    if not args.disable_log_watch and args.log_dir.lower() != "none":
+        log_dir = REPO_ROOT / args.log_dir
+
     orchestrator = AutoFixOrchestrator(
         specs,
         fixer,
         verify_seconds=args.verify_seconds,
         buffer_lines=args.buffer_lines,
         context_lines=args.context_lines,
+        log_dir=log_dir,
+        log_pattern=args.log_pattern,
+        log_poll_interval=args.log_poll_interval,
     )
 
     try:

@@ -96,18 +96,6 @@ export interface ProjectIntelligence {
   summary: string
 }
 
-export interface ProjectLedgerEvent {
-  id: string
-  project_id: string
-  event_type: string
-  entity_type?: string | null
-  entity_id?: string | null
-  payload: Record<string, unknown>
-  created_at: string
-  hash_prev?: string | null
-  hash_curr: string
-}
-
 export interface ChatMessage {
   id: number
   persona: string

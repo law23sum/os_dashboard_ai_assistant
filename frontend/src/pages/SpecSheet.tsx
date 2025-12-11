@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { AlertCircle, Download, RefreshCw } from 'lucide-react'
+import { specRequirements, statusMeta } from '../data/specRequirements'
 
 const SPEC_ENDPOINT = '/api/docs/technical-spec-sheet'
 
@@ -74,6 +76,79 @@ export default function SpecSheet() {
             </div>
           </div>
         )}
+      </section>
+
+      <section className="glass-card p-6 space-y-6">
+        <div className="flex flex-col gap-2">
+          <p className="eyebrow-text">Spec Tracker</p>
+          <h2 className="text-2xl font-semibold text-white">Requirements from Spec + Migration Log</h2>
+          <p className="text-sm text-slate-300">
+            Pulled directly from <Link className="text-blue-300 underline" to="/docs/migration_continued.md">MIGRATION_CONTINUED.md</Link> and the{' '}
+            <Link className="text-blue-300 underline" to="/spec-sheet">Technical Spec Sheet</Link>. Use this tracker to keep desktop + web builds honest.
+            Status chips mirror the gap log so it’s obvious which surfaces still need attention.
+          </p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {specRequirements.map((item) => {
+            const status = statusMeta[item.status]
+            return (
+              <article key={item.id} className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/10">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
+                      {item.specRefs.join(' · ')}
+                    </p>
+                    <h3 className="mt-1 text-lg font-semibold text-white">{item.title}</h3>
+                  </div>
+                  <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${status.chipClass}`}>
+                    {status.label}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm text-slate-300">{item.description}</p>
+                <div className="mt-4 space-y-1 text-sm text-slate-300">
+                  <p className="font-medium text-slate-100">Next steps</p>
+                  <ul className="list-disc space-y-0.5 pl-5">
+                    {item.nextSteps.map((step) => (
+                      <li key={step}>{step}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                  {item.sourceDocs.map((source) =>
+                    source.href ? (
+                      source.href.startsWith('http') ? (
+                        <a
+                          key={source.label}
+                          href={source.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[0.7rem] uppercase tracking-[0.25em] text-white hover:border-white/30"
+                        >
+                          {source.label}
+                        </a>
+                      ) : (
+                        <Link
+                          key={source.label}
+                          to={source.href}
+                          className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[0.7rem] uppercase tracking-[0.25em] text-white hover:border-white/30"
+                        >
+                          {source.label}
+                        </Link>
+                      )
+                    ) : (
+                      <span
+                        key={source.label}
+                        className="rounded-full border border-white/10 px-3 py-1 text-[0.7rem] uppercase tracking-[0.25em] text-slate-200"
+                      >
+                        {source.label}
+                      </span>
+                    ),
+                  )}
+                </div>
+              </article>
+            )
+          })}
+        </div>
       </section>
     </div>
   )

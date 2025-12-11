@@ -14,16 +14,47 @@ const __dirname = path.dirname(__filename);
 
 const repoRoot = path.join(__dirname, '..', '..');
 const launcher = path.join(repoRoot, 'start_ui.py');
+const frontendDir = path.join(__dirname, '..');
 const pythonCandidates = process.env.PYTHON
   ? [process.env.PYTHON]
   : process.platform === 'win32'
     ? ['py', 'python', 'python3']
     : ['python3', 'python'];
+const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+
+let fallbackStarted = false;
+
+function runViteOnly(reason) {
+  if (fallbackStarted) {
+    return;
+  }
+  fallbackStarted = true;
+  if (reason) {
+    console.warn(`⚠️  ${reason}`);
+  }
+  console.warn('Launching Vite dev server directly (API/backend disabled).');
+  const fallback = spawn(npmCmd, ['run', 'dev:web'], {
+    cwd: frontendDir,
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      OSDASH_API_OFFLINE: '1',
+      DEV_MODE: 'web',
+    },
+  });
+  fallback.on('exit', (code, signal) => {
+    if (signal) {
+      process.kill(process.pid, signal);
+    } else {
+      process.exit(code ?? 0);
+    }
+  });
+}
 
 function spawnLauncher(cmds) {
   if (cmds.length === 0) {
-    console.error('Unable to locate python executable. Set the PYTHON env var.');
-    process.exit(1);
+    runViteOnly('Unable to locate a Python interpreter for start_ui.py.');
+    return;
   }
 
   const [cmd, ...rest] = cmds;
@@ -35,13 +66,22 @@ function spawnLauncher(cmds) {
   proc.on('error', (err) => {
     if (rest.length > 0) {
       spawnLauncher(rest);
-    } else {
-      console.error('Failed to launch start_ui.py:', err.message);
-      process.exit(1);
+      return;
     }
+    runViteOnly(`Failed to launch start_ui.py: ${err.message}`);
   });
 
-  proc.on('exit', (code) => process.exit(code || 0));
+  proc.on('exit', (code, signal) => {
+    if (signal) {
+      process.kill(process.pid, signal);
+      return;
+    }
+    if ((code ?? 0) !== 0) {
+      runViteOnly(`start_ui.py exited with code ${code}.`);
+    } else {
+      process.exit(0);
+    }
+  });
 }
 
 console.log('Forwarding to start_ui.py (single dev entry point)...');

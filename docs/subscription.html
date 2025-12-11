@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS Dashboard AI Assistant - Subscriptions</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-content">
+            <a href="home.html" class="logo">OS Dashboard AI</a>
+            <nav class="main-nav" aria-label="Primary">
+                <ul class="nav-links">
+                    <li><a href="home.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="subscription.html" class="active">Subscriptions</a></li>
+                    <li><a href="install.html">Install</a></li>
+                    <li><a href="index.html">Downloads</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <span class="badge">Pricing &amp; Licensing</span>
+            <h1>Scale your assistant from pilot to enterprise.</h1>
+            <p>Every plan includes dedicated workspaces, fine-tuned AI copilots, SOC-ready logging, and connectors to the tools you rely on.</p>
+            <div class="hero-actions">
+                <a href="#plans" class="btn btn-primary">Compare plans</a>
+                <a href="install.html" class="btn btn-secondary">See install experience</a>
+            </div>
+        </section>
+
+        <section class="section" id="plans">
+            <h2>Subscription plans</h2>
+            <div class="plan-grid">
+                <div class="plan-card">
+                    <h3>Starter</h3>
+                    <p class="plan-price">$79<span style="font-size: 1rem;">/mo</span></p>
+                    <p>Perfect for small teams validating workflows.</p>
+                    <ul>
+                        <li>Up to 25 seats</li>
+                        <li>5 automations / month</li>
+                        <li>Community support</li>
+                        <li>Standard connectors</li>
+                    </ul>
+                    <div class="hero-actions" style="margin-top: 16px;">
+                        <a href="install.html" class="btn btn-secondary" style="width: 100%;">Deploy starter</a>
+                    </div>
+                </div>
+
+                <div class="plan-card">
+                    <h3>Growth</h3>
+                    <p class="plan-price">$249<span style="font-size: 1rem;">/mo</span></p>
+                    <p>Advanced governance and unlimited projects.</p>
+                    <ul>
+                        <li>Up to 150 seats</li>
+                        <li>Unlimited automations</li>
+                        <li>Fine-tuned agents</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <div class="hero-actions" style="margin-top: 16px;">
+                        <a href="install.html" class="btn btn-primary" style="width: 100%;">Activate Growth</a>
+                    </div>
+                </div>
+
+                <div class="plan-card">
+                    <h3>Enterprise</h3>
+                    <p class="plan-price">Custom</p>
+                    <p>Dedicated infrastructure, air-gapped options, and 24/7 coverage.</p>
+                    <ul>
+                        <li>Unlimited seats</li>
+                        <li>Custom AI models</li>
+                        <li>Private connectors</li>
+                        <li>Named support manager</li>
+                    </ul>
+                    <div class="hero-actions" style="margin-top: 16px;">
+                        <a href="mailto:sales@example.com" class="btn btn-secondary" style="width: 100%;">Talk to sales</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section section-muted">
+            <h2>What is included?</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Workspaces</h3>
+                    <p>Segment projects with workspace-level permissions, data guards, and audit logging.</p>
+                </div>
+                <div class="card">
+                    <h3>Connectors</h3>
+                    <p>Unlimited connections to clouds, databases, ticketing systems, and internal APIs.</p>
+                </div>
+                <div class="card">
+                    <h3>Automation Minutes</h3>
+                    <p>Each plan includes a pool of automation minutes so background agents keep running.</p>
+                </div>
+                <div class="card">
+                    <h3>Support</h3>
+                    <p>Access knowledge base articles, live office hours, and white-glove onboarding.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>FAQs</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>How do seats work?</h3>
+                    <p>Seats map to named human users. Service identities for automation are unlimited.</p>
+                </div>
+                <div class="card">
+                    <h3>Can I self-host?</h3>
+                    <p>Yes. Growth and Enterprise tiers include Docker and Kubernetes blueprints.</p>
+                </div>
+                <div class="card">
+                    <h3>Is there a trial?</h3>
+                    <p>Starter includes a 14-day trial. Cancel anytime and keep your workspace exports.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Per-product subscription matrix</h2>
+            <p>Each engine carries its own purpose-built subscription. Using your formula (lifetime value ÷ audience ÷ <span id="pricing-horizon">50</span>-year horizon), we derived indicative monthly, bi-annual, and annual rates for both individual customers and enterprise tenants (government, business, military).</p>
+            <div class="table-scroll">
+                <table class="table" id="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Customer Monthly</th>
+                            <th>Customer Bi-Annual</th>
+                            <th>Customer Annual</th>
+                            <th>Enterprise Monthly</th>
+                            <th>Enterprise Bi-Annual</th>
+                            <th>Enterprise Annual</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <p style="margin-top: 16px; color: var(--text-muted);">Note: real pricing will also layer on usage, compliance, and support commitments, but this matrix exposes the raw economics behind each capability.</p>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>© 2024 OS Dashboard AI Assistant.</p>
+    </footer>
+
+    <script src="scripts/product-data.js"></script>
+    <script>
+        (function buildPricingTable() {
+            const tableBody = document.querySelector('#pricing-table tbody');
+            const horizon = document.getElementById('pricing-horizon');
+            horizon.textContent = window.osPricingModel.horizonYears;
+
+            const formatCell = (pricing) => {
+                return `
+                    <td>${window.osFormatCurrency(pricing.monthly)}</td>
+                    <td>${window.osFormatCurrency(pricing.biannual)}</td>
+                    <td>${window.osFormatCurrency(pricing.annual)}</td>
+                `;
+            };
+
+            window.osProductData.forEach(product => {
+                const row = document.createElement('tr');
+                const customerPricing = window.osComputePricing(product.lifetimeValue, 'customer');
+                const enterprisePricing = window.osComputePricing(product.lifetimeValue, 'enterprise');
+                row.innerHTML = `
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>${product.category}</td>
+                    ${formatCell(customerPricing)}
+                    ${formatCell(enterprisePricing)}
+                `;
+                tableBody.appendChild(row);
+            });
+        })();
+    </script>
+</body>
+</html>

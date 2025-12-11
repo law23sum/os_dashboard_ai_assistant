@@ -51,6 +51,7 @@ from assistant_hub.theme import get_theme_definition, list_available_themes
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_DIST = REPO_ROOT / "frontend" / "dist"
 LEGACY_UI_DIST = REPO_ROOT / "ui" / "web" / "dist"
+SPEC_SHEET_PATH = REPO_ROOT / "Technical Spec Sheet (Version 6 Latest Version).pdf"
 
 
 class TaskPayload(BaseModel):
@@ -268,6 +269,16 @@ def create_app(
             change_permission_mode=settings.change_permission_mode,
             continuity_mode=settings.continuity_mode,
             risk_appetite=settings.risk_appetite,
+        )
+
+    @app.get("/api/docs/technical-spec-sheet")
+    async def get_technical_spec_sheet():
+        if not SPEC_SHEET_PATH.exists():
+            raise HTTPException(status_code=404, detail="Technical Spec Sheet not found")
+        return FileResponse(
+            SPEC_SHEET_PATH,
+            media_type="application/pdf",
+            filename=SPEC_SHEET_PATH.name,
         )
 
     @app.put("/settings", response_model=SettingsResponse)

@@ -13,8 +13,6 @@ import time
 from pathlib import Path
 from typing import Callable, Dict, Optional, Tuple
 
-from assistant_hub_gui import webview_app
-
 REPO_ROOT = Path(__file__).resolve().parent
 FRONTEND_DIR = REPO_ROOT / "frontend"
 FRONTEND_DIST = FRONTEND_DIR / "dist"
@@ -36,6 +34,23 @@ UVICORN_CMD = [
 
 ModeRunner = Callable[[], int | None]
 ModeDefinition = Tuple[str, str, ModeRunner]
+
+
+class BackendDependencyError(RuntimeError):
+    """Raised when the FastAPI backend cannot start due to missing deps."""
+
+
+def _import_webview_app():
+    """Import the optional pywebview wrapper lazily so dev mode works w/out deps."""
+    try:
+        from assistant_hub_gui import webview_app  # type: ignore
+    except ImportError as exc:  # pragma: no cover - only hit when deps missing
+        raise RuntimeError(
+            "The desktop/browser preview launcher requires `uvicorn` and FastAPI "
+            "dependencies. Run `pip install -r requirements.txt` to enable "
+            "start_ui.py --mode web-build/desktop-build."
+        ) from exc
+    return webview_app
 
 
 def _ensure_npm() -> str:
@@ -74,6 +89,15 @@ def _start_backend() -> subprocess.Popen | None:
         )
         return None
 
+    try:
+        import uvicorn  # noqa: F401  # Local import to detect missing dependency.
+    except ImportError as exc:
+        raise BackendDependencyError(
+            "Python package `uvicorn` is not installed. "
+            "Install backend requirements (pip install -r requirements.txt) "
+            "or run `npm run dev:web` to preview the UI without APIs."
+        ) from exc
+
     env = os.environ.copy()
     process = subprocess.Popen(UVICORN_CMD, cwd=REPO_ROOT, env=env)
     try:
@@ -90,14 +114,27 @@ def _start_backend() -> subprocess.Popen | None:
     return process
 
 
+def _run_frontend(cmd: list[str], cwd: Path, *, offline: bool = False) -> int:
+    env = os.environ.copy()
+    env.setdefault("OSDASH_API_HOST", DEFAULT_API_HOST)
+    env.setdefault("OSDASH_API_PORT", str(DEFAULT_API_PORT))
+    if offline:
+        env["OSDASH_API_OFFLINE"] = "1"
+    return subprocess.call(cmd, cwd=cwd, env=env)
+
+
 def _run_with_backend(cmd: list[str], cwd: Path) -> int:
     try:
         backend = _start_backend()
+    except BackendDependencyError as exc:
+        print(f"⚠️  {exc}")
+        print("➡️  Launching frontend without the API. Data will use cached/demo values.")
+        return _run_frontend(cmd, cwd, offline=True)
     except RuntimeError as exc:
         print(f"❌ {exc}")
         return 1
     try:
-        return subprocess.call(cmd, cwd=cwd)
+        return _run_frontend(cmd, cwd)
     finally:
         if backend is not None:
             backend.terminate()
@@ -126,6 +163,7 @@ def run_web_build() -> int:
     if not FRONTEND_DIST.exists():
         print("⚠️  frontend/dist not found. Run `cd frontend && npm run build` first.")
         return 1
+    webview_app = _import_webview_app()
     webview_app.launch_browser(
         host="127.0.0.1", port=8800, dist_path=str(FRONTEND_DIST)
     )
@@ -137,6 +175,7 @@ def run_desktop_build() -> int:
     if not FRONTEND_DIST.exists():
         print("⚠️  frontend/dist not found. Run `cd frontend && npm run build` first.")
         return 1
+    webview_app = _import_webview_app()
     webview_app.launch_desktop(
         host="127.0.0.1", port=8800, dist_path=str(FRONTEND_DIST)
     )

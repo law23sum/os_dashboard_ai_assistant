@@ -1857,7 +1857,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             "Super Capabilities": docs_dir / "future_super.html",
             "Hyper Network": docs_dir / "future_hyper.html",
             "Ultra Scale": docs_dir / "future_ultra.html",
-            "God Tier": docs_dir / "future_god.html",
+            "Supreme Tier": docs_dir / "future_supreme.html",
+            "Ascend": docs_dir / "future_ascend.html",
             "Meta Envelope": docs_dir / "future_meta.html",
         }
         
@@ -2027,7 +2028,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     ("Super capabilities roadmap", docs_dir / "future_super.html"),
                     ("Hyper network roadmap", docs_dir / "future_hyper.html"),
                     ("Ultra scale roadmap", docs_dir / "future_ultra.html"),
-                    ("God tier roadmap", docs_dir / "future_god.html"),
+                    ("Supreme tier roadmap", docs_dir / "future_supreme.html"),
+                    ("Ascend roadmap", docs_dir / "future_ascend.html"),
                     ("Meta envelope", docs_dir / "future_meta.html"),
                 ],
             ),
