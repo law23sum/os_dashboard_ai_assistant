@@ -1,77 +1,77 @@
-interface RuntimeDiagnostic {
-  id: string
-  message: string
-  stack?: string
+import apiClient, { apiPath } from '../lib/apiClient'
+
+export interface ClientDiagnosticPayload {
   source: string
-  timestamp: number
+  message: string
+  stack?: string | null
+  severity?: 'error' | 'warning' | 'info'
+  context?: Record<string, unknown>
 }
 
-const MAX_DIAGNOSTIC_ENTRIES = 12
-const diagnostics: RuntimeDiagnostic[] = []
-let listenersAttached = false
+const ENDPOINT = apiPath('runtime/diagnostics')
 
-const pushDiagnostic = (entry: RuntimeDiagnostic) => {
-  diagnostics.push(entry)
-  if (diagnostics.length > MAX_DIAGNOSTIC_ENTRIES) {
-    diagnostics.shift()
-  }
-  if (typeof window !== 'undefined') {
-    const win = window as Window & { __OSDASH_RUNTIME_ERRORS__?: RuntimeDiagnostic[] }
-    win.__OSDASH_RUNTIME_ERRORS__ = [...diagnostics]
-  }
-}
-
-const buildEntry = (message: string, source?: string, stack?: string): RuntimeDiagnostic => ({
-  id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
-  message: message || 'Unknown error',
-  stack,
-  source: source || 'runtime',
-  timestamp: Date.now(),
+const serializePayload = (payload: ClientDiagnosticPayload) => ({
+  source: payload.source,
+  message: payload.message,
+  stack: payload.stack ?? null,
+  severity: payload.severity ?? 'error',
+  context: {
+    ...payload.context,
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+    url: typeof window !== 'undefined' ? window.location.href : 'unknown',
+  },
 })
 
-export const recordRuntimeDiagnostic = (message: string, source?: string, stack?: string) => {
-  pushDiagnostic(buildEntry(message, source, stack))
-}
-
-export const getRuntimeDiagnostics = (): RuntimeDiagnostic[] => {
-  return [...diagnostics].reverse()
-}
-
-const safeStringify = (value: unknown): string => {
-  if (typeof value === 'string') {
-    return value
+export function reportClientError(payload: ClientDiagnosticPayload): void {
+  const body = JSON.stringify(serializePayload(payload))
+  if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+    const blob = new Blob([body], { type: 'application/json' })
+    const sent = navigator.sendBeacon(`/${ENDPOINT.replace(/^\/+/, '')}`, blob)
+    if (sent) {
+      return
+    }
   }
-  try {
-    return JSON.stringify(value)
-  } catch {
-    return String(value)
-  }
+  apiClient
+    .post(ENDPOINT, JSON.parse(body))
+    .catch((error) => console.error('[RuntimeDiagnostics] Failed to report error', error))
 }
 
-export const attachRuntimeDiagnostics = (): void => {
-  if (listenersAttached || typeof window === 'undefined') {
+let diagnosticsAttached = false
+
+export function attachRuntimeDiagnostics() {
+  if (diagnosticsAttached || typeof window === 'undefined') {
     return
   }
-  listenersAttached = true
+  diagnosticsAttached = true
 
   window.addEventListener('error', (event) => {
-    const message = event.message || 'Unhandled error'
-    const source = event.filename ? `${event.filename}:${event.lineno ?? 0}` : 'window.onerror'
-    const stack = event.error instanceof Error ? event.error.stack : undefined
-    recordRuntimeDiagnostic(message, source, stack)
+    if (!event.error) {
+      return
+    }
+    reportClientError({
+      source: 'window.error',
+      message: event.error.message,
+      stack: event.error.stack ?? null,
+    })
   })
 
   window.addEventListener('unhandledrejection', (event) => {
-    let message = 'Unhandled promise rejection'
-    let stack: string | undefined
-    if (event.reason instanceof Error) {
-      message = event.reason.message
-      stack = event.reason.stack
-    } else if (event.reason) {
-      message = safeStringify(event.reason)
-    }
-    recordRuntimeDiagnostic(message, 'unhandledrejection', stack)
+    const reason =
+      event.reason instanceof Error ? event.reason : new Error(typeof event.reason === 'string' ? event.reason : 'Promise rejection')
+    reportClientError({
+      source: 'window.unhandledrejection',
+      message: reason.message,
+      stack: reason.stack ?? null,
+      context: { reason: event.reason },
+    })
   })
 }
 
-export type { RuntimeDiagnostic }
+export function recordRuntimeDiagnostic(message: string, source: string, context?: Record<string, unknown>) {
+  reportClientError({
+    source,
+    message,
+    context,
+    severity: 'info',
+  })
+}

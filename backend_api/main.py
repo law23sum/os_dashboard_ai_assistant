@@ -63,6 +63,7 @@ from backend_api.routers import (
     workflow_orchestration,
     platform,
     personas,
+    runtime_diagnostics,
 )
 
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
@@ -107,6 +108,7 @@ app.include_router(
 app.include_router(platform.router, prefix="/api", tags=["platform"])
 app.include_router(personas.router, prefix="/api/personas", tags=["personas"])
 app.include_router(office.router, prefix="/api/office", tags=["office"])
+app.include_router(runtime_diagnostics.router, prefix="/api", tags=["runtime"])
 
 # Legacy compatibility routes without the /api prefix.
 @app.get("/system", include_in_schema=False)

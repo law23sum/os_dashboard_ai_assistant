@@ -7,7 +7,7 @@
     "build": "npm run --prefix frontend build",
     "dev": "npm run --prefix frontend dev",
     "dev:web": "npm run --prefix frontend dev:web",
-    "dev:desktop": "npm run --prefix frontend dev:desktop",
+    "dev:desktop": "npm run --prefix frontend dev -- --mode desktop",
     "test": "pytest tests/test_office_router.py tests/test_office_api.py tests/test_assistant_api_office.py tests/test_desktop_launcher.py"
   }
 }

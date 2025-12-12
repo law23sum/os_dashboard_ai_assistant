@@ -13,7 +13,7 @@
  * children) so the launcher never gets stuck with zombie Node processes.
  */
 
-import { spawn } from 'child_process'
+import { spawn, spawnSync } from 'child_process'
 import path from 'path'
 import fs from 'fs'
 import net from 'net'
@@ -25,6 +25,11 @@ const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, '..', '..')
 const frontendDir = path.join(repoRoot, 'frontend')
 const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+const pythonCandidates = process.env.PYTHON
+  ? [process.env.PYTHON]
+  : process.platform === 'win32'
+    ? ['py', 'python', 'python3']
+    : ['python3', 'python']
 const electronBin = process.platform === 'win32'
   ? path.join(frontendDir, 'node_modules', '.bin', 'electron.cmd')
   : path.join(frontendDir, 'node_modules', '.bin', 'electron')
@@ -34,6 +39,7 @@ const PORT_SCAN_LIMIT = 30
 
 let viteProcess = null
 let electronProcess = null
+let autoFixProcess = null
 let shuttingDown = false
 
 const logPrefix = (label) => `[dev-desktop] ${label}`
@@ -111,12 +117,84 @@ function shutdown(code = 0) {
         }),
     ),
   ).finally(() => {
+    stopAutoFixMonitor()
     process.exit(code)
   })
 }
 
+function resolvePythonBinary() {
+  for (const candidate of pythonCandidates) {
+    try {
+      spawnSync(candidate, ['--version'], { stdio: 'ignore' })
+      return candidate
+    } catch (err) {
+      // keep searching
+    }
+  }
+  return null
+}
+
+function startAutoFixMonitor() {
+  if (process.env.OSDASH_DISABLE_AUTOFIX?.toLowerCase() === 'true') {
+    return
+  }
+  if (process.env.OSDASH_AUTOFIX_ACTIVE) {
+    return
+  }
+  const scriptPath = path.join(repoRoot, 'scripts', 'ai_auto_fix.py')
+  if (!fs.existsSync(scriptPath)) {
+    return
+  }
+  const pythonCmd = resolvePythonBinary()
+  if (!pythonCmd) {
+    console.warn(logPrefix('Unable to locate Python interpreter for auto-fix monitor.'))
+    return
+  }
+  const args = [scriptPath, '--backend', 'none', '--frontend', 'none', '--logs-only', '--daemon']
+  const env = {
+    ...process.env,
+    PYTHONUNBUFFERED: '1',
+  }
+  try {
+    autoFixProcess = spawn(pythonCmd, args, {
+      cwd: repoRoot,
+      env,
+      stdio: 'ignore',
+    })
+    const pidString = String(autoFixProcess.pid)
+    process.env.OSDASH_AUTOFIX_ACTIVE = pidString
+    autoFixProcess.once('exit', (code) => {
+      if (process.env.OSDASH_AUTOFIX_ACTIVE === pidString) {
+        delete process.env.OSDASH_AUTOFIX_ACTIVE
+      }
+      autoFixProcess = null
+      console.log(logPrefix(`Auto-fix monitor exited (${code ?? 0}).`))
+    })
+    console.log(logPrefix('Auto-fix monitor started (frontend fallback).'))
+  } catch (error) {
+    console.warn(
+      logPrefix(`Failed to start auto-fix monitor: ${error && error.message ? error.message : error}`),
+    )
+    autoFixProcess = null
+  }
+}
+
+function stopAutoFixMonitor() {
+  if (!autoFixProcess) {
+    return
+  }
+  if (autoFixProcess.exitCode == null) {
+    autoFixProcess.kill('SIGINT')
+  }
+  if (process.env.OSDASH_AUTOFIX_ACTIVE === String(autoFixProcess.pid)) {
+    delete process.env.OSDASH_AUTOFIX_ACTIVE
+  }
+  autoFixProcess = null
+}
+
 async function main() {
   try {
+    startAutoFixMonitor()
     const port = await findAvailablePort(DEFAULT_PORT)
     console.log(logPrefix(`Using Vite dev server port ${port}`))
 

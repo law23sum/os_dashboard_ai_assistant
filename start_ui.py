@@ -24,6 +24,8 @@ FRONTEND_DIST = FRONTEND_DIR / "dist"
 DEFAULT_API_HOST = "127.0.0.1"
 DEFAULT_API_PORT = 8000
 DEFAULT_MODE = "web"
+PREFLIGHT_SCRIPT = REPO_ROOT / "scripts" / "run_tests_with_autofix.py"
+TEST_MATRIX_SCRIPT = REPO_ROOT / "scripts" / "generate_test_matrix.py"
 UVICORN_CMD = [
     sys.executable,
     "-m",
@@ -43,6 +45,31 @@ ModeDefinition = Tuple[str, str, ModeRunner]
 
 class BackendDependencyError(RuntimeError):
     """Raised when the FastAPI backend cannot start due to missing deps."""
+
+
+def _refresh_test_matrix() -> None:
+    """Regenerate the cross-feature test matrix when source files change."""
+    if not TEST_MATRIX_SCRIPT.exists():
+        return
+    print("📋 Updating test suite matrix...")
+    subprocess.check_call([sys.executable, str(TEST_MATRIX_SCRIPT)], cwd=REPO_ROOT)
+
+
+def _run_preflight_tests() -> None:
+    """Execute regression tests before launching any UI surface."""
+    skip = os.environ.get("OSDASH_SKIP_PREFLIGHT_TESTS", "").strip().lower()
+    if skip in {"1", "true", "yes"}:
+        print("🧪 Preflight tests skipped via OSDASH_SKIP_PREFLIGHT_TESTS.")
+        return
+    _refresh_test_matrix()
+    if not PREFLIGHT_SCRIPT.exists():
+        return
+    print("🧪 Running preflight tests (scripts/run_tests_with_autofix.py)...")
+    result = subprocess.call([sys.executable, str(PREFLIGHT_SCRIPT)], cwd=REPO_ROOT)
+    if result != 0:
+        raise SystemExit(
+            "Preflight tests did not pass. Review logs/tests for context before relaunching."
+        )
 
 
 def _import_webview_app():
@@ -321,6 +348,7 @@ For more information, see README.md and DEPLOYMENT.md
     )
     args = parser.parse_args()
 
+    _run_preflight_tests()
     monitor = start_auto_fix_monitor()
     try:
         mode = _resolve_mode(args.mode)

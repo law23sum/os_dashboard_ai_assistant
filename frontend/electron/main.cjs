@@ -159,9 +159,10 @@ function createWindow() {
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    
-    // Open DevTools in development
-    if (isDev) {
+
+    // Open DevTools in development only when explicitly requested
+    const devtoolsOptIn = process.env.OSDASH_ELECTRON_DEVTOOLS === '1'
+    if (isDev && devtoolsOptIn) {
       mainWindow.webContents.openDevTools();
     }
   });

@@ -72,7 +72,8 @@ npm install
 npm run dev
 ```
 
-Then choose web or desktop when prompted.
+Then choose web or desktop when prompted.  
+Tip: the Electron shell no longer auto-opens DevTools to avoid Chromium autofill console noise. Re-enable anytime by setting `OSDASH_ELECTRON_DEVTOOLS=1` before launching (`OSDASH_ELECTRON_DEVTOOLS=1 npm run dev:desktop`).
 
 ### Backend API Server
 
@@ -110,6 +111,30 @@ python scripts/ai_shell_runner.py "summarize git branches and show disk usage fo
 ⚠️ **Security**: the shell tool can run arbitrary commands. Run inside a sandboxed
 environment or adjust the script to enforce allowlists before trusting unreviewed output.
 
+### Workspace Auto-Fix Shell
+
+`scripts/workspace_autofix_shell.py` gives you a dedicated terminal for orchestrating
+auto-heal loops across every git repo under your workspace:
+
+```bash
+# interactive picker
+python scripts/workspace_autofix_shell.py
+
+# batch mode — scan siblings under ~/Projects, retry tests twice, forward args to ai_auto_fix
+python scripts/workspace_autofix_shell.py \
+  --workspace ~/Projects \
+  --max-depth 3 \
+  --run-all \
+  --attempts 2 \
+  --autofix-arg --verify-seconds \
+  --autofix-arg 15
+```
+
+The shell discovers `.git` folders, runs any available test harnesses
+(`scripts/run_tests_with_autofix.py`, `npm test`, or `pytest`), and hands failures to
+`ai_auto_fix.py` automatically. Repositories without tests still get an `ai_auto_fix`
+daemon so every surface enjoys the same self-healing protections.
+
 ### Code Interpreter helper
 
 `scripts/ai_code_interpreter.py` wraps the OpenAI **code interpreter / python tool**
@@ -146,6 +171,58 @@ The orchestrator will:
 2. Run the supplied tests on startup and every `--test-interval` seconds
 3. Feed any failures/errors into the AI fixer, apply patches, and rerun until green
 4. Prompt for manual intervention only if a blocker can’t be resolved automatically
+
+### Workspace auto-fix orchestrator
+
+`scripts/project_autofix_orchestrator.py` fans the auto-fix monitor out to every git
+repo under a workspace. It detects `.git` folders, checks whether a repo ships
+`scripts/ai_auto_fix.py`, and launches monitors in parallel or sequentially while
+logging status to `logs/autofix_orchestrator.log`.
+
+```bash
+# List repos and their auto-fix readiness without launching monitors
+python scripts/project_autofix_orchestrator.py --root ~/Projects --scan-only
+
+# Launch monitors for every repo that ships scripts/ai_auto_fix.py
+python scripts/project_autofix_orchestrator.py --root ~/Projects --ai-args "--logs-only"
+```
+
+Use `--include/--exclude` filters to target subsets of repos, `--dry-run` for safe
+prechecks, and `--env KEY=VALUE` to inject API keys or sandbox toggles into child processes.
+
+### Assistants API demo CLI
+
+Scripts in `scripts/` mirror OpenAI’s latest built-in tools. Use `scripts/assistants_demo.py`
+to exercise the Assistants API (Code Interpreter, File Search, custom functions)
+without copy/pasting notebook snippets:
+
+```bash
+# Ask a single question with a freshly created assistant
+OPENAI_API_KEY=sk-... \
+python scripts/assistants_demo.py \
+  --question "Solve 3x + 11 = 14" \
+  --instructions "You are a personal math tutor."
+
+# Reuse an existing assistant id, enable Code Interpreter and the quiz function
+python scripts/assistants_demo.py \
+  --assistant-id asst_abc123 \
+  --enable-code --function-demo \
+  --question "Generate the first 20 Fibonacci numbers" \
+  --question "Give me feedback on my quiz answers"
+```
+
+Flags like `--enable-file-search --file path/to/doc.pdf` mimic the “Assistants API
+Overview” notebook flow so you can upload documents, run code, and handle function
+calls directly from the CLI.
+
+### Copilot Assistants activity log
+
+The `/ai/copilot` React page now ships an “Assistants CLI Activity” widget inside the
+**Assistants API + Advanced Tools** section. Each time you run
+`python scripts/assistants_demo.py`, jot the prompt, tools used, and any notes in the form—
+entries persist to `localStorage` so the React/Electron UI mirrors the legacy Tkinter logbook.
+Use the quick status dropdown (Completed/Running/Needs Attention) to flag follow-ups, and the
+log will highlight your last six CLI runs alongside the tool stack you selected.
 
 ## Frontend (React/TypeScript)
 

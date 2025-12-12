@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
+import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { attachRuntimeDiagnostics, recordRuntimeDiagnostic } from './utils/runtimeDiagnostics'
 import './index.css'
 
@@ -15,8 +16,10 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <App />
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
   </React.StrictMode>,
 )
 
-recordRuntimeDiagnostic('React tree mounted', 'main.tsx')
+recordRuntimeDiagnostic('React tree mounted', 'main.tsx', { status: 'ok' })

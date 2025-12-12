@@ -86,6 +86,9 @@ def start_auto_fix_monitor(
     *, inline_override: Optional[bool] = None
 ) -> Optional[AutoFixMonitor]:
     """Start the AI auto-fix watchdog in the background."""
+    if os.environ.get("OSDASH_AUTOFIX_ACTIVE"):
+        print("[launcher] Auto-fix monitor already active in this environment. Skipping duplicate launch.")
+        return None
     if os.environ.get(_AUTOFIX_DISABLE_ENV, "").lower() in {"1", "true", "yes"}:
         print("[launcher] Auto-fix monitor disabled via environment override.")
         return None
@@ -158,6 +161,7 @@ def start_auto_fix_monitor(
         thread = threading.Thread(target=_pump_output, name="auto-fix-pump", daemon=True)
         thread.start()
 
+        os.environ["OSDASH_AUTOFIX_ACTIVE"] = str(proc.pid)
         if use_inline:
             print("[launcher] Auto-fix monitor streaming to this terminal.")
         elif console_opened:
@@ -188,6 +192,9 @@ def stop_auto_fix_monitor(monitor: Optional[AutoFixMonitor]) -> None:
         monitor.pump_thread.join(timeout=2)
     monitor.log_handle.write("=== auto-fix monitor stopped ===\n")
     monitor.log_handle.close()
+    active_pid = os.environ.get("OSDASH_AUTOFIX_ACTIVE")
+    if active_pid and monitor.process and active_pid == str(monitor.process.pid):
+        os.environ.pop("OSDASH_AUTOFIX_ACTIVE", None)
     console_proc = monitor.console_proc
     if console_proc and console_proc.poll() is None:
         try:

@@ -16,12 +16,20 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 TEST_LOG_DIR = REPO_ROOT / "logs" / "tests"
 TEST_LOG_DIR.mkdir(parents=True, exist_ok=True)
 
+PYTHON = os.environ.get("PYTHON", sys.executable)
+
 TEST_COMMANDS: List[Dict[str, object]] = [
     {
-        "name": "desktop-shell",
-        "cmd": ["npm", "--prefix", "frontend", "run", "test:desktop"],
+        "name": "office-api",
+        "cmd": [PYTHON, "tests/test_office_api.py"],
         "cwd": REPO_ROOT,
-        "description": "Electron backend launcher + fallback tests",
+        "description": "FastAPI office endpoints + AI router wiring",
+    },
+    {
+        "name": "office-router",
+        "cmd": [PYTHON, "tests/test_office_router.py"],
+        "cwd": REPO_ROOT,
+        "description": "In-process Office realtime router smoke tests",
     },
 ]
 
@@ -58,7 +66,7 @@ def _run_command(name: str, cmd: List[str], cwd: Path) -> Tuple[int, str]:
     return proc.returncode, str(log_path)
 
 
-def _run_ai_autofix(log_dir: Path, attempts: int) -> int:
+def _run_ai_autofix(log_dir: Path, attempts: int, test_cmd: str) -> int:
     cmd = [
         sys.executable,
         str(REPO_ROOT / "scripts" / "ai_auto_fix.py"),
@@ -71,9 +79,9 @@ def _run_ai_autofix(log_dir: Path, attempts: int) -> int:
         "20",
         "--max-attempts",
         str(attempts),
-        "--test",
-        "npm --prefix frontend run test:desktop",
     ]
+    if test_cmd:
+        cmd.extend(["--test", test_cmd])
     print(f"🤖 Launching AI auto-fix: {shlex.join(cmd)}")
     proc = subprocess.run(cmd, cwd=REPO_ROOT)
     if proc.returncode == 0:
@@ -95,7 +103,7 @@ def run_tests(max_attempts: int) -> int:
             if code == 0:
                 break
             print(f"Attempt {attempt}/{max_attempts} for {name} failed. Triggering AI auto-fix...")
-            autofix_code = _run_ai_autofix(TEST_LOG_DIR, 1)
+            autofix_code = _run_ai_autofix(TEST_LOG_DIR, 1, shlex.join(cmd))
             if autofix_code != 0:
                 print(
                     "🚨 Auto-fix could not resolve the issue. Please review the logs/tests directory "

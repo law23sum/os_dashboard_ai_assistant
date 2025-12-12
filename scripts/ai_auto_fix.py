@@ -66,7 +66,25 @@ try:
 except Exception:  # pragma: no cover - psutil optional
     from utils.psutil_stub import psutil  # type: ignore
 
-from assistant_core.ai import generate_ai_reply, openai_available  # type: ignore
+try:
+    from assistant_core.ai import generate_ai_reply, openai_available  # type: ignore
+except ModuleNotFoundError as exc:  # pragma: no cover - optional deps missing
+    _MISSING_AI_DEP = exc.name or str(exc)
+    _AI_DISABLED_MESSAGE = (
+        "AI auto-fix helpers are unavailable because dependency "
+        f"`{_MISSING_AI_DEP}` is missing. Install optional packages with "
+        "`python -m pip install -r requirements.txt` to enable automated fixes."
+    )
+
+    def generate_ai_reply(*args, **kwargs):
+        """Fallback stub when assistant_core.ai cannot be imported."""
+        return None, _AI_DISABLED_MESSAGE, None
+
+    def openai_available() -> bool:
+        return False
+
+    print(f"[auto-fix] {_AI_DISABLED_MESSAGE}")
+
 from assistant_core.db import (  # type: ignore
     ChatMessage,
     init_db,

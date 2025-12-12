@@ -4,11 +4,14 @@ import {
   Activity,
   AlertCircle,
   Code,
+  Compass,
   FileCode,
   FileText,
+  Layers,
   RefreshCw,
   Send,
   Server,
+  Sparkles,
   Terminal,
   Users,
 } from 'lucide-react'
@@ -85,30 +88,6 @@ export default function OfficeRealtime() {
     return data.clients.find((client) => client.client_id === clientId)
   }, [clientId, data])
 
-  const handleTrigger = () => {
-    if (!clientId) {
-      toast.error('Select a client before triggering AI')
-      return
-    }
-    triggerMutation.mutate({
-      operation,
-      client_id: clientId,
-      target: targetApp || undefined,
-      payload: prompt ? { prompt } : {},
-    })
-  }
-
-  if (isLoading || !data) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500" />
-      </div>
-    )
-  }
-
-  const { documents, clients, docs_links, manifest_preview, governance } = data
-  const jobs = data.recent_jobs ?? []
-
   const lastResultSummary = useMemo(() => {
     const payload = triggerMutation.data?.result
     if (!payload) return 'Job acknowledged by realtime router'
@@ -132,6 +111,92 @@ export default function OfficeRealtime() {
       return 'Job completed'
     }
   }, [triggerMutation.data])
+
+  const handleTrigger = () => {
+    if (!clientId) {
+      toast.error('Select a client before triggering AI')
+      return
+    }
+    triggerMutation.mutate({
+      operation,
+      client_id: clientId,
+      target: targetApp || undefined,
+      payload: prompt ? { prompt } : {},
+    })
+  }
+
+  if (isLoading || !data) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500" />
+      </div>
+    )
+  }
+
+  const { documents, clients, docs_links, manifest_preview, governance } = data
+  const jobs = data.recent_jobs ?? []
+  const totalParticipants = documents.reduce((sum, doc) => sum + doc.participants.length, 0)
+  const uniquePlatforms = new Set(clients.map((client) => client.application)).size
+  const interfaceSignals = [
+    {
+      label: 'Mesh Density',
+      value: `${documents.length} docs / ${totalParticipants} nodes`,
+      detail: 'Holds the doc-to-agent balance needed for narrative co-authoring.',
+    },
+    {
+      label: 'Queue Health',
+      value: `${pendingJobs} pending · ${queueDepth} queued`,
+      detail: queueDepth > 4 ? 'Scale workers to sustain sub-second feedback.' : 'Well within realtime SLA.',
+    },
+    {
+      label: 'Client Harmony',
+      value: `${clients.length} sessions · ${uniquePlatforms} apps`,
+      detail: 'Ensures every Office surface remains synchronized with the AI fabric.',
+    },
+  ]
+  const blueprintPhases = [
+    {
+      phase: 'Atlas Fabric v1000',
+      intent: 'Autonomous governance and document streaming with zero manual routing.',
+      readiness: queueDepth > 6 ? 'Scale queue first' : 'Ready for lift-off',
+      signal: 'Realtime router telemetry + AI queue snapshots',
+    },
+    {
+      phase: 'Continuum Mesh v1000.1',
+      intent: 'Edge-to-cloud co-authoring with adaptive compliance scoring per persona.',
+      readiness: documents.length >= 2 && uniquePlatforms >= 3 ? 'Live in preview' : 'Awaiting more clients',
+      signal: 'Persona aware prompts + ledgered operations',
+    },
+    {
+      phase: 'Sentinel Orbit v1000.2',
+      intent: 'Self-healing Office agents that backfill broken docs using AI-driven diffing.',
+      readiness: pendingJobs === 0 ? 'Green' : 'Queue draining',
+      signal: 'scripts/portfolio_supervisor.py telemetry + policy checks',
+    },
+  ]
+  const automationPlaybooks = [
+    {
+      name: 'Portfolio Guardian',
+      description:
+        'Runs scripts/portfolio_supervisor.py to autodetect git repos, execute run_tests_with_autofix, and escalate fixes via ai_auto_fix.',
+      directive: 'python scripts/portfolio_supervisor.py',
+      state: 'Enabled in this workspace',
+    },
+    {
+      name: 'Narrative Composer',
+      description:
+        'Pairs PowerPoint + Excel sessions to auto-generate status decks using the “generate” operation and cross-app prompts.',
+      directive: 'Use AI trigger · operation=generate · target=powerpoint',
+      state: documents.length ? 'Online' : 'Awaiting document streams',
+    },
+    {
+      name: 'Insight Loom',
+      description:
+        'Captures OneNote research trails, syncs them into the dashboard, and directs findings back into the Office mesh.',
+      directive: 'operation=analyze · target=onenote',
+      state: clients.some((client) => client.application === 'onenote') ? 'Live' : 'Standby',
+    },
+  ]
 
   return (
     <div className="px-4 py-6 sm:px-0 space-y-6">
@@ -412,8 +477,84 @@ export default function OfficeRealtime() {
               ))}
             </div>
           </section>
-        </div>
       </div>
+    </div>
+
+      <section className="border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-900/70 p-5 space-y-4">
+        <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Blueprint</p>
+            <h3 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <Layers className="w-5 h-5" />
+              Future Systems Roadmap · V+1000
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Backed by the Technical Spec Sheet v6 — blending experience, intelligence, and compliance planes.
+            </p>
+          </div>
+        </header>
+        <div className="grid md:grid-cols-3 gap-4">
+          {interfaceSignals.map((signal) => (
+            <div
+              key={signal.label}
+              className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white/90 to-primary-50/40 dark:from-gray-900 dark:to-gray-900/70 p-4 space-y-1"
+            >
+              <p className="text-xs uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">{signal.label}</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">{signal.value}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{signal.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div className="grid md:grid-cols-3 gap-4">
+          {blueprintPhases.map((phase) => (
+            <div key={phase.phase} className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 space-y-2">
+              <p className="text-xs uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">{phase.phase}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">{phase.intent}</p>
+              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <span className="inline-flex items-center gap-1">
+                  <Compass className="w-4 h-4 text-primary-500" />
+                  {phase.signal}
+                </span>
+                <span
+                  className={`px-2 py-1 rounded-full text-[10px] font-semibold ${
+                    phase.readiness.includes('Awaiting') || phase.readiness.includes('Scale')
+                      ? 'bg-amber-500/20 text-amber-700 dark:text-amber-200'
+                      : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-200'
+                  }`}
+                >
+                  {phase.readiness}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-900/70 p-5 space-y-4">
+        <header className="flex items-center gap-3">
+          <Sparkles className="w-5 h-5 text-primary-500" />
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Automation Playbooks</p>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Enterprise-ready AI Routines</h3>
+          </div>
+        </header>
+        <div className="space-y-3">
+          {automationPlaybooks.map((playbook) => (
+            <div key={playbook.name} className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-base font-semibold text-gray-900 dark:text-white">{playbook.name}</p>
+                <span className="text-xs uppercase tracking-[0.2em] text-primary-600 dark:text-primary-300">
+                  {playbook.state}
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{playbook.description}</p>
+              <code className="inline-flex items-center px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 text-xs text-gray-700 dark:text-gray-200">
+                {playbook.directive}
+              </code>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }

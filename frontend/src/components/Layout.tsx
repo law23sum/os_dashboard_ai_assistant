@@ -263,6 +263,7 @@ export default function Layout({ children }: LayoutProps) {
           items: [
             { path: '/ai/operations', icon: Cpu, label: 'Operations Feed' },
             { path: '/ai/os', icon: ServerCog, label: 'AI OS Control' },
+            { path: '/ai/copilot', icon: Bot, label: 'AI Copilot Console' },
             { path: '/ai/mlops', icon: Bot, label: 'MLOps' },
           ],
         },

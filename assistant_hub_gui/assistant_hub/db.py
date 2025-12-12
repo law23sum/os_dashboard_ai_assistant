@@ -169,6 +169,9 @@ class DocumentSample:
     sample_content: str
     governance: str
     created_at: str = datetime.now().isoformat(timespec="seconds")
+
+
+@dataclass
 class DocumentOperation:
     """Track AI-driven document operations with governance metadata."""
 
@@ -183,14 +186,17 @@ class DocumentOperation:
     version_tag: Optional[str] = None
     diff_path: Optional[str] = None
     external_company: Optional[str] = None
-    started_at: str = datetime.now().isoformat(timespec="seconds")
+    started_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
     completed_at: Optional[str] = None
     notes: str = ""
 
 
 def init_db() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_FILE)
+    # Allow use across background worker threads (integrations, daemons, API).
+    conn = sqlite3.connect(DB_FILE, check_same_thread=False)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA busy_timeout = 5000")
     c = conn.cursor()
 
     c.execute("""

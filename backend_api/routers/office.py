@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Deque, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from assistant_core.integrations.office_realtime import (
     AIOfficeWebSocketRouter,
@@ -135,6 +135,18 @@ class OfficeRealtimeJob(BaseModel):
     completed_at: Optional[str] = None
     duration_ms: float
     result_summary: Optional[str] = None
+
+    @field_validator("queued_at", mode="before")
+    @classmethod
+    def _normalize_queued_at(cls, value: Any) -> str:
+        return _to_iso_timestamp(value)
+
+    @field_validator("completed_at", mode="before")
+    @classmethod
+    def _normalize_completed_at(cls, value: Any) -> Optional[str]:
+        if value in (None, "", 0):
+            return None
+        return _to_iso_timestamp(value)
 
 
 class OfficeRealtimeSummary(BaseModel):

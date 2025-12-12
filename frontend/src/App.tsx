@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from './utils/toast'
@@ -22,6 +22,7 @@ import Templates from './pages/Templates'
 import Writer from './pages/Writer'
 import SpecSheet from './pages/SpecSheet'
 import APIConnectors from './pages/APIConnectors'
+import AICopilot from './pages/AICopilot'
 import OfficeRealtime from './pages/OfficeRealtime'
 import AIOS from './pages/AIOS'
 import AdvancedAI from './pages/AdvancedAI'
@@ -39,7 +40,7 @@ import Billing from './pages/Billing'
 import FutureDeck from './pages/FutureDeck'
 import NeuralArchitectureSearch from './pages/NeuralArchitectureSearch'
 import VisionDeck from './pages/VisionDeck'
-import AppErrorBoundary from './components/AppErrorBoundary'
+import { AppErrorBoundary } from './components/AppErrorBoundary'
 
 const normalizeBasePath = (value?: string | null): string => {
   if (!value || value === '.' || value === './') return '/'
@@ -82,15 +83,25 @@ const queryClient = new QueryClient({
   },
 })
 
+const shouldUseHashRouter = (): boolean => {
+  if (typeof window === 'undefined') return false
+  // When the Electron shell loads a local bundle via `loadFile`, `file://` URLs
+  // include the full filesystem pathname (e.g. `/.../index.html`) which breaks
+  // BrowserRouter route matching and can render a blank window.
+  return window.location.protocol === 'file:'
+}
+
 function App() {
   useEffect(() => {
     applyTheme(defaultTheme)
   }, [])
   const basePath = resolveRouterBasePath()
+  const useHashRouter = shouldUseHashRouter()
+  const Router = useHashRouter ? HashRouter : BrowserRouter
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter basename={basePath}>
+      <Router basename={useHashRouter ? undefined : basePath}>
         <AppErrorBoundary>
           <Layout>
             <Routes>
@@ -119,6 +130,7 @@ function App() {
             <Route path="/ai/advanced" element={<AdvancedAI />} />
             <Route path="/ai/systems" element={<AdvancedSystems />} />
             <Route path="/ai/mlops" element={<MLOps />} />
+            <Route path="/ai/copilot" element={<AICopilot />} />
             <Route path="/ai/nas" element={<NeuralArchitectureSearch />} />
             <Route path="/ai/nas/experiments" element={<NeuralArchitectureSearch />} />
             <Route path="/ai/nas/simulator" element={<NAS />} />
@@ -196,7 +208,7 @@ function App() {
             </Routes>
           </Layout>
         </AppErrorBoundary>
-      </BrowserRouter>
+      </Router>
       <Toaster position="top-right" />
     </QueryClientProvider>
   )
