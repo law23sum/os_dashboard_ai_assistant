@@ -5,7 +5,7 @@ aiohttp==3.12.14
 fastapi==0.109.2
 uvicorn==0.24.0
 pydantic==2.5.0
-python-multipart==0.0.6
+python-multipart==0.0.18
 requests>=2.25.0
 python-dotenv>=0.19.0
 websockets>=12.0
