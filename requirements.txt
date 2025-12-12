@@ -20,7 +20,7 @@ psycopg2-binary==2.9.9
 # Microsoft Graph integration
 msal==1.25.0
 msgraph-core>=0.2.0
-requests==2.31.0
+requests==2.32.4
 azure-identity>=1.5.0
 
 # PDF processing
