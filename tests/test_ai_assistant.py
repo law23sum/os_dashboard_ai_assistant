@@ -76,10 +76,10 @@ class TestAIAssistant(unittest.TestCase):
 
     def test_get_agent_model(self):
         """Test get_agent_model returns correct model for persona."""
-        assert get_agent_model("Sora") == "gpt-4o"
-        assert get_agent_model("Aria") == "gpt-4o"
-        assert get_agent_model("AIC") == "o1-mini"
-        assert get_agent_model("Chris") == "gpt-4o-mini"
+        assert get_agent_model("Sora") == "gpt-5-2025-08-07"
+        assert get_agent_model("Aria") == "gpt-5-mini-2025-08-07"
+        assert get_agent_model("AIC") == "5.2-pro-2025-12-11"
+        assert get_agent_model("Chris") == "gpt-5-mini-2025-08-07"
         assert get_agent_model("Unknown") == DEFAULT_MODEL
 
     def test_build_message_payload(self):

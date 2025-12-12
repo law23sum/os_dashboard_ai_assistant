@@ -69,20 +69,31 @@ class AIAssistant:
 
 
 # Model assignments per agent
-# Note: o1 models require special handling (no system messages, different API)
+# These map each persona to the new GPT-5/5.2 capability tiers
 AGENT_MODELS = {
+<<<<<<< Updated upstream
     "Sora": "gpt-4o",  # Using gpt-4o (closest to "5.1" - latest GPT-4)
     "Aria": "gpt-4o",
     "AIC": "gpt-4o",  # Use widely available model for auto-fix + automation
     "Chris": "gpt-4o-mini",  # Default for human user
+=======
+    "Sora": "gpt-5-2025-08-07",
+    "Aria": "gpt-5-mini-2025-08-07",
+    "AIC": "5.2-pro-2025-12-11",  # Reasoning-optimized 5.2 tier
+    "Chris": "gpt-5-mini-2025-08-07",  # Default for human user
+>>>>>>> Stashed changes
 }
 
 # Fallback models if primary model unavailable
 AGENT_MODEL_FALLBACKS = {
+<<<<<<< Updated upstream
     "AIC": "gpt-4o-mini",  # Fallback if primary gpt-4o unavailable
+=======
+    "AIC": "gpt-5-2025-08-07",  # Fallback if 5.2-pro unavailable
+>>>>>>> Stashed changes
 }
 
-DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-4o-mini")
+DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-5-mini-2025-08-07")
 DEFAULT_SYSTEM_PROMPT = os.getenv(
     "ASSISTANT_HUB_SYSTEM_PROMPT",
     "You are a cooperative team of AI agents (Aria, AIC, Sora, Data Science) tasked with helping Chris manage"
@@ -513,3 +524,37 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
         "name": "unknown",
         "content": "Unknown tool",
     }
+<<<<<<< Updated upstream
+=======
+
+
+class AssistantSession:
+    """Lightweight AI assistant wrapper for tests and integrations."""
+
+    def __init__(self, persona: str = "AIC"):
+        self.persona = persona
+        self.history: List[ChatMessage] = []
+
+    def add_message(self, content: str, *, role: str = "user", kind: str = "chat") -> ChatMessage:
+        """Record a message in the assistant history."""
+        message = ChatMessage(
+            id=len(self.history) + 1,
+            persona=self.persona,
+            role=role,
+            kind=kind,
+            content=content,
+        )
+        self.history.append(message)
+        return message
+
+    def reply(self, prompt: str) -> str:
+        """Generate a reply using the existing helper or echo fallback."""
+        try:
+            response, error, _ = generate_ai_reply(self.history, self.persona, prompt=prompt)
+            if error:
+                return error
+            return response
+        except Exception:
+            # In constrained environments fall back to deterministic echo
+            return f"[offline] {prompt}"
+>>>>>>> Stashed changes

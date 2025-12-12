@@ -30,20 +30,31 @@ from .db import (
 from .terminal import run_bash_command
 
 # Model assignments per agent
-# Note: o1 models require special handling (no system messages, different API)
+# These map personas to the latest GPT-5/5.2 capability tiers
 AGENT_MODELS = {
+<<<<<<< Updated upstream
     "Sora": "gpt-4o",  # Using gpt-4o (closest to "5.1" - latest GPT-4)
     "Aria": "gpt-4o",
     "AIC": "gpt-4o",  # Use widely available model for automation/AIC persona
     "Chris": "gpt-4o-mini",  # Default for human user
+=======
+    "Sora": "gpt-5-2025-08-07",
+    "Aria": "gpt-5-mini-2025-08-07",
+    "AIC": "5.2-pro-2025-12-11",  # Reasoning-optimized 5.2 tier
+    "Chris": "gpt-5-mini-2025-08-07",  # Default for human user
+>>>>>>> Stashed changes
 }
 
 # Fallback models if primary model unavailable
 AGENT_MODEL_FALLBACKS = {
+<<<<<<< Updated upstream
     "AIC": "gpt-4o-mini",  # Fallback if the primary model is unavailable
+=======
+    "AIC": "gpt-5-2025-08-07",  # Fallback if 5.2-pro unavailable
+>>>>>>> Stashed changes
 }
 
-DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-4o-mini")
+DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-5-mini-2025-08-07")
 DEFAULT_SYSTEM_PROMPT = os.getenv(
     "ASSISTANT_HUB_SYSTEM_PROMPT",
     "You are a cooperative team of AI agents (Aria, AIC, Sora) tasked with helping Chris manage"

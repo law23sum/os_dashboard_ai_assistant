@@ -7,7 +7,21 @@ import os
 from pathlib import Path
 from typing import Iterable, Optional
 from pydantic import Field
-from pydantic_settings import BaseSettings
+
+try:  # Prefer the dedicated package when available (Pydantic v2+).
+    from pydantic_settings import BaseSettings  # type: ignore
+except Exception:  # pragma: no cover - fall back for older environments
+    try:
+        from pydantic import BaseSettings  # type: ignore
+    except Exception:  # pragma: no cover - final fallback to BaseModel semantics
+        from pydantic import BaseModel
+
+        class BaseSettings(BaseModel):  # type: ignore
+            """Minimal shim so legacy configs still import without pydantic-settings."""
+
+            class Config:
+                env_file = ".env"
+                case_sensitive = False
 from dotenv import load_dotenv
 
 # Load environment variables
