@@ -28,6 +28,10 @@ export default defineConfig({
       "/billing": "http://localhost:8000",
       "/planes": "http://localhost:8000",
       "/operations": "http://localhost:8000",
+      "/office": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
       "/audit": "http://localhost:8000",
       "/docs": {
         target: "http://localhost:8000",

@@ -411,9 +411,9 @@ def _touch_workspace() -> None:
     workspace_snapshot["updated_at"] = datetime.utcnow().isoformat()
 
 usage_records: List[UsageRecord] = [
-    UsageRecord(
+UsageRecord(
         id="usage-1",
-        subject="model:gpt-4",
+        subject="model:gpt-5-mini",
         category="model_call",
         quantity=1200,
         unit="tokens",

@@ -226,6 +226,7 @@ export default function Layout({ children }: LayoutProps) {
       label: 'Integrations',
       children: [
         { path: '/integrations', icon: Plug, label: 'Overview' },
+        { path: '/integrations/office', icon: Activity, label: 'Office Realtime' },
         { path: '/integrations/api-connectors', icon: Network, label: 'API Connectors' },
       ],
     },

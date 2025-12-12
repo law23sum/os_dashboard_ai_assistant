@@ -1610,7 +1610,14 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.model_combo = ttkb.Combobox(
                 compose,
                 textvariable=self.chat_model_var,
-                values=["auto", "5.2-pro-2025-12-11", "gpt-5-2025-08-07", "gpt-5-mini-2025-08-07"],
+                values=[
+                    "auto",
+                    "gpt-5.2-pro",
+                    "gpt-5.2",
+                    "gpt-5.1-codex-max",
+                    "gpt-5-mini",
+                    "gpt-5-nano",
+                ],
                 state="readonly",
                 width=16,
                 bootstyle="success"
@@ -1632,7 +1639,14 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.model_combo = ttk.Combobox(
                 compose,
                 textvariable=self.chat_model_var,
-                values=["auto", "5.2-pro-2025-12-11", "gpt-5-2025-08-07", "gpt-5-mini-2025-08-07"],
+                values=[
+                    "auto",
+                    "gpt-5.2-pro",
+                    "gpt-5.2",
+                    "gpt-5.1-codex-max",
+                    "gpt-5-mini",
+                    "gpt-5-nano",
+                ],
                 state="readonly",
                 width=16,
             )

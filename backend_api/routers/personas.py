@@ -44,6 +44,7 @@ def _build_payload(active_persona: str) -> PersonasResponse:
 
 
 @router.get("/", response_model=PersonasResponse)
+@router.get("", response_model=PersonasResponse)
 async def list_personas() -> PersonasResponse:
     """Return the available personas + the currently active persona."""
 
@@ -54,6 +55,7 @@ async def list_personas() -> PersonasResponse:
 
 
 @router.post("/", response_model=PersonasResponse)
+@router.post("", response_model=PersonasResponse)
 async def set_active_persona(payload: PersonaUpdate) -> PersonasResponse:
     """Update the active persona to emulate the Tkinter combo box."""
 

@@ -8,6 +8,9 @@ import {
   RefreshCw,
   Activity as ActivityIcon,
   Shield,
+  Sparkles,
+  Network,
+  FileText,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import apiClient, { apiPath } from '../lib/apiClient'
@@ -16,6 +19,7 @@ import type {
   IntegrationConnectorDetails,
   IntegrationActivity,
   ConnectorConfiguration,
+  OfficeRealtimeSummary,
 } from '../types'
 import { toast } from '../utils/toast'
 
@@ -55,12 +59,36 @@ const saveConnectorConfiguration = async ({
   return data
 }
 
+const fetchOfficeSummary = async (): Promise<OfficeRealtimeSummary> => {
+  const { data } = await apiClient.get<OfficeRealtimeSummary>(apiPath('office/realtime/summary'))
+  return data
+}
+
+const triggerOfficeSimulation = async ({
+  operation,
+  documentId,
+}: {
+  operation: 'analyze' | 'generate' | 'suggest'
+  documentId?: string
+}) => {
+  const { data } = await apiClient.post(apiPath('office/realtime/ai'), {
+    operation,
+    payload: documentId ? { document_id: documentId } : {},
+  })
+  return data
+}
+
 export default function Integrations() {
   const queryClient = useQueryClient()
   const { data, isLoading } = useQuery({
     queryKey: ['integrations-snapshot'],
     queryFn: fetchIntegrationSnapshot,
     refetchInterval: 60000,
+  })
+  const officeSummaryQuery = useQuery({
+    queryKey: ['office-realtime-summary'],
+    queryFn: fetchOfficeSummary,
+    refetchInterval: 30000,
   })
   const [selectedConnector, setSelectedConnector] = useState<IntegrationConnectorDetails | null>(null)
 
@@ -73,6 +101,17 @@ export default function Integrations() {
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : 'Integration action failed')
+    },
+  })
+
+  const officeSimulation = useMutation({
+    mutationFn: triggerOfficeSimulation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['office-realtime-summary'] })
+      toast.success('Realtime Office AI job completed')
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Office automation simulation failed')
     },
   })
 
@@ -211,6 +250,155 @@ export default function Integrations() {
               ))}
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900/80 p-5 space-y-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Realtime Office Mesh</p>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-1">Signal Bridge</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Routes document edits across PowerPoint, Excel, OneNote, and the AI dashboard.
+              </p>
+            </div>
+            <button
+              disabled={officeSimulation.isPending || !officeSummaryQuery.data}
+              onClick={() =>
+                officeSimulation.mutate({
+                  operation: 'generate',
+                  documentId: officeSummaryQuery.data?.documents?.[0]?.document_id,
+                })
+              }
+              className="inline-flex items-center px-4 py-2 rounded-md text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
+            >
+              <Sparkles className={`w-4 h-4 mr-2 ${officeSimulation.isPending ? 'animate-spin' : ''}`} />
+              {officeSimulation.isPending ? 'Simulating...' : 'Simulate AI Draft'}
+            </button>
+          </div>
+
+          {officeSummaryQuery.isLoading && (
+            <div className="flex items-center justify-center py-10">
+              <div className="h-8 w-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+
+          {officeSummaryQuery.data && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Pending Jobs</p>
+                  <p className="text-2xl font-semibold text-primary-600">
+                    {officeSummaryQuery.data.ai_metrics?.pending_jobs ?? 0}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Queue Depth</p>
+                  <p className="text-2xl font-semibold text-primary-600">
+                    {officeSummaryQuery.data.ai_metrics?.queue_depth ?? 0}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {officeSummaryQuery.data.documents.map((doc) => (
+                  <div key={doc.document_id} className="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-gray-50/70 dark:bg-gray-900/60">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{doc.title}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{doc.participant_count} collaborators</p>
+                      </div>
+                      <Network className="w-4 h-4 text-primary-500" />
+                    </div>
+                    {doc.summary && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{doc.summary}</p>
+                    )}
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {doc.participants.map((participant) => (
+                        <span
+                          key={participant.client_id}
+                          className="px-2 py-1 rounded-full bg-white/70 dark:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700"
+                        >
+                          {participant.application.replace('_', ' ')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400 mb-2">Recent AI Jobs</p>
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {officeSummaryQuery.data.recent_jobs.length === 0 && (
+                    <p className="text-sm text-gray-500">AI queue idle. Trigger a simulation to exercise the router.</p>
+                  )}
+                  {officeSummaryQuery.data.recent_jobs.slice(0, 4).map((job) => (
+                    <div
+                      key={job.job_id}
+                      className="rounded-lg border border-gray-200 dark:border-gray-800 p-3 text-sm bg-gray-50/80 dark:bg-gray-900/70"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-gray-900 dark:text-white">{job.message_type}</span>
+                        <span className={`text-xs ${job.success ? 'text-emerald-500' : 'text-rose-500'}`}>
+                          {job.status}
+                        </span>
+                      </div>
+                      {job.result_summary && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{job.result_summary}</p>
+                      )}
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        Duration: {job.duration_ms.toFixed(0)} ms · {new Date(job.completed_at || job.queued_at).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900/80 p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Office Add-In</p>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Manifest Preview</h3>
+            </div>
+            <FileText className="w-5 h-5 text-primary-500" />
+          </div>
+          {officeSummaryQuery.isLoading && (
+            <div className="flex items-center justify-center py-10">
+              <div className="h-8 w-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+          {officeSummaryQuery.data && (
+            <>
+              <pre className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg p-4 text-xs text-gray-800 dark:text-gray-100 max-h-60 overflow-auto">
+                {officeSummaryQuery.data.manifest_preview}
+              </pre>
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400 mb-2">Docs</p>
+                <div className="space-y-1">
+                  {officeSummaryQuery.data.docs_links.map((link) => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm text-primary-600 dark:text-primary-300 hover:underline flex items-center"
+                    >
+                      {link.label}
+                      <svg className="w-3 h-3 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M12.586 3H7a1 1 0 100 2h3.586L4 11.586a1 1 0 101.414 1.414L12 6.414V10a1 1 0 102 0V4a1 1 0 00-1-1z" />
+                        <path d="M5 9a1 1 0 00-1 1v5c0 1.103.897 2 2 2h7a1 1 0 100-2H7a1 1 0 01-1-1v-5a1 1 0 00-1-1z" />
+                      </svg>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

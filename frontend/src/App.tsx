@@ -22,6 +22,7 @@ import Templates from './pages/Templates'
 import Writer from './pages/Writer'
 import SpecSheet from './pages/SpecSheet'
 import APIConnectors from './pages/APIConnectors'
+import OfficeRealtime from './pages/OfficeRealtime'
 import AIOS from './pages/AIOS'
 import AdvancedAI from './pages/AdvancedAI'
 import Audit from './pages/Audit'
@@ -38,6 +39,7 @@ import Billing from './pages/Billing'
 import FutureDeck from './pages/FutureDeck'
 import NeuralArchitectureSearch from './pages/NeuralArchitectureSearch'
 import VisionDeck from './pages/VisionDeck'
+import AppErrorBoundary from './components/AppErrorBoundary'
 
 const normalizeBasePath = (value?: string | null): string => {
   if (!value || value === '.' || value === './') return '/'
@@ -89,8 +91,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter basename={basePath}>
-        <Layout>
-          <Routes>
+        <AppErrorBoundary>
+          <Layout>
+            <Routes>
             {/* Root & Core Pages */}
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -142,6 +145,8 @@ function App() {
             {/* Integrations Hierarchy: /integrations/* */}
             <Route path="/integrations" element={<Integrations />} />
             <Route path="/integrations/api-connectors" element={<APIConnectors />} />
+            <Route path="/integrations/office" element={<OfficeRealtime />} />
+            <Route path="/integrations/office-realtime" element={<OfficeRealtime />} />
             {/* Legacy redirect for backward compatibility */}
             <Route path="/api-connectors" element={<Navigate to="/integrations/api-connectors" replace />} />
 
@@ -187,9 +192,10 @@ function App() {
             <Route path="/settings" element={<Settings />} />
 
             {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Layout>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Layout>
+        </AppErrorBoundary>
       </BrowserRouter>
       <Toaster position="top-right" />
     </QueryClientProvider>

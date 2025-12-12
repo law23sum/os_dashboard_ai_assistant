@@ -52,94 +52,119 @@ interface ControlData {
   billing: BillingUsage | null
 }
 
+const DASHBOARD_REQUEST_TIMEOUT_MS = 4500
+
+const buildOfflineDashboardSnapshot = (message?: string): DashboardStatsType => ({
+  total_tasks: 0,
+  tasks_by_status: {},
+  tasks_by_priority: {},
+  total_projects: 0,
+  active_projects: 0,
+  system_stats: {
+    cpu_percent: 0,
+    memory_percent: 0,
+    disk_percent: 0,
+  },
+  security_status: {
+    status: 'offline',
+    message: message ?? 'Backend not available. Please ensure the backend server is running on port 8000.',
+    updated_at: new Date().toISOString(),
+    source: 'local',
+  },
+  persona_load: {},
+  active_persona: 'AIC',
+})
+
+const buildDashboardSnapshotFromLegacy = async (): Promise<DashboardStatsType> => {
+  const [tasks, projects, system] = await Promise.all([
+    apiClient
+      .get(apiPath('tasks'))
+      .then((res) => extractArray(res.data, ['tasks', 'items']))
+      .catch(() => []),
+    apiClient
+      .get(apiPath('projects'))
+      .then((res) => extractArray(res.data, ['projects', 'items']))
+      .catch(() => []),
+    API.system().catch(() => ({
+      cpu_percent: 0,
+      memory: { used: 0, total: 1 },
+      disk: { used: 0, total: 1 },
+    })),
+  ])
+
+  const tasksByStatus = tasks.reduce((acc: Record<string, number>, task: any) => {
+    acc[task.status] = (acc[task.status] || 0) + 1
+    return acc
+  }, {})
+
+  const tasksByPriority = tasks.reduce((acc: Record<string, number>, task: any) => {
+    acc[task.priority] = (acc[task.priority] || 0) + 1
+    return acc
+  }, {})
+  const personaLoad = tasks.reduce((acc: Record<string, number>, task: any) => {
+    const owner = task.owner || 'AIC'
+    acc[owner] = (acc[owner] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const memory = (system as any)?.memory || {}
+  const disk = (system as any)?.disk || {}
+  const memoryPercent = memory.total ? Math.round((memory.used / memory.total) * 100) : 0
+  const diskPercent = disk.total ? Math.round((disk.used / disk.total) * 100) : 0
+
+  return {
+    total_tasks: tasks.length,
+    tasks_by_status: tasksByStatus,
+    tasks_by_priority: tasksByPriority,
+    total_projects: projects.length,
+    active_projects: projects.filter((project: any) => project.status === 'active').length,
+    system_stats: {
+      cpu_percent: (system as any)?.cpu_percent || 0,
+      memory_percent: memoryPercent,
+      disk_percent: diskPercent,
+    },
+    security_status: {
+      status: 'offline',
+      message: 'Security monitoring not available',
+      updated_at: new Date().toISOString(),
+      source: 'local',
+    },
+    persona_load: personaLoad,
+    active_persona: 'AIC',
+  }
+}
+
 const fetchDashboardStats = async (): Promise<DashboardStatsType> => {
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : undefined
+  let abortTimer: ReturnType<typeof setTimeout> | undefined
+  if (controller) {
+    abortTimer = setTimeout(() => controller.abort(), DASHBOARD_REQUEST_TIMEOUT_MS)
+  }
+
   try {
-    const response = await apiClient.get(apiPath('dashboard/stats'))
+    const response = await apiClient.get(apiPath('dashboard/stats'), {
+      signal: controller?.signal,
+      timeout: DASHBOARD_REQUEST_TIMEOUT_MS + 2500,
+    })
     if (response.data) {
       return response.data
     }
   } catch (error) {
-    // Continue to fallback below
+    const code = (error as { code?: string })?.code
+    if (code !== 'ERR_CANCELED') {
+      console.warn('dashboard/stats endpoint unavailable, using derived snapshot instead.', error)
+    }
+  } finally {
+    if (abortTimer) {
+      clearTimeout(abortTimer)
+    }
   }
 
   try {
-    const [tasks, projects, system] = await Promise.all([
-      apiClient
-        .get(apiPath('tasks'))
-        .then((res) => extractArray(res.data, ['tasks', 'items']))
-        .catch(() => []),
-      apiClient
-        .get(apiPath('projects'))
-        .then((res) => extractArray(res.data, ['projects', 'items']))
-        .catch(() => []),
-      API.system().catch(() => ({
-        cpu_percent: 0,
-        memory: { used: 0, total: 1 },
-        disk: { used: 0, total: 1 },
-      })),
-    ])
-
-    const tasksByStatus = tasks.reduce((acc: Record<string, number>, task: any) => {
-      acc[task.status] = (acc[task.status] || 0) + 1
-      return acc
-    }, {})
-
-    const tasksByPriority = tasks.reduce((acc: Record<string, number>, task: any) => {
-      acc[task.priority] = (acc[task.priority] || 0) + 1
-      return acc
-    }, {})
-    const personaLoad = tasks.reduce((acc: Record<string, number>, task: any) => {
-      const owner = task.owner || 'AIC'
-      acc[owner] = (acc[owner] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-
-    const memory = (system as any)?.memory || {}
-    const disk = (system as any)?.disk || {}
-    const memoryPercent = memory.total ? Math.round((memory.used / memory.total) * 100) : 0
-    const diskPercent = disk.total ? Math.round((disk.used / disk.total) * 100) : 0
-
-    return {
-      total_tasks: tasks.length,
-      tasks_by_status: tasksByStatus,
-      tasks_by_priority: tasksByPriority,
-      total_projects: projects.length,
-      active_projects: projects.filter((project: any) => project.status === 'active').length,
-      system_stats: {
-        cpu_percent: (system as any)?.cpu_percent || 0,
-        memory_percent: memoryPercent,
-        disk_percent: diskPercent,
-      },
-      security_status: {
-        status: 'offline',
-        message: 'Security monitoring not available',
-        updated_at: new Date().toISOString(),
-        source: 'local',
-      },
-      persona_load: personaLoad,
-      active_persona: 'AIC',
-    }
+    return await buildDashboardSnapshotFromLegacy()
   } catch (error) {
-    return {
-      total_tasks: 0,
-      tasks_by_status: {},
-      tasks_by_priority: {},
-      total_projects: 0,
-      active_projects: 0,
-      system_stats: {
-        cpu_percent: 0,
-        memory_percent: 0,
-        disk_percent: 0,
-      },
-      security_status: {
-        status: 'offline',
-        message: 'Backend not available. Please ensure the backend server is running on port 8000.',
-        updated_at: new Date().toISOString(),
-        source: 'local',
-      },
-      persona_load: {},
-      active_persona: 'AIC',
-    }
+    console.error('Failed to compute fallback dashboard stats', error)
+    return buildOfflineDashboardSnapshot()
   }
 }
 
@@ -262,7 +287,7 @@ export default function Dashboard() {
           </p>
           <ol className="mt-4 space-y-2 text-slate-300">
             <li>1. Run <code className="rounded bg-black/20 px-2 py-1">uvicorn backend_api.main:app --reload</code></li>
-            <li>2. Verify FastAPI is reachable on <code className="rounded bg-black/20 px-2 py-1">http://127.0.0.1:8071</code></li>
+            <li>2. Verify FastAPI is reachable on <code className="rounded bg-black/20 px-2 py-1">http://127.0.0.1:8000</code></li>
             <li>3. Refresh this page — it polls every 30 seconds.</li>
           </ol>
         </div>

@@ -35,8 +35,9 @@ class TestAIAssistant(unittest.TestCase):
         result = openai_available()
         assert result is False
 
+    @patch('assistant_core.ai._fetch_key_from_db', return_value=None)
     @patch.dict(os.environ, {}, clear=True)
-    def test_openai_available_without_key(self):
+    def test_openai_available_without_key(self, mock_fetch):
         """Test openai_available returns False when API key is missing."""
         result = openai_available()
         assert result is False
@@ -61,8 +62,9 @@ class TestAIAssistant(unittest.TestCase):
             get_openai_client()
         self.assertIn("The 'openai' package is not installed", str(context.exception))
 
+    @patch('assistant_core.ai._fetch_key_from_db', return_value=None)
     @patch.dict(os.environ, {}, clear=True)
-    def test_get_api_key_missing(self):
+    def test_get_api_key_missing(self, mock_fetch):
         """Test _get_api_key raises error when no API key is set."""
         with self.assertRaises(ValueError) as context:
             _get_api_key()
@@ -76,10 +78,10 @@ class TestAIAssistant(unittest.TestCase):
 
     def test_get_agent_model(self):
         """Test get_agent_model returns correct model for persona."""
-        assert get_agent_model("Sora") == "gpt-5-2025-08-07"
-        assert get_agent_model("Aria") == "gpt-5-mini-2025-08-07"
-        assert get_agent_model("AIC") == "5.2-pro-2025-12-11"
-        assert get_agent_model("Chris") == "gpt-5-mini-2025-08-07"
+        assert get_agent_model("Sora") == "gpt-5.2"
+        assert get_agent_model("Aria") == "gpt-5.1-codex-max"
+        assert get_agent_model("AIC") == "gpt-5.2-pro"
+        assert get_agent_model("Chris") == "gpt-5-mini"
         assert get_agent_model("Unknown") == DEFAULT_MODEL
 
     def test_build_message_payload(self):

@@ -21,7 +21,7 @@
     "dev:web": "vite --host",
     "dev:web-only": "vite --host",
     "electron:dev": "wait-on http://localhost:5173 && cross-env NODE_ENV=development VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
-    "dev:desktop": "concurrently -k \"npm run dev:web-only\" \"npm run electron:dev\"",
+    "dev:desktop": "node ./scripts/dev-desktop.js",
     "build": "vite build",
     "build:web": "vite build",
     "build:desktop": "vite build && electron-builder -c electron-builder.yml",
@@ -29,7 +29,8 @@
     "build:desktop:windows": "vite build && electron-builder -c electron-builder.yml --win",
     "build:desktop:mac": "vite build && electron-builder -c electron-builder.yml --mac",
     "build:all": "npm run build:web && npm run build:desktop:linux && npm run build:desktop:windows && npm run build:desktop:mac",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:desktop": "node --test electron/__tests__/*.test.cjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.27.5",

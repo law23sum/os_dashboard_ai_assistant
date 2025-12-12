@@ -13,6 +13,7 @@ export interface DocEntry {
   reactRoute?: string
   reactLabel?: string
   parity: DocParity
+  contentType?: 'markdown' | 'html'
 }
 
 export const docManifest: DocEntry[] = [
@@ -152,6 +153,50 @@ export const docManifest: DocEntry[] = [
     href: '/docs/future_core_os.html#nas',
     reactRoute: '/ai/nas/experiments',
     reactLabel: 'Experiment Console',
+    parity: 'full',
+  },
+  {
+    path: 'WEB_SEARCH.md',
+    title: 'Web Search Integration Guide',
+    description:
+      'Explains how to enable GPT-5/Responses API web search, cite sources, constrain domains, and tailor location/settings.',
+    category: 'Intelligence',
+    tags: ['web', 'search', 'responses'],
+    source: 'docs',
+    accent: 'from-indigo-500/30 via-purple-500/5 to-transparent',
+    parity: 'full',
+  },
+  {
+    path: 'FILE_SEARCH.md',
+    title: 'File Search Integration Guide',
+    description:
+      'Walks through building vector stores, uploading documents, and wiring the Responses API file_search tool with filters and citations.',
+    category: 'Intelligence',
+    tags: ['files', 'search', 'responses'],
+    source: 'docs',
+    accent: 'from-emerald-500/30 via-cyan-500/5 to-transparent',
+    parity: 'full',
+  },
+  {
+    path: 'WEBHOOKS.md',
+    title: 'Webhooks Integration Guide',
+    description:
+      'Explains how to configure OpenAI webhook endpoints, verify signatures, and process response.completed events with Flask or Express.',
+    category: 'Intelligence',
+    tags: ['webhooks', 'events', 'responses'],
+    source: 'docs',
+    accent: 'from-amber-500/30 via-red-500/5 to-transparent',
+    parity: 'full',
+  },
+  {
+    path: 'RESPONSES.md',
+    title: 'Responses API Reference',
+    description:
+      'Full REST reference for creating, retrieving, cancelling, compacting, and inspecting responses plus token accounting fields.',
+    category: 'Intelligence',
+    tags: ['api', 'responses', 'reference'],
+    source: 'docs',
+    accent: 'from-sky-500/30 via-blue-500/5 to-transparent',
     parity: 'full',
   },
   {
@@ -326,6 +371,39 @@ export const docManifest: DocEntry[] = [
     source: 'docs',
     accent: 'from-blue-400/30 via-sky-400/10 to-transparent',
     parity: 'full',
+  },
+  {
+    path: 'RETRIEVAL_API.md',
+    title: 'Retrieval API Guide',
+    description: 'How to build semantic search with vector stores, filters, and ranking.',
+    category: 'Engineering Notes',
+    tags: ['retrieval', 'vector-store', 'search'],
+    source: 'docs',
+    accent: 'from-cyan-400/30 via-indigo-500/10 to-transparent',
+    parity: 'full',
+    contentType: 'markdown',
+  },
+  {
+    path: 'gpt-5.2-prompting-guide.md',
+    title: 'GPT-5.2 Prompting Guide',
+    description: 'Prompt patterns, migration tips, and research rules for the GPT-5.2 rollout.',
+    category: 'Engineering Notes',
+    tags: ['prompting', 'ai', 'gpt-5.2'],
+    source: 'docs',
+    accent: 'from-fuchsia-500/25 via-indigo-500/10 to-transparent',
+    parity: 'full',
+    contentType: 'markdown',
+  },
+  {
+    path: 'gpt-5.1-codex-max-prompting-guide.md',
+    title: 'GPT-5.1-Codex-Max Prompting Guide',
+    description: 'Codex-Max migration steps, tool usage rules, and compaction best practices.',
+    category: 'Engineering Notes',
+    tags: ['prompting', 'ai', 'codex'],
+    source: 'docs',
+    accent: 'from-indigo-500/25 via-slate-500/10 to-transparent',
+    parity: 'full',
+    contentType: 'markdown',
   },
   {
     path: 'technical_spec_sheet',

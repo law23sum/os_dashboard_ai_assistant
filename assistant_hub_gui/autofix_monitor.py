@@ -108,6 +108,16 @@ def start_auto_fix_monitor(
         "none",
         "--logs-only",
         "--daemon",
+        "--test",
+        f"office-api={sys.executable} -m pytest tests/test_office_api.py",
+        "--test",
+        f"office-router={sys.executable} -m pytest tests/test_office_router.py",
+        "--test",
+        f"assistant-api-office={sys.executable} -m pytest tests/test_assistant_api_office.py",
+        "--test",
+        f"desktop-launcher={sys.executable} -m pytest tests/test_desktop_launcher.py",
+        "--test-interval",
+        "900",
     ]
     env = os.environ.copy()
     env.setdefault("PYTHONUNBUFFERED", "1")

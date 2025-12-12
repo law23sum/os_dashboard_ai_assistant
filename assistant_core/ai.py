@@ -71,29 +71,21 @@ class AIAssistant:
 # Model assignments per agent
 # These map each persona to the new GPT-5/5.2 capability tiers
 AGENT_MODELS = {
-<<<<<<< Updated upstream
-    "Sora": "gpt-4o",  # Using gpt-4o (closest to "5.1" - latest GPT-4)
-    "Aria": "gpt-4o",
-    "AIC": "gpt-4o",  # Use widely available model for auto-fix + automation
-    "Chris": "gpt-4o-mini",  # Default for human user
-=======
-    "Sora": "gpt-5-2025-08-07",
-    "Aria": "gpt-5-mini-2025-08-07",
-    "AIC": "5.2-pro-2025-12-11",  # Reasoning-optimized 5.2 tier
-    "Chris": "gpt-5-mini-2025-08-07",  # Default for human user
->>>>>>> Stashed changes
+    "Sora": "gpt-5.2",  # Complex reasoning + planning
+    "Aria": "gpt-5.1-codex-max",  # Coding + content polish
+    "AIC": "gpt-5.2-pro",  # Deep reasoning / agentic control
+    "Chris": "gpt-5-mini",  # Cost-optimized default chat
 }
 
 # Fallback models if primary model unavailable
 AGENT_MODEL_FALLBACKS = {
-<<<<<<< Updated upstream
-    "AIC": "gpt-4o-mini",  # Fallback if primary gpt-4o unavailable
-=======
-    "AIC": "gpt-5-2025-08-07",  # Fallback if 5.2-pro unavailable
->>>>>>> Stashed changes
+    "AIC": "gpt-5.2",
+    "Sora": "gpt-5-mini",
+    "Aria": "gpt-5-mini",
+    "Chris": "gpt-5-nano",
 }
 
-DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-5-mini-2025-08-07")
+DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-5-mini")
 DEFAULT_SYSTEM_PROMPT = os.getenv(
     "ASSISTANT_HUB_SYSTEM_PROMPT",
     "You are a cooperative team of AI agents (Aria, AIC, Sora, Data Science) tasked with helping Chris manage"
@@ -524,10 +516,6 @@ def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
         "name": "unknown",
         "content": "Unknown tool",
     }
-<<<<<<< Updated upstream
-=======
-
-
 class AssistantSession:
     """Lightweight AI assistant wrapper for tests and integrations."""
 
@@ -557,4 +545,3 @@ class AssistantSession:
         except Exception:
             # In constrained environments fall back to deterministic echo
             return f"[offline] {prompt}"
->>>>>>> Stashed changes

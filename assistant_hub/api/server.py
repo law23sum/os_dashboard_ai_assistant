@@ -51,6 +51,7 @@ from ..sync_scheduler import create_default_scheduler
 from ..terminal import run_bash_command
 from assistant_hub.command_catalog import command_catalog
 from assistant_hub.theme import get_theme_definition, list_available_themes
+from backend_api.routers import office as office_router
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_DIST = REPO_ROOT / "frontend" / "dist"
@@ -267,6 +268,10 @@ def create_app(
         prefix="/api",
         exclusions=("/api/docs",),
     )
+
+    # Surface the realtime Office router so the React frontend can read metrics
+    # and trigger AI actions without spinning up the separate demo server.
+    app.include_router(office_router.router, prefix="/office", tags=["office"])
 
     docs_dir = REPO_ROOT / "docs"
     if docs_dir.exists():

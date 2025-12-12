@@ -48,7 +48,7 @@ Return ONLY valid JSON array, no other text."""
 
         client = get_openai_client()
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # Use cheaper model for extraction
+            model="gpt-5-nano",  # Use cheaper model for extraction
             messages=messages,
             temperature=0.3,
             max_tokens=2000,

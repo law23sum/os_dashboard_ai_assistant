@@ -312,6 +312,47 @@ export interface CollaborationAnnotation {
   timestamp: string
 }
 
+export interface OfficeRealtimeClient {
+  client_id: string
+  application: string
+  user_id?: string | null
+  document_id?: string | null
+  capabilities: string[]
+  session_id: string
+  last_seen: string
+}
+
+export interface OfficeRealtimeDocument {
+  document_id: string
+  title: string
+  summary?: string
+  participant_count: number
+  participants: OfficeRealtimeClient[]
+}
+
+export interface OfficeRealtimeJob {
+  job_id: string
+  client_id: string
+  message_type: string
+  status: string
+  success: boolean
+  queued_at: string
+  completed_at?: string | null
+  duration_ms: number
+  result_summary?: string | null
+}
+
+export interface OfficeRealtimeSummary {
+  documents: OfficeRealtimeDocument[]
+  clients: OfficeRealtimeClient[]
+  recent_jobs: OfficeRealtimeJob[]
+  ai_metrics: Record<string, any>
+  docs_links: Array<{ label: string; href: string; description?: string }>
+  manifest_preview: string
+  governance: Record<string, string>
+  last_updated: string
+}
+
 export interface CollaborationState {
   spec_refs: string[]
   tenants: TenantSummary[]

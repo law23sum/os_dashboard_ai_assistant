@@ -1335,7 +1335,7 @@ class OpenAIConnector(BaseConnector):
         super().__init__(config)
         self.client: Optional[AsyncOpenAI] = None
         self.model_config = config.settings.get(
-            "model_config", {"default_model": "gpt-4", "max_tokens": 4000, "temperature": 0.7}
+            "model_config", {"default_model": "gpt-5-mini", "max_tokens": 4000, "temperature": 0.7}
         )
 
     async def connect(self) -> OperationResult:
@@ -1356,7 +1356,7 @@ class OpenAIConnector(BaseConnector):
         self.client = None
         self.model_config = config.settings.get(
             "model_config",
-            {"default_model": "gpt-4", "max_tokens": 4000, "temperature": 0.7},
+            {"default_model": "gpt-5-mini", "max_tokens": 4000, "temperature": 0.7},
         )
 
     async def connect(self) -> OperationResult:

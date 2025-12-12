@@ -217,8 +217,8 @@ Both Electron and browser builds use the same React bundle, ensuring feature par
 ### Development
 
 ```bash
-# Backend API URL (default: http://localhost:8000)
-VITE_API_BASE_URL=http://localhost:8000
+# Backend API URL (default: relative /api)
+VITE_API_BASE_URL=http://localhost:8000/api
 
 # UI Mode (web, desktop, web-build, desktop-build)
 OSDASH_UI_MODE=web
@@ -228,7 +228,7 @@ OSDASH_UI_MODE=web
 
 ```bash
 # Backend API URL
-VITE_API_BASE_URL=https://api.yourdomain.com
+VITE_API_BASE_URL=https://api.yourdomain.com/api
 
 # Enable production optimizations
 NODE_ENV=production
@@ -268,4 +268,3 @@ NODE_ENV=production
 - [Electron Builder Documentation](https://www.electron.build/)
 - [Vite Deployment Guide](https://vitejs.dev/guide/static-deploy.html)
 - [FastAPI Static Files](https://fastapi.tiangolo.com/tutorial/static-files/)
-

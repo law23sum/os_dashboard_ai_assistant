@@ -9,7 +9,7 @@ from ..prompts import SORA_SYSTEM_PROMPT
 from ..openai_client import get_default_client
 
 
-def prioritize_tasks(context: str, model: str = "gpt-4.1-mini") -> str:
+def prioritize_tasks(context: str, model: str = "gpt-5-mini") -> str:
     """Return prioritized recommendations for the given project context."""
 
     client = get_default_client()
@@ -24,7 +24,7 @@ def prioritize_tasks(context: str, model: str = "gpt-4.1-mini") -> str:
 
 
 def handle_planning(
-    project: Project, intent: Optional[Intent] = None, model: str = "gpt-4.1-mini"
+    project: Project, intent: Optional[Intent] = None, model: str = "gpt-5-mini"
 ) -> str:
     """Plan the next steps for a project, suggesting concrete actions and integration usage."""
     client = get_default_client()

@@ -54,7 +54,6 @@ _force_stub = os.environ.get("OS_DASHBOARD_REQUESTS_STUB", "").lower() in {
 
 _real_requests = None if _force_stub else _import_real_requests()
 
-<<<<<<< Updated upstream
 if _real_requests is not None:
     globals().update(_real_requests.__dict__)
 else:
@@ -82,13 +81,3 @@ else:
             return post(*args, **kwargs)
 
     __all__ = ["post", "Response", "Session"]
-=======
-class Session:
-    """Tiny drop-in replacement supporting ``post`` only."""
-
-    def post(self, *args: Any, **kwargs: Any) -> Response:
-        return post(*args, **kwargs)
-
-
-__all__ = ["post", "Response", "Session"]
->>>>>>> Stashed changes

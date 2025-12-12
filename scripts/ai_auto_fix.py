@@ -81,6 +81,12 @@ class ProcessSpec:
     command: List[str]
 
 
+@dataclass
+class TestSpec:
+    name: str
+    command: List[str]
+
+
 @dataclass(frozen=True)
 class BinarySignature:
     """Definition of a process/binary that should trigger log monitoring."""
@@ -94,6 +100,14 @@ DEFAULT_LOG_DIRS = [
     REPO_ROOT / "logs",
     REPO_ROOT / "frontend" / "logs",
     REPO_ROOT / "frontend" / "dist-electron" / "logs",
+]
+
+DEFAULT_AUTOFIX_TESTS: List[tuple[str, List[str]]] = [
+    ("desktop-launcher", [sys.executable, "-m", "pytest", "-q", "tests/test_desktop_launcher.py"]),
+    (
+        "desktop-port-guard",
+        ["node", "--test", "frontend/scripts/__tests__/dev-desktop-utils.test.mjs"],
+    ),
 ]
 
 
@@ -608,9 +622,13 @@ class AutoFixOrchestrator:
         log_watch_enabled: bool = True,
         auto_binary_monitor: bool = True,
         binary_poll_interval: float = 3.0,
+        test_specs: Optional[List[TestSpec]] = None,
+        test_interval: int = 0,
     ) -> None:
         log_dirs = log_dirs or []
-        if not specs:
+        self.test_specs = list(test_specs or [])
+        self.test_interval = max(0, int(test_interval))
+        if not specs and not self.test_specs:
             if not log_watch_enabled and not auto_binary_monitor:
                 raise ValueError(
                     "At least one process must be specified or enable log watching/binary monitoring via --log-dir/--logs-only."
@@ -651,6 +669,9 @@ class AutoFixOrchestrator:
         self.binary_poll_interval = binary_poll_interval
         self.binary_monitor: Optional[BinaryExecutionMonitor] = None
         self._binary_signatures = self._default_binary_signatures()
+        self._test_thread: Optional[threading.Thread] = None
+        self._test_stop_event = threading.Event()
+        self._test_lock = threading.Lock()
 
     def _default_binary_signatures(self) -> List[BinarySignature]:
         base_logs = REPO_ROOT / "logs"
@@ -664,6 +685,27 @@ class AutoFixOrchestrator:
             BinarySignature("frontend-desktop", ["dev:desktop"], [desktop_logs, base_logs]),
             BinarySignature("electron-shell", ["electron"], [desktop_logs]),
         ]
+
+    def _start_test_thread(self) -> None:
+        if not self.test_specs or self.test_interval <= 0:
+            return
+        self._test_stop_event = threading.Event()
+        self._test_thread = threading.Thread(target=self._test_loop, daemon=True)
+        self._test_thread.start()
+
+    def _stop_test_thread(self) -> None:
+        if not self.test_specs:
+            return
+        self._test_stop_event.set()
+        if self._test_thread and self._test_thread.is_alive():
+            self._test_thread.join(timeout=1)
+        self._test_thread = None
+
+    def _test_loop(self) -> None:
+        while not self._test_stop_event.is_set():
+            if self._test_stop_event.wait(self.test_interval):
+                break
+            self._run_tests(reason="interval")
 
     def _register_log_dir(self, log_dir: Path | str) -> None:
         if not self.log_watch_enabled:
@@ -700,6 +742,43 @@ class AutoFixOrchestrator:
         print(f"🕵️  Detected {signature.label} process (pid={pid}): {details}")
         for log_dir in signature.log_dirs:
             self._register_log_dir(log_dir)
+
+    def _run_tests(self, reason: str = "startup") -> None:
+        if not self.test_specs:
+            return
+        with self._test_lock:
+            for spec in self.test_specs:
+                try:
+                    cmd_display = shlex.join(spec.command)
+                except AttributeError:
+                    cmd_display = " ".join(spec.command)
+                print(f"🧪 Running {spec.name} tests ({reason}): {cmd_display}")
+                start = time.perf_counter()
+                try:
+                    result = subprocess.run(
+                        spec.command,
+                        cwd=REPO_ROOT,
+                        capture_output=True,
+                        text=True,
+                    )
+                except FileNotFoundError as exc:
+                    context = f"Test command '{cmd_display}' failed to launch: {exc}"
+                    self.events.put(("test_failure", f"tests:{spec.name}", context))
+                    return
+                duration_ms = (time.perf_counter() - start) * 1000.0
+                if result.returncode != 0:
+                    output_chunks: List[str] = []
+                    if result.stdout:
+                        output_chunks.append("STDOUT:\n" + result.stdout.strip())
+                    if result.stderr:
+                        output_chunks.append("STDERR:\n" + result.stderr.strip())
+                    context = (
+                        f"Command: {cmd_display}\nReason: {reason}\nDuration: {duration_ms:.1f} ms\n\n"
+                        + ("\n\n".join(chunk for chunk in output_chunks if chunk) or "No output captured.")
+                    )
+                    self.events.put(("test_failure", f"tests:{spec.name}", context))
+                    return
+                print(f"✅ {spec.name} passed in {duration_ms/1000.0:.2f}s")
 
     def run(self, max_attempts: int, *, daemon_mode: bool = False) -> int:
         """Continuously monitor processes, repairing regressions as they surface.
@@ -745,6 +824,7 @@ class AutoFixOrchestrator:
                     "improvement_opportunity": "💡",
                     "exit": "🛑",
                     "log": "📜",
+                    "test_failure": "🧪",
                 }.get(kind, "ℹ️")
                 print(f"{event_emoji}  Detected {kind} event from {component}. Feeding logs to AI...")
 
@@ -802,8 +882,12 @@ class AutoFixOrchestrator:
                     on_detect=self._on_binary_detected,
                 )
             self.binary_monitor.start()
+        if self.test_specs:
+            self._run_tests(reason="startup")
+            self._start_test_thread()
 
     def _stop_processes(self) -> None:
+        self._stop_test_thread()
         if self.auto_binary_monitor and self.binary_monitor:
             self.binary_monitor.stop()
         if self.log_watch_enabled:
@@ -1108,6 +1192,27 @@ def _parse_specs(args: argparse.Namespace) -> List[ProcessSpec]:
     return specs
 
 
+def _parse_test_specs(args: argparse.Namespace) -> List[TestSpec]:
+    specs: List[TestSpec] = []
+    cli_tests = list(getattr(args, "tests", []) or [])
+    for idx, raw in enumerate(cli_tests, start=1):
+        label = f"test{idx}"
+        command_text = raw
+        if "=" in raw:
+            possible_label, remaining = raw.split("=", 1)
+            if possible_label.strip() and " " not in possible_label.strip():
+                label = possible_label.strip()
+                command_text = remaining
+        command = shlex.split(command_text.strip())
+        if not command:
+            continue
+        specs.append(TestSpec(label, command))
+    if os.environ.get("OSDASH_AUTOFIX_DISABLE_DEFAULT_TESTS", "").lower() not in {"1", "true", "yes"}:
+        for name, command in DEFAULT_AUTOFIX_TESTS:
+            specs.append(TestSpec(name, list(command)))
+    return specs
+
+
 def _default_backend_command() -> List[str]:
     return [
         sys.executable,
@@ -1188,6 +1293,19 @@ def _build_parser() -> argparse.ArgumentParser:
         action="append",
         metavar="LABEL=CMD",
         help="Additional process to monitor, e.g. --watch worker=\"python worker.py\" (repeatable).",
+    )
+    parser.add_argument(
+        "--test",
+        dest="tests",
+        action="append",
+        metavar="[LABEL=]CMD",
+        help="Test command to run after each restart (repeatable). Example: --test \"pytest -q tests/test_office_api.py\".",
+    )
+    parser.add_argument(
+        "--test-interval",
+        type=int,
+        default=0,
+        help="Seconds between background test runs while healthy (0 disables periodic runs).",
     )
     parser.add_argument(
         "--verify-seconds",
@@ -1316,6 +1434,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         specs = _parse_specs(args)
     except ValueError as exc:
         parser.error(str(exc))
+    test_specs = _parse_test_specs(args)
 
     _bootstrap_openai_key(args.openai_key)
 
@@ -1370,6 +1489,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         log_watch_enabled=not args.disable_log_watch,
         auto_binary_monitor=not args.disable_binary_monitor,
         binary_poll_interval=args.binary_poll_interval,
+        test_specs=test_specs,
+        test_interval=args.test_interval,
     )
 
     try:

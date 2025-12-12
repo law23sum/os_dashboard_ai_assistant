@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.responses import RedirectResponse
 import sys
 import os
 from pathlib import Path
@@ -42,6 +43,7 @@ from backend_api.routers import (
     dashboard,
     templates,
     integrations,
+    office,
     settings,
     document_operations,
     analytics,
@@ -104,6 +106,33 @@ app.include_router(
 )
 app.include_router(platform.router, prefix="/api", tags=["platform"])
 app.include_router(personas.router, prefix="/api/personas", tags=["personas"])
+app.include_router(office.router, prefix="/api/office", tags=["office"])
+
+# Legacy compatibility routes without the /api prefix.
+@app.get("/system", include_in_schema=False)
+async def legacy_system_status():
+    return await platform.system_status()
+
+
+@app.get("/planes/status", include_in_schema=False)
+async def legacy_planes_status():
+    return await platform.planes_status()
+
+
+@app.get("/billing/usage", include_in_schema=False)
+async def legacy_billing_usage(limit: int = 20):
+    return await platform.billing_usage(limit=limit)
+
+
+@app.get("/operations", include_in_schema=False)
+async def legacy_operations(
+    limit: int = 50,
+    status: str | None = None,
+    integration_type: str | None = None,
+):
+    return await document_operations.list_document_operations(
+        limit=limit, status=status, integration_type=integration_type
+    )
 
 # Mount static files
 docs_dir = REPO_ROOT / "docs"
@@ -117,6 +146,16 @@ if ui_dir.exists():
 cyberchef_dir = REPO_ROOT / "CyberChef_v10.19.4"
 if cyberchef_dir.exists():
     app.mount("/tools/cyberchef", StaticFiles(directory=str(cyberchef_dir), html=True), name="cyberchef")
+
+# Serve built frontend (Vite) at /app for desktop/packaged runs
+frontend_dist = REPO_ROOT / "frontend" / "dist"
+if frontend_dist.exists():
+    # html=True serves index.html for /app and directory requests
+    app.mount("/app", StaticFiles(directory=str(frontend_dist), html=True), name="app")
+    # Redirect root to the SPA when available to avoid a blank page
+    @app.get("/", include_in_schema=False)
+    async def _root_redirect():
+        return RedirectResponse(url="/app/")
 
 @app.get("/api/health")
 async def health_check():

@@ -1,23 +1,65 @@
+from __future__ import annotations
+
 """
 Multi-Source Data Intelligence Module
 Real-time web scraping, API integration, and cross-reference verification
 """
 
 import asyncio
-import aiohttp
-import requests
-from bs4 import BeautifulSoup
 import json
 import csv
-import pandas as pd
-from typing import Dict, List, Any, Optional, Union
 import time
 import hashlib
-from urllib.parse import urljoin, urlparse
 import re
-from dataclasses import dataclass
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
+from dataclasses import dataclass
+from typing import Dict, List, Any, Optional, Union
+from urllib.parse import urljoin, urlparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+import requests
+
+try:
+    from bs4 import BeautifulSoup  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    BeautifulSoup = None  # type: ignore
+
+try:
+    import pandas as pd  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    pd = None  # type: ignore
+
+try:  # Optional dependency
+    import aiohttp  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    aiohttp = None  # type: ignore
+
+
+def _require_aiohttp() -> None:
+    """Guard to ensure aiohttp is available before using async collectors."""
+    if aiohttp is None:  # pragma: no cover - executed only when missing
+        raise ModuleNotFoundError(
+            "aiohttp is required for the async data collector. "
+            "Install optional dependencies with `python3 -m pip install -r requirements.txt`."
+        )
+
+
+def _require_pandas() -> None:
+    """Ensure pandas is installed before performing DataFrame operations."""
+    if pd is None:  # pragma: no cover - executed only when missing
+        raise ModuleNotFoundError(
+            "pandas is required for structured data collection. "
+            "Install optional dependencies with `python3 -m pip install -r requirements.txt`."
+        )
+
+
+def _require_bs4() -> None:
+    """Ensure BeautifulSoup is present before parsing HTML."""
+    if BeautifulSoup is None:  # pragma: no cover - executed only when missing
+        raise ModuleNotFoundError(
+            "beautifulsoup4 is required for HTML parsing. "
+            "Install optional dependencies with `python3 -m pip install -r requirements.txt`."
+        )
 
 
 @dataclass
@@ -49,6 +91,7 @@ class DataCollector:
 
     async def __aenter__(self):
         """Async context manager entry"""
+        _require_aiohttp()
         self.session = aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=30),
             connector=aiohttp.TCPConnector(limit=self.max_concurrent),
@@ -82,6 +125,7 @@ class DataCollector:
         """
         Scrape webpage with intelligent content extraction
         """
+        _require_bs4()
         await self._rate_limit(source.name, source.rate_limit)
 
         cache_key = self._get_cache_key(source.url, source.params)
@@ -140,6 +184,7 @@ class DataCollector:
         """
         Intelligent content extraction without predefined selectors
         """
+        _require_bs4()
         data = {}
 
         # Extract headings
@@ -353,10 +398,11 @@ class DataCollector:
 
     def clean_and_transform(
         self, raw_data: List[Dict[str, Any]], transformations: Dict[str, Any] = None
-    ) -> pd.DataFrame:
+    ) -> "pd.DataFrame":
         """
         Automated data cleaning and transformation pipeline
         """
+        _require_pandas()
         # Convert to DataFrame for easier manipulation
         all_data = []
 
@@ -402,9 +448,10 @@ class DataCollector:
         return dict(items)
 
     def _apply_transformations(
-        self, df: pd.DataFrame, transformations: Dict[str, Any]
-    ) -> pd.DataFrame:
+        self, df: "pd.DataFrame", transformations: Dict[str, Any]
+    ) -> "pd.DataFrame":
         """Apply custom transformations to DataFrame"""
+        _require_pandas()
         for column, transform in transformations.items():
             if column in df.columns:
                 if transform["type"] == "numeric":
@@ -419,8 +466,9 @@ class DataCollector:
 
         return df
 
-    def _basic_cleaning(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _basic_cleaning(self, df: "pd.DataFrame") -> "pd.DataFrame":
         """Apply basic data cleaning operations"""
+        _require_pandas()
         # Remove completely empty rows
         df = df.dropna(how="all")
 
@@ -436,9 +484,10 @@ class DataCollector:
         return df
 
     def export_data(
-        self, df: pd.DataFrame, file_path: str, format: str = "csv"
+        self, df: "pd.DataFrame", file_path: str, format: str = "csv"
     ) -> bool:
         """Export cleaned data to various formats"""
+        _require_pandas()
         try:
             if format.lower() == "csv":
                 df.to_csv(file_path, index=False)

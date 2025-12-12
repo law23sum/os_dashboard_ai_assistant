@@ -206,7 +206,7 @@ export default function Projects() {
     staleTime: 60000,
     refetchInterval: 60000,
   })
-  const projectTrfQuery = useQuery({
+  const insightsProjectTrfQuery = useQuery({
     queryKey: ['project-trf', insightsProject?.name],
     queryFn: () => {
       if (!insightsProject) {
@@ -1095,13 +1095,13 @@ export default function Projects() {
         isLoading={projectInsightsQuery.isLoading}
         isFetching={projectInsightsQuery.isFetching}
         error={projectInsightsQuery.error}
-        trf={projectTrfQuery.data}
-        trfLoading={projectTrfQuery.isLoading}
-        trfFetching={projectTrfQuery.isFetching}
-        trfError={projectTrfQuery.error}
+        trf={insightsProjectTrfQuery.data}
+        trfLoading={insightsProjectTrfQuery.isLoading}
+        trfFetching={insightsProjectTrfQuery.isFetching}
+        trfError={insightsProjectTrfQuery.error}
         onClose={() => setInsightsProject(null)}
         onRefresh={() => projectInsightsQuery.refetch()}
-        onRefreshTrf={() => projectTrfQuery.refetch()}
+        onRefreshTrf={() => insightsProjectTrfQuery.refetch()}
       />
       )}
       {trfProject && (

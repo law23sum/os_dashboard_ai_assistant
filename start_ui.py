@@ -37,7 +37,7 @@ UVICORN_CMD = [
     str(DEFAULT_API_PORT),
 ]
 
-ModeRunner = Callable[[], int | None]
+ModeRunner = Callable[[], Optional[int]]
 ModeDefinition = Tuple[str, str, ModeRunner]
 
 
@@ -86,7 +86,7 @@ def _wait_for_port(host: str, port: int, timeout: float = 25.0) -> None:
     )
 
 
-def _start_backend() -> subprocess.Popen | None:
+def _start_backend() -> Optional[subprocess.Popen]:
     """Spawn the FastAPI server that serves the shared React bundle."""
     if _is_port_open(DEFAULT_API_HOST, DEFAULT_API_PORT):
         print(
@@ -216,7 +216,6 @@ def run_legacy_tkinter() -> int:
 MODE_DEFINITIONS: Tuple[ModeDefinition, ...] = (
     ("web", "React · Web Dev (FastAPI + Vite)", run_react_web_dev),
     ("desktop", "React · Desktop Dev (FastAPI + Electron)", run_react_desktop_dev),
-    ("legacy", "Legacy · Tkinter Desktop App", run_legacy_tkinter),
     ("web-build", "Serve built React in browser", run_web_build),
     ("desktop-build", "Serve built React in desktop shell", run_desktop_build),
 )
@@ -233,8 +232,6 @@ MODE_ALIASES = {
     "browser-build": "web-build",
     "desktop-build": "desktop-build",
     "pywebview": "desktop-build",
-    "tkinter": "legacy",
-    "legacy-gui": "legacy",
 }
 for idx, (name, _, _) in enumerate(MODE_DEFINITIONS, start=1):
     MODE_ALIASES[str(idx)] = name
@@ -248,7 +245,19 @@ def _normalize_mode(value: Optional[str]) -> Optional[str]:
         return None
     if key in MODE_LOOKUP:
         return key
-    return MODE_ALIASES.get(key)
+    if key in MODE_ALIASES:
+        return MODE_ALIASES[key]
+    simplified = key.rstrip(").: ")
+    if simplified in MODE_LOOKUP:
+        return simplified
+    if simplified in MODE_ALIASES:
+        return MODE_ALIASES[simplified]
+    digits = "".join(ch for ch in key if ch.isdigit())
+    if digits:
+        alias = MODE_ALIASES.get(digits)
+        if alias:
+            return alias
+    return None
 
 
 def _prompt_mode() -> str:
@@ -260,6 +269,7 @@ def _prompt_mode() -> str:
     print("  🚀 OS Dashboard AI Assistant — Unified Launcher")
     print("=" * 70)
     print("\n📋 Available Launch Modes:\n")
+    max_choice = len(MODE_DEFINITIONS)
     for idx, (name, label, _) in enumerate(MODE_DEFINITIONS, start=1):
         default_marker = " ⭐ (default)" if name == DEFAULT_MODE else ""
         icon = "🌐" if "Web" in label else "🖥️" if "Desktop" in label else "📦"
@@ -267,7 +277,7 @@ def _prompt_mode() -> str:
     print("\n" + "-" * 70)
     print("💡 Tip: Set OSDASH_UI_MODE or DEV_MODE env var to skip this prompt")
     print("-" * 70)
-    choice = input("\n👉 Enter your choice (1-4 or press Enter for default): ").strip()
+    choice = input(f"\n👉 Enter your choice (1-{max_choice} or press Enter for default): ").strip()
     normalized = _normalize_mode(choice)
     if normalized:
         return normalized
