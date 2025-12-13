@@ -40,6 +40,10 @@ import Billing from './pages/Billing'
 import FutureDeck from './pages/FutureDeck'
 import NeuralArchitectureSearch from './pages/NeuralArchitectureSearch'
 import VisionDeck from './pages/VisionDeck'
+import Observability from './pages/Observability'
+import CapsuleMarketplace from './pages/CapsuleMarketplace'
+import AutoFix from './pages/AutoFix'
+import IntentProcessor from './pages/IntentProcessor'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 
 const normalizeBasePath = (value?: string | null): string => {
@@ -139,6 +143,9 @@ function App() {
             <Route path="/ai/edge-computing" element={<EdgeComputing />} />
             <Route path="/ai/workflows" element={<Workflows />} />
             <Route path="/ai/vision" element={<ComputerVision />} />
+            <Route path="/ai/capsules" element={<CapsuleMarketplace />} />
+            <Route path="/ai/autofix" element={<AutoFix />} />
+            <Route path="/ai/intents" element={<IntentProcessor />} />
             {/* Legacy redirects for backward compatibility */}
             <Route path="/ai-ops" element={<Navigate to="/ai/operations" replace />} />
             <Route path="/ai-os" element={<Navigate to="/ai/os" replace />} />
@@ -161,6 +168,9 @@ function App() {
             <Route path="/integrations/office-realtime" element={<OfficeRealtime />} />
             {/* Legacy redirect for backward compatibility */}
             <Route path="/api-connectors" element={<Navigate to="/integrations/api-connectors" replace />} />
+
+            {/* Observability (v1000) */}
+            <Route path="/observability" element={<Observability />} />
 
             {/* Analytics & Monitoring Hierarchy: /monitoring/* */}
             <Route path="/analytics" element={<Analytics />} />

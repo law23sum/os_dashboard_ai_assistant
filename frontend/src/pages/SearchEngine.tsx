@@ -126,9 +126,9 @@ export default function SearchEngine() {
           <button
             type="submit"
             className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-primary-600 text-white hover:bg-primary-700"
-            disabled={searchMutation.isLoading}
+              disabled={searchMutation.isPending}
           >
-            {searchMutation.isLoading ? 'Searching…' : 'Search'}
+            {searchMutation.isPending ? 'Searching…' : 'Search'}
           </button>
         </div>
       </form>

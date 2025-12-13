@@ -135,18 +135,19 @@ export default function Tasks() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-2 border-white/30 border-t-primary-500"></div>
+        <p className="text-sm text-slate-400">Loading tasks...</p>
       </div>
     )
   }
 
   return (
     <div className="px-4 py-6 sm:px-0">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Tasks</h2>
-          <p className="text-gray-600 dark:text-gray-400">Manage your tasks and to-dos</p>
+          <h2 className="text-2xl font-bold text-[color:var(--osd-text)]">Tasks</h2>
+          <p className="text-sm text-[color:var(--osd-muted)] mt-1">Manage your tasks and to-dos</p>
         </div>
         <div className="flex items-center gap-3">
           <button

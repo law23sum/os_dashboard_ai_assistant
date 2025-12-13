@@ -39,8 +39,10 @@ app.add_middleware(
 from backend_api.routers import (
     tasks,
     projects,
+    intents,
     chat,
     dashboard,
+    documents,
     templates,
     integrations,
     office,
@@ -63,13 +65,17 @@ from backend_api.routers import (
     workflow_orchestration,
     platform,
     personas,
+    capsules,
+    autofix,
     runtime_diagnostics,
+    coach,
 )
 
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
+app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(templates.router, prefix="/api/templates", tags=["templates"])
 app.include_router(integrations.router, prefix="/api/integrations", tags=["integrations"])
 app.include_router(settings.router, prefix="/api/settings", tags=["settings"])
@@ -87,7 +93,11 @@ app.include_router(
     api_connectors.router, prefix="/api/api-connectors", tags=["api_connectors"]
 )
 app.include_router(ai_systems.router, prefix="/api/ai", tags=["ai_systems"])
+app.include_router(capsules.router, prefix="/api/ai", tags=["capsules"])
+app.include_router(coach.router, prefix="/api/ai", tags=["coach"])
 app.include_router(terminal.router, prefix="/api/terminal", tags=["terminal"])
+app.include_router(autofix.router, prefix="/api/autofix", tags=["autofix"])
+app.include_router(intents.router, prefix="/api", tags=["intents"])
 app.include_router(audit.router, prefix="/api/audit", tags=["audit"])
 app.include_router(search.router, prefix="/api/search", tags=["search"])
 app.include_router(

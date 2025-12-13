@@ -291,6 +291,12 @@ body, html {
     gap: 20px;
 }
 
+.catalog-count {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+}
+
 .product-card {
     border: 1px solid var(--card-border);
     border-radius: 16px;

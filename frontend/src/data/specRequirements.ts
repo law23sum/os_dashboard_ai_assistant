@@ -28,6 +28,8 @@ export const statusMeta: Record<RequirementStatus, { label: string; chipClass: s
   },
 }
 
+export const TECH_SPEC_ROUTE = '/docs/spec-sheet'
+
 export const specRequirements: SpecRequirement[] = [
   {
     id: 'project-ledger',
@@ -38,7 +40,7 @@ export const specRequirements: SpecRequirement[] = [
     specRefs: ['Spec §3.7', 'Spec §6.3', 'Spec §8.7'],
     sourceDocs: [
       { label: 'MIGRATION_CONTINUED.md · Project Ledger & Spec Alignment', href: '/docs/migration_continued.md' },
-      { label: 'Technical Spec Sheet v6', href: '/spec-sheet' },
+      { label: 'Technical Spec Sheet v6', href: TECH_SPEC_ROUTE },
     ],
     nextSteps: ['Verify ledger events stream to Evidence Pack builder', 'Expose hash-chain verifier to auditors'],
   },
@@ -51,7 +53,7 @@ export const specRequirements: SpecRequirement[] = [
     specRefs: ['Spec §4.5 — §4.8'],
     sourceDocs: [
       { label: 'MIGRATION_CONTINUED.md · Remaining Task #1', href: '/docs/migration_continued.md' },
-      { label: 'Technical Spec Sheet §4.5–§4.8', href: '/spec-sheet' },
+      { label: 'Technical Spec Sheet §4.5–§4.8', href: TECH_SPEC_ROUTE },
     ],
     nextSteps: ['Add TRF trace modal to /projects', 'Persist health scores via /api/projects/intelligence'],
   },
@@ -64,7 +66,7 @@ export const specRequirements: SpecRequirement[] = [
     specRefs: ['Spec §5.12', 'Spec §12.5'],
     sourceDocs: [
       { label: 'MIGRATION_CONTINUED.md · Driver Scheduling Instrumentation', href: '/docs/migration_continued.md' },
-      { label: 'Technical Spec Sheet §5.12', href: '/spec-sheet' },
+      { label: 'Technical Spec Sheet §5.12', href: TECH_SPEC_ROUTE },
     ],
     nextSteps: ['Publish /api/ai/drivers metrics', 'Visualize queue depth + throttle knobs in /ai/operations'],
   },
@@ -77,7 +79,7 @@ export const specRequirements: SpecRequirement[] = [
     specRefs: ['Spec §7.12'],
     sourceDocs: [
       { label: 'MIGRATION_CONTINUED.md · Collaboration & Federation', href: '/docs/migration_continued.md' },
-      { label: 'Technical Spec Sheet §7.12', href: '/spec-sheet' },
+      { label: 'Technical Spec Sheet §7.12', href: TECH_SPEC_ROUTE },
     ],
     nextSteps: ['Design tenant/user tables', 'Add membership selector to Projects and Tasks'],
   },
@@ -86,11 +88,9 @@ export const specRequirements: SpecRequirement[] = [
     title: 'Evidence Pack & Audit Export',
     description:
       'Web app must generate regulator-grade bundles per Evidence Pack templates.',
-    status: 'pending',
+    status: 'complete',
     specRefs: ['Spec §8.17', 'Spec §11.6'],
-    sourceDocs: [
-      { label: 'Technical Spec Sheet §8.17 / §11.6', href: '/spec-sheet' },
-    ],
-    nextSteps: ['Expose /api/evidence-packs endpoint', 'Add download button to Audit space'],
+    sourceDocs: [{ label: 'Technical Spec Sheet §8.17 / §11.6', href: TECH_SPEC_ROUTE }],
+    nextSteps: ['Monitor generated packs for regulator usage patterns', 'Extend builder with tenant/retention filters'],
   },
 ]

@@ -1086,3 +1086,287 @@ export interface TerminalHistoryEntry extends TerminalResult {
   id: string
   timestamp: string
 }
+
+// ============================================================================
+// OBSERVABILITY & RUNTIME DIAGNOSTICS TYPES (v1000)
+// ============================================================================
+
+export type DiagnosticSeverity = 'critical' | 'error' | 'warning' | 'info' | 'debug'
+
+export interface RuntimeDiagnosticEvent {
+  id: string
+  timestamp: string
+  severity: DiagnosticSeverity
+  source: string
+  message: string
+  stack?: string | null
+  context: Record<string, unknown>
+  ai_suggestion?: string | null
+  auto_fixed?: boolean
+  fix_applied_at?: string | null
+}
+
+export interface DiagnosticStats {
+  total_events: number
+  by_severity: Record<DiagnosticSeverity, number>
+  auto_fixed_count: number
+  pending_review: number
+  last_event_at?: string | null
+}
+
+export interface ObservabilityMetrics {
+  uptime_seconds: number
+  memory_mb: number
+  cpu_percent: number
+  active_connections: number
+  requests_per_minute: number
+  error_rate: number
+  p99_latency_ms: number
+}
+
+export interface AIRemediationSuggestion {
+  id: string
+  event_id: string
+  suggestion: string
+  confidence: number
+  fix_code?: string | null
+  fix_applied: boolean
+  created_at: string
+}
+
+export interface ObservabilitySnapshot {
+  metrics: ObservabilityMetrics
+  diagnostics: DiagnosticStats
+  recent_events: RuntimeDiagnosticEvent[]
+  suggestions: AIRemediationSuggestion[]
+  planes_status: Record<string, string>
+  last_updated: string
+}
+
+// ============================================================================
+// CAPSULE & BLUEPRINT TYPES (v1000)
+// ============================================================================
+
+export type CapsuleStatus = 'draft' | 'active' | 'deprecated' | 'archived'
+
+export interface CapsuleSpec {
+  id: string
+  name: string
+  version: string
+  description: string
+  category: string
+  status: CapsuleStatus
+  author: string
+  created_at: string
+  updated_at: string
+  spec_refs: string[]
+  dependencies: string[]
+  capabilities: string[]
+  configuration: Record<string, unknown>
+  runs_count: number
+  success_rate: number
+  avg_duration_ms: number
+}
+
+export interface BlueprintSpec {
+  id: string
+  name: string
+  version: string
+  description: string
+  category: string
+  capsules: string[]
+  orchestration_mode: 'sequential' | 'parallel' | 'conditional'
+  created_at: string
+  updated_at: string
+  author: string
+  spec_refs: string[]
+}
+
+export interface CapsuleRunLog {
+  id: string
+  capsule_id: string
+  started_at: string
+  completed_at?: string | null
+  status: 'running' | 'success' | 'failed' | 'cancelled'
+  input_params: Record<string, unknown>
+  output_summary?: string | null
+  error_message?: string | null
+  duration_ms?: number | null
+  triggered_by: string
+}
+
+export interface CapsuleMarketplaceFilter {
+  category?: string
+  status?: CapsuleStatus
+  author?: string
+  search?: string
+}
+
+export interface CapsuleMarketplaceResponse {
+  total: number
+  capsules: CapsuleSpec[]
+  blueprints: BlueprintSpec[]
+  categories: string[]
+  featured: CapsuleSpec[]
+}
+
+// ============================================================================
+// AUTO-FIX & SELF-HEALING TYPES (v1000)
+// ============================================================================
+
+export type AutoFixStatus = 'pending' | 'analyzing' | 'fixing' | 'applied' | 'failed' | 'skipped'
+
+export interface AutoFixIssue {
+  id: string
+  file_path: string
+  line_number?: number | null
+  issue_type: 'error' | 'warning' | 'lint' | 'security' | 'performance'
+  description: string
+  severity: DiagnosticSeverity
+  detected_at: string
+  status: AutoFixStatus
+  ai_analysis?: string | null
+  proposed_fix?: string | null
+  fix_applied_at?: string | null
+  confidence: number
+}
+
+export interface AutoFixReport {
+  id: string
+  started_at: string
+  completed_at?: string | null
+  status: 'running' | 'completed' | 'failed'
+  issues_detected: number
+  issues_fixed: number
+  issues_skipped: number
+  issues_failed: number
+  issues: AutoFixIssue[]
+  summary: string
+}
+
+export interface AutoFixConfiguration {
+  enabled: boolean
+  auto_apply_threshold: number
+  scan_interval_seconds: number
+  target_directories: string[]
+  excluded_patterns: string[]
+  issue_types: string[]
+}
+
+// ============================================================================
+// AI COACH & PAGE GUIDE TYPES
+// ============================================================================
+
+export interface CoachQuickAction {
+  label: string
+  description: string
+  prompt: string
+}
+
+export interface PageCoachPayload {
+  route: string
+  title: string
+  summary: string
+  persona: string
+  spec_refs: string[]
+  tutorial: string[]
+  recommendations: string[]
+  quick_actions: CoachQuickAction[]
+  signals: string[]
+}
+
+export interface CoachAnswer {
+  route: string
+  persona: string
+  response: string
+  follow_up: string[]
+  timestamp: string
+}
+
+// ============================================================================
+// PLANE ORCHESTRATION TYPES (v1000)
+// ============================================================================
+
+export type PlaneType = 'data' | 'control' | 'governance'
+export type PlaneStatus = 'healthy' | 'degraded' | 'offline' | 'initializing'
+
+export interface PlaneMetrics {
+  requests_handled: number
+  avg_latency_ms: number
+  error_count: number
+  last_heartbeat: string
+}
+
+export interface PlaneState {
+  id: string
+  type: PlaneType
+  status: PlaneStatus
+  version: string
+  metrics: PlaneMetrics
+  services: string[]
+  dependencies: string[]
+}
+
+export interface PlaneOrchestrationSnapshot {
+  data_plane: PlaneState
+  control_plane: PlaneState
+  governance_plane: PlaneState
+  cross_plane_health: number
+  last_sync: string
+}
+
+// ============================================================================
+// DRIVER & INTENT TYPES (v1000)
+// ============================================================================
+
+export type DriverCategory = 'os' | 'software' | 'data' | 'network' | 'security'
+
+export interface DriverManifest {
+  id: string
+  name: string
+  category: DriverCategory
+  version: string
+  capabilities: string[]
+  constraints: Record<string, unknown>
+  cost_per_call: number
+  latency_hint_ms: number
+  enabled: boolean
+}
+
+export interface IntentRequest {
+  id: string
+  query: string
+  context: Record<string, unknown>
+  constraints?: Record<string, unknown>
+  priority: 'low' | 'normal' | 'high' | 'critical'
+  created_at: string
+}
+
+export interface ExecutionStep {
+  id: string
+  driver_id: string
+  action: string
+  parameters: Record<string, unknown>
+  status: 'pending' | 'running' | 'completed' | 'failed'
+  result?: unknown
+  error?: string | null
+  started_at?: string | null
+  completed_at?: string | null
+}
+
+export interface ExecutionPlan {
+  id: string
+  intent_id: string
+  steps: ExecutionStep[]
+  estimated_cost: number
+  estimated_duration_ms: number
+  created_at: string
+}
+
+export interface IntentResolution {
+  intent: IntentRequest
+  plan: ExecutionPlan
+  final_result?: unknown
+  status: 'planning' | 'executing' | 'completed' | 'failed'
+  reasoning_trace: string[]
+}

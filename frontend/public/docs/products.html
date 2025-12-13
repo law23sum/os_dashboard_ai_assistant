@@ -74,6 +74,7 @@
                     </div>
                 </div>
             </div>
+            <p class="catalog-count" id="catalog-count" aria-live="polite"></p>
             <div id="product-cards" class="catalog-list"></div>
         </section>
     </main>
@@ -88,15 +89,17 @@
             const container = document.getElementById('product-cards');
             const filterSelect = document.getElementById('category-filter');
             const searchInput = document.getElementById('product-search');
+            const countEl = document.getElementById('catalog-count');
+            const dataset = [...window.osProductData].sort((a, b) => parseFloat(a.id) - parseFloat(b.id));
 
             const render = () => {
                 const category = filterSelect.value;
                 const query = searchInput.value.trim().toLowerCase();
                 container.innerHTML = '';
-                const filtered = window.osProductData
+                const filtered = dataset
                     .filter(product => category === 'all' || product.category === category)
                     .filter(product => {
-                        if (!query) return false;
+                        if (!query) return true;
                         const haystack = [
                             product.id,
                             product.name,
@@ -107,21 +110,15 @@
                         return haystack.includes(query);
                     });
 
-                if (!query) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <h3>Search to reveal a product</h3>
-                            <p>Pick a track or start typing the ID/name (e.g., “10.10”, “Capsules”, “Security”) to focus on a single capability without other cards in the way.</p>
-                        </div>
-                    `;
-                    return;
+                if (countEl) {
+                    countEl.textContent = `Showing ${filtered.length} of ${dataset.length} products`;
                 }
 
                 if (filtered.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
                             <h3>No matches</h3>
-                            <p>Try another keyword or switch tracks to see if the capability lives elsewhere.</p>
+                            <p>Try another keyword or switch tracks to explore the rest of the catalog.</p>
                         </div>
                     `;
                     return;

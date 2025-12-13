@@ -1,3 +1,5 @@
+import { apiRequest } from "./client";
+
 export interface ProjectRecord {
   name: string;
   description: string;
@@ -14,9 +16,5 @@ export interface ProjectSnapshot {
 }
 
 export async function fetchProjectSnapshot(): Promise<ProjectSnapshot> {
-  const resp = await fetch("/projects/summary");
-  if (!resp.ok) {
-    throw new Error(`Projects API error (${resp.status})`);
-  }
-  return resp.json();
+  return apiRequest<ProjectSnapshot>("/projects/summary");
 }

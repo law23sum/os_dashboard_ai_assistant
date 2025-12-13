@@ -842,9 +842,12 @@ def db_insert_chat_message(conn: sqlite3.Connection, msg: ChatMessage) -> int:
     return c.lastrowid
 
 
-def db_clear_chat_history(conn: sqlite3.Connection):
+def db_clear_chat_history(conn: sqlite3.Connection, persona: Optional[str] = None):
     c = conn.cursor()
-    c.execute("DELETE FROM chat_messages")
+    if persona:
+        c.execute("DELETE FROM chat_messages WHERE persona = ?", (persona,))
+    else:
+        c.execute("DELETE FROM chat_messages")
     conn.commit()
 
 

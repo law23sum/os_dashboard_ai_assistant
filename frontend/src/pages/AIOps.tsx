@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { RefreshCw, Brain, Activity, Sparkles } from 'lucide-react'
+import { RefreshCw, Brain, Activity, Sparkles, Cpu } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import apiClient, { apiPath } from '../lib/apiClient'
 import { extractArray } from '../lib/responseHelpers'
@@ -11,6 +11,7 @@ import type {
   DriverSchedulingSnapshot,
 } from '../types'
 import { toast } from '../utils/toast'
+import PageHeader from '../components/PageHeader'
 
 const statusOptions = ['all', 'queued', 'running', 'succeeded', 'failed', 'needs_review']
 
@@ -196,28 +197,28 @@ export default function AIOps() {
   }
 
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">AI Operations</h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Governance feed for document automations and daemon workflows
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            operationsQuery.refetch()
-            summaryQuery.refetch()
-            driverMetricsQuery.refetch()
-          }}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
-        >
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </button>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="AI Fabric"
+        title="AI Operations"
+        description="Governance feed for document automations and daemon workflows"
+        icon={Cpu}
+        actions={
+          <button
+            onClick={() => {
+              operationsQuery.refetch()
+              summaryQuery.refetch()
+              driverMetricsQuery.refetch()
+            }}
+            className="btn-primary"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
+        }
+      />
 
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
+      <div className="glass-card page-section">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -237,7 +238,7 @@ export default function AIOps() {
           </div>
         ) : (
           <>
-            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="mt-4 content-grid grid-cols-1 md:grid-cols-3">
               {driverSnapshot?.queues.map((queue) => {
                 const sliderValue = driverTargets[queue.driver_id] ?? queue.admission_rate
                 return (
@@ -297,7 +298,7 @@ export default function AIOps() {
                           type="button"
                           onClick={() => handleDriverMode(queue.driver_id, 'manual')}
                           className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800 shadow-sm hover:border-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-                          disabled={driverThrottleMutation.isLoading}
+                          disabled={driverThrottleMutation.isPending}
                         >
                           Apply Manual
                         </button>
@@ -305,7 +306,7 @@ export default function AIOps() {
                           type="button"
                           onClick={() => handleDriverMode(queue.driver_id, 'auto')}
                           className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-800 hover:border-primary-500 dark:border-gray-700 dark:text-gray-100"
-                          disabled={driverThrottleMutation.isLoading}
+                          disabled={driverThrottleMutation.isPending}
                         >
                           Auto Mode
                         </button>

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ClipboardList, ShieldCheck, AlertTriangle, Activity, RefreshCw } from 'lucide-react'
+import { ClipboardList, ShieldCheck, AlertTriangle, Activity, RefreshCw, Package, Download } from 'lucide-react'
 import apiClient, { apiPath } from '../lib/apiClient'
-import { AuditSummary, AuditLogEntry, AuditCheckResponse } from '../types'
+import { AuditSummary, AuditLogEntry, AuditCheckResponse, EvidencePackResponse, Project } from '../types'
 import { toast } from '../utils/toast'
 
 const fetchSummary = async (): Promise<AuditSummary> => {
@@ -17,9 +17,34 @@ const fetchLogs = async (): Promise<AuditLogEntry[]> => {
   return data
 }
 
+const fetchProjectNames = async (): Promise<string[]> => {
+  const { data } = await apiClient.get<Project[]>(apiPath('projects'))
+  return data.map((project) => project.name)
+}
+
+const downloadEvidenceArchive = (pack: EvidencePackResponse) => {
+  if (typeof window === 'undefined') return
+  const byteString = window.atob(pack.archive_b64)
+  const buffer = new Uint8Array(byteString.length)
+  for (let index = 0; index < byteString.length; index += 1) {
+    buffer[index] = byteString.charCodeAt(index)
+  }
+  const blob = new Blob([buffer], { type: 'application/zip' })
+  const url = window.URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = `${pack.reference}.zip`
+  document.body.appendChild(anchor)
+  anchor.click()
+  document.body.removeChild(anchor)
+  window.URL.revokeObjectURL(url)
+}
+
 export default function Audit() {
   const queryClient = useQueryClient()
   const [lastRun, setLastRun] = useState<AuditCheckResponse | null>(null)
+  const [selectedProject, setSelectedProject] = useState<string>('')
+  const [latestPack, setLatestPack] = useState<EvidencePackResponse | null>(null)
 
   const summaryQuery = useQuery({
     queryKey: ['audit-summary'],
@@ -31,6 +56,12 @@ export default function Audit() {
     queryKey: ['audit-logs'],
     queryFn: fetchLogs,
     refetchInterval: 45000,
+  })
+
+  const projectsQuery = useQuery({
+    queryKey: ['audit-projects'],
+    queryFn: fetchProjectNames,
+    staleTime: 5 * 60 * 1000,
   })
 
   const runCheckMutation = useMutation({
@@ -46,6 +77,26 @@ export default function Audit() {
     },
     onError: () => toast.error('Unable to run compliance check'),
   })
+
+  const evidencePackMutation = useMutation({
+    mutationFn: async (projectScope?: string) => {
+      const params = projectScope ? { project: projectScope } : undefined
+      const { data } = await apiClient.post<EvidencePackResponse>(apiPath('audit/evidence-pack'), null, {
+        params,
+      })
+      return data
+    },
+    onSuccess: (data) => {
+      setLatestPack(data)
+      toast.success('Evidence pack generated')
+    },
+    onError: () => toast.error('Unable to generate Evidence Pack'),
+  })
+
+  const projectOptions = projectsQuery.data ?? []
+  const handleGeneratePack = () => {
+    evidencePackMutation.mutate(selectedProject || undefined)
+  }
 
   if (summaryQuery.isLoading) {
     return (
@@ -86,7 +137,7 @@ export default function Audit() {
           <button
             onClick={() => runCheckMutation.mutate()}
             className="inline-flex items-center px-3 py-2 rounded-md bg-primary-600 text-white hover:bg-primary-700 text-sm"
-            disabled={runCheckMutation.isLoading}
+            disabled={runCheckMutation.isPending}
           >
             <ShieldCheck className="w-4 h-4 mr-1" />
             Run Compliance Check
@@ -247,6 +298,95 @@ export default function Audit() {
             ) : (
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Run the compliance check to capture a new log.
+              </p>
+            )}
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="text-[0.65rem] uppercase tracking-[0.4em] text-gray-400 dark:text-gray-500">
+                  Spec §8.17 · §11.6
+                </p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Evidence Pack Builder
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Bundle ledger excerpts + audit summary into a regulator-ready archive.
+                </p>
+              </div>
+              <Package className="w-5 h-5 text-primary-500" />
+            </div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Project scope
+            </label>
+            <select
+              value={selectedProject}
+              onChange={(event) => setSelectedProject(event.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="">All projects</option>
+              {projectOptions.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            {projectsQuery.isError && (
+              <p className="mt-2 text-xs text-red-500 dark:text-red-300">
+                Unable to load project list. Try refreshing later.
+              </p>
+            )}
+            <button
+              onClick={handleGeneratePack}
+              disabled={evidencePackMutation.isPending}
+              className="mt-4 inline-flex items-center justify-center w-full px-4 py-2 rounded-md bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {evidencePackMutation.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  Generating…
+                </>
+              ) : (
+                <>
+                  <Package className="w-4 h-4 mr-2" />
+                  Generate Evidence Pack
+                </>
+              )}
+            </button>
+            {latestPack ? (
+              <div className="mt-4 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 p-3 text-sm text-gray-600 dark:text-gray-300 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-gray-900 dark:text-white">{latestPack.reference}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Generated {new Date(latestPack.generated_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => downloadEvidenceArchive(latestPack)}
+                    className="inline-flex items-center px-3 py-1.5 rounded-full border border-primary-500 text-primary-600 dark:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 text-xs font-semibold"
+                  >
+                    <Download className="w-3.5 h-3.5 mr-1" />
+                    Download ZIP
+                  </button>
+                </div>
+                <div className="text-xs uppercase tracking-[0.4em] text-gray-500 dark:text-gray-400">
+                  {latestPack.spec_refs.join(' · ')}
+                </div>
+                <ul className="space-y-1 text-sm">
+                  {latestPack.artifacts.map((artifact) => (
+                    <li key={artifact.name} className="flex items-start justify-between gap-2">
+                      <span className="font-medium text-gray-900 dark:text-white">{artifact.name}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {artifact.size_bytes.toLocaleString()} bytes
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+                Evidence packs encode the audit summary and hash-chained ledger slices requested in the Technical Spec.
               </p>
             )}
           </div>

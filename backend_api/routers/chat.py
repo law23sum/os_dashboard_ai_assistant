@@ -5,16 +5,21 @@ from pydantic import BaseModel
 import sys
 from pathlib import Path
 import json
+import logging
 
 parent_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
+from datetime import datetime
+
 from assistant_hub_gui.assistant_hub.db import (
+    ChatMessage,
     db_insert_chat_message,
     db_clear_chat_history,
     PERSONAS,
     CHAT_ROLES,
 )
+from assistant_core.ai import generate_ai_reply
 from backend_api.db import db_session
 
 router = APIRouter()
@@ -57,56 +62,165 @@ class ChatMessageResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class ChatMessagePairResponse(BaseModel):
+    """Response containing both user message and AI reply."""
+    user_message: ChatMessageResponse
+    ai_reply: ChatMessageResponse
+
 @router.get("/", response_model=List[ChatMessageResponse])
 async def get_chat_history(
     persona: Optional[str] = None,
     limit: int = 100,
 ):
     """Get chat history."""
-    query = "SELECT * FROM chat_messages WHERE 1=1"
-    params = []
-    
-    if persona:
-        query += " AND persona = ?"
-        params.append(persona)
-    
-    query += " ORDER BY created_at DESC LIMIT ?"
-    params.append(limit)
-    
-    with db_session() as db:
-        cursor = db.execute(query, params)
-        rows = cursor.fetchall()
-        columns = [description[0] for description in cursor.description]
-    
-    messages = []
-    for row in rows:
-        msg_dict = dict(zip(columns, row))
-        messages.append(ChatMessageResponse(**msg_dict))
-    
-    return list(reversed(messages))  # Return in chronological order
+    try:
+        query = "SELECT id, persona, role, kind, content, created_at FROM chat_messages WHERE 1=1"
+        params = []
+        
+        if persona:
+            query += " AND persona = ?"
+            params.append(persona)
+        
+        # Order by created_at ASC, id ASC for chronological order
+        query += " ORDER BY created_at ASC, id ASC LIMIT ?"
+        params.append(limit)
+        
+        messages = []
+        with db_session() as db:
+            cursor = db.execute(query, params)
+            rows = cursor.fetchall()
+            
+            for row in rows:
+                # sqlite3.Row objects can be accessed by column name
+                messages.append(ChatMessageResponse(
+                    id=row["id"],
+                    persona=row["persona"],
+                    role=row["role"],
+                    kind=row["kind"],
+                    content=row["content"],
+                    created_at=row["created_at"],
+                ))
+        
+        return messages  # Already in chronological order
+    except Exception as e:
+        logging.error(f"Error fetching chat history: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch chat history: {str(e)}")
 
-@router.post("/", response_model=ChatMessageResponse, status_code=201)
+@router.post("/", status_code=201)
 async def create_chat_message(message: ChatMessageCreate):
-    """Create a new chat message."""
+    """Create a new chat message and auto-generate an AI reply.
+    
+    Returns both the user message and the AI reply so the frontend
+    can display them immediately without refetching.
+    """
     if message.persona not in PERSONAS:
         raise HTTPException(status_code=400, detail=f"Invalid persona. Must be one of {PERSONAS}")
     if message.role not in CHAT_ROLES:
         raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of {CHAT_ROLES}")
-    
-    with db_session() as db:
-        msg_id = db_insert_chat_message(
-            db,
-            persona=message.persona,
-            role=message.role,
-            kind=message.kind,
-            content=message.content,
-        )
 
-        cursor = db.execute("SELECT * FROM chat_messages WHERE id = ?", (msg_id,))
-        row = cursor.fetchone()
-        columns = [description[0] for description in cursor.description]
-        msg_dict = dict(zip(columns, row))
-    return ChatMessageResponse(**msg_dict)
+    try:
+        with db_session() as db:
+            timestamp = datetime.now().isoformat(timespec="seconds")
+            chat_msg = ChatMessage(
+                id=0,
+                persona=message.persona,
+                role=message.role,
+                kind=message.kind,
+                content=message.content,
+                created_at=timestamp,
+            )
+            msg_id = db_insert_chat_message(db, chat_msg)
+
+            # Build ordered history (including brand new user message) for persona
+            history_cursor = db.execute(
+                """
+                SELECT id, persona, role, kind, content, created_at
+                FROM chat_messages
+                WHERE persona = ?
+                ORDER BY created_at ASC, id ASC
+                """,
+                (message.persona,),
+            )
+            history_rows = history_cursor.fetchall()
+            history: List[ChatMessage] = [
+                ChatMessage(
+                    id=row["id"],
+                    persona=row["persona"],
+                    role=row["role"],
+                    kind=row["kind"],
+                    content=row["content"],
+                    created_at=row["created_at"],
+                )
+                for row in history_rows
+            ]
+
+            # Generate AI reply
+            try:
+                reply_text, error, _ = generate_ai_reply(
+                    history,
+                    persona=message.persona,
+                    append_prompt=False,
+                    fallback_prompt=message.content,
+                )
+            except Exception as exc:
+                reply_text = f"[offline] Unable to reach AI engine: {exc}"
+                error = str(exc)
+
+            if error:
+                reply_text = f"{reply_text}\n\n[system] AI backend reported: {error}"
+
+            # Save AI reply
+            assistant_msg = ChatMessage(
+                id=0,
+                persona=message.persona,
+                role="assistant",
+                kind="chat",
+                content=reply_text,
+                created_at=datetime.now().isoformat(timespec="seconds"),
+            )
+            assistant_msg_id = db_insert_chat_message(db, assistant_msg)
+
+            # Fetch both messages to return
+            user_cursor = db.execute(
+                "SELECT id, persona, role, kind, content, created_at FROM chat_messages WHERE id = ?",
+                (msg_id,),
+            )
+            user_row = user_cursor.fetchone()
+            if not user_row:
+                raise HTTPException(status_code=500, detail="Failed to retrieve created user message")
+            
+            ai_cursor = db.execute(
+                "SELECT id, persona, role, kind, content, created_at FROM chat_messages WHERE id = ?",
+                (assistant_msg_id,),
+            )
+            ai_row = ai_cursor.fetchone()
+            if not ai_row:
+                raise HTTPException(status_code=500, detail="Failed to retrieve created AI reply")
+            
+            # Return both messages
+            return {
+                "user_message": ChatMessageResponse(
+                    id=user_row["id"],
+                    persona=user_row["persona"],
+                    role=user_row["role"],
+                    kind=user_row["kind"],
+                    content=user_row["content"],
+                    created_at=user_row["created_at"],
+                ),
+                "ai_reply": ChatMessageResponse(
+                    id=ai_row["id"],
+                    persona=ai_row["persona"],
+                    role=ai_row["role"],
+                    kind=ai_row["kind"],
+                    content=ai_row["content"],
+                    created_at=ai_row["created_at"],
+                ),
+            }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error creating chat message: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to create chat message: {str(e)}")
 
 @router.delete("/", status_code=204)
 async def clear_chat_history(

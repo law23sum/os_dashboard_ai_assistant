@@ -39,7 +39,7 @@ except ImportError as exc:  # pragma: no cover - handled at runtime
     ) from exc
 
 
-DEFAULT_MODEL = "gpt-4o"
+DEFAULT_MODEL = "gpt-5.2"
 
 
 def parse_args() -> argparse.Namespace:

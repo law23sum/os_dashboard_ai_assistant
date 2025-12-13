@@ -18,6 +18,7 @@ import {
 import apiClient, { apiPath } from '../lib/apiClient'
 import type { OfficeRealtimeClient, OfficeRealtimeSummary } from '../types'
 import { toast } from '../utils/toast'
+import PageHeader from '../components/PageHeader'
 
 const fetchRealtimeSummary = async (): Promise<OfficeRealtimeSummary> => {
   const { data } = await apiClient.get<OfficeRealtimeSummary>(apiPath('office/realtime/summary'))
@@ -199,46 +200,45 @@ export default function OfficeRealtime() {
   ]
 
   return (
-    <div className="px-4 py-6 sm:px-0 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-gray-500 dark:text-gray-400">Office Mesh</p>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Realtime Office Fabric</h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Mirrors the Tkinter AI Office agent: live sessions, AI queue telemetry, and manifest preview.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {isFetching && <span className="text-xs text-gray-500">Refreshing…</span>}
-          <button
-            onClick={() => refetch()}
-            className="inline-flex items-center px-4 py-2 rounded-md bg-primary-600 text-white text-sm font-medium hover:bg-primary-700"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </button>
-        </div>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Office Mesh"
+        title="Realtime Office Fabric"
+        description="Mirrors the Tkinter AI Office agent: live sessions, AI queue telemetry, and manifest preview."
+        icon={Activity}
+        actions={
+          <>
+            {isFetching && <span className="text-xs text-[color:var(--osd-muted)]">Refreshing…</span>}
+            <button
+              onClick={() => refetch()}
+              className="btn-primary"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh
+            </button>
+          </>
+        }
+      />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="content-grid grid-cols-2 lg:grid-cols-4">
         <MetricCard icon={Users} label="Connected Clients" value={participantCount} accent="text-sky-500" />
         <MetricCard icon={FileText} label="Active Documents" value={documentCount} accent="text-emerald-500" />
         <MetricCard icon={Activity} label="Pending Jobs" value={pendingJobs} accent="text-amber-500" />
         <MetricCard icon={Server} label="AI Queue Depth" value={queueDepth} accent="text-purple-500" />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 space-y-4">
-          <section className="border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-900/70 p-4">
-            <header className="flex items-center justify-between mb-4">
+      <div className="content-grid grid-cols-1 xl:grid-cols-3">
+        <div className="xl:col-span-2 space-y-6">
+          <section className="glass-card page-section">
+            <header className="flex items-center justify-between mb-6">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Documents</p>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Live Collaboration Decks</h3>
+                <p className="page-header__eyebrow mb-2">Documents</p>
+                <h3 className="text-heading-3 text-[color:var(--osd-text)]">Live Collaboration Decks</h3>
               </div>
             </header>
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="content-grid-tight grid-cols-1 sm:grid-cols-2">
               {documents.map((doc) => (
-                <div key={doc.document_id} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
+                <div key={doc.document_id} className="glass-card space-y-3">
                   <div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{doc.document_id}</p>
                     <h4 className="text-lg font-semibold text-gray-900 dark:text-white">{doc.title}</h4>
@@ -268,7 +268,7 @@ export default function OfficeRealtime() {
                 <p className="text-xs uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">AI Control</p>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Trigger Office AI</h3>
               </div>
-              {triggerMutation.isLoading && <span className="text-xs text-gray-500">Dispatching…</span>}
+              {triggerMutation.isPending && <span className="text-xs text-gray-500">Dispatching…</span>}
             </header>
             <div className="grid md:grid-cols-3 gap-3">
               <div className="space-y-1">
@@ -335,7 +335,7 @@ export default function OfficeRealtime() {
             )}
             <button
               onClick={handleTrigger}
-              disabled={triggerMutation.isLoading}
+              disabled={triggerMutation.isPending}
               className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 disabled:opacity-60"
             >
               <Send className="w-4 h-4 mr-2" />
@@ -576,13 +576,15 @@ interface MetricCardProps {
 
 function MetricCard({ icon: Icon, label, value, accent }: MetricCardProps) {
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/70 p-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
-          <p className={`text-2xl font-semibold ${accent}`}>{value}</p>
+    <div className="metric-card">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <p className="metric-card__label">{label}</p>
+          <p className={`metric-card__value ${accent}`}>{value}</p>
         </div>
-        <Icon className={`w-6 h-6 ${accent}`} />
+        <div className={`p-2.5 rounded-xl bg-[color:var(--osd-accentSoft)] ${accent} opacity-80`}>
+          <Icon className="w-5 h-5" />
+        </div>
       </div>
     </div>
   )

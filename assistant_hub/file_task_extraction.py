@@ -10,6 +10,25 @@ from .db import Task, db_insert_task, PERSONAS, PRIORITY_OPTIONS
 from .ai import openai_available, get_openai_client
 
 
+def _extract_output_text(response) -> str:
+    if hasattr(response, "output_text") and response.output_text:
+        return str(response.output_text).strip()
+    chunks: List[str] = []
+    output = getattr(response, "output", None) or []
+    for item in output:
+        item_type = getattr(item, "type", None) or (item.get("type") if isinstance(item, dict) else None)
+        if item_type != "message":
+            continue
+        content = getattr(item, "content", None) or (item.get("content") if isinstance(item, dict) else None) or []
+        for block in content:
+            btype = getattr(block, "type", None) or (block.get("type") if isinstance(block, dict) else None)
+            if btype == "output_text":
+                text = getattr(block, "text", None) or (block.get("text") if isinstance(block, dict) else None) or ""
+                if text:
+                    chunks.append(str(text))
+    return "\n".join(chunks).strip()
+
+
 def extract_tasks_from_file_content(
     file_content: str, file_name: str, project_name: str, owner: str = "Chris"
 ) -> List[Task]:
@@ -47,14 +66,18 @@ Return ONLY valid JSON array, no other text."""
         ]
 
         client = get_openai_client()
-        response = client.chat.completions.create(
+        response = client.responses.create(
             model="gpt-5-nano",  # Use cheaper model for extraction
-            messages=messages,
+            instructions=messages[0]["content"],
+            input=[{"role": "user", "content": [{"type": "input_text", "text": prompt}]}],
+            reasoning={"effort": "none"},
+            text={"verbosity": "low"},
             temperature=0.3,
-            max_tokens=2000,
+            max_output_tokens=2000,
+            store=False,
         )
 
-        reply_text = response.choices[0].message.content.strip()
+        reply_text = _extract_output_text(response)
 
         # Try to extract JSON from the response
         json_text = _extract_json_from_response(reply_text)

@@ -1413,16 +1413,21 @@ class OpenAIConnector(BaseConnector):
         options = options or {}
         prompt = self._create_prompt(operation, str(cir_document), options)
         try:
-            response = await self.client.chat.completions.create(
-                model=options.get("model", self.model_config["default_model"]),
-                messages=[
-                    {"role": "system", "content": "You are a helpful document processing assistant."},
-                    {"role": "user", "content": prompt},
-                ],
-                max_tokens=options.get("max_tokens", self.model_config["max_tokens"]),
-                temperature=options.get("temperature", self.model_config["temperature"]),
+            model = options.get("model", self.model_config["default_model"])
+            max_tokens = options.get("max_tokens", self.model_config["max_tokens"])
+            temperature = options.get("temperature", self.model_config["temperature"])
+
+            response = await self.client.responses.create(
+                model=model,
+                instructions="You are a helpful document processing assistant.",
+                input=[{"role": "user", "content": [{"type": "input_text", "text": prompt}]}],
+                reasoning={"effort": "none"},
+                text={"verbosity": "medium"},
+                temperature=temperature,
+                max_output_tokens=max_tokens,
+                store=False,
             )
-            result_text = response.choices[0].message.content
+            result_text = getattr(response, "output_text", None) or ""
             return OperationResult(success=True, data=result_text)
         except Exception as exc:  # pragma: no cover - network dependent
             return OperationResult(success=False, error=str(exc))
@@ -1460,16 +1465,21 @@ class OpenAIConnector(BaseConnector):
         document_text = await self._cir_to_text(cir_document)
         prompt = await self._create_prompt(operation, document_text, options or {})
 
-        response = await self.client.chat.completions.create(
-            model=(options or {}).get("model", self.model_config["default_model"]),
-            messages=[
-                {"role": "system", "content": "You are a helpful document processing assistant."},
-                {"role": "user", "content": prompt},
-            ],
-            max_tokens=(options or {}).get("max_tokens", self.model_config["max_tokens"]),
-            temperature=(options or {}).get("temperature", self.model_config["temperature"]),
+        model = (options or {}).get("model", self.model_config["default_model"])
+        max_tokens = (options or {}).get("max_tokens", self.model_config["max_tokens"])
+        temperature = (options or {}).get("temperature", self.model_config["temperature"])
+
+        response = await self.client.responses.create(
+            model=model,
+            instructions="You are a helpful document processing assistant.",
+            input=[{"role": "user", "content": [{"type": "input_text", "text": prompt}]}],
+            reasoning={"effort": "none"},
+            text={"verbosity": "medium"},
+            temperature=temperature,
+            max_output_tokens=max_tokens,
+            store=False,
         )
-        result_text = response.choices[0].message.content
+        result_text = getattr(response, "output_text", None) or ""
 
         if (options or {}).get("return_cir", False):
             result_cir = await self._text_to_cir(result_text, cir_document.document_type)

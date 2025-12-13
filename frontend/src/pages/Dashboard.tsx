@@ -10,6 +10,7 @@ import {
   Server,
   Shield,
   TrendingUp,
+  LayoutDashboard,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { API } from '../api'
@@ -23,6 +24,7 @@ import type {
   PersonaInfo,
 } from '../types'
 import { toast } from '../utils/toast'
+import PageHeader from '../components/PageHeader'
 
 const PERSONA_ROLES: Record<string, string> = {
   Chris: 'Human Owner · executive decisions',
@@ -267,8 +269,9 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="px-4 py-6 sm:px-0">
-        <div className="glass-card flex h-72 items-center justify-center text-slate-300">
+        <div className="glass-card flex flex-col h-72 items-center justify-center text-slate-300 gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          <p className="text-sm text-slate-400">Loading dashboard data...</p>
         </div>
       </div>
     )
@@ -277,19 +280,28 @@ export default function Dashboard() {
   if (error || !data) {
     return (
       <div className="px-4 py-6 sm:px-0">
-        <div className="glass-card border-l-4 border-amber-400/60 text-sm text-slate-100">
-          <div className="flex items-center gap-3 text-base font-semibold">
-            <AlertCircle className="h-5 w-5 text-amber-300" />
-            Backend Connection Issue
+        <div className="glass-card border-l-4 border-amber-400/60 text-sm text-slate-100 p-6">
+          <div className="flex items-center gap-3 text-base font-semibold mb-3">
+            <AlertCircle className="h-5 w-5 text-amber-300 flex-shrink-0" />
+            <span>Backend Connection Issue</span>
           </div>
-          <p className="mt-2 text-slate-300">
+          <p className="mt-2 text-slate-300 mb-4">
             {error instanceof Error ? error.message : 'Unable to connect to backend server.'}
           </p>
-          <ol className="mt-4 space-y-2 text-slate-300">
-            <li>1. Run <code className="rounded bg-black/20 px-2 py-1">uvicorn backend_api.main:app --reload</code></li>
-            <li>2. Verify FastAPI is reachable on <code className="rounded bg-black/20 px-2 py-1">http://127.0.0.1:8000</code></li>
-            <li>3. Refresh this page — it polls every 30 seconds.</li>
-          </ol>
+          <div className="space-y-2 text-slate-300">
+            <p className="text-xs uppercase tracking-wider text-slate-400 mb-2">Troubleshooting Steps:</p>
+            <ol className="space-y-2 list-decimal list-inside">
+              <li className="pl-2">Run <code className="rounded bg-black/30 px-2 py-1 text-xs font-mono">uvicorn backend_api.main:app --reload</code></li>
+              <li className="pl-2">Verify FastAPI is reachable on <code className="rounded bg-black/30 px-2 py-1 text-xs font-mono">http://127.0.0.1:8000</code></li>
+              <li className="pl-2">Refresh this page — it polls every 30 seconds.</li>
+            </ol>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-primary-500/20 hover:bg-primary-500/30 border border-primary-500/50 rounded-xl text-sm text-primary-300 transition-colors"
+          >
+            Retry Connection
+          </button>
         </div>
       </div>
     )
@@ -467,30 +479,25 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="px-4 py-6 sm:px-0 space-y-8 text-slate-100">
-      <section className="glass-card relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-transparent to-purple-500/10" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="eyebrow-text">Command Center</p>
-            <h1 className="mt-2 text-3xl font-semibold text-white">Operational Dashboard</h1>
-            <p className="mt-3 max-w-2xl text-sm text-slate-300">
-              Shared React + Electron surface backed by the same FastAPI routes that powered the Tkinter GUI.
-              Monitor tasks, projects, and telemetry without duplicating code.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-slate-400">
-              <span className="pill-muted">Projects · {data.active_projects}/{data.total_projects}</span>
-              <span className="pill-muted">Tasks · {totalTasks}</span>
-            </div>
-          </div>
-          <Link className="btn-tonal" to="/docs/dashboard">
-            <FileText className="h-4 w-4" />
-            View preserved HTML
-          </Link>
-        </div>
-      </section>
+    <div className="space-y-8 text-slate-100">
+      <PageHeader
+        eyebrow="Command Center"
+        title="Operational Dashboard"
+        description="Shared React + Electron surface backed by the same FastAPI routes that powered the Tkinter GUI. Monitor tasks, projects, and telemetry without duplicating code."
+        icon={LayoutDashboard}
+        actions={
+          <>
+            <span className="pill-muted px-3 py-1.5">Projects · {data.active_projects}/{data.total_projects}</span>
+            <span className="pill-muted px-3 py-1.5">Tasks · {totalTasks}</span>
+            <Link className="btn-secondary" to="/docs/dashboard">
+              <FileText className="h-4 w-4" />
+              View Docs
+            </Link>
+          </>
+        }
+      />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="content-grid grid-cols-2 xl:grid-cols-4">
         {statCards.map((card) => (
           <DashboardStatCard
             key={card.title}
@@ -503,7 +510,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="content-grid grid-cols-2 xl:grid-cols-4">
         {summaryTiles.map((tile) => (
           <div key={tile.title} className="glass-card">
             <p className="eyebrow-text">{tile.title}</p>
@@ -653,17 +660,32 @@ export default function Dashboard() {
             onChange={(e) => setAssistantInput(e.target.value)}
             rows={4}
             placeholder="Ask about tasks, incidents, or plans"
-            className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-white"
+            className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault()
+                handleAssistantSend()
+              }
+            }}
           />
           <button
-            className="btn-tonal"
+            className="btn-tonal disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleAssistantSend}
-            disabled={assistantPending}
+            disabled={assistantPending || !assistantInput.trim()}
           >
-            {assistantPending ? 'Sending…' : 'Send'}
+            {assistantPending ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                Sending…
+              </>
+            ) : (
+              'Send (⌘+Enter)'
+            )}
           </button>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-200 min-h-[60px]">
-            {assistantReply || 'Response will appear here.'}
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-200 min-h-[60px] max-h-48 overflow-y-auto">
+            {assistantReply || (
+              <span className="text-slate-500 italic">Response will appear here...</span>
+            )}
           </div>
         </div>
         <div className="glass-card space-y-4">
@@ -698,13 +720,29 @@ export default function Dashboard() {
           </div>
           <div className="flex gap-3">
             <input
-              className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
+              className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all"
               placeholder="Search notes, PDFs, etc."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !searchPending && searchTerm.trim()) {
+                  handleSearch()
+                }
+              }}
             />
-            <button className="btn-tonal" onClick={handleSearch} disabled={searchPending}>
-              {searchPending ? 'Searching…' : 'Search'}
+            <button 
+              className="btn-tonal disabled:opacity-50 disabled:cursor-not-allowed" 
+              onClick={handleSearch} 
+              disabled={searchPending || !searchTerm.trim()}
+            >
+              {searchPending ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  Searching…
+                </>
+              ) : (
+                'Search'
+              )}
             </button>
           </div>
           {searchError && <p className="text-sm text-amber-300">{searchError}</p>}

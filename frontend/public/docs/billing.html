@@ -55,13 +55,21 @@
     <script>
       const summaryEl = document.getElementById('summary');
       const recordsEl = document.getElementById('records');
+      // Technical Spec §1.1 + §8.13 require billing surfaces to consume the canonical API fabric.
+      const API_BASE = (window.__OSDASH_API_BASE__ || '/api').replace(/\/+$/, '');
+      const apiUrl = (path) => {
+        if (!path) return API_BASE;
+        if (/^https?:\/\//i.test(path)) return path;
+        if (path.startsWith('/')) return `${API_BASE}${path}`;
+        return `${API_BASE}/${path}`;
+      };
       document.getElementById('refresh').addEventListener('click', loadBilling);
 
       async function loadBilling() {
         summaryEl.textContent = 'Loading…';
         recordsEl.textContent = '';
         try {
-          const data = await fetch('/billing/usage').then((res) => res.json());
+          const data = await fetch(apiUrl('/billing/usage')).then((res) => res.json());
           summaryEl.innerHTML = `<h2>Estimated Cost</h2><p style="font-size:2.5rem;">$${(data.estimated_cost || 0).toFixed(4)}</p>`;
           if (!data.records?.length) {
             recordsEl.textContent = 'No usage records.';

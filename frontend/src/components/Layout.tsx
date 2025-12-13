@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState, useRef } from 'react'
+import { ReactNode, useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import {
@@ -35,9 +35,15 @@ import {
   Compass,
   ExternalLink,
   Sparkles,
+  Radio,
+  Package,
+  Wrench,
+  Zap,
 } from 'lucide-react'
 import { applyTheme, defaultTheme } from '../theme'
 import { useAppSettings } from '../hooks/useSettings'
+import { UnifiedAIPanel } from './UnifiedAIPanel'
+import { throttle } from '../shared/utils'
 
 interface LayoutProps {
   children: ReactNode
@@ -70,39 +76,139 @@ interface NavDropdownProps {
   active: boolean
   expanded: boolean
   onToggle: () => void
+  onClose: () => void
   location: { pathname: string }
 }
 
-function NavDropdown({ item, childItems, active, expanded, onToggle, location }: NavDropdownProps) {
+function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const Icon = item.icon
 
-  useEffect(() => {
-    if (expanded && buttonRef.current && dropdownRef.current) {
+  // Memoize the position update function
+  const updatePosition = useCallback(() => {
+    if (buttonRef.current && dropdownRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect()
-      dropdownRef.current.style.top = `${buttonRect.bottom + 8}px`
-      dropdownRef.current.style.left = `${buttonRect.left}px`
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
+      const dropdownWidth = 288 // w-72 = 18rem = 288px
+      
+      // Calculate horizontal position (prevent overflow)
+      let left = buttonRect.left
+      if (left + dropdownWidth > viewportWidth) {
+        left = viewportWidth - dropdownWidth - 16 // 16px padding from edge
+      }
+      if (left < 16) {
+        left = 16
+      }
+
+      // Calculate vertical position
+      const top = buttonRect.bottom + 8
+      const dropdownHeight = dropdownRef.current.offsetHeight || 400 // estimate if not rendered yet
+      
+      // If dropdown would overflow bottom, position above button
+      let finalTop = top
+      if (top + dropdownHeight > viewportHeight && buttonRect.top > dropdownHeight) {
+        finalTop = buttonRect.top - dropdownHeight - 8
+      }
+
+      dropdownRef.current.style.top = `${finalTop}px`
+      dropdownRef.current.style.left = `${left}px`
     }
-  }, [expanded])
+  }, [])
+
+  // Throttle position updates to improve performance (16ms = ~60fps)
+  const throttledUpdatePosition = useMemo(
+    () => throttle(() => requestAnimationFrame(updatePosition), 16),
+    [updatePosition]
+  )
+
+  useEffect(() => {
+    if (!expanded) {
+      // Reset position when closed
+      if (dropdownRef.current) {
+        dropdownRef.current.style.top = ''
+        dropdownRef.current.style.left = ''
+      }
+      return
+    }
+
+    // Initial position calculation with a small delay to ensure DOM is ready
+    const timeoutId = setTimeout(updatePosition, 0)
+
+    // Update position on scroll and resize with throttling
+    window.addEventListener('scroll', throttledUpdatePosition, true)
+    window.addEventListener('resize', throttledUpdatePosition)
+
+    return () => {
+      clearTimeout(timeoutId)
+      window.removeEventListener('scroll', throttledUpdatePosition, true)
+      window.removeEventListener('resize', throttledUpdatePosition)
+    }
+  }, [expanded, updatePosition, throttledUpdatePosition])
+
+  // Memoize click outside handler
+  const handleClickOutside = useCallback(
+    (event: MouseEvent) => {
+      const target = event.target as Node
+      if (
+        dropdownRef.current &&
+        buttonRef.current &&
+        !dropdownRef.current.contains(target) &&
+        !buttonRef.current.contains(target)
+      ) {
+        // Only close if currently expanded
+        if (expanded) {
+          onToggle()
+        }
+      }
+    },
+    [expanded, onToggle]
+  )
+
+  // Memoize link click handler
+  const handleLinkClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      // Close dropdown immediately when link is clicked
+      onClose()
+      // Also ensure position is reset
+      if (dropdownRef.current) {
+        dropdownRef.current.style.top = ''
+        dropdownRef.current.style.left = ''
+      }
+    },
+    [onClose]
+  )
+
+  // Memoize button click handler
+  const handleButtonClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onToggle()
+    },
+    [onToggle]
+  )
 
   useEffect(() => {
     if (!expanded) return
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        buttonRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        onToggle()
-      }
-    }
+    // Use a small delay to avoid immediate closure when opening
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside, true)
+    }, 100)
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [expanded, onToggle])
+    return () => {
+      clearTimeout(timeoutId)
+      document.removeEventListener('mousedown', handleClickOutside, true)
+    }
+  }, [expanded, handleClickOutside])
+
+  // Memoize groups to avoid unnecessary re-renders
+  const groups = useMemo(
+    () => (item.groups && item.groups.length ? item.groups : [{ label: undefined, items: childItems }]),
+    [item.groups, childItems]
+  )
 
   return (
     <>
@@ -110,7 +216,7 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, location }:
         <button
           ref={buttonRef}
           type="button"
-          onClick={onToggle}
+          onClick={handleButtonClick}
           className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
           aria-haspopup="menu"
           aria-expanded={expanded}
@@ -126,11 +232,14 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, location }:
       </div>
       {expanded &&
         createPortal(
-          <div ref={dropdownRef} className="osd-dropdown w-72" style={{ position: 'fixed', zIndex: 99999 }}>
-            {(item.groups && item.groups.length
-              ? item.groups
-              : [{ label: undefined, items: childItems }]
-            ).map((group, index) => (
+          <div 
+            ref={dropdownRef} 
+            className="osd-dropdown w-72" 
+            style={{ position: 'fixed', zIndex: 99999 }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {groups.map((group, index) => (
               <div
                 key={`${item.path}-group-${group.label ?? index}`}
                 className="px-4 py-3 border-b border-white/5 last:border-b-0"
@@ -154,7 +263,7 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, location }:
                         key={child.path}
                         to={child.path}
                         className={`osd-dropdown-link ${childActive ? 'osd-dropdown-link--active' : ''}`}
-                        onClick={onToggle}
+                        onClick={handleLinkClick}
                       >
                         <ChildIcon className="w-4 h-4 mr-2" />
                         {child.label}
@@ -175,6 +284,47 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const { data: settings } = useAppSettings()
+  const aiButtonRef = useRef<HTMLButtonElement>(null)
+  const [aiPanelOpen, setAiPanelOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    const stored = window.localStorage.getItem('aiPanelOpen')
+    return stored === 'true'
+  })
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem('aiPanelOpen', aiPanelOpen ? 'true' : 'false')
+    console.log('✅ aiPanelOpen state changed to:', aiPanelOpen)
+  }, [aiPanelOpen])
+
+  // Attach click handler directly via ref
+  useEffect(() => {
+    const button = aiButtonRef.current
+    if (!button) {
+      console.warn('⚠️ AI Assistant button ref is null')
+      return
+    }
+
+    console.log('✅ AI Assistant button ref found, attaching click handler')
+    
+    const handleClick = (e: MouseEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      console.log('🔘 DIRECT CLICK HANDLER FIRED! Current state:', aiPanelOpen)
+      setAiPanelOpen((prev) => {
+        const newValue = !prev
+        console.log('🔘 Setting state from', prev, 'to', newValue)
+        return newValue
+      })
+    }
+
+    button.addEventListener('click', handleClick, true)
+    
+    return () => {
+      button.removeEventListener('click', handleClick, true)
+    }
+  }, [aiPanelOpen])
+
 
   useEffect(() => {
     if (settings?.theme) {
@@ -194,126 +344,153 @@ export default function Layout({ children }: LayoutProps) {
     setExpandedGroups(newExpanded)
   }
 
+  const closeGroup = (groupPath: string) => {
+    const newExpanded = new Set(expandedGroups)
+    newExpanded.delete(groupPath)
+    setExpandedGroups(newExpanded)
+  }
+
   const navItems: NavItem[] = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/research', icon: FlaskConical, label: 'Research' },
-    { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
-    { path: '/projects', icon: FolderKanban, label: 'Projects' },
-    { path: '/chat', icon: MessageSquare, label: 'Chat' },
     {
-      path: '/work',
-      icon: BookOpen,
-      label: 'Work',
+      path: '/dashboard',
+      icon: LayoutDashboard,
+      label: 'Mission Control',
       groups: [
         {
-          label: 'Content Systems',
-          description: 'Templates + Writer workspace (Canon Spec §2.1)',
+          label: 'Core Flight Deck · Spec §1.7',
+          description: 'Dashboard, tasks, and projects for the driver-aware loop.',
           items: [
-            { path: '/work/templates', icon: LayoutTemplate, label: 'Templates' },
-            { path: '/work/writer', icon: BookOpen, label: 'Writer' },
+            { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+            { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
+            { path: '/projects', icon: FolderKanban, label: 'Projects' },
           ],
         },
         {
-          label: 'Automation & Tools',
-          description: 'Shared tooling and terminal',
+          label: 'Engagement & Persona Surfaces · Spec §7.12',
+          description: 'Chat, collaboration, and personalization stay one click away.',
+          items: [
+            { path: '/chat', icon: MessageSquare, label: 'Chat' },
+            { path: '/collaboration', icon: Users, label: 'Collaboration' },
+            { path: '/personalization', icon: Target, label: 'Personalization' },
+            { path: '/search', icon: SearchIcon, label: 'Search & Discovery' },
+          ],
+        },
+      ],
+    },
+    {
+      path: '/work',
+      icon: BookOpen,
+      label: 'Workspaces',
+      groups: [
+        {
+          label: 'Research & Simulation · Spec §7.4',
+          items: [{ path: '/research', icon: FlaskConical, label: 'Research Hub' }],
+        },
+        {
+          label: 'Writer & Templates · Spec §7.5',
+          items: [
+            { path: '/work/writer', icon: BookOpen, label: 'Writer Workstation' },
+            { path: '/work/templates', icon: LayoutTemplate, label: 'Templates' },
+          ],
+        },
+        {
+          label: 'Tools & Applied Intelligence',
+          description: 'Shared tools and terminal surfaces for workspace operators.',
           items: [{ path: '/work/tools', icon: Terminal, label: 'Tools & Terminal' }],
+        },
+      ],
+    },
+    {
+      path: '/ai',
+      icon: Brain,
+      label: 'AI Fabric',
+      groups: [
+        {
+          label: 'Ops & Driver Fabric · Spec §5.1/§5.12',
+          items: [
+            { path: '/ai/operations', icon: Cpu, label: 'AI Operations' },
+            { path: '/ai/os', icon: ServerCog, label: 'AI OS Control' },
+            { path: '/ai/mlops', icon: Bot, label: 'MLOps' },
+            { path: '/ai/intents', icon: Zap, label: 'Intent Processor' },
+          ],
+        },
+        {
+          label: 'Cognitive Engines · Spec §4',
+          items: [
+            { path: '/ai/copilot', icon: Bot, label: 'AI Copilot' },
+            { path: '/ai/advanced', icon: Brain, label: 'Advanced AI Engine' },
+            { path: '/ai/systems', icon: Layers, label: 'Systems Map' },
+          ],
+        },
+        {
+          label: 'Automation & Capsules · Spec §8',
+          items: [
+            { path: '/ai/workflows', icon: Workflow, label: 'Workflow Orchestrator' },
+            { path: '/ai/capsules', icon: Package, label: 'Capsule Marketplace' },
+            { path: '/ai/autofix', icon: Wrench, label: 'Auto-Fix Console' },
+          ],
+        },
+        {
+          label: 'Edge & Security · Spec §7.7/§10',
+          items: [
+            { path: '/ai/security', icon: Shield, label: 'Security Guardian' },
+            { path: '/ai/edge', icon: Satellite, label: 'Edge Computing' },
+            { path: '/ai/vision', icon: Eye, label: 'Computer Vision' },
+          ],
+        },
+        {
+          label: 'NAS & Simulation · Spec §7.4',
+          items: [
+            { path: '/ai/nas', icon: Dna, label: 'NAS Console' },
+            { path: '/ai/nas/experiments', icon: FlaskConical, label: 'Experiment Console' },
+            { path: '/ai/nas/simulator', icon: Layers, label: 'NAS Simulator' },
+          ],
         },
       ],
     },
     {
       path: '/integrations',
       icon: Plug,
-      label: 'Integrations',
-      children: [
-        { path: '/integrations', icon: Plug, label: 'Overview' },
-        { path: '/integrations/office', icon: Activity, label: 'Office Realtime' },
-        { path: '/integrations/api-connectors', icon: Network, label: 'API Connectors' },
+      label: 'Drivers & Integrations',
+      groups: [
+        {
+          label: 'Connectors · Spec §9.18',
+          items: [
+            { path: '/integrations', icon: Plug, label: 'Overview' },
+            { path: '/integrations/api-connectors', icon: Network, label: 'API Connectors' },
+            { path: '/integrations/office', icon: Activity, label: 'Office Realtime' },
+          ],
+        },
+        {
+          label: 'Execution Surfaces · Spec §5.3',
+          description: 'Driver-oriented system surfaces for workflows + security.',
+          items: [
+            { path: '/systems/security', icon: Shield, label: 'Security Operations' },
+            { path: '/systems/workflows', icon: Workflow, label: 'Workflow Orchestration' },
+            { path: '/systems/nas', icon: Layers, label: 'NAS Simulator' },
+            { path: '/systems/edge', icon: Satellite, label: 'Edge Systems' },
+          ],
+        },
       ],
     },
     {
       path: '/analytics',
       icon: BarChart3,
-      label: 'Insights',
-      children: [
-        { path: '/analytics', icon: BarChart3, label: 'Analytics' },
-        { path: '/monitoring', icon: Activity, label: 'Monitoring' },
-        { path: '/billing', icon: CreditCard, label: 'Billing' },
-        { path: '/audit', icon: ClipboardList, label: 'Audit' },
-      ],
-    },
-    {
-      path: '/collaboration',
-      icon: Users,
-      label: 'Engagement',
-      children: [
-        { path: '/collaboration', icon: Users, label: 'Collaboration' },
-        { path: '/personalization', icon: Target, label: 'Personalization' },
-        { path: '/search', icon: SearchIcon, label: 'Search' },
-        { path: '/computer-vision', icon: Eye, label: 'Computer Vision' },
-      ],
-    },
-    {
-      path: '/ai',
-      icon: Brain,
-      label: 'AI Stack',
+      label: 'Governance & Evidence',
       groups: [
         {
-          label: 'Ops & Control',
-          description: 'AI Ops feed, AI OS cockpit, and MLOps',
+          label: 'Telemetry · Spec §11',
           items: [
-            { path: '/ai/operations', icon: Cpu, label: 'Operations Feed' },
-            { path: '/ai/os', icon: ServerCog, label: 'AI OS Control' },
-            { path: '/ai/copilot', icon: Bot, label: 'AI Copilot Console' },
-            { path: '/ai/mlops', icon: Bot, label: 'MLOps' },
+            { path: '/analytics', icon: BarChart3, label: 'Analytics' },
+            { path: '/monitoring', icon: Activity, label: 'Monitoring' },
+            { path: '/observability', icon: Radio, label: 'Observability' },
           ],
         },
         {
-          label: 'Intelligence & Systems',
-          description: 'Advanced engines + Canon system map',
+          label: 'Finance & Audit · Spec §8.17/§15',
           items: [
-            { path: '/ai/advanced', icon: Brain, label: 'Advanced AI Engine' },
-            { path: '/ai/systems', icon: Layers, label: 'Systems Map' },
-          ],
-        },
-        {
-          label: 'Research & NAS',
-          description: 'Tkinter NAS dashboards mirrored in React',
-          items: [
-            { path: '/ai/nas', icon: Dna, label: 'NAS Dashboard' },
-            { path: '/ai/nas/experiments', icon: FlaskConical, label: 'Experiment Console' },
-          ],
-        },
-        {
-          label: 'Edge & Security',
-          description: 'Edge orchestration, workflows, and security operations',
-          items: [
-            { path: '/ai/security', icon: Shield, label: 'Security' },
-            { path: '/ai/edge', icon: Satellite, label: 'Edge Computing' },
-            { path: '/ai/workflows', icon: Workflow, label: 'Workflows' },
-            { path: '/ai/vision', icon: Eye, label: 'Computer Vision' },
-          ],
-        },
-      ],
-    },
-    {
-      path: '/systems',
-      icon: Layers,
-      label: 'Systems',
-      groups: [
-        {
-          label: 'Research & Simulation',
-          description: 'Backend NAS experiments + simulator surfaces',
-          items: [
-            { path: '/ai/nas', icon: Dna, label: 'NAS Experiments' },
-            { path: '/systems/nas', icon: Layers, label: 'NAS Simulator' },
-            { path: '/systems/edge', icon: Satellite, label: 'Edge Computing' },
-          ],
-        },
-        {
-          label: 'Security & Workflows',
-          items: [
-            { path: '/systems/security', icon: Shield, label: 'Security Operations' },
-            { path: '/systems/workflows', icon: Workflow, label: 'Workflow Orchestration' },
+            { path: '/billing', icon: CreditCard, label: 'Billing & Usage' },
+            { path: '/audit', icon: ClipboardList, label: 'Audit Evidence' },
           ],
         },
       ],
@@ -321,41 +498,31 @@ export default function Layout({ children }: LayoutProps) {
     {
       path: '/vision',
       icon: Sparkles,
-      label: 'Vision',
-      children: [
-        { path: '/vision', icon: Compass, label: 'Vision Deck Hub' },
-        { path: '/future/core_os', icon: Layers, label: 'Core OS Engines' },
-        { path: '/future/advanced', icon: Brain, label: 'Advanced Horizons' },
-        { path: '/future/super', icon: Dna, label: 'Super Capabilities' },
-        { path: '/future/hyper', icon: Satellite, label: 'Hyper Network' },
-        { path: '/future/ultra', icon: Workflow, label: 'Ultra Scale' },
-        { path: '/future/supreme', icon: Shield, label: 'Supreme' },
-        { path: '/future/ascend', icon: Shield, label: 'Ascend' },
-        { path: '/future/meta', icon: Compass, label: 'Meta Envelope' },
-      ],
-    },
-    {
-      path: '/docs',
-      icon: FileText,
-      label: 'Docs',
+      label: 'Vision & Docs',
       groups: [
         {
-          label: 'Core References',
+          label: 'Vision Deck · Spec §17',
+          items: [
+            { path: '/vision', icon: Compass, label: 'Vision Deck Hub' },
+            { path: '/future/core_os', icon: Layers, label: 'Core OS Engines' },
+            { path: '/future/advanced', icon: Brain, label: 'Advanced Horizons' },
+            { path: '/future/super', icon: Dna, label: 'Super Capabilities' },
+            { path: '/future/hyper', icon: Satellite, label: 'Hyper Network' },
+            { path: '/future/ultra', icon: Workflow, label: 'Ultra Scale' },
+            { path: '/future/supreme', icon: Shield, label: 'Supreme' },
+            { path: '/future/ascend', icon: Shield, label: 'Ascend' },
+            { path: '/future/meta', icon: Compass, label: 'Meta Envelope' },
+          ],
+        },
+        {
+          label: 'Canon & References',
+          description: 'Spec + migration docs stay co-located.',
           items: [
             { path: '/docs', icon: FileText, label: 'Docs Hub' },
             { path: '/docs/spec-sheet', icon: Compass, label: 'Technical Spec Sheet' },
+            { path: '/docs/migration_continued.md', icon: FileText, label: 'Migration Continued' },
+            { path: '/docs/projects.html', icon: ExternalLink, label: 'Legacy Projects HTML' },
           ],
-        },
-        {
-          label: 'Vision & Futures',
-          items: [
-            { path: '/vision', icon: Sparkles, label: 'Vision Deck' },
-            { path: '/future/core_os', icon: Layers, label: 'Core OS Envelope' },
-          ],
-        },
-        {
-          label: 'Legacy HTML',
-          items: [{ path: '/docs/projects.html', icon: ExternalLink, label: 'Legacy Pages' }],
         },
       ],
     },
@@ -380,7 +547,7 @@ export default function Layout({ children }: LayoutProps) {
     <div className="osd-shell min-h-screen text-[color:var(--osd-text)]">
       {/* Top Navigation Bar */}
       <nav className="osd-nav border-b border-[color:var(--osd-border)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" style={{ overflow: 'visible' }}>
+        <div className="w-full px-2 sm:px-4 lg:px-6" style={{ overflow: 'visible' }}>
           <div className="flex justify-between h-auto" style={{ overflow: 'visible' }}>
             <div className="flex flex-col w-full" style={{ overflow: 'visible' }}>
               {/* Primary Navigation */}
@@ -394,11 +561,11 @@ export default function Layout({ children }: LayoutProps) {
                     <h1 className="text-lg font-semibold">OS Dashboard · AI Assistant</h1>
                   </div>
                 </div>
-                <div className="hidden sm:ml-6 sm:flex sm:space-x-4 flex-1 overflow-x-auto overflow-y-visible items-center">
+                <div className="hidden sm:ml-6 sm:flex sm:space-x-2 flex-1 overflow-x-auto overflow-y-visible items-center scrollbar-hide">
                   {navItems.map((item) => {
                     const Icon = item.icon
-                  const childItems = extractChildren(item)
-                  const hasChildren = childItems.length > 0
+                    const childItems = extractChildren(item)
+                    const hasChildren = childItems.length > 0
                     const active = isActive(item.path, childItems)
                     const expanded = isExpanded(item)
 
@@ -411,19 +578,21 @@ export default function Layout({ children }: LayoutProps) {
                           active={active}
                           expanded={expanded}
                           onToggle={() => toggleGroup(item.path)}
+                          onClose={() => closeGroup(item.path)}
                           location={location}
                         />
                       )
                     }
 
                     return (
-                      <div key={item.path} className="flex items-center">
+                      <div key={item.path} className="flex items-center flex-shrink-0">
                         <Link
                           to={item.path}
                           className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
+                          aria-current={active ? 'page' : undefined}
                         >
-                          <Icon className="w-5 h-5 mr-2" />
-                          {item.label}
+                          <Icon className="w-5 h-5 mr-2 flex-shrink-0" />
+                          <span className="whitespace-nowrap">{item.label}</span>
                         </Link>
                       </div>
                     )
@@ -431,10 +600,15 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
               </div>
 
-              {/* Breadcrumb Navigation */}
+              {/* Enhanced Breadcrumb Navigation */}
               {location.pathname !== '/' && (
-                <div className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
-                  <Link to="/" className="hover:text-gray-700 dark:hover:text-gray-300">
+                <nav className="flex items-center space-x-1.5 px-4 py-2.5 text-sm border-t border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/30 backdrop-blur-sm" aria-label="Breadcrumb">
+                  <Link 
+                    to="/" 
+                    className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)] transition-colors"
+                    aria-label="Go to Dashboard"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
                     Dashboard
                   </Link>
                   {location.pathname
@@ -449,19 +623,24 @@ export default function Layout({ children }: LayoutProps) {
                         .join(' ')
 
                       return (
-                        <span key={path} className="flex items-center">
-                          <span className="mx-2">/</span>
+                        <span key={path} className="flex items-center" aria-current={isLast ? 'page' : undefined}>
+                          <span className="mx-1.5 text-[color:var(--osd-muted)]">/</span>
                           {isLast ? (
-                            <span className="text-gray-900 dark:text-white font-medium">{label}</span>
+                            <span className="px-2.5 py-1 rounded-lg text-[color:var(--osd-text)] font-semibold bg-[color:var(--osd-accentSoft)]">
+                              {label}
+                            </span>
                           ) : (
-                            <Link to={path} className="hover:text-gray-700 dark:hover:text-gray-300">
+                            <Link 
+                              to={path} 
+                              className="px-2 py-1 rounded-lg text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)] transition-colors"
+                            >
                               {label}
                             </Link>
                           )}
                         </span>
                       )
                     })}
-                </div>
+                </nav>
               )}
             </div>
           </div>
@@ -469,9 +648,42 @@ export default function Layout({ children }: LayoutProps) {
       </nav>
 
       {/* Main Content */}
-      <main className="glass-content max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
-        {children}
+      <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-8rem)]">
+        <div className="flex flex-col gap-8 lg:flex-row w-full">
+          <div className="flex-1 min-w-0 w-full">{children}</div>
+        </div>
       </main>
+
+      <UnifiedAIPanel currentPath={location.pathname} open={aiPanelOpen} onToggle={setAiPanelOpen} />
+
+      {/* Enhanced AI Assistant Toggle Button - Floating Action Button */}
+      <button
+        ref={aiButtonRef}
+        type="button"
+        id="ai-assistant-toggle-button"
+        className={`fixed bottom-6 flex items-center gap-2.5 rounded-full px-5 py-3 shadow-2xl cursor-pointer transition-all duration-300 z-[9999] backdrop-blur-md ${
+          aiPanelOpen
+            ? 'bg-[color:var(--osd-surface)]/90 text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)]'
+            : 'bg-gradient-to-r from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] text-white hover:from-[color:var(--osd-accentHover)] hover:to-purple-600 border border-[color:var(--osd-accent)]/30 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)]'
+        }`}
+        style={{
+          right: aiPanelOpen ? '400px' : '24px',
+          pointerEvents: 'auto',
+          transform: aiPanelOpen ? 'scale(0.95)' : 'scale(1)',
+        }}
+        aria-pressed={aiPanelOpen}
+        aria-label={aiPanelOpen ? 'Hide AI Assistant panel' : 'Show AI Assistant panel'}
+      >
+        <div className={`transition-transform duration-300 ${aiPanelOpen ? 'rotate-180' : ''}`}>
+          <Sparkles className="w-5 h-5" />
+        </div>
+        <span className="font-medium text-sm whitespace-nowrap">
+          {aiPanelOpen ? 'Hide Assistant' : 'AI Assistant'}
+        </span>
+        {!aiPanelOpen && (
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[color:var(--osd-background)] animate-pulse" />
+        )}
+      </button>
     </div>
   )
 }

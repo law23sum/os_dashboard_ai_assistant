@@ -139,7 +139,7 @@ const fetchAIOSStatus = async (): Promise<AIOSStatus | null> => {
 
 const fetchDaemons = async (): Promise<any[]> => {
   try {
-    const response = await API.daemons()
+    const response: any = await API.daemons()
     if (Array.isArray(response)) {
       return response
     }
@@ -783,14 +783,14 @@ export default function AICopilot() {
                       <button
                         onClick={() => handleDriverApply(queue.driver_id, 'manual')}
                         className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1.5 text-xs text-gray-800 dark:text-gray-100"
-                        disabled={driverThrottleMutation.isLoading}
+                        disabled={driverThrottleMutation.isPending}
                       >
                         Apply Manual
                       </button>
                       <button
                         onClick={() => handleDriverApply(queue.driver_id, 'auto')}
                         className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1.5 text-xs text-gray-800 dark:text-gray-100"
-                        disabled={driverThrottleMutation.isLoading}
+                        disabled={driverThrottleMutation.isPending}
                       >
                         Auto
                       </button>

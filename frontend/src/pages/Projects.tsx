@@ -185,7 +185,7 @@ export default function Projects() {
     queryKey: ['project-ledger', ledgerProjectFilter ?? 'all'],
     queryFn: () => fetchProjectLedger(ledgerProjectFilter ?? undefined, 120),
     enabled: !projectsQuery.isLoading,
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData ?? [],
     refetchInterval: 20000,
   })
   const intelligenceQuery = useQuery({
@@ -437,8 +437,8 @@ export default function Projects() {
     return counts
   }, [enrichedProjects])
 
-  const headerStats = useMemo(() => {
-    const stats = [
+  const headerStats = useMemo<Array<{ label: string; value: string | number; detail: string }>>(() => {
+    const stats: Array<{ label: string; value: string | number; detail: string }> = [
       {
         label: 'Total Projects',
         value: aggregate.totalProjects,
@@ -1138,8 +1138,13 @@ type ProjectInsightsDrawerProps = {
   isLoading: boolean
   isFetching: boolean
   error: unknown
+  trf?: ProjectTRFResponse
+  trfLoading: boolean
+  trfFetching: boolean
+  trfError: unknown
   onClose: () => void
   onRefresh: () => void
+  onRefreshTrf: () => void
 }
 
 type ProjectTrfDrawerProps = {
@@ -1237,7 +1242,7 @@ function ProjectIntelligencePanel({
           <p className="mt-1 text-2xl font-semibold text-[color:var(--osd-text)]">{stats.ledgerAlerts}</p>
         </div>
       </div>
-      {error && (
+      {Boolean(error) && (
         <div className="rounded-2xl border border-rose-500/60 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
           <strong>Intelligence unavailable.</strong> {errorMessage}
         </div>
@@ -1300,8 +1305,13 @@ function ProjectInsightsDrawer({
   isLoading,
   isFetching,
   error,
+  trf,
+  trfLoading,
+  trfFetching,
+  trfError,
   onClose,
   onRefresh,
+  onRefreshTrf,
 }: ProjectInsightsDrawerProps) {
   const severityTone: Record<string, string> = {
     low: 'text-emerald-300',
@@ -1352,7 +1362,7 @@ function ProjectInsightsDrawer({
             </button>
           </div>
         </div>
-        {error && (
+        {Boolean(error) && (
           <div className="mt-4 rounded-2xl border border-rose-500/60 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
             <strong>Insights unavailable.</strong> {errorMessage}
           </div>
@@ -1431,6 +1441,103 @@ function ProjectInsightsDrawer({
               ) : (
                 <p className="mt-3 text-sm text-[color:var(--osd-muted)]">
                   Forecast unavailable until more task data is recorded.
+                </p>
+              )}
+            </div>
+            <div className="rounded-2xl border border-[color:var(--osd-border)] p-5 space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
+                    TRF Snapshot · Spec §4.6–§4.8
+                  </p>
+                  <p className="text-sm text-[color:var(--osd-muted)]">
+                    Inline slice of the Theoretical Reasoning Framework so auditors can see entropy/resonance without leaving this drawer.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onRefreshTrf}
+                  disabled={trfFetching}
+                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--osd-border)] px-4 py-2 text-xs font-semibold text-[color:var(--osd-text)] hover:border-[color:var(--osd-accent)] disabled:opacity-60"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  {trfFetching ? 'Refreshing…' : 'Refresh TRF'}
+                </button>
+              </div>
+              {Boolean(trfError) ? (
+                <div className="rounded-2xl border border-rose-500/60 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                  <strong>TRF stream unavailable.</strong>{' '}
+                  {trfError instanceof Error ? trfError.message : 'Unable to load TRF snapshot.'}
+                </div>
+              ) : trfLoading ? (
+                <div className="flex h-32 items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-[color:var(--osd-accent)]" />
+                </div>
+              ) : trf ? (
+                <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {[
+                      { label: 'Entropy', value: `${Math.round(trf.entropy * 100)}%` },
+                      { label: 'Resonance', value: `${Math.round(trf.resonance * 100)}%` },
+                      { label: 'Continuity', value: `${Math.round(trf.continuity * 100)}%` },
+                    ].map((metric) => (
+                      <div
+                        key={metric.label}
+                        className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-4"
+                      >
+                        <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--osd-muted)]">{metric.label}</p>
+                        <p className="mt-2 text-2xl font-semibold text-[color:var(--osd-text)]">{metric.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <div className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-4">
+                      <h4 className="text-sm font-semibold text-[color:var(--osd-text)] uppercase tracking-[0.3em]">
+                        Latest Traces
+                      </h4>
+                      <div className="mt-3 space-y-3 max-h-48 overflow-y-auto pr-1">
+                        {trf.traces.slice(0, 3).map((trace) => (
+                          <div key={trace.trace_id} className="rounded-xl border border-[color:var(--osd-border)] p-3">
+                            <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--osd-muted)]">
+                              {trace.persona} · {trace.operator}
+                            </p>
+                            <p className="text-sm text-[color:var(--osd-text)]">{trace.premise}</p>
+                            <p className="text-xs text-[color:var(--osd-muted)]">
+                              {trace.conclusion} · {Math.round(trace.confidence * 100)}% confidence
+                            </p>
+                          </div>
+                        ))}
+                        {!trf.traces.length && (
+                          <p className="text-xs text-[color:var(--osd-muted)]">No TRF traces recorded yet.</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-4">
+                      <h4 className="text-sm font-semibold text-[color:var(--osd-text)] uppercase tracking-[0.3em]">
+                        Personas
+                      </h4>
+                      <div className="mt-3 space-y-2">
+                        {trf.personas.slice(0, 3).map((persona) => (
+                          <div key={persona.persona} className="rounded-xl border border-[color:var(--osd-border)] p-3 text-sm">
+                            <p className="font-semibold text-[color:var(--osd-text)]">
+                              {persona.persona}{' '}
+                              <span className="text-xs uppercase tracking-[0.3em] text-[color:var(--osd-muted)]">{persona.status}</span>
+                            </p>
+                            <p className="text-xs text-[color:var(--osd-muted)]">
+                              {persona.role} · {persona.utilization}% utilization
+                            </p>
+                          </div>
+                        ))}
+                        {!trf.personas.length && (
+                          <p className="text-xs text-[color:var(--osd-muted)]">No persona telemetry available.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-[color:var(--osd-muted)]">
+                  Request a TRF snapshot to populate entropy, resonance, and continuity metrics.
                 </p>
               )}
             </div>
@@ -1707,7 +1814,7 @@ function ProjectLedgerPanel({
           <span className="font-semibold">{integrityOk ? 'Hash chain intact' : 'Hash divergence detected'}</span>
         </div>
       </div>
-      {error && (
+      {Boolean(error) && (
         <div className="rounded-2xl border border-rose-500/60 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
           <strong>Ledger unavailable.</strong> {errorMessage}
         </div>

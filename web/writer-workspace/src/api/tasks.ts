@@ -1,3 +1,5 @@
+import { apiRequest } from "./client";
+
 export interface TaskRecord {
   id: number;
   title: string;
@@ -10,10 +12,6 @@ export interface TaskRecord {
 }
 
 export async function fetchTasks(limit = 100): Promise<TaskRecord[]> {
-  const resp = await fetch(`/tasks?limit=${encodeURIComponent(limit)}`);
-  if (!resp.ok) {
-    throw new Error(`Tasks API error (${resp.status})`);
-  }
-  const data = await resp.json();
+  const data = await apiRequest<{ tasks: TaskRecord[] }>(`/tasks?limit=${encodeURIComponent(limit)}`);
   return data.tasks ?? [];
 }

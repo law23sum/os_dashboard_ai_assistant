@@ -219,11 +219,47 @@ class AIFixer:
         persona: str = "AIC",
         diff_limit: int = 400,
         repo_root: Path = REPO_ROOT,
+        max_ai_retries: int = 3,
+        retry_backoff_seconds: int = 5,
     ) -> None:
         self.persona = persona
         self.diff_limit = diff_limit
         self.repo_root = repo_root
         self.history: List[ChatMessage] = []
+        self.max_ai_retries = max(1, max_ai_retries)
+        self.retry_backoff_seconds = max(1, retry_backoff_seconds)
+
+    def _request_ai_patch(self, *, temperature: float, max_tokens: int) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Call ``generate_ai_reply`` with retries so transient OpenAI errors don't abort the run.
+        Returns (reply, error_message).
+        """
+        last_error: Optional[str] = None
+        for attempt in range(1, self.max_ai_retries + 1):
+            reply: Optional[str] = None
+            error: Optional[str] = None
+            try:
+                reply, error, _ = generate_ai_reply(
+                    self.history,
+                    persona=self.persona,
+                    append_prompt=False,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
+            except Exception as exc:  # pragma: no cover - defensive guard
+                error = f"Unhandled AI client error: {exc}"
+
+            if error:
+                last_error = error
+                wait = self.retry_backoff_seconds * attempt
+                print(f"⚠️  AI attempt {attempt}/{self.max_ai_retries} failed: {error}. Retrying in {wait}s...")
+                time.sleep(wait)
+                continue
+
+            if reply:
+                return reply, None
+
+        return None, last_error
 
     def try_fix(self, component: str, log_excerpt: str, iteration: int, event_type: str = "error") -> bool:
         if not openai_available():
@@ -380,15 +416,9 @@ class AIFixer:
             content=prompt,
         )
         self.history.append(user_msg)
-        reply, error, _ = generate_ai_reply(
-            self.history,
-            persona=self.persona,
-            append_prompt=False,
-            temperature=0.1,
-            max_tokens=1800,
-        )
+        reply, error = self._request_ai_patch(temperature=0.1, max_tokens=1800)
         if error:
-            print(f"❌ AI call failed: {error}")
+            print(f"❌ AI call failed after retries: {error}")
             return False
 
         assistant_msg = ChatMessage(
