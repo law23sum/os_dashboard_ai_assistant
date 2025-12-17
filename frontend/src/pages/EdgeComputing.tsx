@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Cloud, Zap, Satellite, RefreshCw, Layers, Cpu } from 'lucide-react'
+import { Cloud, Zap, Satellite, RefreshCw, Layers, Cpu, ServerCog } from 'lucide-react'
 import apiClient, { apiPath } from '../lib/apiClient'
 import { toast } from '../utils/toast'
 import { EdgeComputingStatus, EdgeModel } from '../types'

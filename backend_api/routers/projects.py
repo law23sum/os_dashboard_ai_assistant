@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import hashlib
+import random
 import sys
+import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 parent_dir = Path(__file__).parent.parent.parent
 if str(parent_dir) not in sys.path:
@@ -142,6 +145,45 @@ class ProjectIntelligenceResponse(BaseModel):
     summary: str
 
 
+class PersonaHealthSnapshot(BaseModel):
+    persona: str
+    role: str
+    status: str
+    utilization: int
+    context: str
+
+
+class TRFHeuristic(BaseModel):
+    label: str
+    status: str
+    detail: str
+    spec_ref: str
+
+
+class TRFTrace(BaseModel):
+    trace_id: str
+    project_id: str
+    operator: str
+    persona: str
+    premise: str
+    conclusion: str
+    evidence: str
+    confidence: float = Field(ge=0.0, le=1.0)
+    compliance_gate: str
+    created_at: str
+
+
+class ProjectTRFResponse(BaseModel):
+    project_id: str
+    spec_refs: List[str]
+    entropy: float
+    resonance: float
+    continuity: float
+    heuristics: List[TRFHeuristic]
+    personas: List[PersonaHealthSnapshot]
+    traces: List[TRFTrace]
+
+
 def _friendly_label(integration: str) -> str:
     """Return a human-friendly label for integration types."""
     if integration in INTEGRATION_LABELS:
@@ -219,9 +261,166 @@ def _group_tasks_by_project(conn) -> Dict[str, List[Dict[str, Any]]]:
     for row in cursor.fetchall():
         project_name = row["project"] or "General"
         tasks_by_project.setdefault(project_name, []).append(
-            {"status": row["status"], "priority": row["priority"]}
+            {
+                "status": row["status"] or "UNKNOWN",
+                "priority": row["priority"] or "MEDIUM",
+            }
         )
     return tasks_by_project
+
+
+TRF_OPERATORS = ["ASSERT", "WEAVE", "RESONATE", "COLLAPSE", "ESCALATE"]
+TRF_PERSONAS = ["AIC", "Aria", "Sora", "Echo"]
+
+
+def _hash_pick(seed: str, options: List[str]) -> str:
+    digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
+    return options[int(digest, 16) % len(options)]
+
+
+def _collect_project_tasks(conn, project_id: str) -> List[Dict[str, Any]]:
+    cursor = conn.execute(
+        "SELECT id, title, status, priority, owner, due_date FROM tasks WHERE project = ?",
+        (project_id,),
+    )
+    tasks = []
+    for row in cursor.fetchall():
+        tasks.append(
+            {
+                "id": row["id"],
+                "title": row["title"],
+                "status": row["status"] or "UNKNOWN",
+                "priority": row["priority"] or "MEDIUM",
+                "owner": row["owner"] or "AIC",
+                "due_date": row["due_date"],
+            }
+        )
+    return tasks
+
+
+def _compute_trf_scores(tasks: List[Dict[str, Any]], events: List[Dict[str, Any]]) -> Tuple[float, float, float]:
+    if not tasks:
+        return 0.2, 0.6, 0.4
+
+    total = len(tasks)
+    open_tasks = len([t for t in tasks if (t["status"] or "").lower() != "done"])
+    critical = len([t for t in tasks if (t["priority"] or "").upper() == "CRITICAL"])
+    blocked = len([t for t in tasks if (t["status"] or "").lower() in ("blocked", "waiting")])
+
+    entropy = min(1.0, (open_tasks + critical) / max(1, total * 1.2))
+    resonance = max(0.15, 1.0 - (critical / max(1, total)))
+    continuity = max(0.1, 1.0 - (blocked / max(1, total)) + min(0.25, len(events) / 40))
+    return round(entropy, 3), round(resonance, 3), round(continuity, 3)
+
+
+def _build_persona_health(tasks: List[Dict[str, Any]]) -> List[PersonaHealthSnapshot]:
+    if not tasks:
+        return [
+            PersonaHealthSnapshot(
+                persona="AIC",
+                role="Meta-Governor",
+                status="steady",
+                utilization=32,
+                context="Awaiting TRF inputs",
+            )
+        ]
+
+    owners = Counter([t["owner"] or "Chris" for t in tasks])
+    critical_by_owner = Counter(
+        [t["owner"] or "Chris" for t in tasks if (t["priority"] or "").upper() == "CRITICAL"]
+    )
+    persona_rows: List[PersonaHealthSnapshot] = []
+    for owner, count in owners.items():
+        critical = critical_by_owner.get(owner, 0)
+        utilization = min(100, int((count / max(1, len(tasks))) * 120))
+        status = "steady"
+        if critical >= 2:
+            status = "watch"
+        if critical >= 4:
+            status = "constrained"
+        persona_rows.append(
+            PersonaHealthSnapshot(
+                persona=owner,
+                role="Persona" if owner in TRF_PERSONAS else "Contributor",
+                status=status,
+                utilization=utilization,
+                context=f"{count} open · {critical} critical",
+            )
+        )
+    return sorted(persona_rows, key=lambda row: row.utilization, reverse=True)
+
+
+def _build_trf_heuristics(project: str, tasks: List[Dict[str, Any]], entropy: float) -> List[TRFHeuristic]:
+    total = len(tasks)
+    due_dates = len([t for t in tasks if t.get("due_date")])
+    heuristics = [
+        TRFHeuristic(
+            label="Tensor Risk Field",
+            status="watch" if entropy > 0.55 else "steady",
+            detail=f"{project} entropy at {int(entropy * 100)}% · monitoring §4.6 invariants",
+            spec_ref="§4.6",
+        ),
+        TRFHeuristic(
+            label="Persona Coverage",
+            status="steady" if total <= 12 else "calibrate",
+            detail=f"{total} active intents routed across personas",
+            spec_ref="§4.5",
+        ),
+        TRFHeuristic(
+            label="Continuity Hooks",
+            status="warning" if due_dates >= 3 else "steady",
+            detail=f"{due_dates} scheduled milestones require TRF trace sign-off",
+            spec_ref="§4.7",
+        ),
+    ]
+    return heuristics
+
+
+def _build_trf_traces(
+    project: str,
+    tasks: List[Dict[str, Any]],
+    events: List[Dict[str, Any]],
+    limit: int,
+) -> List[TRFTrace]:
+    traces: List[TRFTrace] = []
+    source_items = events or tasks
+    if not source_items:
+        return traces
+
+    for item in source_items[:limit]:
+        if "event_type" in item:
+            seed = f"{project}-{item['id']}"
+            detail = item["payload"] or {}
+            premise = detail.get("description") or item["event_type"].replace("_", " ").title()
+            conclusion = detail.get("status") or f"{item['event_type']} recorded"
+            created_at = item["created_at"]
+            evidence = f"Ledger hash {item.get('hash_curr', 'n/a')}"
+        else:
+            seed = f"{project}-{item['id']}"
+            premise = item.get("title") or "Task intent"
+            conclusion = f"Route {item.get('priority', 'MEDIUM').title()} workload"
+            created_at = datetime.utcnow().isoformat() + "Z"
+            evidence = "Task telemetry"
+
+        operator = _hash_pick(seed, TRF_OPERATORS)
+        persona = _hash_pick(seed[::-1], TRF_PERSONAS)
+        confidence = (int(hashlib.md5(seed.encode("utf-8")).hexdigest(), 16) % 35) / 100 + 0.6
+
+        traces.append(
+            TRFTrace(
+                trace_id=str(uuid.uuid4()),
+                project_id=project,
+                operator=operator,
+                persona=persona,
+                premise=premise,
+                conclusion=conclusion,
+                evidence=evidence,
+                confidence=round(min(confidence, 0.98), 2),
+                compliance_gate="AIC Review" if operator in ("ESCALATE", "COLLAPSE") else "Daemon Runtime",
+                created_at=created_at,
+            )
+        )
+    return traces
 
 
 def _calculate_event_hash(
@@ -497,6 +696,33 @@ async def get_project_intelligence(project_name: str):
             raise HTTPException(status_code=404, detail="Project not found")
         tasks_map = _group_tasks_by_project(db)
         return _compute_project_intelligence(db, project_name, tasks_map)
+
+
+@router.get("/{project_name}/trf", response_model=ProjectTRFResponse)
+async def get_project_trf(project_name: str, limit: int = 10):
+    """Return TRF reasoning traces + heuristics for a project."""
+    safe_limit = max(3, min(limit, 25))
+    with db_session() as conn:
+        if not _project_exists(conn, project_name):
+            raise HTTPException(status_code=404, detail="Project not found")
+        tasks = _collect_project_tasks(conn, project_name)
+        events_raw = db_list_project_events(conn, project_id=project_name, limit=safe_limit)
+
+    entropy, resonance, continuity = _compute_trf_scores(tasks, events_raw)
+    heuristics = _build_trf_heuristics(project_name, tasks, entropy)
+    personas = _build_persona_health(tasks)
+    traces = _build_trf_traces(project_name, tasks, events_raw, safe_limit)
+
+    return ProjectTRFResponse(
+        project_id=project_name,
+        spec_refs=["§4.5", "§4.6", "§4.7", "§4.8"],
+        entropy=entropy,
+        resonance=resonance,
+        continuity=continuity,
+        heuristics=heuristics,
+        personas=personas,
+        traces=traces,
+    )
 
 
 @router.post("/", response_model=ProjectResponse, status_code=201)

@@ -15,6 +15,7 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.join(__dirname, '..', '..');
 const launcher = path.join(repoRoot, 'start_ui.py');
 const frontendDir = path.join(__dirname, '..');
+const extraArgs = process.argv.slice(2);
 const pythonCandidates = process.env.PYTHON
   ? [process.env.PYTHON]
   : process.platform === 'win32'
@@ -58,7 +59,7 @@ function spawnLauncher(cmds) {
   }
 
   const [cmd, ...rest] = cmds;
-  const proc = spawn(cmd, [launcher], {
+  const proc = spawn(cmd, [launcher, ...extraArgs], {
     cwd: repoRoot,
     stdio: 'inherit',
   });

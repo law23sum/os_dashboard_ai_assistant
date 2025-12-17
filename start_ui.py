@@ -13,31 +13,77 @@ import time
 from pathlib import Path
 from typing import Callable, Dict, Optional, Tuple
 
+from assistant_hub_gui.autofix_monitor import (
+    start_auto_fix_monitor,
+    stop_auto_fix_monitor,
+)
+
 REPO_ROOT = Path(__file__).resolve().parent
 FRONTEND_DIR = REPO_ROOT / "frontend"
 FRONTEND_DIST = FRONTEND_DIR / "dist"
 DEFAULT_API_HOST = "127.0.0.1"
 DEFAULT_API_PORT = 8000
 DEFAULT_MODE = "web"
-UVICORN_CMD = [
-    sys.executable,
-    "-m",
-    "uvicorn",
-    "assistant_hub.api.server:create_app",
-    "--factory",
-    "--reload",
-    "--host",
-    DEFAULT_API_HOST,
-    "--port",
-    str(DEFAULT_API_PORT),
-]
+PREFLIGHT_SCRIPT = REPO_ROOT / "scripts" / "run_tests_with_autofix.py"
+TEST_MATRIX_SCRIPT = REPO_ROOT / "scripts" / "generate_test_matrix.py"
 
-ModeRunner = Callable[[], int | None]
+def _build_uvicorn_cmd() -> list[str]:
+    """Build uvicorn command with SSL support if certificates are available."""
+    cmd = [
+        sys.executable,
+        "-m",
+        "uvicorn",
+        "assistant_hub.api.server:create_app",
+        "--factory",
+        "--reload",
+        "--host",
+        DEFAULT_API_HOST,
+        "--port",
+        str(DEFAULT_API_PORT),
+    ]
+    # Check for SSL certificates
+    cert_dir = REPO_ROOT / "certs"
+    cert_file = cert_dir / "cert.pem"
+    key_file = cert_dir / "key.pem"
+    if cert_file.exists() and key_file.exists():
+        cmd.extend(["--ssl-keyfile", str(key_file)])
+        cmd.extend(["--ssl-certfile", str(cert_file)])
+        print(f"🔒 SSL certificates found. Starting with HTTPS on https://{DEFAULT_API_HOST}:{DEFAULT_API_PORT}")
+    return cmd
+
+UVICORN_CMD = _build_uvicorn_cmd()
+
+ModeRunner = Callable[[], Optional[int]]
 ModeDefinition = Tuple[str, str, ModeRunner]
 
 
 class BackendDependencyError(RuntimeError):
     """Raised when the FastAPI backend cannot start due to missing deps."""
+
+
+def _refresh_test_matrix() -> None:
+    """Regenerate the cross-feature test matrix when source files change."""
+    if not TEST_MATRIX_SCRIPT.exists():
+        return
+    print("📋 Updating test suite matrix...")
+    subprocess.check_call([sys.executable, str(TEST_MATRIX_SCRIPT)], cwd=REPO_ROOT)
+
+
+def _run_preflight_tests() -> None:
+    """Execute regression tests before launching any UI surface."""
+    skip = os.environ.get("OSDASH_SKIP_PREFLIGHT_TESTS", "").strip().lower()
+    if skip in {"1", "true", "yes"}:
+        print("🧪 Preflight tests skipped via OSDASH_SKIP_PREFLIGHT_TESTS.")
+        return
+    _refresh_test_matrix()
+    if not PREFLIGHT_SCRIPT.exists():
+        return
+    print("🧪 Running preflight tests (scripts/run_tests_with_autofix.py)...")
+    result = subprocess.call([sys.executable, str(PREFLIGHT_SCRIPT)], cwd=REPO_ROOT)
+    if result != 0:
+        raise SystemExit(
+            "Preflight tests did not pass. Review logs/tests for context before relaunching."
+        )
 
 
 def _import_webview_app():
@@ -81,7 +127,7 @@ def _wait_for_port(host: str, port: int, timeout: float = 25.0) -> None:
     )
 
 
-def _start_backend() -> subprocess.Popen | None:
+def _start_backend() -> Optional[subprocess.Popen]:
     """Spawn the FastAPI server that serves the shared React bundle."""
     if _is_port_open(DEFAULT_API_HOST, DEFAULT_API_PORT):
         print(
@@ -99,7 +145,9 @@ def _start_backend() -> subprocess.Popen | None:
         ) from exc
 
     env = os.environ.copy()
-    process = subprocess.Popen(UVICORN_CMD, cwd=REPO_ROOT, env=env)
+    # Rebuild command to ensure SSL settings are current
+    cmd = _build_uvicorn_cmd()
+    process = subprocess.Popen(cmd, cwd=REPO_ROOT, env=env)
     try:
         _wait_for_port(DEFAULT_API_HOST, DEFAULT_API_PORT)
     except TimeoutError as exc:
@@ -211,7 +259,6 @@ def run_legacy_tkinter() -> int:
 MODE_DEFINITIONS: Tuple[ModeDefinition, ...] = (
     ("web", "React · Web Dev (FastAPI + Vite)", run_react_web_dev),
     ("desktop", "React · Desktop Dev (FastAPI + Electron)", run_react_desktop_dev),
-    ("legacy", "Legacy · Tkinter Desktop App", run_legacy_tkinter),
     ("web-build", "Serve built React in browser", run_web_build),
     ("desktop-build", "Serve built React in desktop shell", run_desktop_build),
 )
@@ -228,8 +275,6 @@ MODE_ALIASES = {
     "browser-build": "web-build",
     "desktop-build": "desktop-build",
     "pywebview": "desktop-build",
-    "tkinter": "legacy",
-    "legacy-gui": "legacy",
 }
 for idx, (name, _, _) in enumerate(MODE_DEFINITIONS, start=1):
     MODE_ALIASES[str(idx)] = name
@@ -243,7 +288,19 @@ def _normalize_mode(value: Optional[str]) -> Optional[str]:
         return None
     if key in MODE_LOOKUP:
         return key
-    return MODE_ALIASES.get(key)
+    if key in MODE_ALIASES:
+        return MODE_ALIASES[key]
+    simplified = key.rstrip(").: ")
+    if simplified in MODE_LOOKUP:
+        return simplified
+    if simplified in MODE_ALIASES:
+        return MODE_ALIASES[simplified]
+    digits = "".join(ch for ch in key if ch.isdigit())
+    if digits:
+        alias = MODE_ALIASES.get(digits)
+        if alias:
+            return alias
+    return None
 
 
 def _prompt_mode() -> str:
@@ -255,6 +312,7 @@ def _prompt_mode() -> str:
     print("  🚀 OS Dashboard AI Assistant — Unified Launcher")
     print("=" * 70)
     print("\n📋 Available Launch Modes:\n")
+    max_choice = len(MODE_DEFINITIONS)
     for idx, (name, label, _) in enumerate(MODE_DEFINITIONS, start=1):
         default_marker = " ⭐ (default)" if name == DEFAULT_MODE else ""
         icon = "🌐" if "Web" in label else "🖥️" if "Desktop" in label else "📦"
@@ -262,7 +320,7 @@ def _prompt_mode() -> str:
     print("\n" + "-" * 70)
     print("💡 Tip: Set OSDASH_UI_MODE or DEV_MODE env var to skip this prompt")
     print("-" * 70)
-    choice = input("\n👉 Enter your choice (1-4 or press Enter for default): ").strip()
+    choice = input(f"\n👉 Enter your choice (1-{max_choice} or press Enter for default): ").strip()
     normalized = _normalize_mode(choice)
     if normalized:
         return normalized
@@ -306,15 +364,29 @@ For more information, see README.md and DEPLOYMENT.md
     )
     args = parser.parse_args()
 
-    mode = _resolve_mode(args.mode)
-    label, runner = MODE_LOOKUP[mode]
-    print(f"\n🚀 Launching {label} ({mode})...")
-    print(f"📍 API Server: http://{DEFAULT_API_HOST}:{DEFAULT_API_PORT}")
-    if mode in ["web", "web-build"]:
-        print(f"🌐 Web Interface: http://localhost:5173" if mode == "web" else "🌐 Serving from: frontend/dist/")
-    print()
-    result = runner()
-    return int(result or 0)
+    _run_preflight_tests()
+    monitor = start_auto_fix_monitor()
+    try:
+        mode = _resolve_mode(args.mode)
+        label, runner = MODE_LOOKUP[mode]
+        print(f"\n🚀 Launching {label} ({mode})...")
+        # Check if SSL is enabled
+        cert_dir = REPO_ROOT / "certs"
+        cert_file = cert_dir / "cert.pem"
+        key_file = cert_dir / "key.pem"
+        protocol = "https" if cert_file.exists() and key_file.exists() else "http"
+        print(f"📍 API Server: {protocol}://{DEFAULT_API_HOST}:{DEFAULT_API_PORT}")
+        if mode in ["web", "web-build"]:
+            print(
+                "🌐 Web Interface: http://localhost:5173"
+                if mode == "web"
+                else "🌐 Serving from: frontend/dist/"
+            )
+        print()
+        result = runner()
+        return int(result or 0)
+    finally:
+        stop_auto_fix_monitor(monitor)
 
 
 if __name__ == "__main__":

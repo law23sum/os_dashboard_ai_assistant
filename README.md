@@ -1,0 +1,308 @@
+# OS Dashboard AI Assistant
+
+A unified AI-powered dashboard and assistant platform with a modern React/TypeScript frontend that runs seamlessly on web browsers and native desktop applications (Linux, Windows, macOS).
+
+This repository contains:
+- **Frontend**: React/TypeScript UI (`frontend/`) - single codebase for web and desktop
+- **Backend**: FastAPI REST API (`assistant_hub/api/`) serving all features
+- **Core**: Python automation and AI services (`assistant_core/`, `ai_os/`)
+- **Legacy**: Tkinter GUI (`assistant_hub_gui/`) - still available with `--legacy` flag
+
+The new React interface preserves the Tkinter color palette and design language while providing a modern, cross-platform experience.
+
+## Getting Started
+
+1) Install dependencies:
+```bash
+python -m venv venv
+venv/bin/python -m pip install -r requirements.txt
+cd frontend && npm install
+```
+
+2) Launch with the unified React launcher (recommended):
+```bash
+python start_ui.py                 # Interactive picker for web/desktop
+python start_ui.py --mode web      # Vite dev server + FastAPI backend
+python start_ui.py --mode desktop  # Electron dev shell + FastAPI backend
+```
+- Runs preflight tests via `scripts/run_tests_with_autofix.py` unless `OSDASH_SKIP_PREFLIGHT_TESTS=1`
+- Boots FastAPI from `assistant_hub.api.server:create_app` on `127.0.0.1:8000` (auto-enables HTTPS when `certs/cert.pem` and `certs/key.pem` exist)
+- Set `OSDASH_UI_MODE`/`DEV_MODE` to skip the prompt in CI or packaging jobs
+
+Legacy Tkinter GUI remains available with `python -m assistant_hub_gui.main` (`python run.py` is now just a compatibility shim that forwards to this command).
+
+### Unified Launcher (Recommended)
+
+`start_ui.py` is the single entry point for React web + desktop surfaces. It:
+1. Runs preflight tests and regenerates the test matrix
+2. Starts the shared FastAPI backend (or falls back to offline mode if missing deps)
+3. Prompts for one of the following modes:
+   - **React · Web Dev** (Vite @ http://localhost:5173 + FastAPI proxy)
+   - **React · Desktop Dev** (Electron shell talking to the same dev server)
+   - **Serve Web Build** (FastAPI + `frontend/dist/`)
+   - **Serve Desktop Build** (pywebview shell bundling the built React assets)
+
+Environment overrides: `DEV_MODE=web|desktop|web-build|desktop-build` or `OSDASH_UI_MODE` to bypass the prompt.
+
+### Manual Launch (Alternative)
+
+For component-only iteration (without the launcher):
+
+```bash
+cd frontend
+npm install
+npm run dev:web      # Browser/Vite
+npm run dev:desktop  # Electron dev shell
+```
+
+Start the API separately when you need real data:
+```bash
+uvicorn assistant_hub.api.server:create_app --factory --reload --host 127.0.0.1 --port 8000
+# or fallback dev server:
+python backend_api/main.py
+```
+
+Tip: the Electron shell no longer auto-opens DevTools to avoid Chromium autofill console noise. Re-enable anytime by setting `OSDASH_ELECTRON_DEVTOOLS=1` before launching (`OSDASH_ELECTRON_DEVTOOLS=1 npm run dev:desktop`).
+
+### Backend API Server
+
+The FastAPI backend runs on port 8000 by default (start_ui.py launches it automatically). Start it manually if needed:
+
+```bash
+uvicorn assistant_hub.api.server:create_app --factory --host 0.0.0.0 --port 8000
+# or use the compatibility entrypoint (auto-picks an open port, supports TLS from certs/):
+python backend_api/main.py
+```
+
+Key REST endpoints used by the UI: `/writer/snapshot`, `/writer/documents`,
+`/writer/narrative`, `/dashboard/summary`, `/projects/summary`, `/tasks`,
+`/planes/status`, `/system`, `/projects`, and `/billing/usage`.
+
+### Runtime diagnostics & observability
+
+- `/api/runtime/diagnostics` accepts structured beacons from the React `AppErrorBoundary` and other clients, appending NDJSON to `logs/runtime_diagnostics.log` (override with `OSDASH_RUNTIME_LOG`).
+- `/api/runtime/diagnostics/ping` is a lightweight liveness check for smoke tests.
+- The Observability page consumes this feed so UI crashes and degraded planes are visible alongside system stats.
+
+### AI Shell Runner (local automation)
+
+The new `scripts/ai_shell_runner.py` script wires the OpenAI **shell** tool to your
+local machine so GPT‑5.x models can inspect files or run diagnostics in a guarded loop:
+
+```bash
+export OPENAI_API_KEY=sk-...
+python scripts/ai_shell_runner.py "summarize git branches and show disk usage for ./logs"
+```
+
+- Uses the Responses API with `tools=[{"type": "shell"}]`
+- Executes commands inside the current working directory (configurable via `--cwd`)
+- Streams raw stdout/stderr back to the model until it produces a final answer
+- Limits each interaction to `--max-steps` (default 6) and enforces per-command timeouts
+
+⚠️ **Security**: the shell tool can run arbitrary commands. Run inside a sandboxed
+environment or adjust the script to enforce allowlists before trusting unreviewed output.
+
+### Workspace CLI (new)
+
+Use the `osdash` CLI to orchestrate workspace operations without hunting for scripts:
+
+- `osdash scan` — discover git repos (defaults to parent workspace) and show inferred run/test commands.
+- `osdash test` — run best-effort tests across discovered repos.
+- `osdash run <repo>` — start a repo using inferred commands or `--run-command` override.
+- `osdash doctor` — emit quick health diagnostics (env templates, missing tests, docker-compose checks).
+
+### Workspace Auto-Fix Shell
+
+`scripts/workspace_autofix_shell.py` gives you a dedicated terminal for orchestrating
+auto-heal loops across every git repo under your workspace:
+
+```bash
+# interactive picker
+python scripts/workspace_autofix_shell.py
+
+# batch mode — scan siblings under ~/Projects, retry tests twice, forward args to ai_auto_fix
+python scripts/workspace_autofix_shell.py \
+  --workspace ~/Projects \
+  --max-depth 3 \
+  --run-all \
+  --attempts 2 \
+  --autofix-arg --verify-seconds \
+  --autofix-arg 15
+```
+
+The shell discovers `.git` folders, runs any available test harnesses
+(`scripts/run_tests_with_autofix.py`, `npm test`, or `pytest`), and hands failures to
+`ai_auto_fix.py` automatically. Repositories without tests still get an `ai_auto_fix`
+daemon so every surface enjoys the same self-healing protections.
+
+### Code Interpreter helper
+
+`scripts/ai_code_interpreter.py` wraps the OpenAI **code interpreter / python tool**
+so you can quickly offload math, analysis, or plotting tasks to a sandboxed container:
+
+```bash
+export OPENAI_API_KEY=sk-...
+python scripts/ai_code_interpreter.py --file data/sample.csv \
+  "Plot the rolling 7-day averages and highlight anomalies"
+```
+
+- Automatically uploads `--file` paths (repeat flag for multiple files)
+- Supports container reuse via `--container-id` or auto-provisioning via `--memory`
+- Prints any generated files (with container + file IDs) so they can be downloaded later
+- Use `--dump-json` to inspect the full Responses payload during debugging
+
+### Auto-fix monitor + tests
+
+`scripts/ai_auto_fix.py` already watches backend/frontend logs. Pass `--test`
+arguments so **every failing test automatically triggers the AI repair loop**:
+
+```bash
+python scripts/ai_auto_fix.py \
+  --backend "python -m uvicorn backend_api.main:app --reload" \
+  --frontend "npm run dev:web" \
+  --test "pytest -q tests/test_office_api.py" \
+  --test "pytest -q tests/test_office_router.py" \
+  --test-interval 600
+```
+
+The orchestrator will:
+
+1. Launch the backend/frontend processes (or tail existing logs with `--logs-only`)
+2. Run the supplied tests on startup and every `--test-interval` seconds
+3. Feed any failures/errors into the AI fixer, apply patches, and rerun until green
+4. Prompt for manual intervention only if a blocker can’t be resolved automatically
+
+### Workspace auto-fix orchestrator
+
+`scripts/project_autofix_orchestrator.py` fans the auto-fix monitor out to every git
+repo under a workspace. It detects `.git` folders, checks whether a repo ships
+`scripts/ai_auto_fix.py`, and launches monitors in parallel or sequentially while
+logging status to `logs/autofix_orchestrator.log`.
+
+```bash
+# List repos and their auto-fix readiness without launching monitors
+python scripts/project_autofix_orchestrator.py --root ~/Projects --scan-only
+
+# Launch monitors for every repo that ships scripts/ai_auto_fix.py
+python scripts/project_autofix_orchestrator.py --root ~/Projects --ai-args "--logs-only"
+```
+
+Use `--include/--exclude` filters to target subsets of repos, `--dry-run` for safe
+prechecks, and `--env KEY=VALUE` to inject API keys or sandbox toggles into child processes.
+
+### Assistants API demo CLI
+
+Scripts in `scripts/` mirror OpenAI’s latest built-in tools. Use `scripts/assistants_demo.py`
+to exercise the Assistants API (Code Interpreter, File Search, custom functions)
+without copy/pasting notebook snippets:
+
+```bash
+# Ask a single question with a freshly created assistant
+OPENAI_API_KEY=sk-... \
+python scripts/assistants_demo.py \
+  --question "Solve 3x + 11 = 14" \
+  --instructions "You are a personal math tutor."
+
+# Reuse an existing assistant id, enable Code Interpreter and the quiz function
+python scripts/assistants_demo.py \
+  --assistant-id asst_abc123 \
+  --enable-code --function-demo \
+  --question "Generate the first 20 Fibonacci numbers" \
+  --question "Give me feedback on my quiz answers"
+```
+
+Flags like `--enable-file-search --file path/to/doc.pdf` mimic the “Assistants API
+Overview” notebook flow so you can upload documents, run code, and handle function
+calls directly from the CLI.
+
+### Copilot Assistants activity log
+
+The `/ai/copilot` React page now ships an “Assistants CLI Activity” widget inside the
+**Assistants API + Advanced Tools** section. Each time you run
+`python scripts/assistants_demo.py`, jot the prompt, tools used, and any notes in the form—
+entries persist to `localStorage` so the React/Electron UI mirrors the legacy Tkinter logbook.
+Use the quick status dropdown (Completed/Running/Needs Attention) to flag follow-ups, and the
+log will highlight your last six CLI runs alongside the tool stack you selected.
+
+## Frontend (React/TypeScript)
+
+The modern frontend is built with React, TypeScript, and Vite, powering browsers, Electron, and pywebview shells from a single codebase.
+
+### Quick Start
+
+```bash
+cd frontend
+npm install
+npm run dev         # Forwards to start_ui.py (full stack)
+# or explicitly:
+# npm run dev:web
+# npm run dev:desktop
+```
+
+The dev script delegates to `start_ui.py` (and falls back to Vite-only offline mode if Python deps are missing), so you still get the unified launcher prompt. See `frontend/QUICK_START.md` for more.
+
+### Features
+
+- ✅ Single React bundle for web + desktop (no duplicated UI logic)
+- ✅ Tkinter launcher stays available for offline workflows while React gains parity
+- ✅ Linux, Windows, and macOS executables via `npm run build:desktop:*`
+- ✅ Preserved HTML/JS pages served from `frontend/dist/` so nothing is lost mid-migration
+- ✅ FastAPI backend mounted at `/app` in production, Vite proxy in dev for hot reloads
+- ✅ **Tkinter-inspired theme** with exact color matching between Tkinter and React surfaces
+- ✅ **Shared code structure** (React components + FastAPI routes) eliminating redundancies
+- ✅ **Single entry point** (`start_ui.py`) with interactive mode selection
+- ✅ **Runtime diagnostics pipeline** via `/api/runtime/diagnostics` feeding the Observability page and `logs/runtime_diagnostics.log`
+- ✅ **Comprehensive deployment guide** for web and desktop platforms
+
+See `MIGRATION_COMPLETE_SUMMARY.md` for the full migration report and `QUICK_START.md` to get started in 5 minutes.
+
+### Build & Deployment Targets
+
+| Target | Command | Output |
+| --- | --- | --- |
+| **Web** (static hosting/CDN) | `npm run build:web` | `frontend/dist/` |
+| **Desktop – Linux** | `npm run build:desktop:linux` | `frontend/dist-electron/` (AppImage/DEB/RPM) |
+| **Desktop – Windows** | `npm run build:desktop:windows` | `frontend/dist-electron/` (NSIS + portable) |
+| **Desktop – macOS** | `npm run build:desktop:mac` | `frontend/dist-electron/` (DMG/ZIP) |
+| **All platforms** | `./build-all-platforms.sh all` | Complete build with archives |
+
+For detailed deployment instructions, see [`DEPLOYMENT.md`](./DEPLOYMENT.md).
+
+## Legacy GUI
+
+`assistant_hub_gui/main.py` remains fully supported for offline demos (launch manually with `python -m assistant_hub_gui.main`) and now
+reads/writes the shared writer workspace store so it stays in sync with the web UI. It is not part of the default launcher anymore—React is the canonical desktop surface.
+
+## Documentation
+
+- Canonical spec structure: `documentation/os_dashboard_ai_assistant_toc.md`
+- Queue/stack map: `documentation/QUEUE_STACK_MAP.md`
+- Dead-code linkage & future hook-ups: `documentation/DEAD_CODE_LINKAGE.md`
+- UI deployment guide: `docs/ui_deployment.md`
+- Tk→React feature tracker: `docs/tk_to_react_mapping.md`
+- Shared palette/theme: `frontend/THEME.md`
+- Desktop packaging spec (PyInstaller): `packaging/start_ui.spec`
+
+Refer to `documentation/consolidated_md/README.md` for the complete installation and
+feature overview.
+
+## Theme System
+
+The React frontend uses a Tkinter-inspired theme system that ensures visual consistency
+between the legacy Tkinter GUI and the modern React interface. Colors are defined in:
+
+- `frontend/src/theme/colors.ts` - TypeScript theme definitions
+- `frontend/src/index.css` - CSS variables
+- `frontend/tailwind.config.js` - Tailwind integration
+
+The theme supports both dark and light modes, matching the Tkinter color palette exactly.
+
+## Shared Code
+
+Code is shared between desktop (Electron) and web (browser) builds through:
+
+- `frontend/src/shared/utils.ts` - Platform-agnostic utilities
+- `frontend/src/lib/apiClient.ts` - Unified API client
+- `frontend/src/components/` - Shared React components
+
+This eliminates code duplication and ensures feature parity across platforms.

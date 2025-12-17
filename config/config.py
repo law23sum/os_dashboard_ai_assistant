@@ -78,7 +78,7 @@ class APISettings:
     # OpenAI/ChatGPT Configuration
     openai_api_key: Optional[str] = field(default=None)
     openai_organization: Optional[str] = field(default=None)
-    openai_model: str = field(default="gpt-4")
+    openai_model: str = field(default="gpt-5-mini")
 
     # Microsoft Graph API Configuration
     microsoft_client_id: Optional[str] = field(default=None)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 from datetime import datetime, timedelta
-from typing import Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
@@ -42,7 +42,7 @@ class SecurityScan(BaseModel):
     status: str
     findings: int
     started_at: str
-    completed_at: str | None
+    completed_at: Optional[str]
 
 
 class SecurityStatus(BaseModel):
@@ -52,7 +52,7 @@ class SecurityStatus(BaseModel):
     active_scans: int
     recent_events: List[SecurityEvent]
     metrics: SecurityMetrics
-    last_scan: str | None
+    last_scan: Optional[str]
     threat_detection_enabled: bool
 
 

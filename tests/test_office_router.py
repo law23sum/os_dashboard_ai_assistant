@@ -1,4 +1,11 @@
 """Simple unit tests for the Office router and local AI service."""
+from pathlib import Path
+import sys
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from assistant_core.integrations.office_realtime import (
     AIOfficeWebSocketRouter,
     ApplicationType,
@@ -42,3 +49,11 @@ def test_office_ai_service_analysis(tmp_path):
     assert response["status"] == "analyzed"
     assert "analysis" in response
     assert response["analysis"]["score"] <= 1.0
+
+
+if __name__ == "__main__":
+    import tempfile
+    from pathlib import Path
+
+    test_office_router_handles_ai_requests(Path(tempfile.mkdtemp()))
+    test_office_ai_service_analysis(Path(tempfile.mkdtemp()))

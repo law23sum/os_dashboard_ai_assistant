@@ -117,7 +117,7 @@ database:
 
 ai:
   provider: "openai"  # Options: openai, anthropic
-  model: "gpt-4"
+  model: "gpt-5-mini"
 
 logging:
   level: "INFO"

@@ -2,10 +2,14 @@ import { useEffect, useState } from "react";
 import {
   WriterDocument,
   WriterSnapshot,
+  CanonEntryInput,
+  PipelineEntryInput,
   createDocument,
   fetchSnapshot,
   generateNarrative,
-  saveDocument
+  saveDocument,
+  addCanonEntry,
+  queuePipelineEntry
 } from "./api/writer";
 import { fetchDashboardSummary, DashboardSnapshot } from "./api/dashboard";
 import { fetchTasks, TaskRecord } from "./api/tasks";
@@ -49,16 +53,22 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (view === "dashboard" && !dashboardSnapshot) {
+    if (view === "dashboard" && !dashboardSnapshot && !dashboardLoading) {
       refreshDashboard();
     }
+  }, [view, dashboardSnapshot, dashboardLoading]);
+
+  useEffect(() => {
     if (view === "tasks" && tasks.length === 0 && !tasksLoading) {
       refreshTasks();
     }
+  }, [view, tasks, tasksLoading]);
+
+  useEffect(() => {
     if (view === "projects" && !projectSnapshot && !projectLoading) {
       refreshProjects();
     }
-  }, [view, dashboardSnapshot]);
+  }, [view, projectSnapshot, projectLoading]);
 
   async function loadSnapshot() {
     try {
@@ -113,8 +123,9 @@ function App() {
   }
 
   async function handleCreateDocument() {
-    if (!form.title) {
+    if (!form.title.trim()) {
       setStatusMessage("Add a title so the library stays organized.");
+      return;
     }
     setBusy(true);
     try {
@@ -172,6 +183,34 @@ function App() {
     } catch (error) {
       console.error(error);
       setStatusMessage("Failed to save document.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleAddCanonEntry(entry: CanonEntryInput) {
+    setBusy(true);
+    try {
+      const { workspace } = await addCanonEntry(entry);
+      setSnapshot(workspace);
+      setStatusMessage(`Canon entry "${entry.title}" filed under ${entry.category}.`);
+    } catch (error) {
+      console.error(error);
+      setStatusMessage("Failed to add canon entry.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleQueuePipelineEntry(entry: PipelineEntryInput) {
+    setBusy(true);
+    try {
+      const { workspace } = await queuePipelineEntry(entry);
+      setSnapshot(workspace);
+      setStatusMessage(`Queued "${entry.title}" for ${entry.target}.`);
+    } catch (error) {
+      console.error(error);
+      setStatusMessage("Failed to queue publishing workflow.");
     } finally {
       setBusy(false);
     }
@@ -236,7 +275,10 @@ function App() {
           onSaveDocument={handleSaveDocument}
           onExportDocument={handleExportDocument}
           onOpenDocument={handleOpenDocument}
+          onAddCanonEntry={handleAddCanonEntry}
+          onQueuePipelineEntry={handleQueuePipelineEntry}
           isBusy={busy}
+          activeDocumentTitle={activeDocument?.title || form.title}
         />
       )}
     </div>

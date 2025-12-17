@@ -22,6 +22,8 @@ class SettingsResponse(BaseModel):
     change_permission_mode: Optional[str] = None
     continuity_mode: Optional[str] = None
     risk_appetite: Optional[str] = None
+    default_persona: Optional[str] = None
+    governance_banner: Optional[str] = None
 
 class SettingsUpdate(BaseModel):
     theme: str = None
@@ -32,6 +34,8 @@ class SettingsUpdate(BaseModel):
     change_permission_mode: Optional[str] = None
     continuity_mode: Optional[str] = None
     risk_appetite: Optional[str] = None
+    default_persona: Optional[str] = None
+    governance_banner: Optional[str] = None
 
 @router.get("/", response_model=SettingsResponse)
 async def get_settings():
@@ -47,6 +51,8 @@ async def get_settings():
         change_permission_mode=getattr(settings, "change_permission_mode", None),
         continuity_mode=getattr(settings, "continuity_mode", None),
         risk_appetite=getattr(settings, "risk_appetite", None),
+        default_persona=getattr(settings, "default_persona", None),
+        governance_banner=getattr(settings, "governance_banner", None),
     )
 
 @router.put("/", response_model=SettingsResponse)
@@ -72,4 +78,16 @@ async def update_settings(settings_update: SettingsUpdate):
         change_permission_mode=getattr(current_settings, "change_permission_mode", None),
         continuity_mode=getattr(current_settings, "continuity_mode", None),
         risk_appetite=getattr(current_settings, "risk_appetite", None),
+        default_persona=getattr(current_settings, "default_persona", None),
+        governance_banner=getattr(current_settings, "governance_banner", None),
     )
+
+
+@router.get("", response_model=SettingsResponse, include_in_schema=False)
+async def get_settings_no_slash():
+    return await get_settings()
+
+
+@router.put("", response_model=SettingsResponse, include_in_schema=False)
+async def update_settings_no_slash(settings_update: SettingsUpdate):
+    return await update_settings(settings_update)

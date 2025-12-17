@@ -9,6 +9,9 @@ import os
 import time
 import threading
 import requests
+from pathlib import Path
+
+from assistant_hub.config import DB_PATH, ensure_data_directories
 
 # Add current directory to path for proper imports
 _current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -16,13 +19,13 @@ if _current_dir not in sys.path:
     sys.path.insert(0, _current_dir)
 
 from assistant_core.core.api_server import start_api_server
-from pathlib import Path
 
 def test_developer_portal_api():
     """Test the developer portal API endpoints"""
 
     # Start API server in background thread
-    db_path = Path("assistant_hub_gui/assistant_hub.db")
+    ensure_data_directories()
+    db_path = Path(DB_PATH)
     if not db_path.exists():
         print("❌ Database not found. Please run the main application first.")
         return

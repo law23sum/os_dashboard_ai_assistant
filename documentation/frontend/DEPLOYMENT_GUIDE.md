@@ -145,16 +145,16 @@ Code signing not typically required for Linux distributions.
 
 ### Development
 
-Create `.env.local`:
+Create `.env.local` (defaults to relative `/api` when omitted):
 ```env
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_BASE_URL=http://localhost:8000/api
 DEV_MODE=web
 ```
 
 ### Production
 
 Set environment variables in your deployment platform:
-- `VITE_API_BASE_URL` - Backend API URL
+- `VITE_API_BASE_URL` - Backend API URL (e.g. https://api.yourdomain.com/api)
 - `NODE_ENV=production`
 
 ## Backend Requirements
@@ -272,4 +272,3 @@ For issues:
 2. Review browser/Electron console logs
 3. Verify backend is running and accessible
 4. Check network tab for failed requests
-

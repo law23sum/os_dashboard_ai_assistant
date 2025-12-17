@@ -1,12 +1,100 @@
 """OpenAI/ChatGPT API Client for OS Dashboard AI Assistant"""
 
 import asyncio
-from typing import Dict, Any, List, Optional
+import os
+from typing import Dict, Any, List, Optional, Tuple
 import openai
 from openai import AsyncOpenAI
 
 from config import get_api_config
 from logging_config import setup_logger
+
+
+def _split_system_instructions(
+    messages: List[Dict[str, Any]],
+) -> Tuple[Optional[str], List[Dict[str, Any]]]:
+    """Extract system messages into a single instructions string for Responses API."""
+    if not messages:
+        return None, []
+    instructions_parts: List[str] = []
+    remaining: List[Dict[str, Any]] = []
+    for msg in messages:
+        role = msg.get("role")
+        if role == "system" and isinstance(msg.get("content"), str):
+            instructions_parts.append(msg["content"])
+        else:
+            remaining.append(msg)
+    instructions = "\n\n".join([p for p in instructions_parts if p.strip()]) or None
+    return instructions, remaining
+
+
+def _to_responses_input(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Convert Chat Completions-style messages to Responses API input items (text-first)."""
+    items: List[Dict[str, Any]] = []
+    for msg in messages or []:
+        role = msg.get("role", "user")
+        content = msg.get("content", "")
+
+        # If it's already in Responses API content block format, pass through.
+        if isinstance(content, list):
+            converted_blocks: List[Dict[str, Any]] = []
+            for block in content:
+                if not isinstance(block, dict):
+                    continue
+                if block.get("type") == "text":
+                    converted_blocks.append({"type": "input_text", "text": block.get("text", "")})
+                elif block.get("type") == "image_url":
+                    image = block.get("image_url") or {}
+                    url = image.get("url") if isinstance(image, dict) else None
+                    if url:
+                        converted_blocks.append({"type": "input_image", "image_url": url})
+            items.append({"role": role, "content": converted_blocks})
+            continue
+
+        # Default: treat as plain text.
+        items.append({"role": role, "content": [{"type": "input_text", "text": str(content)}]})
+    return items
+
+
+def _extract_output_text(response: Any) -> str:
+    """Best-effort extraction of assistant text from a Responses API response."""
+    if hasattr(response, "output_text") and response.output_text:
+        return str(response.output_text)
+    chunks: List[str] = []
+    output = getattr(response, "output", None) or []
+    for item in output:
+        item_type = getattr(item, "type", None) or (item.get("type") if isinstance(item, dict) else None)
+        if item_type != "message":
+            continue
+        content = getattr(item, "content", None) or (item.get("content") if isinstance(item, dict) else None) or []
+        for block in content:
+            btype = getattr(block, "type", None) or (block.get("type") if isinstance(block, dict) else None)
+            if btype == "output_text":
+                text = getattr(block, "text", None) or (block.get("text") if isinstance(block, dict) else None) or ""
+                if text:
+                    chunks.append(str(text))
+    return "\n".join(chunks).strip()
+
+
+def _extract_function_calls(response: Any) -> Optional[List[Dict[str, Any]]]:
+    """Extract custom function calls from a Responses API response."""
+    calls: List[Dict[str, Any]] = []
+    output = getattr(response, "output", None) or []
+    for item in output:
+        item_type = getattr(item, "type", None) or (item.get("type") if isinstance(item, dict) else None)
+        if item_type != "function_call":
+            continue
+        call_id = getattr(item, "id", None) or (item.get("id") if isinstance(item, dict) else None)
+        name = getattr(item, "name", None) or (item.get("name") if isinstance(item, dict) else None)
+        arguments = getattr(item, "arguments", None) or (item.get("arguments") if isinstance(item, dict) else None)
+        if not name:
+            fn = getattr(item, "function", None) or (item.get("function") if isinstance(item, dict) else None) or {}
+            name = getattr(fn, "name", None) or (fn.get("name") if isinstance(fn, dict) else None)
+            if not arguments:
+                arguments = getattr(fn, "arguments", None) or (fn.get("arguments") if isinstance(fn, dict) else None)
+        if name:
+            calls.append({"id": call_id, "name": name, "arguments": arguments or "{}"})
+    return calls or None
 
 
 class OpenAIClient:
@@ -37,11 +125,13 @@ class OpenAIClient:
     async def health_check(self) -> bool:
         """Check if OpenAI API is accessible"""
         try:
-            # Simple test call
-            response = await self.client.chat.completions.create(
+            # Simple test call via Responses API
+            await self.client.responses.create(
                 model=self.config.openai_model,
-                messages=[{"role": "user", "content": "Hello"}],
-                max_tokens=5,
+                input="Hello",
+                reasoning={"effort": "none"},
+                max_output_tokens=8,
+                store=False,
             )
             return True
         except Exception as e:
@@ -71,14 +161,18 @@ class OpenAIClient:
             # Add current message
             messages.append({"role": "user", "content": message})
 
-            response = await self.client.chat.completions.create(
+            instructions, remaining = _split_system_instructions(messages)
+            response = await self.client.responses.create(
                 model=self.config.openai_model,
-                messages=messages,
+                instructions=instructions,
+                input=_to_responses_input(remaining),
+                reasoning={"effort": "none"},
+                text={"verbosity": os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY", "medium")},
                 temperature=temperature,
-                max_tokens=max_tokens,
+                max_output_tokens=max_tokens,
+                store=False,
             )
-
-            return response.choices[0].message.content
+            return _extract_output_text(response)
 
         except Exception as e:
             self.logger.error(f"Chat completion failed: {e}")
@@ -100,23 +194,25 @@ class OpenAIClient:
     async def analyze_image(
         self, image_url: str, prompt: str = "What's in this image?"
     ) -> str:
-        """Analyze image using GPT-4 Vision"""
+        """Analyze image using the configured multimodal model via Responses API."""
         try:
-            response = await self.client.chat.completions.create(
-                model="gpt-4-vision-preview",
-                messages=[
+            response = await self.client.responses.create(
+                model=self.config.openai_model,
+                input=[
                     {
                         "role": "user",
                         "content": [
-                            {"type": "text", "text": prompt},
-                            {"type": "image_url", "image_url": {"url": image_url}},
+                            {"type": "input_text", "text": prompt},
+                            {"type": "input_image", "image_url": image_url},
                         ],
                     }
                 ],
-                max_tokens=500,
+                reasoning={"effort": "none"},
+                text={"verbosity": "medium"},
+                max_output_tokens=600,
+                store=False,
             )
-
-            return response.choices[0].message.content
+            return _extract_output_text(response)
 
         except Exception as e:
             self.logger.error(f"Image analysis failed: {e}")
@@ -125,18 +221,24 @@ class OpenAIClient:
     async def function_calling(
         self, message: str, functions: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Use OpenAI function calling"""
+        """Use OpenAI function calling (Responses API custom tools)."""
         try:
-            response = await self.client.chat.completions.create(
+            tools = [{"type": "function", "function": fn} for fn in (functions or [])]
+            response = await self.client.responses.create(
                 model=self.config.openai_model,
-                messages=[{"role": "user", "content": message}],
-                functions=functions,
-                function_call="auto",
+                input=[{"role": "user", "content": [{"type": "input_text", "text": message}]}],
+                tools=tools or None,
+                tool_choice="auto" if tools else None,
+                reasoning={"effort": "none"},
+                text={"verbosity": os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY", "medium")},
+                max_output_tokens=800,
+                store=False,
             )
 
+            calls = _extract_function_calls(response)
             return {
-                "message": response.choices[0].message.content,
-                "function_call": response.choices[0].message.function_call,
+                "message": _extract_output_text(response),
+                "function_call": calls[0] if calls else None,
             }
 
         except Exception as e:
@@ -183,15 +285,32 @@ class OpenAIClient:
     def chat(
         self, model: str, messages: List[Dict[str, Any]], **kwargs
     ) -> Dict[str, Any]:
-        """Send a chat completion request and return the raw response (synchronous wrapper)"""
-        # For backward compatibility, create a sync client
+        """Legacy helper: call the Responses API but return the raw SDK response object."""
+        # For backward compatibility, create a sync client.
         sync_client = openai.OpenAI(
             api_key=self.config.openai_api_key,
             organization=self.config.openai_organization,
         )
-        return sync_client.chat.completions.create(
-            model=model, messages=messages, **kwargs
-        )
+        instructions, remaining = _split_system_instructions(messages)
+        effort = kwargs.pop("reasoning_effort", os.getenv("ASSISTANT_HUB_REASONING_EFFORT", "none"))
+        verbosity = kwargs.pop("verbosity", os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY", "medium"))
+        max_tokens = kwargs.pop("max_tokens", None)
+        # Only valid to pass sampling params when effort == "none" for GPT-5.2 family.
+        temperature = kwargs.pop("temperature", None)
+        payload: Dict[str, Any] = {
+            "model": model,
+            "instructions": instructions,
+            "input": _to_responses_input(remaining),
+            "reasoning": {"effort": effort},
+            "text": {"verbosity": verbosity},
+            "store": False,
+        }
+        if max_tokens is not None:
+            payload["max_output_tokens"] = max_tokens
+        if temperature is not None and effort == "none":
+            payload["temperature"] = temperature
+        payload.update(kwargs)
+        return sync_client.responses.create(**payload)
 
 
 def get_default_client() -> OpenAIClient:
@@ -206,4 +325,4 @@ def chat(model: str, messages: List[Dict[str, Any]], **kwargs: Any) -> str:
     """
     client = get_default_client()
     response = client.chat(model=model, messages=messages, **kwargs)
-    return response.choices[0].message.content or ""
+    return _extract_output_text(response) or ""

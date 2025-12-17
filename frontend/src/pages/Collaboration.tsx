@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
-import { Users, Network, TrendingUp } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { Users, Network, TrendingUp, Globe, Share2, Shield } from 'lucide-react'
 import apiClient, { apiPath } from '../lib/apiClient'
 import { toast } from '../utils/toast'
+import type { CollaborationState } from '../types'
 
 interface CollaborationRequest {
   action: string
@@ -11,12 +12,31 @@ interface CollaborationRequest {
   project_complexity: string
 }
 
+const fetchCollaborationState = async (): Promise<CollaborationState> => {
+  const { data } = await apiClient.get<CollaborationState>(apiPath('intelligence/collaboration/state'))
+  return data
+}
+
 export default function Collaboration() {
   const [action, setAction] = useState('analyze_team')
   const [teamSize, setTeamSize] = useState(5)
   const [patterns, setPatterns] = useState('')
   const [complexity, setComplexity] = useState('medium')
   const [results, setResults] = useState<string>('')
+  const [tenantFilter, setTenantFilter] = useState('all')
+
+  const stateQuery = useQuery({
+    queryKey: ['collaboration-state'],
+    queryFn: fetchCollaborationState,
+    refetchInterval: 45000,
+  })
+  const collabState = stateQuery.data
+  const tenantOptions = collabState?.tenants ?? []
+  const filteredMembers = useMemo(() => {
+    if (!collabState?.members) return []
+    if (tenantFilter === 'all') return collabState.members
+    return collabState.members.filter((member) => member.tenant === tenantFilter)
+  }, [collabState?.members, tenantFilter])
 
   const collaborationMutation = useMutation({
     mutationFn: async (data: CollaborationRequest) => {

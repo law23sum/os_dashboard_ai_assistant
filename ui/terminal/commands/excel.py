@@ -6,7 +6,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from ....integrations.excel.service import ExcelService
+from assistant_hub.integrations.excel.service import ExcelService
 
 
 def handle_excel_command(args, conn: sqlite3.Connection) -> int:
@@ -36,4 +36,3 @@ def handle_excel_command(args, conn: sqlite3.Connection) -> int:
     else:
         print(f"Unknown Excel subcommand: {args.subcommand}", file=sys.stderr)
         return 1
-

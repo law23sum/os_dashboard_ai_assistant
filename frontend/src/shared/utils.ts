@@ -8,7 +8,9 @@
  * Platform detection utilities
  */
 export const isElectron = (): boolean => {
-  return typeof window !== 'undefined' && window.process?.type === 'renderer'
+  if (typeof window === 'undefined') return false
+  const w = window as typeof window & { process?: { type?: string; versions?: { electron?: string } } }
+  return w.process?.type === 'renderer' || Boolean(w.process?.versions?.electron)
 }
 
 export const isWeb = (): boolean => {
@@ -126,4 +128,3 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
     return false
   }
 }
-

@@ -15,11 +15,18 @@ import {
   AlertTriangle,
   Sparkles,
   X,
+  Brain,
+  History,
+  Loader2,
+  Cpu,
+  Activity,
+  Zap,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type React from 'react'
 import { toast } from '../utils/toast'
 import apiClient, { apiPath } from '../lib/apiClient'
+import { extractArray } from '../lib/responseHelpers'
 import type {
   Project,
   Task,
@@ -27,16 +34,19 @@ import type {
   ProjectLedgerEvent,
   ProjectIntelligence,
   ProjectInsightResponse,
+  ReasoningTrace,
+  ReasoningPersona,
+  ProjectTRFResponse,
 } from '../types'
 
 const fetchProjects = async (): Promise<Project[]> => {
-  const { data } = await apiClient.get<Project[]>(apiPath('projects'))
-  return data
+  const { data } = await apiClient.get(apiPath('projects'))
+  return extractArray<Project>(data, ['projects', 'items'])
 }
 
 const fetchTasks = async (): Promise<Task[]> => {
-  const { data } = await apiClient.get<Task[]>(apiPath('tasks'))
-  return data
+  const { data } = await apiClient.get(apiPath('tasks'))
+  return extractArray<Task>(data, ['tasks', 'items'])
 }
 
 const fetchProjectLinks = async (): Promise<ProjectLink[]> => {
@@ -64,6 +74,30 @@ const fetchProjectInsights = async (projectName: string): Promise<ProjectInsight
   const { data } = await apiClient.get<ProjectInsightResponse>(
     apiPath(`projects/${encodeURIComponent(projectName)}/insights`),
   )
+  return data
+}
+
+const fetchProjectTrf = async (projectName: string): Promise<ProjectTRFResponse> => {
+  const { data } = await apiClient.get<ProjectTRFResponse>(
+    apiPath(`projects/${encodeURIComponent(projectName)}/trf`),
+  )
+  return data
+}
+
+const fetchReasoningHistory = async (limit = 5): Promise<ReasoningTrace[]> => {
+  const { data } = await apiClient.get<ReasoningTrace[]>(apiPath('reasoning/history'), {
+    params: { limit },
+  })
+  return data
+}
+
+const fetchReasoningPersonas = async (): Promise<ReasoningPersona[]> => {
+  const { data } = await apiClient.get<ReasoningPersona[]>(apiPath('reasoning/personas'))
+  return data
+}
+
+const runReasoningQuery = async (payload: { query: string; persona?: string }): Promise<ReasoningTrace> => {
+  const { data } = await apiClient.post<ReasoningTrace>(apiPath('reasoning/query'), payload)
   return data
 }
 
@@ -137,7 +171,11 @@ export default function Projects() {
   const [form, setForm] = useState(defaultForm)
   const [editingProject, setEditingProject] = useState<EnrichedProject | null>(null)
   const [insightsProject, setInsightsProject] = useState<EnrichedProject | null>(null)
+  const [trfProject, setTrfProject] = useState<EnrichedProject | null>(null)
   const [ledgerProjectFilter, setLedgerProjectFilter] = useState<string | null>(null)
+  const [reasoningQueryText, setReasoningQueryText] = useState('')
+  const [selectedPersona, setSelectedPersona] = useState('aic')
+  const [activeTrace, setActiveTrace] = useState<ReasoningTrace | null>(null)
 
   const queryClient = useQueryClient()
   const projectsQuery = useQuery({ queryKey: ['projects'], queryFn: fetchProjects })
@@ -147,7 +185,7 @@ export default function Projects() {
     queryKey: ['project-ledger', ledgerProjectFilter ?? 'all'],
     queryFn: () => fetchProjectLedger(ledgerProjectFilter ?? undefined, 120),
     enabled: !projectsQuery.isLoading,
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData ?? [],
     refetchInterval: 20000,
   })
   const intelligenceQuery = useQuery({
@@ -166,6 +204,40 @@ export default function Projects() {
     },
     enabled: Boolean(insightsProject),
     staleTime: 60000,
+    refetchInterval: 60000,
+  })
+  const insightsProjectTrfQuery = useQuery({
+    queryKey: ['project-trf', insightsProject?.name],
+    queryFn: () => {
+      if (!insightsProject) {
+        throw new Error('No project selected')
+      }
+      return fetchProjectTrf(insightsProject.name)
+    },
+    enabled: Boolean(insightsProject),
+    staleTime: 60000,
+    refetchInterval: 60000,
+  })
+  const projectTrfQuery = useQuery({
+    queryKey: ['project-trf', trfProject?.name],
+    queryFn: () => {
+      if (!trfProject) {
+        throw new Error('No project selected')
+      }
+      return fetchProjectTrf(trfProject.name)
+    },
+    enabled: Boolean(trfProject),
+    staleTime: 60000,
+    refetchInterval: 60000,
+  })
+  const reasoningPersonasQuery = useQuery({
+    queryKey: ['reasoning-personas'],
+    queryFn: fetchReasoningPersonas,
+    staleTime: 5 * 60 * 1000,
+  })
+  const reasoningHistoryQuery = useQuery({
+    queryKey: ['reasoning-history'],
+    queryFn: () => fetchReasoningHistory(),
     refetchInterval: 60000,
   })
 
@@ -205,12 +277,6 @@ export default function Projects() {
     },
   })
 
-  const isLoading =
-    projectsQuery.isLoading ||
-    tasksQuery.isLoading ||
-    linksQuery.isLoading ||
-    ledgerQuery.isLoading ||
-    intelligenceQuery.isLoading
   const reorderMutation = useMutation({
     mutationFn: async ({ source, target }: { source: EnrichedProject; target: EnrichedProject }) => {
       await updateProject(source.name, { order_num: target.order_num })
@@ -223,6 +289,25 @@ export default function Projects() {
       toast.error(`Failed to reorder projects: ${error instanceof Error ? error.message : 'Unknown error'}`)
     },
   })
+  const reasoningMutation = useMutation({
+    mutationFn: runReasoningQuery,
+    onSuccess: (trace) => {
+      setActiveTrace(trace)
+      setReasoningQueryText(trace.query)
+      toast.success('Reasoning trace generated')
+      queryClient.invalidateQueries({ queryKey: ['reasoning-history'] })
+    },
+    onError: (error) => {
+      toast.error(`Reasoning failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    },
+  })
+
+  const isLoading =
+    projectsQuery.isLoading ||
+    tasksQuery.isLoading ||
+    linksQuery.isLoading ||
+    ledgerQuery.isLoading ||
+    intelligenceQuery.isLoading
 
   const tasksByProject = useMemo(() => {
     const grouped = new Map<string, Task[]>()
@@ -314,6 +399,12 @@ export default function Projects() {
     }
   }, [enrichedProjects, insightsProject])
 
+  useEffect(() => {
+    if (!activeTrace && reasoningHistoryQuery.data && reasoningHistoryQuery.data.length) {
+      setActiveTrace(reasoningHistoryQuery.data[0])
+    }
+  }, [activeTrace, reasoningHistoryQuery.data])
+
   const latestLedgerEvents = ledgerQuery.data ?? []
 
   const aggregate = useMemo(() => {
@@ -346,8 +437,8 @@ export default function Projects() {
     return counts
   }, [enrichedProjects])
 
-  const headerStats = useMemo(() => {
-    const stats = [
+  const headerStats = useMemo<Array<{ label: string; value: string | number; detail: string }>>(() => {
+    const stats: Array<{ label: string; value: string | number; detail: string }> = [
       {
         label: 'Total Projects',
         value: aggregate.totalProjects,
@@ -397,6 +488,34 @@ export default function Projects() {
     [orderedProjects]
   )
 
+  const personaOptions: ReasoningPersona[] = useMemo(() => {
+    if (reasoningPersonasQuery.data && reasoningPersonasQuery.data.length) {
+      return reasoningPersonasQuery.data
+    }
+    return [
+      {
+        id: 'fallback-aic',
+        type: 'aic',
+        label: 'AIC',
+        decision_threshold: 0.9,
+        interaction_style: 'governor',
+        capabilities: ['system_architecture'],
+        active: true,
+      },
+      {
+        id: 'fallback-chris',
+        type: 'chris',
+        label: 'Chris',
+        decision_threshold: 0.7,
+        interaction_style: 'strategist',
+        capabilities: ['project_management'],
+        active: true,
+      },
+    ]
+  }, [reasoningPersonasQuery.data])
+
+  const reasoningHistory = reasoningHistoryQuery.data ?? []
+
   const ledgerIntegrityOk = useMemo(() => {
     if (latestLedgerEvents.length <= 1) {
       return true
@@ -413,6 +532,20 @@ export default function Projects() {
 
   const handleLedgerProjectChange = (projectName: string | null) => {
     setLedgerProjectFilter(projectName)
+  }
+
+  const handleHistorySelect = (trace: ReasoningTrace) => {
+    setActiveTrace(trace)
+    setReasoningQueryText(trace.query)
+  }
+
+  const handleReasoningRun = () => {
+    const trimmed = reasoningQueryText.trim()
+    if (!trimmed) {
+      toast.error('Enter a reasoning query to engage the TRF.')
+      return
+    }
+    reasoningMutation.mutate({ query: trimmed, persona: selectedPersona })
   }
 
   const openCreateForm = () => {
@@ -436,6 +569,10 @@ export default function Projects() {
     setInsightsProject(project)
   }
 
+  const openTrfPanel = (project: EnrichedProject) => {
+    setTrfProject(project)
+  }
+
   const closeForm = () => {
     setForm(defaultForm)
     setEditingProject(null)
@@ -450,6 +587,9 @@ export default function Projects() {
     intelligenceQuery.refetch()
     if (insightsProject) {
       projectInsightsQuery.refetch()
+    }
+    if (trfProject) {
+      projectTrfQuery.refetch()
     }
   }
 
@@ -512,6 +652,14 @@ export default function Projects() {
   const intelligenceErrorMessage =
     intelligenceQuery.isError && intelligenceQuery.error instanceof Error
       ? intelligenceQuery.error.message
+      : undefined
+  const reasoningHistoryErrorMessage =
+    reasoningHistoryQuery.isError && reasoningHistoryQuery.error instanceof Error
+      ? reasoningHistoryQuery.error.message
+      : undefined
+  const reasoningRunErrorMessage =
+    reasoningMutation.isError && reasoningMutation.error instanceof Error
+      ? reasoningMutation.error.message
       : undefined
 
   return (
@@ -758,6 +906,14 @@ export default function Projects() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => openTrfPanel(project)}
+                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] px-3 py-1 text-[color:var(--osd-text)] hover:border-[color:var(--osd-accent)]"
+                >
+                  <Cpu className="h-3.5 w-3.5" />
+                  TRF Trace
+                </button>
+                <button
+                  type="button"
                   onClick={() => handleDelete(project)}
                   className="inline-flex items-center gap-2 rounded-full border border-rose-500/60 px-3 py-1 text-rose-200 hover:bg-rose-500/10"
                 >
@@ -915,16 +1071,48 @@ export default function Projects() {
           onProjectChange={handleLedgerProjectChange}
           onRefresh={() => ledgerQuery.refetch()}
         />
+        <ReasoningLabPanel
+          personas={personaOptions}
+          personasLoading={reasoningPersonasQuery.isLoading}
+          history={reasoningHistory}
+          historyLoading={reasoningHistoryQuery.isLoading}
+          historyError={reasoningHistoryErrorMessage}
+          onSelectPersona={setSelectedPersona}
+          selectedPersona={selectedPersona}
+          queryText={reasoningQueryText}
+          onQueryChange={setReasoningQueryText}
+          onRun={handleReasoningRun}
+          isRunning={reasoningMutation.isPending}
+          currentTrace={activeTrace}
+          onSelectTrace={handleHistorySelect}
+          runError={reasoningRunErrorMessage}
+        />
       </section>
       {insightsProject && (
-        <ProjectInsightsDrawer
-          project={insightsProject}
-          insight={projectInsightsQuery.data}
-          isLoading={projectInsightsQuery.isLoading}
-          isFetching={projectInsightsQuery.isFetching}
-          error={projectInsightsQuery.error}
-          onClose={() => setInsightsProject(null)}
-          onRefresh={() => projectInsightsQuery.refetch()}
+      <ProjectInsightsDrawer
+        project={insightsProject}
+        insight={projectInsightsQuery.data}
+        isLoading={projectInsightsQuery.isLoading}
+        isFetching={projectInsightsQuery.isFetching}
+        error={projectInsightsQuery.error}
+        trf={insightsProjectTrfQuery.data}
+        trfLoading={insightsProjectTrfQuery.isLoading}
+        trfFetching={insightsProjectTrfQuery.isFetching}
+        trfError={insightsProjectTrfQuery.error}
+        onClose={() => setInsightsProject(null)}
+        onRefresh={() => projectInsightsQuery.refetch()}
+        onRefreshTrf={() => insightsProjectTrfQuery.refetch()}
+      />
+      )}
+      {trfProject && (
+        <ProjectTrfDrawer
+          project={trfProject}
+          snapshot={projectTrfQuery.data}
+          isLoading={projectTrfQuery.isLoading}
+          isFetching={projectTrfQuery.isFetching}
+          error={projectTrfQuery.error}
+          onClose={() => setTrfProject(null)}
+          onRefresh={() => projectTrfQuery.refetch()}
         />
       )}
     </div>
@@ -950,6 +1138,21 @@ type ProjectInsightsDrawerProps = {
   isLoading: boolean
   isFetching: boolean
   error: unknown
+  trf?: ProjectTRFResponse
+  trfLoading: boolean
+  trfFetching: boolean
+  trfError: unknown
+  onClose: () => void
+  onRefresh: () => void
+  onRefreshTrf: () => void
+}
+
+type ProjectTrfDrawerProps = {
+  project: EnrichedProject
+  snapshot?: ProjectTRFResponse
+  isLoading: boolean
+  isFetching: boolean
+  error: unknown
   onClose: () => void
   onRefresh: () => void
 }
@@ -964,6 +1167,23 @@ type ProjectLedgerPanelProps = {
   projectOptions: string[]
   onProjectChange: (projectName: string | null) => void
   onRefresh: () => void
+}
+
+type ReasoningLabPanelProps = {
+  personas: ReasoningPersona[]
+  personasLoading: boolean
+  history: ReasoningTrace[]
+  historyLoading: boolean
+  historyError?: string
+  selectedPersona: string
+  onSelectPersona: (persona: string) => void
+  queryText: string
+  onQueryChange: (value: string) => void
+  onRun: () => void
+  isRunning: boolean
+  currentTrace: ReasoningTrace | null
+  onSelectTrace: (trace: ReasoningTrace) => void
+  runError?: string
 }
 
 function ProjectIntelligencePanel({
@@ -1022,7 +1242,7 @@ function ProjectIntelligencePanel({
           <p className="mt-1 text-2xl font-semibold text-[color:var(--osd-text)]">{stats.ledgerAlerts}</p>
         </div>
       </div>
-      {error && (
+      {Boolean(error) && (
         <div className="rounded-2xl border border-rose-500/60 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
           <strong>Intelligence unavailable.</strong> {errorMessage}
         </div>
@@ -1085,8 +1305,13 @@ function ProjectInsightsDrawer({
   isLoading,
   isFetching,
   error,
+  trf,
+  trfLoading,
+  trfFetching,
+  trfError,
   onClose,
   onRefresh,
+  onRefreshTrf,
 }: ProjectInsightsDrawerProps) {
   const severityTone: Record<string, string> = {
     low: 'text-emerald-300',
@@ -1137,7 +1362,7 @@ function ProjectInsightsDrawer({
             </button>
           </div>
         </div>
-        {error && (
+        {Boolean(error) && (
           <div className="mt-4 rounded-2xl border border-rose-500/60 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
             <strong>Insights unavailable.</strong> {errorMessage}
           </div>
@@ -1219,6 +1444,286 @@ function ProjectInsightsDrawer({
                 </p>
               )}
             </div>
+            <div className="rounded-2xl border border-[color:var(--osd-border)] p-5 space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
+                    TRF Snapshot · Spec §4.6–§4.8
+                  </p>
+                  <p className="text-sm text-[color:var(--osd-muted)]">
+                    Inline slice of the Theoretical Reasoning Framework so auditors can see entropy/resonance without leaving this drawer.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onRefreshTrf}
+                  disabled={trfFetching}
+                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--osd-border)] px-4 py-2 text-xs font-semibold text-[color:var(--osd-text)] hover:border-[color:var(--osd-accent)] disabled:opacity-60"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  {trfFetching ? 'Refreshing…' : 'Refresh TRF'}
+                </button>
+              </div>
+              {Boolean(trfError) ? (
+                <div className="rounded-2xl border border-rose-500/60 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                  <strong>TRF stream unavailable.</strong>{' '}
+                  {trfError instanceof Error ? trfError.message : 'Unable to load TRF snapshot.'}
+                </div>
+              ) : trfLoading ? (
+                <div className="flex h-32 items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-[color:var(--osd-accent)]" />
+                </div>
+              ) : trf ? (
+                <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {[
+                      { label: 'Entropy', value: `${Math.round(trf.entropy * 100)}%` },
+                      { label: 'Resonance', value: `${Math.round(trf.resonance * 100)}%` },
+                      { label: 'Continuity', value: `${Math.round(trf.continuity * 100)}%` },
+                    ].map((metric) => (
+                      <div
+                        key={metric.label}
+                        className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-4"
+                      >
+                        <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--osd-muted)]">{metric.label}</p>
+                        <p className="mt-2 text-2xl font-semibold text-[color:var(--osd-text)]">{metric.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <div className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-4">
+                      <h4 className="text-sm font-semibold text-[color:var(--osd-text)] uppercase tracking-[0.3em]">
+                        Latest Traces
+                      </h4>
+                      <div className="mt-3 space-y-3 max-h-48 overflow-y-auto pr-1">
+                        {trf.traces.slice(0, 3).map((trace) => (
+                          <div key={trace.trace_id} className="rounded-xl border border-[color:var(--osd-border)] p-3">
+                            <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--osd-muted)]">
+                              {trace.persona} · {trace.operator}
+                            </p>
+                            <p className="text-sm text-[color:var(--osd-text)]">{trace.premise}</p>
+                            <p className="text-xs text-[color:var(--osd-muted)]">
+                              {trace.conclusion} · {Math.round(trace.confidence * 100)}% confidence
+                            </p>
+                          </div>
+                        ))}
+                        {!trf.traces.length && (
+                          <p className="text-xs text-[color:var(--osd-muted)]">No TRF traces recorded yet.</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-4">
+                      <h4 className="text-sm font-semibold text-[color:var(--osd-text)] uppercase tracking-[0.3em]">
+                        Personas
+                      </h4>
+                      <div className="mt-3 space-y-2">
+                        {trf.personas.slice(0, 3).map((persona) => (
+                          <div key={persona.persona} className="rounded-xl border border-[color:var(--osd-border)] p-3 text-sm">
+                            <p className="font-semibold text-[color:var(--osd-text)]">
+                              {persona.persona}{' '}
+                              <span className="text-xs uppercase tracking-[0.3em] text-[color:var(--osd-muted)]">{persona.status}</span>
+                            </p>
+                            <p className="text-xs text-[color:var(--osd-muted)]">
+                              {persona.role} · {persona.utilization}% utilization
+                            </p>
+                          </div>
+                        ))}
+                        {!trf.personas.length && (
+                          <p className="text-xs text-[color:var(--osd-muted)]">No persona telemetry available.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-[color:var(--osd-muted)]">
+                  Request a TRF snapshot to populate entropy, resonance, and continuity metrics.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ProjectTrfDrawer({
+  project,
+  snapshot,
+  isLoading,
+  isFetching,
+  error,
+  onClose,
+  onRefresh,
+}: ProjectTrfDrawerProps) {
+  const metrics = [
+    { label: 'Entropy', value: snapshot ? `${Math.round(snapshot.entropy * 100)}%` : '—', description: 'Intent flux' },
+    { label: 'Resonance', value: snapshot ? `${Math.round(snapshot.resonance * 100)}%` : '—', description: 'Persona alignment' },
+    { label: 'Continuity', value: snapshot ? `${Math.round(snapshot.continuity * 100)}%` : '—', description: 'Governance hooks' },
+  ]
+  const traces = snapshot?.traces ?? []
+  const personas = snapshot?.personas ?? []
+  const heuristics = snapshot?.heuristics ?? []
+  const errorMessage = error instanceof Error ? error.message : 'Unable to load TRF snapshot.'
+
+  return (
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/60 px-4 pb-8 pt-10 sm:items-center sm:px-6 lg:px-8">
+      <div className="relative w-full max-w-4xl rounded-3xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surface)] px-6 pb-8 pt-6 shadow-2xl">
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">TRF · Spec §4.5–§4.8</p>
+            <h3 className="text-2xl font-semibold text-[color:var(--osd-text)]">
+              {project.name} · Theoretical Reasoning Framework
+            </h3>
+            <p className="text-sm text-[color:var(--osd-muted)]">
+              Energy heuristics, persona load, and reasoning traces mirrored from the Tkinter console.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isFetching}
+              className="inline-flex items-center gap-2 rounded-full border border-[color:var(--osd-border)] px-4 py-2 text-xs font-semibold text-[color:var(--osd-text)] hover:border-[color:var(--osd-accent)] disabled:opacity-60"
+            >
+              <RefreshCw className="h-4 w-4" />
+              {isFetching ? 'Refreshing…' : 'Refresh'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center rounded-full border border-[color:var(--osd-border)] px-3 py-1 text-[color:var(--osd-muted)] hover:border-[color:var(--osd-accent)] hover:text-[color:var(--osd-accent)]"
+            >
+              <X className="h-4 w-4" />
+              Close
+            </button>
+          </div>
+        </header>
+        {error ? (
+          <div className="mt-6 rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-50">
+            <strong>TRF snapshot unavailable.</strong> {errorMessage}
+          </div>
+        ) : isLoading ? (
+          <div className="mt-10 flex min-h-[240px] items-center justify-center">
+            <Loader2 className="h-10 w-10 animate-spin text-[color:var(--osd-accent)]" />
+          </div>
+        ) : (
+          <div className="mt-6 space-y-6">
+            <div className="grid gap-3 sm:grid-cols-3">
+              {metrics.map((metric) => (
+                <div
+                  key={metric.label}
+                  className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-4"
+                >
+                  <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-[color:var(--osd-muted)]">
+                    <Activity className="h-3.5 w-3.5" />
+                    {metric.label}
+                  </div>
+                  <p className="mt-2 text-2xl font-semibold text-[color:var(--osd-text)]">{metric.value}</p>
+                  <p className="text-xs text-[color:var(--osd-muted)]">{metric.description}</p>
+                </div>
+              ))}
+            </div>
+            <div className="grid gap-4 lg:grid-cols-[1.3fr,1fr]">
+              <div className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-5">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-semibold text-[color:var(--osd-text)]">Reasoning Traces</h4>
+                  <span className="text-xs uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
+                    {traces.length} entries
+                  </span>
+                </div>
+                <div className="mt-4 space-y-3 max-h-72 overflow-y-auto pr-1">
+                  {traces.length === 0 && (
+                    <p className="rounded-xl border border-dashed border-[color:var(--osd-border)] px-4 py-6 text-center text-sm text-[color:var(--osd-muted)]">
+                      No TRF traces yet. Ledger events will populate this stream.
+                    </p>
+                  )}
+                  {traces.map((trace) => (
+                    <article
+                      key={trace.trace_id}
+                      className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-background)] p-4"
+                    >
+                      <div className="flex items-center justify-between text-xs text-[color:var(--osd-muted)]">
+                        <span className="font-mono uppercase tracking-[0.25em] text-[color:var(--osd-accent)]">
+                          {trace.operator}
+                        </span>
+                        <span>{new Date(trace.created_at).toLocaleString()}</span>
+                      </div>
+                      <p className="mt-2 text-sm font-semibold text-[color:var(--osd-text)]">
+                        {trace.persona} · {trace.compliance_gate}
+                      </p>
+                      <p className="text-sm text-[color:var(--osd-muted)]">
+                        {trace.premise} → {trace.conclusion}
+                      </p>
+                      <p className="mt-1 text-xs text-[color:var(--osd-muted)]">
+                        {trace.evidence} · Confidence {Math.round(trace.confidence * 100)}%
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-4">
+                  <h4 className="text-sm font-semibold text-[color:var(--osd-text)] uppercase tracking-[0.3em]">
+                    Persona Load
+                  </h4>
+                  <div className="mt-3 space-y-3">
+                    {personas.length === 0 && (
+                      <p className="text-xs text-[color:var(--osd-muted)]">No persona telemetry yet.</p>
+                    )}
+                    {personas.map((persona) => (
+                      <div key={persona.persona} className="rounded-xl border border-[color:var(--osd-border)] p-3">
+                        <div className="flex items-center justify-between text-sm text-[color:var(--osd-text)]">
+                          <span>
+                            {persona.persona} · <span className="text-[color:var(--osd-muted)]">{persona.role}</span>
+                          </span>
+                          <span className="text-xs uppercase tracking-[0.3em]">{persona.status}</span>
+                        </div>
+                        <div className="mt-2 flex items-center justify-between text-xs text-[color:var(--osd-muted)]">
+                          <span>{persona.context}</span>
+                          <span>{persona.utilization}%</span>
+                        </div>
+                        <div className="mt-1 h-1.5 rounded-full bg-[color:var(--osd-border)]">
+                          <div
+                            className="h-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                            style={{ width: `${persona.utilization}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-4">
+                  <h4 className="text-sm font-semibold text-[color:var(--osd-text)] uppercase tracking-[0.3em]">
+                    Heuristics
+                  </h4>
+                  <div className="mt-3 space-y-2">
+                    {heuristics.map((heuristic) => (
+                      <div key={heuristic.label} className="flex items-start gap-3 rounded-xl border border-[color:var(--osd-border)] p-3">
+                        <div className="rounded-full bg-[color:var(--osd-border)]/50 p-2">
+                          <Zap className="h-4 w-4 text-[color:var(--osd-accent)]" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-[color:var(--osd-text)]">
+                            {heuristic.label}{' '}
+                            <span className="text-xs uppercase tracking-[0.3em] text-[color:var(--osd-muted)]">
+                              {heuristic.status}
+                            </span>
+                          </p>
+                          <p className="text-xs text-[color:var(--osd-muted)]">{heuristic.detail}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {snapshot?.spec_refs?.length && (
+              <p className="text-xs text-[color:var(--osd-muted)]">
+                Spec references: {snapshot.spec_refs.join(', ')}
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -1309,7 +1814,7 @@ function ProjectLedgerPanel({
           <span className="font-semibold">{integrityOk ? 'Hash chain intact' : 'Hash divergence detected'}</span>
         </div>
       </div>
-      {error && (
+      {Boolean(error) && (
         <div className="rounded-2xl border border-rose-500/60 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
           <strong>Ledger unavailable.</strong> {errorMessage}
         </div>
@@ -1359,6 +1864,184 @@ function ProjectLedgerPanel({
           <ExternalLink className="h-3 w-3" />
           Open doc
         </a>
+      </div>
+    </div>
+  )
+}
+
+function ReasoningLabPanel({
+  personas,
+  personasLoading,
+  history,
+  historyLoading,
+  historyError,
+  selectedPersona,
+  onSelectPersona,
+  queryText,
+  onQueryChange,
+  onRun,
+  isRunning,
+  currentTrace,
+  onSelectTrace,
+  runError,
+}: ReasoningLabPanelProps) {
+  const traceSteps = currentTrace?.steps ?? []
+  return (
+    <div className="rounded-3xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-6 space-y-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">Spec §4.6 · §4.7 · §4.8</p>
+          <h3 className="text-lg font-semibold text-[color:var(--osd-text)] flex items-center gap-2">
+            <Brain className="h-5 w-5 text-[color:var(--osd-accent)]" />
+            TRF Reasoning Lab
+          </h3>
+          <p className="text-sm text-[color:var(--osd-muted)] max-w-3xl">
+            Mirrors the Tkinter reasoning pane — select a persona, run a query, and inspect the structured reasoning trace.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onRun}
+          disabled={isRunning || !queryText.trim()}
+          className="inline-flex items-center gap-2 rounded-full border border-[color:var(--osd-border)] px-4 py-2 text-xs font-semibold text-[color:var(--osd-text)] hover:border-[color:var(--osd-accent)] disabled:opacity-60"
+        >
+          {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          {isRunning ? 'Reasoning…' : 'Generate Trace'}
+        </button>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+        <div className="space-y-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--osd-muted)]">Persona</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {personas.map((persona) => {
+                const isActive = persona.type === selectedPersona
+                return (
+                  <button
+                    key={persona.id}
+                    type="button"
+                    onClick={() => onSelectPersona(persona.type)}
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                      isActive
+                        ? 'border-[color:var(--osd-accent)] text-[color:var(--osd-accent)]'
+                        : 'border-[color:var(--osd-border)] text-[color:var(--osd-muted)] hover:border-[color:var(--osd-accent)] hover:text-[color:var(--osd-accent)]'
+                    }`}
+                  >
+                    {persona.label}
+                  </button>
+                )
+              })}
+              {personasLoading && <span className="text-xs text-[color:var(--osd-muted)]">Loading personas…</span>}
+            </div>
+          </div>
+          <label className="space-y-2 text-sm">
+            <span>Reasoning Query</span>
+            <textarea
+              value={queryText}
+              onChange={(event) => onQueryChange(event.target.value)}
+              rows={4}
+              className="w-full rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-background)] px-3 py-2 text-sm text-[color:var(--osd-text)]"
+              placeholder="Explain how the ledger integrity impacts TRF output…"
+            />
+          </label>
+          {runError && (
+            <div className="rounded-2xl border border-rose-500/60 bg-rose-500/10 px-4 py-3 text-xs text-rose-100">
+              {runError}
+            </div>
+          )}
+        </div>
+        <div className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-background)] p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--osd-muted)] flex items-center gap-2">
+                <History className="h-4 w-4" />
+                Recent Traces
+              </p>
+              <p className="text-xs text-[color:var(--osd-muted)]">Select a trace to review past reasoning.</p>
+            </div>
+            {historyLoading && <Loader2 className="h-4 w-4 animate-spin text-[color:var(--osd-muted)]" />}
+          </div>
+          <div className="mt-4 space-y-2">
+            {history.map((trace) => {
+              const isActive = currentTrace?.id === trace.id
+              return (
+                <button
+                  key={trace.id}
+                  type="button"
+                  onClick={() => onSelectTrace(trace)}
+                  className={`w-full rounded-xl border px-3 py-2 text-left text-xs transition ${
+                    isActive
+                      ? 'border-[color:var(--osd-accent)] bg-[color:var(--osd-accent)]/10 text-[color:var(--osd-text)]'
+                      : 'border-[color:var(--osd-border)] text-[color:var(--osd-muted)] hover:border-[color:var(--osd-accent)] hover:text-[color:var(--osd-accent)]'
+                  }`}
+                >
+                  <p className="font-semibold line-clamp-2">{trace.query}</p>
+                  <p className="text-[color:var(--osd-muted)]">{formatTimestamp(trace.created_at)}</p>
+                </button>
+              )
+            })}
+            {!history.length && !historyLoading && (
+              <p className="text-xs text-[color:var(--osd-muted)]">No reasoning history yet.</p>
+            )}
+            {historyError && (
+              <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-100">
+                {historyError}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-background)] p-5">
+        {currentTrace ? (
+          <>
+            <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--osd-muted)]">Conclusion</p>
+                <h4 className="text-xl font-semibold text-[color:var(--osd-text)]">
+                  {currentTrace.final_conclusion || 'Conclusion pending'}
+                </h4>
+                <p className="text-xs text-[color:var(--osd-muted)]">
+                  Confidence {(currentTrace.overall_confidence * 100).toFixed(1)}% ·{' '}
+                  {currentTrace.persona_label || currentTrace.persona_id || 'Persona'}
+                </p>
+              </div>
+              <p className="text-xs text-[color:var(--osd-muted)]">
+                Generated {formatTimestamp(currentTrace.created_at)}
+              </p>
+            </div>
+            <div className="mt-4 space-y-3">
+              {traceSteps.map((step) => (
+                <article key={step.id} className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-4">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="uppercase tracking-[0.3em] text-[color:var(--osd-muted)]">
+                      {step.operator.replace(/_/g, ' ')}
+                    </span>
+                    <span className="text-[color:var(--osd-text)] font-semibold">
+                      {(step.confidence * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-[color:var(--osd-text)]">{step.conclusion}</p>
+                  {step.premises.length > 0 && (
+                    <p className="mt-1 text-xs text-[color:var(--osd-muted)]">
+                      Premises: {step.premises.join(' · ')}
+                    </p>
+                  )}
+                </article>
+              ))}
+              {!traceSteps.length && (
+                <p className="rounded-2xl border border-dashed border-[color:var(--osd-border)] px-4 py-6 text-center text-sm text-[color:var(--osd-muted)]">
+                  No reasoning steps recorded for this query.
+                </p>
+              )}
+            </div>
+          </>
+        ) : (
+          <p className="text-sm text-[color:var(--osd-muted)]">
+            Run a reasoning query to populate the TRF trace view.
+          </p>
+        )}
       </div>
     </div>
   )

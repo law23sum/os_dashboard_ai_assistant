@@ -5,14 +5,14 @@ from __future__ import annotations
 import sqlite3
 import sys
 
-from ....integrations.onenote.client import OneNoteClient
-from ....integrations.onenote.service import OneNoteService
-from ....config import DATA_DIR
+from assistant_hub.integrations.onenote.client import OneNoteClient
+from assistant_hub.integrations.onenote.service import OneNoteService
+from assistant_hub.config import DATA_DIR
 
 
 def handle_onenote_command(args, conn: sqlite3.Connection) -> int:
     """Handle OneNote CLI commands."""
-    from ....versioning import start_worker
+    from assistant_hub.versioning import start_worker
     
     # Start git worker if not already running
     start_worker()
@@ -59,4 +59,3 @@ def handle_onenote_command(args, conn: sqlite3.Connection) -> int:
     else:
         print(f"Unknown OneNote subcommand: {args.subcommand}", file=sys.stderr)
         return 1
-

@@ -8,7 +8,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
-DB_FILE = os.path.join(os.path.dirname(__file__), "..", "assistant_hub.db")
+from assistant_hub.config import DB_PATH, ensure_data_directories
+
+ensure_data_directories()
+DB_FILE = str(DB_PATH)
 
 PERSONAS = ["Chris", "AIC", "Aria", "Sora"]
 PERSONA_ROLES = {
@@ -458,6 +461,8 @@ def init_db() -> sqlite3.Connection:
 
     try:
         initialize_document_samples(conn)
+    except Exception:
+        pass
     # Seed sample document operations so the AI Ops board is never empty
     try:
         c.execute("SELECT COUNT(*) as count FROM document_operations")
@@ -837,9 +842,12 @@ def db_insert_chat_message(conn: sqlite3.Connection, msg: ChatMessage) -> int:
     return c.lastrowid
 
 
-def db_clear_chat_history(conn: sqlite3.Connection):
+def db_clear_chat_history(conn: sqlite3.Connection, persona: Optional[str] = None):
     c = conn.cursor()
-    c.execute("DELETE FROM chat_messages")
+    if persona:
+        c.execute("DELETE FROM chat_messages WHERE persona = ?", (persona,))
+    else:
+        c.execute("DELETE FROM chat_messages")
     conn.commit()
 
 

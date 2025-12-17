@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from openai import APIError, AuthenticationError, OpenAI  # type: ignore
@@ -19,8 +19,20 @@ except Exception:  # pragma: no cover - handled gracefully when dependency missi
         pass
 
 
-from .db import ChatMessage, CHAT_ROLES, PERSONAS
+from .db import (
+    ChatMessage,
+    CHAT_ROLES,
+    PERSONAS,
+    init_db,
+    load_openai_api_key,
+    save_openai_api_key,
+)
 from .terminal import run_bash_command
+from .prompting.gpt5_scaffold import (
+    GPT5ScaffoldOptions,
+    apply_gpt5_prompting_scaffold,
+)
+from assistant_core.openai_compat import legacy_chat_completion
 
 # Token limits for ChatGPT API requests only (TPM limits)
 # TPM limit: 30,000 tokens per minute
@@ -93,20 +105,23 @@ def truncate_messages_for_api(
 
 
 # Model assignments per agent
-# Note: o1 models require special handling (no system messages, different API)
+# Map personas onto the latest GPT-5 family variants
 AGENT_MODELS = {
-    "Sora": "gpt-4o",  # Using gpt-4o (closest to "5.1" - latest GPT-4)
-    "Aria": "gpt-4o",
-    "AIC": "o1-mini",  # Using o1-mini for reasoning model (latest stable o1)
-    "Chris": "gpt-4o-mini",  # Default for human user
+    "Sora": "gpt-5.2",
+    "Aria": "gpt-5.1-codex-max",
+    "AIC": "gpt-5.2-pro",
+    "Chris": "gpt-5-mini",
 }
 
 # Fallback models if primary model unavailable
 AGENT_MODEL_FALLBACKS = {
-    "AIC": "gpt-4o",  # Fallback if o1-mini unavailable
+    "AIC": "gpt-5.2",
+    "Sora": "gpt-5-mini",
+    "Aria": "gpt-5-mini",
+    "Chris": "gpt-5-nano",
 }
 
-DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-4o-mini")
+DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-5-mini")
 DEFAULT_SYSTEM_PROMPT = os.getenv(
     "ASSISTANT_HUB_SYSTEM_PROMPT",
     "You are a cooperative team of AI agents (Aria, AIC, Sora) tasked with helping Chris manage"
@@ -118,14 +133,75 @@ DEFAULT_SYSTEM_PROMPT = os.getenv(
     " Execute tasks immediately without meta-commentary about timing or process.",
 )
 
+
+def _env_flag(name: str, default: bool = True) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() not in ("0", "false", "no", "off")
+
+
+def get_default_system_prompt() -> str:
+    """Return the default system prompt, optionally wrapped with GPT-5 scaffolding."""
+    base = DEFAULT_SYSTEM_PROMPT
+    if not _env_flag("ASSISTANT_HUB_GPT5_PROMPT_SCAFFOLD", True):
+        return base
+    eagerness = os.getenv("ASSISTANT_HUB_AGENTIC_EAGERNESS", "medium")
+    return apply_gpt5_prompting_scaffold(
+        base,
+        options=GPT5ScaffoldOptions(
+            agentic_eagerness=eagerness, tools=["execute_command", "read_displayed_file"]
+        ),
+    )
+
 _client: Optional[OpenAI] = None
+
+
+def _cache_api_key(key: str) -> None:
+    try:
+        conn = init_db()
+    except Exception:
+        return
+    try:
+        existing = load_openai_api_key(conn)
+        if existing != key:
+            save_openai_api_key(conn, key)
+    except Exception:
+        pass
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def _fetch_key_from_db() -> Optional[str]:
+    try:
+        conn = init_db()
+    except Exception:
+        return None
+    try:
+        return load_openai_api_key(conn)
+    except Exception:
+        return None
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
 
 
 def _get_api_key() -> str:
     key = os.getenv("OPENAI_API_KEY") or os.getenv("AI_CHAT_OPENAI_API_KEY")
+    if key:
+        _cache_api_key(key)
+        return key
+
+    key = _fetch_key_from_db()
     if not key:
         raise ValueError(
-            "OpenAI API key missing. Set OPENAI_API_KEY or AI_CHAT_OPENAI_API_KEY in your environment."
+            "OpenAI API key missing. Set OPENAI_API_KEY or AI_CHAT_OPENAI_API_KEY in your environment, "
+            "or store one in the database via assistant_hub.db.save_openai_api_key()."
         )
     return key
 
@@ -297,6 +373,80 @@ def _offline_reply(prompt: str, error: Exception) -> str:
     )
 
 
+def _split_system_instructions(messages: List[Dict[str, Any]]) -> Tuple[Optional[str], List[Dict[str, Any]]]:
+    instructions_parts: List[str] = []
+    remaining: List[Dict[str, Any]] = []
+    for msg in messages or []:
+        if msg.get("role") == "system" and isinstance(msg.get("content"), str):
+            instructions_parts.append(msg["content"])
+        else:
+            remaining.append(msg)
+    instructions = "\n\n".join([p for p in instructions_parts if p.strip()]) or None
+    return instructions, remaining
+
+
+def _to_responses_input(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    items: List[Dict[str, Any]] = []
+    for msg in messages or []:
+        role = msg.get("role", "user")
+        content = msg.get("content", "")
+        if isinstance(content, list):
+            converted: List[Dict[str, Any]] = []
+            for block in content:
+                if not isinstance(block, dict):
+                    continue
+                if block.get("type") == "text":
+                    converted.append({"type": "input_text", "text": block.get("text", "")})
+                elif block.get("type") == "image_url":
+                    image = block.get("image_url") or {}
+                    url = image.get("url") if isinstance(image, dict) else None
+                    if url:
+                        converted.append({"type": "input_image", "image_url": url})
+            items.append({"role": role, "content": converted})
+            continue
+        items.append({"role": role, "content": [{"type": "input_text", "text": str(content)}]})
+    return items
+
+
+def _extract_output_text(response: Any) -> str:
+    if hasattr(response, "output_text") and response.output_text:
+        return str(response.output_text).strip()
+    chunks: List[str] = []
+    output = getattr(response, "output", None) or []
+    for item in output:
+        item_type = getattr(item, "type", None) or (item.get("type") if isinstance(item, dict) else None)
+        if item_type != "message":
+            continue
+        content = getattr(item, "content", None) or (item.get("content") if isinstance(item, dict) else None) or []
+        for block in content:
+            btype = getattr(block, "type", None) or (block.get("type") if isinstance(block, dict) else None)
+            if btype == "output_text":
+                text = getattr(block, "text", None) or (block.get("text") if isinstance(block, dict) else None) or ""
+                if text:
+                    chunks.append(str(text))
+    return "\n".join(chunks).strip()
+
+
+def _extract_function_calls(response: Any) -> Optional[List[Dict[str, Any]]]:
+    calls: List[Dict[str, Any]] = []
+    output = getattr(response, "output", None) or []
+    for item in output:
+        item_type = getattr(item, "type", None) or (item.get("type") if isinstance(item, dict) else None)
+        if item_type != "function_call":
+            continue
+        call_id = getattr(item, "id", None) or (item.get("id") if isinstance(item, dict) else None)
+        name = getattr(item, "name", None) or (item.get("name") if isinstance(item, dict) else None)
+        arguments = getattr(item, "arguments", None) or (item.get("arguments") if isinstance(item, dict) else None)
+        if not name:
+            fn = getattr(item, "function", None) or (item.get("function") if isinstance(item, dict) else None) or {}
+            name = getattr(fn, "name", None) or (fn.get("name") if isinstance(fn, dict) else None)
+            if not arguments:
+                arguments = getattr(fn, "arguments", None) or (fn.get("arguments") if isinstance(fn, dict) else None)
+        if name:
+            calls.append({"id": call_id, "name": name, "arguments": arguments or "{}"})
+    return calls or None
+
+
 def generate_ai_reply(
     history: List[ChatMessage],
     persona: str,
@@ -317,7 +467,7 @@ def generate_ai_reply(
     Returns tool_calls if the AI wants to execute commands.
     """
     messages = []
-    sys_prompt = system_prompt or DEFAULT_SYSTEM_PROMPT
+    sys_prompt = system_prompt or get_default_system_prompt()
     if sys_prompt:
         messages.append({"role": "system", "content": sys_prompt})
     messages.extend(build_message_payload(history, include_tool_results=True))
@@ -352,27 +502,31 @@ def generate_ai_reply(
         # Note: OpenAI file API requires separate upload, then reference in messages
         # For now, we'll include file content in the message
 
-        kwargs = {
+        instructions, remaining = _split_system_instructions(messages)
+        effort = os.getenv("ASSISTANT_HUB_REASONING_EFFORT", "none")
+        verbosity = os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY", "medium")
+
+        payload: Dict[str, Any] = {
             "model": model,
-            "messages": messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
+            "instructions": instructions,
+            "input": _to_responses_input(remaining),
+            "reasoning": {"effort": effort},
+            "text": {"verbosity": verbosity},
+            "max_output_tokens": max_tokens,
+            "store": False,
         }
-
+        if effort == "none":
+            payload["temperature"] = temperature
         if tools:
-            kwargs["tools"] = tools
-            kwargs["tool_choice"] = "auto"
+            payload["tools"] = tools
+            payload["tool_choice"] = "auto"
 
-        response = client.chat.completions.create(**kwargs)
-
-        message = response.choices[0].message
-        text = message.content or ""
-        tool_calls = (
-            message.tool_calls
-            if hasattr(message, "tool_calls") and message.tool_calls
-            else None
-        )
-
+        if hasattr(client, "responses"):
+            response = client.responses.create(**payload)
+            text = _extract_output_text(response)
+            tool_calls = _extract_function_calls(response)
+        else:
+            text, tool_calls = legacy_chat_completion(client, payload)
         return text.strip(), None, tool_calls
     except (AuthenticationError, APIError, ValueError, RuntimeError) as exc:
         return _offline_reply(fallback_source or "(empty prompt)", exc), str(exc), None
@@ -389,11 +543,23 @@ def execute_tool_call(
         cwd: Optional working directory
         gui_context: Optional context from GUI (e.g., active_file_session for read_displayed_file)
     """
-    if tool_call.function.name == "read_displayed_file":
+    import json
+
+    # Support both Chat Completions tool_call objects and Responses API dict payloads.
+    if isinstance(tool_call, dict):
+        fn_name = tool_call.get("name")
+        fn_args_raw = tool_call.get("arguments", "{}")
+        tool_call_id = tool_call.get("id")
+    else:
+        fn_name = tool_call.function.name
+        fn_args_raw = tool_call.function.arguments
+        tool_call_id = tool_call.id
+
+    if fn_name == "read_displayed_file":
         # Handle reading displayed file - requires GUI context
         if not gui_context:
             return {
-                "tool_call_id": tool_call.id,
+                "tool_call_id": tool_call_id,
                 "role": "tool",
                 "name": "read_displayed_file",
                 "content": "No GUI context available. Cannot read displayed file.",
@@ -402,7 +568,7 @@ def execute_tool_call(
         active_session = gui_context.get("active_file_session")
         if not active_session:
             return {
-                "tool_call_id": tool_call.id,
+                "tool_call_id": tool_call_id,
                 "role": "tool",
                 "name": "read_displayed_file",
                 "content": "No file is currently displayed in the document preview panel. Please open a file first using the 'Open Document' button or by having the AI open a file.",
@@ -413,7 +579,7 @@ def execute_tool_call(
 
         if not file_path or not os.path.exists(file_path):
             return {
-                "tool_call_id": tool_call.id,
+                "tool_call_id": tool_call_id,
                 "role": "tool",
                 "name": "read_displayed_file",
                 "content": f"No valid file path available. File path: {file_path}",
@@ -491,30 +657,28 @@ def execute_tool_call(
 
             file_name = os.path.basename(file_path)
             return {
-                "tool_call_id": tool_call.id,
+                "tool_call_id": tool_call_id,
                 "role": "tool",
                 "name": "read_displayed_file",
                 "content": f"Content of displayed file '{file_name}' ({file_type}):\n\n{content}",
             }
         except Exception as e:
             return {
-                "tool_call_id": tool_call.id,
+                "tool_call_id": tool_call_id,
                 "role": "tool",
                 "name": "read_displayed_file",
                 "content": f"Error reading displayed file: {str(e)}\nFile path: {file_path}\nFile type: {file_type}",
             }
 
-    if tool_call.function.name == "execute_command":
-        import json
-
+    if fn_name == "execute_command":
         try:
-            args = json.loads(tool_call.function.arguments)
+            args = json.loads(fn_args_raw or "{}")
             command = args.get("command", "")
             work_dir = args.get("working_directory", cwd) or cwd or os.getcwd()
 
             if not command:
                 return {
-                    "tool_call_id": tool_call.id,
+                    "tool_call_id": tool_call_id,
                     "role": "tool",
                     "name": "execute_command",
                     "content": "Error: No command provided",
@@ -534,21 +698,21 @@ def execute_tool_call(
             content = "\n".join(output_parts)
 
             return {
-                "tool_call_id": tool_call.id,
+                "tool_call_id": tool_call_id,
                 "role": "tool",
                 "name": "execute_command",
                 "content": content,
             }
         except Exception as e:
             return {
-                "tool_call_id": tool_call.id,
+                "tool_call_id": tool_call_id,
                 "role": "tool",
                 "name": "execute_command",
                 "content": f"Error executing command: {str(e)}",
             }
 
     return {
-        "tool_call_id": tool_call.id,
+        "tool_call_id": tool_call_id,
         "role": "tool",
         "name": "unknown",
         "content": "Unknown tool",

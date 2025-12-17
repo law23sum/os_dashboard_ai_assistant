@@ -6,28 +6,25 @@ from typing import Optional
 from ...db import Project
 from ...core.routing import Intent
 from ..prompts import ARIA_SYSTEM_PROMPT
-from ..openai_client import get_default_client
+from ..openai_client import chat
 
 
-def polish_text(text: str, model: str = "gpt-4.1-mini") -> str:
+def polish_text(text: str, model: str = "gpt-5-mini") -> str:
     """Polish user-facing text while preserving intent."""
 
-    client = get_default_client()
-    response = client.chat(
-        model=model,
+    return chat(
+        model,
         messages=[
             {"role": "system", "content": ARIA_SYSTEM_PROMPT},
             {"role": "user", "content": text},
         ],
     )
-    return response.choices[0].message.content
 
 
 def handle_narrative(
-    project: Project, intent: Optional[Intent] = None, model: str = "gpt-4.1-mini"
+    project: Project, intent: Optional[Intent] = None, model: str = "gpt-5-mini"
 ) -> str:
     """Write a user-facing narrative about the current state of a project."""
-    client = get_default_client()
 
     context = f"Project: {project.name}\nDescription: {project.description}\nStatus: {project.status}"
     if intent and intent.context:
@@ -45,5 +42,4 @@ def handle_narrative(
         },
     ]
 
-    response = client.chat(model=model, messages=messages)
-    return response.choices[0].message.content
+    return chat(model, messages)

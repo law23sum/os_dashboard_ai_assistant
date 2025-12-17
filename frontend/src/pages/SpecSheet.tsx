@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertCircle, Download, RefreshCw } from 'lucide-react'
-import { specRequirements, statusMeta } from '../data/specRequirements'
+import { specRequirements, statusMeta, TECH_SPEC_ROUTE } from '../data/specRequirements'
 
 const SPEC_ENDPOINT = '/api/docs/technical-spec-sheet'
 
@@ -84,7 +84,7 @@ export default function SpecSheet() {
           <h2 className="text-2xl font-semibold text-white">Requirements from Spec + Migration Log</h2>
           <p className="text-sm text-slate-300">
             Pulled directly from <Link className="text-blue-300 underline" to="/docs/migration_continued.md">MIGRATION_CONTINUED.md</Link> and the{' '}
-            <Link className="text-blue-300 underline" to="/spec-sheet">Technical Spec Sheet</Link>. Use this tracker to keep desktop + web builds honest.
+            <Link className="text-blue-300 underline" to={TECH_SPEC_ROUTE}>Technical Spec Sheet</Link>. Use this tracker to keep desktop + web builds honest.
             Status chips mirror the gap log so it’s obvious which surfaces still need attention.
           </p>
         </div>

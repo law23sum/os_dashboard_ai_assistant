@@ -1,54 +1,34 @@
-# Documentation Index
+# Documentation Index (Spec v6 Aligned)
 
-This folder centralizes the reference material for the OS Dashboard AI Assistant Platform. The **canonical ordering** now mirrors `OS DashboardAIAssistantTOC.txt`: every section below references the spec chapter, the key Markdown(s), and the runtime surfaces that satisfy it. Use this page alongside `documentation/OS_DashboardAIAssistantTOC.md` when you need to trace an implementation back to the canon.
+Start with `documentation/consolidated_md/technical_spec_v6_alignment.md`. It mirrors the Technical Spec Sheet (Version 6 Latest Edition) and routes you to the lower_snake_case canon summaries plus their legacy sources.
 
 ---
 
-## 0 — Mission, Modes, Identity & Cognitive Agents
-- Vision & mission: `VISION.md`, `VISION_IMPLEMENTATION.md`, `GLOBAL_IMPACT_WHITE_PAPER.md`
-- Operating models & objectives: `OS_DASHBOARD_ENTERPRISE.md`, `IMPLEMENTATION_SUMMARY.md`, `ENGINEERING_COMPLEXITY_ANALYSIS.md`
-- Personas & daemons narrative: `AI_FEATURES_IMPLEMENTATION.md`, `DAEMON_FRAMEWORK_ARCHITECTURE.md`
-- Roadmaps / deltas: `IMPLEMENTATION_ROADMAP.md`, `LOW_HANGING_FRUIT_FEATURES.md`, `FEATURE_OPPORTUNITIES.md`, `MISSING_FEATURES_SUMMARY.md`, `NEW_FEATURES_ADDED.md`
+## Canon Summaries (consolidated_md/)
+- `technical_spec_v6_alignment.md` (index; maps spec chapters to sources)
+- `00_mission_identity_agents.md`
+- `01_architecture_and_planes.md`
+- `02_domain_and_reasoning.md`
+- `03_driver_execution_layer.md`
+- `04_data_and_storage.md`
+- `05_workspaces_and_automation.md`
+- `06_extensibility_and_security.md`
+- `07_observability_and_reliability.md`
+- `08_deployment_and_failure.md`
+- `09_billing_and_roadmap.md`
+- `10_meta_stack_layers.md`
+- Diagrams/gaps: `architecture_network_map.md`, `implementation_gaps_and_fixes.md`
 
-## 1 — Architectural Overview & Principles
-- Canon spec + layered architecture: `OS_DASHBOARD_CANON_SYSTEM_SPEC.md`, `ARCHITECTURE_IMPLEMENTATION.md`
-- Driver-aware orchestrator + automation flow: `AUTOMATION_ORCHESTRATION_INTEGRATION.md`, `assistant_hub/ARCHITECTURE.md`
-- Presentation & migration blueprint: `WEB_MIGRATION_PLAN.md`, `FRONTEND_DEPLOYMENT.md` (React desktop), `docs/frontend_migration_plan.md`
+## Key Legacy Sources (kept for lineage)
+- Vision & mission: `VISION.md`, `VISION_IMPLEMENTATION.md`, `AI_FEATURES_IMPLEMENTATION.md`, `GLOBAL_IMPACT_WHITE_PAPER.md`
+- Architecture & principles: `OS_DASHBOARD_CANON_SYSTEM_SPEC.md`, `ARCHITECTURE_IMPLEMENTATION.md`, `OS_DashboardAIAssistantTOC.txt`
+- Daemons & governance: `COGNITIVE_DAEMON_SYSTEM.md`, `DAEMON_FRAMEWORK_ARCHITECTURE.md`, `CONVERSATION_AI_INTEGRATION.md`
+- Workspaces & migration: `WEB_MIGRATION_PLAN.md`, `UI_MIGRATION_STATUS.md`, `docs/frontend_migration_plan.md`, `workflows/README.md`
+- Capsules & CIR: `DOCUMENT_TEMPLATES_AND_AUTOMATION.md`, `DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md`, `CANONICAL_INTERNAL_REPRESENTATION.md`
+- Deployment & costing: `DEPLOYMENT.md`, `FRONTEND_DEPLOYMENT.md`, `AWS_COST_ESTIMATE.md`
+- Roadmap & gaps: `IMPLEMENTATION_ROADMAP.md`, `MISSING_FEATURES_SUMMARY.md`, `LOW_HANGING_FRUIT_FEATURES.md`, `NEW_FEATURES_ADDED.md`
 
-## 2 — Planes Architecture (Data / Control / Governance)
-- Planes and control-loop insights: `AI_OFFICE_AGENT_REALTIME.md`, `COGNITIVE_DAEMON_SYSTEM.md`
-- Policy layer & governance guardrails: `CONVERSATION_AI_INTEGRATION.md`, `documentation/reference/os-dashboard-ai-assistant-platform/CHANGELOG.md` (policy history)
-
-## 3 — Core Domain & Knowledge Model
-- CIR & document taxonomy: `CANONICAL_INTERNAL_REPRESENTATION.md`, `DOCUMENT_TEMPLATES_AND_AUTOMATION.md`
-- Task/project ledger: `DOCUMENT_UPLOAD_DESIGN.md`, `DOCUMENT_UPLOAD_IMPLEMENTATION.md`
-- Knowledge capsules & workspace stories: `DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md`, `DOCUMENT_UPLOAD_DESIGN.md`, `DOCUMENT_UPLOAD_IMPLEMENTATION.md`
-
-## 4 — Cognitive Agents, Reasoning & Daemon Framework
-- Cognitive framework + personas: `AI_FEATURES_IMPLEMENTATION.md`, `COGNITIVE_DAEMON_SYSTEM.md`
-- Daemon runtime & automation controller: `DAEMON_FRAMEWORK_ARCHITECTURE.md`, `assistant_hub_gui/assistant_hub/ARCHITECTURE.md`
-- Research & reasoning overlays: `api_research.md`, `WEB_MIGRATION_PLAN.md` (desktop research workspace)
-
-## 5 — Driver Architecture & System Execution Layer
-- OS / SaaS driver specs: `ARCHITECTURE_IMPLEMENTATION.md` (Section 5), `assistant_hub/ARCHITECTURE.md`
-- Git/Office integrations & automation capsules: `ONEDRIVE_INTEGRATION.md`, `FILE_TASK_EXTRACTION_FEATURE.md`, `assistant_hub_gui/samples/*.md`
-
-## 6 — Data & Storage Architecture
-- Data stores & observability: `AWS_COST_ESTIMATE.md`, `DEPLOYMENT.md`, `AI_OFFICE_AGENT_REALTIME.md` (telemetry)
-- Config references & samples: `config/samples/*.md`, `assistant_hub_gui/samples/*.md`
-
-## 7 — Workspaces, Domain Engines & Collaboration
-- Workspace engines & workflows: `workflows/README.md`, `assistant_hub_gui/assistant_hub/ARCHITECTURE.md`
-- Writer / Research / DevOS overlays: `api_research.md`, `documentation/reference/os-dashboard-ai-assistant-platform/README.md`
-- Migration tracker (Tk → React parity): `UI_MIGRATION_STATUS.md`
-
-## 8 — Capsule System, Ledger & Automation
-- Capsules & release packets: `DOCUMENT_TEMPLATES_AND_AUTOMATION.md`, `DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md`
-- Automation guidance & CLI surface: `commands.md`, `assistant_hub/ARCHITECTURE.md`
-
-## 9+ — Deployment, Ops & Testing (Supporting Appendices)
-- Deployment & costing: `DEPLOYMENT.md`, `AWS_COST_ESTIMATE.md`, `docs/ui_deployment.md`
-- Test & verification references: `documentation/.pytest_cache/README.md` (placeholder until pytest suite expands)
-- Reference libraries: `documentation/reference/**`
-
-Every new Markdown or implementation note should declare the spec section(s) it fulfills and be linked from the appropriate numbered list above. This keeps the documentation synchronized with `OS_DashboardAIAssistantTOC.md`, ensures newcomers can find the canonical artifact quickly, and satisfies the “read-all-MDs and reorganize per TOC” directive from the Canon specification.
+## Contributing Notes
+- Prefer lower_snake_case filenames for any new Markdown (see `consolidated_md/technical_spec_v6_alignment.md` for suggested renames).
+- When editing a legacy doc, add a short reference back to the relevant canon chapter so readers can jump between summary and source.
+- Keep spec numbering in headings to stay aligned with `Technical Spec Sheet (Version 6 Latest Edition).pdf` and `OS_DashboardAIAssistantTOC.txt`.

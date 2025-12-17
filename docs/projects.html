@@ -51,12 +51,20 @@
     </div>
     <script>
       const list = document.getElementById('projects');
+      // Aligns with Spec §1.1 / §7.2 by routing legacy HTML through the shared /api stack.
+      const API_BASE = (window.__OSDASH_API_BASE__ || '/api').replace(/\/+$/, '');
+      const apiUrl = (path) => {
+        if (!path) return API_BASE;
+        if (/^https?:\/\//i.test(path)) return path;
+        if (path.startsWith('/')) return `${API_BASE}${path}`;
+        return `${API_BASE}/${path}`;
+      };
       document.getElementById('refresh').addEventListener('click', fetchProjects);
 
       async function fetchProjects() {
         list.textContent = 'Loading…';
         try {
-          const projects = await fetch('/projects').then((res) => res.json());
+          const projects = await fetch(apiUrl('/projects')).then((res) => res.json());
           if (!projects.length) {
             list.textContent = 'No projects registered.';
             return;

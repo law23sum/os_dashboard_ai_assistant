@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from './utils/toast'
@@ -22,6 +22,8 @@ import Templates from './pages/Templates'
 import Writer from './pages/Writer'
 import SpecSheet from './pages/SpecSheet'
 import APIConnectors from './pages/APIConnectors'
+import AICopilot from './pages/AICopilot'
+import OfficeRealtime from './pages/OfficeRealtime'
 import AIOS from './pages/AIOS'
 import AdvancedAI from './pages/AdvancedAI'
 import Audit from './pages/Audit'
@@ -30,12 +32,48 @@ import ComputerVision from './pages/ComputerVision'
 import Tools from './pages/Tools'
 import { applyTheme, defaultTheme } from './theme'
 import Security from './pages/Security'
+import NetworkMonitoring from './pages/NetworkMonitoring'
 import EdgeComputing from './pages/EdgeComputing'
 import Workflows from './pages/Workflows'
 import NAS from './pages/NAS'
 import AdvancedSystems from './pages/AdvancedSystems'
 import Billing from './pages/Billing'
 import FutureDeck from './pages/FutureDeck'
+import NeuralArchitectureSearch from './pages/NeuralArchitectureSearch'
+import VisionDeck from './pages/VisionDeck'
+import Observability from './pages/Observability'
+import CapsuleMarketplace from './pages/CapsuleMarketplace'
+import AutoFix from './pages/AutoFix'
+import IntentProcessor from './pages/IntentProcessor'
+import WorkspaceHealth from './pages/WorkspaceHealth'
+import { AppErrorBoundary } from './components/AppErrorBoundary'
+
+const normalizeBasePath = (value?: string | null): string => {
+  if (!value || value === '.' || value === './') return '/'
+  try {
+    const url = new URL(value, 'http://placeholder')
+    let pathname = url.pathname || '/'
+    pathname = pathname.replace(/\/+$/, '')
+    return pathname || '/'
+  } catch {
+    if (value.startsWith('/')) {
+      const trimmed = value.replace(/\/+$/, '')
+      return trimmed || '/'
+    }
+    return '/'
+  }
+}
+
+const resolveRouterBasePath = (): string => {
+  if (typeof document !== 'undefined') {
+    const baseHref = document.querySelector('base')?.getAttribute('href')
+    if (baseHref) {
+      return normalizeBasePath(baseHref)
+    }
+  }
+  const envBase = import.meta.env.BASE_URL || '/'
+  return normalizeBasePath(envBase)
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,16 +89,28 @@ const queryClient = new QueryClient({
   },
 })
 
+const shouldUseHashRouter = (): boolean => {
+  if (typeof window === 'undefined') return false
+  // When the Electron shell loads a local bundle via `loadFile`, `file://` URLs
+  // include the full filesystem pathname (e.g. `/.../index.html`) which breaks
+  // BrowserRouter route matching and can render a blank window.
+  return window.location.protocol === 'file:'
+}
+
 function App() {
   useEffect(() => {
     applyTheme(defaultTheme)
   }, [])
+  const basePath = resolveRouterBasePath()
+  const useHashRouter = shouldUseHashRouter()
+  const Router = useHashRouter ? HashRouter : BrowserRouter
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Layout>
-          <Routes>
+      <Router basename={useHashRouter ? undefined : basePath}>
+        <AppErrorBoundary>
+          <Layout>
+            <Routes>
             {/* Root & Core Pages */}
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -86,12 +136,18 @@ function App() {
             <Route path="/ai/advanced" element={<AdvancedAI />} />
             <Route path="/ai/systems" element={<AdvancedSystems />} />
             <Route path="/ai/mlops" element={<MLOps />} />
-            <Route path="/ai/nas" element={<NAS />} />
+            <Route path="/ai/copilot" element={<AICopilot />} />
+            <Route path="/ai/nas" element={<NeuralArchitectureSearch />} />
+            <Route path="/ai/nas/experiments" element={<NeuralArchitectureSearch />} />
+            <Route path="/ai/nas/simulator" element={<NAS />} />
             <Route path="/ai/security" element={<Security />} />
             <Route path="/ai/edge" element={<EdgeComputing />} />
             <Route path="/ai/edge-computing" element={<EdgeComputing />} />
             <Route path="/ai/workflows" element={<Workflows />} />
             <Route path="/ai/vision" element={<ComputerVision />} />
+            <Route path="/ai/capsules" element={<CapsuleMarketplace />} />
+            <Route path="/ai/autofix" element={<AutoFix />} />
+            <Route path="/ai/intents" element={<IntentProcessor />} />
             {/* Legacy redirects for backward compatibility */}
             <Route path="/ai-ops" element={<Navigate to="/ai/operations" replace />} />
             <Route path="/ai-os" element={<Navigate to="/ai/os" replace />} />
@@ -99,6 +155,9 @@ function App() {
             <Route path="/ai-systems" element={<Navigate to="/ai/systems" replace />} />
             <Route path="/mlops" element={<Navigate to="/ai/mlops" replace />} />
             <Route path="/nas" element={<Navigate to="/ai/nas" replace />} />
+            <Route path="/nas/experiments" element={<Navigate to="/ai/nas" replace />} />
+            <Route path="/nas/simulator" element={<Navigate to="/ai/nas/simulator" replace />} />
+            <Route path="/neural-architecture" element={<Navigate to="/ai/nas" replace />} />
             <Route path="/security" element={<Navigate to="/ai/security" replace />} />
             <Route path="/edge-computing" element={<Navigate to="/ai/edge-computing" replace />} />
             <Route path="/workflows" element={<Navigate to="/ai/workflows" replace />} />
@@ -107,8 +166,14 @@ function App() {
             {/* Integrations Hierarchy: /integrations/* */}
             <Route path="/integrations" element={<Integrations />} />
             <Route path="/integrations/api-connectors" element={<APIConnectors />} />
+            <Route path="/integrations/office" element={<OfficeRealtime />} />
+            <Route path="/integrations/office-realtime" element={<OfficeRealtime />} />
             {/* Legacy redirect for backward compatibility */}
             <Route path="/api-connectors" element={<Navigate to="/integrations/api-connectors" replace />} />
+
+            {/* Observability (v1000) */}
+            <Route path="/observability" element={<Observability />} />
+            <Route path="/workspace/health" element={<WorkspaceHealth />} />
 
             {/* Analytics & Monitoring Hierarchy: /monitoring/* */}
             <Route path="/analytics" element={<Analytics />} />
@@ -140,19 +205,25 @@ function App() {
 
             {/* Systems */}
             <Route path="/systems/security" element={<Security />} />
+            <Route path="/systems/network" element={<NetworkMonitoring />} />
+            <Route path="/network" element={<NetworkMonitoring />} />
             <Route path="/systems/edge" element={<EdgeComputing />} />
             <Route path="/systems/workflows" element={<Workflows />} />
             <Route path="/systems/nas" element={<NAS />} />
+            <Route path="/vision" element={<VisionDeck />} />
+            <Route path="/vision-deck" element={<Navigate to="/vision" replace />} />
+            <Route path="/future" element={<Navigate to="/vision" replace />} />
             <Route path="/future/:slug" element={<FutureDeck />} />
 
             {/* Settings */}
             <Route path="/settings" element={<Settings />} />
 
             {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Layout>
-      </BrowserRouter>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Layout>
+        </AppErrorBoundary>
+      </Router>
       <Toaster position="top-right" />
     </QueryClientProvider>
   )

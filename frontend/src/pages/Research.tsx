@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { Play, PlusCircle, RefreshCw } from 'lucide-react'
 import apiClient, { apiPath } from '../lib/apiClient'
 
@@ -235,6 +235,23 @@ export default function Research() {
     setParameters((prev) => prev.filter((_, i) => i !== index))
   }
 
+  // Memoize select handlers to prevent unnecessary re-renders
+  const handleSimulationTypeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSimulationType(e.target.value)
+  }, [])
+
+  const handleModelIdChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setModelId(e.target.value)
+  }, [])
+
+  const handleIterationsChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setIterations(Number(e.target.value))
+  }, [])
+
+  const handleConfidenceChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setConfidence(Number(e.target.value))
+  }, [])
+
   if (loading) {
     return (
       <div className="flex h-80 items-center justify-center">
@@ -315,8 +332,16 @@ export default function Research() {
               Type
               <select
                 value={simulationType}
-                onChange={(e) => setSimulationType(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-primary-500 focus:outline-none"
+                onChange={(e) => {
+                  e.stopPropagation()
+                  handleSimulationTypeChange(e)
+                }}
+                className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-primary-500 focus:outline-none transition-all hover:border-white/20 active:scale-[0.98] cursor-pointer"
+                style={{ 
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  cursor: 'pointer',
+                }}
               >
                 <option value="monte_carlo">Monte Carlo</option>
                 <option value="agent_based">Agent-Based</option>
@@ -328,8 +353,16 @@ export default function Research() {
               Model
               <select
                 value={modelId}
-                onChange={(e) => setModelId(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-primary-500 focus:outline-none"
+                onChange={(e) => {
+                  e.stopPropagation()
+                  handleModelIdChange(e)
+                }}
+                className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-primary-500 focus:outline-none transition-all hover:border-white/20 active:scale-[0.98] cursor-pointer"
+                style={{ 
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  cursor: 'pointer',
+                }}
               >
                 {workspace.models.map((model) => (
                   <option key={model.id} value={model.id}>
@@ -344,7 +377,7 @@ export default function Research() {
                 type="number"
                 min={100}
                 value={iterations}
-                onChange={(e) => setIterations(Number(e.target.value))}
+                onChange={handleIterationsChange}
                 className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-primary-500 focus:outline-none"
               />
             </label>
@@ -352,7 +385,7 @@ export default function Research() {
               Confidence
               <select
                 value={confidence}
-                onChange={(e) => setConfidence(Number(e.target.value))}
+                onChange={handleConfidenceChange}
                 className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-primary-500 focus:outline-none"
               >
                 <option value={0.9}>90%</option>
