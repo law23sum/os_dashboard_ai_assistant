@@ -49,7 +49,7 @@ def _uvicorn_log_config() -> dict:
     config = copy.deepcopy(UVICORN_LOGGING_CONFIG)
     config["handlers"]["backend-file"] = {
         "class": "logging.handlers.RotatingFileHandler",
-        "formatter": "access",
+        "formatter": "default",
         "filename": str(BACKEND_LOG),
         "maxBytes": 5 * 1024 * 1024,
         "backupCount": 3,
@@ -59,7 +59,10 @@ def _uvicorn_log_config() -> dict:
         handlers = config["loggers"].get(logger_name, {}).get("handlers")
         if handlers is not None and "backend-file" not in handlers:
             handlers.append("backend-file")
-    config["formatters"]["access"]["fmt"] = "%(asctime)s - %(message)s"
+    config["formatters"]["default"]["fmt"] = "%(asctime)s - %(levelprefix)s %(message)s"
+    config["formatters"]["access"]["fmt"] = (
+        "%(asctime)s - %(levelprefix)s %(client_addr)s - \"%(request_line)s\" %(status_code)s"
+    )
     return config
 
 
@@ -69,6 +72,19 @@ def _start_backend(
     frontend_dist: Optional[Path] = None,
 ) -> Tuple[uvicorn.Server, threading.Thread]:
     app = create_app(frontend_dist=frontend_dist)
+    
+    # SSL certificate paths
+    cert_dir = REPO_ROOT / "certs"
+    cert_file = cert_dir / "cert.pem"
+    key_file = cert_dir / "key.pem"
+    
+    # Configure SSL if certificates exist
+    ssl_keyfile = None
+    ssl_certfile = None
+    if cert_file.exists() and key_file.exists():
+        ssl_keyfile = str(key_file)
+        ssl_certfile = str(cert_file)
+    
     config = uvicorn.Config(
         app,
         host=host,
@@ -77,6 +93,8 @@ def _start_backend(
         reload=False,
         lifespan="on",
         log_config=_uvicorn_log_config(),
+        ssl_keyfile=ssl_keyfile,
+        ssl_certfile=ssl_certfile,
     )
     server = uvicorn.Server(config)
     thread = threading.Thread(target=server.run, daemon=True, name="uvicorn-react")
@@ -173,7 +191,12 @@ def launch_browser(
     """Start backend server and open the default browser."""
     frontend = _resolve_frontend(dist_path)
     server, thread = _start_backend(host, port, frontend)
-    url = f"http://{host}:{port}/app/"
+    # Use HTTPS if SSL certificates are available
+    cert_dir = REPO_ROOT / "certs"
+    cert_file = cert_dir / "cert.pem"
+    key_file = cert_dir / "key.pem"
+    protocol = "https" if cert_file.exists() and key_file.exists() else "http"
+    url = f"{protocol}://{host}:{port}/app/"
     print(f"[UI] Opening browser at {url}")
     webbrowser.open(url)
     try:
@@ -199,7 +222,12 @@ def launch_desktop(
     print(f"[UI] Using frontend dist: {frontend}")
     
     server, thread = _start_backend(host, port, frontend)
-    url = f"http://{host}:{port}/app/"
+    # Use HTTPS if SSL certificates are available
+    cert_dir = REPO_ROOT / "certs"
+    cert_file = cert_dir / "cert.pem"
+    key_file = cert_dir / "key.pem"
+    protocol = "https" if cert_file.exists() and key_file.exists() else "http"
+    url = f"{protocol}://{host}:{port}/app/"
     print(f"[UI] Starting desktop shell at {url}")
     
     # Give the server a moment to fully initialize
@@ -208,8 +236,16 @@ def launch_desktop(
     # Verify the URL is accessible
     try:
         import urllib.request
-        test_url = f"http://{host}:{port}/app/"
-        response = urllib.request.urlopen(test_url, timeout=2)
+        import ssl
+        # Create SSL context that accepts self-signed certificates for testing
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        test_url = f"{protocol}://{host}:{port}/app/"
+        if protocol == "https":
+            response = urllib.request.urlopen(test_url, timeout=2, context=ssl_context)
+        else:
+            response = urllib.request.urlopen(test_url, timeout=2)
         if response.getcode() == 200:
             print(f"[UI] Server is ready, loading webview...")
         else:

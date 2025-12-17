@@ -26,7 +26,13 @@ export function reportClientError(payload: ClientDiagnosticPayload): void {
   const body = JSON.stringify(serializePayload(payload))
   if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
     const blob = new Blob([body], { type: 'application/json' })
-    const sent = navigator.sendBeacon(`/${ENDPOINT.replace(/^\/+/, '')}`, blob)
+    const url =
+      ENDPOINT.startsWith('http://') || ENDPOINT.startsWith('https://')
+        ? ENDPOINT
+        : ENDPOINT.startsWith('/')
+          ? ENDPOINT
+          : `/${ENDPOINT}`
+    const sent = navigator.sendBeacon(url, blob)
     if (sent) {
       return
     }

@@ -893,9 +893,17 @@ function PersonaLoadSection({
             Active Persona
             <select
               value={activePersona || ''}
-              onChange={(event) => onPersonaChange?.(event.target.value)}
+              onChange={(event) => {
+                event.stopPropagation()
+                onPersonaChange?.(event.target.value)
+              }}
               disabled={isUpdatingPersona}
-              className="rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-sm text-white focus:border-white/40 focus:outline-none"
+              className="rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-sm text-white focus:border-white/40 focus:outline-none transition-all hover:border-white/20 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ 
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                cursor: isUpdatingPersona ? 'not-allowed' : 'pointer',
+              }}
             >
               {personasToDisplay.map((persona) => (
                 <option key={persona} value={persona}>

@@ -10,7 +10,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEST_LOG_DIR = REPO_ROOT / "logs" / "tests"
@@ -34,12 +34,22 @@ TEST_COMMANDS: List[Dict[str, object]] = [
 ]
 
 
+def _shlex_join(parts: Sequence[object]) -> str:
+    """Backport-safe equivalent of shlex.join."""
+    try:
+        join_fn = shlex.join  # type: ignore[attr-defined]
+    except AttributeError:
+        return " ".join(shlex.quote(str(part)) for part in parts)
+    else:
+        return join_fn([str(part) for part in parts])
+
+
 def _timestamp() -> str:
     return time.strftime("%Y-%m-%d %H:%M:%S")
 
 
 def _run_command(name: str, cmd: List[str], cwd: Path) -> Tuple[int, str]:
-    display = shlex.join(cmd)
+    display = _shlex_join(cmd)
     log_path = TEST_LOG_DIR / f"{name}.log"
     print(f"▶️  Running {name}: {display} (cwd={cwd})")
     proc = subprocess.run(
@@ -82,7 +92,7 @@ def _run_ai_autofix(log_dir: Path, attempts: int, test_cmd: str) -> int:
     ]
     if test_cmd:
         cmd.extend(["--test", test_cmd])
-    print(f"🤖 Launching AI auto-fix: {shlex.join(cmd)}")
+    print(f"🤖 Launching AI auto-fix: {_shlex_join(cmd)}")
     proc = subprocess.run(cmd, cwd=REPO_ROOT)
     if proc.returncode == 0:
         print("🤖 Auto-fix reported success")
@@ -103,7 +113,7 @@ def run_tests(max_attempts: int) -> int:
             if code == 0:
                 break
             print(f"Attempt {attempt}/{max_attempts} for {name} failed. Triggering AI auto-fix...")
-            autofix_code = _run_ai_autofix(TEST_LOG_DIR, 1, shlex.join(cmd))
+            autofix_code = _run_ai_autofix(TEST_LOG_DIR, 1, _shlex_join(cmd))
             if autofix_code != 0:
                 print(
                     "🚨 Auto-fix could not resolve the issue. Please review the logs/tests directory "

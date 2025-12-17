@@ -4,6 +4,7 @@ Full Linux environment control, process management, and network services
 """
 
 import os
+import platform
 import subprocess
 
 try:
@@ -16,6 +17,7 @@ import signal
 import socket
 import logging
 from typing import Dict, List, Any, Optional, Union, Tuple
+from datetime import datetime
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor
 import json
@@ -605,6 +607,234 @@ class SystemOperationsController:
             time.sleep(interval)
 
         return monitoring_data
+
+    def memory_thread_resilience_plan(self) -> Dict[str, Any]:
+        """
+        Produce a structured plan for recovering from memory pressure and thread oversubscription.
+
+        The plan is tuned for macOS hosts (as detected in the field) and mirrors the remediation
+        steps we typically hand to operators via the CLI playbook. Commands are grouped so the UI
+        can render them as runbook cards without guessing context.
+        """
+
+        os_family = platform.system().lower()
+        arch = platform.machine()
+        logical = psutil.cpu_count(logical=True) or 0
+        physical = psutil.cpu_count(logical=False) or logical or 0
+
+        plan = {
+            "os_family": os_family,
+            "architecture": arch,
+            "logical_cores": logical,
+            "physical_cores": physical,
+            "recommended_thread_cap": max(physical, 1),
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "spec_refs": ["11.8", "14.3", "17.2"],
+            "steps": [
+                {
+                    "title": "Baseline telemetry snapshot",
+                    "objective": "Capture memory pressure, swap usage, and the top offenders before applying fixes.",
+                    "commands": [
+                        {
+                            "command": "vm_stat",
+                            "description": "Snapshot virtual memory stats (free, active, compressed pages).",
+                        },
+                        {
+                            "command": "sysctl vm.swapusage",
+                            "description": "Record current swap consumption.",
+                        },
+                        {
+                            "command": "sudo memory_pressure -l warn",
+                            "description": "Stream memory pressure; stop once readings stabilize.",
+                            "requires_sudo": True,
+                        },
+                        {
+                            "command": "ps aux | sort -nrk 6 | head -n 10",
+                            "description": "List the top RSS consumers to target first.",
+                        },
+                    ],
+                    "verification": [
+                        "Store the output in ~/logs/memwatch before tuning so you can prove improvement.",
+                        "Flag any process that consistently consumes >20% of RAM for follow-up fixes.",
+                    ],
+                },
+                {
+                    "title": "Kernel memory tuning (adaptive, reversible)",
+                    "objective": "Reduce swap churn and hold more working set in compressed RAM before eviction.",
+                    "commands": [
+                        {
+                            "command": "sudo sysctl vm.compressor_threshold=8",
+                            "description": "Keep more pages compressed before swapping.",
+                            "requires_sudo": True,
+                        },
+                        {
+                            "command": "sudo sysctl vm.page_free_min=4000",
+                            "description": "Trigger earlier free-page replenishment to avoid stalls.",
+                            "requires_sudo": True,
+                        },
+                        {
+                            "command": "sudo sysctl vm.vm_compressor_mode=4",
+                            "description": "Favor skip-swap mode, trading CPU for fewer disk writes.",
+                            "requires_sudo": True,
+                        },
+                        {
+                            "command": "sudo defaults write /Library/Preferences/com.apple.dynamic_pager ReduceSwapUsage -bool true",
+                            "description": "Bias the pager toward compression; reboot to fully apply.",
+                            "requires_sudo": True,
+                        },
+                    ],
+                    "verification": [
+                        "Re-run `sysctl vm.page_free_min vm.vm_compressor_mode vm.compressor_threshold` to confirm the values held.",
+                        "If latency-sensitive jobs regress, roll back the knobs with the default values (typically 0 or 2).",
+                    ],
+                },
+                {
+                    "title": "Thread pool sizing and priority hygiene",
+                    "objective": "Cap worker pools to available cores and demote background noise.",
+                    "commands": [
+                        {
+                            "command": "sysctl -n hw.physicalcpu",
+                            "description": "Use as the baseline for CPU-bound pool sizing.",
+                        },
+                        {
+                            "command": "sysctl -n hw.logicalcpu",
+                            "description": "Track the SMT ceiling for IO-heavy jobs.",
+                        },
+                        {
+                            "command": "export OMP_NUM_THREADS=$(sysctl -n hw.physicalcpu)",
+                            "description": "Keep OpenMP workloads at physical core count.",
+                        },
+                        {
+                            "command": "export UV_THREADPOOL_SIZE=$(sysctl -n hw.physicalcpu)",
+                            "description": "Prevent libuv (Node.js) from growing unbounded.",
+                        },
+                        {
+                            "command": "taskpolicy -l <PID>",
+                            "description": "Inspect QoS for a suspect process (replace <PID> with the real process id).",
+                        },
+                        {
+                            "command": "sudo taskpolicy -s BG <PID>",
+                            "description": "Push noisy background workers into lower QoS so the UI stays responsive.",
+                            "requires_sudo": True,
+                        },
+                    ],
+                    "verification": [
+                        "After exports, restart shells or supervisors so workloads inherit the caps.",
+                        "Confirm thread counts with `ps -axo pid,thcount,rss,comm | sort -nrk2,3 | head`.",
+                    ],
+                },
+                {
+                    "title": "Automation helpers (optional but recommended)",
+                    "objective": "Stand up lightweight scripts that operators can trigger during incidents.",
+                    "commands": [
+                        {
+                            "command": (
+                                "cat <<'EOF' > ~/bin/trim_memory.sh\n"
+                                "#!/bin/zsh\n"
+                                "ps -axo pid,rss,comm | sort -nrk2 | head -n 5\n"
+                                "sudo memory_pressure -l warn\n"
+                                "sudo purge\n"
+                                "vm_stat\n"
+                                "EOF\n"
+                                "chmod +x ~/bin/trim_memory.sh"
+                            ),
+                            "description": "Create a quick triage script to capture offenders and flush caches.",
+                            "requires_sudo": True,
+                        },
+                        {
+                            "command": (
+                                "cat <<'EOF' > ~/bin/thread_guard.sh\n"
+                                "#!/bin/zsh\n"
+                                "limit=800\n"
+                                "for pid in $(ps -axo pid); do\n"
+                                "  threads=$(ps -M $pid 2>/dev/null | wc -l | tr -d ' ')\n"
+                                "  if [[ $threads -gt $limit ]]; then\n"
+                                "    sudo renice +15 -p $pid >/dev/null 2>&1\n"
+                                "  fi\n"
+                                "done\n"
+                                "EOF\n"
+                                "chmod +x ~/bin/thread_guard.sh"
+                            ),
+                            "description": "Install a guard that soft-renices runaway thread factories.",
+                            "requires_sudo": True,
+                        },
+                        {
+                            "command": (
+                                "cat <<'EOF' > ~/Library/LaunchAgents/com.local.memory_guard.plist\n"
+                                "<?xml version='1.0' encoding='UTF-8'?>\n"
+                                "<!DOCTYPE plist PUBLIC '-//Apple//DTD PLIST 1.0//EN' "
+                                "'http://www.apple.com/DTDs/PropertyList-1.0.dtd'>\n"
+                                "<plist version='1.0'><dict>\n"
+                                "  <key>Label</key><string>com.local.memory_guard</string>\n"
+                                "  <key>ProgramArguments</key><array>"
+                                "<string>/bin/zsh</string><string>-lc</string>"
+                                "<string>~/bin/trim_memory.sh</string></array>\n"
+                                "  <key>StartInterval</key><integer>300</integer>\n"
+                                "  <key>RunAtLoad</key><true/>\n"
+                                "</dict></plist>\n"
+                                "EOF\n"
+                                "launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.local.memory_guard.plist"
+                            ),
+                            "description": "Schedule periodic trims so memory pressure gets logged and relieved automatically.",
+                            "requires_sudo": True,
+                        },
+                    ],
+                    "verification": [
+                        "Check `launchctl print gui/$UID/com.local.memory_guard` for a healthy state.",
+                        "Keep scripts under source control so Evidence Packs capture every change.",
+                    ],
+                },
+                {
+                    "title": "Persistence and post-change validation",
+                    "objective": "Repeat checks to prove memory pressure drops and ensure limits persist after reboot.",
+                    "commands": [
+                        {
+                            "command": "sudo launchctl limit maxproc 2048 4096",
+                            "description": "Enforce sane process caps immediately.",
+                            "requires_sudo": True,
+                        },
+                        {
+                            "command": "sudo launchctl limit maxfiles 10240 40960",
+                            "description": "Prevent descriptor exhaustion during thrash recovery.",
+                            "requires_sudo": True,
+                        },
+                        {
+                            "command": "sudo launchctl config system maxproc 2048 4096",
+                            "description": "Persist process caps across boots (reboot required).",
+                            "requires_sudo": True,
+                        },
+                        {
+                            "command": "sudo launchctl config system maxfiles 10240 40960",
+                            "description": "Persist file descriptor caps across boots.",
+                            "requires_sudo": True,
+                        },
+                        {
+                            "command": "sysctl vm.page_free_min vm.vm_compressor_mode vm.compressor_threshold",
+                            "description": "Confirm the tuned values survived until a reboot applies configs.",
+                        },
+                        {
+                            "command": "launchctl limit",
+                            "description": "Snapshot the final limits for the incident report.",
+                        },
+                        {
+                            "command": "memory_pressure -l warn | head -n 3",
+                            "description": "Verify the system-wide pressure returns to Normal.",
+                        },
+                    ],
+                    "verification": [
+                        "Archive a final `vm_stat` + `sysctl vm.swapusage` reading to compare with the baseline.",
+                        "After the next reboot, rerun the validation trio to ensure persistence.",
+                    ],
+                },
+            ],
+            "follow_up": [
+                "Reboot during a maintenance window so launchd configs and dynamic_pager settings apply cleanly.",
+                "Attach the before/after telemetry to the incident ticket for audit readiness.",
+                "Track any processes repeatedly reniced by thread_guard and assign owners to fix leaks at the source.",
+            ],
+        }
+
+        return plan
 
     def cleanup_resources(self):
         """Cleanup system resources"""

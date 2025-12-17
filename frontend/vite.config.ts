@@ -16,34 +16,64 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    https: false, // Vite dev server can run on HTTP, but proxies to HTTPS backend
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        target: "https://localhost:8000",
         changeOrigin: true,
+        secure: false, // Allow self-signed certificates
       },
-      "/system": "http://localhost:8000",
-      "/ai": "http://localhost:8000",
-      "/search": "http://localhost:8000",
-      "/projects": "http://localhost:8000",
-      "/billing": "http://localhost:8000",
-      "/planes": "http://localhost:8000",
-      "/operations": "http://localhost:8000",
+      "/system": {
+        target: "https://localhost:8000",
+        secure: false,
+      },
+      "/ai": {
+        target: "https://localhost:8000",
+        secure: false,
+      },
+      "/search": {
+        target: "https://localhost:8000",
+        secure: false,
+      },
+      "/projects": {
+        target: "https://localhost:8000",
+        secure: false,
+      },
+      "/billing": {
+        target: "https://localhost:8000",
+        secure: false,
+      },
+      "/planes": {
+        target: "https://localhost:8000",
+        secure: false,
+      },
+      "/operations": {
+        target: "https://localhost:8000",
+        secure: false,
+      },
       "/office": {
-        target: "http://localhost:8000",
+        target: "https://localhost:8000",
         changeOrigin: true,
+        secure: false,
       },
-      "/audit": "http://localhost:8000",
+      "/audit": {
+        target: "https://localhost:8000",
+        secure: false,
+      },
       "/docs": {
-        target: "http://localhost:8000",
+        target: "https://localhost:8000",
         changeOrigin: true,
+        secure: false,
       },
       "/ui": {
-        target: "http://localhost:8000",
+        target: "https://localhost:8000",
         changeOrigin: true,
+        secure: false,
       },
       "/ws": {
-        target: "ws://localhost:8000",
+        target: "wss://localhost:8000",
         ws: true,
+        secure: false,
       },
     },
   },

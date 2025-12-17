@@ -83,7 +83,13 @@ interface NavDropdownProps {
 function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const expandedRef = useRef(expanded)
   const Icon = item.icon
+
+  // Keep ref in sync with prop
+  useEffect(() => {
+    expandedRef.current = expanded
+  }, [expanded])
 
   // Memoize the position update function
   const updatePosition = useCallback(() => {
@@ -117,9 +123,9 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, lo
     }
   }, [])
 
-  // Throttle position updates to improve performance (16ms = ~60fps)
+  // Throttle position updates for scroll/resize (100ms is sufficient for these events)
   const throttledUpdatePosition = useMemo(
-    () => throttle(() => requestAnimationFrame(updatePosition), 16),
+    () => throttle(updatePosition, 100),
     [updatePosition]
   )
 
@@ -133,76 +139,105 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, lo
       return
     }
 
-    // Initial position calculation with a small delay to ensure DOM is ready
-    const timeoutId = setTimeout(updatePosition, 0)
+    // Immediate position calculation - no delay for instant response
+    updatePosition()
 
     // Update position on scroll and resize with throttling
-    window.addEventListener('scroll', throttledUpdatePosition, true)
-    window.addEventListener('resize', throttledUpdatePosition)
+    window.addEventListener('scroll', throttledUpdatePosition, { passive: true, capture: true })
+    window.addEventListener('resize', throttledUpdatePosition, { passive: true })
 
     return () => {
-      clearTimeout(timeoutId)
-      window.removeEventListener('scroll', throttledUpdatePosition, true)
+      window.removeEventListener('scroll', throttledUpdatePosition, { capture: true } as EventListenerOptions)
       window.removeEventListener('resize', throttledUpdatePosition)
     }
   }, [expanded, updatePosition, throttledUpdatePosition])
 
-  // Memoize click outside handler
-  const handleClickOutside = useCallback(
-    (event: MouseEvent) => {
-      const target = event.target as Node
-      if (
-        dropdownRef.current &&
-        buttonRef.current &&
-        !dropdownRef.current.contains(target) &&
-        !buttonRef.current.contains(target)
-      ) {
-        // Only close if currently expanded
-        if (expanded) {
-          onToggle()
-        }
+  // Track if we should ignore the next click (to prevent immediate closure)
+  const ignoreNextClickRef = useRef(false)
+  const isButtonClickRef = useRef(false)
+
+  // Simplified handlers - instant response
+  const handleButtonClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      e.preventDefault()
+      
+      // Mark that this is a button click
+      isButtonClickRef.current = true
+      
+      // If already expanded, close it
+      if (expanded) {
+        onClose()
+      } else {
+        // Mark to ignore the next click to prevent immediate closure
+        ignoreNextClickRef.current = true
+        onToggle()
+        // Reset after a brief moment
+        setTimeout(() => {
+          ignoreNextClickRef.current = false
+        }, 100)
       }
+      
+      // Reset button click flag after event completes
+      setTimeout(() => {
+        isButtonClickRef.current = false
+      }, 0)
     },
-    [expanded, onToggle]
+    [onToggle, onClose, expanded]
   )
 
-  // Memoize link click handler
   const handleLinkClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation()
-      // Close dropdown immediately when link is clicked
+      // Don't prevent default - allow navigation
       onClose()
-      // Also ensure position is reset
-      if (dropdownRef.current) {
-        dropdownRef.current.style.top = ''
-        dropdownRef.current.style.left = ''
-      }
     },
     [onClose]
   )
 
-  // Memoize button click handler
-  const handleButtonClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      onToggle()
-    },
-    [onToggle]
-  )
-
+  // Click outside handler and Escape key - responsive and reliable
   useEffect(() => {
-    if (!expanded) return
+    if (!expanded) {
+      return
+    }
 
-    // Use a small delay to avoid immediate closure when opening
-    const timeoutId = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside, true)
-    }, 100)
+    const handleClickOutside = (event: MouseEvent) => {
+      // Ignore if we just opened the dropdown or if this is a button click
+      if (ignoreNextClickRef.current || isButtonClickRef.current) {
+        return
+      }
+
+      const target = event.target as Node
+      const button = buttonRef.current
+      const dropdown = dropdownRef.current
+      
+      if (!button || !dropdown) return
+      
+      // Don't close if clicking on button or dropdown
+      if (button.contains(target) || dropdown.contains(target)) {
+        return
+      }
+      
+      // Close when clicking outside
+      onClose()
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    // Use click event instead of mousedown for better compatibility
+    // Add listener immediately - ignoreNextClickRef prevents immediate closure
+    document.addEventListener('click', handleClickOutside, true)
+    document.addEventListener('keydown', handleEscape, true)
 
     return () => {
-      clearTimeout(timeoutId)
-      document.removeEventListener('mousedown', handleClickOutside, true)
+      document.removeEventListener('click', handleClickOutside, true)
+      document.removeEventListener('keydown', handleEscape, true)
     }
-  }, [expanded, handleClickOutside])
+  }, [expanded, onClose])
 
   // Memoize groups to avoid unnecessary re-renders
   const groups = useMemo(
@@ -212,12 +247,19 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, lo
 
   return (
     <>
-      <div className="relative group flex items-center">
+      <div className="relative group flex items-center" style={{ zIndex: expanded ? 10001 : 'auto', position: 'relative' }}>
         <button
           ref={buttonRef}
           type="button"
           onClick={handleButtonClick}
           className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
+          style={{ 
+            pointerEvents: 'auto', 
+            position: 'relative', 
+            zIndex: expanded ? 10002 : 'auto',
+            cursor: 'pointer',
+            userSelect: 'none',
+          }}
           aria-haspopup="menu"
           aria-expanded={expanded}
         >
@@ -235,9 +277,17 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, lo
           <div 
             ref={dropdownRef} 
             className="osd-dropdown w-72" 
-            style={{ position: 'fixed', zIndex: 99999 }}
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
+            style={{ 
+              position: 'fixed', 
+              zIndex: 99999, 
+              pointerEvents: 'auto',
+            }}
+            onClick={(e) => {
+              e.stopPropagation()
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation()
+            }}
           >
             {groups.map((group, index) => (
               <div
@@ -264,6 +314,12 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, lo
                         to={child.path}
                         className={`osd-dropdown-link ${childActive ? 'osd-dropdown-link--active' : ''}`}
                         onClick={handleLinkClick}
+                        onMouseDown={(e) => {
+                          e.stopPropagation()
+                        }}
+                        onMouseUp={(e) => {
+                          e.stopPropagation()
+                        }}
                       >
                         <ChildIcon className="w-4 h-4 mr-2" />
                         {child.label}
@@ -287,43 +343,46 @@ export default function Layout({ children }: LayoutProps) {
   const aiButtonRef = useRef<HTMLButtonElement>(null)
   const [aiPanelOpen, setAiPanelOpen] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
-    const stored = window.localStorage.getItem('aiPanelOpen')
-    return stored === 'true'
+    try {
+      const stored = window.localStorage?.getItem?.('aiPanelOpen')
+      return stored === 'true'
+    } catch {
+      return false
+    }
   })
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    window.localStorage.setItem('aiPanelOpen', aiPanelOpen ? 'true' : 'false')
-    console.log('✅ aiPanelOpen state changed to:', aiPanelOpen)
+    try {
+      window.localStorage?.setItem?.('aiPanelOpen', aiPanelOpen ? 'true' : 'false')
+      console.log('✅ aiPanelOpen state changed to:', aiPanelOpen)
+    } catch (error) {
+      console.warn('Failed to save aiPanelOpen to localStorage:', error)
+    }
   }, [aiPanelOpen])
 
   // Attach click handler directly via ref
   useEffect(() => {
     const button = aiButtonRef.current
     if (!button) {
-      console.warn('⚠️ AI Assistant button ref is null')
       return
     }
-
-    console.log('✅ AI Assistant button ref found, attaching click handler')
     
     const handleClick = (e: MouseEvent) => {
       e.preventDefault()
       e.stopPropagation()
-      console.log('🔘 DIRECT CLICK HANDLER FIRED! Current state:', aiPanelOpen)
-      setAiPanelOpen((prev) => {
-        const newValue = !prev
-        console.log('🔘 Setting state from', prev, 'to', newValue)
-        return newValue
-      })
+      setAiPanelOpen((prev) => !prev)
     }
 
     button.addEventListener('click', handleClick, true)
     
     return () => {
-      button.removeEventListener('click', handleClick, true)
+      // Check if button still exists before removing listener
+      if (button && button.parentNode) {
+        button.removeEventListener('click', handleClick, true)
+      }
     }
-  }, [aiPanelOpen])
+  }, []) // Empty deps - handler uses functional setState
 
 
   useEffect(() => {
@@ -334,21 +393,25 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [settings?.theme])
 
-  const toggleGroup = (groupPath: string) => {
-    const newExpanded = new Set(expandedGroups)
-    if (newExpanded.has(groupPath)) {
-      newExpanded.delete(groupPath)
-    } else {
-      newExpanded.add(groupPath)
-    }
-    setExpandedGroups(newExpanded)
-  }
+  const toggleGroup = useCallback((groupPath: string) => {
+    setExpandedGroups((prev) => {
+      const newExpanded = new Set(prev)
+      if (newExpanded.has(groupPath)) {
+        newExpanded.delete(groupPath)
+      } else {
+        newExpanded.add(groupPath)
+      }
+      return newExpanded
+    })
+  }, [])
 
-  const closeGroup = (groupPath: string) => {
-    const newExpanded = new Set(expandedGroups)
-    newExpanded.delete(groupPath)
-    setExpandedGroups(newExpanded)
-  }
+  const closeGroup = useCallback((groupPath: string) => {
+    setExpandedGroups((prev) => {
+      const newExpanded = new Set(prev)
+      newExpanded.delete(groupPath)
+      return newExpanded
+    })
+  }, [])
 
   const navItems: NavItem[] = [
     {
@@ -466,6 +529,7 @@ export default function Layout({ children }: LayoutProps) {
           description: 'Driver-oriented system surfaces for workflows + security.',
           items: [
             { path: '/systems/security', icon: Shield, label: 'Security Operations' },
+            { path: '/systems/network', icon: Network, label: 'Network Monitoring' },
             { path: '/systems/workflows', icon: Workflow, label: 'Workflow Orchestration' },
             { path: '/systems/nas', icon: Layers, label: 'NAS Simulator' },
             { path: '/systems/edge', icon: Satellite, label: 'Edge Systems' },
@@ -551,8 +615,8 @@ export default function Layout({ children }: LayoutProps) {
           <div className="flex justify-between h-auto" style={{ overflow: 'visible' }}>
             <div className="flex flex-col w-full" style={{ overflow: 'visible' }}>
               {/* Primary Navigation */}
-              <div className="flex h-16" style={{ overflow: 'visible' }}>
-                <div className="flex-shrink-0 flex items-center gap-3">
+              <div className="flex h-16" style={{ overflow: 'visible', position: 'relative', zIndex: 1 }}>
+                <div className="flex-shrink-0 flex items-center gap-3" style={{ position: 'relative', zIndex: 1 }}>
                   <div className="osd-logo" />
                   <div>
                     <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--osd-muted)]">
@@ -561,7 +625,7 @@ export default function Layout({ children }: LayoutProps) {
                     <h1 className="text-lg font-semibold">OS Dashboard · AI Assistant</h1>
                   </div>
                 </div>
-                <div className="hidden sm:ml-6 sm:flex sm:space-x-2 flex-1 overflow-x-auto overflow-y-visible items-center scrollbar-hide">
+                <div className="hidden sm:ml-6 sm:flex sm:space-x-2 flex-1 overflow-x-auto overflow-y-visible items-center scrollbar-hide" style={{ position: 'relative', zIndex: 2 }}>
                   {navItems.map((item) => {
                     const Icon = item.icon
                     const childItems = extractChildren(item)

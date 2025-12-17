@@ -1882,6 +1882,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             )
         nav_label.grid(row=0, column=0, sticky="w", padx=(0, 8))
         self.tab_nav_combo.grid(row=0, column=1, sticky="ew", padx=(0, 12))
+        # Ensure event handler fires immediately
         self.tab_nav_combo.bind("<<ComboboxSelected>>", self._on_tab_navigation_select)
         if TTKBOOTSTRAP_AVAILABLE:
             ToolTip(self.tab_nav_combo, text="Jump to any view")
@@ -1950,11 +1951,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if not hasattr(self, "_tab_name_to_id"):
             return
         choice = self.tab_nav_var.get()
+        if not choice or choice == "Go to tab…":
+            return
         tab_id = self._tab_name_to_id.get(choice)
         if tab_id is None:
             return
         try:
             self.notebook.select(tab_id)
+            # Reset to placeholder after selection
+            self.tab_nav_var.set("Go to tab…")
         except Exception:
             pass
 
@@ -2031,7 +2036,12 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             else:
                 combo = ttk.Combobox(parent, textvariable=var, state="readonly", width=24)
             combo.grid(row=row, column=col, sticky="ew", padx=(0, 10), pady=(4, 0))
-            combo.bind("<<ComboboxSelected>>", lambda _e, g=group_name: self._on_tab_group_select(g))
+            # Create a proper closure for the event handler to avoid lambda capture issues
+            def make_handler(gname):
+                def handler(event=None):
+                    self._on_tab_group_select(gname)
+                return handler
+            combo.bind("<<ComboboxSelected>>", make_handler(group_name))
             self.tab_group_vars[group_name] = var
             self.tab_group_combos[group_name] = combo
             col += 1
@@ -2069,8 +2079,9 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         if not var:
             return
         choice = var.get()
-        if choice.endswith("…"):
+        if not choice or choice.endswith("…"):
             return
+        # Navigate immediately
         self._select_tab_by_label(choice)
         # Reset placeholder text after navigation
         var.set(f"{group_name}…")

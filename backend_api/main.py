@@ -29,7 +29,13 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:3000", "http://127.0.0.1:3000", 
+        "http://localhost:5173", "http://127.0.0.1:5173",
+        "https://localhost:3000", "https://127.0.0.1:3000",
+        "https://localhost:5173", "https://127.0.0.1:5173",
+        "https://0.0.0.0:8000", "https://localhost:8000", "https://127.0.0.1:8000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -69,6 +75,8 @@ from backend_api.routers import (
     autofix,
     runtime_diagnostics,
     coach,
+    git,
+    network_monitoring,
 )
 
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
@@ -110,12 +118,16 @@ app.include_router(
     security_threat.router, prefix="/api/security", tags=["security"]
 )
 app.include_router(
+    network_monitoring.router, prefix="/api/network", tags=["network"]
+)
+app.include_router(
     edge_computing.router, prefix="/api/edge-computing", tags=["edge_computing"]
 )
 app.include_router(
     workflow_orchestration.router, prefix="/api/workflows", tags=["workflows"]
 )
 app.include_router(platform.router, prefix="/api", tags=["platform"])
+app.include_router(git.router, prefix="/api", tags=["git"])
 app.include_router(personas.router, prefix="/api/personas", tags=["personas"])
 app.include_router(office.router, prefix="/api/office", tags=["office"])
 app.include_router(runtime_diagnostics.router, prefix="/api", tags=["runtime"])
@@ -186,6 +198,49 @@ async def get_technical_spec_sheet():
         filename=SPEC_SHEET_PATH.name,
     )
 
+def find_available_port(start_port: int = 8000, max_attempts: int = 100) -> int:
+    """Find an available port starting from start_port."""
+    import socket
+    
+    for port in range(start_port, start_port + max_attempts):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(("0.0.0.0", port))
+                return port
+        except OSError:
+            continue
+    
+    raise RuntimeError(f"Could not find an available port in range {start_port}-{start_port + max_attempts - 1}")
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    
+    # Find an available port
+    default_port = 8000
+    port = find_available_port(default_port)
+    
+    if port != default_port:
+        print(f"⚠️  Port {default_port} is in use. Using port {port} instead.")
+    else:
+        print(f"✅ Starting server on port {port}")
+    
+    # SSL certificate paths
+    cert_dir = REPO_ROOT / "certs"
+    cert_file = cert_dir / "cert.pem"
+    key_file = cert_dir / "key.pem"
+    
+    # Check if certificates exist, otherwise fall back to HTTP
+    if cert_file.exists() and key_file.exists():
+        print(f"🔒 Starting with SSL on https://0.0.0.0:{port}")
+        uvicorn.run(
+            app, 
+            host="0.0.0.0", 
+            port=port,
+            ssl_keyfile=str(key_file),
+            ssl_certfile=str(cert_file)
+        )
+    else:
+        print("Warning: SSL certificates not found. Running in HTTP mode.")
+        print(f"Expected certificates at: {cert_file} and {key_file}")
+        print(f"🌐 Starting server on http://0.0.0.0:{port}")
+        uvicorn.run(app, host="0.0.0.0", port=port)

@@ -39,7 +39,10 @@ def _path_from_env(key: str, fallback: Path) -> Path:
 
 default_data_dir = _path_from_env("ASSISTANT_HUB_DATA_DIR", _DEFAULT_DATA_DIR)
 DATA_DIR = default_data_dir
-DB_PATH = _path_from_env("ASSISTANT_HUB_DB", DATA_DIR / "assistant_hub.db")
+DB_PATH = _path_from_env(
+    "ASSISTANT_HUB_DB",
+    PROJECT_ROOT / "assistant_hub_gui" / "assistant_hub" / "assistant_hub.db",
+)
 ATTACHMENTS_DIR = _path_from_env(
     "ASSISTANT_HUB_ATTACHMENTS_DIR", DATA_DIR / "attachments"
 )

@@ -415,6 +415,13 @@ class SystemOperationsDriver(BaseDriver):
                 output_schema={"type": "object"},
                 examples=[{"description": "Unpack logs"}],
             ),
+            "memory_resilience_plan": ActionSchema(
+                name="memory_resilience_plan",
+                description="Generate memory/thread resilience playbook for the current host",
+                input_schema={"type": "object", "properties": {}},
+                output_schema={"type": "object"},
+                examples=[{"description": "Request macOS memory recovery plan"}],
+            ),
         }
 
         manifest = DriverManifest(
@@ -470,6 +477,8 @@ class SystemOperationsDriver(BaseDriver):
                 params["archive_path"],
                 params.get("extract_to"),
             )
+        if action == "memory_resilience_plan":
+            return await asyncio.to_thread(self._controller.memory_thread_resilience_plan)
         raise ValueError(f"Unknown system action: {action}")
 
 

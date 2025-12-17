@@ -26,18 +26,32 @@ DEFAULT_API_PORT = 8000
 DEFAULT_MODE = "web"
 PREFLIGHT_SCRIPT = REPO_ROOT / "scripts" / "run_tests_with_autofix.py"
 TEST_MATRIX_SCRIPT = REPO_ROOT / "scripts" / "generate_test_matrix.py"
-UVICORN_CMD = [
-    sys.executable,
-    "-m",
-    "uvicorn",
-    "assistant_hub.api.server:create_app",
-    "--factory",
-    "--reload",
-    "--host",
-    DEFAULT_API_HOST,
-    "--port",
-    str(DEFAULT_API_PORT),
-]
+
+def _build_uvicorn_cmd() -> list[str]:
+    """Build uvicorn command with SSL support if certificates are available."""
+    cmd = [
+        sys.executable,
+        "-m",
+        "uvicorn",
+        "assistant_hub.api.server:create_app",
+        "--factory",
+        "--reload",
+        "--host",
+        DEFAULT_API_HOST,
+        "--port",
+        str(DEFAULT_API_PORT),
+    ]
+    # Check for SSL certificates
+    cert_dir = REPO_ROOT / "certs"
+    cert_file = cert_dir / "cert.pem"
+    key_file = cert_dir / "key.pem"
+    if cert_file.exists() and key_file.exists():
+        cmd.extend(["--ssl-keyfile", str(key_file)])
+        cmd.extend(["--ssl-certfile", str(cert_file)])
+        print(f"🔒 SSL certificates found. Starting with HTTPS on https://{DEFAULT_API_HOST}:{DEFAULT_API_PORT}")
+    return cmd
+
+UVICORN_CMD = _build_uvicorn_cmd()
 
 ModeRunner = Callable[[], Optional[int]]
 ModeDefinition = Tuple[str, str, ModeRunner]
@@ -131,7 +145,9 @@ def _start_backend() -> Optional[subprocess.Popen]:
         ) from exc
 
     env = os.environ.copy()
-    process = subprocess.Popen(UVICORN_CMD, cwd=REPO_ROOT, env=env)
+    # Rebuild command to ensure SSL settings are current
+    cmd = _build_uvicorn_cmd()
+    process = subprocess.Popen(cmd, cwd=REPO_ROOT, env=env)
     try:
         _wait_for_port(DEFAULT_API_HOST, DEFAULT_API_PORT)
     except TimeoutError as exc:
@@ -354,7 +370,12 @@ For more information, see README.md and DEPLOYMENT.md
         mode = _resolve_mode(args.mode)
         label, runner = MODE_LOOKUP[mode]
         print(f"\n🚀 Launching {label} ({mode})...")
-        print(f"📍 API Server: http://{DEFAULT_API_HOST}:{DEFAULT_API_PORT}")
+        # Check if SSL is enabled
+        cert_dir = REPO_ROOT / "certs"
+        cert_file = cert_dir / "cert.pem"
+        key_file = cert_dir / "key.pem"
+        protocol = "https" if cert_file.exists() and key_file.exists() else "http"
+        print(f"📍 API Server: {protocol}://{DEFAULT_API_HOST}:{DEFAULT_API_PORT}")
         if mode in ["web", "web-build"]:
             print(
                 "🌐 Web Interface: http://localhost:5173"

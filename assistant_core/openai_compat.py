@@ -64,9 +64,57 @@ def legacy_chat_completion(
     def _create(kwargs: Dict[str, Any]):
         chat_client = getattr(client, "chat", None)
         completions = getattr(chat_client, "completions", None) if chat_client else None
-        if callable(completions):
+        if hasattr(completions, "create"):
             return completions.create(**kwargs)
-        return openai.ChatCompletion.create(**kwargs)
+
+        # If the provided client does not expose chat.completions (older helper or mock),
+        # try the module-level OpenAI client helpers so we can still access the modern API.
+        module_chat = getattr(openai, "chat", None)
+        module_completions = getattr(module_chat, "completions", None) if module_chat else None
+        module_create = getattr(module_completions, "create", None) if module_completions else None
+        if callable(module_create):
+            try:
+                return module_create(**kwargs)
+            except Exception:
+                # We'll try alternate fallbacks below.
+                pass
+
+        # Fall back to constructing a fresh OpenAI client from the imported package.
+        openai_client_cls = getattr(openai, "OpenAI", None)
+        if openai_client_cls:
+            try:
+                client_kwargs = {}
+                api_key = getattr(client, "api_key", None)
+                if api_key:
+                    client_kwargs["api_key"] = api_key
+                organization = getattr(client, "organization", None)
+                if organization:
+                    client_kwargs["organization"] = organization
+                project = getattr(client, "project", None)
+                if project:
+                    client_kwargs["project"] = project
+                fresh_client = openai_client_cls(**client_kwargs)
+                fresh_chat = getattr(fresh_client, "chat", None)
+                fresh_completions = (
+                    getattr(fresh_chat, "completions", None) if fresh_chat else None
+                )
+                if hasattr(fresh_completions, "create"):
+                    return fresh_completions.create(**kwargs)
+            except Exception:
+                # Fall through to legacy handling if a fresh client cannot be created.
+                pass
+
+        legacy_chat = getattr(openai, "ChatCompletion", None)
+        openai_version = getattr(openai, "__version__", "")
+        is_legacy_version = openai_version.startswith("0.")
+        if legacy_chat is not None and hasattr(legacy_chat, "create") and is_legacy_version:
+            return legacy_chat.create(**kwargs)
+
+        raise RuntimeError(
+            "OpenAI client does not expose chat completions. Upgrade the integration "
+            "to use `client.chat.completions.create(...)`, or install an openai "
+            "package that still provides the legacy ChatCompletion API (< 1.0)."
+        )
 
     try:
         completion = _create({**chat_kwargs, "max_completion_tokens": max_tokens})

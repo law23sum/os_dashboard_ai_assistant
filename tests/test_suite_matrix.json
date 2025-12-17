@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated_at": "2025-12-13T00:57:19.751278+00:00",
+    "generated_at": "2025-12-17T12:56:54.559818+00:00",
     "repo_root": "/Users/chrisdixon/Projects/os_dashboard_ai_assistant",
-    "feature_count": 72,
+    "feature_count": 75,
     "level_count": 4,
     "mode_count": 4
   },
@@ -4646,6 +4646,198 @@
                 "Verify regression acceptance criteria and record findings."
               ],
               "expected_result": "Nas Page satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Network Monitoring Page",
+      "source": "frontend",
+      "path": "frontend/src/pages/NetworkMonitoring.tsx",
+      "slug": "frontend-networkmonitoring",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "frontend-networkmonitoring-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-networkmonitoring-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-networkmonitoring-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-networkmonitoring-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "frontend-networkmonitoring-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-networkmonitoring-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-networkmonitoring-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-networkmonitoring-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "frontend-networkmonitoring-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-networkmonitoring-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-networkmonitoring-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-networkmonitoring-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "frontend-networkmonitoring-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-networkmonitoring-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-networkmonitoring-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-networkmonitoring-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Network Monitoring Page.",
+              "steps": [
+                "Exercise Network Monitoring Page at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring Page satisfies regression constraints without regressions."
             }
           ]
         }
@@ -10220,6 +10412,198 @@
       ]
     },
     {
+      "feature": "Git API",
+      "source": "backend",
+      "path": "backend_api/routers/git.py",
+      "slug": "backend-git",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-git-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Git API.",
+              "steps": [
+                "Exercise Git API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-git-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Git API.",
+              "steps": [
+                "Exercise Git API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-git-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Git API.",
+              "steps": [
+                "Exercise Git API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-git-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Git API.",
+              "steps": [
+                "Exercise Git API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-git-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Git API.",
+              "steps": [
+                "Exercise Git API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-git-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Git API.",
+              "steps": [
+                "Exercise Git API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-git-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Git API.",
+              "steps": [
+                "Exercise Git API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-git-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Git API.",
+              "steps": [
+                "Exercise Git API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-git-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Git API.",
+              "steps": [
+                "Exercise Git API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-git-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Git API.",
+              "steps": [
+                "Exercise Git API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-git-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Git API.",
+              "steps": [
+                "Exercise Git API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-git-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Git API.",
+              "steps": [
+                "Exercise Git API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-git-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Git API.",
+              "steps": [
+                "Exercise Git API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-git-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Git API.",
+              "steps": [
+                "Exercise Git API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-git-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Git API.",
+              "steps": [
+                "Exercise Git API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-git-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Git API.",
+              "steps": [
+                "Exercise Git API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Git API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "feature": "Integrations API",
       "source": "backend",
       "path": "backend_api/routers/integrations.py",
@@ -10790,6 +11174,198 @@
                 "Verify regression acceptance criteria and record findings."
               ],
               "expected_result": "Intents API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Network Monitoring API",
+      "source": "backend",
+      "path": "backend_api/routers/network_monitoring.py",
+      "slug": "backend-network-monitoring",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-network-monitoring-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-network-monitoring-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-network-monitoring-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-network-monitoring-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-network-monitoring-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-network-monitoring-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-network-monitoring-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-network-monitoring-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-network-monitoring-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-network-monitoring-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-network-monitoring-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-network-monitoring-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-network-monitoring-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-network-monitoring-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-network-monitoring-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-network-monitoring-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Network Monitoring API.",
+              "steps": [
+                "Exercise Network Monitoring API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Network Monitoring API satisfies regression constraints without regressions."
             }
           ]
         }

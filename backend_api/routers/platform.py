@@ -18,9 +18,11 @@ from assistant_hub_gui.assistant_hub.db import (
     db_update_document_operation_status,
 )
 from backend_api.db import db_session
+from assistant_core.system.operations import SystemOperationsController
 
 
 router = APIRouter()
+SYSTEM_CONTROLLER = SystemOperationsController()
 
 
 class SystemStatus(BaseModel):
@@ -39,6 +41,32 @@ class PlaneStatus(BaseModel):
     governance_plane: Dict[str, Any]
     spec_refs: List[str]
     updated_at: str
+
+
+class PlanCommand(BaseModel):
+    command: str
+    description: Optional[str] = None
+    requires_sudo: bool = False
+
+
+class PlanSection(BaseModel):
+    title: str
+    objective: str
+    commands: List[PlanCommand]
+    verification: List[str] = []
+    notes: Optional[str] = None
+
+
+class MemoryThreadPlan(BaseModel):
+    os_family: str
+    architecture: str
+    logical_cores: int
+    physical_cores: int
+    recommended_thread_cap: int
+    generated_at: str
+    spec_refs: List[str]
+    steps: List[PlanSection]
+    follow_up: List[str] = []
 
 
 class BillingRecord(BaseModel):
@@ -161,6 +189,14 @@ async def system_status() -> SystemStatus:
     stats = get_system_stats().copy()
     stats["updated_at"] = datetime.utcnow().isoformat() + "Z"
     return SystemStatus(**stats)
+
+
+@router.get("/system/memory-thread-plan", response_model=MemoryThreadPlan)
+async def memory_thread_plan() -> MemoryThreadPlan:
+    """Expose the memory/thread resilience runbook for the React playbooks."""
+
+    plan = SYSTEM_CONTROLLER.memory_thread_resilience_plan()
+    return MemoryThreadPlan(**plan)
 
 
 @router.get("/planes/status", response_model=PlaneStatus)

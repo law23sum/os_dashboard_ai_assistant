@@ -621,3 +621,8 @@ export default function CapsuleMarketplace() {
     </div>
   )
 }
+
+
+
+
+

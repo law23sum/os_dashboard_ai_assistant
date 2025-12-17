@@ -14,6 +14,7 @@ from .commands import (
     handle_word_command,
     handle_projects_command,
     handle_history_command,
+    handle_chat_command,
 )
 
 
@@ -71,6 +72,41 @@ def create_cli_parser() -> argparse.ArgumentParser:
     history_parser.add_argument("--agent", help="Filter by agent")
     history_parser.add_argument("--tag", help="Filter by tag (onenote, excel, word, etc.)")
 
+    # Chat command - interactive AI chat
+    chat_parser = subparsers.add_parser("chat", help="Interactive chat with AI agents")
+    chat_parser.add_argument(
+        "--agent",
+        choices=["AIC", "Aria", "Sora", "Chris"],
+        help="AI agent to use (default: interactive selection)",
+    )
+    chat_parser.add_argument(
+        "--clear-history",
+        action="store_true",
+        help="Start with empty conversation history",
+    )
+    chat_parser.add_argument(
+        "--clear-on-switch",
+        action="store_true",
+        help="Clear history when switching agents",
+    )
+    chat_parser.add_argument(
+        "--enable-shell",
+        action="store_true",
+        default=True,
+        help="Allow AI to execute shell commands (default: True)",
+    )
+    chat_parser.add_argument(
+        "--no-shell",
+        dest="enable_shell",
+        action="store_false",
+        help="Disable shell command execution",
+    )
+    chat_parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Show verbose error messages",
+    )
+
     return parser
 
 
@@ -97,6 +133,8 @@ def main() -> int:
             return handle_word_command(args, conn)
         elif args.command == "history":
             return handle_history_command(args, conn)
+        elif args.command == "chat":
+            return handle_chat_command(args)
         else:
             print(f"Unknown command: {args.command}")
             return 1

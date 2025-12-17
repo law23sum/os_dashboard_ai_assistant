@@ -32,6 +32,9 @@ describe('Layout NavDropdown Performance', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+    // Clean up any portaled dropdowns
+    const dropdowns = document.body.querySelectorAll('.osd-dropdown')
+    dropdowns.forEach((dropdown) => dropdown.remove())
   })
 
   const renderLayout = () => {
@@ -72,7 +75,7 @@ describe('Layout NavDropdown Performance', () => {
 
   it('should not cause excessive re-renders when opening dropdown', async () => {
     const renderSpy = vi.fn()
-    const { container } = renderLayout()
+    renderLayout()
 
     // Find dropdown button
     const dropdownButton = screen.getByText('Mission Control')
@@ -84,8 +87,8 @@ describe('Layout NavDropdown Performance', () => {
     fireEvent.click(dropdownButton)
 
     await waitFor(() => {
-      // Dropdown should be visible
-      const dropdown = container.querySelector('.osd-dropdown')
+      // Dropdown should be visible (portaled to document.body)
+      const dropdown = document.body.querySelector('.osd-dropdown')
       expect(dropdown).toBeInTheDocument()
     })
 
@@ -95,7 +98,7 @@ describe('Layout NavDropdown Performance', () => {
   })
 
   it('should handle rapid open/close cycles efficiently', async () => {
-    const { container } = renderLayout()
+    renderLayout()
     
     const dropdownButton = screen.getByText('Mission Control')
 
@@ -103,7 +106,7 @@ describe('Layout NavDropdown Performance', () => {
     for (let i = 0; i < 5; i++) {
       fireEvent.click(dropdownButton)
       await waitFor(() => {
-        const dropdown = container.querySelector('.osd-dropdown')
+        const dropdown = document.body.querySelector('.osd-dropdown')
         if (i % 2 === 0) {
           expect(dropdown).toBeInTheDocument()
         }
@@ -111,7 +114,7 @@ describe('Layout NavDropdown Performance', () => {
       
       fireEvent.click(dropdownButton)
       await waitFor(() => {
-        const dropdown = container.querySelector('.osd-dropdown')
+        const dropdown = document.body.querySelector('.osd-dropdown')
         if (i % 2 === 1) {
           expect(dropdown).not.toBeInTheDocument()
         }
@@ -146,27 +149,29 @@ describe('Layout NavDropdown Performance', () => {
     removeEventListenerSpy.mockRestore()
   })
 
-  it('should use memoized handlers to prevent unnecessary re-renders', () => {
-    const { container } = renderLayout()
+  it('should use memoized handlers to prevent unnecessary re-renders', async () => {
+    renderLayout()
     
     const dropdownButton = screen.getByText('Mission Control')
     
     // Open dropdown
     fireEvent.click(dropdownButton)
 
-    // Get the dropdown element
-    const dropdown = container.querySelector('.osd-dropdown')
-    expect(dropdown).toBeInTheDocument()
+    // Get the dropdown element (portaled to document.body)
+    await waitFor(() => {
+      const dropdown = document.body.querySelector('.osd-dropdown')
+      expect(dropdown).toBeInTheDocument()
 
-    // Click a link inside dropdown
-    const link = dropdown?.querySelector('a')
-    if (link) {
-      const clickSpy = vi.spyOn(link, 'click')
-      fireEvent.click(link)
-      
-      // Handler should be called only once
-      expect(clickSpy).toHaveBeenCalled()
-    }
+      // Click a link inside dropdown
+      const link = dropdown?.querySelector('a')
+      if (link) {
+        const clickSpy = vi.spyOn(link, 'click')
+        fireEvent.click(link)
+        
+        // Handler should be called only once
+        expect(clickSpy).toHaveBeenCalled()
+      }
+    })
   })
 
   it('should position dropdown efficiently without layout thrashing', async () => {
@@ -183,13 +188,13 @@ describe('Layout NavDropdown Performance', () => {
       toJSON: vi.fn(),
     } as DOMRect)
 
-    const { container } = renderLayout()
+    renderLayout()
     
     const dropdownButton = screen.getByText('Mission Control')
     fireEvent.click(dropdownButton)
 
     await waitFor(() => {
-      const dropdown = container.querySelector('.osd-dropdown') as HTMLElement
+      const dropdown = document.body.querySelector('.osd-dropdown') as HTMLElement
       expect(dropdown).toBeInTheDocument()
     })
 

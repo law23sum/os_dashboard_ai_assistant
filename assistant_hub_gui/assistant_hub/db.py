@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
+import hashlib
+import json
 import os
 import sqlite3
-import json
 from dataclasses import dataclass, field, asdict
-import os
-import hashlib
-from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-DB_FILE = os.path.join(os.path.dirname(__file__), "..", "assistant_hub.db")
+from assistant_hub.config import DB_PATH, ensure_data_directories
+
+ensure_data_directories()
+DB_FILE = str(DB_PATH)
 
 PERSONAS = ["Chris", "AIC", "Aria", "Sora"]
 PERSONA_ROLES = {
@@ -27,6 +31,9 @@ DATE_FORMAT = "%Y-%m-%d"
 CHAT_ROLES = ["user", "assistant", "system", "tool"]
 CHAT_MESSAGE_KINDS = ["chat", "terminal", "terminal_result", "file", "tool_result"]
 SECURITY_STATUS_CHOICES = ["secure", "vulnerable", "exploited", "offline"]
+CHANGE_PERMISSION_MODES = ["auto", "ask", "ask_when_unsure"]
+CONTINUITY_MODES = ["full", "automation-off", "read-only"]
+RISK_APPETITE_MODES = ["conservative", "balanced", "progressive"]
 
 DEFAULT_FETCH_PREFERENCES = {
     "notes": True,
@@ -107,11 +114,17 @@ class AssistantState:
 
 @dataclass
 class Settings:
-    theme: str = "plain"              # plain | light | dark
-    default_view: str = "dashboard"   # dashboard | tasks | projects
-    show_system_status: bool = True   # show CPU/RAM/Disk in dashboard
-    font_scale: str = "medium"        # small | medium | large
-    data_preferences: Dict[str, bool] = field(default_factory=lambda: DEFAULT_FETCH_PREFERENCES.copy())
+    theme: str = "plain"  # plain | light | dark
+    default_view: str = "dashboard"  # dashboard | tasks | projects
+    show_system_status: bool = True  # show CPU/RAM/Disk in dashboard
+    font_scale: str = "medium"  # small | medium | large
+    data_preferences: Dict[str, bool] = field(
+        default_factory=lambda: DEFAULT_FETCH_PREFERENCES.copy()
+    )
+    change_permission_mode: str = "ask_when_unsure"  # auto | ask | ask_when_unsure
+    continuity_mode: str = "full"  # full | automation-off | read-only
+    risk_appetite: str = "balanced"  # conservative | balanced | progressive
+    auto_overwrite: bool = True  # legacy flag retained for backward compatibility
 
 
 @dataclass
@@ -191,9 +204,14 @@ class DocumentOperation:
     notes: str = ""
 
 
-def init_db() -> sqlite3.Connection:
+def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
+    """Initialize the SQLite database (creating tables if needed) and return a connection."""
+
+    target = Path(db_path) if db_path else Path(DB_FILE)
+    target.parent.mkdir(parents=True, exist_ok=True)
+
     # Allow use across background worker threads (integrations, daemons, API).
-    conn = sqlite3.connect(DB_FILE, check_same_thread=False)
+    conn = sqlite3.connect(str(target), check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.execute("PRAGMA busy_timeout = 5000")
@@ -745,7 +763,7 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
     theme = get_meta(conn, "setting.theme", "plain") or "plain"
     default_view = get_meta(conn, "setting.default_view", "dashboard") or "dashboard"
     show_system_status_raw = get_meta(conn, "setting.show_system_status", "1") or "1"
-    show_system_status = (show_system_status_raw == "1")
+    show_system_status = show_system_status_raw == "1"
     font_scale = get_meta(conn, "setting.font_scale", "medium") or "medium"
     data_pref_raw = get_meta(conn, "setting.data_preferences", None)
     data_preferences = DEFAULT_FETCH_PREFERENCES.copy()
@@ -757,21 +775,66 @@ def load_settings(conn: sqlite3.Connection) -> Settings:
                     data_preferences[key] = bool(val)
         except json.JSONDecodeError:
             pass
+
+    change_permission_mode = (
+        get_meta(conn, "setting.change_permission_mode", "ask_when_unsure")
+        or "ask_when_unsure"
+    )
+    if change_permission_mode not in CHANGE_PERMISSION_MODES:
+        change_permission_mode = "ask_when_unsure"
+
+    continuity_mode = get_meta(conn, "setting.continuity_mode", "full") or "full"
+    if continuity_mode not in CONTINUITY_MODES:
+        continuity_mode = "full"
+
+    risk_appetite = get_meta(conn, "setting.risk_appetite", "balanced") or "balanced"
+    if risk_appetite not in RISK_APPETITE_MODES:
+        risk_appetite = "balanced"
+
+    auto_overwrite_raw = get_meta(conn, "setting.auto_overwrite", None)
+    auto_overwrite = (
+        auto_overwrite_raw == "1"
+        if auto_overwrite_raw is not None
+        else change_permission_mode == "auto"
+    )
+
     return Settings(
         theme=theme,
         default_view=default_view,
         show_system_status=show_system_status,
         font_scale=font_scale,
         data_preferences=data_preferences,
+        change_permission_mode=change_permission_mode,
+        continuity_mode=continuity_mode,
+        risk_appetite=risk_appetite,
+        auto_overwrite=auto_overwrite,
     )
 
 
 def save_settings(conn: sqlite3.Connection, settings: Settings):
     set_meta(conn, "setting.theme", settings.theme)
     set_meta(conn, "setting.default_view", settings.default_view)
-    set_meta(conn, "setting.show_system_status", "1" if settings.show_system_status else "0")
+    set_meta(
+        conn, "setting.show_system_status", "1" if settings.show_system_status else "0"
+    )
     set_meta(conn, "setting.font_scale", settings.font_scale)
-    set_meta(conn, "setting.data_preferences", json.dumps(settings.data_preferences, ensure_ascii=False))
+    set_meta(
+        conn,
+        "setting.data_preferences",
+        json.dumps(settings.data_preferences, ensure_ascii=False),
+    )
+    set_meta(
+        conn,
+        "setting.change_permission_mode",
+        settings.change_permission_mode,
+    )
+    set_meta(conn, "setting.continuity_mode", settings.continuity_mode)
+    set_meta(conn, "setting.risk_appetite", settings.risk_appetite)
+    set_meta(
+        conn,
+        "setting.auto_overwrite",
+        "1" if settings.auto_overwrite else "0",
+    )
 
 
 def save_active_persona(conn: sqlite3.Connection, state: AssistantState):

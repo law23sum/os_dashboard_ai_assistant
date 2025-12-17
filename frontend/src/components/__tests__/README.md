@@ -52,3 +52,8 @@ These tests should catch:
 - Excessive DOM reads (getBoundingClientRect)
 - Performance regressions in dropdown interactions
 
+
+
+
+
+

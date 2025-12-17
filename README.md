@@ -31,7 +31,7 @@ Use `python run.py` for an interactive launcher that lets you choose between web
 ```bash
 python -m assistant_hub_gui.main  # Interactive mode selection
 python run.py             
-# or skip the prompt with environment variables
+# or sckip the prompt with environment variables
 python run.py --mode web
 DEV_MODE=desktop python run.py
 ```

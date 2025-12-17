@@ -59,6 +59,32 @@ interface ObservabilityData {
   ai_calls: number
 }
 
+interface PlanCommand {
+  command: string
+  description?: string
+  requires_sudo?: boolean
+}
+
+interface PlanSection {
+  title: string
+  objective: string
+  commands: PlanCommand[]
+  verification: string[]
+  notes?: string
+}
+
+interface MemoryThreadPlan {
+  os_family: string
+  architecture: string
+  logical_cores: number
+  physical_cores: number
+  recommended_thread_cap: number
+  generated_at: string
+  spec_refs: string[]
+  steps: PlanSection[]
+  follow_up: string[]
+}
+
 const fetchObservabilityData = async (): Promise<ObservabilityData> => {
   try {
     const [diagnostics, system, planes] = await Promise.all([
@@ -141,6 +167,11 @@ const fetchObservabilityData = async (): Promise<ObservabilityData> => {
       ai_calls: 0,
     }
   }
+}
+
+const fetchMemoryPlan = async (): Promise<MemoryThreadPlan> => {
+  const { data } = await apiClient.get<MemoryThreadPlan>(apiPath('system/memory-thread-plan'))
+  return data
 }
 
 const formatUptime = (seconds: number): string => {
@@ -284,6 +315,12 @@ export default function Observability() {
     refetchInterval: 15000,
   })
 
+  const memoryPlanQuery = useQuery({
+    queryKey: ['memory-thread-plan'],
+    queryFn: fetchMemoryPlan,
+    staleTime: 5 * 60 * 1000,
+  })
+
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['observability'] })
   }
@@ -301,6 +338,7 @@ export default function Observability() {
   const filteredEvents = data?.events.filter(
     (event) => eventFilter === 'all' || event.type === eventFilter
   ) || []
+  const memoryPlan = memoryPlanQuery.data
 
   return (
     <div className="px-4 py-6 sm:px-0 space-y-8 text-slate-100">
@@ -394,6 +432,93 @@ export default function Observability() {
         </div>
       </section>
 
+      {/* Memory & Thread Resilience Playbook */}
+      <section className="glass-card">
+        <div className="flex items-center gap-3 mb-4">
+          <MemoryStick className="w-5 h-5 text-indigo-400" />
+          <div>
+            <h2 className="text-xl font-semibold text-white">Memory & Thread Resilience Playbook</h2>
+            <p className="text-sm text-slate-400">
+              Auto-generated runbook that mirrors the ops scripts we ship with the AI assistant. Use it when
+              macOS reports application memory exhaustion.
+            </p>
+          </div>
+        </div>
+        {memoryPlanQuery.isLoading ? (
+          <div className="py-8 text-center text-slate-400">
+            <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+            Loading remediation plan…
+          </div>
+        ) : memoryPlan ? (
+          <div className="space-y-6">
+            <div className="flex flex-wrap gap-4 text-xs uppercase tracking-[0.25em] text-slate-400">
+              <span>OS · {memoryPlan.os_family}</span>
+              <span>Arch · {memoryPlan.architecture}</span>
+              <span>Physical cores · {memoryPlan.physical_cores}</span>
+              <span>Logical cores · {memoryPlan.logical_cores}</span>
+              <span>Thread cap · {memoryPlan.recommended_thread_cap}</span>
+              <span>Generated · {new Date(memoryPlan.generated_at).toLocaleString()}</span>
+            </div>
+            <div className="grid gap-4 xl:grid-cols-2">
+              {memoryPlan.steps.map((step) => (
+                <article key={step.title} className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+                  <header>
+                    <p className="eyebrow-text">{step.title}</p>
+                    <p className="text-sm text-slate-300 mt-1">{step.objective}</p>
+                  </header>
+                  <div className="space-y-3">
+                    {step.commands.map((cmd) => (
+                      <div key={cmd.command} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <code className="text-xs font-mono text-indigo-200">{cmd.command}</code>
+                          {cmd.requires_sudo && (
+                            <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-300">
+                              sudo
+                            </span>
+                          )}
+                        </div>
+                        {cmd.description && (
+                          <p className="mt-2 text-xs text-slate-300 leading-relaxed">{cmd.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {step.verification.length > 0 && (
+                    <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/5 p-3">
+                      <p className="text-xs font-semibold text-emerald-300 uppercase tracking-[0.2em]">
+                        Verification
+                      </p>
+                      <ul className="mt-1 list-disc space-y-1 pl-4 text-xs text-emerald-100/80">
+                        {step.verification.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+            {memoryPlan.follow_up.length > 0 && (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <p className="eyebrow-text">Follow-up</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-200">
+                  {memoryPlan.follow_up.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-xs text-slate-400">
+                  Spec references: {memoryPlan.spec_refs.join(', ')}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="py-8 text-center text-slate-400">
+            Unable to load the remediation plan. Check the backend logs for details.
+          </div>
+        )}
+      </section>
+
       {/* Diagnostic Events */}
       <section className="glass-card">
         <div className="flex items-center justify-between mb-6">
@@ -452,4 +577,5 @@ export default function Observability() {
     </div>
   )
 }
+
 

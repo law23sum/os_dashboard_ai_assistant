@@ -32,6 +32,7 @@ import ComputerVision from './pages/ComputerVision'
 import Tools from './pages/Tools'
 import { applyTheme, defaultTheme } from './theme'
 import Security from './pages/Security'
+import NetworkMonitoring from './pages/NetworkMonitoring'
 import EdgeComputing from './pages/EdgeComputing'
 import Workflows from './pages/Workflows'
 import NAS from './pages/NAS'
@@ -202,6 +203,8 @@ function App() {
 
             {/* Systems */}
             <Route path="/systems/security" element={<Security />} />
+            <Route path="/systems/network" element={<NetworkMonitoring />} />
+            <Route path="/network" element={<NetworkMonitoring />} />
             <Route path="/systems/edge" element={<EdgeComputing />} />
             <Route path="/systems/workflows" element={<Workflows />} />
             <Route path="/systems/nas" element={<NAS />} />

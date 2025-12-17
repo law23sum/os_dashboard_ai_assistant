@@ -106,3 +106,8 @@ def apply_gpt5_prompting_scaffold(
     return f"{base}\n\n{scaffold}".strip()
 
 
+
+
+
+
+

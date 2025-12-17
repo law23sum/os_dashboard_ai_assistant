@@ -41,6 +41,7 @@ from ..db import (
 from ..integrations import IntegrationAPIGateway
 from ..research_workspace import ResearchWorkspaceState
 from ..demo_seed import ensure_demo_data
+from assistant_hub.config import DB_PATH
 from assistant_hub.writer_workspace import WriterWorkspaceState
 from assistant_hub.dashboard_workspace import build_dashboard_snapshot
 from assistant_hub.projects_workspace import build_project_snapshot
@@ -51,7 +52,26 @@ from ..sync_scheduler import create_default_scheduler
 from ..terminal import run_bash_command
 from assistant_hub.command_catalog import command_catalog
 from assistant_hub.theme import get_theme_definition, list_available_themes
-from backend_api.routers import office as office_router
+from backend_api.routers import (
+    api_connectors as api_connectors_router,
+    ai_systems as ai_systems_router,
+    autofix as autofix_router,
+    capsules as capsules_router,
+    coach as coach_router,
+    computer_vision as computer_vision_router,
+    edge_computing as edge_router,
+    git as git_router,
+    intelligence as intelligence_router,
+    intents as intents_router,
+    network_monitoring as network_router,
+    neural_architecture as neural_architecture_router,
+    office as office_router,
+    personas as personas_router,
+    reasoning as reasoning_router,
+    runtime_diagnostics as runtime_router,
+    security_threat as security_router,
+    workflow_orchestration as workflows_router,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_DIST = REPO_ROOT / "frontend" / "dist"
@@ -272,6 +292,25 @@ def create_app(
     # Surface the realtime Office router so the React frontend can read metrics
     # and trigger AI actions without spinning up the separate demo server.
     app.include_router(office_router.router, prefix="/office", tags=["office"])
+    # Additional routers from backend_api to keep advanced surfaces in sync across
+    # the desktop (Tkinter/PyWebView) and browser clients.
+    app.include_router(api_connectors_router.router, prefix="/api-connectors", tags=["api_connectors"])
+    app.include_router(ai_systems_router.router, prefix="/ai", tags=["ai_systems"])
+    app.include_router(capsules_router.router, prefix="/ai", tags=["capsules"])
+    app.include_router(coach_router.router, prefix="/ai", tags=["coach"])
+    app.include_router(intelligence_router.router, prefix="/intelligence", tags=["intelligence"])
+    app.include_router(reasoning_router.router, prefix="/reasoning", tags=["reasoning"])
+    app.include_router(intents_router.router, tags=["intents"])
+    app.include_router(autofix_router.router, prefix="/autofix", tags=["autofix"])
+    app.include_router(computer_vision_router.router, prefix="/computer-vision", tags=["computer_vision"])
+    app.include_router(neural_architecture_router.router, prefix="/neural-architecture", tags=["neural_architecture"])
+    app.include_router(security_router.router, prefix="/security", tags=["security"])
+    app.include_router(network_router.router, prefix="/network", tags=["network"])
+    app.include_router(edge_router.router, prefix="/edge-computing", tags=["edge_computing"])
+    app.include_router(workflows_router.router, prefix="/workflows", tags=["workflows"])
+    app.include_router(git_router.router, tags=["git"])
+    app.include_router(personas_router.router, prefix="/personas", tags=["personas"])
+    app.include_router(runtime_router.router, tags=["runtime"])
 
     docs_dir = REPO_ROOT / "docs"
     if docs_dir.exists():
@@ -283,7 +322,7 @@ def create_app(
             "/cyberchef", StaticFiles(directory=cyberchef_dir, html=True), name="cyberchef"
         )
 
-    db_path = Path(db_path or "assistant_hub_gui/assistant_hub/assistant_hub.db")
+    db_path = Path(db_path or DB_PATH)
     # Ensure the DB exists with all required tables
     init_conn = init_db(db_path)
     ensure_demo_data(init_conn)
@@ -1079,5 +1118,28 @@ def create_app(
 def run_app(host: str = "127.0.0.1", port: int = 8071):
     """Utility to run API with uvicorn."""
     import uvicorn
+    from pathlib import Path
 
-    uvicorn.run(create_app(), host=host, port=port, log_level="info")
+    # Check for SSL certificates
+    repo_root = Path(__file__).resolve().parents[3]
+    cert_dir = repo_root / "certs"
+    cert_file = cert_dir / "cert.pem"
+    key_file = cert_dir / "key.pem"
+    
+    ssl_keyfile = None
+    ssl_certfile = None
+    if cert_file.exists() and key_file.exists():
+        ssl_keyfile = str(key_file)
+        ssl_certfile = str(cert_file)
+        print(f"🔒 Starting with SSL on https://{host}:{port}")
+    else:
+        print(f"🌐 Starting server on http://{host}:{port}")
+
+    uvicorn.run(
+        create_app(), 
+        host=host, 
+        port=port, 
+        log_level="info",
+        ssl_keyfile=ssl_keyfile,
+        ssl_certfile=ssl_certfile
+    )

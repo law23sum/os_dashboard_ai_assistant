@@ -17,12 +17,7 @@ import {
   Edit3,
   Eye,
   History,
-  AlertCircle,
   Loader2,
-  Upload,
-  Search,
-  Filter,
-  Trash2,
   FileSpreadsheet,
   Presentation,
   Mail,
@@ -31,71 +26,19 @@ import {
   BookOpen,
   FileType,
   Code,
-  Table,
-  ClipboardList,
-  Wand2,
-  ChevronRight,
-  ChevronLeft,
-  FolderOpen,
   Type,
   FileCode,
-  EyeOff,
 } from 'lucide-react'
 import { toast } from '../utils/toast'
 import type { ChatDocument } from '../types/documents'
 import {
   fetchChatDocumentContent,
   modifyChatDocument,
-  listChatDocuments,
-  uploadChatDocument,
-  deleteChatDocument,
   type DocumentContentResponse,
   type DocumentModifyResponse,
 } from '../api/documents'
 import apiClient, { apiPath } from '../lib/apiClient'
-
-interface QuickAction {
-  id: string
-  label: string
-  description: string
-  prompt: string
-  icon: typeof FileText
-}
-
-const QUICK_ACTIONS: QuickAction[] = [
-  {
-    id: 'summary',
-    label: 'Executive summary',
-    description: '3-sentence overview focusing on decisions, risks, and owners.',
-    prompt:
-      'Summarize the document in three concise sentences that highlight the decision, owner, and any risks.',
-    icon: FileText,
-  },
-  {
-    id: 'actions',
-    label: 'Action checklist',
-    description: 'List the top tasks with owners and suggested deadlines.',
-    prompt:
-      'Identify up to three concrete action items from this document. Include the owner, desired outcome, and a reasonable due date.',
-    icon: ClipboardList,
-  },
-  {
-    id: 'metrics',
-    label: 'Key metrics',
-    description: 'Surface KPIs or numbers worth tracking in chat.',
-    prompt:
-      'Extract any metrics, KPIs, or quantified statements from the document and format them as a short bulleted list.',
-    icon: Table,
-  },
-  {
-    id: 'brief',
-    label: 'Meeting brief',
-    description: 'Draft a short update Chris can drop into chat.',
-    prompt:
-      'Write a short (under 120 words) meeting brief that includes context, current status, blockers, and a clear ask.',
-    icon: Wand2,
-  },
-]
+import { QUICK_ACTIONS } from '../constants/documentActions'
 
 const getCategoryIcon = (category: string) => {
   switch (category) {
@@ -251,47 +194,9 @@ export default function DocumentViewer({
   const [pendingChanges, setPendingChanges] = useState<PendingAIChange[]>([])
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null)
   const [showVersionHistory, setShowVersionHistory] = useState(false)
-  const [showDocumentManager, setShowDocumentManager] = useState(false)
   const [isRealTimeUpdating, setIsRealTimeUpdating] = useState(false)
-  const [showDocumentList, setShowDocumentList] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('all')
   const [selectedAction, setSelectedAction] = useState<string | null>(null)
   const editorRef = useRef<HTMLTextAreaElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const { data: documents = [], isLoading: isLoadingDocuments, refetch: refetchDocuments } = useQuery({
-    queryKey: ['chat-documents'],
-    queryFn: listChatDocuments,
-    refetchInterval: 5000,
-  })
-
-  const uploadMutation = useMutation({
-    mutationFn: (file: File) => uploadChatDocument(file, persona),
-    onSuccess: (doc) => {
-      toast.success(`Uploaded: ${doc.original_name}`)
-      queryClient.invalidateQueries({ queryKey: ['chat-documents'] })
-      onDocumentSelect?.(doc)
-    },
-    onError: (error) => {
-      toast.error(error instanceof Error ? error.message : 'Upload failed')
-    },
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteChatDocument,
-    onSuccess: (_, deletedId) => {
-      toast.success('Document deleted')
-      queryClient.invalidateQueries({ queryKey: ['chat-documents'] })
-      if (document?.id === deletedId) {
-        onDocumentSelect?.(null)
-      }
-    },
-    onError: (error) => {
-      toast.error(error instanceof Error ? error.message : 'Delete failed')
-    },
-  })
 
   const quickActionMutation = useMutation({
     mutationFn: modifyChatDocument,
@@ -311,35 +216,7 @@ export default function DocumentViewer({
     },
   })
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }, [])
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }, [])
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragging(false)
-      const files = Array.from(e.dataTransfer.files)
-      files.forEach((file) => uploadMutation.mutate(file))
-    },
-    [uploadMutation]
-  )
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files) {
-      Array.from(files).forEach((file) => uploadMutation.mutate(file))
-    }
-    e.target.value = ''
-  }
-
-  const handleQuickAction = (action: QuickAction) => {
+  const handleQuickAction = (action: typeof QUICK_ACTIONS[0]) => {
     if (!document) {
       toast.error('Select a document first')
       return
@@ -355,29 +232,6 @@ export default function DocumentViewer({
       persona,
     })
   }
-
-  const filteredDocuments = useMemo(() => {
-    const term = searchQuery.trim().toLowerCase()
-    return documents
-      .filter((doc) => {
-        if (categoryFilter !== 'all' && doc.category !== categoryFilter) return false
-        if (!term) return true
-        return (
-          doc.original_name.toLowerCase().includes(term) ||
-          doc.metadata?.persona?.toLowerCase().includes(term) ||
-          doc.category.toLowerCase().includes(term)
-        )
-      })
-      .sort((a, b) => new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime())
-  }, [documents, categoryFilter, searchQuery])
-
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {}
-    documents.forEach((doc) => {
-      counts[doc.category] = (counts[doc.category] || 0) + 1
-    })
-    return counts
-  }, [documents])
 
   const { data: currentContent, isLoading: isLoadingContent } = useQuery({
     queryKey: ['document-content', document?.id],
@@ -502,24 +356,6 @@ export default function DocumentViewer({
     return () => clearInterval(interval)
   }, [document, currentContent, pendingChanges.length, versions.length])
 
-  // Close document list when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement
-      const documentListButton = target.closest('[data-document-list-button]')
-      const documentListDropdown = target.closest('[data-document-list-dropdown]')
-      
-      if (showDocumentList && !documentListButton && !documentListDropdown) {
-        setShowDocumentList(false)
-      }
-    }
-
-    if (showDocumentList) {
-      window.addEventListener('mousedown', handleClickOutside)
-      return () => window.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [showDocumentList])
-
   const handleSave = () => {
     if (editedContent.trim()) {
       saveMutation.mutate(editedContent)
@@ -573,12 +409,7 @@ export default function DocumentViewer({
   }
 
   return (
-    <div 
-      className="h-full flex flex-col bg-gradient-to-br from-slate-900/50 via-slate-900/40 to-slate-800/30"
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
+    <div className="h-full flex flex-col bg-gradient-to-br from-slate-900/50 via-slate-900/40 to-slate-800/30">
       {/* Header - Cleaner Design */}
       <div className="px-6 py-4 border-b border-slate-700/30 bg-slate-900/60 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-4">
@@ -613,99 +444,35 @@ export default function DocumentViewer({
               </div>
             )}
             
-            <div className="flex items-center gap-1 p-1 bg-slate-800/50 rounded-lg border border-slate-700/50">
-              <button
-                onClick={() => setShowDocumentManager(!showDocumentManager)}
-                className={`p-2 rounded-md transition-all ${
-                  showDocumentManager
-                    ? 'bg-primary-500/20 text-primary-400'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
-                }`}
-                title="Document Manager"
-              >
-                <FolderOpen className="w-4 h-4" />
-              </button>
-              
-              {document && (
-                <>
-                  <button
-                    onClick={() => setShowVersionHistory(!showVersionHistory)}
-                    className={`p-2 rounded-md transition-all relative ${
-                      showVersionHistory
-                        ? 'bg-primary-500/20 text-primary-400'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
-                    }`}
-                    title="Version History"
-                  >
-                    <History className="w-4 h-4" />
-                    {versions.length > 0 && !showVersionHistory && (
-                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary-500 text-white text-[9px] rounded-full flex items-center justify-center font-semibold">
-                        {versions.length}
-                      </span>
-                    )}
-                  </button>
-                  
-                  <a
-                    href={apiPath(`documents/${document.id}/content`)}
-                    download={document.original_name}
-                    className="p-2 text-slate-400 rounded-md hover:text-slate-200 hover:bg-slate-700/50 transition-all"
-                    title="Download"
-                  >
-                    <Download className="w-4 h-4" />
-                  </a>
-                </>
-              )}
-              
-              <div className="relative">
+            {document && (
+              <>
                 <button
-                  data-document-list-button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowDocumentList(!showDocumentList)
-                  }}
-                  className="p-2 text-slate-400 rounded-md hover:text-slate-200 hover:bg-slate-700/50 transition-all"
-                  title="Switch Document"
+                  onClick={() => setShowVersionHistory(!showVersionHistory)}
+                  className={`p-2 rounded-md transition-all relative ${
+                    showVersionHistory
+                      ? 'bg-primary-500/20 text-primary-400'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+                  }`}
+                  title="Version History"
                 >
-                  <FileText className="w-4 h-4" />
+                  <History className="w-4 h-4" />
+                  {versions.length > 0 && !showVersionHistory && (
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary-500 text-white text-[9px] rounded-full flex items-center justify-center font-semibold">
+                      {versions.length}
+                    </span>
+                  )}
                 </button>
-                {showDocumentList && (
-                  <div 
-                    data-document-list-dropdown
-                    className="absolute right-0 top-full mt-2 w-72 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-50 max-h-96 overflow-y-auto"
-                  >
-                    <div className="p-3 border-b border-slate-700">
-                      <p className="text-xs font-semibold text-slate-200 uppercase tracking-wider">Documents</p>
-                    </div>
-                    <div className="p-1">
-                      {documents.length === 0 ? (
-                        <p className="text-xs text-slate-500 p-4 text-center">No documents available</p>
-                      ) : (
-                        documents.map((doc) => (
-                          <button
-                            key={doc.id}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              onDocumentSelect?.(doc)
-                              setShowDocumentList(false)
-                            }}
-                            className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all ${
-                              document?.id === doc.id
-                                ? 'bg-primary-500/20 text-primary-300 border border-primary-500/30'
-                                : 'text-slate-300 hover:bg-slate-700/50'
-                            }`}
-                          >
-                            <p className="font-medium truncate">{doc.original_name}</p>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              {doc.category} • {new Date(doc.uploaded_at).toLocaleDateString()}
-                            </p>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+                
+                <a
+                  href={apiPath(`documents/${document.id}/content`)}
+                  download={document.original_name}
+                  className="p-2 text-slate-400 rounded-md hover:text-slate-200 hover:bg-slate-700/50 transition-all"
+                  title="Download"
+                >
+                  <Download className="w-4 h-4" />
+                </a>
+              </>
+            )}
           </div>
         </div>
 
@@ -792,173 +559,7 @@ export default function DocumentViewer({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Document Manager Panel - Left (Collapsible) */}
-        {showDocumentManager && (
-          <div className="w-80 border-r border-slate-700/30 bg-slate-900/40 backdrop-blur-sm flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-slate-700/30 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FolderOpen className="w-4 h-4 text-primary-400" />
-                <h4 className="text-xs font-semibold text-slate-200 uppercase tracking-wider">Document Manager</h4>
-              </div>
-              <button
-                onClick={() => setShowDocumentManager(false)}
-                className="p-1 text-slate-400 hover:text-slate-200 rounded"
-                title="Hide document manager"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-
-            {/* Upload Area */}
-            <div className="p-4 border-b border-slate-700/30">
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className={`
-                  relative cursor-pointer border-2 border-dashed rounded-xl p-6 transition-all
-                  ${
-                    isDragging
-                      ? 'border-primary-400 bg-primary-500/10 scale-[1.02]'
-                      : 'border-slate-600 hover:border-primary-500/50 hover:bg-slate-800/30'
-                  }
-                `}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  accept=".docx,.doc,.xlsx,.xls,.pptx,.ppt,.pdf,.json,.csv,.txt,.md,.eml,.msg,.xml,.html,.rtf,.one"
-                />
-                <div className="flex flex-col items-center gap-2">
-                  <Upload className={`w-6 h-6 ${isDragging ? 'text-primary-400' : 'text-slate-400'}`} />
-                  <p className="text-xs text-slate-400 text-center">
-                    {isDragging ? 'Drop files here' : 'Click or drag to upload'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Search & Filter */}
-            <div className="p-4 border-b border-slate-700/30 space-y-3">
-              <div className="flex items-center gap-2 bg-slate-800/50 border border-slate-700/60 rounded-lg px-3 py-2">
-                <Search className="w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search documents..."
-                  className="bg-transparent text-sm flex-1 text-slate-100 placeholder:text-slate-500 focus:outline-none"
-                />
-              </div>
-              <div className="flex flex-wrap gap-1.5 text-xs">
-                {['all', ...Object.keys(categoryCounts)].slice(0, 5).map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setCategoryFilter(category)}
-                    className={`px-2.5 py-1 rounded-md border transition-all ${
-                      categoryFilter === category
-                        ? 'border-primary-500/70 bg-primary-500/10 text-primary-100'
-                        : 'border-slate-700 text-slate-300 hover:border-primary-500/40'
-                    }`}
-                  >
-                    {category === 'all' ? 'All' : category}
-                    {category !== 'all' && (
-                      <span className="ml-1 text-[10px] text-primary-300">
-                        {categoryCounts[category] || 0}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Document List */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-2">
-              {isLoadingDocuments ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-5 h-5 text-primary-400 animate-spin" />
-                </div>
-              ) : filteredDocuments.length === 0 ? (
-                <div className="text-center py-8 text-slate-500 text-sm">
-                  <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                  <p>No documents found</p>
-                </div>
-              ) : (
-                filteredDocuments.map((doc) => {
-                  const Icon = getCategoryIcon(doc.category)
-                  const isSelected = document?.id === doc.id
-                  return (
-                    <div
-                      key={doc.id}
-                      onClick={() => onDocumentSelect?.(doc)}
-                      className={`
-                        p-3 rounded-lg border cursor-pointer transition-all
-                        ${
-                          isSelected
-                            ? 'border-primary-500/50 bg-primary-500/10'
-                            : 'border-slate-700/50 bg-slate-800/30 hover:bg-slate-800/50'
-                        }
-                      `}
-                    >
-                      <div className="flex items-start gap-2">
-                        <Icon className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-slate-200 truncate">{doc.original_name}</p>
-                          <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-500">
-                            <span>{doc.category}</span>
-                            <span>•</span>
-                            <span>{formatFileSize(doc.size_bytes)}</span>
-                          </div>
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            if (confirm(`Delete ${doc.original_name}?`)) {
-                              deleteMutation.mutate(doc.id)
-                            }
-                          }}
-                          className="p-1 text-slate-500 hover:text-rose-400 transition-colors"
-                          title="Delete document"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })
-              )}
-            </div>
-
-            {/* Quick Actions */}
-            {document && document.preview_type === 'text' && (
-              <div className="p-4 border-t border-slate-700/30 space-y-3">
-                <p className="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">Quick Actions</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {QUICK_ACTIONS.map((action) => {
-                    const ActionIcon = action.icon
-                    return (
-                      <button
-                        key={action.id}
-                        onClick={() => handleQuickAction(action)}
-                        disabled={quickActionMutation.isPending || selectedAction === action.id}
-                        className="flex flex-col items-center gap-1.5 p-3 bg-slate-800/50 border border-slate-700/50 rounded-lg hover:bg-slate-800 hover:border-primary-500/30 disabled:opacity-50 transition-all text-[10px]"
-                        title={action.description}
-                      >
-                        <ActionIcon className="w-4 h-4 text-primary-400" />
-                        <span className="text-slate-300 text-center leading-tight">{action.label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Document Content - Main Display Area */}
-        <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0">
           {/* Pending AI Changes */}
           {pendingChanges.length > 0 && (
             <div className="p-4 border-b border-slate-700/30 bg-amber-500/5">
@@ -1091,8 +692,24 @@ export default function DocumentViewer({
                       {document.preview_type === 'text' ? (
                         <div className="text-base text-slate-100 whitespace-pre-wrap leading-relaxed">{displayContent}</div>
                       ) : (
-                        <div className="text-sm text-slate-400 text-center py-12">
-                          Preview not available for binary files. Use download to view.
+                        <div className="text-center py-12 space-y-4">
+                          <div className="w-16 h-16 mx-auto rounded-xl bg-slate-800/50 flex items-center justify-center">
+                            <FileType className="w-8 h-8 text-slate-500" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-slate-300 mb-2">Binary File Preview</p>
+                            <p className="text-xs text-slate-500 mb-4">
+                              This file type cannot be previewed in the browser.
+                            </p>
+                            <a
+                              href={apiPath(`documents/${document.id}/content`)}
+                              download={document.original_name}
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500/20 hover:bg-primary-500/30 border border-primary-500/30 rounded-lg text-sm text-primary-300 transition-colors"
+                            >
+                              <Download className="w-4 h-4" />
+                              Download to View
+                            </a>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1125,9 +742,8 @@ export default function DocumentViewer({
             </div>
           )}
         </div>
-      </div>
 
-      {/* Version Control - Bottom Right Floating Panel - Improved Design */}
+      {/* Version Control - Bottom Right Floating Panel */}
       {showVersionHistory && (
         <div className="fixed bottom-6 right-6 w-[420px] h-[560px] bg-slate-900/98 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
           <div className="p-4 border-b border-slate-700/50 bg-gradient-to-r from-slate-800/50 to-slate-900/50">

@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
-import type { LucideIcon } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Upload,
@@ -17,9 +16,6 @@ import {
   Clock,
   FileType,
   Code,
-  Table,
-  ClipboardList,
-  Wand2,
   Target,
   Search,
   Filter,
@@ -38,49 +34,7 @@ import {
   type DocumentModifyResponse,
   type DocumentContentResponse,
 } from '../api/documents'
-
-interface QuickAction {
-  id: string
-  label: string
-  description: string
-  prompt: string
-  icon: LucideIcon
-}
-
-const QUICK_ACTIONS: QuickAction[] = [
-  {
-    id: 'summary',
-    label: 'Executive summary',
-    description: '3-sentence overview focusing on decisions, risks, and owners.',
-    prompt:
-      'Summarize the document in three concise sentences that highlight the decision, owner, and any risks.',
-    icon: FileText,
-  },
-  {
-    id: 'actions',
-    label: 'Action checklist',
-    description: 'List the top tasks with owners and suggested deadlines.',
-    prompt:
-      'Identify up to three concrete action items from this document. Include the owner, desired outcome, and a reasonable due date.',
-    icon: ClipboardList,
-  },
-  {
-    id: 'metrics',
-    label: 'Key metrics',
-    description: 'Surface KPIs or numbers worth tracking in chat.',
-    prompt:
-      'Extract any metrics, KPIs, or quantified statements from the document and format them as a short bulleted list.',
-    icon: Table,
-  },
-  {
-    id: 'brief',
-    label: 'Meeting brief',
-    description: 'Draft a short update Chris can drop into chat.',
-    prompt:
-      'Write a short (under 120 words) meeting brief that includes context, current status, blockers, and a clear ask.',
-    icon: Wand2,
-  },
-]
+import { QUICK_ACTIONS } from '../constants/documentActions'
 
 const getCategoryIcon = (category: string) => {
   switch (category) {
@@ -669,11 +623,35 @@ export default function DocumentPanel({
                       )}
                     </div>
                   ) : previewError ? (
-                    <div className="text-slate-400 text-xs">{previewError}</div>
+                    <div className="text-center py-6 space-y-2">
+                      <p className="text-xs text-slate-400">{previewError}</p>
+                      {selectedDoc && (
+                        <a
+                          href={apiPath(`documents/${selectedDoc.id}/content`)}
+                          download={selectedDoc.original_name}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 rounded-lg text-[11px] text-slate-300 transition-colors"
+                        >
+                          <Download className="w-3 h-3" />
+                          Download
+                        </a>
+                      )}
+                    </div>
                   ) : previewContent ? (
                     previewContent
                   ) : (
-                    'Preview not available for this file type.'
+                    <div className="text-center py-6 space-y-2">
+                      <p className="text-xs text-slate-500">Preview not available for this file type.</p>
+                      {selectedDoc && (
+                        <a
+                          href={apiPath(`documents/${selectedDoc.id}/content`)}
+                          download={selectedDoc.original_name}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 rounded-lg text-[11px] text-slate-300 transition-colors"
+                        >
+                          <Download className="w-3 h-3" />
+                          Download to View
+                        </a>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

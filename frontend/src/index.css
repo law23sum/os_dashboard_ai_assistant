@@ -121,6 +121,10 @@ html, body {
   isolation: isolate;
 }
 
+.osd-nav > * {
+  pointer-events: auto;
+}
+
 .osd-logo {
   width: 34px;
   height: 34px;
@@ -138,6 +142,9 @@ html, body {
   font-size: 0.85rem;
   color: var(--osd-muted);
   transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
 }
 
 .osd-nav-link svg {
@@ -166,6 +173,9 @@ html, body {
   min-width: 14rem;
   pointer-events: auto;
   cursor: default;
+  will-change: transform, opacity;
+  transform: translateZ(0); /* Force GPU acceleration */
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
 }
 
 .osd-dropdown-link {
@@ -177,11 +187,18 @@ html, body {
   color: var(--osd-muted);
   cursor: pointer;
   user-select: none;
+  transition: color 0.1s ease, background 0.1s ease;
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
 .osd-dropdown-link:hover {
   color: var(--osd-text);
   background: rgba(255, 255, 255, 0.04);
+}
+
+.osd-dropdown-link:active {
+  background: rgba(255, 255, 255, 0.06);
+  transform: scale(0.98);
 }
 
 .osd-dropdown-link--active {

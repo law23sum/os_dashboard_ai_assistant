@@ -38,6 +38,19 @@ LOG_DIR = OPS_ROOT / "logs"
 OUTPUT_PATH = LOG_DIR / "network_watch.json"
 DEFAULT_ALLOWLIST = {22, 80, 443, 5173, 3000, 8888, 5000}
 DEFAULT_PING_TARGETS = ("1.1.1.1", "8.8.8.8")
+KNOWN_DEVICES_FILE = LOG_DIR / "known_devices.json"
+
+# Suspicious hostname patterns
+SUSPICIOUS_HOSTNAME_PATTERNS = [
+    r"vps\d+",  # VPS identifiers
+    r"server\d+",  # Generic server names
+    r"0onevps",  # Specific VPS provider pattern
+    r"cloud\d+",  # Cloud instance patterns
+    r"aws-",  # AWS instance patterns
+    r"gcp-",  # Google Cloud patterns
+    r"azure-",  # Azure patterns
+    r"\.local\.",  # Unusual local domain usage
+]
 
 
 def _run_log_show(minutes: int = 10) -> str:
@@ -257,6 +270,102 @@ def latency_probes(targets: Sequence[str], count: int = 3, timeout: int = 2) -> 
     return probes
 
 
+def _is_suspicious_hostname(hostname: str) -> bool:
+    """Check if hostname matches suspicious patterns"""
+    hostname_lower = hostname.lower()
+    for pattern in SUSPICIOUS_HOSTNAME_PATTERNS:
+        if re.search(pattern, hostname_lower):
+            return True
+    return False
+
+
+def _load_known_devices() -> dict:
+    """Load known devices from file"""
+    if not KNOWN_DEVICES_FILE.exists():
+        return {"hostnames": [], "mac_addresses": [], "ips": []}
+    try:
+        return json.loads(KNOWN_DEVICES_FILE.read_text())
+    except Exception:
+        return {"hostnames": [], "mac_addresses": [], "ips": []}
+
+
+def _save_known_devices(devices: dict) -> None:
+    """Save known devices to file"""
+    KNOWN_DEVICES_FILE.parent.mkdir(parents=True, exist_ok=True)
+    KNOWN_DEVICES_FILE.write_text(json.dumps(devices, indent=2) + "\n")
+
+
+def network_devices() -> List[dict]:
+    """Scan ARP table for network devices and detect suspicious ones"""
+    devices: List[dict] = []
+    known_devices = _load_known_devices()
+    
+    try:
+        result = subprocess.run(
+            ["arp", "-a"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=10,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+        return [{"error": "arp_unavailable"}]
+    
+    # Parse ARP output
+    arp_pattern = re.compile(
+        r"\((\d+\.\d+\.\d+\.\d+)\)\s+at\s+([a-f0-9:]+|\(incomplete\))\s+on\s+(\w+)"
+    )
+    
+    for line in result.stdout.splitlines():
+        match = arp_pattern.search(line)
+        if not match:
+            continue
+        
+        ip = match.group(1)
+        mac = match.group(2) if match.group(2) != "(incomplete)" else "incomplete"
+        interface = match.group(3)
+        
+        # Extract hostname if present
+        hostname_match = re.search(r"([a-zA-Z0-9\-\.]+)\.home", line)
+        hostname = hostname_match.group(1) if hostname_match else None
+        
+        # Determine if suspicious
+        is_suspicious = False
+        suspicious_reasons = []
+        
+        if hostname:
+            if _is_suspicious_hostname(hostname):
+                is_suspicious = True
+                suspicious_reasons.append("suspicious_hostname_pattern")
+            if hostname not in known_devices.get("hostnames", []):
+                suspicious_reasons.append("unknown_hostname")
+        
+        if ip not in known_devices.get("ips", []):
+            suspicious_reasons.append("unknown_ip")
+        
+        if mac != "incomplete" and mac not in known_devices.get("mac_addresses", []):
+            suspicious_reasons.append("unknown_mac")
+        
+        if mac == "incomplete":
+            suspicious_reasons.append("incomplete_mac")
+        
+        devices.append({
+            "ip": ip,
+            "mac": mac,
+            "hostname": hostname,
+            "interface": interface,
+            "is_suspicious": is_suspicious or len(suspicious_reasons) > 0,
+            "suspicious_reasons": suspicious_reasons,
+            "is_known": (
+                (hostname and hostname in known_devices.get("hostnames", [])) or
+                (ip in known_devices.get("ips", [])) or
+                (mac != "incomplete" and mac in known_devices.get("mac_addresses", []))
+            ),
+        })
+    
+    return sorted(devices, key=lambda d: (d["is_suspicious"], d.get("hostname", "")))
+
+
 def suspicious_connections(allowlist: set[int]) -> List[dict]:
     events: List[dict] = []
     try:
@@ -297,11 +406,17 @@ def build_report(
     interfaces: Optional[Sequence[str]],
     ping_targets: Sequence[str],
 ) -> dict:
+    devices = network_devices()
+    suspicious_devices = [d for d in devices if d.get("is_suspicious", False)]
+    
     return {
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "auth": collect_auth_failures(window_minutes),
         "listening": listening_services(allowlist),
         "suspicious": suspicious_connections(allowlist),
+        "devices": devices,
+        "suspicious_devices": suspicious_devices,
+        "suspicious_device_count": len(suspicious_devices),
         "interfaces": interface_throughput(sample_seconds, interfaces),
         "wifi": wifi_status(),
         "latency": latency_probes(ping_targets),
@@ -365,10 +480,31 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
         args.ping,
     )
     save_report(report, args.output)
-    print(
-        f"[network_watch] auth_failures={report['auth']['count']} "
-        f"listening={len(report['listening'])} suspicious={len(report['suspicious'])}"
-    )
+    
+    suspicious_count = report.get("suspicious_device_count", 0)
+    device_count = len(report.get("devices", []))
+    
+    status_parts = [
+        f"auth_failures={report['auth']['count']}",
+        f"listening={len(report['listening'])}",
+        f"suspicious_conns={len(report['suspicious'])}",
+        f"devices={device_count}",
+    ]
+    
+    if suspicious_count > 0:
+        status_parts.append(f"⚠️  SUSPICIOUS_DEVICES={suspicious_count}")
+    
+    print(f"[network_watch] {' '.join(status_parts)}")
+    
+    # Print suspicious device details
+    if suspicious_count > 0:
+        print("\n⚠️  Suspicious devices detected:")
+        for device in report.get("suspicious_devices", []):
+            hostname = device.get("hostname", "unknown")
+            ip = device.get("ip", "unknown")
+            reasons = ", ".join(device.get("suspicious_reasons", []))
+            print(f"  - {hostname} ({ip}): {reasons}")
+    
     return 0
 
 

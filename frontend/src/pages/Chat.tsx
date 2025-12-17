@@ -10,7 +10,6 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
-  GripVertical,
   X,
 } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
@@ -18,9 +17,8 @@ import { toast } from '../utils/toast'
 import apiClient, { apiPath } from '../lib/apiClient'
 import { extractArray } from '../lib/responseHelpers'
 import { ChatMessage } from '../types'
-import DocumentViewer from '../components/DocumentViewer'
+import UnifiedDocumentViewer from '../components/UnifiedDocumentViewer'
 import DocumentPanel from '../components/DocumentPanel'
-import FilePreviewPanel from '../components/FilePreviewPanel'
 import ChangeMonitor from '../components/ChangeMonitor'
 import type { ChatDocument } from '../types/documents'
 
@@ -90,7 +88,6 @@ export default function Chat() {
   const [changeMonitorHeight, setChangeMonitorHeight] = useState(256) // Default height in pixels
   const [isDocumentPanelCollapsed, setIsDocumentPanelCollapsed] = useState(false)
   const [isChangeMonitorCollapsed, setIsChangeMonitorCollapsed] = useState(false)
-  const [isFilePreviewVisible, setIsFilePreviewVisible] = useState(true)
   const [isResizing, setIsResizing] = useState(false)
   const resizeRef = useRef<{ type: 'document' | 'change'; startY: number; startHeight: number } | null>(null)
 
@@ -238,7 +235,7 @@ export default function Chat() {
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col bg-slate-900">
-      {/* Header - Enhanced with better visual hierarchy */}
+      {/* Header */}
       <div className="px-6 py-4 border-b border-slate-700/50 bg-gradient-to-r from-slate-900/95 to-slate-800/95 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -246,9 +243,7 @@ export default function Chat() {
               <MessageSquare className="w-5 h-5 text-primary-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                Chat
-              </h2>
+              <h2 className="text-xl font-bold text-white">Chat</h2>
               <p className="text-sm text-slate-400 mt-0.5">
                 {messages.length > 0 
                   ? `${messages.length} message${messages.length !== 1 ? 's' : ''} • ${persona}`
@@ -271,12 +266,12 @@ export default function Chat() {
         <div className="flex-1 flex overflow-hidden">
           {/* Left: Chat Area */}
           <div className="w-1/2 flex flex-col min-w-0 border-r border-slate-700/50 bg-slate-900/50 backdrop-blur-sm">
-            {/* Messages - Enhanced with better spacing and scroll behavior */}
+            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
             {messages.length === 0 && (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center max-w-lg px-4">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary-500/20 to-violet-500/20 flex items-center justify-center border border-primary-500/30 shadow-lg shadow-primary-500/10">
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary-500/20 to-violet-500/20 flex items-center justify-center border border-primary-500/30">
                     <Bot className="w-10 h-10 text-primary-400" />
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-3">Start a Conversation</h3>
@@ -284,16 +279,6 @@ export default function Chat() {
                     Send a message to begin. You can upload documents using the panel on the right
                     and ask the AI to analyze or modify them.
                   </p>
-                  <div className="grid grid-cols-2 gap-3 mt-6">
-                    <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50 text-left">
-                      <div className="text-xs font-semibold text-primary-400 mb-1">💡 Quick Tips</div>
-                      <div className="text-xs text-slate-400">Upload documents to analyze</div>
-                    </div>
-                    <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50 text-left">
-                      <div className="text-xs font-semibold text-primary-400 mb-1">⚡ Quick Actions</div>
-                      <div className="text-xs text-slate-400">Use quick actions in right panel</div>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
@@ -329,7 +314,7 @@ export default function Chat() {
                     )}
                   </div>
 
-                  {/* Message Content - Enhanced with better styling */}
+                  {/* Message Content */}
                   <div
                     className={`
                       group relative max-w-[75%] rounded-2xl px-5 py-3.5
@@ -342,7 +327,7 @@ export default function Chat() {
                       hover:shadow-xl
                     `}
                   >
-                    {/* Persona Label - Only show when persona changes */}
+                    {/* Persona Label */}
                     {showAvatar && (
                       <div
                         className={`text-xs font-semibold mb-2 ${isUser ? 'text-primary-100' : 'text-slate-300'}`}
@@ -354,12 +339,12 @@ export default function Chat() {
                       </div>
                     )}
 
-                    {/* Message Text - Enhanced readability */}
+                    {/* Message Text */}
                     <div className="text-sm whitespace-pre-wrap leading-relaxed break-words">
                       {msg.content}
                     </div>
 
-                    {/* Timestamp & Actions - Enhanced visibility */}
+                    {/* Timestamp & Actions */}
                     <div
                       className={`
                         flex items-center justify-between mt-3 pt-2 border-t
@@ -396,11 +381,11 @@ export default function Chat() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area - Enhanced with better visual design */}
+          {/* Input Area */}
           <div className="p-4 border-t border-slate-700/50 bg-gradient-to-t from-slate-900/95 to-slate-800/95 backdrop-blur-sm">
-            {/* Selected Document Indicator - Enhanced */}
+            {/* Selected Document Indicator */}
             {selectedDoc && (
-              <div className="mb-3 flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500/10 to-primary-600/10 border border-primary-500/30 rounded-xl shadow-lg shadow-primary-500/5">
+              <div className="mb-3 flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500/10 to-primary-600/10 border border-primary-500/30 rounded-xl">
                 <div className="p-1.5 rounded-lg bg-primary-500/20">
                   <FileText className="w-4 h-4 text-primary-400" />
                 </div>
@@ -409,22 +394,30 @@ export default function Chat() {
                 </span>
                 <button
                   onClick={() => setSelectedDoc(null)}
-                  className="p-1.5 hover:bg-primary-500/20 rounded-lg transition-colors group"
+                  className="p-1.5 hover:bg-primary-500/20 rounded-lg transition-colors"
                   title="Remove attachment"
                   aria-label="Remove attachment"
                 >
-                  <X className="w-4 h-4 text-primary-400 group-hover:text-primary-300" />
+                  <X className="w-4 h-4 text-primary-400" />
                 </button>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="flex items-end gap-3">
-              {/* Persona Selector - Enhanced */}
+              {/* Persona Selector */}
               <div className="relative">
                 <select
                   value={persona}
-                  onChange={(e) => setPersona(e.target.value)}
-                  className="appearance-none px-4 py-3 pr-10 bg-slate-800/80 border border-slate-700/60 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 cursor-pointer transition-all hover:bg-slate-800 hover:border-slate-600"
+                  onChange={(e) => {
+                    e.stopPropagation()
+                    setPersona(e.target.value)
+                  }}
+                  className="appearance-none px-4 py-3 pr-10 bg-slate-800/80 border border-slate-700/60 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 cursor-pointer transition-all hover:bg-slate-800 hover:border-slate-600 active:scale-[0.98]"
+                  style={{ 
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none',
+                    cursor: 'pointer',
+                  }}
                 >
                   {PERSONAS.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -439,14 +432,13 @@ export default function Chat() {
                 </div>
               </div>
 
-              {/* Message Input - Enhanced */}
+              {/* Message Input */}
               <div className="flex-1 relative">
                 <textarea
                   ref={inputRef}
                   value={message}
                   onChange={(e) => {
                     setMessage(e.target.value)
-                    // Auto-resize
                     const textarea = e.target
                     textarea.style.height = '48px'
                     const scrollHeight = textarea.scrollHeight
@@ -460,14 +452,9 @@ export default function Chat() {
                   className="w-full px-4 py-3 bg-slate-800/80 border border-slate-700/60 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 resize-none overflow-y-auto transition-all duration-200 hover:border-slate-600"
                   style={{ minHeight: '48px', maxHeight: '120px' }}
                 />
-                {message.length > 0 && (
-                  <div className="absolute bottom-2 right-2 text-[10px] text-slate-500">
-                    {message.length} chars
-                  </div>
-                )}
               </div>
 
-              {/* Attach Document Button - Enhanced */}
+              {/* Attach Document Button */}
               <button
                 type="button"
                 onClick={() => {
@@ -476,7 +463,7 @@ export default function Chat() {
                 className={`
                   p-3 rounded-xl transition-all relative
                   ${selectedDoc 
-                    ? 'bg-gradient-to-br from-primary-500/20 to-primary-600/20 text-primary-400 border border-primary-500/30 shadow-lg shadow-primary-500/10' 
+                    ? 'bg-gradient-to-br from-primary-500/20 to-primary-600/20 text-primary-400 border border-primary-500/30' 
                     : 'bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-slate-300 border border-slate-700/60'
                   }
                 `}
@@ -489,7 +476,7 @@ export default function Chat() {
                 )}
               </button>
 
-              {/* Send Button - Enhanced */}
+              {/* Send Button */}
               <button
                 type="submit"
                 disabled={sendMutation.isPending || !message.trim()}
@@ -503,13 +490,12 @@ export default function Chat() {
                 )}
               </button>
             </form>
-
           </div>
         </div>
 
           {/* Right: Multi-panel layout */}
           <div className="w-1/2 flex flex-col min-w-0">
-            {/* Top: Document Panel (Document list, upload, quick actions) - Resizable */}
+            {/* Top: Document Panel - Resizable */}
             <div className="relative border-b border-slate-700/50 overflow-hidden bg-slate-900/50 backdrop-blur-sm">
               {/* Resize Handle */}
               <div
@@ -553,44 +539,16 @@ export default function Chat() {
               </div>
             </div>
             
-            {/* Middle: Split into Document Viewer and File Preview */}
-            <div className="flex-1 flex overflow-hidden relative">
-              {/* Left: Document Viewer */}
-              <div className="flex-1 flex flex-col min-w-0 border-r border-slate-700/50">
-                <DocumentViewer
-                  document={selectedDoc}
-                  persona={persona}
-                  onDocumentUpdate={(updatedDoc) => {
-                    setSelectedDoc(updatedDoc)
-                  }}
-                  onDocumentSelect={handleDocumentSelect}
-                />
-              </div>
-              
-              {/* Right: File Preview Panel - Collapsible */}
-              {isFilePreviewVisible && (
-                <div className="relative w-80 flex-shrink-0 flex flex-col min-w-0 border-l border-slate-700/50">
-                  <button
-                    onClick={() => setIsFilePreviewVisible(false)}
-                    className="absolute top-2 right-2 z-10 p-1.5 bg-slate-800/80 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700/50 backdrop-blur-sm"
-                    title="Hide file preview"
-                  >
-                    <X className="w-4 h-4 text-slate-400" />
-                  </button>
-                  <FilePreviewPanel />
-                </div>
-              )}
-              
-              {/* Show File Preview Button when hidden */}
-              {!isFilePreviewVisible && (
-                <button
-                  onClick={() => setIsFilePreviewVisible(true)}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 p-2 bg-slate-800/90 hover:bg-slate-700 border border-slate-700/50 rounded-l-lg transition-colors z-10 backdrop-blur-sm shadow-lg"
-                  title="Show file preview"
-                >
-                  <FileText className="w-4 h-4 text-slate-400" />
-                </button>
-              )}
+            {/* Middle: Unified Document Viewer */}
+            <div className="flex-1 flex overflow-hidden">
+              <UnifiedDocumentViewer
+                document={selectedDoc}
+                persona={persona}
+                onDocumentUpdate={(updatedDoc) => {
+                  setSelectedDoc(updatedDoc)
+                }}
+                onDocumentSelect={handleDocumentSelect}
+              />
             </div>
           </div>
         </div>
