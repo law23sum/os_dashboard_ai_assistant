@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { Activity, ClipboardList, Hammer, Loader2, RefreshCw, Shield, Terminal, Zap } from 'lucide-react'
+import { Activity, ClipboardList, Clock3, Hammer, Loader2, RefreshCw, Shield, Terminal, Zap } from 'lucide-react'
 import {
   fetchHarnessReport,
   fetchWorkspaceDoctor,
@@ -15,15 +15,26 @@ const statusBadge = (status: string) => {
     passed: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/40',
     failed: 'bg-rose-500/10 text-rose-400 border border-rose-500/40',
     skipped: 'bg-slate-500/10 text-slate-300 border border-slate-500/40',
+    ok: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/40',
+    present: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/40',
+    missing: 'bg-amber-500/10 text-amber-300 border border-amber-500/40',
+    pending: 'bg-amber-500/10 text-amber-300 border border-amber-500/40',
+    unknown: 'bg-slate-500/10 text-slate-300 border border-slate-500/40',
   }
   return classes[status] || 'bg-slate-600/30 text-slate-100 border border-slate-700'
 }
 
 const formatTimestamp = (value?: number | string) => {
   if (value === undefined || value === null) return '—'
-  const numeric = typeof value === 'string' ? Number(value) : value
-  if (!Number.isFinite(numeric)) return '—'
-  const millis = numeric < 2_000_000_000 ? numeric * 1000 : numeric
+  if (typeof value === 'string') {
+    const parsed = Date.parse(value)
+    if (!Number.isNaN(parsed)) {
+      return new Date(parsed).toLocaleString()
+    }
+    return value
+  }
+  if (!Number.isFinite(value)) return '—'
+  const millis = value < 2_000_000_000 ? value * 1000 : value
   return new Date(millis).toLocaleString()
 }
 
@@ -31,6 +42,10 @@ const WorkspaceHealth = () => {
   const queryClient = useQueryClient()
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['lint', 'test'])
   const [lastReport, setLastReport] = useState<WorkspaceReport | null>(null)
+  const [workspaceRootInput, setWorkspaceRootInput] = useState('')
+  const [workspaceRoot, setWorkspaceRoot] = useState('')
+  const [maxDepth, setMaxDepth] = useState(2)
+  const [autofixEnabled, setAutofixEnabled] = useState(false)
 
   const demoProfiles = useMemo(
     () => [
@@ -49,10 +64,13 @@ const WorkspaceHealth = () => {
   )
 
   const scanQuery = useQuery({
-    queryKey: ['workspace-scan'],
+    queryKey: ['workspace-scan', workspaceRoot, maxDepth],
     queryFn: async () => {
       try {
-        return await fetchWorkspaceScan()
+        return await fetchWorkspaceScan({
+          root: workspaceRoot || undefined,
+          max_depth: maxDepth,
+        })
       } catch {
         return { root: '(demo)', projects: demoProfiles }
       }
@@ -61,10 +79,10 @@ const WorkspaceHealth = () => {
   })
 
   const doctorQuery = useQuery({
-    queryKey: ['workspace-doctor'],
+    queryKey: ['workspace-doctor', workspaceRoot],
     queryFn: async () => {
       try {
-        return await fetchWorkspaceDoctor()
+        return await fetchWorkspaceDoctor({ root: workspaceRoot || undefined })
       } catch {
         return {
           checks: [
@@ -81,7 +99,10 @@ const WorkspaceHealth = () => {
   const runChecks = useMutation({
     mutationFn: async (dryRun: boolean) =>
       runWorkspaceChecks({
+        root: workspaceRoot || undefined,
+        max_depth: maxDepth,
         categories: selectedCategories,
+        autofix: autofixEnabled,
         dry_run: dryRun,
       }),
     onSuccess: (data) => {
@@ -140,6 +161,10 @@ const WorkspaceHealth = () => {
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusBadge(status)}`}>{status}</span>
   )
 
+  const applyWorkspaceRoot = () => {
+    setWorkspaceRoot(workspaceRootInput.trim())
+  }
+
   return (
     <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -168,6 +193,51 @@ const WorkspaceHealth = () => {
             Execute checks
           </button>
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surface)] px-4 py-3 shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div className="flex flex-1 flex-wrap gap-3">
+            <label className="flex flex-col text-xs text-[color:var(--osd-muted)]">
+              Workspace root
+              <input
+                value={workspaceRootInput}
+                onChange={(event) => setWorkspaceRootInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    applyWorkspaceRoot()
+                  }
+                }}
+                onBlur={applyWorkspaceRoot}
+                placeholder="(default repo root)"
+                className="mt-2 w-64 rounded-lg border border-[color:var(--osd-border)] bg-[color:var(--osd-surface-strong)] px-3 py-2 text-sm text-[color:var(--osd-text)]"
+              />
+            </label>
+            <label className="flex flex-col text-xs text-[color:var(--osd-muted)]">
+              Max depth
+              <input
+                type="number"
+                min={1}
+                max={6}
+                value={maxDepth}
+                onChange={(event) => setMaxDepth(Number(event.target.value) || 2)}
+                className="mt-2 w-24 rounded-lg border border-[color:var(--osd-border)] bg-[color:var(--osd-surface-strong)] px-3 py-2 text-sm text-[color:var(--osd-text)]"
+              />
+            </label>
+          </div>
+          <label className="flex items-center gap-2 text-xs text-[color:var(--osd-muted)]">
+            <input
+              type="checkbox"
+              checked={autofixEnabled}
+              onChange={(event) => setAutofixEnabled(event.target.checked)}
+              className="h-4 w-4 rounded border-[color:var(--osd-border)] bg-[color:var(--osd-surface-strong)]"
+            />
+            Autofix on failure
+          </label>
+        </div>
+        {workspaceRoot && (
+          <p className="mt-2 text-[11px] text-[color:var(--osd-muted)]">Active root: {workspaceRoot}</p>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -273,6 +343,11 @@ const WorkspaceHealth = () => {
                     </div>
                   </div>
                 ))}
+                {profile.notes?.length ? (
+                  <p className="text-[11px] text-amber-300">
+                    Notes: {profile.notes.join(' · ')}
+                  </p>
+                ) : null}
               </div>
             </div>
           ))}

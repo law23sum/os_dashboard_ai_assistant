@@ -71,6 +71,7 @@ from backend_api.routers import (
     neural_architecture as neural_architecture_router,
     office as office_router,
     personas as personas_router,
+    projects as projects_router,
     reasoning as reasoning_router,
     runtime_diagnostics as runtime_router,
     security_threat as security_router,
@@ -799,6 +800,57 @@ def create_app(
         with closing(connect()) as conn:
             db_delete_project(conn, project_name)
         return {"deleted": project_name}
+
+    @app.get("/projects/links", response_model=List[projects_router.ProjectLinkResponse])
+    async def list_project_links(
+        project: Optional[str] = None, integration: Optional[str] = None
+    ):
+        return await projects_router.list_links(project=project, integration=integration)
+
+    @app.get("/projects/ledger", response_model=List[projects_router.ProjectLedgerEvent])
+    async def list_project_ledger(project: Optional[str] = None, limit: int = 50):
+        return await projects_router.list_project_ledger(project=project, limit=limit)
+
+    @app.get(
+        "/projects/intelligence",
+        response_model=List[projects_router.ProjectIntelligenceResponse],
+    )
+    async def list_project_intelligence():
+        return await projects_router.list_project_intelligence()
+
+    @app.get(
+        "/projects/{project_name}/links",
+        response_model=List[projects_router.ProjectLinkResponse],
+    )
+    async def get_project_links(project_name: str, integration: Optional[str] = None):
+        return await projects_router.get_project_links(
+            project_name=project_name, integration=integration
+        )
+
+    @app.get(
+        "/projects/{project_name}/ledger",
+        response_model=List[projects_router.ProjectLedgerEvent],
+    )
+    async def get_project_ledger(project_name: str, limit: int = 50):
+        return await projects_router.get_project_ledger(project_name=project_name, limit=limit)
+
+    @app.get(
+        "/projects/{project_name}/intelligence",
+        response_model=projects_router.ProjectIntelligenceResponse,
+    )
+    async def get_project_intelligence(project_name: str):
+        return await projects_router.get_project_intelligence(project_name=project_name)
+
+    @app.get(
+        "/projects/{project_name}/insights",
+        response_model=projects_router.ProjectInsightResponse,
+    )
+    async def get_project_insights(project_name: str):
+        return await projects_router.get_project_insights(project_name=project_name)
+
+    @app.get("/projects/{project_name}/trf", response_model=projects_router.ProjectTRFResponse)
+    async def get_project_trf(project_name: str, limit: int = 10):
+        return await projects_router.get_project_trf(project_name=project_name, limit=limit)
 
     @app.get("/tasks")
     def list_tasks(limit: int = Query(100, ge=1, le=500)):

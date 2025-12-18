@@ -499,6 +499,9 @@ export default function Observability() {
                 <p className="text-xs text-slate-300">
                   Aggregated lint/test/build/security results from the latest harness run.
                 </p>
+                {data.harness.run_id && (
+                  <p className="mt-1 text-xs text-slate-400">Run ID: {data.harness.run_id}</p>
+                )}
               </div>
             </div>
             <HarnessStatusBadge status={data.harness.status} />
