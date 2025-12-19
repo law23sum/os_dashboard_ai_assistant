@@ -78,7 +78,7 @@ vercel==0.3.0
 # Monitoring & Logging
 prometheus-client==0.19.0
 structlog==23.2.0
-sentry-sdk==1.38.0
+sentry-sdk==1.45.1
 
 # Security
 cryptography==41.0.7
