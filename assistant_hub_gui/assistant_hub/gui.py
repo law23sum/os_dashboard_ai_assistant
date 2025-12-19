@@ -1829,8 +1829,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         buttons.grid(row=1, column=0, sticky="e", pady=(12, 0))
 
 <<<<<<< Updated upstream
-        save_btn = ButtonCls(
-=======
     def _capture_tab_metadata(self):
         """Cache tab ids and labels so we can hide the strip but keep navigation."""
         self._tab_meta = []
@@ -19521,9 +19519,7 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
                 self.cyberchef_status_var.set(f"{label} opened in your browser.")
             except Exception as exc:
                 messagebox.showerror("CyberChef", f"Could not open {label}:\n{exc}")
-
-        ttk.Button(
->>>>>>> Stashed changes
+        save_btn = ttk.Button(
             buttons,
             text="Save Layout",
             command=self._save_with_feedback,
