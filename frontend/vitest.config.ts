@@ -9,13 +9,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['node_modules', 'dist', 'electron/**', 'scripts/**'],
-    include: ['src/**/*.test.{ts,tsx}', 'src/**/*.spec.{ts,tsx}'],
-    exclude: [
-      '**/node_modules/**',
-      'electron/**',
-      'scripts/**',
-    ],
+    exclude: ['**/node_modules/**', 'dist', 'electron/**', 'scripts/**'],
   },
   resolve: {
     alias: {

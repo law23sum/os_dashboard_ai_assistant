@@ -138,10 +138,8 @@ from backend_api.routers import (
     git,
     network_monitoring,
     workspace,
-<<<<<<< HEAD
     orchestrator,
     workspace_health,
-=======
     auth,
     admin,
     logs,
@@ -152,7 +150,6 @@ from backend_api.routers import (
     ai_integration,
     data_management,
     project_orchestrator,
->>>>>>> incremeents
 )
 
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
@@ -212,23 +209,22 @@ app.include_router(personas.router, prefix="/api/personas", tags=["personas"])
 app.include_router(office.router, prefix="/api/office", tags=["office"])
 app.include_router(runtime_diagnostics.router, prefix="/api", tags=["runtime"])
 app.include_router(workspace.router, prefix="/api", tags=["workspace"])
-<<<<<<< HEAD
 app.include_router(orchestrator.router, tags=["orchestrator"])
 app.include_router(workspace_health.router, prefix="/api", tags=["workspace_health"])
-=======
 app.include_router(auth.router, prefix="/api", tags=["auth"])
 app.include_router(admin.router, prefix="/api", tags=["admin"])
 app.include_router(logs.router, prefix="/api", tags=["logs"])
 app.include_router(ai_enhanced.router, prefix="/api", tags=["ai_enhanced"])
 app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+app.include_router(logs.router, prefix="/api", tags=["logs"])
+app.include_router(ai_enhanced.router, prefix="/api", tags=["ai_enhanced"])
 app.include_router(version_control.router, prefix="/api/versions", tags=["version_control"])
 app.include_router(unified_logging.router, prefix="/api/logs", tags=["logging"])
 app.include_router(document_viewer.router, prefix="/api/viewer", tags=["document_viewer"])
 app.include_router(ai_integration.router, prefix="/api/ai-integration", tags=["ai_integration"])
 app.include_router(data_management.router, prefix="/api/data", tags=["data_management"])
 app.include_router(project_orchestrator.router, prefix="/api", tags=["project_orchestrator"])
->>>>>>> incremeents
 
 # Legacy compatibility routes without the /api prefix.
 @app.get("/system", include_in_schema=False)
