@@ -13,6 +13,7 @@ import { applyTheme, defaultTheme } from '../theme'
 import { useAppSettings } from '../hooks/useSettings'
 import { UnifiedAIPanel } from './UnifiedAIPanel'
 import { throttle } from '../shared/utils'
+import PlatformFeatureSidebar from './PlatformFeatureSidebar'
 import { navigationConfig, Category, Platform, FeatureOption } from '../config/navigation'
 import { navigationManifest, findCategoryByPath, getAllPagesFromCategory, type NavCategory } from '../data/navigationManifest'
 
@@ -770,6 +771,10 @@ export default function Layout({ children }: LayoutProps) {
     return allPages.some((page) => location.pathname === page.path || location.pathname.startsWith(page.path + '/'))
   }
 
+  // Expanded should be an explicit user toggle. Being "active" should not force open
+  // (it makes dropdowns impossible to close when the current route matches).
+  const isExpanded = (item: NavItem): boolean => expandedGroups.has(item.path)
+
   const isExpanded = (item: NavItem): boolean =>
     openGroupPath === item.path
   // Check if category is expanded
@@ -971,6 +976,8 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Main Content with Left Sidebar */}
       <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-8rem)]">
+        <div className="flex flex-col gap-8 lg:flex-row w-full">
+          <PlatformFeatureSidebar />
         <div className="flex w-full gap-6">
           {/* Left Sidebar Navigation - Shows pages for active category */}
           {activeCategory && getAllPagesFromCategory(activeCategory).length > 0 && (

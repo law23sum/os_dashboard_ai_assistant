@@ -1,14 +1,17 @@
 """Settings API router."""
+from __future__ import annotations
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 import sys
 from pathlib import Path
+from datetime import datetime, timezone
 
 parent_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
-from assistant_hub.db import load_settings, save_settings
+from assistant_hub.db import load_settings, save_settings, DB_FILE
 from backend_api.db import db_session
 
 router = APIRouter()
@@ -37,6 +40,17 @@ class SettingsUpdate(BaseModel):
     default_persona: Optional[str] = None
     governance_banner: Optional[str] = None
 
+
+class StorageResponse(BaseModel):
+    data_dir: str
+    db_path: str
+    db_exists: bool
+    db_size_bytes: int
+    db_last_modified: Optional[str] = None
+    project_count: int
+    task_count: int
+
+
 @router.get("/", response_model=SettingsResponse)
 async def get_settings():
     """Get current settings."""
@@ -59,6 +73,32 @@ async def get_settings():
         import logging
         logging.error(f"Error fetching settings: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch settings: {str(e)}")
+
+
+@router.get("/storage", response_model=StorageResponse)
+async def get_storage_status():
+    """Return storage/persistence status for the local/shared SQLite store."""
+    db_path = Path(DB_FILE)
+    db_exists = db_path.exists()
+    db_size = db_path.stat().st_size if db_exists else 0
+    db_last_modified = None
+    if db_exists:
+        mtime = datetime.fromtimestamp(db_path.stat().st_mtime, tz=timezone.utc)
+        db_last_modified = mtime.isoformat()
+
+    with db_session() as db:
+        project_count = db.execute("SELECT COUNT(*) AS count FROM projects").fetchone()["count"]
+        task_count = db.execute("SELECT COUNT(*) AS count FROM tasks").fetchone()["count"]
+
+    return StorageResponse(
+        data_dir=str(db_path.parent),
+        db_path=str(db_path),
+        db_exists=db_exists,
+        db_size_bytes=db_size,
+        db_last_modified=db_last_modified,
+        project_count=int(project_count or 0),
+        task_count=int(task_count or 0),
+    )
 
 @router.put("/", response_model=SettingsResponse)
 async def update_settings(settings_update: SettingsUpdate):

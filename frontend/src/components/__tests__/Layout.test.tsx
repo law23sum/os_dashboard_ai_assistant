@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import Layout from '../Layout'
 import { throttle } from '../../shared/utils'
@@ -32,6 +32,8 @@ describe('Layout NavDropdown Performance', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+    // Ensure React/RTL unmounts the tree before the next test.
+    cleanup()
   })
 
   const renderLayout = () => {
@@ -58,6 +60,17 @@ describe('Layout NavDropdown Performance', () => {
     // Verify throttle was called
     expect(throttle).toHaveBeenCalled()
 
+    // Simulate scroll events (should not throw)
+    const scrollEvents = Array(10)
+      .fill(null)
+      .map(() => new Event('scroll'))
+    scrollEvents.forEach((event) => window.dispatchEvent(event))
+
+    // Dropdown should remain visible
+    await waitFor(() => {
+      const dropdown = document.body.querySelector('.osd-dropdown')
+      expect(dropdown).toBeInTheDocument()
+    })
     // Verify listeners were registered with capture on scroll for portaled dropdown positioning
     expect(addEventListenerSpy).toHaveBeenCalledWith(
       'scroll',
@@ -104,12 +117,15 @@ describe('Layout NavDropdown Performance', () => {
       await waitFor(() => {
         const dropdown = document.body.querySelector('.osd-dropdown')
         expect(dropdown).toBeInTheDocument()
+      })
+
       }, { timeout: 50 })
       
       fireEvent.click(dropdownButton)
       await waitFor(() => {
         const dropdown = document.body.querySelector('.osd-dropdown')
         expect(dropdown).not.toBeInTheDocument()
+      })
       }, { timeout: 50 })
     }
 
@@ -130,6 +146,9 @@ describe('Layout NavDropdown Performance', () => {
     expect(addEventListenerSpy).toHaveBeenCalledWith(
       'scroll',
       expect.any(Function),
+      expect.objectContaining({ capture: true })
+    )
+    expect(addEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function), expect.anything())
       expect.objectContaining({ capture: true }),
     )
     expect(addEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function), expect.any(Object))
@@ -141,6 +160,9 @@ describe('Layout NavDropdown Performance', () => {
     expect(removeEventListenerSpy).toHaveBeenCalledWith(
       'scroll',
       expect.any(Function),
+      expect.objectContaining({ capture: true })
+    )
+    // Resize handler may be removed without passing the original options object in jsdom.
       expect.objectContaining({ capture: true }),
     )
     expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function))
@@ -157,11 +179,22 @@ describe('Layout NavDropdown Performance', () => {
     // Open dropdown
     fireEvent.click(dropdownButton)
 
-    // Get the dropdown element (portaled to document.body)
+    // Click a link inside dropdown and ensure it closes cleanly.
     await waitFor(() => {
       const dropdown = document.body.querySelector('.osd-dropdown')
       expect(dropdown).toBeInTheDocument()
+    })
 
+    const dropdown = document.body.querySelector('.osd-dropdown')
+    const link = dropdown?.querySelector('a')
+    expect(link).toBeTruthy()
+    if (link) {
+      fireEvent.click(link)
+    }
+
+    await waitFor(() => {
+      const nextDropdown = document.body.querySelector('.osd-dropdown')
+      expect(nextDropdown).not.toBeInTheDocument()
       // Click a link inside dropdown
       const link = dropdown?.querySelector('a')
       if (link) {
