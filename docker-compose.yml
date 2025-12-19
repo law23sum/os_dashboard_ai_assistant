@@ -20,6 +20,10 @@ services:
       - DATABASE_URL=postgresql://postgres:osdashboard123@postgres:5432/osdashboard
       - REDIS_URL=redis://redis:6379
       - LOG_LEVEL=INFO
+      # Persist the shared (desktop + web) SQLite store under /app/data
+      # so projects/tasks/settings survive container restarts.
+      - ASSISTANT_HUB_DATA_DIR=/app/data
+      - ASSISTANT_HUB_DB=/app/data/assistant_hub.db
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,6 +106,8 @@ services:
       - REDIS_URL=redis://redis:6379
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - ASSISTANT_HUB_DATA_DIR=/app/data
+      - ASSISTANT_HUB_DB=/app/data/assistant_hub.db
     depends_on:
       - postgres
       - redis
@@ -127,6 +133,8 @@ services:
       - DISPLAY=${DISPLAY}
       - DATABASE_URL=postgresql://postgres:osdashboard123@postgres:5432/osdashboard
       - REDIS_URL=redis://redis:6379
+      - ASSISTANT_HUB_DATA_DIR=/app/data
+      - ASSISTANT_HUB_DB=/app/data/assistant_hub.db
     volumes:
       - .:/app
       - ./config:/app/config

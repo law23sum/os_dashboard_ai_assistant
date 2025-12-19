@@ -28,6 +28,7 @@ if grep -q "alias agents_ai=" "$SHELL_RC" 2>/dev/null; then
 else
     echo "" >> "$SHELL_RC"
     echo "# Multi-Agent AI System command" >> "$SHELL_RC"
+    echo "# AI Agents command" >> "$SHELL_RC"
     echo "$ALIAS_LINE" >> "$SHELL_RC"
     echo "✓ Added agents_ai alias to $SHELL_RC"
     echo ""
@@ -52,6 +53,11 @@ cat > "$WRAPPER_SCRIPT" << EOF
 # Wrapper script for agents_ai
 SCRIPT_DIR="$SCRIPT_DIR"
 exec python3 "\$SCRIPT_DIR/agents_ai.py" "\$@"
+cat > "$WRAPPER_SCRIPT" << 'EOF'
+#!/bin/bash
+# Wrapper script for agents_ai
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+exec python3 "$SCRIPT_DIR/agents_ai.py" "$@"
 EOF
 
 chmod +x "$WRAPPER_SCRIPT"
@@ -67,3 +73,26 @@ echo "  agents_ai --check-display          # Check display access"
 echo "  agents_ai --help                   # Show help"
 echo ""
 echo "📚 See AGENTS_AI_GUIDE.md for detailed documentation"
+echo "  agents_ai              # Interactive agent selection"
+echo "  agents_ai --list-agents"
+echo "  agents_ai --check-keys"
+echo "  agents_ai --help"
+
+# Check for required packages
+echo ""
+echo "Checking required packages..."
+if python3 -c "import openai" 2>/dev/null; then
+    echo "✓ openai package installed"
+else
+    echo "⚠️  openai package not installed. Install with: pip install openai"
+fi
+
+if python3 -c "import openai_agents" 2>/dev/null; then
+    echo "✓ openai-agents package installed"
+else
+    echo "⚠️  openai-agents package not installed. Install with: pip install openai-agents"
+fi
+
+echo ""
+echo "📚 For API keys, see: API_KEYS_ACCESS_GUIDE.md"
+echo "   Or run: python3 cursor_ai.py --get-keys"
