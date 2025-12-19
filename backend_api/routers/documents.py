@@ -115,7 +115,7 @@ CATEGORY_BY_EXTENSION = {
 }
 
 
-def _safe_filename(filename: str | None) -> str:
+def _safe_filename(filename: Optional[str]) -> str:
     if not filename:
         return "unnamed_file"
     keep = "".join(c if c.isalnum() or c in ("-", "_", ".", " ") else "_" for c in filename)

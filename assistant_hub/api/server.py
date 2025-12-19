@@ -4,15 +4,19 @@ from __future__ import annotations
 import logging
 import sqlite3
 from contextlib import closing
+from contextvars import ContextVar
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Literal, Tuple
+import time
+import uuid
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, Response, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict
+from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Scope, Receive, Send
 
 from ai_os.app.system_monitor import get_system_stats
@@ -67,10 +71,12 @@ from backend_api.routers import (
     neural_architecture as neural_architecture_router,
     office as office_router,
     personas as personas_router,
+    projects as projects_router,
     reasoning as reasoning_router,
     runtime_diagnostics as runtime_router,
     security_threat as security_router,
     workflow_orchestration as workflows_router,
+    workspace as workspace_router,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -78,6 +84,7 @@ FRONTEND_DIST = REPO_ROOT / "frontend" / "dist"
 LEGACY_UI_DIST = REPO_ROOT / "ui" / "web" / "dist"
 SPEC_SHEET_PATH = REPO_ROOT / "Technical Spec Sheet (Version 6 Latest Version).pdf"
 logger = logging.getLogger(__name__)
+request_id_ctx: ContextVar[str] = ContextVar("request_id", default="")
 
 
 class StripPrefixMiddleware:
@@ -119,6 +126,46 @@ class StripPrefixMiddleware:
                     new_scope["raw_path"] = trimmed.encode("utf-8")
                 scope = new_scope
         await self.app(scope, receive, send)
+
+
+class CorrelationIdMiddleware:
+    """Assign a correlation ID to every request and expose it via headers/context."""
+
+    def __init__(self, app: ASGIApp, header_name: str = "x-correlation-id") -> None:
+        self.app = app
+        self.header_name = header_name.lower()
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        headers = dict(scope.get("headers") or [])
+        existing = headers.get(self.header_name.encode())
+        correlation_id = (
+            existing.decode("utf-8") if existing else str(uuid.uuid4())
+        )
+        scope["correlation_id"] = correlation_id
+        token = request_id_ctx.set(correlation_id)
+        start = time.perf_counter()
+
+        async def send_wrapper(message: Dict[str, Any]) -> None:
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                headers.append(self.header_name, correlation_id)
+                duration_ms = int((time.perf_counter() - start) * 1000)
+                headers.setdefault("x-response-time-ms", str(duration_ms))
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_wrapper)
+        finally:
+            request_id_ctx.reset(token)
+
+
+def _current_correlation_id() -> str:
+    cid = request_id_ctx.get()
+    return cid or ""
 
 
 class TaskPayload(BaseModel):
@@ -288,6 +335,34 @@ def create_app(
         prefix="/api",
         exclusions=("/api/docs",),
     )
+    app.add_middleware(CorrelationIdMiddleware)
+
+    @app.exception_handler(HTTPException)
+    async def _http_exception_handler(request: Request, exc: HTTPException):
+        cid = _current_correlation_id()
+        payload = {
+            "error": {
+                "type": exc.__class__.__name__,
+                "code": exc.status_code,
+                "message": exc.detail,
+            },
+            "correlation_id": cid,
+        }
+        return JSONResponse(status_code=exc.status_code, content=payload)
+
+    @app.exception_handler(Exception)
+    async def _unhandled_exception_handler(request: Request, exc: Exception):
+        cid = _current_correlation_id()
+        logger.exception("Unhandled exception", extra={"correlation_id": cid})
+        payload = {
+            "error": {
+                "type": exc.__class__.__name__,
+                "code": 500,
+                "message": "Internal server error",
+            },
+            "correlation_id": cid,
+        }
+        return JSONResponse(status_code=500, content=payload)
 
     # Surface the realtime Office router so the React frontend can read metrics
     # and trigger AI actions without spinning up the separate demo server.
@@ -308,6 +383,7 @@ def create_app(
     app.include_router(network_router.router, prefix="/network", tags=["network"])
     app.include_router(edge_router.router, prefix="/edge-computing", tags=["edge_computing"])
     app.include_router(workflows_router.router, prefix="/workflows", tags=["workflows"])
+    app.include_router(workspace_router.router, tags=["workspace"])
     app.include_router(git_router.router, tags=["git"])
     app.include_router(personas_router.router, prefix="/personas", tags=["personas"])
     app.include_router(runtime_router.router, tags=["runtime"])
@@ -332,6 +408,15 @@ def create_app(
         conn = sqlite3.connect(str(db_path), check_same_thread=False)
         conn.row_factory = sqlite3.Row
         return conn
+
+    def _db_ready() -> bool:
+        try:
+            with closing(connect()) as conn:
+                conn.execute("SELECT 1").fetchone()
+            return True
+        except Exception:
+            logger.exception("Database readiness check failed")
+            return False
 
     scheduler_conn = sqlite3.connect(str(db_path), check_same_thread=False)
     scheduler_conn.row_factory = sqlite3.Row
@@ -653,8 +738,17 @@ def create_app(
         raise HTTPException(status_code=404, detail=f"Unknown daemon: {slug}")
 
     @app.get("/health")
-    def health():
-        return {"status": "ok"}
+    def health(request: Request):
+        cid = _current_correlation_id()
+        return {"status": "ok", "correlation_id": cid}
+
+    @app.get("/ready")
+    def ready(request: Request):
+        cid = _current_correlation_id()
+        return {
+            "status": "ok" if _db_ready() else "degraded",
+            "correlation_id": cid,
+        }
 
     @app.get("/system")
     def system_status():
@@ -706,6 +800,57 @@ def create_app(
         with closing(connect()) as conn:
             db_delete_project(conn, project_name)
         return {"deleted": project_name}
+
+    @app.get("/projects/links", response_model=List[projects_router.ProjectLinkResponse])
+    async def list_project_links(
+        project: Optional[str] = None, integration: Optional[str] = None
+    ):
+        return await projects_router.list_links(project=project, integration=integration)
+
+    @app.get("/projects/ledger", response_model=List[projects_router.ProjectLedgerEvent])
+    async def list_project_ledger(project: Optional[str] = None, limit: int = 50):
+        return await projects_router.list_project_ledger(project=project, limit=limit)
+
+    @app.get(
+        "/projects/intelligence",
+        response_model=List[projects_router.ProjectIntelligenceResponse],
+    )
+    async def list_project_intelligence():
+        return await projects_router.list_project_intelligence()
+
+    @app.get(
+        "/projects/{project_name}/links",
+        response_model=List[projects_router.ProjectLinkResponse],
+    )
+    async def get_project_links(project_name: str, integration: Optional[str] = None):
+        return await projects_router.get_project_links(
+            project_name=project_name, integration=integration
+        )
+
+    @app.get(
+        "/projects/{project_name}/ledger",
+        response_model=List[projects_router.ProjectLedgerEvent],
+    )
+    async def get_project_ledger(project_name: str, limit: int = 50):
+        return await projects_router.get_project_ledger(project_name=project_name, limit=limit)
+
+    @app.get(
+        "/projects/{project_name}/intelligence",
+        response_model=projects_router.ProjectIntelligenceResponse,
+    )
+    async def get_project_intelligence(project_name: str):
+        return await projects_router.get_project_intelligence(project_name=project_name)
+
+    @app.get(
+        "/projects/{project_name}/insights",
+        response_model=projects_router.ProjectInsightResponse,
+    )
+    async def get_project_insights(project_name: str):
+        return await projects_router.get_project_insights(project_name=project_name)
+
+    @app.get("/projects/{project_name}/trf", response_model=projects_router.ProjectTRFResponse)
+    async def get_project_trf(project_name: str, limit: int = 10):
+        return await projects_router.get_project_trf(project_name=project_name, limit=limit)
 
     @app.get("/tasks")
     def list_tasks(limit: int = Query(100, ge=1, le=500)):

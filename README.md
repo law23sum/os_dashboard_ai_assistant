@@ -12,86 +12,77 @@ The new React interface preserves the Tkinter color palette and design language 
 
 ## Getting Started
 
-    venv/bin/python -m pip install -r requirements.txt
-
-
-    cd backend_api
-    python main.py
-
-    cd frontend
-    npm install
-    npm run build
-    npm run dev:browser
-   npm run dev:desktop 
-
-### Single Entry Point (Recommended)
-
-Use `python run.py` for an interactive launcher that lets you choose between web and desktop modes:
-
+1) Install dependencies:
 ```bash
-python -m assistant_hub_gui.main  # Interactive mode selection
-python run.py             
-# or sckip the prompt with environment variables
-python run.py --mode web
-DEV_MODE=desktop python run.py
+python -m venv venv
+venv/bin/python -m pip install -r requirements.txt
+cd frontend && npm install
 ```
 
-The launcher will display:
+2) Launch with the unified React launcher (recommended):
+```bash
+python start_ui.py                 # Interactive picker for web/desktop
+python start_ui.py --mode web      # Vite dev server + FastAPI backend
+python start_ui.py --mode desktop  # Electron dev shell + FastAPI backend
 ```
-🚀 OS Dashboard AI Assistant — Unified Launcher
-==================================================================
+- Runs preflight tests via `scripts/run_tests_with_autofix.py` unless `OSDASH_SKIP_PREFLIGHT_TESTS=1`
+- Boots FastAPI from `assistant_hub.api.server:create_app` on `127.0.0.1:8000` (auto-enables HTTPS when `certs/cert.pem` and `certs/key.pem` exist)
+- Set `OSDASH_UI_MODE`/`DEV_MODE` to skip the prompt in CI or packaging jobs
 
-📋 Available Launch Modes:
+Legacy Tkinter GUI remains available with `python -m assistant_hub_gui.main` (`python run.py` is now just a compatibility shim that forwards to this command).
 
-  🌐 1) React · Web Dev (FastAPI + Vite) ⭐ (default)
-  🖥️ 2) React · Desktop Dev (FastAPI + Electron)
-  📦 3) Serve built React in browser
-  📦 4) Serve built React in desktop shell
-```
+### Unified Launcher (Recommended)
 
-Need the legacy Tkinter GUI? Pass `--legacy` to `run.py`:
-
-The script:
-1. Checks prerequisites (Node.js/npm as needed)
-2. Boots the shared FastAPI backend that serves the React bundle
+`start_ui.py` is the single entry point for React web + desktop surfaces. It:
+1. Runs preflight tests and regenerates the test matrix
+2. Starts the shared FastAPI backend (or falls back to offline mode if missing deps)
 3. Prompts for one of the following modes:
    - **React · Web Dev** (Vite @ http://localhost:5173 + FastAPI proxy)
    - **React · Desktop Dev** (Electron shell talking to the same dev server)
    - **Serve Web Build** (FastAPI + `frontend/dist/`)
    - **Serve Desktop Build** (pywebview shell bundling the built React assets)
 
-Environment overrides: set `DEV_MODE=web|desktop|web-build|desktop-build` (or `OSDASH_UI_MODE`) to bypass the prompt in CI or packaging jobs.
+Environment overrides: `DEV_MODE=web|desktop|web-build|desktop-build` or `OSDASH_UI_MODE` to bypass the prompt.
 
 ### Manual Launch (Alternative)
 
-If you prefer to launch manually:
+For component-only iteration (without the launcher):
 
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev:web      # Browser/Vite
+npm run dev:desktop  # Electron dev shell
 ```
 
-Then choose web or desktop when prompted.  
+Start the API separately when you need real data:
+```bash
+uvicorn assistant_hub.api.server:create_app --factory --reload --host 127.0.0.1 --port 8000
+# or fallback dev server:
+python backend_api/main.py
+```
+
 Tip: the Electron shell no longer auto-opens DevTools to avoid Chromium autofill console noise. Re-enable anytime by setting `OSDASH_ELECTRON_DEVTOOLS=1` before launching (`OSDASH_ELECTRON_DEVTOOLS=1 npm run dev:desktop`).
 
 ### Backend API Server
 
-The API server runs on port 8070 by default. Start it separately if needed:
+The FastAPI backend runs on port 8000 by default (start_ui.py launches it automatically). Start it manually if needed:
 
 ```bash
-python -m assistant_hub_gui.assistant_hub.core.api_server
-```
-
-Or use the FastAPI backend:
-
-```bash
-uvicorn ai_os.app.main:app --reload --host 127.0.0.1 --port 8000
+uvicorn assistant_hub.api.server:create_app --factory --host 0.0.0.0 --port 8000
+# or use the compatibility entrypoint (auto-picks an open port, supports TLS from certs/):
+python backend_api/main.py
 ```
 
 Key REST endpoints used by the UI: `/writer/snapshot`, `/writer/documents`,
 `/writer/narrative`, `/dashboard/summary`, `/projects/summary`, `/tasks`,
 `/planes/status`, `/system`, `/projects`, and `/billing/usage`.
+
+### Runtime diagnostics & observability
+
+- `/api/runtime/diagnostics` accepts structured beacons from the React `AppErrorBoundary` and other clients, appending NDJSON to `logs/runtime_diagnostics.log` (override with `OSDASH_RUNTIME_LOG`).
+- `/api/runtime/diagnostics/ping` is a lightweight liveness check for smoke tests.
+- The Observability page consumes this feed so UI crashes and degraded planes are visible alongside system stats.
 
 ### AI Shell Runner (local automation)
 
@@ -110,6 +101,15 @@ python scripts/ai_shell_runner.py "summarize git branches and show disk usage fo
 
 ⚠️ **Security**: the shell tool can run arbitrary commands. Run inside a sandboxed
 environment or adjust the script to enforce allowlists before trusting unreviewed output.
+
+### Workspace CLI (new)
+
+Use the `osdash` CLI to orchestrate workspace operations without hunting for scripts:
+
+- `osdash scan` — discover git repos (defaults to parent workspace) and show inferred run/test commands.
+- `osdash test` — run best-effort tests across discovered repos.
+- `osdash run <repo>` — start a repo using inferred commands or `--run-command` override.
+- `osdash doctor` — emit quick health diagnostics (env templates, missing tests, docker-compose checks).
 
 ### Workspace Auto-Fix Shell
 
@@ -233,10 +233,13 @@ The modern frontend is built with React, TypeScript, and Vite, powering browsers
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev         # Forwards to start_ui.py (full stack)
+# or explicitly:
+# npm run dev:web
+# npm run dev:desktop
 ```
 
-The dev script will ask whether to launch the browser or Electron shell. See `frontend/QUICK_START.md` for more.
+The dev script delegates to `start_ui.py` (and falls back to Vite-only offline mode if Python deps are missing), so you still get the unified launcher prompt. See `frontend/QUICK_START.md` for more.
 
 ### Features
 
@@ -248,6 +251,7 @@ The dev script will ask whether to launch the browser or Electron shell. See `fr
 - ✅ **Tkinter-inspired theme** with exact color matching between Tkinter and React surfaces
 - ✅ **Shared code structure** (React components + FastAPI routes) eliminating redundancies
 - ✅ **Single entry point** (`start_ui.py`) with interactive mode selection
+- ✅ **Runtime diagnostics pipeline** via `/api/runtime/diagnostics` feeding the Observability page and `logs/runtime_diagnostics.log`
 - ✅ **Comprehensive deployment guide** for web and desktop platforms
 
 See `MIGRATION_COMPLETE_SUMMARY.md` for the full migration report and `QUICK_START.md` to get started in 5 minutes.
@@ -271,7 +275,7 @@ reads/writes the shared writer workspace store so it stays in sync with the web 
 
 ## Documentation
 
-- Canonical spec structure: `documentation/OS_DashboardAIAssistantTOC.md`
+- Canonical spec structure: `documentation/os_dashboard_ai_assistant_toc.md`
 - Queue/stack map: `documentation/QUEUE_STACK_MAP.md`
 - Dead-code linkage & future hook-ups: `documentation/DEAD_CODE_LINKAGE.md`
 - UI deployment guide: `docs/ui_deployment.md`

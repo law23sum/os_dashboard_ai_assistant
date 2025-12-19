@@ -4,7 +4,7 @@
 This document identifies gaps between the Canon Technical Specification (OS DashboardAIAssistantTOC.txt) and the current implementation, and documents the fixes applied.
 
 ## Architecture Network Map Created
-- **File**: `ARCHITECTURE_NETWORK_MAP.md`
+- **File**: `architecture_network_map.md`
 - **Content**: Complete mapping of relationships between classes, functions, scripts, and daemons
 - **Sections Covered**:
   - Architecture Layers (Presentation, Application, Cognitive, Domain, Infrastructure, Driver)
@@ -53,7 +53,7 @@ This document identifies gaps between the Canon Technical Specification (OS Dash
 **Impact**: Difficult to understand system architecture and identify gaps
 
 **Fix Applied**:
-- Created `ARCHITECTURE_NETWORK_MAP.md` with complete component mapping
+- Created `architecture_network_map.md` with complete component mapping
 - Documented all layers and planes
 - Added data flow examples
 - Identified missing connections
@@ -126,7 +126,7 @@ This document identifies gaps between the Canon Technical Specification (OS Dash
    - Updated daemon view integration
    - Added reasoning framework execution methods
 
-2. `ARCHITECTURE_NETWORK_MAP.md` (NEW)
+2. `architecture_network_map.md` (NEW)
    - Complete architecture documentation
    - Component relationship mapping
    - Data flow examples
@@ -165,4 +165,3 @@ This document identifies gaps between the Canon Technical Specification (OS Dash
 - All async operations are properly handled with threading
 - Error handling is comprehensive
 - Logging is in place for debugging
-

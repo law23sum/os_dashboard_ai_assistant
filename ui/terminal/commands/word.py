@@ -6,7 +6,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from ....integrations.word.service import WordService
+from assistant_hub.integrations.word.service import WordService
 
 
 def handle_word_command(args, conn: sqlite3.Connection) -> int:
@@ -39,4 +39,3 @@ def handle_word_command(args, conn: sqlite3.Connection) -> int:
     else:
         print(f"Unknown Word subcommand: {args.subcommand}", file=sys.stderr)
         return 1
-

@@ -66,7 +66,7 @@ class CapsuleCreateRequest(BaseModel):
 
 
 class CapsuleRunRequest(BaseModel):
-    inputs: Dict[str, str] | None = None
+    inputs: Optional[Dict[str, str]] = None
     priority: Literal["low", "normal", "high"] = "normal"
     dry_run: bool = False
 
@@ -328,7 +328,7 @@ async def install_capsule(capsule_id: str) -> Dict[str, str]:
 
 
 @router.post("/capsules/{capsule_id}/run")
-async def run_capsule(capsule_id: str, payload: CapsuleRunRequest | None = None) -> Dict[str, str]:
+async def run_capsule(capsule_id: str, payload: Optional[CapsuleRunRequest] = None) -> Dict[str, str]:
     capsule = _CAPSULES.get(capsule_id)
     if not capsule:
         raise HTTPException(status_code=404, detail="Capsule not found")

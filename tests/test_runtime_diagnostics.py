@@ -41,3 +41,22 @@ def test_runtime_diagnostics_endpoint_writes_log(runtime_env):
     assert event["message"] == payload["message"]
     assert event["context"]["foo"] == "bar"
     assert "timestamp" in event
+
+
+def test_runtime_diagnostics_get_returns_events(runtime_env):
+    log_file, _, backend_main = runtime_env
+    client = TestClient(backend_main.app)
+    payload = {
+        "source": "react",
+        "message": "UI error",
+        "severity": "error",
+        "context": {"route": "/observability"},
+    }
+    client.post("/api/runtime/diagnostics", json=payload)
+    response = client.get("/api/runtime/diagnostics")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["events"], "expected diagnostics events"
+    assert body["summary"]["total"] >= 1
+    assert any(event["source"] == "react" for event in body["events"])
+    assert body["summary"]["errors"] >= 1

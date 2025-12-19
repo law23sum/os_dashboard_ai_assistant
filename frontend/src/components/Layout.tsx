@@ -459,7 +459,11 @@ export default function Layout({ children }: LayoutProps) {
         {
           label: 'Tools & Applied Intelligence',
           description: 'Shared tools and terminal surfaces for workspace operators.',
-          items: [{ path: '/work/tools', icon: Terminal, label: 'Tools & Terminal' }],
+          items: [
+            { path: '/work/tools', icon: Terminal, label: 'Tools & Terminal' },
+            { path: '/workspace/health', icon: Activity, label: 'Workspace Health' },
+            { path: '/workspace/orchestrator', icon: Network, label: 'Project Orchestrator' },
+          ],
         },
       ],
     },

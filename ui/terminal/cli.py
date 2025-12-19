@@ -6,8 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from ...config import init_db
-from ...db import init_db as db_init_db
+from assistant_hub.db import init_db as db_init_db
 from .commands import (
     handle_onenote_command,
     handle_excel_command,
@@ -15,6 +14,10 @@ from .commands import (
     handle_projects_command,
     handle_history_command,
     handle_chat_command,
+    handle_scan_command,
+    handle_test_command,
+    handle_run_command,
+    handle_doctor_command,
 )
 
 
@@ -107,6 +110,37 @@ def create_cli_parser() -> argparse.ArgumentParser:
         help="Show verbose error messages",
     )
 
+    # Workspace orchestration commands
+    scan_parser = subparsers.add_parser("scan", help="Discover git repos and inferred commands")
+    scan_parser.add_argument("--root", help="Workspace root to scan (defaults to parent of repo)")
+    scan_parser.add_argument("--max-depth", type=int, default=3, help="Maximum directory depth to search")
+    scan_parser.add_argument("--exclude", action="append", default=[], help="Paths to exclude")
+    scan_parser.add_argument("--json", action="store_true", help="Output as JSON")
+
+    test_parser = subparsers.add_parser("test", help="Run lint/test/security suites across repos")
+    test_parser.add_argument("--root", help="Workspace root (defaults to parent of repo)")
+    test_parser.add_argument("--max-depth", type=int, default=2, help="Maximum directory depth to search")
+    test_parser.add_argument("--project", help="Restrict to a single repo name")
+    test_parser.add_argument(
+        "--categories",
+        nargs="+",
+        default=["lint", "test", "security"],
+        help="Categories to run (lint, test, security, build)",
+    )
+    test_parser.add_argument("--autofix", action="store_true", help="Invoke autofix script on failures when available")
+    test_parser.add_argument("--dry-run", action="store_true", help="List commands without executing them")
+
+    run_parser = subparsers.add_parser("run", help="Start a repo using inferred run commands")
+    run_parser.add_argument("project", nargs="?", help="Repo name to run (defaults to current repo)")
+    run_parser.add_argument("--root", help="Workspace root (defaults to parent of repo)")
+    run_parser.add_argument("--max-depth", type=int, default=3, help="Maximum directory depth to search")
+    run_parser.add_argument("--command", help="Override run command")
+
+    doctor_parser = subparsers.add_parser("doctor", help="Diagnose common workspace issues")
+    doctor_parser.add_argument("--root", help="Workspace root (defaults to parent of repo)")
+    doctor_parser.add_argument("--max-depth", type=int, default=3, help="Maximum directory depth to search")
+    doctor_parser.add_argument("--json", action="store_true", help="Output as JSON")
+
     return parser
 
 
@@ -135,6 +169,14 @@ def main() -> int:
             return handle_history_command(args, conn)
         elif args.command == "chat":
             return handle_chat_command(args)
+        elif args.command == "scan":
+            return handle_scan_command(args)
+        elif args.command == "test":
+            return handle_test_command(args)
+        elif args.command == "run":
+            return handle_run_command(args)
+        elif args.command == "doctor":
+            return handle_doctor_command(args)
         else:
             print(f"Unknown command: {args.command}")
             return 1
@@ -145,4 +187,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

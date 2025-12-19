@@ -11,6 +11,7 @@ from fastapi.responses import RedirectResponse
 import sys
 import os
 from pathlib import Path
+from typing import Optional
 
 # Add parent directory to path for imports
 parent_dir = Path(__file__).parent.parent
@@ -77,6 +78,8 @@ from backend_api.routers import (
     coach,
     git,
     network_monitoring,
+    workspace,
+    project_orchestrator,
 )
 
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
@@ -131,6 +134,8 @@ app.include_router(git.router, prefix="/api", tags=["git"])
 app.include_router(personas.router, prefix="/api/personas", tags=["personas"])
 app.include_router(office.router, prefix="/api/office", tags=["office"])
 app.include_router(runtime_diagnostics.router, prefix="/api", tags=["runtime"])
+app.include_router(workspace.router, prefix="/api", tags=["workspace"])
+app.include_router(project_orchestrator.router, prefix="/api", tags=["project_orchestrator"])
 
 # Legacy compatibility routes without the /api prefix.
 @app.get("/system", include_in_schema=False)
@@ -151,8 +156,8 @@ async def legacy_billing_usage(limit: int = 20):
 @app.get("/operations", include_in_schema=False)
 async def legacy_operations(
     limit: int = 50,
-    status: str | None = None,
-    integration_type: str | None = None,
+    status: Optional[str] = None,
+    integration_type: Optional[str] = None,
 ):
     return await document_operations.list_document_operations(
         limit=limit, status=status, integration_type=integration_type

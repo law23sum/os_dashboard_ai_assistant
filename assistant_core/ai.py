@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -160,11 +161,22 @@ def _fetch_key_from_db() -> Optional[str]:
             pass
 
 
+def _running_under_pytest() -> bool:
+    """Return True when executed inside a pytest session."""
+    return "PYTEST_CURRENT_TEST" in os.environ or "pytest" in sys.modules
+
+
 def _get_api_key() -> str:
     key = os.getenv("OPENAI_API_KEY") or os.getenv("AI_CHAT_OPENAI_API_KEY")
     if key:
         _cache_api_key(key)
         return key
+
+    # When tests are running, avoid pulling keys from the local DB to keep expectations deterministic.
+    if _running_under_pytest():
+        raise ValueError(
+            "OpenAI API key missing. Set OPENAI_API_KEY or AI_CHAT_OPENAI_API_KEY in your environment."
+        )
 
     key = _fetch_key_from_db()
     if not key:

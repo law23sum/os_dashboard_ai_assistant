@@ -25,6 +25,7 @@ from . import (
     tasks,
     templates,
     terminal,
+    workspace,
     writer,
 )
 
@@ -53,5 +54,6 @@ __all__ = [
     "settings",
     "tasks",
     "terminal",
+    "workspace",
     "writer",
 ]

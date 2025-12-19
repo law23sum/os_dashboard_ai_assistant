@@ -21,8 +21,13 @@ This guide covers deploying the OS Dashboard AI Assistant to various platforms.
 
 2. **Set up environment variables**
    ```bash
-   cp env.example .env
-   # Edit .env with your configuration
+   # Choose a template for your stage
+   cp env.dev.example .env         # local dev
+   cp env.alpha.example .env       # alpha
+   cp env.beta.example .env        # beta
+   cp env.preprod.example .env     # pre-prod
+   cp env.prod.example .env        # prod
+   # Edit .env with your secrets/URLs
    ```
 
 3. **Start development environment**
@@ -323,7 +328,7 @@ aws logs tail /ecs/prod-os-dashboard --follow
 
 ## Environment Variables
 
-See `env.example` for all required environment variables.
+See the environment templates (`env.*.example`) for all required variables and stage-specific defaults.
 
 ## Troubleshooting
 
