@@ -462,6 +462,7 @@ export default function Layout({ children }: LayoutProps) {
           items: [
             { path: '/work/tools', icon: Terminal, label: 'Tools & Terminal' },
             { path: '/workspace/health', icon: Activity, label: 'Workspace Health' },
+            { path: '/workspace/orchestrator', icon: Network, label: 'Project Orchestrator' },
           ],
         },
       ],

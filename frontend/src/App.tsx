@@ -46,6 +46,7 @@ import CapsuleMarketplace from './pages/CapsuleMarketplace'
 import AutoFix from './pages/AutoFix'
 import IntentProcessor from './pages/IntentProcessor'
 import WorkspaceHealth from './pages/WorkspaceHealth'
+import ProjectOrchestrator from './pages/ProjectOrchestrator'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 
 const normalizeBasePath = (value?: string | null): string => {
@@ -174,6 +175,8 @@ function App() {
             {/* Observability (v1000) */}
             <Route path="/observability" element={<Observability />} />
             <Route path="/workspace/health" element={<WorkspaceHealth />} />
+            <Route path="/workspace/orchestrator" element={<ProjectOrchestrator />} />
+            <Route path="/projects/orchestrator" element={<ProjectOrchestrator />} />
 
             {/* Analytics & Monitoring Hierarchy: /monitoring/* */}
             <Route path="/analytics" element={<Analytics />} />
