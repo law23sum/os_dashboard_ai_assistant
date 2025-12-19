@@ -15,6 +15,7 @@ export default defineConfig({
       'electron/**',
       'scripts/**',
     ],
+    exclude: ['**/node_modules/**', 'dist', 'electron/**', 'scripts/**'],
   },
   resolve: {
     alias: {

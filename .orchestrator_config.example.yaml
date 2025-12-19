@@ -1,0 +1,205 @@
+# Master Orchestrator Configuration
+# Copy this file to .orchestrator_config.yaml and customize
+
+# Workspace Configuration
+workspace:
+  # Root directory to scan for projects
+  root: ~/Projects
+  
+  # Maximum depth to search for git repositories
+  max_depth: 5
+  
+  # Directories to exclude from search
+  exclude_dirs:
+    - node_modules
+    - .venv
+    - venv
+    - __pycache__
+    - .mypy_cache
+    - dist
+    - build
+    - .git
+  
+  # Maximum number of projects to monitor (0 = unlimited)
+  max_repos: 0
+
+# Monitoring Configuration
+monitoring:
+  # Interval (seconds) between TODO checks
+  todo_check_interval: 300
+  
+  # Interval (seconds) between health checks
+  health_check_interval: 60
+  
+  # Automatically spawn codex for high-priority TODOs
+  auto_spawn_codex: true
+  
+  # Enable dashboard
+  enable_dashboard: true
+  
+  # Dashboard port
+  health_port: 9000
+
+# AI Auto-Fix Configuration
+autofix:
+  # Enable AI auto-fix for discovered projects
+  enabled: true
+  
+  # Persona to use for AI requests
+  persona: AIC
+  
+  # Maximum diff lines to send to AI
+  diff_limit: 400
+  
+  # Maximum recursive fix attempts
+  max_attempts: 0  # 0 = unlimited
+  
+  # Verify stability for this many seconds
+  verify_seconds: 45
+
+# Self-Healing Configuration
+self_healing:
+  # Enable self-healing engine
+  enabled: true
+  
+  # Maximum recovery attempts per error
+  max_recovery_attempts: 3
+  
+  # Health check interval (seconds)
+  health_check_interval: 60
+  
+  # Create backups before fixes
+  create_backups: true
+  
+  # Rollback on failed fixes
+  rollback_on_failure: true
+
+# Logging Configuration
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: INFO
+  
+  # Log directory
+  directory: logs
+  
+  # Rotate logs
+  rotate: true
+  
+  # Maximum log file size (MB)
+  max_size: 10
+  
+  # Number of backup log files to keep
+  backup_count: 5
+
+# Codex Spawner Configuration
+codex:
+  # Enable automatic codex spawning
+  enabled: true
+  
+  # Priority threshold for auto-spawning (low, normal, high, critical)
+  auto_spawn_priority: high
+  
+  # Maximum codex sessions to spawn automatically
+  max_auto_sessions: 3
+  
+  # Check interval for new high-priority TODOs
+  check_interval: 300
+
+# Notifications Configuration
+notifications:
+  # Enable Slack notifications
+  slack:
+    enabled: false
+    webhook_url: ""  # Set SLACK_WEBHOOK_URL environment variable
+    
+  # Enable email notifications
+  email:
+    enabled: false
+    smtp_server: localhost
+    smtp_port: 25
+    from_address: orchestrator@example.com
+    to_addresses:
+      - admin@example.com
+  
+  # Notification events
+  events:
+    orchestrator_start: true
+    orchestrator_stop: true
+    project_discovered: false
+    monitor_start: true
+    monitor_stop: true
+    error_detected: true
+    recovery_success: true
+    recovery_failure: true
+    high_priority_todo: true
+
+# Performance Configuration
+performance:
+  # Thread pool size for concurrent operations
+  thread_pool_size: 4
+  
+  # Process pool size for parallel project processing
+  process_pool_size: 2
+  
+  # Maximum memory usage per monitor process (MB)
+  max_memory_per_monitor: 500
+  
+  # Maximum CPU usage percentage
+  max_cpu_percent: 80
+
+# Security Configuration
+security:
+  # Enable API authentication
+  require_auth: false
+  
+  # API key (set via ORCHESTRATOR_API_KEY environment variable)
+  api_key: ""
+  
+  # Allowed origins for CORS
+  allowed_origins:
+    - http://localhost:5173
+    - http://localhost:3000
+    - http://127.0.0.1:5173
+    - http://127.0.0.1:3000
+  
+  # Rate limiting
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+
+# Integration Configuration
+integrations:
+  # GitHub integration
+  github:
+    enabled: false
+    token: ""  # Set GITHUB_TOKEN environment variable
+    
+  # GitLab integration
+  gitlab:
+    enabled: false
+    token: ""  # Set GITLAB_TOKEN environment variable
+  
+  # CI/CD integration
+  cicd:
+    enabled: false
+    provider: ""  # jenkins, github_actions, gitlab_ci, etc.
+
+# Advanced Configuration
+advanced:
+  # Enable experimental features
+  experimental: false
+  
+  # Enable profiling
+  profiling: false
+  
+  # Enable metrics collection
+  metrics: true
+  
+  # Metrics export interval (seconds)
+  metrics_interval: 60
+  
+  # Enable distributed mode
+  distributed: false
+  
+  # Distributed coordinator URL
+  coordinator_url: ""

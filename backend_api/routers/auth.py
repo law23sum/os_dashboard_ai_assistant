@@ -1,268 +1,173 @@
+"""Authentication router with signup/login and RBAC."""
+"""Authentication endpoints (signup/login/me)."""
+
+from __future__ import annotations
+
+from datetime import datetime, timedelta
+from typing import Optional
+from uuid import uuid4
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, EmailStr, Field
+
+from backend_api.db import db_session
+from backend_api.deps import get_current_user
+from backend_api.security import AuthUser, create_access_token, hash_password, verify_password
 """
 Authentication router with login, signup, and user management endpoints.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.responses import JSONResponse
 from datetime import timedelta
-from typing import List, Optional
-import json
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from backend_api.auth import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    Token,
     User,
     UserCreate,
     UserLogin,
-    Token,
     authenticate_user,
     create_access_token,
     create_refresh_token,
+    create_user,
     get_current_active_user,
     get_current_admin_user,
-    create_user,
-    update_last_login,
-    log_user_activity,
-    ACCESS_TOKEN_EXPIRE_MINUTES,
     get_user_db,
+    log_user_activity,
+    update_last_login,
 )
 
 router = APIRouter()
 
 
+@router.post("/signup", response_model=User, status_code=status.HTTP_201_CREATED)
+class AuthUserResponse(BaseModel):
+    id: str
+    email: str
+    display_name: str
+    is_admin: bool
+    environment: str
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=256)
+
+
+class SignupRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=256)
+    display_name: str = Field(default="", max_length=80)
+    environment: str = Field(default="demo", pattern="^(demo|prod)$")
 @router.post("/auth/signup", response_model=User, status_code=status.HTTP_201_CREATED)
 async def signup(user_data: UserCreate, request: Request):
-    """
-    Register a new user account.
-    
-    - **username**: Unique username
-    - **email**: Valid email address
-    - **password**: Strong password
-    - **full_name**: Optional full name
-    """
-    try:
-        # Check if username or email already exists
-        with get_user_db() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT id FROM users WHERE username = ? OR email = ?", 
-                          (user_data.username, user_data.email))
-            if cursor.fetchone():
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Username or email already registered"
-                )
-        
-        # Create user
-        user = create_user(user_data)
-        
-        # Log activity
-        log_user_activity(
-            user.id,
-            "signup",
-            details=f"New user registration: {user.username}",
-            ip_address=request.client.host if request.client else None
+    """Register a new user account."""
+    # Check if username/email exist
+    with get_user_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id FROM users WHERE username = ? OR email = ?",
+            (user_data.username, user_data.email),
         )
-        
-        return user
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create user: {str(e)}"
-        )
+        if cursor.fetchone():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Username or email already registered",
+            )
+
+    user = create_user(user_data)
+    log_user_activity(
+        user.id,
+        "signup",
+        details=f"New user registration: {user.username}",
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    )
+    return user
 
 
-@router.post("/auth/login", response_model=Token)
+@router.post("/login", response_model=Token)
 async def login(credentials: UserLogin, request: Request):
-    """
-    Authenticate user and return access and refresh tokens.
-    
-    - **username**: User's username
-    - **password**: User's password
-    """
+    """Authenticate user and return access and refresh tokens."""
     user = authenticate_user(credentials.username, credentials.password)
-    
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
-    # Update last login
+
     update_last_login(user.id)
-    
-    # Log activity
     log_user_activity(
         user.id,
         "login",
         details=f"User logged in: {user.username}",
-        ip_address=request.client.host if request.client else None
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
     )
-    
-    # Create tokens
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username, "user_id": user.id, "role": user.role},
-        expires_delta=access_token_expires
+        expires_delta=access_token_expires,
     )
     refresh_token = create_refresh_token(
-        data={"sub": user.username, "user_id": user.id}
+        data={"sub": user.username, "user_id": user.id, "role": user.role}
     )
-    
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer"
-    }
+
+    return Token(access_token=access_token, refresh_token=refresh_token)
 
 
-@router.post("/auth/logout")
-async def logout(current_user: User = Depends(get_current_active_user), request: Request = None):
-    """
-    Logout current user (invalidate tokens).
-    """
-    # Log activity
+@router.post("/logout")
+async def logout(current_user: User = Depends(get_current_active_user), request: Request | None = None):
+    """Logout current user (server-side token invalidation is not implemented)."""
     log_user_activity(
         current_user.id,
         "logout",
         details=f"User logged out: {current_user.username}",
-        ip_address=request.client.host if request and request.client else None
+        ip_address=request.client.host if request and request.client else None,
+        user_agent=request.headers.get("user-agent") if request else None,
     )
-    
     return {"message": "Successfully logged out"}
 
 
-@router.get("/auth/me", response_model=User)
-async def get_current_user_info(current_user: User = Depends(get_current_active_user)):
-    """
-    Get current authenticated user's information.
-    """
+@router.get("/me", response_model=User)
+async def me(current_user: User = Depends(get_current_active_user)):
+    """Get current authenticated user's profile."""
     return current_user
 
 
-@router.get("/auth/users", response_model=List[User])
-async def list_users(
-    admin_user: User = Depends(get_current_admin_user),
-    skip: int = 0,
-    limit: int = 100
-):
-    """
-    List all users (admin only).
-    """
+@router.get("/users", response_model=List[User])
+async def list_users(admin_user: User = Depends(get_current_admin_user), skip: int = 0, limit: int = 100):
+    """List users (admin only)."""
     with get_user_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id, username, email, full_name, role, is_active, created_at, last_login
             FROM users
             ORDER BY created_at DESC
             LIMIT ? OFFSET ?
-        """, (limit, skip))
-        
-        users = []
-        for row in cursor.fetchall():
-            users.append(User(
-                id=row[0],
-                username=row[1],
-                email=row[2],
-                full_name=row[3],
-                role=row[4],
-                is_active=bool(row[5]),
-                created_at=row[6],
-                last_login=row[7]
-            ))
-        
-        return users
-
-
-@router.get("/auth/users/{user_id}", response_model=User)
-async def get_user(
-    user_id: int,
-    admin_user: User = Depends(get_current_admin_user)
-):
-    """
-    Get specific user by ID (admin only).
-    """
-    with get_user_db() as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, username, email, full_name, role, is_active, created_at, last_login
-            FROM users WHERE id = ?
-        """, (user_id,))
-        
-        row = cursor.fetchone()
-        if not row:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
-            )
-        
-        return User(
-            id=row[0],
-            username=row[1],
-            email=row[2],
-            full_name=row[3],
-            role=row[4],
-            is_active=bool(row[5]),
-            created_at=row[6],
-            last_login=row[7]
+            """,
+            (limit, skip),
         )
-
-
-@router.get("/auth/activity")
-async def get_user_activity(
-    current_user: User = Depends(get_current_active_user),
-    limit: int = 50
-):
-    """
-    Get current user's activity log.
-    """
-    with get_user_db() as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, action, resource, details, ip_address, timestamp
-            FROM user_activity
-            WHERE user_id = ?
-            ORDER BY timestamp DESC
-            LIMIT ?
-        """, (current_user.id, limit))
-        
-        activities = []
+        users: List[User] = []
         for row in cursor.fetchall():
-            activities.append({
-                "id": row[0],
-                "action": row[1],
-                "resource": row[2],
-                "details": row[3],
-                "ip_address": row[4],
-                "timestamp": row[5]
-            })
-        
-        return {"activities": activities}
-
-
-@router.get("/auth/activity/all")
-async def get_all_activity(
-    admin_user: User = Depends(get_current_admin_user),
-    limit: int = 100
-):
-    """
-    Get all users' activity log (admin only).
-    """
-    with get_user_db() as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT 
-                ua.id, ua.user_id, u.username, ua.action, 
-                ua.resource, ua.details, ua.ip_address, ua.timestamp
-            FROM user_activity ua
-            JOIN users u ON ua.user_id = u.id
-            ORDER BY ua.timestamp DESC
-            LIMIT ?
-        """, (limit,))
-        
-        activities = []
-        for row in cursor.fetchall():
+            users.append(
+                User(
+                    id=row[0],
+                    username=row[1],
+                    email=row[2],
+                    full_name=row[3],
+                    role=row[4],
+                    is_active=bool(row[5]),
+                    created_at=row[6],
+                    last_login=row[7],
+                )
+            )
+        return users
             activities.append({
                 "id": row[0],
                 "user_id": row[1],
@@ -418,6 +323,91 @@ class UserResponse(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    user: AuthUserResponse
+
+
+def _row_to_user(row) -> AuthUser:
+    return AuthUser(
+        id=row["id"],
+        email=row["email"],
+        display_name=row["display_name"] or "",
+        is_admin=bool(row["is_admin"] or 0),
+        environment=row["environment"] or "demo",
+        disabled=bool(row["disabled"] or 0),
+    )
+
+
+@router.post("/auth/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+async def signup(payload: SignupRequest) -> TokenResponse:
+    email = payload.email.strip().lower()
+    now = datetime.now().isoformat(timespec="seconds")
+    with db_session() as db:
+        existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        user_id = str(uuid4())
+        db.execute(
+            """
+            INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
+            VALUES (?, ?, ?, ?, 0, ?, 0, ?, NULL)
+            """,
+            (user_id, email, payload.display_name or "", hash_password(payload.password), payload.environment, now),
+        )
+        row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    user = _row_to_user(row)
+    token = create_access_token(user=user, expires_in=timedelta(hours=12))
+    return TokenResponse(
+        access_token=token,
+        user=AuthUserResponse(
+            id=user.id,
+            email=user.email,
+            display_name=user.display_name,
+            is_admin=user.is_admin,
+            environment=user.environment,
+        ),
+    )
+
+
+@router.post("/auth/login", response_model=TokenResponse)
+async def login(payload: LoginRequest) -> TokenResponse:
+    email = payload.email.strip().lower()
+    with db_session() as db:
+        row = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        if bool(row["disabled"] or 0):
+            raise HTTPException(status_code=403, detail="Account disabled")
+        if not verify_password(payload.password, row["password_hash"] or ""):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        db.execute(
+            "UPDATE users SET last_login = ? WHERE id = ?",
+            (datetime.now().isoformat(timespec="seconds"), row["id"]),
+        )
+    user = _row_to_user(row)
+    token = create_access_token(user=user, expires_in=timedelta(hours=12))
+    return TokenResponse(
+        access_token=token,
+        user=AuthUserResponse(
+            id=user.id,
+            email=user.email,
+            display_name=user.display_name,
+            is_admin=user.is_admin,
+            environment=user.environment,
+        ),
+    )
+
+
+@router.get("/auth/me", response_model=AuthUserResponse)
+async def me(user: AuthUser = Depends(get_current_user)) -> AuthUserResponse:
+    # Trust JWT claims (also avoids extra DB round-trip)
+    return AuthUserResponse(
+        id=user.id,
+        email=user.email,
+        display_name=user.display_name,
+        is_admin=user.is_admin,
+        environment=user.environment,
+    )
+
     user: UserResponse
 
 

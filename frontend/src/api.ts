@@ -1,4 +1,11 @@
-import { resolveApiBase } from './lib/apiClient'
+const resolveApiBase = (): string => {
+  // Prefer runtime/base-tag aware paths when available (desktop builds).
+  if (typeof document !== 'undefined') {
+    const base = document.querySelector('base')?.getAttribute('href')
+    if (base) return base.replace(/\/+$/, '')
+  }
+  return (import.meta.env.VITE_API_BASE || '/api').replace(/\/+$/, '')
+}
 
 async function request<T = any>(path: string, options?: RequestInit): Promise<T> {
   // Compute per-call so Electron/runtime-injected base URLs are honored.
