@@ -412,18 +412,11 @@ async def upload_document(
 @router.get("/{document_id}/content", response_model=DocumentContentResponse)
 async def get_document_content(document_id: str, user: AuthUser = Depends(get_current_user)) -> DocumentContentResponse:
     """Return the raw content of a document for preview/download in the UI."""
-<<<<<<< HEAD
-    doc = _load_metadata(user.id, document_id)
-    file_path = _file_path_from_metadata(user.id, doc)
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Document file missing on disk")
-=======
     try:
-        doc = _load_metadata(document_id)
-        file_path = _file_path_from_metadata(doc)
+        doc = _load_metadata(user.id, document_id)
+        file_path = _file_path_from_metadata(user.id, doc)
         if not file_path.exists():
             raise HTTPException(status_code=404, detail="Document file missing on disk")
->>>>>>> incremeents
 
         content_type = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
         if doc.get("preview_type") == "text":

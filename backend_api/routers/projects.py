@@ -588,14 +588,9 @@ def _serialize_events(events: List[Dict[str, Any]]) -> List[ProjectLedgerEvent]:
 @router.get("/", response_model=List[ProjectResponse])
 async def list_projects(status: Optional[str] = None, user: AuthUser = Depends(get_current_user)):
     """List all projects with optional status filtering."""
-<<<<<<< HEAD
-    query = "SELECT * FROM projects WHERE 1=1 AND user_id = ?"
-    params = [user.id]
-=======
     try:
-        query = "SELECT * FROM projects WHERE 1=1"
-        params = []
->>>>>>> incremeents
+        query = "SELECT * FROM projects WHERE 1=1 AND user_id = ?"
+        params = [user.id]
 
         if status:
             query += " AND status = ?"
@@ -685,48 +680,6 @@ async def list_project_ledger(project: Optional[str] = None, limit: int = 50, us
 async def get_project_count():
     """Get total count of projects for quick health check."""
     with db_session() as db:
-<<<<<<< HEAD
-        if project and not _project_exists(db, project, user.id):
-            raise HTTPException(status_code=404, detail="Project not found")
-        # Enforce user_id scoping at query level (db helper does not filter).
-        where = "WHERE user_id = ?"
-        params: List[Any] = [user.id]
-        if project:
-            where += " AND project_id = ?"
-            params.append(project)
-        params.append(safe_limit)
-        rows = db.execute(
-            f"""
-            SELECT id, project_id, event_type, payload, created_at, hash_prev, hash_curr
-            FROM project_events
-            {where}
-            ORDER BY datetime(created_at) DESC, id DESC
-            LIMIT ?
-            """,
-            params,
-        ).fetchall()
-        events = []
-        for row in rows:
-            payload_raw = row["payload"]
-            try:
-                payload = json.loads(payload_raw) if payload_raw else {}
-            except Exception:
-                payload = {"raw": payload_raw}
-            events.append(
-                {
-                    "id": row["id"],
-                    "project_id": row["project_id"],
-                    "event_type": row["event_type"],
-                    "payload": payload,
-                    "created_at": row["created_at"],
-                    "hash_prev": row["hash_prev"],
-                    "hash_curr": row["hash_curr"],
-                    "entity_type": (payload or {}).get("entity_type"),
-                    "entity_id": (payload or {}).get("entity_id"),
-                }
-            )
-    return _serialize_events(events)
-=======
         cursor = db.execute("SELECT COUNT(*) as count FROM projects")
         row = cursor.fetchone()
         return {"count": row["count"] if row else 0}
@@ -742,7 +695,6 @@ async def list_project_intelligence():
         return [
             _compute_project_intelligence(db, project_row["name"], tasks_map) for project_row in project_rows
         ]
->>>>>>> incremeents
 
 
 @router.get("/{project_name}", response_model=ProjectResponse)
@@ -790,42 +742,7 @@ async def get_project_insights(project_name: str, user: AuthUser = Depends(get_c
     )
 
 
-<<<<<<< HEAD
-=======
-@router.get("/intelligence", response_model=List[ProjectIntelligenceResponse])
-<<<<<<< HEAD
-async def list_project_intelligence(user: AuthUser = Depends(get_current_user)):
-    """Return calculated project intelligence/health metrics."""
-    with db_session() as db:
-        cursor = db.execute("SELECT name FROM projects WHERE user_id = ? ORDER BY order_num, name", (user.id,))
-        project_rows = cursor.fetchall()
-        tasks_map = _group_tasks_by_project(db, user.id)
-        return [
-            _compute_project_intelligence(db, project_row["name"], tasks_map) for project_row in project_rows
-        ]
-=======
-async def list_project_intelligence():
-    """Return calculated project intelligence/health metrics.
-    
-    Optimized to fetch all tasks once instead of per-project queries (N+1 fix).
-    """
-    try:
-        with db_session() as db:
-            cursor = db.execute("SELECT name FROM projects ORDER BY order_num, name")
-            project_rows = cursor.fetchall()
-            # Fetch all tasks once and group by project (fixes N+1 query issue)
-            tasks_map = _group_tasks_by_project(db)
-            return [
-                _compute_project_intelligence(db, project_row["name"], tasks_map) for project_row in project_rows
-            ]
-    except Exception as e:
-        import logging
-        logging.error(f"Error fetching project intelligence: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to fetch project intelligence: {str(e)}")
->>>>>>> incremeents
 
-
->>>>>>> incremeents
 @router.get("/{project_name}/intelligence", response_model=ProjectIntelligenceResponse)
 async def get_project_intelligence(project_name: str, user: AuthUser = Depends(get_current_user)):
     """Return intelligence metrics for a single project."""
@@ -923,12 +840,7 @@ async def update_project(project_name: str, project_update: ProjectUpdate, user:
             order_num=update_dict.get("order_num", existing.get("order_num", 0)),
         )
 
-<<<<<<< HEAD
-        update_dict["user_id"] = user.id
-        db_upsert_project(db, **update_dict)
-=======
         db_upsert_project(db, db_project)
->>>>>>> incremeents
 
         cursor = db.execute(
             "SELECT * FROM projects WHERE name = ? AND user_id = ?",

@@ -221,16 +221,11 @@ class UserAccount:
 
 def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
     """Initialize the SQLite database (creating tables if needed) and return a connection."""
-
     target = Path(db_path) if db_path else Path(DB_FILE)
     target.parent.mkdir(parents=True, exist_ok=True)
-
+    
     # Allow use across background worker threads (integrations, daemons, API).
     conn = sqlite3.connect(str(target), check_same_thread=False)
-
-
-def init_db() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
     # ========================================================================
     # PERFORMANCE OPTIMIZATION: Configure SQLite for better performance

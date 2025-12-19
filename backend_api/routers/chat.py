@@ -82,16 +82,11 @@ async def get_chat_history(
 ):
     """Get chat history."""
     try:
-<<<<<<< HEAD
-        query = "SELECT id, persona, role, kind, content, created_at FROM chat_messages WHERE user_id = ?"
-        params = [user.id]
-=======
         # Validate and sanitize limit parameter to prevent abuse
         safe_limit = max(1, min(limit, 1000))  # Clamp between 1 and 1000
         
-        query = "SELECT id, persona, role, kind, content, created_at FROM chat_messages WHERE 1=1"
-        params = []
->>>>>>> incremeents
+        query = "SELECT id, persona, role, kind, content, created_at FROM chat_messages WHERE user_id = ?"
+        params = [user.id]
         
         if persona:
             # Validate persona to prevent SQL injection (defense in depth)
