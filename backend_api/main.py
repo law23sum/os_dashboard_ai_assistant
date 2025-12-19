@@ -91,6 +91,8 @@ from backend_api.routers import (
     workspace,
     auth,
     admin,
+    logs,
+    ai_enhanced,
     version_control,
     unified_logging,
     document_viewer,
@@ -152,6 +154,10 @@ app.include_router(personas.router, prefix="/api/personas", tags=["personas"])
 app.include_router(office.router, prefix="/api/office", tags=["office"])
 app.include_router(runtime_diagnostics.router, prefix="/api", tags=["runtime"])
 app.include_router(workspace.router, prefix="/api", tags=["workspace"])
+app.include_router(auth.router, prefix="/api", tags=["auth"])
+app.include_router(admin.router, prefix="/api", tags=["admin"])
+app.include_router(logs.router, prefix="/api", tags=["logs"])
+app.include_router(ai_enhanced.router, prefix="/api", tags=["ai_enhanced"])
 app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(version_control.router, prefix="/api/versions", tags=["version_control"])

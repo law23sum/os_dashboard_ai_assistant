@@ -113,6 +113,15 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router basename={useHashRouter ? undefined : basePath}>
         <AppErrorBoundary>
+          <Routes>
+            {/* Public Routes (No Layout) */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            
+            {/* Protected Routes (With Layout) */}
+            <Route element={<Layout />}>
+              {/* Root & Core Pages */}
+              <Route path="/" element={<Dashboard />} />
           <Layout>
             <Routes>
             {/* Mission & Architecture Hierarchy: /mission/* */}
@@ -255,15 +264,16 @@ function App() {
             {/* Settings */}
             <Route path="/settings" element={<Settings />} />
 
+            {/* Admin Panel */}
             {/* Authentication */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/admin" element={<Admin />} />
 
             {/* Catch-all */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Layout>
+            <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
         </AppErrorBoundary>
       </Router>
       <Toaster position="top-right" />
