@@ -80,6 +80,7 @@ from backend_api.routers import (
     network_monitoring,
     workspace,
     orchestrator,
+    workspace_health,
 )
 
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
@@ -136,6 +137,7 @@ app.include_router(office.router, prefix="/api/office", tags=["office"])
 app.include_router(runtime_diagnostics.router, prefix="/api", tags=["runtime"])
 app.include_router(workspace.router, prefix="/api", tags=["workspace"])
 app.include_router(orchestrator.router, tags=["orchestrator"])
+app.include_router(workspace_health.router, prefix="/api", tags=["workspace_health"])
 
 # Legacy compatibility routes without the /api prefix.
 @app.get("/system", include_in_schema=False)

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState, useRef, useCallback, useMemo } from 'react'
+import { ReactNode, useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import {
@@ -43,7 +43,6 @@ import {
 import { applyTheme, defaultTheme } from '../theme'
 import { useAppSettings } from '../hooks/useSettings'
 import { UnifiedAIPanel } from './UnifiedAIPanel'
-import { throttle } from '../shared/utils'
 
 interface LayoutProps {
   children: ReactNode
@@ -76,190 +75,48 @@ interface NavDropdownProps {
   active: boolean
   expanded: boolean
   onToggle: () => void
-  onClose: () => void
   location: { pathname: string }
 }
 
-function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
+function NavDropdown({ item, childItems, active, expanded, onToggle, location }: NavDropdownProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const expandedRef = useRef(expanded)
   const Icon = item.icon
 
-  // Keep ref in sync with prop
   useEffect(() => {
-    expandedRef.current = expanded
+    if (expanded && buttonRef.current && dropdownRef.current) {
+      const buttonRect = buttonRef.current.getBoundingClientRect()
+      dropdownRef.current.style.top = `${buttonRect.bottom + 8}px`
+      dropdownRef.current.style.left = `${buttonRect.left}px`
+    }
   }, [expanded])
 
-  // Memoize the position update function
-  const updatePosition = useCallback(() => {
-    if (buttonRef.current && dropdownRef.current) {
-      const buttonRect = buttonRef.current.getBoundingClientRect()
-      const viewportWidth = window.innerWidth
-      const viewportHeight = window.innerHeight
-      const dropdownWidth = 288 // w-72 = 18rem = 288px
-      
-      // Calculate horizontal position (prevent overflow)
-      let left = buttonRect.left
-      if (left + dropdownWidth > viewportWidth) {
-        left = viewportWidth - dropdownWidth - 16 // 16px padding from edge
-      }
-      if (left < 16) {
-        left = 16
-      }
-
-      // Calculate vertical position
-      const top = buttonRect.bottom + 8
-      const dropdownHeight = dropdownRef.current.offsetHeight || 400 // estimate if not rendered yet
-      
-      // If dropdown would overflow bottom, position above button
-      let finalTop = top
-      if (top + dropdownHeight > viewportHeight && buttonRect.top > dropdownHeight) {
-        finalTop = buttonRect.top - dropdownHeight - 8
-      }
-
-      dropdownRef.current.style.top = `${finalTop}px`
-      dropdownRef.current.style.left = `${left}px`
-    }
-  }, [])
-
-  // Throttle position updates for scroll/resize (100ms is sufficient for these events)
-  const throttledUpdatePosition = useMemo(
-    () => throttle(updatePosition, 100),
-    [updatePosition]
-  )
-
   useEffect(() => {
-    if (!expanded) {
-      // Reset position when closed
-      if (dropdownRef.current) {
-        dropdownRef.current.style.top = ''
-        dropdownRef.current.style.left = ''
-      }
-      return
-    }
-
-    // Immediate position calculation - no delay for instant response
-    updatePosition()
-
-    // Update position on scroll and resize with throttling
-    window.addEventListener('scroll', throttledUpdatePosition, { passive: true, capture: true })
-    window.addEventListener('resize', throttledUpdatePosition, { passive: true })
-
-    return () => {
-      window.removeEventListener('scroll', throttledUpdatePosition, { capture: true } as EventListenerOptions)
-      window.removeEventListener('resize', throttledUpdatePosition)
-    }
-  }, [expanded, updatePosition, throttledUpdatePosition])
-
-  // Track if we should ignore the next click (to prevent immediate closure)
-  const ignoreNextClickRef = useRef(false)
-  const isButtonClickRef = useRef(false)
-
-  // Simplified handlers - instant response
-  const handleButtonClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      e.preventDefault()
-      
-      // Mark that this is a button click
-      isButtonClickRef.current = true
-      
-      // If already expanded, close it
-      if (expanded) {
-        onClose()
-      } else {
-        // Mark to ignore the next click to prevent immediate closure
-        ignoreNextClickRef.current = true
-        onToggle()
-        // Reset after a brief moment
-        setTimeout(() => {
-          ignoreNextClickRef.current = false
-        }, 100)
-      }
-      
-      // Reset button click flag after event completes
-      setTimeout(() => {
-        isButtonClickRef.current = false
-      }, 0)
-    },
-    [onToggle, onClose, expanded]
-  )
-
-  const handleLinkClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      // Don't prevent default - allow navigation
-      onClose()
-    },
-    [onClose]
-  )
-
-  // Click outside handler and Escape key - responsive and reliable
-  useEffect(() => {
-    if (!expanded) {
-      return
-    }
+    if (!expanded) return
 
     const handleClickOutside = (event: MouseEvent) => {
-      // Ignore if we just opened the dropdown or if this is a button click
-      if (ignoreNextClickRef.current || isButtonClickRef.current) {
-        return
-      }
-
-      const target = event.target as Node
-      const button = buttonRef.current
-      const dropdown = dropdownRef.current
-      
-      if (!button || !dropdown) return
-      
-      // Don't close if clicking on button or dropdown
-      if (button.contains(target) || dropdown.contains(target)) {
-        return
-      }
-      
-      // Close when clicking outside
-      onClose()
-    }
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose()
+      if (
+        dropdownRef.current &&
+        buttonRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        onToggle()
       }
     }
 
-    // Use click event instead of mousedown for better compatibility
-    // Add listener immediately - ignoreNextClickRef prevents immediate closure
-    document.addEventListener('click', handleClickOutside, true)
-    document.addEventListener('keydown', handleEscape, true)
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside, true)
-      document.removeEventListener('keydown', handleEscape, true)
-    }
-  }, [expanded, onClose])
-
-  // Memoize groups to avoid unnecessary re-renders
-  const groups = useMemo(
-    () => (item.groups && item.groups.length ? item.groups : [{ label: undefined, items: childItems }]),
-    [item.groups, childItems]
-  )
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [expanded, onToggle])
 
   return (
     <>
-      <div className="relative group flex items-center" style={{ zIndex: expanded ? 10001 : 'auto', position: 'relative' }}>
+      <div className="relative group flex items-center">
         <button
           ref={buttonRef}
           type="button"
-          onClick={handleButtonClick}
+          onClick={onToggle}
           className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
-          style={{ 
-            pointerEvents: 'auto', 
-            position: 'relative', 
-            zIndex: expanded ? 10002 : 'auto',
-            cursor: 'pointer',
-            userSelect: 'none',
-          }}
           aria-haspopup="menu"
           aria-expanded={expanded}
         >
@@ -274,22 +131,11 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, lo
       </div>
       {expanded &&
         createPortal(
-          <div 
-            ref={dropdownRef} 
-            className="osd-dropdown w-72" 
-            style={{ 
-              position: 'fixed', 
-              zIndex: 99999, 
-              pointerEvents: 'auto',
-            }}
-            onClick={(e) => {
-              e.stopPropagation()
-            }}
-            onMouseDown={(e) => {
-              e.stopPropagation()
-            }}
-          >
-            {groups.map((group, index) => (
+          <div ref={dropdownRef} className="osd-dropdown w-72" style={{ position: 'fixed', zIndex: 99999 }}>
+            {(item.groups && item.groups.length
+              ? item.groups
+              : [{ label: undefined, items: childItems }]
+            ).map((group, index) => (
               <div
                 key={`${item.path}-group-${group.label ?? index}`}
                 className="px-4 py-3 border-b border-white/5 last:border-b-0"
@@ -313,13 +159,7 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, lo
                         key={child.path}
                         to={child.path}
                         className={`osd-dropdown-link ${childActive ? 'osd-dropdown-link--active' : ''}`}
-                        onClick={handleLinkClick}
-                        onMouseDown={(e) => {
-                          e.stopPropagation()
-                        }}
-                        onMouseUp={(e) => {
-                          e.stopPropagation()
-                        }}
+                        onClick={onToggle}
                       >
                         <ChildIcon className="w-4 h-4 mr-2" />
                         {child.label}
@@ -393,25 +233,15 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [settings?.theme])
 
-  const toggleGroup = useCallback((groupPath: string) => {
-    setExpandedGroups((prev) => {
-      const newExpanded = new Set(prev)
-      if (newExpanded.has(groupPath)) {
-        newExpanded.delete(groupPath)
-      } else {
-        newExpanded.add(groupPath)
-      }
-      return newExpanded
-    })
-  }, [])
-
-  const closeGroup = useCallback((groupPath: string) => {
-    setExpandedGroups((prev) => {
-      const newExpanded = new Set(prev)
+  const toggleGroup = (groupPath: string) => {
+    const newExpanded = new Set(expandedGroups)
+    if (newExpanded.has(groupPath)) {
       newExpanded.delete(groupPath)
-      return newExpanded
-    })
-  }, [])
+    } else {
+      newExpanded.add(groupPath)
+    }
+    setExpandedGroups(newExpanded)
+  }
 
   const navItems: NavItem[] = [
     {
@@ -645,7 +475,6 @@ export default function Layout({ children }: LayoutProps) {
                           active={active}
                           expanded={expanded}
                           onToggle={() => toggleGroup(item.path)}
-                          onClose={() => closeGroup(item.path)}
                           location={location}
                         />
                       )
