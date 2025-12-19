@@ -120,6 +120,7 @@ class StripPrefixMiddleware:
             if self._should_strip(path):
                 new_scope = dict(scope)
                 trimmed = path[len(self.prefix) :] or "/"
+                logger.info(f"StripPrefixMiddleware: stripping '{path}' to '{trimmed}'")
                 new_scope["path"] = trimmed
                 raw_path = scope.get("raw_path")
                 if isinstance(raw_path, (bytes, bytearray)):
