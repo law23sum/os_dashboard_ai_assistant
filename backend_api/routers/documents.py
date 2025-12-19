@@ -115,7 +115,7 @@ CATEGORY_BY_EXTENSION = {
 }
 
 
-def _safe_filename(filename: str | None) -> str:
+def _safe_filename(filename: Optional[str]) -> str:
     if not filename:
         return "unnamed_file"
     keep = "".join(c if c.isalnum() or c in ("-", "_", ".", " ") else "_" for c in filename)
@@ -376,28 +376,49 @@ async def upload_document(
 @router.get("/{document_id}/content", response_model=DocumentContentResponse)
 async def get_document_content(document_id: str) -> DocumentContentResponse:
     """Return the raw content of a document for preview/download in the UI."""
-    doc = _load_metadata(document_id)
-    file_path = _file_path_from_metadata(doc)
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Document file missing on disk")
+    try:
+        doc = _load_metadata(document_id)
+        file_path = _file_path_from_metadata(doc)
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="Document file missing on disk")
 
-    content_type = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
-    if doc.get("preview_type") == "text":
-        with file_path.open("r", encoding="utf-8", errors="ignore") as handle:
-            content = handle.read(TEXT_RETURN_LIMIT)
-        encoding = "utf-8"
-    else:
-        chunk = file_path.read_bytes()
-        content = base64.b64encode(chunk).decode("ascii")
-        encoding = "base64"
+        content_type = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
+        if doc.get("preview_type") == "text":
+            try:
+                with file_path.open("r", encoding="utf-8", errors="ignore") as handle:
+                    content = handle.read(TEXT_RETURN_LIMIT)
+                encoding = "utf-8"
+            except Exception as e:
+                import logging
+                logging.error(f"Error reading text file {file_path}: {e}")
+                raise HTTPException(status_code=500, detail=f"Failed to read document: {str(e)}")
+        else:
+            try:
+                # For large binary files, consider streaming instead of loading all into memory
+                chunk = file_path.read_bytes()
+                if len(chunk) > TEXT_RETURN_LIMIT * 10:  # Warn for very large files
+                    import logging
+                    logging.warning(f"Large binary file {file_path} ({len(chunk)} bytes) being base64 encoded")
+                content = base64.b64encode(chunk).decode("ascii")
+                encoding = "base64"
+            except Exception as e:
+                import logging
+                logging.error(f"Error reading binary file {file_path}: {e}")
+                raise HTTPException(status_code=500, detail=f"Failed to read document: {str(e)}")
 
-    return DocumentContentResponse(
-        document_id=document_id,
-        filename=doc["original_name"],
-        content_type=content_type,
-        content=content,
-        encoding=encoding,
-    )
+        return DocumentContentResponse(
+            document_id=document_id,
+            filename=doc["original_name"],
+            content_type=content_type,
+            content=content,
+            encoding=encoding,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.error(f"Error fetching document content for {document_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch document content: {str(e)}")
 
 
 @router.post("/{document_id}/modify", response_model=DocumentModifyResponse)

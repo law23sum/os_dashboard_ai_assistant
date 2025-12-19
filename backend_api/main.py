@@ -11,6 +11,7 @@ from fastapi.responses import RedirectResponse
 import sys
 import os
 from pathlib import Path
+from typing import Optional
 
 # Add parent directory to path for imports
 parent_dir = Path(__file__).parent.parent
@@ -26,7 +27,7 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS middleware
+# CORS middleware - more restrictive for security
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -37,8 +38,10 @@ app.add_middleware(
         "https://0.0.0.0:8000", "https://localhost:8000", "https://127.0.0.1:8000"
     ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods instead of "*"
+    allow_headers=["Content-Type", "Authorization", "Accept"],  # Explicit headers instead of "*"
+    expose_headers=["Content-Type", "X-Total-Count"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
 
 # API Routes
@@ -77,6 +80,8 @@ from backend_api.routers import (
     coach,
     git,
     network_monitoring,
+    workspace,
+    project_orchestrator,
 )
 
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
@@ -131,6 +136,8 @@ app.include_router(git.router, prefix="/api", tags=["git"])
 app.include_router(personas.router, prefix="/api/personas", tags=["personas"])
 app.include_router(office.router, prefix="/api/office", tags=["office"])
 app.include_router(runtime_diagnostics.router, prefix="/api", tags=["runtime"])
+app.include_router(workspace.router, prefix="/api", tags=["workspace"])
+app.include_router(project_orchestrator.router, prefix="/api", tags=["project_orchestrator"])
 
 # Legacy compatibility routes without the /api prefix.
 @app.get("/system", include_in_schema=False)
@@ -151,8 +158,8 @@ async def legacy_billing_usage(limit: int = 20):
 @app.get("/operations", include_in_schema=False)
 async def legacy_operations(
     limit: int = 50,
-    status: str | None = None,
-    integration_type: str | None = None,
+    status: Optional[str] = None,
+    integration_type: Optional[str] = None,
 ):
     return await document_operations.list_document_operations(
         limit=limit, status=status, integration_type=integration_type
@@ -183,8 +190,26 @@ if frontend_dist.exists():
 
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint."""
-    return {"status": "ok", "message": "OS Dashboard AI Assistant API is running"}
+    """Health check endpoint with database connectivity check."""
+    try:
+        from backend_api.db import db_session
+        # Test database connectivity
+        with db_session() as db:
+            db.execute("SELECT 1").fetchone()
+        return {
+            "status": "ok",
+            "message": "OS Dashboard AI Assistant API is running",
+            "database": "connected"
+        }
+    except Exception as e:
+        import logging
+        logging.error(f"Health check failed: {e}", exc_info=True)
+        return {
+            "status": "degraded",
+            "message": "OS Dashboard AI Assistant API is running but database is unavailable",
+            "database": "disconnected",
+            "error": str(e)
+        }
 
 
 @app.get("/api/docs/technical-spec-sheet")

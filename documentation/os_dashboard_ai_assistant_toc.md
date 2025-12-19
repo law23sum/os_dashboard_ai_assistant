@@ -43,7 +43,7 @@ This living document reorganizes **all Markdown guidance** into the canonical st
 ### 1.3 Architectural Principles
 - Documented in `OS_DASHBOARD_CANON_SYSTEM_SPEC.md` Section 1 with mapping to enforcement hooks in `assistant_core/spec_registry.py`.
 ### 1.4 Component & Responsibility Mapping
-- `documentation/consolidated_md/ARCHITECTURE_NETWORK_MAP.md` provides swim-lanes; `OS_DashboardAIAssistantTOC.md` (this file) now references each runtime module.
+- `documentation/consolidated_md/architecture_network_map.md` provides swim-lanes; `os_dashboard_ai_assistant_toc.md` (this file) now references each runtime module.
 ### 1.5 Logical-to-Physical Mapping
 - `DEPLOYMENT.md` + `OS_Dashboard Enterprise` show local vs enterprise vs hybrid packaging (Docker Compose, ECS task definitions).
 ### 1.6 Platform Envelope & Capability Baselines
@@ -207,7 +207,7 @@ This living document reorganizes **all Markdown guidance** into the canonical st
 ---
 
 ## 18. Canon Mapping, Spec Index & Implementation Anchors
-- This file plus `assistant_core/spec_registry.py`, `documentation/commands.md`, `documentation/consolidated_md/IMPLEMENTATION_GAPS_AND_FIXES.md`.
+- This file plus `assistant_core/spec_registry.py`, `documentation/commands.md`, `documentation/consolidated_md/implementation_gaps_and_fixes.md`.
 
 ---
 

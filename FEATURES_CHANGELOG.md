@@ -1,10 +1,11 @@
-# Feature Overview & Change History
+# Portfolio Feature Change Log
 
-Entries are appended chronologically to maintain a running log of major additions, removals, and modifications.
+This document captures an append-only history of features that were added, modified, or removed inside the OS_Dashboard_AI_Assistant initiative. Always append the newest entry to keep institutional memory intact.
 
-## 2025-12-10 — Runtime Diagnostics & Blueprint Kickoff
+## 2025-12-12 · Multi-plane realtime initiative
 
-- **Runtime Diagnostics Pipeline:** Added `/api/runtime/diagnostics` plus structured client beacons to capture unhandled UI failures across web and desktop shells. All events are persisted to `logs/runtime_diagnostics.log` and feed future observability tooling.
-- **Client Error Boundary:** Wrapped the React tree in `AppErrorBoundary` to keep the UI responsive even when lazy-loaded routes fail. Each captured error is streamed into the diagnostics service for AI auto-fix triage.
-- **Blueprint v1000 Document:** Authored `docs/FUTURE_VERSION_1000_BLUEPRINT.md`, outlining the multi-plane architecture, capsule mesh, and observability fabric required for future releases.
-- **Default Auto-Fix Tests:** Extended `scripts/ai_auto_fix.py` so every run automatically executes the desktop launcher regression and the new Node-based port-guard suite, guaranteeing the Electron workflow never regresses silently.
+- **Added** `scripts/portfolio_supervisor.py`, a portfolio-wide automation harness that traverses every detected git project, runs `scripts/run_tests_with_autofix.py` (or the closest equivalent), and escalates failures through the existing `ai_auto_fix` loop. This is the foundation for the multi-repo guardian requested in the Technical Spec Sheet (v6).
+- **Elevated** the `OfficeRealtime` React experience with blueprint telemetry cards, roadmap callouts, and automation playbooks so operators can see how the realtime router maps to the long-range architecture. The UI now surfaces mesh density, queue health, and future phase readiness, keeping the interface intuitive even as capabilities expand.
+- **Documented** the v+1000 future blueprint plus the standing TODO matrix (see `SYSTEM_ARCHITECTURE_BLUEPRINT.md` and `PORTFOLIO_TODO.md`) to give every contributor an shared frame for the roadmap, governance banner, and implementation approach.
+
+> Next time you add or change functionality, append to this log rather than editing prior entries.

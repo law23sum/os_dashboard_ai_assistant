@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from collections import deque
+from collections import Counter, deque
 import asyncio
 import random
 import uuid
@@ -212,7 +212,7 @@ class WorkflowRefreshRequest(BaseModel):
 
 
 @router.post("/os/workflows/refresh", response_model=List[WorkflowInstance])
-async def refresh_workflows(payload: WorkflowRefreshRequest | None = None) -> List[WorkflowInstance]:
+async def refresh_workflows(payload: Optional[WorkflowRefreshRequest] = None) -> List[WorkflowInstance]:
     """Shuffle workflow list so the UI stays lively."""
     if payload and payload.seed is not None:
         random.seed(payload.seed)

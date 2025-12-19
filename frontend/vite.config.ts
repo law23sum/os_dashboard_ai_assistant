@@ -6,6 +6,9 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const apiTarget = process.env.VITE_API_TARGET || "http://localhost:8000";
+const wsTarget = apiTarget.replace(/^http/, "ws");
+
 export default defineConfig({
   plugins: [react()],
   base: "./", // Required for Electron to load assets correctly
@@ -16,62 +19,62 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    https: false, // Vite dev server can run on HTTP, but proxies to HTTPS backend
+    https: false,
     proxy: {
       "/api": {
-        target: "https://localhost:8000",
+        target: apiTarget,
         changeOrigin: true,
         secure: false, // Allow self-signed certificates
       },
       "/system": {
-        target: "https://localhost:8000",
+        target: apiTarget,
         secure: false,
       },
       "/ai": {
-        target: "https://localhost:8000",
+        target: apiTarget,
         secure: false,
       },
       "/search": {
-        target: "https://localhost:8000",
+        target: apiTarget,
         secure: false,
       },
       "/projects": {
-        target: "https://localhost:8000",
+        target: apiTarget,
         secure: false,
       },
       "/billing": {
-        target: "https://localhost:8000",
+        target: apiTarget,
         secure: false,
       },
       "/planes": {
-        target: "https://localhost:8000",
+        target: apiTarget,
         secure: false,
       },
       "/operations": {
-        target: "https://localhost:8000",
+        target: apiTarget,
         secure: false,
       },
       "/office": {
-        target: "https://localhost:8000",
+        target: apiTarget,
         changeOrigin: true,
         secure: false,
       },
       "/audit": {
-        target: "https://localhost:8000",
+        target: apiTarget,
         secure: false,
       },
       "/docs": {
-        target: "https://localhost:8000",
+        target: apiTarget,
         changeOrigin: true,
         secure: false,
       },
       "/ui": {
-        target: "https://localhost:8000",
+        target: apiTarget,
         changeOrigin: true,
         secure: false,
       },
       "/ws": {
-        target: "wss://localhost:8000",
+        target: wsTarget,
         ws: true,
         secure: false,
       },

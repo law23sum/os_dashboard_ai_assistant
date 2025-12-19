@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 import sys
 
-from ....db import load_state, db_upsert_project, Project
+from assistant_hub.db import load_state, db_upsert_project, Project
 
 
 def handle_projects_command(args, conn: sqlite3.Connection) -> int:
@@ -44,4 +44,3 @@ def handle_projects_command(args, conn: sqlite3.Connection) -> int:
     else:
         print(f"Unknown Projects subcommand: {args.subcommand}", file=sys.stderr)
         return 1
-

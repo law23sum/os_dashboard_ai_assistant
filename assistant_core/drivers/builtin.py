@@ -23,12 +23,12 @@ from assistant_core.intelligence.quality_assurance import (
 from assistant_core.system.operations import SystemOperationsController
 from assistant_core.driver_orchestrator_architecture import (
     ActionSchema,
-    BaseDriver,
+    ActionDispatchDriver,
     DriverManifest,
 )
 
 
-class IntelligenceDataDriver(BaseDriver):
+class IntelligenceDataDriver(ActionDispatchDriver):
     """Driver that wraps the DataCollector capabilities."""
 
     def __init__(self) -> None:
@@ -133,18 +133,14 @@ class IntelligenceDataDriver(BaseDriver):
         super().__init__(manifest)
         self._collector = DataCollector()
 
-    async def execute_action(self, action: str, params: Dict[str, Any]) -> Any:
-        if action == "scrape_web_source":
-            return await self._scrape(params)
-        if action == "fetch_api_source":
-            return await self._fetch_api(params)
-        if action == "batch_collect":
-            return await self._batch(params)
-        if action == "cross_reference":
-            return self._cross_reference(params)
-        if action == "clean_and_transform":
-            return await self._clean(params)
-        raise ValueError(f"Unknown intelligence action: {action}")
+    def _action_handlers(self) -> Dict[str, Any]:
+        return {
+            "scrape_web_source": self._scrape,
+            "fetch_api_source": self._fetch_api,
+            "batch_collect": self._batch,
+            "cross_reference": self._cross_reference,
+            "clean_and_transform": self._clean,
+        }
 
     async def _scrape(self, params: Dict[str, Any]) -> Dict[str, Any]:
         source = self._build_source(params, "web")
@@ -194,7 +190,7 @@ class IntelligenceDataDriver(BaseDriver):
         )
 
 
-class ContentGenerationDriver(BaseDriver):
+class ContentGenerationDriver(ActionDispatchDriver):
     """Driver exposing presentation, Excel, and document generation."""
 
     def __init__(self) -> None:
@@ -265,14 +261,21 @@ class ContentGenerationDriver(BaseDriver):
         )
         super().__init__(manifest)
 
-    async def execute_action(self, action: str, params: Dict[str, Any]) -> Any:
-        if action == "generate_presentation":
-            return await asyncio.to_thread(self._generate_presentation, params)
-        if action == "generate_excel_dashboard":
-            return await asyncio.to_thread(self._generate_excel, params)
-        if action == "generate_word_document":
-            return await asyncio.to_thread(self._generate_doc, params)
-        raise ValueError(f"Unknown content action: {action}")
+    def _action_handlers(self) -> Dict[str, Any]:
+        return {
+            "generate_presentation": self._generate_presentation_threaded,
+            "generate_excel_dashboard": self._generate_excel_threaded,
+            "generate_word_document": self._generate_doc_threaded,
+        }
+
+    async def _generate_presentation_threaded(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        return await asyncio.to_thread(self._generate_presentation, params)
+
+    async def _generate_excel_threaded(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        return await asyncio.to_thread(self._generate_excel, params)
+
+    async def _generate_doc_threaded(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        return await asyncio.to_thread(self._generate_doc, params)
 
     def _generate_presentation(self, params: Dict[str, Any]) -> Dict[str, Any]:
         config = ContentConfig(**params["config"])
@@ -350,7 +353,7 @@ class ContentGenerationDriver(BaseDriver):
         return {"output_path": output_path, "success": success}
 
 
-class SystemOperationsDriver(BaseDriver):
+class SystemOperationsDriver(ActionDispatchDriver):
     """Driver that wraps the SystemOperationsController."""
 
     def __init__(self) -> None:
@@ -444,45 +447,59 @@ class SystemOperationsDriver(BaseDriver):
         super().__init__(manifest)
         self._controller = SystemOperationsController()
 
-    async def execute_action(self, action: str, params: Dict[str, Any]) -> Any:
-        if action == "execute_command":
-            return await asyncio.to_thread(
-                self._controller.execute_command,
-                params.get("command"),
-                params.get("cwd"),
-                params.get("environment"),
-                params.get("timeout"),
-                params.get("capture_output", True),
-                params.get("shell", True),
-            )
-        if action == "get_system_info":
-            return await asyncio.to_thread(self._controller.get_system_info)
-        if action == "install_package":
-            return await asyncio.to_thread(
-                self._controller.install_package,
-                params["package"],
-                params.get("manager", "auto"),
-            )
-        if action == "create_archive":
-            return await asyncio.to_thread(
-                self._controller.create_archive,
-                params["source_path"],
-                params["archive_path"],
-                params.get("archive_type", "zip"),
-                params.get("compression_level", 6),
-            )
-        if action == "extract_archive":
-            return await asyncio.to_thread(
-                self._controller.extract_archive,
-                params["archive_path"],
-                params.get("extract_to"),
-            )
-        if action == "memory_resilience_plan":
-            return await asyncio.to_thread(self._controller.memory_thread_resilience_plan)
-        raise ValueError(f"Unknown system action: {action}")
+    def _action_handlers(self) -> Dict[str, Any]:
+        return {
+            "execute_command": self._execute_command_threaded,
+            "get_system_info": self._get_system_info_threaded,
+            "install_package": self._install_package_threaded,
+            "create_archive": self._create_archive_threaded,
+            "extract_archive": self._extract_archive_threaded,
+            "memory_resilience_plan": self._memory_resilience_plan_threaded,
+        }
+
+    async def _execute_command_threaded(self, params: Dict[str, Any]) -> Any:
+        return await asyncio.to_thread(
+            self._controller.execute_command,
+            params.get("command"),
+            params.get("cwd"),
+            params.get("environment"),
+            params.get("timeout"),
+            params.get("capture_output", True),
+            params.get("shell", True),
+        )
+
+    async def _get_system_info_threaded(self, _: Dict[str, Any]) -> Any:
+        return await asyncio.to_thread(self._controller.get_system_info)
+
+    async def _install_package_threaded(self, params: Dict[str, Any]) -> Any:
+        return await asyncio.to_thread(
+            self._controller.install_package,
+            params["package"],
+            params.get("manager", "auto"),
+        )
+
+    async def _create_archive_threaded(self, params: Dict[str, Any]) -> Any:
+        return await asyncio.to_thread(
+            self._controller.create_archive,
+            params["source_path"],
+            params["archive_path"],
+            params.get("archive_type", "zip"),
+            params.get("compression_level", 6),
+        )
+
+    async def _extract_archive_threaded(self, params: Dict[str, Any]) -> Any:
+        return await asyncio.to_thread(
+            self._controller.extract_archive,
+            params["archive_path"],
+            params.get("extract_to"),
+        )
+
+    async def _memory_resilience_plan_threaded(self, params: Dict[str, Any]) -> Any:
+        _ = params
+        return await asyncio.to_thread(self._controller.memory_thread_resilience_plan)
 
 
-class QualityAssuranceDriver(BaseDriver):
+class QualityAssuranceDriver(ActionDispatchDriver):
     """Driver exposing validation and accessibility checks."""
 
     def __init__(self) -> None:
@@ -552,36 +569,43 @@ class QualityAssuranceDriver(BaseDriver):
         self._batch_validator = BatchValidator()
         self._accessibility = AccessibilityChecker()
 
-    async def execute_action(self, action: str, params: Dict[str, Any]) -> Any:
-        if action == "validate_content":
-            results = await asyncio.to_thread(
-                self._validator.validate_content,
-                params["content"],
-                params.get("content_type", "html"),
-                params.get("rules"),
-            )
-            return [asdict(result) for result in results]
-        if action == "batch_validate":
-            results = await asyncio.to_thread(
-                self._batch_validator.validate_files,
-                params["files"],
-                params.get("content_types"),
-                params.get("rules"),
-            )
-            return {
-                path: [asdict(result) for result in result_list]
-                for path, result_list in results.items()
-            }
-        if action == "accessibility_check":
-            results = await asyncio.to_thread(
-                self._accessibility.check_accessibility,
-                params["content"],
-            )
-            return [asdict(result) for result in results]
-        raise ValueError(f"Unknown QA action: {action}")
+    def _action_handlers(self) -> Dict[str, Any]:
+        return {
+            "validate_content": self._validate_content_threaded,
+            "batch_validate": self._batch_validate_threaded,
+            "accessibility_check": self._accessibility_check_threaded,
+        }
+
+    async def _validate_content_threaded(self, params: Dict[str, Any]) -> List[Dict[str, Any]]:
+        results = await asyncio.to_thread(
+            self._validator.validate_content,
+            params["content"],
+            params.get("content_type", "html"),
+            params.get("rules"),
+        )
+        return [asdict(result) for result in results]
+
+    async def _batch_validate_threaded(self, params: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
+        results = await asyncio.to_thread(
+            self._batch_validator.validate_files,
+            params["files"],
+            params.get("content_types"),
+            params.get("rules"),
+        )
+        return {
+            path: [asdict(result) for result in result_list]
+            for path, result_list in results.items()
+        }
+
+    async def _accessibility_check_threaded(self, params: Dict[str, Any]) -> List[Dict[str, Any]]:
+        results = await asyncio.to_thread(
+            self._accessibility.check_accessibility,
+            params["content"],
+        )
+        return [asdict(result) for result in results]
 
 
-def _driver_instances() -> List[BaseDriver]:
+def _driver_instances() -> List[ActionDispatchDriver]:
     return [
         IntelligenceDataDriver(),
         ContentGenerationDriver(),

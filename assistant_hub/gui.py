@@ -523,7 +523,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         """Curated list of documentation/web surfaces referenced by the TOC."""
         links: Dict[str, Any] = {
             "Canonical Spec · OS DashboardAIAssistantTOC": DOC_ROOT
-            / "OS_DashboardAIAssistantTOC.md",
+            / "os_dashboard_ai_assistant_toc.md",
             "Mission & Vision Brief": DOC_ROOT / "VISION.md",
             "Driver & System Architecture": DOC_ROOT / "ARCHITECTURE_IMPLEMENTATION.md",
             "Cognitive Daemon System": DOC_ROOT / "COGNITIVE_DAEMON_SYSTEM.md",

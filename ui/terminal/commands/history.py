@@ -7,8 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from ....config import DATA_DIR
-from ....versioning import get_git_manager
+from assistant_hub.config import DATA_DIR
+from assistant_hub.versioning import get_git_manager
 
 
 def handle_history_command(args, conn: sqlite3.Connection) -> int:
@@ -45,4 +45,3 @@ def handle_history_command(args, conn: sqlite3.Connection) -> int:
     except Exception as e:
         print(f"Error reading history: {e}", file=sys.stderr)
         return 1
-

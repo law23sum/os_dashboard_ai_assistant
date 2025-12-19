@@ -81,7 +81,7 @@ def auto_reason(path: str, diff_text: str) -> Tuple[str | None, float]:
     specific = {
         "assistant_hub_gui/assistant_hub/gui.py": "Refined Assistant Hub GUI layout, theming, or event handling.",
         "assistant_core/cognitive_framework.py": "Updated cognitive framework (personas, daemons, reasoning).",
-        "documentation/OS_DashboardAIAssistantTOC.md": "Reorganized canonical spec / documentation.",
+        "documentation/os_dashboard_ai_assistant_toc.md": "Reorganized canonical spec / documentation.",
         "scripts/git_auto_commit.py": "Updated auto-commit workflow.",
     }
     for needle, text in specific.items():

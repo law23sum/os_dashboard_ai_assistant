@@ -7,10 +7,19 @@ async function request<T = any>(path: string, options?: RequestInit): Promise<T>
     headers: { "Content-Type": "application/json" },
     ...options,
   });
+
+  const requestId = res.headers.get("x-correlation-id") || res.headers.get("x-request-id") || undefined;
+
   if (!res.ok) {
-    throw new Error(`Request failed: ${res.status}`);
+    const message = `Request failed: ${res.status}${requestId ? ` (request_id=${requestId})` : ""}`;
+    throw new Error(message);
   }
-  return res.json();
+
+  const data = await res.json();
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    (data as Record<string, unknown>)._requestId = requestId;
+  }
+  return data;
 }
 
 export const API = {

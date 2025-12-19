@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated_at": "2025-12-17T12:56:54.559818+00:00",
-    "repo_root": "/Users/chrisdixon/Projects/os_dashboard_ai_assistant",
-    "feature_count": 75,
+    "generated_at": "2025-12-18T17:42:06.800258+00:00",
+    "repo_root": "/Users/sum/Project/os_dashboard_ai_assistant",
+    "feature_count": 77,
     "level_count": 4,
     "mode_count": 4
   },
@@ -7724,6 +7724,198 @@
       ]
     },
     {
+      "feature": "Workspace Health Page",
+      "source": "frontend",
+      "path": "frontend/src/pages/WorkspaceHealth.tsx",
+      "slug": "frontend-workspacehealth",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "frontend-workspacehealth-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-workspacehealth-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-workspacehealth-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-workspacehealth-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "frontend-workspacehealth-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-workspacehealth-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-workspacehealth-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-workspacehealth-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "frontend-workspacehealth-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-workspacehealth-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-workspacehealth-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-workspacehealth-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "frontend-workspacehealth-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-workspacehealth-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-workspacehealth-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-workspacehealth-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Workspace Health Page.",
+              "steps": [
+                "Exercise Workspace Health Page at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health Page satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "feature": "Writer Page",
       "source": "frontend",
       "path": "frontend/src/pages/Writer.tsx",
@@ -14246,6 +14438,198 @@
                 "Verify regression acceptance criteria and record findings."
               ],
               "expected_result": "Workflow Orchestration API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Workspace API",
+      "source": "backend",
+      "path": "backend_api/routers/workspace.py",
+      "slug": "backend-workspace",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-workspace-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-workspace-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-workspace-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-workspace-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Workspace API.",
+              "steps": [
+                "Exercise Workspace API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace API satisfies regression constraints without regressions."
             }
           ]
         }
