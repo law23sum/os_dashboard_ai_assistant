@@ -26,11 +26,11 @@ class SettingsResponse(BaseModel):
     governance_banner: Optional[str] = None
 
 class SettingsUpdate(BaseModel):
-    theme: str = None
-    default_view: str = None
-    show_system_status: bool = None
-    font_scale: str = None
-    data_preferences: Dict[str, bool] = None
+    theme: Optional[str] = None
+    default_view: Optional[str] = None
+    show_system_status: Optional[bool] = None
+    font_scale: Optional[str] = None
+    data_preferences: Optional[Dict[str, bool]] = None
     change_permission_mode: Optional[str] = None
     continuity_mode: Optional[str] = None
     risk_appetite: Optional[str] = None

@@ -2,24 +2,98 @@ import { resolveApiBase } from './lib/apiClient'
 
 const API_BASE = resolveApiBase()
 
-async function request<T = any>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path.startsWith("/") ? path : `/${path}`}`, {
-    headers: { "Content-Type": "application/json" },
+// Retry configuration for failed requests
+const MAX_RETRIES = 3
+const RETRY_DELAY_MS = 1000
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+async function request<T = any>(
+  path: string, 
+  options?: RequestInit,
+  retries: number = MAX_RETRIES
+): Promise<T> {
+  const url = `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`
+  
+  // Generate correlation ID for request tracking
+  const correlationId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  
+  const fetchOptions: RequestInit = {
+    headers: { 
+      "Content-Type": "application/json",
+      "X-Correlation-ID": correlationId,
+      ...options?.headers,
+    },
     ...options,
-  });
-
-  const requestId = res.headers.get("x-correlation-id") || res.headers.get("x-request-id") || undefined;
-
-  if (!res.ok) {
-    const message = `Request failed: ${res.status}${requestId ? ` (request_id=${requestId})` : ""}`;
-    throw new Error(message);
   }
 
-  const data = await res.json();
-  if (data && typeof data === "object" && !Array.isArray(data)) {
-    (data as Record<string, unknown>)._requestId = requestId;
+  let lastError: Error | null = null
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, fetchOptions)
+      
+      const requestId = res.headers.get("x-correlation-id") || 
+                       res.headers.get("x-request-id") || 
+                       correlationId
+
+      if (!res.ok) {
+        // Parse error response body if available
+        let errorMessage = `Request failed: ${res.status}`
+        try {
+          const errorData = await res.json()
+          if (errorData.detail) {
+            errorMessage = errorData.detail
+          } else if (errorData.message) {
+            errorMessage = errorData.message
+          }
+        } catch {
+          // Ignore JSON parse errors for error responses
+        }
+        
+        errorMessage += requestId ? ` (request_id=${requestId})` : ""
+        
+        // Don't retry client errors (4xx)
+        if (res.status >= 400 && res.status < 500) {
+          throw new Error(errorMessage)
+        }
+        
+        // For server errors, throw to trigger retry
+        throw new Error(errorMessage)
+      }
+
+      const data = await res.json()
+      if (data && typeof data === "object" && !Array.isArray(data)) {
+        (data as Record<string, unknown>)._requestId = requestId
+      }
+      return data
+      
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+      
+      // Check if this is a network error or server error worth retrying
+      const isNetworkError = lastError.message.includes("fetch") || 
+                            lastError.message.includes("network") ||
+                            lastError.message.includes("500") ||
+                            lastError.message.includes("502") ||
+                            lastError.message.includes("503") ||
+                            lastError.message.includes("504")
+      
+      if (attempt < retries && isNetworkError) {
+        // Exponential backoff
+        const delay = RETRY_DELAY_MS * Math.pow(2, attempt)
+        console.warn(`Request to ${path} failed, retrying in ${delay}ms (attempt ${attempt + 1}/${retries})`)
+        await sleep(delay)
+        continue
+      }
+      
+      throw lastError
+    }
   }
-  return data;
+  
+  throw lastError || new Error("Request failed after all retries")
 }
 
 export const API = {

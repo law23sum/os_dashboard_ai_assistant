@@ -24,9 +24,29 @@ from assistant_hub_gui.assistant_hub.db import (  # pylint: disable=wrong-import
     db_get_note_links,
     db_list_project_events,
     db_record_project_event,
-    db_upsert_project,
+    db_upsert_project as _db_upsert_project,
     load_state,
+    Project,
 )
+
+
+def db_upsert_project(
+    conn,
+    name: str,
+    description: str = "",
+    status: str = "active",
+    priority: str = "MEDIUM",
+    order_num: int = 0,
+) -> None:
+    """Wrapper to create Project object and call the original upsert function."""
+    proj = Project(
+        name=name,
+        description=description,
+        status=status,
+        priority=priority,
+        order_num=order_num,
+    )
+    _db_upsert_project(conn, proj)
 from assistant_hub_gui.assistant_hub.config import DATA_DIR  # pylint: disable=wrong-import-position
 from assistant_hub_gui.assistant_hub.project_insights import (  # pylint: disable=wrong-import-position
     analyze_project_risks,

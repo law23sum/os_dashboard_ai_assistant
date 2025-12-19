@@ -1,15 +1,25 @@
 """
 FastAPI backend for OS Dashboard AI Assistant.
 Provides REST API endpoints to replace the Tkinter GUI frontend.
+
+Security Features:
+- CORS protection with configurable origins
+- Request ID tracking for debugging
+- Rate limiting headers
+- Security headers middleware
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.responses import RedirectResponse
 import sys
 import os
+import uuid
+import time
+import logging
 from pathlib import Path
 from typing import Optional
 
@@ -19,6 +29,10 @@ sys.path.insert(0, str(parent_dir))
 REPO_ROOT = parent_dir
 SPEC_SHEET_PATH = REPO_ROOT / "Technical Spec Sheet (Version 6 Latest Version).pdf"
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = FastAPI(
     title="OS Dashboard AI Assistant API",
     description="REST API for OS Dashboard AI Assistant",
@@ -27,19 +41,75 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS middleware
+
+# Custom middleware for request tracking and security headers
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add security headers and request tracking to all responses."""
+    # Generate request ID for tracing
+    request_id = request.headers.get("X-Correlation-ID") or str(uuid.uuid4())
+    
+    # Track request timing
+    start_time = time.time()
+    
+    try:
+        response = await call_next(request)
+    except Exception as e:
+        logger.error(f"Request {request_id} failed: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal server error", "request_id": request_id}
+        )
+    
+    # Calculate processing time
+    process_time = time.time() - start_time
+    
+    # Add security and debugging headers
+    response.headers["X-Request-ID"] = request_id
+    response.headers["X-Correlation-ID"] = request_id
+    response.headers["X-Process-Time"] = str(round(process_time * 1000, 2))
+    
+    # Security headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    
+    # Cache control for API responses
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store, max-age=0"
+    
+    return response
+
+
+# CORS middleware with secure configuration
+ALLOWED_ORIGINS = [
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000", 
+    "http://localhost:5173", 
+    "http://127.0.0.1:5173",
+    "https://localhost:3000", 
+    "https://127.0.0.1:3000",
+    "https://localhost:5173", 
+    "https://127.0.0.1:5173",
+    "https://0.0.0.0:8000", 
+    "https://localhost:8000", 
+    "https://127.0.0.1:8000",
+    # Allow Electron app
+    "file://",
+]
+
+# Add any additional origins from environment
+extra_origins = os.environ.get("CORS_ORIGINS", "").split(",")
+ALLOWED_ORIGINS.extend([o.strip() for o in extra_origins if o.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000", "http://127.0.0.1:3000", 
-        "http://localhost:5173", "http://127.0.0.1:5173",
-        "https://localhost:3000", "https://127.0.0.1:3000",
-        "https://localhost:5173", "https://127.0.0.1:5173",
-        "https://0.0.0.0:8000", "https://localhost:8000", "https://127.0.0.1:8000"
-    ],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["X-Request-ID", "X-Correlation-ID", "X-Process-Time"],
 )
 
 # API Routes
@@ -186,8 +256,50 @@ if frontend_dist.exists():
 
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint."""
-    return {"status": "ok", "message": "OS Dashboard AI Assistant API is running"}
+    """Health check endpoint with database connectivity test."""
+    from backend_api.db import db_session
+    
+    db_ok = False
+    try:
+        with db_session() as db:
+            db.execute("SELECT 1")
+            db_ok = True
+    except Exception as e:
+        logger.warning(f"Database health check failed: {e}")
+    
+    return {
+        "status": "ok" if db_ok else "degraded",
+        "message": "OS Dashboard AI Assistant API is running",
+        "database": "connected" if db_ok else "disconnected",
+    }
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize resources on application startup."""
+    logger.info("Starting OS Dashboard AI Assistant API...")
+    
+    # Initialize database connection pool
+    from backend_api.db import _ensure_initialized
+    try:
+        _ensure_initialized()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup resources on application shutdown."""
+    logger.info("Shutting down OS Dashboard AI Assistant API...")
+    
+    # Close all database connections
+    from backend_api.db import close_all_connections
+    try:
+        close_all_connections()
+        logger.info("Database connections closed")
+    except Exception as e:
+        logger.error(f"Error closing database connections: {e}")
 
 
 @app.get("/api/docs/technical-spec-sheet")

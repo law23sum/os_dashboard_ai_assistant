@@ -8,9 +8,8 @@ from pathlib import Path
 parent_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
+from datetime import datetime
 from assistant_hub_gui.assistant_hub.db import (
-    db_insert_task,
-    db_update_task,
     db_delete_task,
     Task,
     STATUS_OPTIONS,
@@ -18,6 +17,93 @@ from assistant_hub_gui.assistant_hub.db import (
     db_record_project_event,
 )
 from backend_api.db import db_session
+
+
+def db_insert_task(
+    conn,
+    title: str,
+    project: str = "General",
+    status: str = "TODO",
+    priority: str = "MEDIUM",
+    due_date: str = "",
+    notes: str = "",
+    owner: str = "Chris",
+    depends_on: Optional[int] = None,
+    recurrence_pattern: Optional[str] = None,
+    recurrence_end: Optional[str] = None,
+    time_estimated: Optional[int] = None,
+    time_logged: Optional[int] = None,
+    template_id: Optional[str] = None,
+) -> int:
+    """Insert a new task and return its ID."""
+    c = conn.cursor()
+    created_at = datetime.now().isoformat(timespec="seconds")
+    c.execute(
+        """
+        INSERT INTO tasks
+        (title, project, status, priority, due_date, notes, owner, created_at,
+         depends_on, recurrence_pattern, recurrence_end, time_estimated, time_logged, template_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (title, project, status, priority, due_date, notes, owner, created_at,
+         depends_on, recurrence_pattern, recurrence_end, time_estimated, time_logged, template_id),
+    )
+    conn.commit()
+    return c.lastrowid
+
+
+def db_update_task(
+    conn,
+    task_id: int,
+    title: Optional[str] = None,
+    project: Optional[str] = None,
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    due_date: Optional[str] = None,
+    notes: Optional[str] = None,
+    owner: Optional[str] = None,
+    depends_on: Optional[int] = None,
+    recurrence_pattern: Optional[str] = None,
+    recurrence_end: Optional[str] = None,
+    time_estimated: Optional[int] = None,
+    time_logged: Optional[int] = None,
+    template_id: Optional[str] = None,
+) -> None:
+    """Update an existing task with only the provided fields."""
+    c = conn.cursor()
+    
+    # Build dynamic UPDATE query based on provided fields
+    updates = []
+    params = []
+    
+    field_mapping = {
+        'title': title,
+        'project': project,
+        'status': status,
+        'priority': priority,
+        'due_date': due_date,
+        'notes': notes,
+        'owner': owner,
+        'depends_on': depends_on,
+        'recurrence_pattern': recurrence_pattern,
+        'recurrence_end': recurrence_end,
+        'time_estimated': time_estimated,
+        'time_logged': time_logged,
+        'template_id': template_id,
+    }
+    
+    for field, value in field_mapping.items():
+        if value is not None:
+            updates.append(f"{field} = ?")
+            params.append(value)
+    
+    if not updates:
+        return
+    
+    params.append(task_id)
+    query = f"UPDATE tasks SET {', '.join(updates)} WHERE id = ?"
+    c.execute(query, params)
+    conn.commit()
 
 router = APIRouter()
 
