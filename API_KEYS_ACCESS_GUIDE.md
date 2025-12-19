@@ -1,222 +1,423 @@
 # API Keys Access Guide
-## Direct Links to Get API Keys for cursor_ai
 
-This guide provides direct links and instructions to obtain API keys for all AI providers supported by the `cursor_ai` command.
+Complete guide to obtaining API keys for all AI providers used by `cursor_ai` and `agents_ai`.
 
----
-
-## 🔑 Quick Access Links
-
-### 1. **Cursor IDE API Key**
-**Direct Link:** https://cursor.com/dashboard
-
-**Steps:**
-1. Log in to your Cursor account
-2. Navigate to **Settings** tab
-3. Select **Cursor Admin API Keys**
-4. Click **Create New API Key**
-5. Copy the key immediately (it won't be shown again)
-
-**Note:** Cursor API keys are primarily for team/analytics management. For chat functionality, use OpenAI or Anthropic keys (which Cursor uses internally).
-
----
-
-### 2. **OpenAI API Key** (Recommended for GPT models)
-**Direct Link:** https://platform.openai.com/api-keys
-
-**Steps:**
-1. Create account or log in at https://platform.openai.com
-2. Go to **API Keys** section (or use direct link above)
-3. Click **"Create new secret key"**
-4. Name your key (e.g., "cursor_ai")
-5. Copy the key immediately
-6. **Important:** Add billing/payment method in **Billing** section first
-
-**Billing Setup:** https://platform.openai.com/account/billing
-
-**Documentation:** https://platform.openai.com/docs
-
----
-
-### 3. **Anthropic API Key** (Recommended for Claude models)
-**Direct Link:** https://console.anthropic.com/settings/keys
-
-**Steps:**
-1. Create account or log in at https://console.anthropic.com
-2. Navigate to **API Keys** section (or use direct link above)
-3. Click **"Create Key"**
-4. Name your key (e.g., "cursor_ai")
-5. Copy the key immediately
-6. **Important:** Add billing/payment method first
-
-**Billing Setup:** https://console.anthropic.com/settings/billing
-
-**Documentation:** https://docs.anthropic.com
-
----
-
-### 4. **Google Gemini API Key**
-**Direct Link:** https://aistudio.google.com/app/apikey
-
-**Steps:**
-1. Create account or log in with Google account
-2. Go to **Get API Key** (or use direct link above)
-3. Select or create a Google Cloud project
-4. Click **"Create API Key"**
-5. Copy the key
-6. **Note:** May require enabling Gemini API in Google Cloud Console
-
-**Google AI Studio:** https://aistudio.google.com
-
-**Documentation:** https://ai.google.dev/docs
-
----
-
-### 5. **xAI (Grok) API Key**
-**Direct Link:** https://console.x.ai/api-keys
-
-**Steps:**
-1. Create account or log in at https://console.x.ai
-2. Navigate to **API Keys** section
-3. Click **"Create API Key"**
-4. Name your key
-5. Copy the key immediately
-
-**Documentation:** https://docs.x.ai
-
----
-
-## 📝 How to Set API Keys
-
-### Option 1: Environment Variables (Recommended)
-
-Add to your `~/.zshrc` or `~/.bashrc`:
+## Quick Start
 
 ```bash
-export OPENAI_API_KEY="sk-your-key-here"
-export ANTHROPIC_API_KEY="sk-ant-your-key-here"
-export GOOGLE_API_KEY="your-google-key-here"
-export XAI_API_KEY="your-xai-key-here"
-export CURSOR_API_KEY="your-cursor-key-here"
+# Run setup script to see all links
+./setup_cursor_ai.sh --keys
+
+# Check which keys are set
+./setup_cursor_ai.sh --check
+
+# Create .env template
+./setup_cursor_ai.sh --template
 ```
-
-Then reload:
-```bash
-source ~/.zshrc  # or source ~/.bashrc
-```
-
-### Option 2: .env File (Project Directory)
-
-Create a `.env` file in your project root:
-
-```bash
-# AI Provider API Keys
-OPENAI_API_KEY=sk-your-key-here
-ANTHROPIC_API_KEY=sk-ant-your-key-here
-GOOGLE_API_KEY=your-google-key-here
-XAI_API_KEY=your-xai-key-here
-CURSOR_API_KEY=your-cursor-key-here
-```
-
-The `cursor_ai.py` script will automatically load this file.
-
-### Option 3: Check Current Keys
-
-```bash
-cursor_ai --check-keys
-```
-
-This shows which API keys are currently set.
 
 ---
 
-## 🔒 Security Best Practices
+## Primary AI Providers
 
-1. **Never commit API keys to Git:**
+### 1. OpenAI (GPT-4, GPT-4o, o1, ChatGPT Agents)
+
+**API Keys:**
+- 🔗 https://platform.openai.com/api-keys
+
+**ChatGPT Assistants (Agents):**
+- 🔗 https://platform.openai.com/assistants
+
+**Billing:**
+- 🔗 https://platform.openai.com/account/billing
+
+**Setup:**
+```bash
+export OPENAI_API_KEY="sk-proj-your-key-here"
+```
+
+**Models:** `gpt-4o`, `gpt-4-turbo`, `gpt-4`, `o1-preview`, `o1-mini`
+
+**Pricing:** Pay-per-use, ~$5-30/million tokens depending on model
+
+---
+
+### 2. Anthropic (Claude 3.5 Sonnet, Claude 4 Opus)
+
+**API Keys:**
+- 🔗 https://console.anthropic.com/settings/keys
+
+**Billing:**
+- 🔗 https://console.anthropic.com/settings/billing
+
+**Setup:**
+```bash
+export ANTHROPIC_API_KEY="sk-ant-api03-your-key-here"
+```
+
+**Models:** `claude-3-5-sonnet-20241022`, `claude-3-opus-20240229`, `claude-3-haiku-20240307`
+
+**Pricing:** Pay-per-use, ~$3-15/million tokens depending on model
+
+---
+
+### 3. Google (Gemini 2.0/2.5)
+
+**API Keys:**
+- 🔗 https://aistudio.google.com/app/apikey
+
+**Google Cloud (Vertex AI):**
+- 🔗 https://console.cloud.google.com/vertex-ai
+
+**Setup:**
+```bash
+export GOOGLE_API_KEY="AIza-your-key-here"
+```
+
+**Models:** `gemini-2.5-flash`, `gemini-2.0-pro`, `gemini-1.5-pro`
+
+**Pricing:** Free tier available (15 RPM), then pay-per-use
+
+---
+
+### 4. xAI (Grok 2, Grok 3)
+
+**API Keys:**
+- 🔗 https://console.x.ai/api-keys
+
+**Setup:**
+```bash
+export XAI_API_KEY="xai-your-key-here"
+```
+
+**Models:** `grok-beta`, `grok-2`
+
+**Pricing:** Pay-per-use
+
+---
+
+### 5. DeepSeek (R1)
+
+**API Keys:**
+- 🔗 https://platform.deepseek.com/api_keys
+
+**Setup:**
+```bash
+export DEEPSEEK_API_KEY="sk-your-deepseek-key-here"
+```
+
+**Models:** `deepseek-reasoner`, `deepseek-chat`
+
+**Pricing:** Pay-per-use, very competitive pricing
+
+---
+
+## Additional AI Providers
+
+### Mistral AI
+- 🔗 https://console.mistral.ai/api-keys
+```bash
+export MISTRAL_API_KEY="your-mistral-key-here"
+```
+
+### Cohere
+- 🔗 https://dashboard.cohere.com/api-keys
+```bash
+export COHERE_API_KEY="your-cohere-key-here"
+```
+**Free tier available**
+
+### Perplexity AI
+- 🔗 https://www.perplexity.ai/settings/api
+```bash
+export PERPLEXITY_API_KEY="pplx-your-key-here"
+```
+
+### Together AI
+- 🔗 https://api.together.xyz/settings/api-keys
+```bash
+export TOGETHER_API_KEY="your-together-key-here"
+```
+
+### OpenRouter (Access 100+ Models)
+- 🔗 https://openrouter.ai/keys
+```bash
+export OPENROUTER_API_KEY="sk-or-your-key-here"
+```
+
+### Groq (Fast Inference)
+- 🔗 https://console.groq.com/keys
+```bash
+export GROQ_API_KEY="gsk_your-groq-key-here"
+```
+**Free tier available**
+
+### Fireworks AI
+- 🔗 https://fireworks.ai/api-keys
+```bash
+export FIREWORKS_API_KEY="your-fireworks-key-here"
+```
+
+### Replicate
+- 🔗 https://replicate.com/account/api-tokens
+```bash
+export REPLICATE_API_KEY="r8_your-replicate-key-here"
+```
+
+### Hugging Face
+- 🔗 https://huggingface.co/settings/tokens
+```bash
+export HUGGINGFACE_API_KEY="hf_your-hf-key-here"
+```
+**Free tier available**
+
+---
+
+## Enterprise/Cloud Providers
+
+### Azure OpenAI
+- 🔗 https://portal.azure.com/#blade/Microsoft_Azure_ProjectOxford/CognitiveServicesHub/OpenAI
+
+```bash
+export AZURE_OPENAI_API_KEY="your-azure-key"
+export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com/"
+export AZURE_OPENAI_DEPLOYMENT="gpt-4o"
+export AZURE_OPENAI_API_VERSION="2024-02-01"
+```
+
+### AWS Bedrock
+- 🔗 https://console.aws.amazon.com/bedrock
+
+Requires AWS credentials configuration.
+
+---
+
+## Microsoft Graph API (Office 365 Integration)
+
+**Register App:**
+- 🔗 https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade
+
+**Get Tenant ID:**
+- 🔗 https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview
+
+```bash
+export MS_GRAPH_CLIENT_ID="your-client-id"
+export MS_GRAPH_TENANT_ID="your-tenant-id"
+export MS_GRAPH_CLIENT_SECRET="your-client-secret"
+```
+
+---
+
+## Google Cloud APIs
+
+**OAuth Client:**
+- 🔗 https://console.cloud.google.com/apis/credentials
+
+**Service Account:**
+- 🔗 https://console.cloud.google.com/iam-admin/serviceaccounts
+
+```bash
+export GOOGLE_CLIENT_SECRET_PATH="/path/to/client_secret.json"
+export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service_account.json"
+```
+
+---
+
+## GitHub Integration
+
+**Personal Access Token:**
+- 🔗 https://github.com/settings/tokens
+
+**Permissions needed:**
+- `repo` - Full control of private repositories
+- `workflow` - Update GitHub Action workflows
+- `read:org` - Read organization data
+
+```bash
+export GITHUB_TOKEN="ghp_your-token-here"
+export GIT_USERNAME="your-github-username"
+export GIT_EMAIL="your-email@example.com"
+```
+
+---
+
+## ChatGPT Agents (OpenAI Assistants)
+
+Create custom AI agents at:
+- 🔗 https://platform.openai.com/assistants
+
+### Agent IDs for agents_ai:
+
+```bash
+# Core Agents
+export OPENAI_ASSISTANT_ID_AIC="asst_your-aic-id"
+export OPENAI_ASSISTANT_ID_ARIA="asst_your-aria-id"
+export OPENAI_ASSISTANT_ID_SORA="asst_your-sora-id"
+
+# Discipline Agents
+export OPENAI_ASSISTANT_ID_BIOLOGIST="asst_your-biologist-id"
+export OPENAI_ASSISTANT_ID_CHEMIST="asst_your-chemist-id"
+export OPENAI_ASSISTANT_ID_PHYSICIST="asst_your-physicist-id"
+export OPENAI_ASSISTANT_ID_MATHEMATICIAN="asst_your-mathematician-id"
+export OPENAI_ASSISTANT_ID_PHILOSOPHER="asst_your-philosopher-id"
+export OPENAI_ASSISTANT_ID_THEOLOGIAN="asst_your-theologian-id"
+export OPENAI_ASSISTANT_ID_ACCOUNTANT="asst_your-accountant-id"
+export OPENAI_ASSISTANT_ID_ECONOMIST="asst_your-economist-id"
+export OPENAI_ASSISTANT_ID_LAWYER="asst_your-lawyer-id"
+```
+
+---
+
+## Optional Integrations
+
+### Notion
+- 🔗 https://www.notion.so/my-integrations
+```bash
+export NOTION_API_KEY="secret_your-notion-key"
+```
+
+### Linear
+- 🔗 https://linear.app/settings/api
+```bash
+export LINEAR_API_KEY="lin_api_your-key"
+```
+
+### Jira
+- 🔗 https://id.atlassian.com/manage-profile/security/api-tokens
+```bash
+export JIRA_API_TOKEN="your-jira-token"
+export JIRA_EMAIL="your-email@example.com"
+export JIRA_DOMAIN="your-domain.atlassian.net"
+```
+
+### Slack
+- 🔗 https://api.slack.com/apps
+```bash
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/xxx/xxx/xxx"
+export SLACK_BOT_TOKEN="xoxb-your-bot-token"
+```
+
+### Discord
+- 🔗 https://discord.com/developers/applications
+```bash
+export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/xxx/xxx"
+export DISCORD_BOT_TOKEN="your-bot-token"
+```
+
+---
+
+## Quick Setup
+
+### Option 1: .env File (Recommended)
+
+Create a `.env` file in the project root:
+
+```bash
+# Copy template
+cp .env.template .env
+
+# Edit with your keys
+nano .env
+```
+
+### Option 2: Shell Export
+
+Add to your `~/.bashrc` or `~/.zshrc`:
+
+```bash
+# AI Provider Keys
+export OPENAI_API_KEY="sk-your-key"
+export ANTHROPIC_API_KEY="sk-ant-your-key"
+export GOOGLE_API_KEY="your-google-key"
+export XAI_API_KEY="xai-your-key"
+```
+
+### Option 3: Environment Manager
+
+Use tools like `direnv` or `dotenv-cli`:
+
+```bash
+# Install direnv
+brew install direnv  # macOS
+apt install direnv   # Ubuntu
+
+# Create .envrc
+echo 'dotenv' > .envrc
+direnv allow
+```
+
+---
+
+## Security Best Practices
+
+1. **Never commit API keys to git**
    - Add `.env` to `.gitignore`
-   - Never share keys publicly
-   - Use environment variables in production
+   - Use `.env.example` for templates
 
-2. **Rotate keys regularly:**
-   - Change keys every 90 days
-   - Revoke old keys when creating new ones
+2. **Use environment-specific keys**
+   - Development, staging, production keys
 
-3. **Set usage limits:**
-   - Configure spending limits in provider dashboards
-   - Monitor usage regularly
-   - Set up alerts for unusual activity
+3. **Rotate keys regularly**
+   - Set calendar reminders
+   - Monitor usage
 
-4. **Use separate keys:**
-   - Different keys for development/production
-   - Different keys for different projects
+4. **Set spending limits**
+   - Configure billing alerts
+   - Use rate limiting
 
----
-
-## 💰 Pricing Information
-
-### OpenAI
-- **Pricing:** Pay-per-use, varies by model
-- **Free Tier:** Limited credits for new accounts
-- **Link:** https://openai.com/pricing
-
-### Anthropic (Claude)
-- **Pricing:** Pay-per-use, varies by model
-- **Free Tier:** Limited credits available
-- **Link:** https://www.anthropic.com/pricing
-
-### Google Gemini
-- **Pricing:** Free tier available, pay-per-use for higher limits
-- **Link:** https://ai.google.dev/pricing
-
-### xAI (Grok)
-- **Pricing:** Check current pricing at https://x.ai
-- **Link:** https://docs.x.ai/pricing
+5. **Use least privilege**
+   - Only grant necessary permissions
+   - Use scoped tokens
 
 ---
 
-## 🚀 Quick Start
+## Troubleshooting
 
-1. **Get at least one API key** (OpenAI or Anthropic recommended)
-2. **Set it as environment variable:**
-   ```bash
-   export OPENAI_API_KEY="sk-your-key-here"
-   ```
-3. **Test it:**
-   ```bash
-   cursor_ai --check-keys
-   cursor_ai --provider openai
-   ```
+### Check if keys are set:
+```bash
+./setup_cursor_ai.sh --check
+# or
+python3 cursor_ai.py --check-keys
+```
 
----
+### Test API connection:
+```bash
+# OpenAI
+curl https://api.openai.com/v1/models \
+  -H "Authorization: Bearer $OPENAI_API_KEY"
 
-## 📚 Additional Resources
+# Anthropic
+curl https://api.anthropic.com/v1/messages \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "anthropic-version: 2023-06-01"
+```
 
-- **cursor_ai Documentation:** See `CURSOR_AI_README.md`
-- **OpenAI API Docs:** https://platform.openai.com/docs
-- **Anthropic API Docs:** https://docs.anthropic.com
-- **Google AI Docs:** https://ai.google.dev/docs
-- **xAI Docs:** https://docs.x.ai
+### Common Issues:
 
----
+1. **"API key not set"**
+   - Ensure `.env` is in project root
+   - Run `source ~/.bashrc` after adding exports
 
-## ❓ Troubleshooting
+2. **"Invalid API key"**
+   - Check for typos
+   - Verify key hasn't expired
+   - Check billing status
 
-### "API key not set" error
-- Check key is set: `echo $OPENAI_API_KEY`
-- Reload shell: `source ~/.zshrc`
-- Check `.env` file exists and is in project root
-
-### "Invalid API key" error
-- Verify key is correct (no extra spaces)
-- Check key hasn't expired
-- Ensure billing is set up (for OpenAI/Anthropic)
-
-### "Rate limit exceeded" error
-- Check usage limits in provider dashboard
-- Wait for rate limit to reset
-- Consider upgrading plan if needed
+3. **"Rate limited"**
+   - Wait and retry
+   - Upgrade plan if needed
+   - Implement backoff
 
 ---
 
-**Last Updated:** December 17, 2025
+## Support Links
 
+| Provider | Documentation | Support |
+|----------|--------------|---------|
+| OpenAI | [docs.openai.com](https://platform.openai.com/docs) | [help.openai.com](https://help.openai.com) |
+| Anthropic | [docs.anthropic.com](https://docs.anthropic.com) | [support.anthropic.com](https://support.anthropic.com) |
+| Google | [ai.google.dev](https://ai.google.dev/docs) | [cloud.google.com/support](https://cloud.google.com/support) |
+| xAI | [x.ai/docs](https://docs.x.ai) | [x.ai/contact](https://x.ai/contact) |
+
+---
+
+*Last updated: December 2024*
