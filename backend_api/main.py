@@ -84,6 +84,8 @@ from backend_api.routers import (
     versions,
     unified_logs,
     ai_analysis,
+    orchestrator,
+    workspace_health,
 )
 
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
@@ -144,6 +146,8 @@ app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(versions.router, prefix="/api/documents", tags=["versions"])
 app.include_router(unified_logs.router, prefix="/api/logs", tags=["logs"])
 app.include_router(ai_analysis.router, prefix="/api/ai-analysis", tags=["ai_analysis"])
+app.include_router(orchestrator.router, tags=["orchestrator"])
+app.include_router(workspace_health.router, prefix="/api", tags=["workspace_health"])
 
 # Legacy compatibility routes without the /api prefix.
 @app.get("/system", include_in_schema=False)

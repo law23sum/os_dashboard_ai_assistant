@@ -49,6 +49,7 @@ import WorkspaceHealth from './pages/WorkspaceHealth'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Admin from './pages/Admin'
+import MasterOrchestrator from './pages/MasterOrchestrator'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 
 const normalizeBasePath = (value?: string | null): string => {
@@ -156,6 +157,7 @@ function App() {
             <Route path="/ai/capsules" element={<CapsuleMarketplace />} />
             <Route path="/ai/autofix" element={<AutoFix />} />
             <Route path="/ai/intents" element={<IntentProcessor />} />
+            <Route path="/ai/orchestrator" element={<MasterOrchestrator />} />
             {/* Legacy redirects for backward compatibility */}
             <Route path="/ai-ops" element={<Navigate to="/ai/operations" replace />} />
             <Route path="/ai-os" element={<Navigate to="/ai/os" replace />} />

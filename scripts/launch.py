@@ -12,6 +12,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).parent.parent
 FRONTEND_DIR = REPO_ROOT / "frontend"
 BACKEND_DIR = REPO_ROOT / "backend_api"
+OSD_AUTOFIX = REPO_ROOT / "scripts" / "osd_autofix.py"
 
 def print_banner():
     print("=" * 60)
@@ -27,14 +28,36 @@ def get_user_choice():
     print("  3. Backend API Only (http://localhost:8000)")
     print("  4. Both Web and Backend API")
     print("  5. Both Desktop and Backend API")
+    print("  6. Preflight checks (dry) + then choose")
     print("  0. Exit")
     print()
     
     while True:
-        choice = input("Enter your choice (0-5): ").strip()
-        if choice in ['0', '1', '2', '3', '4', '5']:
+        choice = input("Enter your choice (0-6): ").strip()
+        if choice in ['0', '1', '2', '3', '4', '5', '6']:
             return choice
-        print("Invalid choice. Please enter 0-5.")
+        print("Invalid choice. Please enter 0-6.")
+
+
+def run_preflight_checks():
+    """Run quick, safe checks before launching."""
+    if not OSD_AUTOFIX.exists():
+        print("Preflight unavailable: scripts/osd_autofix.py missing.")
+        return
+    print("Running preflight checks (lint,test) with no autofix...")
+    subprocess.run(
+        [
+            sys.executable,
+            str(OSD_AUTOFIX),
+            "--repo",
+            str(REPO_ROOT),
+            "--categories",
+            "lint,test",
+            "--timeout",
+            "240",
+        ],
+        cwd=REPO_ROOT,
+    )
 
 def check_dependencies():
     """Check if required dependencies are installed"""
@@ -135,6 +158,10 @@ def main():
     
     # Get user choice
     choice = get_user_choice()
+
+    if choice == '6':
+        run_preflight_checks()
+        choice = get_user_choice()
     
     if choice == '0':
         print("Exiting.")
