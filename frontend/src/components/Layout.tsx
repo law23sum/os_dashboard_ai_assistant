@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   ChevronDown,
@@ -15,7 +15,7 @@ import PlatformFeatureSidebar from './PlatformFeatureSidebar'
 import { navigationManifest, findCategoryByPath, getAllPagesFromCategory, type NavCategory } from '../data/navigationManifest'
 
 interface LayoutProps {
-  children: ReactNode
+  children?: ReactNode
 }
 
 interface NavDropdownProps {
@@ -38,7 +38,7 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
       const buttonRect = buttonRef.current.getBoundingClientRect()
       const viewportWidth = window.innerWidth
       const dropdownWidth = 288 // w-72
-      
+
       let left = buttonRect.left
       if (left + dropdownWidth > viewportWidth) {
         left = viewportWidth - dropdownWidth - 16
@@ -54,12 +54,12 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
   }, [expanded])
   const updatePosition = useCallback(() => {
     if (!buttonRef.current || !dropdownRef.current || !expanded) return
-    
+
     const buttonRect = buttonRef.current.getBoundingClientRect()
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
     const dropdownWidth = 288
-    
+
     let left = buttonRect.left
     if (left + dropdownWidth > viewportWidth) {
       left = viewportWidth - dropdownWidth - 16
@@ -68,7 +68,7 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
 
     const top = buttonRect.bottom + 8
     const dropdownHeight = dropdownRef.current.offsetHeight || 400
-    
+
     let finalTop = top
     if (top + dropdownHeight > viewportHeight && buttonRect.top > dropdownHeight) {
       finalTop = buttonRect.top - dropdownHeight - 8
@@ -108,15 +108,15 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
     e.preventDefault()
     onToggle()
   }, [onToggle])
-    
+
     isTogglingRef.current = true
-    
+
     if (expanded) {
       onClose()
     } else {
       onToggle()
     }
-    
+
     requestAnimationFrame(() => {
       setTimeout(() => {
         isTogglingRef.current = false
@@ -156,7 +156,7 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
       document.addEventListener('click', handleClickOutside, true)
       document.addEventListener('keydown', handleEscape, true)
     }, 50)
-      
+
       onClose()
     }
 
@@ -207,7 +207,7 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
             style={{ 
               position: 'fixed', 
               zIndex: 99999, 
-              pointerEvents: 'auto' 
+              pointerEvents: 'auto'
             }}
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
@@ -312,8 +312,8 @@ function Sidebar({ category, currentPath }: SidebarProps) {
                     to={item.path}
                     className={`
                       flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
-                      ${isActive 
-                        ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20 shadow-sm' 
+                      ${isActive
+                        ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20 shadow-sm'
                         : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
                       }
                     `}
@@ -343,7 +343,7 @@ export default function Layout({ children }: LayoutProps) {
   const [openCategoryPath, setOpenCategoryPath] = useState<string | null>(null)
   const { data: settings } = useAppSettings()
   const aiButtonRef = useRef<HTMLButtonElement>(null)
-  
+
   const [aiPanelOpen, setAiPanelOpen] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
     try {
@@ -482,7 +482,7 @@ export default function Layout({ children }: LayoutProps) {
             {/* Primary Navigation */}
             <div className="flex h-16" style={{ overflow: 'visible', position: 'relative', zIndex: 1 }}>
               <div className="flex-shrink-0 flex items-center gap-3" style={{ position: 'relative', zIndex: 1 }}>
-                <button 
+                <button
                   className="lg:hidden p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)]"
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 >
@@ -552,6 +552,8 @@ export default function Layout({ children }: LayoutProps) {
 
           {/* Main Content Pane */}
           <div className="flex-1 min-w-0 w-full">{children}</div>
+        <div className="flex flex-col gap-8 lg:flex-row w-full">
+          <div className="flex-1 min-w-0 w-full">{children ?? <Outlet />}</div>
         </div>
       </main>
 

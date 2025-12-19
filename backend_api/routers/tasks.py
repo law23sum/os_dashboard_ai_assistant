@@ -1,5 +1,5 @@
 """Tasks API router."""
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Optional
 from pydantic import BaseModel
 import sys
@@ -18,6 +18,8 @@ from assistant_hub_gui.assistant_hub.db import (
     db_record_project_event,
 )
 from backend_api.db import db_session
+from backend_api.deps import get_current_user
+from backend_api.security import AuthUser
 
 router = APIRouter()
 
@@ -87,11 +89,17 @@ async def list_tasks(
     project: Optional[str] = None,
     status: Optional[str] = None,
     priority: Optional[str] = None,
+    user: AuthUser = Depends(get_current_user),
 ):
     """List all tasks with optional filtering."""
+<<<<<<< HEAD
+    query = "SELECT * FROM tasks WHERE 1=1 AND user_id = ?"
+    params = [user.id]
+=======
     try:
         query = "SELECT * FROM tasks WHERE 1=1"
         params = []
+>>>>>>> incremeents
 
         if project:
             query += " AND project = ?"
@@ -134,14 +142,22 @@ async def list_tasks(
         raise HTTPException(status_code=500, detail=f"Failed to fetch tasks: {str(e)}")
 
 @router.get("/{task_id}", response_model=TaskResponse)
-async def get_task(task_id: int):
+async def get_task(task_id: int, user: AuthUser = Depends(get_current_user)):
     """Get a single task by ID."""
+<<<<<<< HEAD
+    with db_session() as db:
+        cursor = db.execute("SELECT * FROM tasks WHERE id = ? AND user_id = ?", (task_id, user.id))
+        row = cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Task not found")
+=======
     try:
         with db_session() as db:
             cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
             row = cursor.fetchone()
             if not row:
                 raise HTTPException(status_code=404, detail="Task not found")
+>>>>>>> incremeents
 
             columns = [description[0] for description in cursor.description]
             task_dict = dict(zip(columns, row))
@@ -154,7 +170,7 @@ async def get_task(task_id: int):
         raise HTTPException(status_code=500, detail=f"Failed to fetch task: {str(e)}")
 
 @router.post("/", response_model=TaskResponse, status_code=201)
-async def create_task(task: TaskCreate):
+async def create_task(task: TaskCreate, user: AuthUser = Depends(get_current_user)):
     """Create a new task."""
     if task.status not in STATUS_OPTIONS:
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of {STATUS_OPTIONS}")
@@ -177,10 +193,11 @@ async def create_task(task: TaskCreate):
             time_estimated=task.time_estimated,
             time_logged=task.time_logged,
             template_id=task.template_id,
+            user_id=user.id,
         )
         task_id = db_insert_task(db, db_task)
 
-        cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+        cursor = db.execute("SELECT * FROM tasks WHERE id = ? AND user_id = ?", (task_id, user.id))
         row = cursor.fetchone()
         columns = [description[0] for description in cursor.description]
         task_dict = dict(zip(columns, row))
@@ -191,11 +208,12 @@ async def create_task(task: TaskCreate):
             entity_type="task",
             entity_id=str(task_id),
             payload=_task_event_payload(task_dict),
+            user_id=user.id,
         )
     return TaskResponse(**task_dict)
 
 @router.put("/{task_id}", response_model=TaskResponse)
-async def update_task(task_id: int, task_update: TaskUpdate):
+async def update_task(task_id: int, task_update: TaskUpdate, user: AuthUser = Depends(get_current_user)):
     """Update an existing task."""
     update_dict = task_update.model_dump(exclude_unset=True)
     if update_dict.get("status") and update_dict["status"] not in STATUS_OPTIONS:
@@ -204,7 +222,7 @@ async def update_task(task_id: int, task_update: TaskUpdate):
         raise HTTPException(status_code=400, detail=f"Invalid priority. Must be one of {PRIORITY_OPTIONS}")
 
     with db_session() as db:
-        cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+        cursor = db.execute("SELECT * FROM tasks WHERE id = ? AND user_id = ?", (task_id, user.id))
         row = cursor.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Task not found")
@@ -234,7 +252,7 @@ async def update_task(task_id: int, task_update: TaskUpdate):
         
         db_update_task(db, db_task)
 
-        cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+        cursor = db.execute("SELECT * FROM tasks WHERE id = ? AND user_id = ?", (task_id, user.id))
         row = cursor.fetchone()
         columns = [description[0] for description in cursor.description]
         task_dict = dict(zip(columns, row))
@@ -245,14 +263,15 @@ async def update_task(task_id: int, task_update: TaskUpdate):
             entity_type="task",
             entity_id=str(task_id),
             payload=_task_event_payload(task_dict),
+            user_id=user.id,
         )
     return TaskResponse(**task_dict)
 
 @router.delete("/{task_id}", status_code=204)
-async def delete_task(task_id: int):
+async def delete_task(task_id: int, user: AuthUser = Depends(get_current_user)):
     """Delete a task."""
     with db_session() as db:
-        cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+        cursor = db.execute("SELECT * FROM tasks WHERE id = ? AND user_id = ?", (task_id, user.id))
         row = cursor.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Task not found")
@@ -267,5 +286,6 @@ async def delete_task(task_id: int):
             entity_type="task",
             entity_id=str(task_id),
             payload=_task_event_payload(task_dict),
+            user_id=user.id,
         )
     return None

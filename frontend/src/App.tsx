@@ -3,6 +3,9 @@ import { useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from './utils/toast'
 import Layout from './components/Layout'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import Admin from './pages/Admin'
 import Research from './pages/Research'
 import Dashboard from './pages/Dashboard'
 import Tasks from './pages/Tasks'
@@ -51,6 +54,9 @@ import Signup from './pages/Signup'
 import Admin from './pages/Admin'
 import ProjectOrchestrator from './pages/ProjectOrchestrator'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
+import { AuthProvider } from './auth/AuthContext'
+import { RequireAuth } from './auth/RequireAuth'
+import { RequireAdmin } from './auth/RequireAdmin'
 import ProtectedRoute from './components/ProtectedRoute'
 
 const normalizeBasePath = (value?: string | null): string => {
@@ -118,7 +124,7 @@ function App() {
             {/* Public Routes (No Layout) */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            
+
             {/* Protected Routes (With Layout) */}
             <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               {/* Root & Core Pages */}
@@ -148,6 +154,23 @@ function App() {
             <Route path="/projects" element={<Projects />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/research" element={<Research />} />
+      <AuthProvider>
+        <Router basename={useHashRouter ? undefined : basePath}>
+          <AppErrorBoundary>
+            <Routes>
+              {/* Public */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+
+              {/* Protected app */}
+              <Route element={<RequireAuth><Layout /></RequireAuth>}>
+                {/* Root & Core Pages */}
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/research" element={<Research />} />
 
             {/* Work & Writing Hierarchy: /work/* */}
             <Route path="/work" element={<Navigate to="/work/templates" replace />} />
@@ -263,6 +286,23 @@ function App() {
             {/* Settings */}
             <Route path="/settings" element={<Settings />} />
 
+                {/* Admin */}
+                <Route
+                  path="/admin"
+                  element={
+                    <RequireAdmin>
+                      <Admin />
+                    </RequireAdmin>
+                  }
+                />
+
+                {/* Catch-all */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
+            </Routes>
+          </AppErrorBoundary>
+        </Router>
+      </AuthProvider>
             {/* Admin Panel - Requires admin role */}
             <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
 
