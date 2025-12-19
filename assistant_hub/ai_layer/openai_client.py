@@ -223,7 +223,20 @@ class OpenAIClient:
     ) -> Dict[str, Any]:
         """Use OpenAI function calling (Responses API custom tools)."""
         try:
-            tools = [{"type": "function", "function": fn} for fn in (functions or [])]
+            # Responses API expects function tools in the shape:
+            # {"type":"function","name":...,"description":...,"parameters":...}
+            tools: List[Dict[str, Any]] = []
+            for fn in functions or []:
+                if not isinstance(fn, dict):
+                    continue
+                if fn.get("type") == "function" and "name" in fn:
+                    tools.append(fn)
+                    continue
+                # Accept "function": {...} (Chat Completions style) too.
+                inner = fn.get("function") if fn.get("type") == "function" else fn
+                if isinstance(inner, dict) and inner.get("name"):
+                    tool = {"type": "function", **inner}
+                    tools.append(tool)
             response = await self.client.responses.create(
                 model=self.config.openai_model,
                 input=[{"role": "user", "content": [{"type": "input_text", "text": message}]}],
