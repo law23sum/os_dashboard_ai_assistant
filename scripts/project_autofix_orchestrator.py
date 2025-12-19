@@ -25,6 +25,7 @@ capabilities are missing.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shlex
 import signal
@@ -38,6 +39,7 @@ from typing import Dict, Iterable, List, Optional, Sequence
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_SKIP_DIRS = {".git", "node_modules", "__pycache__", ".venv", "venv", ".mypy_cache"}
+DEFAULT_HOME_AUTOFIX = REPO_ROOT / "scripts" / "ai_auto_fix.py"
 
 
 def parse_env_pairs(items: Sequence[str]) -> Dict[str, str]:
@@ -103,11 +105,28 @@ def parse_args() -> argparse.Namespace:
         help="Extra arguments passed to each ai_auto_fix invocation.",
     )
     parser.add_argument(
+        "--home-autofix",
+        type=Path,
+        default=DEFAULT_HOME_AUTOFIX,
+        help="Fallback ai_auto_fix.py to use when a repo does not ship scripts/ai_auto_fix.py.",
+    )
+    parser.add_argument(
+        "--no-home-fallback",
+        action="store_true",
+        help="Disable fallback to --home-autofix for repos missing scripts/ai_auto_fix.py.",
+    )
+    parser.add_argument(
         "--env",
         action="append",
         default=[],
         metavar="KEY=VALUE",
         help="Environment variables injected into child monitor processes.",
+    )
+    parser.add_argument(
+        "--snapshot-ndjson",
+        type=Path,
+        default=REPO_ROOT / "logs" / "osdash" / "autofix-orchestrator.ndjson",
+        help="Optional NDJSON file to append structured orchestrator events.",
     )
     parser.add_argument(
         "--health-log",
@@ -142,7 +161,13 @@ class RepoTarget:
     def command(self, extra_args: Sequence[str]) -> List[str]:
         if not self.autofix_script:
             raise RuntimeError(f"{self.path} does not have scripts/ai_auto_fix.py")
-        return [sys.executable, str(self.autofix_script), *extra_args]
+        return [
+            sys.executable,
+            str(self.autofix_script),
+            "--project-root",
+            str(self.path),
+            *extra_args,
+        ]
 
 
 def discover_git_repos(root: Path, max_depth: int, skip_dirs: Iterable[str]) -> List[Path]:
@@ -263,11 +288,26 @@ def make_logger(log_path: Path):
     return _log
 
 
+def make_snapshotter(path: Optional[Path], run_id: str):
+    if not path:
+        return lambda event: None
+    ensure_log_directory(path)
+
+    def _emit(event: Dict[str, object]) -> None:
+        payload = {"run_id": run_id, "timestamp": time.time(), **event}
+        with path.open("a", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False)
+            handle.write("\n")
+
+    return _emit
+
+
 def main() -> None:
     args = parse_args()
     extra_args = shlex.split(args.ai_args)
     env = os.environ.copy()
     env.update(parse_env_pairs(args.env))
+    run_id = f"autofix-{int(time.time())}"
 
     skip_dirs = DEFAULT_SKIP_DIRS | set(args.skip_dir)
     repos = discover_git_repos(args.root, args.max_depth, skip_dirs)
@@ -277,14 +317,33 @@ def main() -> None:
         targets = targets[: args.max_repos]
 
     logger = make_logger(args.health_log)
+    snapshot = make_snapshotter(args.snapshot_ndjson, run_id)
+    snapshot({"type": "orchestrator_start", "root": str(args.root), "max_depth": args.max_depth})
     logger(f"Discovered {len(targets)} repositories under {args.root}")
     for repo in targets:
         logger(format_repo(repo))
+        snapshot(
+            {
+                "type": "repo_discovered",
+                "repo": str(repo.path),
+                "status": "ready" if repo.autofix_script else "missing",
+            }
+        )
 
     if args.scan_only:
         return
 
-    ready = [repo for repo in targets if repo.autofix_script]
+    home_autofix = args.home_autofix.expanduser().resolve()
+    ready: List[RepoTarget] = []
+    for repo in targets:
+        if repo.autofix_script:
+            ready.append(repo)
+            continue
+        if not args.no_home_fallback and home_autofix.exists():
+            ready.append(RepoTarget(path=repo.path, autofix_script=home_autofix))
+            snapshot({"type": "repo_fallback", "repo": str(repo.path), "autofix": str(home_autofix)})
+        else:
+            snapshot({"type": "repo_skipped", "repo": str(repo.path), "reason": "no autofix script"})
     if not ready:
         logger("No repositories with scripts/ai_auto_fix.py were found. Exiting.")
         return
@@ -292,6 +351,7 @@ def main() -> None:
     if args.dry_run:
         for repo in ready:
             logger(f"[dry-run] {' '.join(repo.command(extra_args))} @ {repo.path}")
+            snapshot({"type": "repo_plan", "repo": str(repo.path), "cmd": repo.command(extra_args)})
         return
 
     monitors = [Monitor(repo, repo.command(extra_args), env, logger) for repo in ready]
@@ -305,12 +365,20 @@ def main() -> None:
         else:
             for monitor in monitors:
                 monitor.start()
+                snapshot(
+                    {
+                        "type": "monitor_started",
+                        "repo": str(monitor.repo.path),
+                        "pid": monitor.process.pid if monitor.process else None,
+                    }
+                )
             wait_for_interrupt(logger)
     except KeyboardInterrupt:
         logger("Received interrupt, stopping monitors...")
     finally:
         for monitor in monitors:
             monitor.stop()
+            snapshot({"type": "monitor_stopped", "repo": str(monitor.repo.path)})
 
 
 def wait_for_interrupt(logger) -> None:
