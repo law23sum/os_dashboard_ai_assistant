@@ -507,12 +507,17 @@ class ConditionalExecutor(WorkflowActionExecutor):
         """Evaluate Python expression (restricted)"""
 
         # This is a simplified and potentially unsafe implementation
-
         # In production, use a proper expression evaluator with sandboxing
+        
+        # Validate expression doesn't contain dangerous patterns
+        dangerous_patterns = ['import', '__', 'exec', 'eval', 'compile', 'open', 'file']
+        if any(pattern in expression.lower() for pattern in dangerous_patterns):
+            import logging
+            logging.warning(f"Blocked potentially dangerous expression: {expression}")
+            return False
 
         try:
             # Create safe namespace
-
             namespace = {
                 "context": context,
                 "action_results": context.get("action_results", {}),
@@ -526,7 +531,9 @@ class ConditionalExecutor(WorkflowActionExecutor):
 
             return bool(eval(expression, {"__builtins__": {}}, namespace))
 
-        except Exception:
+        except (SyntaxError, NameError, TypeError, AttributeError) as e:
+            import logging
+            logging.error(f"Error evaluating expression '{expression}': {e}")
             return False
 
 
