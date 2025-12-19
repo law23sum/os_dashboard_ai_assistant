@@ -586,26 +586,35 @@ def _serialize_events(events: List[Dict[str, Any]]) -> List[ProjectLedgerEvent]:
 @router.get("/", response_model=List[ProjectResponse])
 async def list_projects(status: Optional[str] = None):
     """List all projects with optional status filtering."""
-    query = "SELECT * FROM projects WHERE 1=1"
-    params = []
+    try:
+        query = "SELECT * FROM projects WHERE 1=1"
+        params = []
 
-    if status:
-        query += " AND status = ?"
-        params.append(status)
+        if status:
+            query += " AND status = ?"
+            params.append(status)
 
-    query += " ORDER BY order_num, name"
+        query += " ORDER BY order_num, name"
 
-    with db_session() as db:
-        cursor = db.execute(query, params)
-        rows = cursor.fetchall()
-        columns = [description[0] for description in cursor.description]
+        with db_session() as db:
+            cursor = db.execute(query, params)
+            rows = cursor.fetchall()
+            # Handle case where query returns no rows
+            if cursor.description:
+                columns = [description[0] for description in cursor.description]
+            else:
+                columns = []
 
-    projects = []
-    for row in rows:
-        project_dict = dict(zip(columns, row))
-        projects.append(ProjectResponse(**project_dict))
+        projects = []
+        for row in rows:
+            project_dict = dict(zip(columns, row))
+            projects.append(ProjectResponse(**project_dict))
 
-    return projects
+        return projects
+    except Exception as e:
+        import logging
+        logging.error(f"Error fetching projects: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch projects: {str(e)}")
 
 
 @router.get("/links", response_model=List[ProjectLinkResponse])
@@ -624,12 +633,19 @@ async def list_links(project: Optional[str] = None, integration: Optional[str] =
 @router.get("/ledger", response_model=List[ProjectLedgerEvent])
 async def list_project_ledger(project: Optional[str] = None, limit: int = 50):
     """Return recent ledger events for one or all projects."""
-    safe_limit = max(1, min(limit, 500))
-    with db_session() as db:
-        if project and not _project_exists(db, project):
-            raise HTTPException(status_code=404, detail="Project not found")
-        events = db_list_project_events(db, project_id=project, limit=safe_limit)
-    return _serialize_events(events)
+    try:
+        safe_limit = max(1, min(limit, 500))
+        with db_session() as db:
+            if project and not _project_exists(db, project):
+                raise HTTPException(status_code=404, detail="Project not found")
+            events = db_list_project_events(db, project_id=project, limit=safe_limit)
+        return _serialize_events(events)
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.error(f"Error fetching project ledger: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch project ledger: {str(e)}")
 
 
 @router.get("/count")
@@ -698,6 +714,30 @@ async def get_project_insights(project_name: str):
     )
 
 
+<<<<<<< HEAD
+=======
+@router.get("/intelligence", response_model=List[ProjectIntelligenceResponse])
+async def list_project_intelligence():
+    """Return calculated project intelligence/health metrics.
+    
+    Optimized to fetch all tasks once instead of per-project queries (N+1 fix).
+    """
+    try:
+        with db_session() as db:
+            cursor = db.execute("SELECT name FROM projects ORDER BY order_num, name")
+            project_rows = cursor.fetchall()
+            # Fetch all tasks once and group by project (fixes N+1 query issue)
+            tasks_map = _group_tasks_by_project(db)
+            return [
+                _compute_project_intelligence(db, project_row["name"], tasks_map) for project_row in project_rows
+            ]
+    except Exception as e:
+        import logging
+        logging.error(f"Error fetching project intelligence: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch project intelligence: {str(e)}")
+
+
+>>>>>>> incremeents
 @router.get("/{project_name}/intelligence", response_model=ProjectIntelligenceResponse)
 async def get_project_intelligence(project_name: str):
     """Return intelligence metrics for a single project."""
