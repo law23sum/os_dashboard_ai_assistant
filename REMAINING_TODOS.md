@@ -1,12 +1,12 @@
 # Remaining TODOs — Guardian Grid Track
 
 ## 1. Automation Runtime
-- [ ] Teach `scripts/ai_auto_fix.py` to accept a `--project-root /path/to/repo` flag so one installation can service sibling repos discovered by the orchestrator.
-- [ ] Emit structured JSON/NDJSON snapshots from `project_autofix_orchestrator.py` (status per repo, timestamps, command line) that the React dashboard can ingest.
+- [x] Teach `scripts/ai_auto_fix.py` to accept a `--project-root /path/to/repo` flag so one installation can service sibling repos discovered by the orchestrator.
+- [x] Emit structured JSON/NDJSON snapshots from `project_autofix_orchestrator.py` (status per repo, timestamps, command line) that the React dashboard can ingest.
 - [ ] Add regression tests (pytest) that stub subprocesses and verify orchestrator behavior for scan-only, dry-run, and graceful shutdown flows.
 
 ## 2. Experience Layer
-- [ ] Surface orchestrator + auto-fix health status within the React dashboard (banner + diagnostics drawer), consuming the structured log snapshots.
+- [x] Surface orchestrator + auto-fix health status within the React dashboard (banner + diagnostics drawer), consuming the structured log snapshots.
 - [ ] Extend `run.py` / launcher prompts to optionally kick off `project_autofix_orchestrator.py --scan-only` before presenting UX mode choices.
 
 ## 3. Documentation & Ops
