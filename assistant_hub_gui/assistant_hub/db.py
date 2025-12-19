@@ -204,6 +204,21 @@ class DocumentOperation:
     notes: str = ""
 
 
+@dataclass
+class UserAccount:
+    """Authenticated user account for multi-tenant web/desktop surfaces."""
+
+    id: str
+    email: str
+    display_name: str = ""
+    password_hash: str = ""
+    is_admin: bool = False
+    environment: str = "demo"  # demo | prod
+    disabled: bool = False
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    last_login: Optional[str] = None
+
+
 def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
     """Initialize the SQLite database (creating tables if needed) and return a connection."""
 
@@ -223,6 +238,71 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
             value TEXT
         )
     """)
+
+    # ---------------------------------------------------------------------
+    # Auth & tenancy tables (web + desktop)
+    # ---------------------------------------------------------------------
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            display_name TEXT,
+            password_hash TEXT NOT NULL,
+            is_admin INTEGER DEFAULT 0,
+            environment TEXT DEFAULT 'demo',
+            disabled INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL,
+            last_login TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS audit_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            event_type TEXT NOT NULL,
+            object_type TEXT,
+            object_id TEXT,
+            ip TEXT,
+            user_agent TEXT,
+            created_at TEXT NOT NULL,
+            metadata_json TEXT,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_audit_events_user_time
+        ON audit_events(user_id, datetime(created_at) DESC)
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS event_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            source TEXT NOT NULL,
+            level TEXT NOT NULL,
+            message TEXT NOT NULL,
+            user_id TEXT,
+            thread TEXT,
+            process TEXT,
+            metadata_json TEXT,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_event_log_time
+        ON event_log(datetime(timestamp) DESC, id DESC)
+        """
+    )
 
     c.execute("""
         CREATE TABLE IF NOT EXISTS tasks (
@@ -258,6 +338,12 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
     for col_name, col_type in new_columns:
         if col_name not in columns:
             c.execute(f"ALTER TABLE tasks ADD COLUMN {col_name} {col_type}")
+
+    # Add tenant/user binding
+    c.execute("PRAGMA table_info(tasks)")
+    columns = [row[1] for row in c.fetchall()]
+    if "user_id" not in columns:
+        c.execute("ALTER TABLE tasks ADD COLUMN user_id TEXT DEFAULT 'demo'")
     
     # Create task_templates table
     c.execute("""
@@ -294,6 +380,11 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
         if col_name not in columns:
             c.execute(f"ALTER TABLE projects ADD COLUMN {col_name} {col_type}")
 
+    c.execute("PRAGMA table_info(projects)")
+    columns = [row[1] for row in c.fetchall()]
+    if "user_id" not in columns:
+        c.execute("ALTER TABLE projects ADD COLUMN user_id TEXT DEFAULT 'demo'")
+
     c.execute("""
         CREATE TABLE IF NOT EXISTS external_sources (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -329,6 +420,11 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
         )
     """)
 
+    c.execute("PRAGMA table_info(chat_messages)")
+    columns = [row[1] for row in c.fetchall()]
+    if "user_id" not in columns:
+        c.execute("ALTER TABLE chat_messages ADD COLUMN user_id TEXT DEFAULT 'demo'")
+
     c.execute("""
         CREATE TABLE IF NOT EXISTS note_links (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -348,6 +444,10 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
     columns = [row[1] for row in c.fetchall()]
     if "description" not in columns:
         c.execute("ALTER TABLE note_links ADD COLUMN description TEXT DEFAULT ''")
+    c.execute("PRAGMA table_info(note_links)")
+    columns = [row[1] for row in c.fetchall()]
+    if "user_id" not in columns:
+        c.execute("ALTER TABLE note_links ADD COLUMN user_id TEXT DEFAULT 'demo'")
 
     c.execute("""
         CREATE TABLE IF NOT EXISTS agent_runs (
@@ -361,6 +461,11 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
             created_at TEXT
         )
     """)
+
+    c.execute("PRAGMA table_info(agent_runs)")
+    columns = [row[1] for row in c.fetchall()]
+    if "user_id" not in columns:
+        c.execute("ALTER TABLE agent_runs ADD COLUMN user_id TEXT DEFAULT 'demo'")
 
     # Document operations table for AI-driven updates and external sync
     c.execute(
@@ -384,6 +489,11 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
         """
     )
 
+    c.execute("PRAGMA table_info(document_operations)")
+    columns = [row[1] for row in c.fetchall()]
+    if "user_id" not in columns:
+        c.execute("ALTER TABLE document_operations ADD COLUMN user_id TEXT DEFAULT 'demo'")
+
     c.execute(
         """
         CREATE TABLE IF NOT EXISTS project_events (
@@ -397,6 +507,11 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
         )
         """
     )
+
+    c.execute("PRAGMA table_info(project_events)")
+    columns = [row[1] for row in c.fetchall()]
+    if "user_id" not in columns:
+        c.execute("ALTER TABLE project_events ADD COLUMN user_id TEXT DEFAULT 'demo'")
 
     c.execute(
         """
@@ -583,7 +698,63 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
 
 
     conn.commit()
+    _ensure_bootstrap_accounts(conn)
     return conn
+
+
+def _bcrypt_hash_password(raw_password: str) -> str:
+    """Hash a password for storage (bcrypt)."""
+    import bcrypt  # local import to avoid hard dep at module import time
+
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(raw_password.encode("utf-8"), salt)
+    return hashed.decode("utf-8")
+
+
+def _ensure_bootstrap_accounts(conn: sqlite3.Connection) -> None:
+    """Ensure an initial admin + demo user exist (dev-friendly defaults).
+
+    Credentials are controlled via env vars:
+    - OSDASH_ADMIN_EMAIL
+    - OSDASH_ADMIN_PASSWORD
+    - OSDASH_DEMO_EMAIL
+    - OSDASH_DEMO_PASSWORD
+    """
+
+    admin_id = os.getenv("OSDASH_ADMIN_ID", "admin").strip() or "admin"
+    demo_id = os.getenv("OSDASH_DEMO_ID", "demo").strip() or "demo"
+    admin_email = os.getenv("OSDASH_ADMIN_EMAIL", "admin@osdash.local").strip().lower()
+    admin_password = os.getenv("OSDASH_ADMIN_PASSWORD", "ChangeMeNow!").strip()
+    demo_email = os.getenv("OSDASH_DEMO_EMAIL", "demo@osdash.local").strip().lower()
+    demo_password = os.getenv("OSDASH_DEMO_PASSWORD", "demo").strip()
+
+    now = datetime.now().isoformat(timespec="seconds")
+    cur = conn.cursor()
+
+    def _upsert_user(*, user_id: str, email: str, password: str, is_admin: bool, environment: str) -> None:
+        cur.execute("SELECT id FROM users WHERE email = ?", (email,))
+        row = cur.fetchone()
+        if row:
+            return
+        cur.execute(
+            """
+            INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, NULL)
+            """,
+            (
+                user_id,
+                email,
+                "Admin" if is_admin else "Demo User",
+                _bcrypt_hash_password(password),
+                1 if is_admin else 0,
+                environment,
+                now,
+            ),
+        )
+
+    _upsert_user(user_id=admin_id, email=admin_email, password=admin_password, is_admin=True, environment="prod")
+    _upsert_user(user_id=demo_id, email=demo_email, password=demo_password, is_admin=False, environment="demo")
+    conn.commit()
 
 
 def get_meta(conn: sqlite3.Connection, key: str, default: Optional[str] = None) -> Optional[str]:
@@ -858,7 +1029,7 @@ def save_security_status(conn: sqlite3.Connection, status: SecurityStatus):
     set_meta(conn, "security.source", status.source)
 
 
-def db_upsert_project(conn: sqlite3.Connection, proj: Project):
+def db_upsert_project(conn: sqlite3.Connection, proj: Optional[Project] = None, **kwargs):
     c = conn.cursor()
     # Check if new columns exist, if not add them
     c.execute("PRAGMA table_info(projects)")
@@ -870,17 +1041,24 @@ def db_upsert_project(conn: sqlite3.Connection, proj: Project):
         c.execute("ALTER TABLE projects ADD COLUMN order_num INTEGER DEFAULT 0")
         conn.commit()
 
+    if proj is None:
+        proj = Project(**kwargs)
+
+    # Default user_id fallback for older callers
+    user_id = getattr(proj, "user_id", None) or kwargs.get("user_id") or "demo"
+
     c.execute(
         """
-        INSERT INTO projects (name, description, status, priority, order_num)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO projects (name, description, status, priority, order_num, user_id)
+        VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT(name) DO UPDATE SET
             description = excluded.description,
             status = excluded.status,
             priority = excluded.priority,
-            order_num = excluded.order_num
+            order_num = excluded.order_num,
+            user_id = excluded.user_id
         """,
-        (proj.name, proj.description, proj.status, proj.priority, proj.order_num),
+        (proj.name, proj.description, proj.status, proj.priority, proj.order_num, user_id),
     )
     conn.commit()
 
@@ -891,23 +1069,86 @@ def db_delete_project(conn: sqlite3.Connection, name: str):
     conn.commit()
 
 
-def db_insert_task(conn: sqlite3.Connection, t: Task) -> int:
+def db_insert_task(conn: sqlite3.Connection, t: Optional[Task] = None, **kwargs) -> int:
+    if t is None:
+        # id is auto-increment; placeholder 0
+        t = Task(
+            id=0,
+            title=kwargs.get("title", ""),
+            project=kwargs.get("project", "General"),
+            status=kwargs.get("status", "TODO"),
+            priority=kwargs.get("priority", "MEDIUM"),
+            due_date=kwargs.get("due_date", "") or "",
+            notes=kwargs.get("notes", "") or "",
+            owner=kwargs.get("owner", "Chris"),
+            created_at=kwargs.get("created_at", datetime.now().isoformat(timespec="seconds")),
+            depends_on=kwargs.get("depends_on"),
+            recurrence_pattern=kwargs.get("recurrence_pattern"),
+            recurrence_end=kwargs.get("recurrence_end"),
+            time_estimated=kwargs.get("time_estimated"),
+            time_logged=kwargs.get("time_logged"),
+            template_id=kwargs.get("template_id"),
+        )
+    user_id = getattr(t, "user_id", None) or kwargs.get("user_id") or "demo"
     c = conn.cursor()
     c.execute(
         """
         INSERT INTO tasks
         (title, project, status, priority, due_date, notes, owner, created_at,
-         depends_on, recurrence_pattern, recurrence_end, time_estimated, time_logged, template_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         depends_on, recurrence_pattern, recurrence_end, time_estimated, time_logged, template_id, user_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (t.title, t.project, t.status, t.priority, t.due_date, t.notes, t.owner, t.created_at,
-         t.depends_on, t.recurrence_pattern, t.recurrence_end, t.time_estimated, t.time_logged, t.template_id),
+        (
+            t.title,
+            t.project,
+            t.status,
+            t.priority,
+            t.due_date,
+            t.notes,
+            t.owner,
+            t.created_at,
+            t.depends_on,
+            t.recurrence_pattern,
+            t.recurrence_end,
+            t.time_estimated,
+            t.time_logged,
+            t.template_id,
+            user_id,
+        ),
     )
     conn.commit()
     return c.lastrowid
 
 
-def db_update_task(conn: sqlite3.Connection, t: Task):
+def db_update_task(conn: sqlite3.Connection, t: Optional[Task] = None, task_id: Optional[int] = None, **kwargs):
+    if t is None:
+        if task_id is None:
+            raise ValueError("task_id is required when not providing a Task")
+        # Load existing then apply updates
+        cur = conn.cursor()
+        row = cur.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+        if not row:
+            raise ValueError("Task not found")
+        t = Task(
+            id=row["id"],
+            title=row["title"],
+            project=row["project"] or "General",
+            status=row["status"] or "TODO",
+            priority=row["priority"] or "MEDIUM",
+            due_date=row["due_date"] or "",
+            notes=row["notes"] or "",
+            owner=row["owner"] or "Chris",
+            created_at=row["created_at"] or datetime.now().isoformat(timespec="seconds"),
+            depends_on=row["depends_on"] if "depends_on" in row.keys() else None,
+            recurrence_pattern=row["recurrence_pattern"] if "recurrence_pattern" in row.keys() else None,
+            recurrence_end=row["recurrence_end"] if "recurrence_end" in row.keys() else None,
+            time_estimated=row["time_estimated"] if "time_estimated" in row.keys() else None,
+            time_logged=row["time_logged"] if "time_logged" in row.keys() else None,
+            template_id=row["template_id"] if "template_id" in row.keys() else None,
+        )
+        for key, value in kwargs.items():
+            if hasattr(t, key):
+                setattr(t, key, value)
     c = conn.cursor()
     c.execute(
         """
@@ -1578,6 +1819,7 @@ def db_record_project_event(
     entity_type: Optional[str] = None,
     entity_id: Optional[str] = None,
     payload: Optional[Dict[str, Any]] = None,
+    user_id: str = "demo",
 ) -> str:
     """Append an event to the project ledger with a hash chain."""
 
@@ -1608,8 +1850,8 @@ def db_record_project_event(
     cursor.execute(
         """
         INSERT INTO project_events (
-            project_id, event_type, payload, created_at, hash_prev, hash_curr
-        ) VALUES (?, ?, ?, ?, ?, ?)
+            project_id, event_type, payload, created_at, hash_prev, hash_curr, user_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
         (
             project_id,
@@ -1618,6 +1860,7 @@ def db_record_project_event(
             timestamp,
             hash_prev,
             hash_curr,
+            user_id,
         ),
     )
     conn.commit()

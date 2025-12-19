@@ -7,12 +7,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import hashlib
+import json
 import random
 import sys
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 parent_dir = Path(__file__).parent.parent.parent
@@ -21,7 +22,6 @@ if str(parent_dir) not in sys.path:
 
 from assistant_hub_gui.assistant_hub.db import (  # pylint: disable=wrong-import-position
     db_delete_project,
-    db_get_note_links,
     db_list_project_events,
     db_record_project_event,
     db_upsert_project,
@@ -33,6 +33,8 @@ from assistant_hub_gui.assistant_hub.project_insights import (  # pylint: disabl
     predict_project_completion,
 )
 from backend_api.db import db_session  # pylint: disable=wrong-import-position
+from backend_api.deps import get_current_user  # pylint: disable=wrong-import-position
+from backend_api.security import AuthUser  # pylint: disable=wrong-import-position
 
 router = APIRouter()
 
@@ -228,8 +230,8 @@ def _detect_href_and_presence(external_id: str) -> Tuple[Optional[str], bool]:
     return None, False
 
 
-def _project_exists(conn, project_name: str) -> bool:
-    cursor = conn.execute("SELECT 1 FROM projects WHERE name = ?", (project_name,))
+def _project_exists(conn, project_name: str, user_id: str) -> bool:
+    cursor = conn.execute("SELECT 1 FROM projects WHERE name = ? AND user_id = ?", (project_name, user_id))
     return cursor.fetchone() is not None
 
 
@@ -255,8 +257,8 @@ def _serialize_links(links) -> List[ProjectLinkResponse]:
     return payload
 
 
-def _group_tasks_by_project(conn) -> Dict[str, List[Dict[str, Any]]]:
-    cursor = conn.execute("SELECT project, status, priority FROM tasks")
+def _group_tasks_by_project(conn, user_id: str) -> Dict[str, List[Dict[str, Any]]]:
+    cursor = conn.execute("SELECT project, status, priority FROM tasks WHERE user_id = ?", (user_id,))
     tasks_by_project: Dict[str, List[Dict[str, Any]]] = {}
     for row in cursor.fetchall():
         project_name = row["project"] or "General"
@@ -278,10 +280,10 @@ def _hash_pick(seed: str, options: List[str]) -> str:
     return options[int(digest, 16) % len(options)]
 
 
-def _collect_project_tasks(conn, project_id: str) -> List[Dict[str, Any]]:
+def _collect_project_tasks(conn, project_id: str, user_id: str) -> List[Dict[str, Any]]:
     cursor = conn.execute(
-        "SELECT id, title, status, priority, owner, due_date FROM tasks WHERE project = ?",
-        (project_id,),
+        "SELECT id, title, status, priority, owner, due_date FROM tasks WHERE project = ? AND user_id = ?",
+        (project_id, user_id),
     )
     tasks = []
     for row in cursor.fetchall():
@@ -583,10 +585,10 @@ def _serialize_events(events: List[Dict[str, Any]]) -> List[ProjectLedgerEvent]:
 
 
 @router.get("/", response_model=List[ProjectResponse])
-async def list_projects(status: Optional[str] = None):
+async def list_projects(status: Optional[str] = None, user: AuthUser = Depends(get_current_user)):
     """List all projects with optional status filtering."""
-    query = "SELECT * FROM projects WHERE 1=1"
-    params = []
+    query = "SELECT * FROM projects WHERE 1=1 AND user_id = ?"
+    params = [user.id]
 
     if status:
         query += " AND status = ?"
@@ -608,34 +610,96 @@ async def list_projects(status: Optional[str] = None):
 
 
 @router.get("/links", response_model=List[ProjectLinkResponse])
-async def list_links(project: Optional[str] = None, integration: Optional[str] = None):
+async def list_links(
+    project: Optional[str] = None,
+    integration: Optional[str] = None,
+    user: AuthUser = Depends(get_current_user),
+):
     """Return document/OneNote links for all projects or a specific project."""
     with db_session() as db:
-        if project and not _project_exists(db, project):
+        if project and not _project_exists(db, project, user.id):
             raise HTTPException(status_code=404, detail="Project not found")
-        links = db_get_note_links(
-            db, project_id=project, integration_type=integration
-        )
+        query = "SELECT * FROM note_links WHERE user_id = ?"
+        params: List[Any] = [user.id]
+        if project:
+            query += " AND project_id = ?"
+            params.append(project)
+        if integration:
+            query += " AND integration_type = ?"
+            params.append(integration)
+        query += " ORDER BY created_at DESC"
+        rows = db.execute(query, params).fetchall()
 
+    # Shape into the expected response model.
+    links = []
+    for r in rows:
+        links.append(
+            type("NL", (), {  # lightweight adapter to reuse _serialize_links
+                "id": r["id"],
+                "project_id": r["project_id"],
+                "integration_type": r["integration_type"],
+                "external_id": r["external_id"],
+                "title": r["title"],
+                "description": r["description"] or "",
+                "created_at": r["created_at"],
+                "last_synced": r["last_synced"],
+            })()
+        )
     return _serialize_links(links)
 
 
 @router.get("/ledger", response_model=List[ProjectLedgerEvent])
-async def list_project_ledger(project: Optional[str] = None, limit: int = 50):
+async def list_project_ledger(project: Optional[str] = None, limit: int = 50, user: AuthUser = Depends(get_current_user)):
     """Return recent ledger events for one or all projects."""
     safe_limit = max(1, min(limit, 500))
     with db_session() as db:
-        if project and not _project_exists(db, project):
+        if project and not _project_exists(db, project, user.id):
             raise HTTPException(status_code=404, detail="Project not found")
-        events = db_list_project_events(db, project_id=project, limit=safe_limit)
+        # Enforce user_id scoping at query level (db helper does not filter).
+        where = "WHERE user_id = ?"
+        params: List[Any] = [user.id]
+        if project:
+            where += " AND project_id = ?"
+            params.append(project)
+        params.append(safe_limit)
+        rows = db.execute(
+            f"""
+            SELECT id, project_id, event_type, payload, created_at, hash_prev, hash_curr
+            FROM project_events
+            {where}
+            ORDER BY datetime(created_at) DESC, id DESC
+            LIMIT ?
+            """,
+            params,
+        ).fetchall()
+        events = []
+        for row in rows:
+            payload_raw = row["payload"]
+            try:
+                payload = json.loads(payload_raw) if payload_raw else {}
+            except Exception:
+                payload = {"raw": payload_raw}
+            events.append(
+                {
+                    "id": row["id"],
+                    "project_id": row["project_id"],
+                    "event_type": row["event_type"],
+                    "payload": payload,
+                    "created_at": row["created_at"],
+                    "hash_prev": row["hash_prev"],
+                    "hash_curr": row["hash_curr"],
+                    "entity_type": (payload or {}).get("entity_type"),
+                    "entity_id": (payload or {}).get("entity_id"),
+                }
+            )
     return _serialize_events(events)
 
 
 @router.get("/{project_name}", response_model=ProjectResponse)
-async def get_project(project_name: str):
+async def get_project(project_name: str, user: AuthUser = Depends(get_current_user)):
     """Get a single project by name."""
     with db_session() as db:
-        cursor = db.execute("SELECT * FROM projects WHERE name = ?", (project_name,))
+        cursor = db.execute("SELECT * FROM projects WHERE name = ? AND user_id = ?", (project_name, user.id))
         row = cursor.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Project not found")
@@ -646,22 +710,22 @@ async def get_project(project_name: str):
 
 
 @router.get("/{project_name}/links", response_model=List[ProjectLinkResponse])
-async def get_project_links(project_name: str, integration: Optional[str] = None):
+async def get_project_links(project_name: str, integration: Optional[str] = None, user: AuthUser = Depends(get_current_user)):
     """Return document/OneNote links for a specific project."""
-    return await list_links(project=project_name, integration=integration)
+    return await list_links(project=project_name, integration=integration, user=user)
 
 
 @router.get("/{project_name}/ledger", response_model=List[ProjectLedgerEvent])
-async def get_project_ledger(project_name: str, limit: int = 50):
+async def get_project_ledger(project_name: str, limit: int = 50, user: AuthUser = Depends(get_current_user)):
     """Return ledger events for a specific project."""
-    return await list_project_ledger(project=project_name, limit=limit)
+    return await list_project_ledger(project=project_name, limit=limit, user=user)
 
 
 @router.get("/{project_name}/insights", response_model=ProjectInsightResponse)
-async def get_project_insights(project_name: str):
+async def get_project_insights(project_name: str, user: AuthUser = Depends(get_current_user)):
     """Return AI-powered risk + forecast insights for a project."""
     with db_session() as db:
-        if not _project_exists(db, project_name):
+        if not _project_exists(db, project_name, user.id):
             raise HTTPException(status_code=404, detail="Project not found")
         state = load_state(db)
 
@@ -677,36 +741,38 @@ async def get_project_insights(project_name: str):
 
 
 @router.get("/intelligence", response_model=List[ProjectIntelligenceResponse])
-async def list_project_intelligence():
+async def list_project_intelligence(user: AuthUser = Depends(get_current_user)):
     """Return calculated project intelligence/health metrics."""
     with db_session() as db:
-        cursor = db.execute("SELECT name FROM projects ORDER BY order_num, name")
+        cursor = db.execute("SELECT name FROM projects WHERE user_id = ? ORDER BY order_num, name", (user.id,))
         project_rows = cursor.fetchall()
-        tasks_map = _group_tasks_by_project(db)
+        tasks_map = _group_tasks_by_project(db, user.id)
         return [
             _compute_project_intelligence(db, project_row["name"], tasks_map) for project_row in project_rows
         ]
 
 
 @router.get("/{project_name}/intelligence", response_model=ProjectIntelligenceResponse)
-async def get_project_intelligence(project_name: str):
+async def get_project_intelligence(project_name: str, user: AuthUser = Depends(get_current_user)):
     """Return intelligence metrics for a single project."""
     with db_session() as db:
-        if not _project_exists(db, project_name):
+        if not _project_exists(db, project_name, user.id):
             raise HTTPException(status_code=404, detail="Project not found")
-        tasks_map = _group_tasks_by_project(db)
+        tasks_map = _group_tasks_by_project(db, user.id)
         return _compute_project_intelligence(db, project_name, tasks_map)
 
 
 @router.get("/{project_name}/trf", response_model=ProjectTRFResponse)
-async def get_project_trf(project_name: str, limit: int = 10):
+async def get_project_trf(project_name: str, limit: int = 10, user: AuthUser = Depends(get_current_user)):
     """Return TRF reasoning traces + heuristics for a project."""
     safe_limit = max(3, min(limit, 25))
     with db_session() as conn:
-        if not _project_exists(conn, project_name):
+        if not _project_exists(conn, project_name, user.id):
             raise HTTPException(status_code=404, detail="Project not found")
-        tasks = _collect_project_tasks(conn, project_name)
+        tasks = _collect_project_tasks(conn, project_name, user.id)
+        # scope ledger events to the current user
         events_raw = db_list_project_events(conn, project_id=project_name, limit=safe_limit)
+        events_raw = [evt for evt in events_raw if (evt.get("user_id") or "demo") == user.id]
 
     entropy, resonance, continuity = _compute_trf_scores(tasks, events_raw)
     heuristics = _build_trf_heuristics(project_name, tasks, entropy)
@@ -726,7 +792,7 @@ async def get_project_trf(project_name: str, limit: int = 10):
 
 
 @router.post("/", response_model=ProjectResponse, status_code=201)
-async def create_project(project: ProjectCreate):
+async def create_project(project: ProjectCreate, user: AuthUser = Depends(get_current_user)):
     """Create a new project."""
     with db_session() as db:
         db_upsert_project(
@@ -736,9 +802,10 @@ async def create_project(project: ProjectCreate):
             status=project.status,
             priority=project.priority,
             order_num=project.order_num,
+            user_id=user.id,
         )
 
-        cursor = db.execute("SELECT * FROM projects WHERE name = ?", (project.name,))
+        cursor = db.execute("SELECT * FROM projects WHERE name = ? AND user_id = ?", (project.name, user.id))
         row = cursor.fetchone()
         columns = [description[0] for description in cursor.description]
         project_dict = dict(zip(columns, row))
@@ -753,15 +820,16 @@ async def create_project(project: ProjectCreate):
                 "priority": project_dict.get("priority"),
                 "description": project_dict.get("description"),
             },
+            user_id=user.id,
         )
     return ProjectResponse(**project_dict)
 
 
 @router.put("/{project_name}", response_model=ProjectResponse)
-async def update_project(project_name: str, project_update: ProjectUpdate):
+async def update_project(project_name: str, project_update: ProjectUpdate, user: AuthUser = Depends(get_current_user)):
     """Update an existing project."""
     with db_session() as db:
-        cursor = db.execute("SELECT * FROM projects WHERE name = ?", (project_name,))
+        cursor = db.execute("SELECT * FROM projects WHERE name = ? AND user_id = ?", (project_name, user.id))
         row = cursor.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Project not found")
@@ -769,11 +837,12 @@ async def update_project(project_name: str, project_update: ProjectUpdate):
         update_dict = project_update.model_dump(exclude_unset=True)
         update_dict["name"] = project_name if "name" not in update_dict else update_dict["name"]
 
+        update_dict["user_id"] = user.id
         db_upsert_project(db, **update_dict)
 
         cursor = db.execute(
-            "SELECT * FROM projects WHERE name = ?",
-            (update_dict.get("name", project_name),),
+            "SELECT * FROM projects WHERE name = ? AND user_id = ?",
+            (update_dict.get("name", project_name), user.id),
         )
         row = cursor.fetchone()
         columns = [description[0] for description in cursor.description]
@@ -789,15 +858,16 @@ async def update_project(project_name: str, project_update: ProjectUpdate):
                 "priority": project_dict.get("priority"),
                 "description": project_dict.get("description"),
             },
+            user_id=user.id,
         )
     return ProjectResponse(**project_dict)
 
 
 @router.delete("/{project_name}", status_code=204)
-async def delete_project(project_name: str):
+async def delete_project(project_name: str, user: AuthUser = Depends(get_current_user)):
     """Delete a project."""
     with db_session() as db:
-        cursor = db.execute("SELECT * FROM projects WHERE name = ?", (project_name,))
+        cursor = db.execute("SELECT * FROM projects WHERE name = ? AND user_id = ?", (project_name, user.id))
         row = cursor.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Project not found")
@@ -816,5 +886,6 @@ async def delete_project(project_name: str):
                 "priority": project_dict.get("priority"),
                 "description": project_dict.get("description"),
             },
+            user_id=user.id,
         )
     return None

@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   CheckSquare,
@@ -46,7 +46,7 @@ import { UnifiedAIPanel } from './UnifiedAIPanel'
 import { throttle } from '../shared/utils'
 
 interface LayoutProps {
-  children: ReactNode
+  children?: ReactNode
 }
 
 interface NavItem {
@@ -717,7 +717,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-8rem)]">
         <div className="flex flex-col gap-8 lg:flex-row w-full">
-          <div className="flex-1 min-w-0 w-full">{children}</div>
+          <div className="flex-1 min-w-0 w-full">{children ?? <Outlet />}</div>
         </div>
       </main>
 

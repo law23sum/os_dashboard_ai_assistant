@@ -1,5 +1,5 @@
 """Chat API router."""
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from typing import List, Optional
 from pydantic import BaseModel
 import sys
@@ -21,6 +21,10 @@ from assistant_hub_gui.assistant_hub.db import (
 )
 from assistant_core.ai import generate_ai_reply
 from backend_api.db import db_session
+from backend_api.deps import get_current_user
+from backend_api.security import AuthUser
+from assistant_hub_gui.assistant_hub.config import DATA_DIR
+import os
 
 router = APIRouter()
 
@@ -50,6 +54,7 @@ class ChatMessageCreate(BaseModel):
     role: str = "user"
     kind: str = "chat"
     content: str
+    attachments: Optional[List[str]] = None
 
 class ChatMessageResponse(BaseModel):
     id: int
@@ -71,11 +76,12 @@ class ChatMessagePairResponse(BaseModel):
 async def get_chat_history(
     persona: Optional[str] = None,
     limit: int = 100,
+    user: AuthUser = Depends(get_current_user),
 ):
     """Get chat history."""
     try:
-        query = "SELECT id, persona, role, kind, content, created_at FROM chat_messages WHERE 1=1"
-        params = []
+        query = "SELECT id, persona, role, kind, content, created_at FROM chat_messages WHERE user_id = ?"
+        params = [user.id]
         
         if persona:
             query += " AND persona = ?"
@@ -107,7 +113,7 @@ async def get_chat_history(
         raise HTTPException(status_code=500, detail=f"Failed to fetch chat history: {str(e)}")
 
 @router.post("/", status_code=201)
-async def create_chat_message(message: ChatMessageCreate):
+async def create_chat_message(message: ChatMessageCreate, user: AuthUser = Depends(get_current_user)):
     """Create a new chat message and auto-generate an AI reply.
     
     Returns both the user message and the AI reply so the frontend
@@ -130,16 +136,18 @@ async def create_chat_message(message: ChatMessageCreate):
                 created_at=timestamp,
             )
             msg_id = db_insert_chat_message(db, chat_msg)
+            # Attach user_id to the inserted row (db helper is legacy).
+            db.execute("UPDATE chat_messages SET user_id = ? WHERE id = ?", (user.id, msg_id))
 
             # Build ordered history (including brand new user message) for persona
             history_cursor = db.execute(
                 """
                 SELECT id, persona, role, kind, content, created_at
                 FROM chat_messages
-                WHERE persona = ?
+                WHERE persona = ? AND user_id = ?
                 ORDER BY created_at ASC, id ASC
                 """,
-                (message.persona,),
+                (message.persona, user.id),
             )
             history_rows = history_cursor.fetchall()
             history: List[ChatMessage] = [
@@ -153,6 +161,56 @@ async def create_chat_message(message: ChatMessageCreate):
                 )
                 for row in history_rows
             ]
+
+            # Inject attachment + workspace context as a system message (kept bounded).
+            system_chunks: List[str] = []
+            if message.attachments:
+                docs_root = Path(DATA_DIR) / "chat_documents" / user.id
+                for doc_id in message.attachments[:5]:
+                    meta_path = docs_root / doc_id / "metadata.json"
+                    if not meta_path.exists():
+                        continue
+                    try:
+                        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+                    except Exception:
+                        continue
+                    filename = meta.get("original_name") or meta.get("filename") or doc_id
+                    preview_type = meta.get("preview_type") or "text"
+                    file_path = docs_root / doc_id / (meta.get("filename") or "")
+                    excerpt = ""
+                    if preview_type == "text" and file_path.exists():
+                        try:
+                            excerpt = file_path.read_text(encoding="utf-8", errors="ignore")[:8000]
+                        except Exception:
+                            excerpt = ""
+                    system_chunks.append(
+                        f"[Attachment: {filename} | type={meta.get('file_type','')} category={meta.get('category','')}]\n{excerpt}".strip()
+                    )
+
+            # Lightweight workspace tree (top-level; bounded)
+            workspace_root = Path(os.getenv("OSDASH_WORKSPACE_ROOT", Path(__file__).resolve().parents[2]))
+            try:
+                entries = sorted(workspace_root.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower()))[:80]
+                tree_lines = []
+                for p in entries:
+                    suffix = "/" if p.is_dir() else ""
+                    tree_lines.append(f"- {p.name}{suffix}")
+                if tree_lines:
+                    system_chunks.append("[Workspace root listing]\n" + "\n".join(tree_lines))
+            except Exception:
+                pass
+
+            if system_chunks:
+                history.append(
+                    ChatMessage(
+                        id=0,
+                        persona=message.persona,
+                        role="system",
+                        kind="tool_result",
+                        content="\\n\\n".join(system_chunks),
+                        created_at=datetime.now().isoformat(timespec="seconds"),
+                    )
+                )
 
             # Generate AI reply
             try:
@@ -179,6 +237,7 @@ async def create_chat_message(message: ChatMessageCreate):
                 created_at=datetime.now().isoformat(timespec="seconds"),
             )
             assistant_msg_id = db_insert_chat_message(db, assistant_msg)
+            db.execute("UPDATE chat_messages SET user_id = ? WHERE id = ?", (user.id, assistant_msg_id))
 
             # Fetch both messages to return
             user_cursor = db.execute(
@@ -225,10 +284,14 @@ async def create_chat_message(message: ChatMessageCreate):
 @router.delete("/", status_code=204)
 async def clear_chat_history(
     persona: Optional[str] = None,
+    user: AuthUser = Depends(get_current_user),
 ):
     """Clear chat history."""
     with db_session() as db:
-        db_clear_chat_history(db, persona=persona)
+        if persona:
+            db.execute("DELETE FROM chat_messages WHERE user_id = ? AND persona = ?", (user.id, persona))
+        else:
+            db.execute("DELETE FROM chat_messages WHERE user_id = ?", (user.id,))
     return None
 
 @router.websocket("/ws")

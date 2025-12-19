@@ -38,6 +38,7 @@ const sendMessage = async (message: {
     role: 'user',
     kind: 'chat',
     content: message.content,
+    attachments: message.attachments ?? undefined,
   }
   const { data } = await apiClient.post(apiPath('chat/'), payload)
   

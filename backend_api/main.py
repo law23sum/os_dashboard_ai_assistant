@@ -3,13 +3,15 @@ FastAPI backend for OS Dashboard AI Assistant.
 Provides REST API endpoints to replace the Tkinter GUI frontend.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.responses import RedirectResponse
 import sys
 import os
+import time
+from uuid import uuid4
 from pathlib import Path
 from typing import Optional
 
@@ -42,8 +44,55 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ---------------------------------------------------------------------------
+# Request tracing + unified event log
+# ---------------------------------------------------------------------------
+try:
+    from backend_api.deps import get_optional_user  # type: ignore
+    from backend_api.routers.logs import record_event  # type: ignore
+    from backend_api.db import db_session  # type: ignore
+
+    @app.middleware("http")
+    async def _trace_requests(request: Request, call_next):
+        started = time.time()
+        request_id = request.headers.get("x-correlation-id") or request.headers.get("x-request-id") or uuid4().hex
+        user = None
+        try:
+            user = get_optional_user(request)  # type: ignore[arg-type]
+        except Exception:
+            user = None
+        response = await call_next(request)
+        duration_ms = int((time.time() - started) * 1000)
+        response.headers["x-correlation-id"] = request_id
+        try:
+            with db_session() as db:
+                record_event(
+                    db=db,
+                    source="http",
+                    level="info",
+                    message=f"{request.method} {request.url.path} -> {response.status_code} ({duration_ms}ms)",
+                    user_id=getattr(user, "id", None),
+                    metadata={
+                        "request_id": request_id,
+                        "method": request.method,
+                        "path": request.url.path,
+                        "status_code": response.status_code,
+                        "duration_ms": duration_ms,
+                    },
+                )
+        except Exception:
+            pass
+        return response
+except Exception:
+    # If imports fail during early bootstrap, skip tracing.
+    pass
+
 # API Routes
 from backend_api.routers import (
+    auth,
+    admin,
+    logs,
+    files,
     tasks,
     projects,
     intents,
@@ -84,6 +133,10 @@ from backend_api.routers import (
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
+app.include_router(auth.router, prefix="/api", tags=["auth"])
+app.include_router(admin.router, prefix="/api", tags=["admin"])
+app.include_router(logs.router, prefix="/api", tags=["logs"])
+app.include_router(files.router, prefix="/api", tags=["files"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(templates.router, prefix="/api/templates", tags=["templates"])

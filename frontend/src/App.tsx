@@ -3,6 +3,9 @@ import { useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from './utils/toast'
 import Layout from './components/Layout'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import Admin from './pages/Admin'
 import Research from './pages/Research'
 import Dashboard from './pages/Dashboard'
 import Tasks from './pages/Tasks'
@@ -47,6 +50,9 @@ import AutoFix from './pages/AutoFix'
 import IntentProcessor from './pages/IntentProcessor'
 import WorkspaceHealth from './pages/WorkspaceHealth'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
+import { AuthProvider } from './auth/AuthContext'
+import { RequireAuth } from './auth/RequireAuth'
+import { RequireAdmin } from './auth/RequireAdmin'
 
 const normalizeBasePath = (value?: string | null): string => {
   if (!value || value === '.' || value === './') return '/'
@@ -107,17 +113,23 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router basename={useHashRouter ? undefined : basePath}>
-        <AppErrorBoundary>
-          <Layout>
+      <AuthProvider>
+        <Router basename={useHashRouter ? undefined : basePath}>
+          <AppErrorBoundary>
             <Routes>
-            {/* Root & Core Pages */}
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/tasks" element={<Tasks />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/research" element={<Research />} />
+              {/* Public */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+
+              {/* Protected app */}
+              <Route element={<RequireAuth><Layout /></RequireAuth>}>
+                {/* Root & Core Pages */}
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/research" element={<Research />} />
 
             {/* Work & Writing Hierarchy: /work/* */}
             <Route path="/work" element={<Navigate to="/work/templates" replace />} />
@@ -218,12 +230,23 @@ function App() {
             {/* Settings */}
             <Route path="/settings" element={<Settings />} />
 
-            {/* Catch-all */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+                {/* Admin */}
+                <Route
+                  path="/admin"
+                  element={
+                    <RequireAdmin>
+                      <Admin />
+                    </RequireAdmin>
+                  }
+                />
+
+                {/* Catch-all */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
             </Routes>
-          </Layout>
-        </AppErrorBoundary>
-      </Router>
+          </AppErrorBoundary>
+        </Router>
+      </AuthProvider>
       <Toaster position="top-right" />
     </QueryClientProvider>
   )
