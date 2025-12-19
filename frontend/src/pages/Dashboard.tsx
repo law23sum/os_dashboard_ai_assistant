@@ -69,7 +69,7 @@ const buildOfflineDashboardSnapshot = (message?: string): DashboardStatsType => 
   },
   security_status: {
     status: 'offline',
-    message: message ?? 'Backend not available. Please ensure the backend server is running on port 8000.',
+    message: message ?? 'Backend not available. Please ensure the backend server is running on port 8070.',
     updated_at: new Date().toISOString(),
     source: 'local',
   },
@@ -292,7 +292,7 @@ export default function Dashboard() {
             <p className="text-xs uppercase tracking-wider text-slate-400 mb-2">Troubleshooting Steps:</p>
             <ol className="space-y-2 list-decimal list-inside">
               <li className="pl-2">Run <code className="rounded bg-black/30 px-2 py-1 text-xs font-mono">uvicorn backend_api.main:app --reload</code></li>
-              <li className="pl-2">Verify FastAPI is reachable on <code className="rounded bg-black/30 px-2 py-1 text-xs font-mono">http://127.0.0.1:8000</code></li>
+              <li className="pl-2">Verify FastAPI is reachable on <code className="rounded bg-black/30 px-2 py-1 text-xs font-mono">http://127.0.0.1:8070</code></li>
               <li className="pl-2">Refresh this page — it polls every 30 seconds.</li>
             </ol>
           </div>
@@ -480,6 +480,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 text-slate-100">
+      <div id="overview" />
       <PageHeader
         eyebrow="Command Center"
         title="Operational Dashboard"
@@ -529,7 +530,7 @@ export default function Dashboard() {
         )}
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[2fr,1fr]">
+      <div id="task-pulse" className="grid gap-6 xl:grid-cols-[2fr,1fr]">
         <div className="space-y-6">
           <section className="glass-card space-y-6">
             <div className="flex items-center justify-between">
@@ -544,18 +545,20 @@ export default function Dashboard() {
               <ProgressGroup label="Priority" entries={priorityEntries} total={totalTasks} />
             </div>
           </section>
-          <PersonaLoadSection
-            personaLoad={personaLoad}
-            activePersona={activePersona}
-            personas={personaDefinitions}
-            onPersonaChange={handlePersonaChange}
-            isUpdatingPersona={personaMutation.isPending}
-            personaError={personaError}
-          />
+          <div id="persona-focus">
+            <PersonaLoadSection
+              personaLoad={personaLoad}
+              activePersona={activePersona}
+              personas={personaDefinitions}
+              onPersonaChange={handlePersonaChange}
+              isUpdatingPersona={personaMutation.isPending}
+              personaError={personaError}
+            />
+          </div>
         </div>
 
         <div className="space-y-6">
-          <section className="glass-card space-y-4">
+          <section id="system-health" className="glass-card space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-white">System Health</h3>
               <span className="pill-muted">Shared backend</span>
@@ -589,7 +592,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div id="project-pulse" className="grid gap-6 lg:grid-cols-2">
         <section className="glass-card space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -638,7 +641,7 @@ export default function Dashboard() {
         </section>
       </div>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section id="search" className="grid gap-6 lg:grid-cols-2">
         <div className="glass-card space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -688,7 +691,7 @@ export default function Dashboard() {
             )}
           </div>
         </div>
-        <div className="glass-card space-y-4">
+        <div id="planes" className="glass-card space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="eyebrow-text">Planes</p>
@@ -710,7 +713,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section id="daemons" className="grid gap-6 lg:grid-cols-2">
         <div className="glass-card space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -786,7 +789,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section id="operations" className="grid gap-6 lg:grid-cols-2">
         <div className="glass-card space-y-4">
           <div className="flex items-center justify-between">
             <div>

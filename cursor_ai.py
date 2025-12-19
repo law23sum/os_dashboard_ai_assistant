@@ -8,6 +8,7 @@ This script allows you to select and chat with different AI providers:
 - Google (Gemini)
 - xAI (Grok)
 - Cursor IDE
+- ChatGPT Agents (via OpenAI)
 
 Usage:
     cursor_ai
@@ -22,6 +23,27 @@ import sys
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 import json
+
+# ==========================================
+# API KEY CONFIGURATION & LINKS
+# ==========================================
+# You can set these directly here, or use environment variables (recommended)
+API_KEYS = {
+    "openai": os.getenv("OPENAI_API_KEY", ""),
+    "anthropic": os.getenv("ANTHROPIC_API_KEY", ""),
+    "google": os.getenv("GOOGLE_API_KEY", ""),
+    "xai": os.getenv("XAI_API_KEY", ""),  # Grok
+    "cursor": os.getenv("CURSOR_API_KEY", ""),
+}
+
+API_LINKS = {
+    "openai": "https://platform.openai.com/api-keys",
+    "anthropic": "https://console.anthropic.com/settings/keys",
+    "google": "https://aistudio.google.com/app/apikey",
+    "xai": "https://console.x.ai/api-keys",
+    "cursor": "https://cursor.com/dashboard",
+}
+# ==========================================
 
 try:
     import readline  # For better input handling on Unix
@@ -242,6 +264,260 @@ class GrokProvider(AIProvider):
             return f"❌ Error: {str(e)}"
 
 
+class PerplexityProvider(AIProvider):
+    """Perplexity AI provider."""
+    
+    def __init__(self):
+        super().__init__("Perplexity AI", "PERPLEXITY_API_KEY")
+        self.default_model = os.getenv("PERPLEXITY_MODEL", "sonar")
+        self.base_url = "https://api.perplexity.ai"
+    
+    def initialize(self):
+        # Perplexity uses OpenAI-compatible API
+class ChatGPTAgentsProvider(OpenAIProvider):
+    """ChatGPT Agents provider (specialized assistants)."""
+    
+    def __init__(self):
+        super().__init__()
+        self.name = "ChatGPT Agents"
+        # We use the same key as OpenAI
+    
+    def chat(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> str:
+        # In a full implementation, this would connect to the Assistants API.
+        # For now, we simulate agent behavior with system prompts if not already present.
+        
+        # Check if we need to inject a system prompt for specific agents if requested
+        # (This is a simplified version of the full agents_ai script)
+        return super().chat(messages, model)
+class MistralProvider(AIProvider):
+    """Mistral AI provider."""
+    
+    def __init__(self):
+        super().__init__("Mistral AI", "MISTRAL_API_KEY")
+        self.default_model = os.getenv("MISTRAL_MODEL", "mistral-large-latest")
+        self.base_url = "https://api.mistral.ai/v1"
+    
+    def initialize(self):
+        try:
+            from openai import OpenAI
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url=self.base_url
+            )
+            return True
+        except ImportError:
+            print("⚠️  openai package not installed. Install with: pip install openai")
+            return False
+    
+    def chat(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> str:
+        if not self.client:
+            return "❌ Perplexity client not initialized"
+            return "❌ Mistral client not initialized"
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=model or self.default_model,
+                messages=messages,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"❌ Error: {str(e)}"
+
+
+class CohereProvider(AIProvider):
+    """Cohere provider."""
+    """Cohere AI provider."""
+    
+    def __init__(self):
+        super().__init__("Cohere", "COHERE_API_KEY")
+        self.default_model = os.getenv("COHERE_MODEL", "command-r-plus")
+    
+    def initialize(self):
+        try:
+            import cohere
+            self.client = cohere.Client(api_key=self.api_key)
+            return True
+        except ImportError:
+            print("⚠️  cohere package not installed. Install with: pip install cohere")
+            return False
+    
+    def chat(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> str:
+        if not self.client:
+            return "❌ Cohere client not initialized"
+        
+        try:
+            # Convert messages to Cohere format
+            chat_history = []
+            user_message = ""
+            
+            for msg in messages:
+                if msg["role"] == "system":
+                    continue  # Cohere handles system context differently
+                elif msg["role"] == "user":
+                    user_message = msg["content"]
+                elif msg["role"] == "assistant":
+                    chat_history.append({
+                        "role": "CHATBOT",
+                        "message": msg["content"]
+                    })
+            
+            response = self.client.chat(
+                model=model or self.default_model,
+                message=user_message,
+            prompt = messages[-1]["content"] if messages else ""
+            
+            for i in range(len(messages) - 1):
+                msg = messages[i]
+                if msg["role"] == "user":
+                    chat_history.append({"role": "USER", "message": msg["content"]})
+                elif msg["role"] == "assistant":
+                    chat_history.append({"role": "CHATBOT", "message": msg["content"]})
+            
+            response = self.client.chat(
+                model=model or self.default_model,
+                message=prompt,
+                chat_history=chat_history if chat_history else None,
+            )
+            return response.text
+        except Exception as e:
+            return f"❌ Error: {str(e)}"
+
+
+class MistralProvider(AIProvider):
+    """Mistral AI provider."""
+    
+    def __init__(self):
+        super().__init__("Mistral AI", "MISTRAL_API_KEY")
+        self.default_model = os.getenv("MISTRAL_MODEL", "mistral-large-latest")
+        self.base_url = "https://api.mistral.ai/v1"
+    
+    def initialize(self):
+        # Mistral uses OpenAI-compatible API
+class PerplexityProvider(AIProvider):
+    """Perplexity AI provider."""
+    
+    def __init__(self):
+        super().__init__("Perplexity", "PERPLEXITY_API_KEY")
+        self.default_model = os.getenv("PERPLEXITY_MODEL", "llama-3.1-sonar-large-128k-online")
+        self.base_url = "https://api.perplexity.ai"
+    
+    def initialize(self):
+        try:
+            from openai import OpenAI
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url=self.base_url
+            )
+            return True
+        except ImportError:
+            print("⚠️  openai package not installed. Install with: pip install openai")
+            return False
+    
+    def chat(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> str:
+        if not self.client:
+            return "❌ Mistral client not initialized"
+            return "❌ Perplexity client not initialized"
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=model or self.default_model,
+                messages=messages,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"❌ Error: {str(e)}"
+
+
+class DeepSeekProvider(AIProvider):
+    """DeepSeek provider."""
+    
+    def __init__(self):
+        super().__init__("DeepSeek", "DEEPSEEK_API_KEY")
+        self.default_model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+        self.base_url = "https://api.deepseek.com/v1"
+    
+    def initialize(self):
+        # DeepSeek uses OpenAI-compatible API
+class TogetherProvider(AIProvider):
+    """Together AI provider."""
+    
+    def __init__(self):
+        super().__init__("Together AI", "TOGETHER_API_KEY")
+        self.default_model = os.getenv("TOGETHER_MODEL", "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo")
+        self.base_url = "https://api.together.xyz/v1"
+    
+    def initialize(self):
+        try:
+            from openai import OpenAI
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url=self.base_url
+            )
+            return True
+        except ImportError:
+            print("⚠️  openai package not installed. Install with: pip install openai")
+            return False
+    
+    def chat(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> str:
+        if not self.client:
+            return "❌ DeepSeek client not initialized"
+            return "❌ Together AI client not initialized"
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=model or self.default_model,
+                messages=messages,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"❌ Error: {str(e)}"
+
+
+class GroqProvider(AIProvider):
+    """Groq provider (fast inference)."""
+    
+    def __init__(self):
+        super().__init__("Groq", "GROQ_API_KEY")
+        self.default_model = os.getenv("GROQ_MODEL", "mixtral-8x7b-32768")
+        self.base_url = "https://api.groq.com/openai/v1"
+    
+    def initialize(self):
+        # Groq uses OpenAI-compatible API
+class DeepSeekProvider(AIProvider):
+    """DeepSeek AI provider."""
+    
+    def __init__(self):
+        super().__init__("DeepSeek", "DEEPSEEK_API_KEY")
+        self.default_model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+        self.base_url = "https://api.deepseek.com"
+    
+    def initialize(self):
+        try:
+            from openai import OpenAI
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url=self.base_url
+            )
+            return True
+        except ImportError:
+            print("⚠️  openai package not installed. Install with: pip install openai")
+            return False
+    
+    def chat(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> str:
+        if not self.client:
+            return "❌ Groq client not initialized"
+            return "❌ DeepSeek client not initialized"
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=model or self.default_model,
+                messages=messages,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"❌ Error: {str(e)}"
+
+
 def _find_cursor_api_key() -> Optional[str]:
     """Try to find Cursor API key from various sources."""
     import base64
@@ -450,7 +726,18 @@ PROVIDERS: Dict[str, AIProvider] = {
     "anthropic": AnthropicProvider,
     "google": GoogleProvider,
     "grok": GrokProvider,
+    "perplexity": PerplexityProvider,
+    "cohere": CohereProvider,
+    "mistral": MistralProvider,
+    "deepseek": DeepSeekProvider,
+    "groq": GroqProvider,
+    "mistral": MistralProvider,
+    "cohere": CohereProvider,
+    "perplexity": PerplexityProvider,
+    "together": TogetherProvider,
+    "deepseek": DeepSeekProvider,
     "cursor": CursorProvider,
+    "agents": ChatGPTAgentsProvider,
 }
 
 PROVIDER_DISPLAY_NAMES = {
@@ -458,7 +745,82 @@ PROVIDER_DISPLAY_NAMES = {
     "anthropic": "Anthropic (Claude)",
     "google": "Google (Gemini)",
     "grok": "xAI (Grok)",
+    "perplexity": "Perplexity AI",
+    "cohere": "Cohere",
+    "mistral": "Mistral AI",
+    "deepseek": "DeepSeek",
+    "groq": "Groq (Fast Inference)",
+    "mistral": "Mistral AI",
+    "cohere": "Cohere",
+    "perplexity": "Perplexity",
+    "together": "Together AI",
+    "deepseek": "DeepSeek",
     "cursor": "Cursor IDE",
+    "agents": "ChatGPT Agents",
+}
+
+# API Key Links for all providers
+API_KEY_LINKS = {
+    "openai": {
+        "url": "https://platform.openai.com/api-keys",
+        "billing": "https://platform.openai.com/account/billing",
+        "env_var": "OPENAI_API_KEY",
+        "description": "OpenAI GPT models (GPT-4, GPT-3.5, etc.)"
+    },
+    "anthropic": {
+        "url": "https://console.anthropic.com/settings/keys",
+        "billing": "https://console.anthropic.com/settings/billing",
+        "env_var": "ANTHROPIC_API_KEY",
+        "description": "Anthropic Claude models"
+    },
+    "google": {
+        "url": "https://aistudio.google.com/app/apikey",
+        "billing": "https://console.cloud.google.com/billing",
+        "env_var": "GOOGLE_API_KEY",
+        "description": "Google Gemini models"
+    },
+    "grok": {
+        "url": "https://console.x.ai/api-keys",
+        "billing": "https://console.x.ai/billing",
+        "env_var": "XAI_API_KEY",
+        "description": "xAI Grok models"
+    },
+    "mistral": {
+        "url": "https://console.mistral.ai/api-keys",
+        "billing": "https://console.mistral.ai/billing",
+        "env_var": "MISTRAL_API_KEY",
+        "description": "Mistral AI models"
+    },
+    "cohere": {
+        "url": "https://dashboard.cohere.com/api-keys",
+        "billing": "https://dashboard.cohere.com/billing",
+        "env_var": "COHERE_API_KEY",
+        "description": "Cohere models"
+    },
+    "perplexity": {
+        "url": "https://www.perplexity.ai/settings/api",
+        "billing": "https://www.perplexity.ai/settings/billing",
+        "env_var": "PERPLEXITY_API_KEY",
+        "description": "Perplexity AI models"
+    },
+    "together": {
+        "url": "https://api.together.xyz/settings/api-keys",
+        "billing": "https://api.together.xyz/settings/billing",
+        "env_var": "TOGETHER_API_KEY",
+        "description": "Together AI models"
+    },
+    "deepseek": {
+        "url": "https://platform.deepseek.com/api_keys",
+        "billing": "https://platform.deepseek.com/billing",
+        "env_var": "DEEPSEEK_API_KEY",
+        "description": "DeepSeek models"
+    },
+    "cursor": {
+        "url": "https://cursor.com/dashboard",
+        "billing": "https://cursor.com/settings/billing",
+        "env_var": "CURSOR_API_KEY (or OPENAI_API_KEY/ANTHROPIC_API_KEY)",
+        "description": "Cursor IDE (uses OpenAI/Anthropic internally)"
+    },
 }
 
 
@@ -488,10 +850,22 @@ def print_provider_selection() -> Optional[str]:
     
     if not available_providers:
         print("\n❌ No providers available. Please set API keys:")
-        print("   - OPENAI_API_KEY for OpenAI")
-        print("   - ANTHROPIC_API_KEY for Anthropic")
-        print("   - GOOGLE_API_KEY for Google")
-        print("   - XAI_API_KEY for Grok")
+        print("   - OPENAI_API_KEY for OpenAI (GPT)")
+        print("   - ANTHROPIC_API_KEY for Anthropic (Claude)")
+        print("   - GOOGLE_API_KEY for Google (Gemini)")
+        print("   - XAI_API_KEY for xAI (Grok)")
+        print("   - PERPLEXITY_API_KEY for Perplexity AI")
+        print("   - COHERE_API_KEY for Cohere")
+        print("   - MISTRAL_API_KEY for Mistral AI")
+        print("   - DEEPSEEK_API_KEY for DeepSeek")
+        print("   - GROQ_API_KEY for Groq")
+        print("\n📚 See API_KEYS_GUIDE.md for links to get API keys")
+        print("   Or run: python cursor_ai.py --get-keys")
+        print("   Run: cursor_ai --get-keys  (to see all API key links)")
+        print("\n   Quick links:")
+        for key, info in API_KEY_LINKS.items():
+            if key != "cursor":  # Skip cursor as it uses other keys
+                print(f"   - {info['env_var']}: {info['url']}")
         return None
     
     while True:
@@ -582,7 +956,6 @@ def main():
         print("\n" + "=" * 70)
         print("  API Keys - Quick Access Links")
         print("=" * 70)
-        print("\n📚 Full Guide: See API_KEYS_ACCESS_GUIDE.md")
         print("\n🔑 Direct Links to Get API Keys:\n")
         print("1. OpenAI (GPT models):")
         print("   https://platform.openai.com/api-keys")
@@ -594,15 +967,56 @@ def main():
         print("   https://aistudio.google.com/app/apikey")
         print("\n4. xAI (Grok):")
         print("   https://console.x.ai/api-keys")
-        print("\n5. Cursor IDE:")
+        print("\n5. Perplexity AI:")
+        print("   https://www.perplexity.ai/settings/api")
+        print("\n6. Cohere:")
+        print("   https://dashboard.cohere.com/api-keys")
+        print("\n7. Mistral AI:")
+        print("   https://console.mistral.ai/api-keys/")
+        print("\n8. DeepSeek:")
+        print("   https://platform.deepseek.com/api_keys")
+        print("\n9. Groq (Fast Inference):")
+        print("   https://console.groq.com/keys")
+        print("\n10. Cursor IDE:")
         print("   https://cursor.com/dashboard")
         print("   (Note: For chat, use OpenAI/Anthropic keys instead)")
         print("\n" + "-" * 70)
+        
+        for name, link in API_LINKS.items():
+            print(f"{name.capitalize()}:")
+            print(f"   {link}")
+            if name == "openai":
+                print("   Billing: https://platform.openai.com/account/billing")
+            elif name == "anthropic":
+                print("   Billing: https://console.anthropic.com/settings/billing")
+            print()
+            
+        for i, (key, info) in enumerate(API_KEY_LINKS.items(), 1):
+            provider_name = PROVIDER_DISPLAY_NAMES.get(key, key)
+            print(f"{i}. {provider_name}:")
+            print(f"   Description: {info['description']}")
+            print(f"   Get API Key: {info['url']}")
+            if 'billing' in info:
+                print(f"   Billing: {info['billing']}")
+            print(f"   Environment Variable: {info['env_var']}")
+            print()
+        
+        print("-" * 70)
         print("\n💡 Quick Setup:")
+        print("   Option 1: Export in your shell:")
         print("   export OPENAI_API_KEY='sk-your-key-here'")
+        print("   export ANTHROPIC_API_KEY='sk-ant-your-key-here'")
         print("   source ~/.zshrc  # or ~/.bashrc")
-        print("\n   Or create a .env file in project root with:")
+        print("\n   Option 2: Create a .env file in project root:")
         print("   OPENAI_API_KEY=sk-your-key-here")
+        print("   ANTHROPIC_API_KEY=sk-ant-your-key-here")
+        print("   GOOGLE_API_KEY=your-google-key")
+        print("   XAI_API_KEY=your-grok-key")
+        print("   MISTRAL_API_KEY=your-mistral-key")
+        print("   COHERE_API_KEY=your-cohere-key")
+        print("   PERPLEXITY_API_KEY=your-perplexity-key")
+        print("   TOGETHER_API_KEY=your-together-key")
+        print("   DEEPSEEK_API_KEY=your-deepseek-key")
         print("\n" + "=" * 70 + "\n")
         return 0
     

@@ -49,6 +49,7 @@ import WorkspaceHealth from './pages/WorkspaceHealth'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Admin from './pages/Admin'
+import ProjectOrchestrator from './pages/ProjectOrchestrator'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 
 const normalizeBasePath = (value?: string | null): string => {
@@ -114,6 +115,24 @@ function App() {
         <AppErrorBoundary>
           <Layout>
             <Routes>
+            {/* Mission & Architecture Hierarchy: /mission/* */}
+            <Route path="/mission" element={<Navigate to="/mission/overview" replace />} />
+            <Route path="/mission/overview" element={<Dashboard />} />
+            <Route path="/mission/modes" element={<Dashboard />} />
+            <Route path="/mission/identity" element={<Settings />} />
+            <Route path="/mission/daemons" element={<AIOps />} />
+            <Route path="/mission/ai-stack" element={<AIOS />} />
+            <Route path="/mission/models" element={<AdvancedAI />} />
+            <Route path="/mission/architecture" element={<AdvancedSystems />} />
+            <Route path="/mission/components" element={<AdvancedSystems />} />
+            <Route path="/mission/principles" element={<AdvancedSystems />} />
+            <Route path="/mission/mapping" element={<AdvancedSystems />} />
+            <Route path="/mission/orchestrator" element={<AIOps />} />
+            <Route path="/mission/planes/data" element={<Dashboard />} />
+            <Route path="/mission/planes/control" element={<AIOps />} />
+            <Route path="/mission/planes/governance" element={<Security />} />
+            <Route path="/mission/planes/cross-plane" element={<AdvancedSystems />} />
+
             {/* Root & Core Pages */}
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -177,6 +196,8 @@ function App() {
             {/* Observability (v1000) */}
             <Route path="/observability" element={<Observability />} />
             <Route path="/workspace/health" element={<WorkspaceHealth />} />
+            <Route path="/workspace/orchestrator" element={<ProjectOrchestrator />} />
+            <Route path="/projects/orchestrator" element={<ProjectOrchestrator />} />
 
             {/* Analytics & Monitoring Hierarchy: /monitoring/* */}
             <Route path="/analytics" element={<Analytics />} />
@@ -217,6 +238,19 @@ function App() {
             <Route path="/vision-deck" element={<Navigate to="/vision" replace />} />
             <Route path="/future" element={<Navigate to="/vision" replace />} />
             <Route path="/future/:slug" element={<FutureDeck />} />
+
+            {/* Roadmap & Risks Hierarchy: /roadmap/* */}
+            <Route path="/roadmap" element={<Navigate to="/roadmap/overview" replace />} />
+            <Route path="/roadmap/overview" element={<Docs />} />
+            <Route path="/roadmap/phases" element={<Docs />} />
+            <Route path="/roadmap/milestones" element={<Docs />} />
+            <Route path="/roadmap/future" element={<FutureDeck />} />
+            <Route path="/roadmap/risks" element={<Docs />} />
+            <Route path="/roadmap/decisions" element={<Docs />} />
+            <Route path="/roadmap/gaps" element={<Docs />} />
+            <Route path="/roadmap/questions" element={<Docs />} />
+            <Route path="/roadmap/spec" element={<SpecSheet />} />
+            <Route path="/roadmap/future-capabilities" element={<FutureDeck />} />
 
             {/* Settings */}
             <Route path="/settings" element={<Settings />} />

@@ -187,7 +187,8 @@ class MicrosoftGraphConnector(BaseConnector):
         if not all([tenant_id, client_id, client_secret]):
             raise ValueError("Missing required credentials for Microsoft Graph")
 
-        self.access_token = "mock_access_token"
+        # Token will be acquired via OAuth flow - never hardcode tokens
+        self.access_token = None
 
     async def _test_connection(self):
         await self._make_graph_request("GET", "/me")

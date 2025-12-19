@@ -1,0 +1,60 @@
+{
+  "summary": {
+    "root": "/tmp/pytest-of-ubuntu/pytest-1/test_run_workspace_checks_exec0",
+    "generated_at": "20251219-021641",
+    "run_id": "0cce629e-dbba-4790-943e-afd31017df70",
+    "projects": 1,
+    "checks": 1,
+    "failed": 0,
+    "passed": 1,
+    "skipped": 0,
+    "dry_run": false,
+    "status": "passed"
+  },
+  "projects": [
+    {
+      "profile": {
+        "name": "test_run_workspace_checks_exec0",
+        "root": "/tmp/pytest-of-ubuntu/pytest-1/test_run_workspace_checks_exec0",
+        "commands": {
+          "test": [
+            [
+              "/usr/bin/python3",
+              "-c",
+              "import sys; sys.exit(0)"
+            ]
+          ]
+        },
+        "autofix_script": null
+      },
+      "results": [
+        {
+          "category": "test",
+          "command": [
+            "/usr/bin/python3",
+            "-c",
+            "import sys; sys.exit(0)"
+          ],
+          "status": "passed",
+          "exit_code": 0,
+          "duration_seconds": 0.01,
+          "output": "",
+          "ran_at": 1766110601.776149,
+          "run_id": "0cce629e-dbba-4790-943e-afd31017df70",
+          "timeout_seconds": 2,
+          "error": null
+        }
+      ],
+      "counts": {
+        "total": 1,
+        "failed": 0,
+        "passed": 1,
+        "skipped": 0
+      },
+      "status": "passed",
+      "run_id": "0cce629e-dbba-4790-943e-afd31017df70"
+    }
+  ],
+  "errors": [],
+  "report_path": "/workspace/logs/osdash/workspace-report-20251219-021641.json"
+}
