@@ -140,7 +140,7 @@ export default function Writer() {
               updated.set(doc.id, {
                 ...existing,
                 content: doc.content,
-              })
+  })
             }
             return updated
           })
@@ -316,7 +316,7 @@ export default function Writer() {
     if (openDocuments.has(doc.id)) {
       setActiveDocId(doc.id)
     } else {
-      loadMutation.mutate(doc.id)
+    loadMutation.mutate(doc.id)
     }
   }
 
@@ -532,15 +532,15 @@ export default function Writer() {
 
         <div className="lg:col-span-2 space-y-6">
           {activeDoc ? (
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-              <textarea
-                value={editorContent}
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
+            <textarea
+              value={editorContent}
                 onChange={(e) => handleContentChange(e.target.value)}
-                rows={16}
-                className="w-full p-4 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:ring-primary-500 focus:border-primary-500"
-                placeholder="Start writing your ideas, or generate a narrative to begin..."
-              />
-            </div>
+              rows={16}
+              className="w-full p-4 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Start writing your ideas, or generate a narrative to begin..."
+            />
+          </div>
           ) : (
             <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-12 text-center">
               <p className="text-gray-500 dark:text-gray-400">No document open. Create a new document or open one from the library.</p>
@@ -576,9 +576,9 @@ export default function Writer() {
                     <p className="text-xs text-gray-500 dark:text-gray-400">{doc.summary}</p>
                   </button>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
-                      {doc.status}
-                    </span>
+                  <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+                    {doc.status}
+                  </span>
                     <button
                       onClick={(e) => handleDeleteDocument(doc.id, e)}
                       className="text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1"

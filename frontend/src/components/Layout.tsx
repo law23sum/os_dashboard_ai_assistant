@@ -86,12 +86,20 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
   const handleButtonClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     e.preventDefault()
+    
+    // Set flag to prevent click outside handler from firing
     isTogglingRef.current = true
+    
+    // Toggle the dropdown
     onToggle()
-    // Reset flag after click event completes
-    setTimeout(() => {
-      isTogglingRef.current = false
-    }, 0)
+    
+    // Reset flag after a brief delay to allow click event to complete
+    // This prevents the click outside handler from immediately closing it
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        isTogglingRef.current = false
+      }, 50)
+    })
   }, [onToggle])
 
   useEffect(() => {
@@ -101,7 +109,7 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
     }
 
     const handleClickOutside = (event: MouseEvent) => {
-      // Ignore if we're currently toggling (button was clicked)
+      // Ignore if we're currently toggling (button was just clicked)
       if (isTogglingRef.current) {
         return
       }
@@ -110,8 +118,10 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
       
       // Don't close if clicking on button or dropdown
       if (
-        buttonRef.current?.contains(target) ||
-        dropdownRef.current?.contains(target)
+        !buttonRef.current ||
+        !dropdownRef.current ||
+        buttonRef.current.contains(target) ||
+        dropdownRef.current.contains(target)
       ) {
         return
       }
@@ -120,14 +130,15 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
       onToggle()
     }
 
-    // Use mousedown with a small delay to let button click complete first
+    // Use click event with capture phase to catch all clicks
+    // Add small delay to ensure button click handler runs first
     const timeoutId = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside, true)
+      document.addEventListener('click', handleClickOutside, true)
     }, 10)
 
     return () => {
       clearTimeout(timeoutId)
-      document.removeEventListener('mousedown', handleClickOutside, true)
+      document.removeEventListener('click', handleClickOutside, true)
     }
   }, [expanded, onToggle])
 
@@ -138,6 +149,10 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
           ref={buttonRef}
           type="button"
           onClick={handleButtonClick}
+          onMouseDown={(e) => {
+            // Prevent mousedown from bubbling to document
+            e.stopPropagation()
+          }}
           className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
           style={{ pointerEvents: 'auto', cursor: 'pointer' }}
           aria-haspopup="menu"
@@ -158,7 +173,14 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
             ref={dropdownRef} 
             className="osd-dropdown w-72" 
             style={{ position: 'fixed', zIndex: 99999, pointerEvents: 'auto' }}
-            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              // Prevent clicks inside dropdown from bubbling to document
+              e.stopPropagation()
+            }}
+            onMouseDown={(e) => {
+              // Prevent mousedown from bubbling to document
+              e.stopPropagation()
+            }}
           >
             {category.groups.map((group, groupIndex) => (
               <div

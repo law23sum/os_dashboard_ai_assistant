@@ -170,6 +170,7 @@ class AgentRun:
     created_at: str = datetime.now().isoformat(timespec="seconds")
 
 
+<<<<<<< Updated upstream
 @dataclass
 class DocumentSample:
     """A materialized sample document definition for every supported file type."""
@@ -212,6 +213,10 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
 
     # Allow use across background worker threads (integrations, daemons, API).
     conn = sqlite3.connect(str(target), check_same_thread=False)
+=======
+def init_db() -> sqlite3.Connection:
+    conn = sqlite3.connect(DB_FILE)
+>>>>>>> Stashed changes
     conn.row_factory = sqlite3.Row
     
     # ========================================================================
@@ -379,6 +384,7 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
         )
     """)
 
+<<<<<<< Updated upstream
     # Document operations table for AI-driven updates and external sync
     c.execute(
         """
@@ -725,6 +731,8 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
             ON project_ledger(project_id, created_at DESC)
         """)
     
+=======
+>>>>>>> Stashed changes
     conn.commit()
     return conn
 
