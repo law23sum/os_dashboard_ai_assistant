@@ -46,6 +46,9 @@ import CapsuleMarketplace from './pages/CapsuleMarketplace'
 import AutoFix from './pages/AutoFix'
 import IntentProcessor from './pages/IntentProcessor'
 import WorkspaceHealth from './pages/WorkspaceHealth'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import Admin from './pages/Admin'
 import ProjectOrchestrator from './pages/ProjectOrchestrator'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 
@@ -251,6 +254,11 @@ function App() {
 
             {/* Settings */}
             <Route path="/settings" element={<Settings />} />
+
+            {/* Authentication */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/admin" element={<Admin />} />
 
             {/* Catch-all */}
               <Route path="*" element={<Navigate to="/" replace />} />
