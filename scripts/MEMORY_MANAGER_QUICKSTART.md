@@ -112,3 +112,5 @@ INFO - Throttled Chrome (PID 12345) to 30% - Score: 75.2, Complexity: O(n^2)
 ## 🔗 Full Documentation
 
 See `docs/MEMORY_RESOURCE_MANAGER.md` for complete documentation.
+
+

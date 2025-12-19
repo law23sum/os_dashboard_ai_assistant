@@ -1,7 +1,7 @@
+from __future__ import annotations
+
 """Authentication router with signup/login and RBAC."""
 """Authentication endpoints (signup/login/me)."""
-
-from __future__ import annotations
 
 from datetime import datetime, timedelta
 from typing import Optional
@@ -52,8 +52,17 @@ class AuthUserResponse(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
     password: str = Field(min_length=6, max_length=256)
+    
+    def get_identifier(self) -> str:
+        """Get the identifier (username or email) for login."""
+        if self.username:
+            return self.username.strip().lower()
+        if self.email:
+            return self.email.strip().lower()
+        raise ValueError("Either username or email must be provided")
 
 
 class SignupRequest(BaseModel):
@@ -121,14 +130,16 @@ async def login(credentials: UserLogin, request: Request):
 
 
 @router.post("/logout")
-async def logout(current_user: User = Depends(get_current_active_user), request: Request | None = None):
+async def logout(current_user: User = Depends(get_current_active_user), request: Request = None):
     """Logout current user (server-side token invalidation is not implemented)."""
+    ip_address = request.client.host if request and request.client else None
+    user_agent = request.headers.get("user-agent") if request else None
     log_user_activity(
         current_user.id,
         "logout",
         details=f"User logged out: {current_user.username}",
-        ip_address=request.client.host if request and request.client else None,
-        user_agent=request.headers.get("user-agent") if request else None,
+        ip_address=ip_address,
+        user_agent=user_agent,
     )
     return {"message": "Successfully logged out"}
 
@@ -168,18 +179,6 @@ async def list_users(admin_user: User = Depends(get_current_admin_user), skip: i
                 )
             )
         return users
-            activities.append({
-                "id": row[0],
-                "user_id": row[1],
-                "username": row[2],
-                "action": row[3],
-                "resource": row[4],
-                "details": row[5],
-                "ip_address": row[6],
-                "timestamp": row[7]
-            })
-        
-        return {"activities": activities}
 
 
 @router.patch("/auth/users/{user_id}")
@@ -272,8 +271,6 @@ async def delete_user(
     return {"message": "User deleted successfully"}
 """Authentication and authorization router with user management."""
 
-from __future__ import annotations
-
 import hashlib
 import secrets
 from datetime import datetime, timedelta
@@ -337,67 +334,201 @@ def _row_to_user(row) -> AuthUser:
     )
 
 
-@router.post("/auth/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+async def _ensure_demo_users() -> None:
+    """Ensure demo users exist in the database for testing."""
+    from backend_api.db import db_session
+    from backend_api.security import hash_password
+    
+    try:
+        with db_session() as db:
+            # Check if demo users already exist
+            admin_user = db.execute("SELECT id FROM users WHERE email = ?", ("admin@demo.local",)).fetchone()
+            regular_user = db.execute("SELECT id FROM users WHERE email = ?", ("user@demo.local",)).fetchone()
+            
+            now = datetime.now().isoformat(timespec="seconds")
+            
+            # Create admin user if it doesn't exist
+            if not admin_user:
+                admin_id = str(uuid4())
+                db.execute(
+                    """
+                    INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
+                    VALUES (?, ?, ?, ?, 1, 'demo', 0, ?, NULL)
+                    """,
+                    (admin_id, "admin@demo.local", "Admin User", hash_password("admin123"), now),
+                )
+            
+            # Create regular user if it doesn't exist
+            if not regular_user:
+                user_id = str(uuid4())
+                db.execute(
+                    """
+                    INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
+                    VALUES (?, ?, ?, ?, 0, 'demo', 0, ?, NULL)
+                    """,
+                    (user_id, "user@demo.local", "Regular User", hash_password("user123"), now),
+                )
+    except Exception as e:
+        import logging
+        logging.error(f"Error ensuring demo users: {e}", exc_info=True)
+        # Don't raise - let the login endpoint handle missing users
+
+
+@router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def signup(payload: SignupRequest) -> TokenResponse:
-    email = payload.email.strip().lower()
-    now = datetime.now().isoformat(timespec="seconds")
-    with db_session() as db:
-        existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
-        if existing:
-            raise HTTPException(status_code=400, detail="Email already registered")
-        user_id = str(uuid4())
-        db.execute(
-            """
-            INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
-            VALUES (?, ?, ?, ?, 0, ?, 0, ?, NULL)
-            """,
-            (user_id, email, payload.display_name or "", hash_password(payload.password), payload.environment, now),
+    """Register a new user account."""
+    try:
+        email = payload.email.strip().lower()
+        now = datetime.now().isoformat(timespec="seconds")
+        with db_session() as db:
+            existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+            if existing:
+                raise HTTPException(status_code=400, detail="Email already registered")
+            user_id = str(uuid4())
+            db.execute(
+                """
+                INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
+                VALUES (?, ?, ?, ?, 0, ?, 0, ?, NULL)
+                """,
+                (user_id, email, payload.display_name or "", hash_password(payload.password), payload.environment, now),
+            )
+            db.commit()
+            row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+        user = _row_to_user(row)
+        # Use the create_access_token from security module
+        from backend_api.security import create_access_token as create_token
+        token = create_token(user=user, expires_in=timedelta(hours=12))
+        return TokenResponse(
+            access_token=token,
+            token_type="bearer",
+            user=AuthUserResponse(
+                id=user.id,
+                email=user.email,
+                display_name=user.display_name,
+                is_admin=user.is_admin,
+                environment=user.environment,
+            ),
         )
-        row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
-    user = _row_to_user(row)
-    token = create_access_token(user=user, expires_in=timedelta(hours=12))
-    return TokenResponse(
-        access_token=token,
-        user=AuthUserResponse(
-            id=user.id,
-            email=user.email,
-            display_name=user.display_name,
-            is_admin=user.is_admin,
-            environment=user.environment,
-        ),
-    )
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.error(f"Signup error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error during signup")
 
 
-@router.post("/auth/login", response_model=TokenResponse)
+@router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest) -> TokenResponse:
-    email = payload.email.strip().lower()
-    with db_session() as db:
-        row = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-        if not row:
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-        if bool(row["disabled"] or 0):
-            raise HTTPException(status_code=403, detail="Account disabled")
-        if not verify_password(payload.password, row["password_hash"] or ""):
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-        db.execute(
-            "UPDATE users SET last_login = ? WHERE id = ?",
-            (datetime.now().isoformat(timespec="seconds"), row["id"]),
+    """Authenticate user and return access token.
+    
+    Accepts either username or email for login.
+    Creates demo users if they don't exist.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    try:
+        identifier = payload.get_identifier()
+        
+        # Ensure demo users exist (non-blocking - if it fails, continue)
+        try:
+            await _ensure_demo_users()
+        except Exception as e:
+            logger.warning(f"Could not ensure demo users (non-fatal): {e}")
+        
+        with db_session() as db:
+            # Try to find user by:
+            # 1. Exact email match
+            # 2. Email prefix match (e.g., "admin" matches "admin@demo.local") - only if identifier has no @
+            # 3. Display name match (case-insensitive)
+            if "@" in identifier:
+                # Full email provided - exact match only
+                row = db.execute(
+                    """
+                    SELECT * FROM users 
+                    WHERE email = ? OR LOWER(email) = LOWER(?)
+                    """,
+                    (identifier, identifier)
+                ).fetchone()
+            else:
+                # Username/prefix provided - try email prefix and display name
+                row = db.execute(
+                    """
+                    SELECT * FROM users 
+                    WHERE email LIKE ? 
+                       OR LOWER(display_name) = LOWER(?)
+                    """,
+                    (f"{identifier}@%", identifier)
+                ).fetchone()
+            
+            if not row:
+                logger.warning(f"Login attempt with unknown identifier: {identifier}")
+                raise HTTPException(status_code=401, detail="Invalid credentials")
+            
+            found_email = row["email"]
+            found_display = row["display_name"] if "display_name" in row.keys() else "N/A"
+            logger.info(f"Found user for login: email={found_email}, display_name={found_display}")
+            
+            # SQLite Row objects use dictionary-style access with row["key"], not row.get()
+            try:
+                disabled = bool(row["disabled"] or 0)
+                if disabled:
+                    logger.warning(f"Login attempt for disabled account: {found_email}")
+                    raise HTTPException(status_code=403, detail="Account disabled")
+                
+                password_hash = row["password_hash"] or ""
+                if not password_hash:
+                    logger.error(f"User {found_email} has no password hash")
+                    raise HTTPException(status_code=401, detail="Invalid credentials")
+            except KeyError as e:
+                logger.error(f"Missing column in user row: {e}")
+                raise HTTPException(status_code=500, detail="Database schema error")
+            
+            # Use verify_password from backend_api.security
+            from backend_api.security import verify_password as verify_pwd
+            try:
+                password_valid = verify_pwd(payload.password, password_hash)
+                if not password_valid:
+                    logger.warning(f"Invalid password for user: {found_email} (identifier: {identifier})")
+                    raise HTTPException(status_code=401, detail="Invalid credentials")
+                logger.info(f"Password verified successfully for user: {found_email}")
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.error(f"Password verification error for {found_email}: {e}", exc_info=True)
+                raise HTTPException(status_code=401, detail="Invalid credentials")
+            
+            # Update last login
+            db.execute(
+                "UPDATE users SET last_login = ? WHERE id = ?",
+                (datetime.now().isoformat(timespec="seconds"), row["id"]),
+            )
+            # db_session context manager will commit automatically
+        
+        user = _row_to_user(row)
+        # Use the create_access_token from security module
+        from backend_api.security import create_access_token as create_token
+        token = create_token(user=user, expires_in=timedelta(hours=12))
+        
+        return TokenResponse(
+            access_token=token,
+            token_type="bearer",
+            user=AuthUserResponse(
+                id=user.id,
+                email=user.email,
+                display_name=user.display_name,
+                is_admin=user.is_admin,
+                environment=user.environment,
+            ),
         )
-    user = _row_to_user(row)
-    token = create_access_token(user=user, expires_in=timedelta(hours=12))
-    return TokenResponse(
-        access_token=token,
-        user=AuthUserResponse(
-            id=user.id,
-            email=user.email,
-            display_name=user.display_name,
-            is_admin=user.is_admin,
-            environment=user.environment,
-        ),
-    )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Internal server error during login: {str(e)}")
 
 
-@router.get("/auth/me", response_model=AuthUserResponse)
+@router.get("/me", response_model=AuthUserResponse)
 async def me(user: AuthUser = Depends(get_current_user)) -> AuthUserResponse:
     # Trust JWT claims (also avoids extra DB round-trip)
     return AuthUserResponse(

@@ -60,6 +60,7 @@ from backend_api.routers import (
     api_connectors as api_connectors_router,
     ai_systems as ai_systems_router,
     audit as audit_router,
+    auth as auth_router,
     autofix as autofix_router,
     capsules as capsules_router,
     coach as coach_router,
@@ -327,12 +328,29 @@ def create_app(
 ) -> FastAPI:
     """Create FastAPI application."""
     app = FastAPI(title="OS Dashboard API", version="0.2.0")
+    # CORS configuration - must specify origins when allow_credentials=True
+    # Cannot use wildcard "*" with credentials
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=[
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5174",
+            "http://0.0.0.0:5173",
+            "http://0.0.0.0:5174",
+            # Electron file:// origin
+            "null",
+        ],
+        # Allow any localhost/loopback and local network IPs on any port for dev
+        allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$",
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        allow_headers=["Content-Type", "Authorization", "Accept", "X-Requested-With"],
+        expose_headers=["Content-Type", "X-Total-Count", "x-correlation-id"],
+        max_age=3600,
     )
     app.add_middleware(
         StripPrefixMiddleware,
@@ -371,6 +389,9 @@ def create_app(
     # Surface the realtime Office router so the React frontend can read metrics
     # and trigger AI actions without spinning up the separate demo server.
     app.include_router(office_router.router, prefix="/office", tags=["office"])
+    # Authentication router (middleware strips /api, so /api/auth/login becomes /auth/login)
+    # Router endpoints are /login, /signup, /me, so we mount at /auth prefix
+    app.include_router(auth_router.router, prefix="/auth", tags=["auth"])
     # Additional routers from backend_api to keep advanced surfaces in sync across
     # the desktop (Tkinter/PyWebView) and browser clients.
     app.include_router(api_connectors_router.router, prefix="/api-connectors", tags=["api_connectors"])

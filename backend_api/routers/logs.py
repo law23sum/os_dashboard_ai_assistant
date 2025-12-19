@@ -52,6 +52,36 @@ def record_event(
     )
 
 
+def log_event(
+    *,
+    level: str = "INFO",
+    message: str = "",
+    service: Optional[str] = None,
+    action: Optional[str] = None,
+    resource: Optional[str] = None,
+    user_id: Optional[str] = None,
+    **kwargs: Any,
+) -> None:
+    """Convenience function to log events with automatic db connection."""
+    source = service or "ai_assistant"
+    metadata: Dict[str, Any] = {}
+    if action:
+        metadata["action"] = action
+    if resource:
+        metadata["resource"] = resource
+    metadata.update(kwargs)
+    
+    with db_session() as db:
+        record_event(
+            db=db,
+            source=source,
+            level=level,
+            message=message,
+            user_id=user_id,
+            metadata=metadata if metadata else None,
+        )
+
+
 @router.get("/logs/stream", response_model=LogStreamResponse)
 async def stream_logs(
     cursor: int = Query(0, ge=0, description="Return events with id > cursor"),

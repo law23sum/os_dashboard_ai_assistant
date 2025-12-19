@@ -21,7 +21,7 @@ from assistant_hub_gui.autofix_monitor import (
 REPO_ROOT = Path(__file__).resolve().parent
 FRONTEND_DIR = REPO_ROOT / "frontend"
 FRONTEND_DIST = FRONTEND_DIR / "dist"
-DEFAULT_API_HOST = "127.0.0.1"
+DEFAULT_API_HOST = "0.0.0.0"  # Bind to all interfaces to allow network access
 DEFAULT_API_PORT = 8000
 DEFAULT_MODE = "web"
 PREFLIGHT_SCRIPT = REPO_ROOT / "scripts" / "run_tests_with_autofix.py"

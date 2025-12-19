@@ -77,3 +77,5 @@ echo ""
 echo "Setup complete! You can now use:"
 echo "  cursor_ai              # Interactive provider selection"
 echo "  agents_ai              # Run the Multi-Agent System (AIC, Aria, Sora)"
+
+

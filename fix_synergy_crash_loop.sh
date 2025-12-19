@@ -245,3 +245,5 @@ log "- Trying Barrier (open-source Synergy fork)"
 log "- Checking macOS compatibility"
 
 
+
+

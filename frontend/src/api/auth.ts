@@ -14,8 +14,12 @@ export interface TokenResponse {
   user: AuthUser
 }
 
-export const login = async (email: string, password: string): Promise<TokenResponse> => {
-  const { data } = await apiClient.post<TokenResponse>(apiPath('auth/login'), { email, password })
+export const login = async (emailOrUsername: string, password: string): Promise<TokenResponse> => {
+  // Support both email and username - backend should handle both
+  const { data } = await apiClient.post<TokenResponse>(apiPath('auth/login'), { 
+    username: emailOrUsername,
+    password 
+  })
   setAccessToken(data.access_token)
   return data
 }

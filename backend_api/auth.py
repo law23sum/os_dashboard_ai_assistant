@@ -14,6 +14,10 @@ from pydantic import BaseModel, EmailStr
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
+import shutil
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Security configuration
 SECRET_KEY = secrets.token_urlsafe(32)  # Generate secure secret key
@@ -81,81 +85,160 @@ def get_user_db():
         conn.close()
 
 
+def _check_database_integrity(conn: sqlite3.Connection) -> bool:
+    """Check if database is valid by running integrity check."""
+    try:
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA integrity_check")
+        result = cursor.fetchone()
+        return result[0] == "ok"
+    except Exception as e:
+        logger.error(f"Database integrity check failed: {e}")
+        return False
+
+
+def _recover_database() -> bool:
+    """Attempt to recover corrupted database by backing it up and removing it."""
+    try:
+        # Backup the corrupted database
+        if DB_PATH.exists():
+            # Add timestamp to backup filename to avoid overwriting
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_path = DB_PATH.parent / f"{DB_PATH.stem}_{timestamp}.db.backup"
+            shutil.copy2(DB_PATH, backup_path)
+            logger.warning(f"Backed up corrupted database to {backup_path}")
+            
+            # Remove corrupted file so it can be recreated
+            DB_PATH.unlink()
+            logger.info("Removed corrupted database file, will be recreated on next init")
+        return True
+    except Exception as e:
+        logger.error(f"Database recovery failed: {e}")
+        return False
+
+
 def init_user_db():
     """Initialize user database with tables."""
-    with get_user_db() as conn:
-        cursor = conn.cursor()
+    try:
+        # First, try to connect and check integrity
+        if DB_PATH.exists():
+            try:
+                test_conn = sqlite3.connect(str(DB_PATH), check_same_thread=False)
+                if not _check_database_integrity(test_conn):
+                    test_conn.close()
+                    logger.warning("Database integrity check failed, attempting recovery...")
+                    if not _recover_database():
+                        logger.error("Database recovery failed, creating new database")
+                        if DB_PATH.exists():
+                            backup_path = DB_PATH.with_suffix('.db.backup')
+                            shutil.move(DB_PATH, backup_path)
+                            logger.info(f"Moved corrupted database to {backup_path}")
+                else:
+                    test_conn.close()
+            except sqlite3.DatabaseError as e:
+                logger.warning(f"Database error detected: {e}, attempting recovery...")
+                if not _recover_database():
+                    logger.error("Database recovery failed, creating new database")
+                    if DB_PATH.exists():
+                        backup_path = DB_PATH.with_suffix('.db.backup')
+                        shutil.move(DB_PATH, backup_path)
+                        logger.info(f"Moved corrupted database to {backup_path}")
         
-        # Users table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                hashed_password TEXT NOT NULL,
-                full_name TEXT,
-                role TEXT DEFAULT 'user',
-                is_active BOOLEAN DEFAULT 1,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_login TIMESTAMP
-            )
-        """)
+        # Ensure parent directory exists
+        DB_PATH.parent.mkdir(parents=True, exist_ok=True)
         
-        # Sessions/tokens table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS user_sessions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                refresh_token TEXT UNIQUE NOT NULL,
-                expires_at TIMESTAMP NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-            )
-        """)
-        
-        # User activity log
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS user_activity (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                action TEXT NOT NULL,
-                resource TEXT,
-                details TEXT,
-                ip_address TEXT,
-                user_agent TEXT,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-            )
-        """)
-        
-        # Create admin user if not exists
-        cursor.execute("SELECT id FROM users WHERE username = ?", ("admin",))
-        if not cursor.fetchone():
-            admin_password = "admin123"  # Default password - should be changed
-            hashed = pwd_context.hash(admin_password)
+        # Now initialize the database
+        with get_user_db() as conn:
+            cursor = conn.cursor()
+            
+            # Users table
             cursor.execute("""
-                INSERT INTO users (username, email, hashed_password, full_name, role)
-                VALUES (?, ?, ?, ?, ?)
-            """, ("admin", "admin@osdashboard.ai", hashed, "System Administrator", "admin"))
-            print("✅ Admin user created: username='admin', password='admin123' (CHANGE THIS!)")
-        
-        # Create dummy test users for demonstration
-        test_users = [
-            ("alice", "alice@example.com", "Alice Johnson", "user"),
-            ("bob", "bob@example.com", "Bob Smith", "user"),
-            ("charlie", "charlie@example.com", "Charlie Brown", "user"),
-        ]
-        
-        for username, email, full_name, role in test_users:
-            cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    email TEXT UNIQUE NOT NULL,
+                    hashed_password TEXT NOT NULL,
+                    full_name TEXT,
+                    role TEXT DEFAULT 'user',
+                    is_active BOOLEAN DEFAULT 1,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_login TIMESTAMP
+                )
+            """)
+            
+            # Sessions/tokens table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS user_sessions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    refresh_token TEXT UNIQUE NOT NULL,
+                    expires_at TIMESTAMP NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+            
+            # User activity log
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS user_activity (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    action TEXT NOT NULL,
+                    resource TEXT,
+                    details TEXT,
+                    ip_address TEXT,
+                    user_agent TEXT,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+            
+            # Create admin user if not exists
+            cursor.execute("SELECT id FROM users WHERE username = ?", ("admin",))
             if not cursor.fetchone():
-                hashed = pwd_context.hash("password123")
+                admin_password = "admin123"  # Default password - should be changed
+                hashed = pwd_context.hash(admin_password)
                 cursor.execute("""
                     INSERT INTO users (username, email, hashed_password, full_name, role)
                     VALUES (?, ?, ?, ?, ?)
-                """, (username, email, hashed, full_name, role))
-        
-        conn.commit()
+                """, ("admin", "admin@osdashboard.ai", hashed, "System Administrator", "admin"))
+                logger.info("✅ Admin user created: username='admin', password='admin123' (CHANGE THIS!)")
+            
+            # Create dummy test users for demonstration
+            test_users = [
+                ("alice", "alice@example.com", "Alice Johnson", "user"),
+                ("bob", "bob@example.com", "Bob Smith", "user"),
+                ("charlie", "charlie@example.com", "Charlie Brown", "user"),
+            ]
+            
+            for username, email, full_name, role in test_users:
+                cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+                if not cursor.fetchone():
+                    hashed = pwd_context.hash("password123")
+                    cursor.execute("""
+                        INSERT INTO users (username, email, hashed_password, full_name, role)
+                        VALUES (?, ?, ?, ?, ?)
+                    """, (username, email, hashed, full_name, role))
+            
+            conn.commit()
+            logger.info("User database initialized successfully")
+            
+    except sqlite3.DatabaseError as e:
+        logger.error(f"Database error during initialization: {e}")
+        # Try to recover one more time
+        if DB_PATH.exists():
+            backup_path = DB_PATH.with_suffix('.db.backup')
+            try:
+                shutil.move(DB_PATH, backup_path)
+                logger.info(f"Moved corrupted database to {backup_path}, retrying initialization...")
+                # Recursively call to retry with fresh database
+                init_user_db()
+            except Exception as recovery_error:
+                logger.error(f"Failed to recover database: {recovery_error}")
+                raise
+    except Exception as e:
+        logger.error(f"Unexpected error during database initialization: {e}", exc_info=True)
+        raise
 
 
 # Password utilities
@@ -338,4 +421,10 @@ async def get_current_admin_user(current_user: User = Depends(get_current_active
 
 
 # Initialize database on module import
-init_user_db()
+# Wrap in try-except to prevent import failures from crashing the app
+try:
+    init_user_db()
+except Exception as e:
+    logger.error(f"Failed to initialize user database: {e}", exc_info=True)
+    # Don't raise - allow the app to start, but authentication will fail
+    # This gives the admin a chance to fix the database manually

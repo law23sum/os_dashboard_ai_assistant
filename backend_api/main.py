@@ -29,6 +29,28 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database and ensure demo users exist on startup."""
+    try:
+        from backend_api.db import db_session
+        from backend_api.routers.auth import _ensure_demo_users
+        
+        # Initialize database connection
+        with db_session() as db:
+            db.execute("SELECT 1").fetchone()
+        
+        # Ensure demo users exist
+        await _ensure_demo_users()
+        
+        import logging
+        logging.info("Database initialized and demo users created")
+    except Exception as e:
+        import logging
+        logging.error(f"Startup initialization failed: {e}", exc_info=True)
+        # Don't fail startup - let requests handle errors
+
 # CORS middleware - more restrictive for security
 app.add_middleware(
     CORSMiddleware,
@@ -45,8 +67,9 @@ app.add_middleware(
         "https://0.0.0.0:5173", "https://0.0.0.0:5174",
         "https://0.0.0.0:8000", "https://localhost:8000", "https://127.0.0.1:8000"
     ],
-    # Allow any localhost/loopback port for dev/preview builds.
-    allow_origin_regex=r"^https?://(localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0)(:\\d+)?$",
+    # Allow any localhost/loopback port and private network IPs for dev/preview builds.
+    # This includes: localhost, 127.0.0.1, 0.0.0.0, 192.168.x.x, 10.x.x.x, 172.16-31.x.x
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods instead of "*"
     allow_headers=["Content-Type", "Authorization", "Accept"],  # Explicit headers instead of "*"
@@ -211,13 +234,13 @@ app.include_router(runtime_diagnostics.router, prefix="/api", tags=["runtime"])
 app.include_router(workspace.router, prefix="/api", tags=["workspace"])
 app.include_router(orchestrator.router, tags=["orchestrator"])
 app.include_router(workspace_health.router, prefix="/api", tags=["workspace_health"])
-app.include_router(auth.router, prefix="/api", tags=["auth"])
-app.include_router(admin.router, prefix="/api", tags=["admin"])
-app.include_router(logs.router, prefix="/api", tags=["logs"])
-app.include_router(ai_enhanced.router, prefix="/api", tags=["ai_enhanced"])
+# Auth router mounted at /api/auth for /api/auth/login, /api/auth/signup, etc.
 app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
+# Admin router
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+# Logs router
 app.include_router(logs.router, prefix="/api", tags=["logs"])
+# AI enhanced router
 app.include_router(ai_enhanced.router, prefix="/api", tags=["ai_enhanced"])
 app.include_router(version_control.router, prefix="/api/versions", tags=["version_control"])
 app.include_router(unified_logging.router, prefix="/api/logs", tags=["logging"])

@@ -1,0 +1,223 @@
+{
+  "timestamp": "2025-12-19 15:15:00",
+  "root": "/Users/chrisdixon/Projects",
+  "total_projects": 25,
+  "projects": {
+    "os_dashboard_ai_assistant": {
+      "path": "/Users/chrisdixon/Projects/os_dashboard_ai_assistant",
+      "status": "stopped",
+      "branch": "incremeents",
+      "has_ai_autofix": true,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "portfolio_strategist": {
+      "path": "/Users/chrisdixon/Projects/portfolio_strategist",
+      "status": "discovered",
+      "branch": "increments",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "jetson-inference": {
+      "path": "/Users/chrisdixon/Projects/external_projects/jetson-inference",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "light": {
+      "path": "/Users/chrisdixon/Projects/research_papers/light",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "PythonOneLiners": {
+      "path": "/Users/chrisdixon/Projects/external_projects/python_projects/PythonOneLiners",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "Real_World_Python": {
+      "path": "/Users/chrisdixon/Projects/external_projects/python_projects/Real_World_Python",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "openai-python": {
+      "path": "/Users/chrisdixon/Projects/external_projects/python_projects/openai-python",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "PracticalDeepLearningPython": {
+      "path": "/Users/chrisdixon/Projects/external_projects/python_projects/PracticalDeepLearningPython",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "mbms": {
+      "path": "/Users/chrisdixon/Projects/external_projects/python_projects/mbms",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "awesome-cheatsheets": {
+      "path": "/Users/chrisdixon/Projects/external_projects/misc/awesome-cheatsheets",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "freeCodeCamp": {
+      "path": "/Users/chrisdixon/Projects/external_projects/misc/freeCodeCamp",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "HackLikeALegend": {
+      "path": "/Users/chrisdixon/Projects/external_projects/cybersecurity/HackLikeALegend",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "How-Cybersecurity-Really-Works": {
+      "path": "/Users/chrisdixon/Projects/external_projects/cybersecurity/How-Cybersecurity-Really-Works",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "examples": {
+      "path": "/Users/chrisdixon/Projects/external_projects/CICD/examples",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "devops_for_the_desperate": {
+      "path": "/Users/chrisdixon/Projects/external_projects/CICD/devops_for_the_desperate",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "Treasure-Hunt": {
+      "path": "/Users/chrisdixon/Projects/external_projects/MATLAB/Treasure-Hunt",
+      "status": "discovered",
+      "branch": "release",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "Matlab_Real_Space": {
+      "path": "/Users/chrisdixon/Projects/external_projects/MATLAB/Matlab_Real_Space",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "Programming-Organizing-Data": {
+      "path": "/Users/chrisdixon/Projects/external_projects/MATLAB/Programming-Organizing-Data",
+      "status": "discovered",
+      "branch": "release",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "Fundamentals-of-Programming": {
+      "path": "/Users/chrisdixon/Projects/external_projects/MATLAB/Fundamentals-of-Programming",
+      "status": "discovered",
+      "branch": "release",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "Programming-Structuring-Code": {
+      "path": "/Users/chrisdixon/Projects/external_projects/MATLAB/Programming-Structuring-Code",
+      "status": "discovered",
+      "branch": "release",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "openai-node": {
+      "path": "/Users/chrisdixon/Projects/external_projects/graphical_user_interface/openai-node",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "openai-agents-js": {
+      "path": "/Users/chrisdixon/Projects/external_projects/graphical_user_interface/openai-agents-js",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "gpt-5-coding-examples": {
+      "path": "/Users/chrisdixon/Projects/external_projects/AI_projects/gpt-5-coding-examples",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "openai-cookbook": {
+      "path": "/Users/chrisdixon/Projects/external_projects/AI_projects/openai-cookbook",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "latex-paper": {
+      "path": "/Users/chrisdixon/Projects/research_papers/force/latex-paper",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    }
+  },
+  "todos": {
+    "total": 0,
+    "by_priority": {
+      "critical": 0,
+      "high": 0,
+      "normal": 0,
+      "low": 0
+    },
+    "completed": 0
+  },
+  "monitors": {
+    "running": 0,
+    "healthy": 0,
+    "stopped": 1,
+    "error": 0
+  }
+}

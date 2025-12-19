@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated_at": "2025-12-19T06:21:14.343595+00:00",
+    "generated_at": "2025-12-19T20:03:20.903294+00:00",
     "repo_root": "/Users/chrisdixon/Projects/os_dashboard_ai_assistant",
-    "feature_count": 79,
+    "feature_count": 96,
     "level_count": 4,
     "mode_count": 4
   },
@@ -806,6 +806,198 @@
                 "Verify regression acceptance criteria and record findings."
               ],
               "expected_result": "Apiconnectors Page satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Admin Page",
+      "source": "frontend",
+      "path": "frontend/src/pages/Admin.tsx",
+      "slug": "frontend-admin",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "frontend-admin-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-admin-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-admin-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-admin-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "frontend-admin-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-admin-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-admin-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-admin-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "frontend-admin-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-admin-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-admin-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-admin-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "frontend-admin-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-admin-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-admin-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-admin-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Admin Page.",
+              "steps": [
+                "Exercise Admin Page at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin Page satisfies regression constraints without regressions."
             }
           ]
         }
@@ -4076,6 +4268,198 @@
       ]
     },
     {
+      "feature": "Login Page",
+      "source": "frontend",
+      "path": "frontend/src/pages/Login.tsx",
+      "slug": "frontend-login",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "frontend-login-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-login-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-login-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-login-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "frontend-login-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-login-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-login-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-login-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "frontend-login-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-login-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-login-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-login-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "frontend-login-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-login-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-login-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-login-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Login Page.",
+              "steps": [
+                "Exercise Login Page at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Login Page satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "feature": "Mlops Page",
       "source": "frontend",
       "path": "frontend/src/pages/MLOps.tsx",
@@ -4262,6 +4646,198 @@
                 "Verify regression acceptance criteria and record findings."
               ],
               "expected_result": "Mlops Page satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Master Orchestrator Page",
+      "source": "frontend",
+      "path": "frontend/src/pages/MasterOrchestrator.tsx",
+      "slug": "frontend-masterorchestrator",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "frontend-masterorchestrator-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-masterorchestrator-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-masterorchestrator-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-masterorchestrator-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "frontend-masterorchestrator-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-masterorchestrator-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-masterorchestrator-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-masterorchestrator-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "frontend-masterorchestrator-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-masterorchestrator-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-masterorchestrator-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-masterorchestrator-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "frontend-masterorchestrator-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-masterorchestrator-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-masterorchestrator-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-masterorchestrator-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Master Orchestrator Page.",
+              "steps": [
+                "Exercise Master Orchestrator Page at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Master Orchestrator Page satisfies regression constraints without regressions."
             }
           ]
         }
@@ -6764,6 +7340,390 @@
       ]
     },
     {
+      "feature": "Signup Page",
+      "source": "frontend",
+      "path": "frontend/src/pages/Signup.tsx",
+      "slug": "frontend-signup",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "frontend-signup-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-signup-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-signup-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-signup-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "frontend-signup-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-signup-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-signup-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-signup-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "frontend-signup-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-signup-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-signup-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-signup-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "frontend-signup-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-signup-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-signup-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-signup-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Signup Page.",
+              "steps": [
+                "Exercise Signup Page at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Signup Page satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Spec Page Page",
+      "source": "frontend",
+      "path": "frontend/src/pages/SpecPage.tsx",
+      "slug": "frontend-specpage",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "frontend-specpage-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-specpage-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-specpage-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-specpage-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "frontend-specpage-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-specpage-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-specpage-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-specpage-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "frontend-specpage-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-specpage-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-specpage-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-specpage-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "frontend-specpage-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-specpage-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-specpage-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-specpage-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Spec Page Page.",
+              "steps": [
+                "Exercise Spec Page Page at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Spec Page Page satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "feature": "Spec Sheet Page",
       "source": "frontend",
       "path": "frontend/src/pages/SpecSheet.tsx",
@@ -8300,6 +9260,582 @@
       ]
     },
     {
+      "feature": "Admin API",
+      "source": "backend",
+      "path": "backend_api/routers/admin.py",
+      "slug": "backend-admin",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-admin-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-admin-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-admin-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-admin-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-admin-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-admin-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-admin-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-admin-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-admin-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-admin-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-admin-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-admin-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-admin-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-admin-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-admin-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-admin-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Admin API.",
+              "steps": [
+                "Exercise Admin API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Admin API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Ai Enhanced API",
+      "source": "backend",
+      "path": "backend_api/routers/ai_enhanced.py",
+      "slug": "backend-ai-enhanced",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-ai-enhanced-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-ai-enhanced-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-ai-enhanced-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-ai-enhanced-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-ai-enhanced-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-ai-enhanced-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-ai-enhanced-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-ai-enhanced-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-ai-enhanced-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-ai-enhanced-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-ai-enhanced-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-ai-enhanced-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-ai-enhanced-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-ai-enhanced-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-ai-enhanced-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-ai-enhanced-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Ai Enhanced API.",
+              "steps": [
+                "Exercise Ai Enhanced API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Enhanced API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Ai Integration API",
+      "source": "backend",
+      "path": "backend_api/routers/ai_integration.py",
+      "slug": "backend-ai-integration",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-ai-integration-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-ai-integration-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-ai-integration-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-ai-integration-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-ai-integration-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-ai-integration-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-ai-integration-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-ai-integration-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-ai-integration-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-ai-integration-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-ai-integration-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-ai-integration-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-ai-integration-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-ai-integration-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-ai-integration-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-ai-integration-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Ai Integration API.",
+              "steps": [
+                "Exercise Ai Integration API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Ai Integration API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "feature": "Ai Systems API",
       "source": "backend",
       "path": "backend_api/routers/ai_systems.py",
@@ -9062,6 +10598,198 @@
                 "Verify regression acceptance criteria and record findings."
               ],
               "expected_result": "Audit API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Auth API",
+      "source": "backend",
+      "path": "backend_api/routers/auth.py",
+      "slug": "backend-auth",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-auth-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-auth-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-auth-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-auth-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-auth-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-auth-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-auth-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-auth-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-auth-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-auth-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-auth-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-auth-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-auth-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-auth-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-auth-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-auth-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Auth API.",
+              "steps": [
+                "Exercise Auth API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Auth API satisfies regression constraints without regressions."
             }
           ]
         }
@@ -10220,6 +11948,198 @@
       ]
     },
     {
+      "feature": "Data Management API",
+      "source": "backend",
+      "path": "backend_api/routers/data_management.py",
+      "slug": "backend-data-management",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-data-management-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-data-management-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-data-management-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-data-management-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-data-management-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-data-management-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-data-management-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-data-management-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-data-management-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-data-management-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-data-management-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-data-management-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-data-management-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-data-management-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-data-management-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-data-management-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Data Management API.",
+              "steps": [
+                "Exercise Data Management API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Data Management API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "feature": "Document Operations API",
       "source": "backend",
       "path": "backend_api/routers/document_operations.py",
@@ -10406,6 +12326,198 @@
                 "Verify regression acceptance criteria and record findings."
               ],
               "expected_result": "Document Operations API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Document Viewer API",
+      "source": "backend",
+      "path": "backend_api/routers/document_viewer.py",
+      "slug": "backend-document-viewer",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-document-viewer-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-document-viewer-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-document-viewer-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-document-viewer-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-document-viewer-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-document-viewer-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-document-viewer-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-document-viewer-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-document-viewer-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-document-viewer-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-document-viewer-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-document-viewer-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-document-viewer-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-document-viewer-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-document-viewer-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-document-viewer-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Document Viewer API.",
+              "steps": [
+                "Exercise Document Viewer API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Document Viewer API satisfies regression constraints without regressions."
             }
           ]
         }
@@ -10790,6 +12902,198 @@
                 "Verify regression acceptance criteria and record findings."
               ],
               "expected_result": "Edge Computing API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Files API",
+      "source": "backend",
+      "path": "backend_api/routers/files.py",
+      "slug": "backend-files",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-files-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Files API.",
+              "steps": [
+                "Exercise Files API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-files-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Files API.",
+              "steps": [
+                "Exercise Files API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-files-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Files API.",
+              "steps": [
+                "Exercise Files API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-files-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Files API.",
+              "steps": [
+                "Exercise Files API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-files-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Files API.",
+              "steps": [
+                "Exercise Files API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-files-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Files API.",
+              "steps": [
+                "Exercise Files API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-files-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Files API.",
+              "steps": [
+                "Exercise Files API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-files-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Files API.",
+              "steps": [
+                "Exercise Files API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-files-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Files API.",
+              "steps": [
+                "Exercise Files API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-files-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Files API.",
+              "steps": [
+                "Exercise Files API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-files-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Files API.",
+              "steps": [
+                "Exercise Files API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-files-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Files API.",
+              "steps": [
+                "Exercise Files API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-files-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Files API.",
+              "steps": [
+                "Exercise Files API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-files-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Files API.",
+              "steps": [
+                "Exercise Files API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-files-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Files API.",
+              "steps": [
+                "Exercise Files API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-files-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Files API.",
+              "steps": [
+                "Exercise Files API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Files API satisfies regression constraints without regressions."
             }
           ]
         }
@@ -11564,6 +13868,198 @@
       ]
     },
     {
+      "feature": "Logs API",
+      "source": "backend",
+      "path": "backend_api/routers/logs.py",
+      "slug": "backend-logs",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-logs-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-logs-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-logs-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-logs-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-logs-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-logs-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-logs-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-logs-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-logs-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-logs-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-logs-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-logs-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-logs-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-logs-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-logs-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-logs-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Logs API.",
+              "steps": [
+                "Exercise Logs API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Logs API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "feature": "Network Monitoring API",
       "source": "backend",
       "path": "backend_api/routers/network_monitoring.py",
@@ -12134,6 +14630,198 @@
                 "Verify regression acceptance criteria and record findings."
               ],
               "expected_result": "Office API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Orchestrator API",
+      "source": "backend",
+      "path": "backend_api/routers/orchestrator.py",
+      "slug": "backend-orchestrator",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-orchestrator-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-orchestrator-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-orchestrator-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-orchestrator-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-orchestrator-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-orchestrator-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-orchestrator-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-orchestrator-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-orchestrator-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-orchestrator-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-orchestrator-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-orchestrator-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-orchestrator-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-orchestrator-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-orchestrator-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-orchestrator-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Orchestrator API.",
+              "steps": [
+                "Exercise Orchestrator API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Orchestrator API satisfies regression constraints without regressions."
             }
           ]
         }
@@ -14636,6 +17324,390 @@
       ]
     },
     {
+      "feature": "Unified Logging API",
+      "source": "backend",
+      "path": "backend_api/routers/unified_logging.py",
+      "slug": "backend-unified-logging",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-unified-logging-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-unified-logging-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-unified-logging-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-unified-logging-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-unified-logging-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-unified-logging-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-unified-logging-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-unified-logging-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-unified-logging-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-unified-logging-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-unified-logging-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-unified-logging-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-unified-logging-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-unified-logging-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-unified-logging-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-unified-logging-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Unified Logging API.",
+              "steps": [
+                "Exercise Unified Logging API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Unified Logging API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Version Control API",
+      "source": "backend",
+      "path": "backend_api/routers/version_control.py",
+      "slug": "backend-version-control",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-version-control-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-version-control-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-version-control-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-version-control-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-version-control-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-version-control-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-version-control-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-version-control-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-version-control-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-version-control-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-version-control-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-version-control-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-version-control-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-version-control-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-version-control-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-version-control-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Version Control API.",
+              "steps": [
+                "Exercise Version Control API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Version Control API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "feature": "Workflow Orchestration API",
       "source": "backend",
       "path": "backend_api/routers/workflow_orchestration.py",
@@ -15014,6 +18086,198 @@
                 "Verify regression acceptance criteria and record findings."
               ],
               "expected_result": "Workspace API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Workspace Health API",
+      "source": "backend",
+      "path": "backend_api/routers/workspace_health.py",
+      "slug": "backend-workspace-health",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-workspace-health-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-health-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-health-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-health-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-workspace-health-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-health-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-health-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-health-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-workspace-health-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-health-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-health-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-health-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-workspace-health-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-health-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-health-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-workspace-health-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Workspace Health API.",
+              "steps": [
+                "Exercise Workspace Health API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Workspace Health API satisfies regression constraints without regressions."
             }
           ]
         }

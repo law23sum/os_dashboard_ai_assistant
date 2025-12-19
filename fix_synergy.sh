@@ -13,3 +13,5 @@ echo "✅ Permissions fixed! You can now delete Synergy.app"
 
 
 
+
+

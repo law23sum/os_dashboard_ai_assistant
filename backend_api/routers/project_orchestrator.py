@@ -102,7 +102,8 @@ async def get_project_report(
         search_root = Path(root) if root else REPO_ROOT
         orchestrator = UnifiedProjectOrchestrator(root=search_root, max_depth=max_depth)
         orchestrator.discover_projects()
-        report = orchestrator.generate_report()
+        workspace_report = orchestrator.orchestrate()
+        report = workspace_report.to_dict()
         
         return ProjectReport(**report)
     except Exception as e:
@@ -113,19 +114,26 @@ async def get_project_report(
 async def get_project_health(project_name: str):
     """Get health status for a specific project."""
     try:
-        orchestrator = UnifiedProjectOrchestrator()
-        orchestrator.discover_projects()
+        orchestrator = UnifiedProjectOrchestrator(root=REPO_ROOT)
+        project_paths = orchestrator.discover_projects()
         
-        if project_name not in orchestrator.discovered_projects:
+        # Find project by name
+        project_path = None
+        for path in project_paths:
+            if path.name == project_name or str(path) == project_name:
+                project_path = path
+                break
+        
+        if not project_path:
             raise HTTPException(status_code=404, detail=f"Project '{project_name}' not found")
         
-        project = orchestrator.discovered_projects[project_name]
+        health = orchestrator.analyze_project(project_path)
         return {
-            "name": project.name,
-            "health": project.health,
-            "last_check": project.last_check.isoformat() if project.last_check else None,
-            "error_count": project.error_count,
-            "fix_count": project.fix_count,
+            "name": health.name,
+            "health": health.health,
+            "last_check": health.last_check.isoformat() if health.last_check else None,
+            "error_count": health.error_count,
+            "fix_count": health.fix_count,
         }
     except HTTPException:
         raise
@@ -137,21 +145,30 @@ async def get_project_health(project_name: str):
 async def start_autofix(project_name: str, background_tasks: BackgroundTasks):
     """Start auto-fix monitor for a specific project."""
     try:
-        orchestrator = UnifiedProjectOrchestrator(auto_fix=True)
-        orchestrator.discover_projects()
+        orchestrator = UnifiedProjectOrchestrator(root=REPO_ROOT, execute=True)
+        project_paths = orchestrator.discover_projects()
         
-        if project_name not in orchestrator.discovered_projects:
+        # Find project by name
+        project_path = None
+        for path in project_paths:
+            if path.name == project_name or str(path) == project_name:
+                project_path = path
+                break
+        
+        if not project_path:
             raise HTTPException(status_code=404, detail=f"Project '{project_name}' not found")
         
-        project = orchestrator.discovered_projects[project_name]
-        if not project.has_autofix:
+        health = orchestrator.analyze_project(project_path)
+        if not health.has_autofix:
             raise HTTPException(
                 status_code=400,
                 detail=f"Project '{project_name}' does not have ai_auto_fix.py"
             )
         
-        # Start monitor in background
-        background_tasks.add_task(orchestrator.start_monitors)
+        # Run autofix in background
+        def run_autofix():
+            orchestrator.run_autofix(health)
+        background_tasks.add_task(run_autofix)
         
         return {
             "status": "started",
@@ -167,14 +184,21 @@ async def start_autofix(project_name: str, background_tasks: BackgroundTasks):
 @router.post("/projects/{project_name}/autofix/stop")
 async def stop_autofix(project_name: str):
     """Stop auto-fix monitor for a specific project."""
+    # Note: The UnifiedOrchestrator doesn't have a stop_monitors method
+    # This is a placeholder for future implementation
     try:
-        orchestrator = UnifiedProjectOrchestrator()
-        orchestrator.discover_projects()
+        orchestrator = UnifiedProjectOrchestrator(root=REPO_ROOT)
+        project_paths = orchestrator.discover_projects()
         
-        if project_name not in orchestrator.discovered_projects:
+        # Find project by name
+        project_path = None
+        for path in project_paths:
+            if path.name == project_name or str(path) == project_name:
+                project_path = path
+                break
+        
+        if not project_path:
             raise HTTPException(status_code=404, detail=f"Project '{project_name}' not found")
-        
-        orchestrator.stop_monitors()
         
         return {
             "status": "stopped",
@@ -191,25 +215,32 @@ async def stop_autofix(project_name: str):
 async def get_analytics_summary():
     """Get cross-project analytics summary."""
     try:
-        orchestrator = UnifiedProjectOrchestrator()
-        orchestrator.discover_projects()
-        report = orchestrator.generate_report()
+        orchestrator = UnifiedProjectOrchestrator(root=REPO_ROOT)
+        workspace_report = orchestrator.orchestrate()
+        report = workspace_report.to_dict()
         
         summary = report.get("summary", {})
-        total = report.get("total_projects", 0)
+        total = summary.get("total_projects", 0)
+        healthy = summary.get("healthy_projects", 0)
+        degraded = summary.get("warning_projects", 0)
+        critical = summary.get("critical_projects", 0)
+        
+        # Count projects with autofix and tests
+        with_autofix = sum(1 for p in workspace_report.projects if p.has_autofix)
+        with_tests = sum(1 for p in workspace_report.projects if p.has_tests)
         
         return {
             "total_projects": total,
-            "healthy": summary.get("healthy", 0),
-            "degraded": summary.get("degraded", 0),
-            "unhealthy": summary.get("unhealthy", 0),
-            "with_autofix": summary.get("with_autofix", 0),
-            "with_tests": summary.get("with_tests", 0),
+            "healthy": healthy,
+            "degraded": degraded,
+            "unhealthy": critical,
+            "with_autofix": with_autofix,
+            "with_tests": with_tests,
             "health_percentage": (
-                (summary.get("healthy", 0) / total * 100) if total > 0 else 0
+                (healthy / total * 100) if total > 0 else 0
             ),
             "autofix_coverage": (
-                (summary.get("with_autofix", 0) / total * 100) if total > 0 else 0
+                (with_autofix / total * 100) if total > 0 else 0
             ),
         }
     except Exception as e:

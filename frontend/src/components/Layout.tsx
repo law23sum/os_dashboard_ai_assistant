@@ -1,33 +1,25 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { ChevronDown, Menu, Settings, X } from 'lucide-react'
-import { ReactNode, useEffect, useState, useRef, useCallback } from 'react'
-import { createPortal } from 'react-dom'
-import { Link, Outlet, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard,
   ChevronDown,
-  Sparkles,
   ChevronRight,
-  Menu,
-  X,
-  Settings,
+  LayoutDashboard,
   LogOut,
-  User,
+  Menu,
   Settings,
   Shield,
-  Settings
+  Sparkles,
+  User,
+  X
 } from 'lucide-react'
 import { applyTheme, defaultTheme } from '../theme'
 import { useAppSettings } from '../hooks/useSettings'
 import { UnifiedAIPanel } from './UnifiedAIPanel'
 import { throttle } from '../shared/utils'
-import { navigationManifest, getAllPagesFromCategory, type NavCategory, type NavPage } from '../data/navigationManifest'
+import { navigationManifest, findCategoryByPath, getAllPagesFromCategory, type NavCategory, type NavGroup, type NavPage } from '../data/navigationManifest'
 import PlatformFeatureSidebar from './PlatformFeatureSidebar'
 import { navigationConfig, Category, Platform, FeatureOption } from '../config/navigation'
-import { navigationManifest, type NavCategory, type NavGroup, type NavPage } from '../data/navigationManifest'
 
 type ActiveNav = {
   platform: NavCategory | null
@@ -57,16 +49,19 @@ function getActiveNav(pathname: string): ActiveNav {
       group = g
       page = found
       break
-import { navigationManifest, findCategoryByPath, getAllPagesFromCategory, type NavCategory } from '../data/navigationManifest'
+    }
+  }
+
+  return { platform, group, page }
+}
 
 interface LayoutProps {
   children?: ReactNode
 }
 
 interface NavDropdownProps {
-  category: Category
-  platforms: Platform[]
   category: NavCategory
+  platforms?: Platform[]
   active: boolean
   expanded: boolean
   onToggle: () => void
@@ -75,135 +70,124 @@ interface NavDropdownProps {
 }
 
 function NavDropdown({ category, platforms, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  
-  // Use a generic icon if the category doesn't have one explicitly defined
-  const Icon = platforms[0]?.icon || LayoutDashboard
-
-  // Handle outside clicks
-  useEffect(() => {
-    if (!expanded) return
-function NavDropdown({ category, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const Icon = category.icon
 
-  // Position dropdown when expanded
-  // Position the dropdown when it opens
+  // Position dropdown when expanded - simple direct style approach
   useEffect(() => {
     if (expanded && buttonRef.current && dropdownRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect()
       const viewportWidth = window.innerWidth
       const dropdownWidth = 288
-      const dropdownWidth = 288 // w-72
-
+      const margin = 16
+      
       let left = buttonRect.left
-      if (left + dropdownWidth > viewportWidth) {
-        left = viewportWidth - dropdownWidth - 16
+      if (left + dropdownWidth > viewportWidth - margin) {
+        left = viewportWidth - dropdownWidth - margin
       }
-      if (left < 16) left = 16
+      if (left < margin) left = margin
 
       dropdownRef.current.style.top = `${buttonRect.bottom + 8}px`
       dropdownRef.current.style.left = `${left}px`
-      if (left < 16) {
-        left = 16
-      }
-
-      const top = buttonRect.bottom + 8
-      dropdownRef.current.style.top = `${top}px`
-      dropdownRef.current.style.left = `${left}px`
+      dropdownRef.current.style.position = 'fixed'
+      dropdownRef.current.style.zIndex = '99999'
+      dropdownRef.current.style.visibility = 'visible'
     }
   }, [expanded])
-  const updatePosition = useCallback(() => {
-    if (!buttonRef.current || !dropdownRef.current || !expanded) return
 
-    const buttonRect = buttonRef.current.getBoundingClientRect()
-    const viewportWidth = window.innerWidth
-    const viewportHeight = window.innerHeight
-    const dropdownWidth = 288
-
-    let left = buttonRect.left
-    if (left + dropdownWidth > viewportWidth) {
-      left = viewportWidth - dropdownWidth - 16
-    }
-    if (left < 16) left = 16
-
-    const top = buttonRect.bottom + 8
-    const dropdownHeight = dropdownRef.current.offsetHeight || 400
-
-    let finalTop = top
-    if (top + dropdownHeight > viewportHeight && buttonRect.top > dropdownHeight) {
-      finalTop = buttonRect.top - dropdownHeight - 8
-    }
-
-    dropdownRef.current.style.top = `${finalTop}px`
-    dropdownRef.current.style.left = `${left}px`
-  }, [expanded])
-
-  const throttledUpdatePosition = useMemo(
-    () => throttle(() => requestAnimationFrame(updatePosition), 16),
-    [updatePosition]
-  )
+  // Handle clicks outside to close dropdown
+  useEffect(() => {
+    if (!expanded) return
 
     const handleClickOutside = (event: MouseEvent) => {
-      // If clicking inside the button container, don't close (let button onClick handle it)
       if (
-        containerRef.current &&
-        containerRef.current.contains(event.target as Node)
+        dropdownRef.current &&
+        buttonRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        !buttonRef.current.contains(event.target as Node)
       ) {
-        return
+        onClose()
       }
-      
-      // If clicking inside the portal dropdown, don't close
-      const dropdownElement = document.getElementById(`dropdown-${category.id}`)
-      if (dropdownElement && dropdownElement.contains(event.target as Node)) {
-        return
-      }
-
-      onClose()
     }
 
-    // Use mousedown to capture the event before click can trigger other things
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [expanded, onClose, category.id])
+  }, [expanded, onClose])
 
-  // Update position of the dropdown
-  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
-  
-  useEffect(() => {
-    if (expanded && containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect()
-      const viewportWidth = window.innerWidth
-      const dropdownWidth = 288 // w-72
-      
-      let left = rect.left
-      // Adjust if it goes off screen right
-      if (left + dropdownWidth > viewportWidth) {
-        left = viewportWidth - dropdownWidth - 16
-      }
-      // Adjust if it goes off screen left
-      if (left < 16) left = 16
-
-      setDropdownStyle({
-        position: 'fixed',
-        top: `${rect.bottom + 8}px`,
-        left: `${left}px`,
-        zIndex: 99999,
-        pointerEvents: 'auto',
-      })
-    }
-  }, [expanded])
-      isTogglingRef.current = false
-      return
-    }
-  }
-
-  if (!group && platform.groups.length > 0) {
-    group = platform.groups[0]
-  }
-
-  return { platform, group, page }
+  return (
+    <>
+      <div className="relative group flex items-center">
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={onToggle}
+          className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
+          aria-haspopup="menu"
+          aria-expanded={expanded}
+        >
+          <Icon className="w-5 h-5 mr-2" />
+          {category.label}
+          <ChevronDown
+            className={`w-4 h-4 ml-1 transition-transform duration-150 ${
+              expanded ? 'transform rotate-180' : ''
+            }`}
+          />
+        </button>
+      </div>
+      {expanded &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            className="osd-dropdown w-72 max-h-[70vh] overflow-y-auto"
+            style={{ position: 'fixed', zIndex: 99999 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {category.groups.map((group, groupIndex) => (
+              <div
+                key={`${category.path}-group-${groupIndex}`}
+                className="px-4 py-3 border-b border-white/5 last:border-b-0"
+              >
+                {group.label && (
+                  <div className="mb-2 space-y-1">
+                    <p className="text-[0.65rem] uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
+                      {group.label}
+                      {group.spec && <span className="ml-1 text-[0.6rem]">· {group.spec}</span>}
+                    </p>
+                    {group.description && (
+                      <p className="text-[0.7rem] text-[color:var(--osd-muted)]">{group.description}</p>
+                    )}
+                  </div>
+                )}
+                <div className="space-y-1">
+                  {group.items.map((item) => {
+                    const ItemIcon = item.icon
+                    const itemActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/')
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={`osd-dropdown-link ${itemActive ? 'osd-dropdown-link--active' : ''}`}
+                        onClick={onClose}
+                      >
+                        <ItemIcon className="w-4 h-4 mr-2" />
+                        {item.label}
+                        {item.status === 'new' && (
+                          <span className="ml-auto text-[0.6rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">
+                            NEW
+                          </span>
+                        )}
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>,
+          document.body
+        )}
+    </>
+  )
 }
 
 function useDropdownPosition(
@@ -237,55 +221,12 @@ function useDropdownPosition(
     menu.style.left = `${left}px`
     menu.style.top = `${top}px`
   }, [buttonRef, dropdownRef])
-  const handleButtonClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    e.preventDefault()
-    onToggle()
-  }, [onToggle])
 
-    isTogglingRef.current = true
-
-    if (expanded) {
-      onClose()
-    } else {
-      onToggle()
-    }
-
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        isTogglingRef.current = false
-      }, 100)
-    })
-  }, [expanded, onToggle, onClose])
-
-  const handleLinkClick = useCallback(() => {
-    onClose()
-  }, [onClose])
-
-  // Handle clicks outside to close dropdown
   useEffect(() => {
     if (!open) return
     update()
-    if (!expanded) return
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isTogglingRef.current) return
-
-      const target = event.target as Node
-      
-      if (
-        buttonRef.current &&
-        dropdownRef.current &&
-        !buttonRef.current.contains(target) &&
-        !dropdownRef.current.contains(target)
-      ) {
-        onClose()
-      }
-    }
-
     const onScroll = () => update()
     const onResize = () => update()
-
     window.addEventListener('scroll', onScroll, { capture: true, passive: true })
     window.addEventListener('resize', onResize, { passive: true })
     return () => {
@@ -295,23 +236,6 @@ function useDropdownPosition(
   }, [open, update])
 }
 
-  const handleButtonClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    e.preventDefault()
-
-    // Set flag to prevent click outside handler from firing immediately
-    isTogglingRef.current = true
-
-    // Toggle the dropdown
-    onToggle()
-
-    // Reset flag after a brief delay
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        isTogglingRef.current = false
-      }, 100)
-    })
-  }, [onToggle])
 function PlatformDropdown({
   platform,
   open,
@@ -341,64 +265,8 @@ function PlatformDropdown({
       onClose()
     }
 
-    const handleClickOutside = (event: MouseEvent) => {
-      // Ignore if we're currently toggling
-      if (isTogglingRef.current) {
-        return
-      }
-
-      const target = event.target as Node
-
-      // Don't close if clicking on button or dropdown
-      if (
-        !buttonRef.current ||
-        !dropdownRef.current ||
-        buttonRef.current.contains(target) ||
-        dropdownRef.current.contains(target)
-      ) {
-        return
-      }
-
-      // Close when clicking outside
-      onClose()
-    }
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose()
-      }
-    }
-
-    // Add small delay to ensure button click handler runs first
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    // Add listeners after a small delay to prevent immediate closure
-    const timeoutId = setTimeout(() => {
-      document.addEventListener('click', handleClickOutside, true)
-      document.addEventListener('keydown', handleEscape, true)
-    }, 50)
-
-      onClose()
-    }
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose()
-      }
-    }
-
-    const timeoutId = setTimeout(() => {
-      document.addEventListener('click', handleClickOutside, true)
-      document.addEventListener('keydown', handleEscape, true)
-    }, 10)
-
     document.addEventListener('click', onDocClick, true)
-    document.addEventListener('keydown', onKeyDown, true)
-    return () => {
-      document.removeEventListener('click', onDocClick, true)
-      document.removeEventListener('keydown', onKeyDown, true)
-    }
+    return () => document.removeEventListener('click', onDocClick, true)
   }, [open, onClose])
 
   const isActive = useMemo(() => {
@@ -493,177 +361,9 @@ function FeatureRail({
   group: NavGroup
   currentPath: string
 }) {
-      clearTimeout(timeoutId)
-      document.removeEventListener('click', handleClickOutside, true)
-      document.removeEventListener('keydown', handleEscape, true)
-    }
-  }, [expanded, onClose])
-
-  return (
-    <>
-      <div ref={containerRef} className="relative group flex items-center">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            onToggle()
-          }}
-          onClick={handleButtonClick}
-          onMouseDown={(e) => e.stopPropagation()}
-          className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
-          aria-haspopup="menu"
-          aria-expanded={expanded}
-        >
-          {/* <Icon className="w-5 h-5 mr-2" /> */}
-          <span className="font-medium">{category.label}</span>
-          <Icon className="w-5 h-5 mr-2" />
-          {category.label}
-          <ChevronDown
-            className={`w-4 h-4 ml-1 transition-transform duration-150 ${
-              expanded ? 'transform rotate-180' : ''
-            }`}
-          />
-        </button>
-      </div>
-
-      {expanded &&
-        createPortal(
-          <div
-            ref={dropdownRef}
-            className="osd-dropdown w-72 max-h-[70vh] overflow-y-auto"
-            style={{ position: 'fixed', zIndex: 99999, pointerEvents: 'auto' }}
-          <div 
-            id={`dropdown-${category.id}`}
-            className="osd-dropdown w-72 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-xl shadow-xl backdrop-blur-md" 
-            style={dropdownStyle}
-            ref={dropdownRef} 
-            className="osd-dropdown w-72" 
-            style={{ 
-              position: 'fixed', 
-              zIndex: 99999, 
-              pointerEvents: 'auto'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-4 py-3">
-              <div className="mb-2">
-                <p className="text-[0.65rem] uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
-                  Categories
-                </p>
-              </div>
-              <div className="space-y-1">
-                {platforms.map((platform) => {
-                  const PlatformIcon = platform.icon
-                  const platformActive = location.pathname.startsWith(platform.path)
-                  return (
-                    <Link
-                      key={platform.id}
-                      to={platform.path}
-                      className={`osd-dropdown-link flex items-center px-3 py-2 rounded-lg transition-colors ${platformActive ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)]' : 'text-[color:var(--osd-muted)] hover:bg-[color:var(--osd-hover)] hover:text-[color:var(--osd-text)]'}`}
-                      onClick={() => onClose()}
-                    >
-                      <PlatformIcon className="w-4 h-4 mr-2" />
-                      {platform.label}
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-            {category.groups.map((group, groupIndex) => (
-              <div
-                key={`${category.path}-group-${groupIndex}`}
-                className="px-4 py-3 border-b border-white/5 last:border-b-0"
-              >
-                {group.label && (
-                  <div className="mb-2 space-y-1">
-                    <p className="text-[0.65rem] uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
-                      {group.label}
-                      {group.spec && <span className="ml-1 text-[0.6rem]">· {group.spec}</span>}
-                    </p>
-                    {group.description && (
-                      <p className="text-[0.7rem] text-[color:var(--osd-muted)]">{group.description}</p>
-                    )}
-                  </div>
-                )}
-                <div className="space-y-1">
-                  {group.items.map((item) => {
-                    const ItemIcon = item.icon
-                    const itemActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/')
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        className={`osd-dropdown-link ${itemActive ? 'osd-dropdown-link--active' : ''}`}
-                        onClick={() => onClose()}
-                        onClick={onClose}
-                        onClick={handleLinkClick}
-                      >
-                        <ItemIcon className="w-4 h-4 mr-2" />
-                        {item.label}
-                        {item.status === 'new' && (
-                          <span className="ml-auto text-[0.6rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">
-                            NEW
-                          </span>
-                        )}
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>,
-          document.body
-        )}
-    </>
-  )
+  return null
 }
 
-function FeatureSidebar({ platform, activeFeature }: { platform: Platform, activeFeature?: string }) {
-  if (!platform) return null;
-
-  return (
-    <div className="hidden lg:block w-64 flex-shrink-0 mr-8">
-      <div className="sticky top-24 space-y-6">
-        <div>
-          <h3 className="text-sm font-semibold text-[color:var(--osd-text)] flex items-center gap-2 mb-4">
-            <platform.icon className="w-4 h-4" />
-            {platform.label} Features
-          </h3>
-          <nav className="space-y-1">
-            {platform.features.map((feature) => (
-              <button
-                key={feature.id}
-                className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors text-left group ${
-                  activeFeature === feature.id 
-                    ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-accent)]' 
-                    : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
-                }`}
-              >
-                <span>{feature.label}</span>
-                {feature.complexity && (
-                  <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                    feature.complexity === 'simple' ? 'bg-emerald-500/10 text-emerald-500' :
-                    feature.complexity === 'intermediate' ? 'bg-amber-500/10 text-amber-500' :
-                    'bg-rose-500/10 text-rose-500'
-                  } opacity-0 group-hover:opacity-100 transition-opacity`}>
-                    {feature.complexity === 'simple' ? 'Basic' : 
-                     feature.complexity === 'intermediate' ? 'Inter' : 'Adv'}
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
-        
-        {platform.description && (
-          <div className="p-4 rounded-lg bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)]">
-            <p className="text-xs text-[color:var(--osd-muted)] leading-relaxed">
-              {platform.description}
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
 interface SidebarProps {
   category: NavCategory
   currentPath: string
@@ -680,17 +380,7 @@ function FeatureSidebar({ category, currentPath }: SidebarProps) {
 
   return (
     <aside className="hidden lg:block w-72 shrink-0 border-r border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/20 overflow-y-auto">
-      <div className="p-4">
-        <div className="mb-4 pb-3 border-b border-[color:var(--osd-border)]">
-          <div className="flex items-center gap-2">
-            <platform.icon className="w-5 h-5 text-[color:var(--osd-accent)]" />
-            <h2 className="font-semibold text-[color:var(--osd-text)]">{platform.label}</h2>
-          </div>
-          <p className="mt-2 text-xs uppercase tracking-[0.25em] text-[color:var(--osd-muted)]">Category</p>
-          <p className="mt-1 text-sm font-semibold text-[color:var(--osd-text)]">{group.label}</p>
-          {group.description ? <p className="mt-1 text-xs text-[color:var(--osd-muted)]">{group.description}</p> : null}
-        </div>
-
+      <div className="p-4 space-y-4">
         {/* Groups and Pages */}
         {category.groups.map((group, groupIdx) => (
           <div
@@ -738,70 +428,8 @@ function FeatureSidebar({ category, currentPath }: SidebarProps) {
                 })}
               </div>
             </nav>
-        <nav className="space-y-1">
-          {group.items.map((item) => {
-            const active = matchPage(currentPath, item.path)
-            const ItemIcon = item.icon
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  active
-                    ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20 shadow-sm'
-                    : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
-                }`}
-                aria-current={active ? 'page' : undefined}
-              >
-                <ItemIcon className={`w-4 h-4 shrink-0 ${active ? 'text-[color:var(--osd-accent)]' : ''}`} />
-                <span className="truncate flex-1">{item.label}</span>
-                {item.status === 'new' ? (
-                  <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 shrink-0">
-                    NEW
-                  </span>
-                ) : null}
-              </Link>
-            )
-          })}
-        </nav>
-        {/* Features List - This is what should be in the sidebar */}
-        <div className="bg-[color:var(--osd-surface)]/80 backdrop-blur-md rounded-xl shadow-sm border border-[color:var(--osd-border)]">
-          <div className="px-4 pt-3 pb-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[color:var(--osd-muted)] mb-2">
-              Features & Tools
-            </h3>
           </div>
-          <nav className="px-2 pb-2">
-            <div className="space-y-1">
-              {allFeatures.map((item) => {
-                const ItemIcon = item.icon
-                const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/')
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`
-                      flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
-                      ${isActive
-                        ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20 shadow-sm'
-                        : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
-                      }
-                    `}
-                    aria-current={isActive ? 'page' : undefined}
-                  >
-                    <ItemIcon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[color:var(--osd-accent)]' : ''}`} />
-                    <span className="truncate flex-1">{item.label}</span>
-                    {item.status === 'new' && (
-                      <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 shrink-0">
-                        NEW
-                      </span>
-                    )}
-                  </Link>
-                )
-              })}
-            </div>
-          </nav>
-        </div>
+        ))}
       </div>
     </aside>
   )
@@ -929,25 +557,10 @@ function UserMenu() {
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
-  // Single-open dropdown model for top nav
-  const [openDropdownPath, setOpenDropdownPath] = useState<string | null>(null)
-  const { data: settings } = useAppSettings()
-  const aiButtonRef = useRef<HTMLButtonElement>(null)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-export default function Layout() {
-  const location = useLocation()
   const [openPlatformPath, setOpenPlatformPath] = useState<string | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const aiButtonRef = useRef<HTMLButtonElement>(null)
-  const [aiPanelOpen, setAiPanelOpen] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false
-    try {
-      return window.localStorage?.getItem?.('aiPanelOpen') === 'true'
-  const [openGroupPath, setOpenGroupPath] = useState<string | null>(null)
-  const [openCategoryPath, setOpenCategoryPath] = useState<string | null>(null)
   const { data: settings } = useAppSettings()
-  const aiButtonRef = useRef<HTMLButtonElement>(null)
 
   const [aiPanelOpen, setAiPanelOpen] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
@@ -991,10 +604,6 @@ export default function Layout() {
   }, [aiPanelOpen])
 
   useEffect(() => {
-    const button = aiButtonRef.current
-    if (!button) return
-
-    const handleClick = (e: MouseEvent) => {
     const btn = aiButtonRef.current
     if (!btn) return
     const onClick = (e: MouseEvent) => {
@@ -1006,18 +615,6 @@ export default function Layout() {
     return () => btn.removeEventListener('click', onClick, true)
   }, [])
 
-  const currentPlatform = active.platform
-  const currentGroup = active.group
-
-
-    button.addEventListener('click', handleClick, true)
-    return () => {
-      if (button && button.parentNode) {
-        button.removeEventListener('click', handleClick, true)
-      }
-    }
-  }, [])
-
   useEffect(() => {
     if (settings?.theme) {
       applyTheme(settings.theme)
@@ -1026,43 +623,19 @@ export default function Layout() {
     }
   }, [settings?.theme])
 
-  const toggleCategory = useCallback((categoryId: string) => {
-    setExpandedCategories((prev) => {
-      const newExpanded = new Set(prev)
-      if (newExpanded.has(categoryId)) {
-        newExpanded.delete(categoryId)
-      } else {
-        newExpanded.clear() // Single open
-        newExpanded.add(categoryId)
-      }
-      return newExpanded
-    })
   // Toggle dropdown - only one open at a time
   const toggleDropdown = useCallback((path: string) => {
-    setOpenDropdownPath((prev) => (prev === path ? null : path))
+    setOpenPlatformPath((prev) => (prev === path ? null : path))
   }, [])
 
   // Close dropdown
   const closeDropdown = useCallback(() => {
-    setOpenDropdownPath(null)
-  const toggleGroup = useCallback((groupPath: string) => {
-    setOpenGroupPath((prev) => (prev === groupPath ? null : groupPath))
-  const toggleCategory = useCallback((categoryPath: string) => {
-    setOpenCategoryPath((prev) => (prev === categoryPath ? null : categoryPath))
-  }, [])
-
-  useEffect(() => {
-    // Close dropdowns on navigation
-    setExpandedCategories(new Set())
-  }, [location.pathname])
-
-  const closeCategory = useCallback((categoryPath: string) => {
-    setOpenCategoryPath((prev) => (prev === categoryPath ? null : prev))
+    setOpenPlatformPath(null)
   }, [])
 
   // Close dropdown on navigation
   useEffect(() => {
-    setOpenDropdownPath(null)
+    setOpenPlatformPath(null)
     setMobileMenuOpen(false)
   }, [location.pathname])
 
@@ -1077,30 +650,12 @@ export default function Layout() {
     }
     return navigationManifest[0]
   }, [location.pathname])
-    // Close dropdown when navigation occurs
-    setOpenCategoryPath(null)
-  }, [location.pathname])
-
-  // Find active category based on current path
-  const activeCategory = findCategoryByPath(location.pathname) || navigationManifest[0]
 
   // Check if a category is active
   const isCategoryActive = (category: NavCategory): boolean => {
     if (location.pathname === category.path) return true
     const allPages = getAllPagesFromCategory(category)
     return allPages.some((page) => location.pathname === page.path || location.pathname.startsWith(page.path + '/'))
-  }
-
-  return (
-    <div className="osd-shell min-h-screen text-[color:var(--osd-text)] flex flex-col">
-      {/* Top Navigation Bar */}
-      <nav className="osd-nav border-b border-[color:var(--osd-border)] sticky top-0 z-50 bg-[color:var(--osd-background)]/95 backdrop-blur-md">
-        <div className="w-full px-2 sm:px-4 lg:px-6">
-          <div className="flex justify-between h-16 items-center">
-            {/* Logo & Mobile Menu */}
-  // Check if category is expanded
-  const isCategoryExpanded = (category: NavCategory): boolean => {
-    return openCategoryPath === category.path
   }
 
   return (
@@ -1118,269 +673,45 @@ export default function Layout() {
               </button>
 
               <Link to="/" className="flex items-center gap-3">
-              <div className="flex items-center gap-3">
                 <div className="osd-logo w-8 h-8 bg-gradient-to-br from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] rounded-lg shadow-lg" />
                 <div className="hidden sm:block">
                   <p className="text-[0.6rem] uppercase tracking-[0.2em] text-[color:var(--osd-muted)] leading-none mb-1">
                     Canonical Control Room
                   </p>
-                  <h1 className="text-sm font-semibold tracking-wide">OS DASHBOARD</h1>
                   <h1 className="text-sm font-semibold tracking-wide">OS Dashboard · AI Assistant</h1>
                 </div>
               </Link>
-            </div>
-
-            {/* Desktop Navigation - Platform Level Dropdowns */}
-            <div className="hidden lg:flex items-center space-x-1 flex-1 justify-center">
-              {navigationManifest.map((category) => {
-                const active = isCategoryActive(category)
-                const expanded = openDropdownPath === category.path
-                  <h1 className="text-sm font-semibold tracking-wide">OS DASHBOARD · AI Assistant</h1>
-                </div>
-              </div>
-            </div>
-
-            <div className="hidden lg:flex items-center space-x-1 overflow-x-auto overflow-y-visible">
-              {navigationManifest.map((platform) => (
-                <PlatformDropdown
-                  key={platform.path}
-                  platform={platform}
-                  open={openPlatformPath === platform.path}
-                  onOpen={() => setOpenPlatformPath(platform.path)}
-                  onClose={() => setOpenPlatformPath((prev) => (prev === platform.path ? null : prev))}
-                />
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Link
-                to="/settings"
-                className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors"
-                aria-label="Settings"
-              >
-                <Settings className="w-5 h-5" />
-              </Link>
-            </div>
-          </div>
-
-          {mobileMenuOpen ? (
-            <div className="lg:hidden pb-3">
-              <div className="flex flex-wrap gap-2">
-                {navigationManifest.map((platform) => (
-                  <Link
-                    key={platform.path}
-                    to={platform.path === '/dashboard' ? '/' : platform.path}
-                    className="px-3 py-2 rounded-lg bg-[color:var(--osd-surface)]/60 border border-[color:var(--osd-border)] text-sm"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {platform.label}
-                  </Link>
-                ))}
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="osd-logo w-8 h-8 bg-gradient-to-br from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] rounded-lg shadow-lg" />
-              <div className="hidden sm:block">
-                <p className="text-[0.6rem] uppercase tracking-[0.2em] text-[color:var(--osd-muted)] leading-none mb-1">
-                  Canonical Control Room
-                </p>
-                <h1 className="text-sm font-semibold tracking-wide">OS DASHBOARD</h1>
-              </div>
             </div>
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-1 flex-1 justify-center">
               {navigationManifest.map((category) => {
                 const active = isCategoryActive(category)
-                const expanded = openGroupPath === category.path
-                const allPages = getAllPagesFromCategory(category)
-
-                if (allPages.length > 0) {
-                  return (
-                    <NavDropdown
-                      key={category.path}
-                      category={category}
-                      active={active}
-                      expanded={expanded}
-                      onToggle={() => toggleDropdown(category.path)}
-                      onClose={closeDropdown}
-                      onToggle={() => toggleGroup(category.path)}
-                      onClose={() => closeGroup(category.path)}
-                      location={location}
-                    />
-                  )
-                }
+                const expanded = openPlatformPath === category.path
 
                 return (
-                  <Link
+                  <NavDropdown
                     key={category.path}
-                    to={category.path}
-                    className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
-                  >
-                    <category.icon className="w-5 h-5 mr-2" />
-                    {category.label}
-                  </Link>
-                  <div key={category.path} className="flex items-center flex-shrink-0">
-                    <Link
-                      to={category.path}
-                      className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
-                      aria-current={active ? 'page' : undefined}
-                    >
-                      <category.icon className="w-5 h-5 mr-2 flex-shrink-0" />
-                      <span className="whitespace-nowrap">{category.label}</span>
-                    </Link>
-                  </div>
+                    category={category}
+                    platforms={[]}
+                    active={active}
+                    expanded={expanded}
+                    onToggle={() => toggleDropdown(category.path)}
+                    onClose={closeDropdown}
+                    location={location}
+                  />
                 )
               })}
             </div>
 
-            {/* Right Actions */}
             <div className="flex items-center gap-2">
-               <Link to="/settings" className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors">
-                 <Settings className="w-5 h-5" />
-               </Link>
-            </div>
-          </div>
-        </div>
-        
-        {/* Breadcrumbs */}
-        {location.pathname !== '/' && (
-           <div className="px-4 py-2 border-t border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/30 backdrop-blur-sm flex items-center text-xs">
-              <Link to="/" className="hover:text-[color:var(--osd-accent)] transition-colors">Mission Control</Link>
-              {currentCategory && (
-                <>
-                  <ChevronRight className="w-3 h-3 mx-2 text-[color:var(--osd-muted)]" />
-                  <span className={!currentPlatform ? 'font-semibold text-[color:var(--osd-text)]' : 'text-[color:var(--osd-muted)]'}>
-                    {currentCategory.label}
-                  </span>
-                </>
-              )}
-              {currentPlatform && (
-                <>
-                  <ChevronRight className="w-3 h-3 mx-2 text-[color:var(--osd-muted)]" />
-                  <span className="font-semibold text-[color:var(--osd-text)]">
-                    {currentPlatform.label}
-                  </span>
-                </>
-              )}
-           </div>
-        )}
-      </nav>
-
-      {/* Main Content Area */}
-      <div className="flex flex-1 min-h-0 relative">
-        {/* Left Sidebar (Desktop) - Features Only */}
-        <aside className="hidden lg:block w-64 border-r border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/20 overflow-y-auto">
-           {currentPlatform ? (
-             <div className="p-4">
-                <FeatureSidebar platform={currentPlatform} />
-             </div>
-           ) : (
-             <div className="p-4 text-center text-[color:var(--osd-muted)] text-sm italic mt-10">
-               {/* Select a platform to view features */}
-             </div>
-           )}
-        </aside>
-
-        {/* Content */}
               <UserMenu />
               <Link to="/settings" className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors">
                 <Settings className="w-5 h-5" />
               </Link>
-        <div className="w-full px-2 sm:px-4 lg:px-6" style={{ overflow: 'visible' }}>
-          <div className="flex flex-col w-full" style={{ overflow: 'visible' }}>
-            {/* Primary Navigation */}
-            <div className="flex h-16" style={{ overflow: 'visible', position: 'relative', zIndex: 1 }}>
-              <div className="flex-shrink-0 flex items-center gap-3" style={{ position: 'relative', zIndex: 1 }}>
-                <button
-                  className="lg:hidden p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)]"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                >
-                  {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                </button>
-                <div className="osd-logo w-8 h-8 bg-gradient-to-br from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] rounded-lg shadow-lg" />
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--osd-muted)]">
-                    Canonical Control Room
-                  </p>
-                  <h1 className="text-lg font-semibold">OS Dashboard · AI Assistant</h1>
-                </div>
-              </div>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-2 flex-1 overflow-x-auto overflow-y-visible items-center scrollbar-hide" style={{ position: 'relative', zIndex: 2 }}>
-                {navigationManifest.map((category) => {
-                  const active = isCategoryActive(category)
-                  const expanded = isCategoryExpanded(category)
-                  const allPages = getAllPagesFromCategory(category)
-
-                  if (allPages.length > 0) {
-                    return (
-                      <NavDropdown
-                        key={category.path}
-                        category={category}
-                        active={active}
-                        expanded={expanded}
-                        onToggle={() => toggleCategory(category.path)}
-                        onClose={() => closeCategory(category.path)}
-                        location={location}
-                      />
-                    )
-                  }
-
-                  return (
-                    <div key={category.path} className="flex items-center flex-shrink-0">
-                      <Link
-                        to={category.path}
-                        className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
-                        aria-current={active ? 'page' : undefined}
-                      >
-                        <category.icon className="w-5 h-5 mr-2 flex-shrink-0" />
-                        <span className="whitespace-nowrap">{category.label}</span>
-                      </Link>
-                    </div>
-                  )
-                })}
-              </div>
-              {/* Right Actions */}
-              <div className="flex items-center gap-2">
-                <Link to="/settings" className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors">
-                  <LayoutDashboard className="w-5 h-5" />
-                </Link>
-              </div>
             </div>
-          ) : null}
-        </div>
-
-        {/* Breadcrumbs */}
-        {location.pathname !== '/' && (
-          <div className="px-4 py-2 border-t border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/30 backdrop-blur-sm flex items-center text-xs">
-            <Link to="/" className="hover:text-[color:var(--osd-accent)] transition-colors flex items-center gap-1">
-              <LayoutDashboard className="w-3.5 h-3.5" />
-              Dashboard
-            </Link>
-            {activeCategory && (
-              <>
-                <ChevronRight className="w-3 h-3 mx-2 text-[color:var(--osd-muted)]" />
-                <span className="font-semibold text-[color:var(--osd-text)]">
-                  {activeCategory.label}
-                </span>
-              </>
-            )}
-            {/* Current page from path */}
-            {location.pathname.split('/').filter(Boolean).length > 1 && (
-              <>
-                <ChevronRight className="w-3 h-3 mx-2 text-[color:var(--osd-muted)]" />
-                <span className="text-[color:var(--osd-muted)]">
-                  {location.pathname
-                    .split('/')
-                    .filter(Boolean)
-                    .pop()
-                    ?.split('-')
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ')}
-                </span>
-              </>
-            )}
           </div>
-        )}
+        </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
@@ -1414,27 +745,6 @@ export default function Layout() {
 
       {/* Main Content with Left Sidebar */}
       <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-8rem)] flex-1">
-      </nav>
-
-      <div className="flex flex-1 min-h-0 relative">
-        {currentPlatform && currentGroup ? (
-          <FeatureRail platform={currentPlatform} group={currentGroup} currentPath={location.pathname} />
-        ) : null}
-
-        <main className="flex-1 min-w-0 overflow-y-auto py-6 px-4 sm:px-6 lg:px-8 glass-content">
-          <div className="max-w-7xl mx-auto">
-            <Outlet />
-          </div>
-        </main>
-
-        {/* Per-page anchor sidebar (not redundant with platform/category nav) */}
-        <PlatformFeatureSidebar />
-      </div>
-
-      {/* AI Assistant Toggle Button */}
-      {/* Main Content with Left Sidebar */}
-      <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-4rem)]">
-      <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-8rem)]">
         <div className="flex w-full gap-6">
           {/* Left Sidebar Navigation - Shows features for active category */}
           {activeCategory && getAllPagesFromCategory(activeCategory).length > 0 && (
@@ -1442,8 +752,6 @@ export default function Layout() {
           )}
 
           {/* Main Content Pane */}
-          <div className="flex-1 min-w-0 w-full">{children}</div>
-        <div className="flex flex-col gap-8 lg:flex-row w-full">
           <div className="flex-1 min-w-0 w-full">{children ?? <Outlet />}</div>
         </div>
       </main>

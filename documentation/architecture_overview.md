@@ -1,34 +1,44 @@
-## repository map and surfaces
-- `frontend/` — React + TypeScript (Vite) with optional Electron wrapper; routes served via `start_ui.py` or `npm run dev:web`; tests via `vitest`, packaging via `electron-builder`.
-- `assistant_hub/` — FastAPI app (`assistant_hub/api/server.py`) exposing assistant, dashboard, projects, writer, integrations, monitoring, analytics, runtime diagnostics; pulls routers from `backend_api/routers` and domain logic from `assistant_core`.
-- `backend_api/` — Legacy/compat FastAPI app wiring the same router set; used by older clients and CLI entrypoints.
-- `assistant_core/` — Domain/engine layer: drivers, orchestration, reasoning, analytics, search, capsule registry, spec registry, failure registry, tasks, CI/test fixtures.
-- `assistant_hub_gui/` — Legacy Tkinter UI (kept for compatibility).
-- `scripts/` — Automation harnesses (ai_shell_runner, ai_auto_fix, workspace/project autofix orchestrators, test matrix generator).
-- `start_ui.py` — Unified launcher that runs preflight tests, boots FastAPI, and starts the React web/desktop shells.
-- `.github/workflows/` — Electron build pipelines (Windows/macOS/Linux); no unified CI for lint/test across Python/TS yet.
+# OS Dashboard AI Assistant – Architecture Overview
 
-## runtime entrypoints and commands
-- Primary local run: `python start_ui.py --mode web|desktop` (boots FastAPI + Vite/Electron).
-- Backend only: `uvicorn assistant_hub.api.server:create_app --factory --reload --host 0.0.0.0 --port 8000`.
-- Legacy backend: `python backend_api/main.py`.
-- Frontend only: `cd frontend && npm run dev:web` (or `dev:desktop`), `npm run build`.
-- Tests: `pytest` (root), `npm test` (frontend vitest), `node --test electron/__tests__/*.test.cjs`.
+Updated: 2025-02-17
 
-## architecture as-built (current state)
-- Presentation: React SPA (Vite) + optional Electron shell; legacy Tkinter UI still present.
-- API boundary: FastAPI app exposes many feature families (dashboard/projects/tasks/writer/analytics/integrations/monitoring/network/security/capsules/edge/etc.). Middleware includes CORS + optional prefix stripping. No auth/roles enforced.
-- Service/domain: Logic split between `assistant_hub` and `assistant_core` (drivers, orchestrators, registries, analytics, search, reasoning, workspace engines). Heavy use of in-memory flows with limited separation of concerns.
-- Persistence: SQLite via `assistant_hub/db.py` and `assistant_hub/config.py` (paths set via env); attachments/integrations cached under data dir; no migrations or schema versioning.
-- Observability: Runtime diagnostics endpoint (`/api/runtime/diagnostics`), NDJSON logging to `logs/runtime_diagnostics.log`; basic health (`/api/health`); limited structured logging/correlation IDs.
-- Security: Env-based secrets loading; no authN/authZ, no request validation beyond Pydantic models; CORS open to localhost origins.
-- CI/CD: Electron build workflows only; missing unified lint/test/security pipeline across Python/TS.
+## Repo Map (single git repo)
+- `frontend/` — React 18 + Vite web/desktop UI (Electron shell). Entry: `npm run dev:web`, `npm run dev:desktop`, `npm run build`.
+- `assistant_hub/` — Core Python services, FastAPI app factory (`assistant_hub.api.server:create_app`), workspace/domain logic, automation harnesses, CLI entrypoints.
+- `backend_api/` — Legacy/compat FastAPI server; routers reused by `assistant_hub.api.server`.
+- `assistant_hub/ui/terminal/harness.py` — workspace discovery + standardized lint/test/build/security runner; writes consolidated reports.
+- `backend_api/routers/workspace.py` — shared workspace scan/doctor/checks API.
+- `scripts/` — automation shells (autofix monitors, test matrix generator, assistants demos).
+- `start_ui.py` — unified launcher wiring preflight tests → FastAPI → Vite/Electron shell.
 
-## detected pain points and gaps
-- Fragmented API surfaces (`assistant_hub.api.server` and `backend_api.main`) duplicating router wiring.
-- Lack of auth, tenancy, and role-aware controls despite multi-surface spec.
-- No migration/versioning for the SQLite schema; limited data integrity guarantees.
-- Observability is minimal (no metrics/traces, sparse structured logs).
-- Automation harness exists but not integrated into a single CLI (`osdash`) for repo scanning/testing.
-- Frontend relies on cached/demo data when backend missing; end-to-end contract tests absent.
-- CI does not run lint/pytest/vitest/security scans; drift risk is high.
+## Runtime Surfaces
+- **Web/Desktop UI**: `start_ui.py --mode web|desktop` (runs FastAPI + Vite/Electron). API base defaults to `http://127.0.0.1:8000/api`.
+- **FastAPI (shared)**: `python -m uvicorn assistant_hub.api.server:create_app --factory --reload --host 127.0.0.1 --port 8000`.
+- **Workspace Health**: `/api/workspace/scan`, `/api/workspace/doctor`, `/api/workspace/checks` (dry-run or execute harness). UI route `/workspace/health` renders results.
+- **CLI**: `osdash scan|test|run|doctor` plus legacy project/office/history helpers.
+- **Legacy FastAPI**: `python backend_api/main.py` (compat shim for `/api/*`).
+- **Tkinter GUI**: `python -m assistant_hub_gui.main` (via `run.py` shim).
+
+## Persistence & Data
+- SQLite DB at `assistant_hub_gui/assistant_hub/assistant_hub.db` (configurable via `ASSISTANT_HUB_DB`). Shared schema via `assistant_hub.db`.
+- Attachments/cache/integrations under `ASSISTANT_HUB_*` dirs (default under repo root).
+- Demo data seeded via `assistant_hub.demo_seed.ensure_demo_data`.
+
+## API Surface (selected)
+- Observability/runtime: `/runtime/diagnostics`, `/runtime/diagnostics/ping`, `/system`, `/system/memory-thread-plan`, `/planes/status`.
+- Workspace automation: `/workspace/scan`, `/workspace/checks`, `/workspace/doctor` (aggregated harness report + env checks).
+- Work management: `/tasks`, `/projects`, `/dashboard/summary`, `/projects/summary`.
+- AI & integrations: `/ai/*` (systems, capsules, coach), `/api-connectors`, `/office/*`, `/computer-vision`, `/neural-architecture`, `/security`, `/edge-computing`, `/workflows`.
+- Writer/research: `/writer/*`, `/research/*`.
+- Static docs served from `docs/` (and CyberChef bundle when present).
+
+## Build/Test Tooling
+- Python: `requirements.txt`, pytest suite under `tests/`, preflight runner `scripts/run_tests_with_autofix.py`, `scripts/generate_test_matrix.py`; new tests cover workspace harness + API.
+- JS: `frontend` uses `npm install`, `npm run build`, `npm test` (vitest). Electron packaging via `electron-builder`.
+- CI: GitHub Actions release builders exist; unified lint/test/security workflow still missing.
+
+## Known Gaps / Pain Points
+- No consolidated CI for lint/test/security across Python + frontend.
+- AuthN/AuthZ still open; APIs unauthenticated beyond CORS.
+- Persistence lacks migrations/indexes; list endpoints missing pagination.
+- Observability limited to file-based diagnostics; no metrics/traces pipeline.

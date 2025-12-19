@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import Layout from '../Layout'
@@ -23,6 +23,11 @@ const getNavDropdownButton = () => {
   return navButtons.length > 0 ? navButtons[0] : buttons[0]
 }
 
+function LocationEcho() {
+  const location = useLocation()
+  return <div data-testid="location">{location.pathname}</div>
+}
+
 describe('Layout NavDropdown Performance', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -34,11 +39,7 @@ describe('Layout NavDropdown Performance', () => {
     vi.restoreAllMocks()
     cleanup()
   })
-
-function LocationEcho() {
-  const location = useLocation()
-  return <div data-testid="location">{location.pathname}</div>
-}
+})
 
 describe('Layout navigation hierarchy', () => {
   const renderLayoutAt = (path = '/') => {
@@ -226,4 +227,5 @@ describe('Layout navigation hierarchy', () => {
       expect(screen.getByTestId('location').textContent).toBe('/chat')
     })
   })
+})
 })

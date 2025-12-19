@@ -5,12 +5,16 @@ import hashlib
 import json
 import os
 import sqlite3
+import shutil
+import logging
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from assistant_hub.config import DB_PATH, ensure_data_directories
+
+logger = logging.getLogger(__name__)
 
 ensure_data_directories()
 DB_FILE = str(DB_PATH)
@@ -219,22 +223,112 @@ class UserAccount:
     last_login: Optional[str] = None
 
 
+def _check_database_integrity(conn: sqlite3.Connection) -> bool:
+    """Check if database is valid by running integrity check."""
+    try:
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA integrity_check")
+        result = cursor.fetchone()
+        return result[0] == "ok"
+    except Exception as e:
+        logger.error(f"Database integrity check failed: {e}")
+        return False
+
+
+def _recover_database(db_path: Path) -> bool:
+    """Attempt to recover corrupted database by backing it up and removing it."""
+    try:
+        if db_path.exists():
+            # Add timestamp to backup filename to avoid overwriting
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_path = db_path.parent / f"{db_path.stem}_{timestamp}.db.backup"
+            shutil.copy2(db_path, backup_path)
+            logger.warning(f"Backed up corrupted database to {backup_path}")
+            
+            # Remove corrupted file so it can be recreated
+            db_path.unlink()
+            logger.info("Removed corrupted database file, will be recreated on next init")
+        return True
+    except Exception as e:
+        logger.error(f"Database recovery failed: {e}")
+        return False
+
+
 def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
     """Initialize the SQLite database (creating tables if needed) and return a connection."""
     target = Path(db_path) if db_path else Path(DB_FILE)
     target.parent.mkdir(parents=True, exist_ok=True)
     
+    # Check for database corruption before attempting to use it
+    if target.exists():
+        try:
+            test_conn = sqlite3.connect(str(target), check_same_thread=False)
+            if not _check_database_integrity(test_conn):
+                test_conn.close()
+                logger.warning("Database integrity check failed, attempting recovery...")
+                if not _recover_database(target):
+                    logger.error("Database recovery failed, creating new database")
+                    if target.exists():
+                        backup_path = target.with_suffix('.db.backup')
+                        try:
+                            shutil.move(target, backup_path)
+                            logger.info(f"Moved corrupted database to {backup_path}")
+                        except Exception as e:
+                            logger.error(f"Failed to move corrupted database: {e}")
+                            target.unlink()  # Force remove if move fails
+            else:
+                test_conn.close()
+        except sqlite3.DatabaseError as e:
+            logger.warning(f"Database error detected: {e}, attempting recovery...")
+            if not _recover_database(target):
+                logger.error("Database recovery failed, creating new database")
+                if target.exists():
+                    backup_path = target.with_suffix('.db.backup')
+                    try:
+                        shutil.move(target, backup_path)
+                        logger.info(f"Moved corrupted database to {backup_path}")
+                    except Exception as e:
+                        logger.error(f"Failed to move corrupted database: {e}")
+                        target.unlink()  # Force remove if move fails
+    
     # Allow use across background worker threads (integrations, daemons, API).
-    conn = sqlite3.connect(str(target), check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    # ========================================================================
-    # PERFORMANCE OPTIMIZATION: Configure SQLite for better performance
-    # ========================================================================
-    conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("PRAGMA busy_timeout = 5000")
+    max_retries = 2
+    conn = None
+    for attempt in range(max_retries):
+        try:
+            conn = sqlite3.connect(str(target), check_same_thread=False)
+            conn.row_factory = sqlite3.Row
+            # ========================================================================
+            # PERFORMANCE OPTIMIZATION: Configure SQLite for better performance
+            # ========================================================================
+            conn.execute("PRAGMA foreign_keys = ON")
+            conn.execute("PRAGMA busy_timeout = 5000")
 
-    # Enable WAL mode for better concurrency (multiple readers, one writer)
-    conn.execute("PRAGMA journal_mode = WAL")
+            # Enable WAL mode for better concurrency (multiple readers, one writer)
+            conn.execute("PRAGMA journal_mode = WAL")
+            # If we get here, connection is successful
+            break
+        except sqlite3.DatabaseError as e:
+            logger.error(f"Database error during connection (attempt {attempt + 1}/{max_retries}): {e}")
+            # Close connection if it was opened
+            if conn is not None:
+                try:
+                    conn.close()
+                except:
+                    pass
+                conn = None
+            
+            if attempt < max_retries - 1:
+                # Recover and retry
+                if target.exists():
+                    _recover_database(target)
+                # Continue to next attempt
+            else:
+                # Last attempt failed, raise the error
+                raise
+    
+    if conn is None:
+        raise sqlite3.DatabaseError("Failed to establish database connection after recovery attempts")
 
     # Increase cache size for better performance (default is -2000 KB, we set to -10000 KB = 10 MB)
     conn.execute("PRAGMA cache_size = -10000")

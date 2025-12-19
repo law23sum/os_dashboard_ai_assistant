@@ -78,3 +78,5 @@ def generate_certificates():
 
 if __name__ == "__main__":
     sys.exit(generate_certificates())
+
+

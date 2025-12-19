@@ -1,7 +1,11 @@
-## risks and mitigations
-- Missing auth/roles today exposes sensitive routes; add token + role guards first, then tighten CORS/headers. Mitigation: ship auth middleware in initial increment.
-- No DB migrations; schema drift can corrupt state. Mitigation: introduce Alembic with version table and seeds; run migrations in launcher.
-- Observability is minimal (no metrics/traces); failures could be silent. Mitigation: add structured logging with correlation IDs, metrics endpoint, and diagnostics WebSocket feed.
-- CI gap: lint/tests/security not enforced. Mitigation: create unified workflow running ruff/pytest/eslint/prettier/vitest/semgrep.
-- Dual API entrypoints risk divergence. Mitigation: make assistant_hub.api.server authoritative and mount legacy routes for compatibility until removed.
-- Frontend may hit stale/demo data when backend absent. Mitigation: typed API client with clear offline mode flag and UI states for loading/error/empty.
+# Risks & Mitigations
+
+Updated: 2025-12-17
+
+- **No auth/authorization on APIs**: Routes are effectively open locally; risk of data leakage or misuse. *Mitigation*: add bearer/session middleware with roles; gate mutating routes; secure headers and CORS defaults per env.
+- **SQLite as single source of truth**: Concurrency/durability limits and no migrations/versioning. *Mitigation*: add Alembic migrations, deterministic data dir, indexes, and optional Postgres with backups/checksums.
+- **Observability depth**: Correlation IDs exist, but metrics/traces/rotation are missing, so failures are hard to triage. *Mitigation*: structured JSON logs + rotation, Prometheus exporter, trace stubs, surface request IDs to UI and CLI reports.
+- **CI/tooling gaps**: No unified lint/test/security workflow and pytest is not available in the current env. *Mitigation*: add CI workflow, declare dev requirements (pytest, ruff, eslint), and gate merges on green runs.
+- **Mocked UI data flows**: Several pages render static/demo payloads; drift from backend contracts. *Mitigation*: align API schemas, add contract tests and MSW fixtures, implement loading/error states.
+- **Secret handling**: Env templates exist without validation; risk of missing/unsafe defaults. *Mitigation*: add `.env.template`, doctor checks, and gitleaks/semgrep scans; remove default passwords from docker-compose for prod builds.
+- **Legacy/compat surfaces**: `backend_api.main` and Tkinter UI share schema but lack migrations; changes could break them silently. *Mitigation*: compatibility tests, shared migration layer, documented deprecation plan.

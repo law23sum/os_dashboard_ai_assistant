@@ -1,30 +1,7 @@
-"""Admin router (Django-like) for schema/table inspection.
-"""Admin endpoints (Django-admin-like schema + data inspection).
+"""Admin router - Django-style admin panel for managing all system components.
 
-These endpoints are protected by JWT admin role.
-"""
-
-from __future__ import annotations
-
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
-
-from backend_api.db import db_session
-from backend_api.deps import require_admin
-from backend_api.security import AuthUser
-"""
-Admin router - Django-style admin panel for managing all system components.
 Provides comprehensive visibility into tables, schemas, objects, users, and system state.
-"""
-
-from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import List, Dict, Any, Optional
-from datetime import datetime
-import sqlite3
-import json
-from pathlib import Path
+These endpoints are protected by JWT admin role.
 
 Goals:
 - Admin-only access
@@ -34,14 +11,17 @@ Goals:
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from backend_api.auth import User, get_current_admin_user, get_user_db
 from backend_api.db import db_session
-from backend_api.routers.auth import get_current_admin_user
+from backend_api.deps import require_admin
+from backend_api.security import AuthUser
 
 router = APIRouter()
 
@@ -83,10 +63,6 @@ def _connect(database: str):
     raise HTTPException(status_code=400, detail="Invalid database. Use 'main' or 'users'.")
 
 
-@router.get("/dashboard")
-async def dashboard(admin_user: User = Depends(get_current_admin_user)):
-    """High-level admin dashboard counts."""
-    stats: Dict[str, Any] = {}
 
 class ColumnInfo(BaseModel):
     name: str
@@ -402,7 +378,7 @@ async def table_data(
 async def list_users(
     include_dummy: bool = Query(True),
     include_production: bool = Query(True),
-    current_user: dict = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """List all users with filtering options."""
     with db_session() as conn:
@@ -451,7 +427,7 @@ async def get_audit_logs(
     offset: int = Query(0, ge=0),
     user_id: Optional[int] = None,
     action: Optional[str] = None,
-    current_user: dict = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """Get audit logs with filtering."""
     with db_session() as conn:
@@ -492,20 +468,17 @@ async def get_audit_logs(
 
 @router.get("/stats", response_model=Dict[str, Any])
 async def get_detailed_stats(
-    current_user: dict = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """Get detailed statistics for admin dashboard."""
-    db_stats = get_database_stats()
-    user_stats = get_user_stats()
+    stats: Dict[str, Any] = {
+        "database": {},
+        "users": {},
+        "entities": {}
+    }
     
     # Get counts for various entities
     with db_session() as conn:
-        stats = {
-            "database": db_stats.dict(),
-            "users": user_stats.dict(),
-            "entities": {}
-        }
-        
         # Count various entities
         entity_tables = {
             "tasks": "tasks",

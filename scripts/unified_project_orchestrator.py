@@ -670,6 +670,28 @@ class UnifiedOrchestrator:
             print(message)
 
 
+# Compatibility aliases and wrapper functions for API usage
+UnifiedProjectOrchestrator = UnifiedOrchestrator
+
+
+def discover_git_repos(root: Path, max_depth: int = 5) -> List[Path]:
+    """Discover all git repositories under the root directory."""
+    orchestrator = UnifiedOrchestrator(root=root, max_depth=max_depth, verbose=False)
+    return orchestrator.discover_projects()
+
+
+def create_project_status(repo_path: Path) -> ProjectHealth:
+    """Create a project status/health object for a repository."""
+    orchestrator = UnifiedOrchestrator(root=repo_path.parent, verbose=False)
+    return orchestrator.analyze_project(repo_path)
+
+
+def detect_project_capabilities(project_path: Path) -> Dict[str, Any]:
+    """Detect project capabilities (languages, frameworks, etc.)."""
+    health = create_project_status(project_path)
+    return health.metadata
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Unified Project Orchestrator - Master control for all git repositories",
