@@ -61,6 +61,7 @@ interface NavDropdownProps {
 function NavDropdown({ category, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const isTogglingRef = useRef(false)
   const Icon = category.icon
 
   useEffect(() => {
@@ -82,33 +83,53 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
     }
   }, [expanded])
 
+  const handleButtonClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    isTogglingRef.current = true
+    onToggle()
+    // Reset flag after click event completes
+    setTimeout(() => {
+      isTogglingRef.current = false
+    }, 0)
+  }, [onToggle])
+
   useEffect(() => {
-    if (!expanded) return
+    if (!expanded) {
+      isTogglingRef.current = false
+      return
+    }
 
     const handleClickOutside = (event: MouseEvent) => {
+      // Ignore if we're currently toggling (button was clicked)
+      if (isTogglingRef.current) {
+        return
+      }
+
+      const target = event.target as Node
+      
+      // Don't close if clicking on button or dropdown
       if (
-        dropdownRef.current &&
-        buttonRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !buttonRef.current.contains(event.target as Node)
+        buttonRef.current?.contains(target) ||
+        dropdownRef.current?.contains(target)
       ) {
-        onClose()
+        return
       }
+      
+      // Close when clicking outside
+      onToggle()
     }
 
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose()
-      }
-    }
+    // Use mousedown with a small delay to let button click complete first
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside, true)
+    }, 10)
 
-    document.addEventListener('mousedown', handleClickOutside)
-    document.addEventListener('keydown', handleEscape)
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleEscape)
+      clearTimeout(timeoutId)
+      document.removeEventListener('mousedown', handleClickOutside, true)
     }
-  }, [expanded, onClose])
+  }, [expanded, onToggle])
 
   return (
     <>
@@ -116,8 +137,9 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
         <button
           ref={buttonRef}
           type="button"
-          onClick={onToggle}
+          onClick={handleButtonClick}
           className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
+          style={{ pointerEvents: 'auto', cursor: 'pointer' }}
           aria-haspopup="menu"
           aria-expanded={expanded}
         >
@@ -132,7 +154,12 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
       </div>
       {expanded &&
         createPortal(
-          <div ref={dropdownRef} className="osd-dropdown w-72" style={{ position: 'fixed', zIndex: 99999 }}>
+          <div 
+            ref={dropdownRef} 
+            className="osd-dropdown w-72" 
+            style={{ position: 'fixed', zIndex: 99999, pointerEvents: 'auto' }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             {category.groups.map((group, groupIndex) => (
               <div
                 key={`${category.path}-group-${groupIndex}`}
@@ -158,7 +185,7 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
                         key={item.path}
                         to={item.path}
                         className={`osd-dropdown-link ${itemActive ? 'osd-dropdown-link--active' : ''}`}
-                        onClick={onClose}
+                        onClick={onToggle}
                       >
                         <ItemIcon className="w-4 h-4 mr-2" />
                         {item.label}
@@ -273,7 +300,7 @@ export default function Layout({ children }: LayoutProps) {
     if (typeof window === 'undefined') return false
     try {
       const stored = window.localStorage?.getItem?.('aiPanelOpen')
-      return stored === 'true'
+    return stored === 'true'
     } catch {
       return false
     }
@@ -317,11 +344,11 @@ export default function Layout({ children }: LayoutProps) {
   const toggleGroup = useCallback((groupPath: string) => {
     setExpandedGroups((prev) => {
       const newExpanded = new Set(prev)
-      if (newExpanded.has(groupPath)) {
-        newExpanded.delete(groupPath)
-      } else {
-        newExpanded.add(groupPath)
-      }
+    if (newExpanded.has(groupPath)) {
+      newExpanded.delete(groupPath)
+    } else {
+      newExpanded.add(groupPath)
+    }
       return newExpanded
     })
   }, [])
