@@ -54,20 +54,25 @@ class StorageResponse(BaseModel):
 @router.get("/", response_model=SettingsResponse)
 async def get_settings():
     """Get current settings."""
-    with db_session() as db:
-        settings = load_settings(db)
-    return SettingsResponse(
-        theme=settings.theme,
-        default_view=settings.default_view,
-        show_system_status=settings.show_system_status,
-        font_scale=settings.font_scale,
-        data_preferences=settings.data_preferences or {},
-        change_permission_mode=getattr(settings, "change_permission_mode", None),
-        continuity_mode=getattr(settings, "continuity_mode", None),
-        risk_appetite=getattr(settings, "risk_appetite", None),
-        default_persona=getattr(settings, "default_persona", None),
-        governance_banner=getattr(settings, "governance_banner", None),
-    )
+    try:
+        with db_session() as db:
+            settings = load_settings(db)
+        return SettingsResponse(
+            theme=settings.theme,
+            default_view=settings.default_view,
+            show_system_status=settings.show_system_status,
+            font_scale=settings.font_scale,
+            data_preferences=settings.data_preferences or {},
+            change_permission_mode=getattr(settings, "change_permission_mode", None),
+            continuity_mode=getattr(settings, "continuity_mode", None),
+            risk_appetite=getattr(settings, "risk_appetite", None),
+            default_persona=getattr(settings, "default_persona", None),
+            governance_banner=getattr(settings, "governance_banner", None),
+        )
+    except Exception as e:
+        import logging
+        logging.error(f"Error fetching settings: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch settings: {str(e)}")
 
 
 @router.get("/storage", response_model=StorageResponse)
@@ -98,29 +103,34 @@ async def get_storage_status():
 @router.put("/", response_model=SettingsResponse)
 async def update_settings(settings_update: SettingsUpdate):
     """Update settings."""
-    with db_session() as db:
-        current_settings = load_settings(db)
+    try:
+        with db_session() as db:
+            current_settings = load_settings(db)
 
-        update_dict = settings_update.model_dump(exclude_unset=True)
+            update_dict = settings_update.model_dump(exclude_unset=True)
 
-        # Merge with existing settings
-        for key, value in update_dict.items():
-            setattr(current_settings, key, value)
+            # Merge with existing settings
+            for key, value in update_dict.items():
+                setattr(current_settings, key, value)
 
-        save_settings(db, current_settings)
+            save_settings(db, current_settings)
 
-    return SettingsResponse(
-        theme=current_settings.theme,
-        default_view=current_settings.default_view,
-        show_system_status=current_settings.show_system_status,
-        font_scale=current_settings.font_scale,
-        data_preferences=current_settings.data_preferences or {},
-        change_permission_mode=getattr(current_settings, "change_permission_mode", None),
-        continuity_mode=getattr(current_settings, "continuity_mode", None),
-        risk_appetite=getattr(current_settings, "risk_appetite", None),
-        default_persona=getattr(current_settings, "default_persona", None),
-        governance_banner=getattr(current_settings, "governance_banner", None),
-    )
+        return SettingsResponse(
+            theme=current_settings.theme,
+            default_view=current_settings.default_view,
+            show_system_status=current_settings.show_system_status,
+            font_scale=current_settings.font_scale,
+            data_preferences=current_settings.data_preferences or {},
+            change_permission_mode=getattr(current_settings, "change_permission_mode", None),
+            continuity_mode=getattr(current_settings, "continuity_mode", None),
+            risk_appetite=getattr(current_settings, "risk_appetite", None),
+            default_persona=getattr(current_settings, "default_persona", None),
+            governance_banner=getattr(current_settings, "governance_banner", None),
+        )
+    except Exception as e:
+        import logging
+        logging.error(f"Error updating settings: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to update settings: {str(e)}")
 
 
 @router.get("", response_model=SettingsResponse, include_in_schema=False)
