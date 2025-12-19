@@ -51,6 +51,7 @@ import Signup from './pages/Signup'
 import Admin from './pages/Admin'
 import ProjectOrchestrator from './pages/ProjectOrchestrator'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
+import ProtectedRoute from './components/ProtectedRoute'
 
 const normalizeBasePath = (value?: string | null): string => {
   if (!value || value === '.' || value === './') return '/'
@@ -119,11 +120,9 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             
             {/* Protected Routes (With Layout) */}
-            <Route element={<Layout />}>
+            <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               {/* Root & Core Pages */}
               <Route path="/" element={<Dashboard />} />
-          <Layout>
-            <Routes>
             {/* Mission & Architecture Hierarchy: /mission/* */}
             <Route path="/mission" element={<Navigate to="/mission/overview" replace />} />
             <Route path="/mission/overview" element={<Dashboard />} />
@@ -264,11 +263,8 @@ function App() {
             {/* Settings */}
             <Route path="/settings" element={<Settings />} />
 
-            {/* Admin Panel */}
-            {/* Authentication */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/admin" element={<Admin />} />
+            {/* Admin Panel - Requires admin role */}
+            <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
 
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" replace />} />
