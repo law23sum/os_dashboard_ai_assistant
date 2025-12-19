@@ -43,36 +43,14 @@ import {
 import { applyTheme, defaultTheme } from '../theme'
 import { useAppSettings } from '../hooks/useSettings'
 import { UnifiedAIPanel } from './UnifiedAIPanel'
-import { throttle } from '../shared/utils'
+import { navigationManifest, findCategoryByPath, getAllPagesFromCategory, type NavCategory } from '../data/navigationManifest'
 
 interface LayoutProps {
   children: ReactNode
 }
 
-interface NavItem {
-  path: string
-  icon: React.ComponentType<{ className?: string }>
-  label: string
-  children?: NavItem[]
-  groups?: NavGroup[]
-}
-
-interface NavGroup {
-  label: string
-  description?: string
-  items: NavItem[]
-}
-
-const extractChildren = (item: NavItem): NavItem[] => {
-  if (item.groups && item.groups.length) {
-    return item.groups.flatMap((group) => group.items)
-  }
-  return item.children ?? []
-}
-
 interface NavDropdownProps {
-  item: NavItem
-  childItems: NavItem[]
+  category: NavCategory
   active: boolean
   expanded: boolean
   onToggle: () => void
@@ -80,191 +58,108 @@ interface NavDropdownProps {
   location: { pathname: string }
 }
 
-function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
+function NavDropdown({ category, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const expandedRef = useRef(expanded)
-  const Icon = item.icon
+  const isTogglingRef = useRef(false)
+  const Icon = category.icon
 
-  // Keep ref in sync with prop
   useEffect(() => {
-    expandedRef.current = expanded
-  }, [expanded])
-
-  // Memoize the position update function
-  const updatePosition = useCallback(() => {
-    if (buttonRef.current && dropdownRef.current) {
+    if (expanded && buttonRef.current && dropdownRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect()
       const viewportWidth = window.innerWidth
-      const viewportHeight = window.innerHeight
-      const dropdownWidth = 288 // w-72 = 18rem = 288px
+      const dropdownWidth = 288 // w-72
       
-      // Calculate horizontal position (prevent overflow)
       let left = buttonRect.left
       if (left + dropdownWidth > viewportWidth) {
-        left = viewportWidth - dropdownWidth - 16 // 16px padding from edge
+        left = viewportWidth - dropdownWidth - 16
       }
       if (left < 16) {
         left = 16
       }
 
-      // Calculate vertical position
-      const top = buttonRect.bottom + 8
-      const dropdownHeight = dropdownRef.current.offsetHeight || 400 // estimate if not rendered yet
-      
-      // If dropdown would overflow bottom, position above button
-      let finalTop = top
-      if (top + dropdownHeight > viewportHeight && buttonRect.top > dropdownHeight) {
-        finalTop = buttonRect.top - dropdownHeight - 8
-      }
-
-      dropdownRef.current.style.top = `${finalTop}px`
+      dropdownRef.current.style.top = `${buttonRect.bottom + 8}px`
       dropdownRef.current.style.left = `${left}px`
     }
-  }, [])
+  }, [expanded])
 
-  // Throttle position updates for scroll/resize (100ms is sufficient for these events)
-  const throttledUpdatePosition = useMemo(
-    () => throttle(updatePosition, 100),
-    [updatePosition]
-  )
-
-  useEffect(() => {
-    if (!expanded) {
-      // Reset position when closed
-      if (dropdownRef.current) {
-        dropdownRef.current.style.top = ''
-        dropdownRef.current.style.left = ''
-      }
-      return
-    }
-
-    // Immediate position calculation - no delay for instant response
-    updatePosition()
-
-    // Update position on scroll and resize with throttling
-    window.addEventListener('scroll', throttledUpdatePosition, { passive: true, capture: true })
-    window.addEventListener('resize', throttledUpdatePosition, { passive: true })
-
-    return () => {
-      window.removeEventListener('scroll', throttledUpdatePosition, { capture: true } as EventListenerOptions)
-      window.removeEventListener('resize', throttledUpdatePosition)
-    }
-  }, [expanded, updatePosition, throttledUpdatePosition])
-
-  // Track if we should ignore the next click (to prevent immediate closure)
-  const ignoreNextClickRef = useRef(false)
-  const isButtonClickRef = useRef(false)
-
-  // Simplified handlers - instant response
-  const handleButtonClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      e.preventDefault()
-      
-      // Mark that this is a button click
-      isButtonClickRef.current = true
-      
-      // If already expanded, close it
-      if (expanded) {
-        onClose()
-      } else {
-        // Mark to ignore the next click to prevent immediate closure
-        ignoreNextClickRef.current = true
-        onToggle()
-        // Reset after a brief moment
-        setTimeout(() => {
-          ignoreNextClickRef.current = false
-        }, 100)
-      }
-      
-      // Reset button click flag after event completes
+  const handleButtonClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    
+    // Set flag to prevent click outside handler from firing
+    isTogglingRef.current = true
+    
+    // Toggle the dropdown
+    onToggle()
+    
+    // Reset flag after a brief delay to allow click event to complete
+    // This prevents the click outside handler from immediately closing it
+    requestAnimationFrame(() => {
       setTimeout(() => {
-        isButtonClickRef.current = false
-      }, 0)
-    },
-    [onToggle, onClose, expanded]
-  )
+        isTogglingRef.current = false
+      }, 50)
+    })
+  }, [onToggle])
 
-  const handleLinkClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      // Don't prevent default - allow navigation
-      onClose()
-    },
-    [onClose]
-  )
-
-  // Click outside handler and Escape key - responsive and reliable
   useEffect(() => {
     if (!expanded) {
+      isTogglingRef.current = false
       return
     }
 
     const handleClickOutside = (event: MouseEvent) => {
-      // Ignore if we just opened the dropdown or if this is a button click
-      if (ignoreNextClickRef.current || isButtonClickRef.current) {
+      // Ignore if we're currently toggling (button was just clicked)
+      if (isTogglingRef.current) {
         return
       }
 
       const target = event.target as Node
-      const button = buttonRef.current
-      const dropdown = dropdownRef.current
-      
-      if (!button || !dropdown) return
       
       // Don't close if clicking on button or dropdown
-      if (button.contains(target) || dropdown.contains(target)) {
+      if (
+        !buttonRef.current ||
+        !dropdownRef.current ||
+        buttonRef.current.contains(target) ||
+        dropdownRef.current.contains(target)
+      ) {
         return
       }
       
       // Close when clicking outside
-      onClose()
+      onToggle()
     }
 
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose()
-      }
-    }
-
-    // Use click event instead of mousedown for better compatibility
-    // Add listener immediately - ignoreNextClickRef prevents immediate closure
-    document.addEventListener('click', handleClickOutside, true)
-    document.addEventListener('keydown', handleEscape, true)
+    // Use click event with capture phase to catch all clicks
+    // Add small delay to ensure button click handler runs first
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside, true)
+    }, 10)
 
     return () => {
+      clearTimeout(timeoutId)
       document.removeEventListener('click', handleClickOutside, true)
-      document.removeEventListener('keydown', handleEscape, true)
     }
-  }, [expanded, onClose])
-
-  // Memoize groups to avoid unnecessary re-renders
-  const groups = useMemo(
-    () => (item.groups && item.groups.length ? item.groups : [{ label: undefined, items: childItems }]),
-    [item.groups, childItems]
-  )
+  }, [expanded, onToggle])
 
   return (
     <>
-      <div className="relative group flex items-center" style={{ zIndex: expanded ? 10001 : 'auto', position: 'relative' }}>
+      <div className="relative group flex items-center">
         <button
           ref={buttonRef}
           type="button"
           onClick={handleButtonClick}
-          className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
-          style={{ 
-            pointerEvents: 'auto', 
-            position: 'relative', 
-            zIndex: expanded ? 10002 : 'auto',
-            cursor: 'pointer',
-            userSelect: 'none',
+          onMouseDown={(e) => {
+            // Prevent mousedown from bubbling to document
+            e.stopPropagation()
           }}
+          className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
+          style={{ pointerEvents: 'auto', cursor: 'pointer' }}
           aria-haspopup="menu"
           aria-expanded={expanded}
         >
           <Icon className="w-5 h-5 mr-2" />
-          {item.label}
+          {category.label}
           <ChevronDown
             className={`w-4 h-4 ml-1 transition-transform duration-150 ${
               expanded ? 'transform rotate-180' : ''
@@ -277,27 +172,26 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, lo
           <div 
             ref={dropdownRef} 
             className="osd-dropdown w-72" 
-            style={{ 
-              position: 'fixed', 
-              zIndex: 99999, 
-              pointerEvents: 'auto',
-            }}
+            style={{ position: 'fixed', zIndex: 99999, pointerEvents: 'auto' }}
             onClick={(e) => {
+              // Prevent clicks inside dropdown from bubbling to document
               e.stopPropagation()
             }}
             onMouseDown={(e) => {
+              // Prevent mousedown from bubbling to document
               e.stopPropagation()
             }}
           >
-            {groups.map((group, index) => (
+            {category.groups.map((group, groupIndex) => (
               <div
-                key={`${item.path}-group-${group.label ?? index}`}
+                key={`${category.path}-group-${groupIndex}`}
                 className="px-4 py-3 border-b border-white/5 last:border-b-0"
               >
                 {group.label && (
                   <div className="mb-2 space-y-1">
                     <p className="text-[0.65rem] uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
                       {group.label}
+                      {group.spec && <span className="ml-1 text-[0.6rem]">· {group.spec}</span>}
                     </p>
                     {group.description && (
                       <p className="text-[0.7rem] text-[color:var(--osd-muted)]">{group.description}</p>
@@ -305,24 +199,23 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, lo
                   </div>
                 )}
                 <div className="space-y-1">
-                  {group.items.map((child) => {
-                    const ChildIcon = child.icon
-                    const childActive = location.pathname === child.path
+                  {group.items.map((item) => {
+                    const ItemIcon = item.icon
+                    const itemActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/')
                     return (
                       <Link
-                        key={child.path}
-                        to={child.path}
-                        className={`osd-dropdown-link ${childActive ? 'osd-dropdown-link--active' : ''}`}
-                        onClick={handleLinkClick}
-                        onMouseDown={(e) => {
-                          e.stopPropagation()
-                        }}
-                        onMouseUp={(e) => {
-                          e.stopPropagation()
-                        }}
+                        key={item.path}
+                        to={item.path}
+                        className={`osd-dropdown-link ${itemActive ? 'osd-dropdown-link--active' : ''}`}
+                        onClick={onToggle}
                       >
-                        <ChildIcon className="w-4 h-4 mr-2" />
-                        {child.label}
+                        <ItemIcon className="w-4 h-4 mr-2" />
+                        {item.label}
+                        {item.status === 'new' && (
+                          <span className="ml-auto text-[0.6rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">
+                            NEW
+                          </span>
+                        )}
                       </Link>
                     )
                   })}
@@ -333,6 +226,90 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, lo
           document.body
         )}
     </>
+  )
+}
+
+interface SidebarProps {
+  category: NavCategory
+  currentPath: string
+}
+
+function Sidebar({ category, currentPath }: SidebarProps) {
+  const allPages = getAllPagesFromCategory(category)
+  if (allPages.length === 0) return null
+
+  return (
+    <aside className="hidden lg:block w-64 flex-shrink-0">
+      <div className="sticky top-24 space-y-4">
+        {/* Category Header */}
+        <div className="bg-[color:var(--osd-surface)]/80 backdrop-blur-md rounded-xl shadow-sm border border-[color:var(--osd-border)] p-4">
+          <div className="mb-4 pb-3 border-b border-[color:var(--osd-border)]">
+            <div className="flex items-center gap-2 mb-1">
+              <category.icon className="w-5 h-5 text-[color:var(--osd-accent)]" />
+              <h2 className="font-semibold text-[color:var(--osd-text)]">{category.label}</h2>
+            </div>
+            {category.spec && (
+              <p className="text-[0.65rem] uppercase tracking-[0.35em] text-[color:var(--osd-muted)] mt-1">
+                Spec {category.spec}
+              </p>
+            )}
+            {category.description && (
+              <p className="text-[0.7rem] text-[color:var(--osd-muted)] mt-2">{category.description}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Groups and Pages */}
+        {category.groups.map((group, groupIdx) => (
+          <div
+            key={`sidebar-group-${groupIdx}`}
+            className="bg-[color:var(--osd-surface)]/80 backdrop-blur-md rounded-xl shadow-sm border border-[color:var(--osd-border)]"
+          >
+            <div className="px-4 pt-3">
+              {group.label && (
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[color:var(--osd-muted)] mb-2">
+                  {group.label}
+                  {group.spec && <span className="ml-1 text-[0.6rem] normal-case">· {group.spec}</span>}
+                </h3>
+              )}
+              {group.description && (
+                <p className="text-[0.7rem] text-[color:var(--osd-muted)] mb-2">{group.description}</p>
+              )}
+            </div>
+            <nav className="px-2 pb-2">
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const ItemIcon = item.icon
+                  const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/')
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`
+                        flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                        ${isActive 
+                          ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20 shadow-sm' 
+                          : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
+                        }
+                      `}
+                      aria-current={isActive ? 'page' : undefined}
+                    >
+                      <ItemIcon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[color:var(--osd-accent)]' : ''}`} />
+                      <span className="truncate flex-1">{item.label}</span>
+                      {item.status === 'new' && (
+                        <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 shrink-0">
+                          NEW
+                        </span>
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
+            </nav>
+          </div>
+        ))}
+      </div>
+    </aside>
   )
 }
 
@@ -347,7 +324,7 @@ export default function Layout({ children }: LayoutProps) {
     if (typeof window === 'undefined') return false
     try {
       const stored = window.localStorage?.getItem?.('aiPanelOpen')
-      return stored === 'true'
+    return stored === 'true'
     } catch {
       return false
     }
@@ -357,18 +334,14 @@ export default function Layout({ children }: LayoutProps) {
     if (typeof window === 'undefined') return
     try {
       window.localStorage?.setItem?.('aiPanelOpen', aiPanelOpen ? 'true' : 'false')
-      console.log('✅ aiPanelOpen state changed to:', aiPanelOpen)
     } catch (error) {
       console.warn('Failed to save aiPanelOpen to localStorage:', error)
     }
   }, [aiPanelOpen])
 
-  // Attach click handler directly via ref
   useEffect(() => {
     const button = aiButtonRef.current
-    if (!button) {
-      return
-    }
+    if (!button) return
     
     const handleClick = (e: MouseEvent) => {
       e.preventDefault()
@@ -377,15 +350,12 @@ export default function Layout({ children }: LayoutProps) {
     }
 
     button.addEventListener('click', handleClick, true)
-    
     return () => {
-      // Check if button still exists before removing listener
       if (button && button.parentNode) {
         button.removeEventListener('click', handleClick, true)
       }
     }
-  }, []) // Empty deps - handler uses functional setState
-
+  }, [])
 
   useEffect(() => {
     if (settings?.theme) {
@@ -396,13 +366,26 @@ export default function Layout({ children }: LayoutProps) {
   }, [settings?.theme])
 
   const toggleGroup = useCallback((groupPath: string) => {
+<<<<<<< HEAD
     setOpenGroupPath((prev) => (prev === groupPath ? null : groupPath))
+=======
+    setExpandedGroups((prev) => {
+      const newExpanded = new Set(prev)
+    if (newExpanded.has(groupPath)) {
+      newExpanded.delete(groupPath)
+    } else {
+      newExpanded.add(groupPath)
+    }
+      return newExpanded
+    })
+>>>>>>> incremeents
   }, [])
 
   const closeGroup = useCallback((groupPath: string) => {
     setOpenGroupPath((prev) => (prev === groupPath ? null : prev))
   }, [])
 
+<<<<<<< HEAD
   useEffect(() => {
     // Close any open dropdown when navigation occurs.
     setOpenGroupPath(null)
@@ -590,20 +573,29 @@ export default function Layout({ children }: LayoutProps) {
     },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ]
+=======
+  // Find active category based on current path
+  const activeCategory = useMemo(() => {
+    return findCategoryByPath(location.pathname) || navigationManifest[0]
+  }, [location.pathname])
+>>>>>>> incremeents
 
-  const isActive = (path: string, children?: NavItem[]): boolean => {
-    if (path === '/') {
-      return location.pathname === '/'
-    }
-    if (location.pathname === path) return true
-    if (children && children.length) {
-      return children.some((child) => location.pathname.startsWith(child.path))
-    }
-    return location.pathname.startsWith(`${path}/`)
+  // Check if a category is active
+  const isCategoryActive = (category: NavCategory): boolean => {
+    if (location.pathname === category.path) return true
+    const allPages = getAllPagesFromCategory(category)
+    return allPages.some((page) => location.pathname === page.path || location.pathname.startsWith(page.path + '/'))
   }
 
+<<<<<<< HEAD
   const isExpanded = (item: NavItem): boolean =>
     openGroupPath === item.path
+=======
+  // Check if category is expanded
+  const isCategoryExpanded = (category: NavCategory): boolean => {
+    return expandedGroups.has(category.path) || isCategoryActive(category)
+  }
+>>>>>>> incremeents
 
   return (
     <div className="osd-shell min-h-screen text-[color:var(--osd-text)]">
@@ -624,37 +616,34 @@ export default function Layout({ children }: LayoutProps) {
                   </div>
                 </div>
                 <div className="hidden sm:ml-6 sm:flex sm:space-x-2 flex-1 overflow-x-auto overflow-y-visible items-center scrollbar-hide" style={{ position: 'relative', zIndex: 2 }}>
-                  {navItems.map((item) => {
-                    const Icon = item.icon
-                    const childItems = extractChildren(item)
-                    const hasChildren = childItems.length > 0
-                    const active = isActive(item.path, childItems)
-                    const expanded = isExpanded(item)
+                  {navigationManifest.map((category) => {
+                    const active = isCategoryActive(category)
+                    const expanded = isCategoryExpanded(category)
+                    const allPages = getAllPagesFromCategory(category)
 
-                    if (hasChildren) {
+                    if (allPages.length > 0) {
                       return (
                         <NavDropdown
-                          key={item.path}
-                          item={item}
-                          childItems={childItems}
+                          key={category.path}
+                          category={category}
                           active={active}
                           expanded={expanded}
-                          onToggle={() => toggleGroup(item.path)}
-                          onClose={() => closeGroup(item.path)}
+                          onToggle={() => toggleGroup(category.path)}
+                          onClose={() => closeGroup(category.path)}
                           location={location}
                         />
                       )
                     }
 
                     return (
-                      <div key={item.path} className="flex items-center flex-shrink-0">
+                      <div key={category.path} className="flex items-center flex-shrink-0">
                         <Link
-                          to={item.path}
+                          to={category.path}
                           className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
                           aria-current={active ? 'page' : undefined}
                         >
-                          <Icon className="w-5 h-5 mr-2 flex-shrink-0" />
-                          <span className="whitespace-nowrap">{item.label}</span>
+                          <category.icon className="w-5 h-5 mr-2 flex-shrink-0" />
+                          <span className="whitespace-nowrap">{category.label}</span>
                         </Link>
                       </div>
                     )
@@ -662,7 +651,7 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
               </div>
 
-              {/* Enhanced Breadcrumb Navigation */}
+              {/* Breadcrumb Navigation */}
               {location.pathname !== '/' && (
                 <nav className="flex items-center space-x-1.5 px-4 py-2.5 text-sm border-t border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/30 backdrop-blur-sm" aria-label="Breadcrumb">
                   <Link 
@@ -709,16 +698,22 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </nav>
 
-      {/* Main Content */}
+      {/* Main Content with Left Sidebar */}
       <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-8rem)]">
-        <div className="flex flex-col gap-8 lg:flex-row w-full">
+        <div className="flex w-full gap-6">
+          {/* Left Sidebar Navigation - Shows pages for active category */}
+          {activeCategory && getAllPagesFromCategory(activeCategory).length > 0 && (
+            <Sidebar category={activeCategory} currentPath={location.pathname} />
+          )}
+
+          {/* Main Content Pane */}
           <div className="flex-1 min-w-0 w-full">{children}</div>
         </div>
       </main>
 
       <UnifiedAIPanel currentPath={location.pathname} open={aiPanelOpen} onToggle={setAiPanelOpen} />
 
-      {/* Enhanced AI Assistant Toggle Button - Floating Action Button */}
+      {/* AI Assistant Toggle Button */}
       <button
         ref={aiButtonRef}
         type="button"
