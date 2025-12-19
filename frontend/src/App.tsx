@@ -46,6 +46,9 @@ import CapsuleMarketplace from './pages/CapsuleMarketplace'
 import AutoFix from './pages/AutoFix'
 import IntentProcessor from './pages/IntentProcessor'
 import WorkspaceHealth from './pages/WorkspaceHealth'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import Admin from './pages/Admin'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 
 const normalizeBasePath = (value?: string | null): string => {
@@ -111,6 +114,11 @@ function App() {
         <AppErrorBoundary>
           <Layout>
             <Routes>
+            {/* Auth Pages */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/admin" element={<Admin />} />
+            
             {/* Root & Core Pages */}
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />

@@ -79,6 +79,11 @@ from backend_api.routers import (
     git,
     network_monitoring,
     workspace,
+    auth,
+    admin,
+    versions,
+    unified_logs,
+    ai_analysis,
 )
 
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
@@ -134,6 +139,11 @@ app.include_router(personas.router, prefix="/api/personas", tags=["personas"])
 app.include_router(office.router, prefix="/api/office", tags=["office"])
 app.include_router(runtime_diagnostics.router, prefix="/api", tags=["runtime"])
 app.include_router(workspace.router, prefix="/api", tags=["workspace"])
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+app.include_router(versions.router, prefix="/api/documents", tags=["versions"])
+app.include_router(unified_logs.router, prefix="/api/logs", tags=["logs"])
+app.include_router(ai_analysis.router, prefix="/api/ai-analysis", tags=["ai_analysis"])
 
 # Legacy compatibility routes without the /api prefix.
 @app.get("/system", include_in_schema=False)
