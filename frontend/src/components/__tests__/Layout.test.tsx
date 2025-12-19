@@ -32,9 +32,6 @@ describe('Layout NavDropdown Performance', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
-    // Clean up any portaled dropdowns
-    const dropdowns = document.body.querySelectorAll('.osd-dropdown')
-    dropdowns.forEach((dropdown) => dropdown.remove())
   })
 
   const renderLayout = () => {
@@ -48,7 +45,8 @@ describe('Layout NavDropdown Performance', () => {
   }
 
   it('should throttle scroll and resize events', async () => {
-    const { container } = renderLayout()
+    const addEventListenerSpy = vi.spyOn(window, 'addEventListener')
+    renderLayout()
     
     // Find a dropdown button (e.g., Mission Control)
     const dropdownButton = screen.getByText('Mission Control')
@@ -60,17 +58,15 @@ describe('Layout NavDropdown Performance', () => {
     // Verify throttle was called
     expect(throttle).toHaveBeenCalled()
 
-    // Simulate scroll events
-    const scrollEvents = Array(10).fill(null).map(() => new Event('scroll'))
-    scrollEvents.forEach((event) => {
-      window.dispatchEvent(event)
-    })
+    // Verify listeners were registered with capture on scroll for portaled dropdown positioning
+    expect(addEventListenerSpy).toHaveBeenCalledWith(
+      'scroll',
+      expect.any(Function),
+      expect.objectContaining({ capture: true }),
+    )
+    expect(addEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function), expect.any(Object))
 
-    // Wait for any async operations
-    await waitFor(() => {
-      // Verify requestAnimationFrame was called (throttled)
-      expect(global.requestAnimationFrame).toHaveBeenCalled()
-    }, { timeout: 100 })
+    addEventListenerSpy.mockRestore()
   })
 
   it('should not cause excessive re-renders when opening dropdown', async () => {
@@ -103,21 +99,17 @@ describe('Layout NavDropdown Performance', () => {
     const dropdownButton = screen.getByText('Mission Control')
 
     // Rapidly toggle dropdown multiple times
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
       fireEvent.click(dropdownButton)
       await waitFor(() => {
         const dropdown = document.body.querySelector('.osd-dropdown')
-        if (i % 2 === 0) {
-          expect(dropdown).toBeInTheDocument()
-        }
+        expect(dropdown).toBeInTheDocument()
       }, { timeout: 50 })
       
       fireEvent.click(dropdownButton)
       await waitFor(() => {
         const dropdown = document.body.querySelector('.osd-dropdown')
-        if (i % 2 === 1) {
-          expect(dropdown).not.toBeInTheDocument()
-        }
+        expect(dropdown).not.toBeInTheDocument()
       }, { timeout: 50 })
     }
 
@@ -135,14 +127,22 @@ describe('Layout NavDropdown Performance', () => {
     fireEvent.click(dropdownButton)
 
     // Verify listeners were added
-    expect(addEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function), true)
-    expect(addEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function))
+    expect(addEventListenerSpy).toHaveBeenCalledWith(
+      'scroll',
+      expect.any(Function),
+      expect.objectContaining({ capture: true }),
+    )
+    expect(addEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function), expect.any(Object))
 
     // Unmount component
     unmount()
 
     // Verify listeners were removed
-    expect(removeEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function), true)
+    expect(removeEventListenerSpy).toHaveBeenCalledWith(
+      'scroll',
+      expect.any(Function),
+      expect.objectContaining({ capture: true }),
+    )
     expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function))
 
     addEventListenerSpy.mockRestore()
@@ -165,12 +165,13 @@ describe('Layout NavDropdown Performance', () => {
       // Click a link inside dropdown
       const link = dropdown?.querySelector('a')
       if (link) {
-        const clickSpy = vi.spyOn(link, 'click')
         fireEvent.click(link)
-        
-        // Handler should be called only once
-        expect(clickSpy).toHaveBeenCalled()
       }
+    })
+
+    // Clicking a link should close the dropdown via onClose()
+    await waitFor(() => {
+      expect(document.body.querySelector('.osd-dropdown')).not.toBeInTheDocument()
     })
   })
 

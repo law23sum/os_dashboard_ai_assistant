@@ -33,10 +33,18 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000", "http://127.0.0.1:3000", 
         "http://localhost:5173", "http://127.0.0.1:5173",
+        "http://localhost:5174", "http://127.0.0.1:5174",
+        "http://0.0.0.0:5173", "http://0.0.0.0:5174",
+        # Electron file:// origin is often serialized as `null`
+        "null",
         "https://localhost:3000", "https://127.0.0.1:3000",
         "https://localhost:5173", "https://127.0.0.1:5173",
+        "https://localhost:5174", "https://127.0.0.1:5174",
+        "https://0.0.0.0:5173", "https://0.0.0.0:5174",
         "https://0.0.0.0:8000", "https://localhost:8000", "https://127.0.0.1:8000"
     ],
+    # Allow any localhost/loopback port for dev/preview builds.
+    allow_origin_regex=r"^https?://(localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0)(:\\d+)?$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods instead of "*"
     allow_headers=["Content-Type", "Authorization", "Accept"],  # Explicit headers instead of "*"
