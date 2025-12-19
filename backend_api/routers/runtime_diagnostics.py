@@ -11,6 +11,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Query, Response, status
 from pydantic import BaseModel, Field
 from assistant_hub.ui.terminal.harness import latest_workspace_report
+from backend_api.db import db_session
+from backend_api.routers.logs import record_event
 
 router = APIRouter()
 
@@ -204,6 +206,19 @@ async def record_runtime_diagnostic(event: RuntimeDiagnostic) -> Dict[str, str]:
     payload = event.model_dump()
     payload["timestamp"] = datetime.now(timezone.utc).isoformat()
     _append_event(payload)
+    # Also mirror into the unified DB event log for endless streaming.
+    try:
+        with db_session() as db:
+            record_event(
+                db=db,
+                source=str(event.source or "runtime"),
+                level=str(event.severity or "info"),
+                message=str(event.message or ""),
+                user_id=None,
+                metadata=event.context or {},
+            )
+    except Exception:
+        pass
     return {"status": "accepted"}
 
 
