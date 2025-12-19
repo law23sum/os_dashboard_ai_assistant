@@ -1,13 +1,11 @@
-import { ReactNode, useEffect, useState, useRef, useCallback, useMemo } from 'react'
+import { ReactNode, useEffect, useState, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   ChevronDown,
   Sparkles,
-  ChevronRight,
-  Menu,
-  X
+  Settings
 } from 'lucide-react'
 import { applyTheme, defaultTheme } from '../theme'
 import { useAppSettings } from '../hooks/useSettings'
@@ -32,9 +30,28 @@ interface NavDropdownProps {
 function NavDropdown({ category, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const isTogglingRef = useRef(false)
   const Icon = category.icon
 
+  // Position the dropdown when it opens
+  useEffect(() => {
+    if (expanded && buttonRef.current && dropdownRef.current) {
+      const buttonRect = buttonRef.current.getBoundingClientRect()
+      const viewportWidth = window.innerWidth
+      const dropdownWidth = 288 // w-72
+      
+      let left = buttonRect.left
+      if (left + dropdownWidth > viewportWidth) {
+        left = viewportWidth - dropdownWidth - 16
+      }
+      if (left < 16) {
+        left = 16
+      }
+
+      const top = buttonRect.bottom + 8
+      dropdownRef.current.style.top = `${top}px`
+      dropdownRef.current.style.left = `${left}px`
+    }
+  }, [expanded])
   const updatePosition = useCallback(() => {
     if (!buttonRef.current || !dropdownRef.current || !expanded) return
     
@@ -89,6 +106,8 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
   const handleButtonClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     e.preventDefault()
+    onToggle()
+  }, [onToggle])
     
     isTogglingRef.current = true
     
@@ -109,6 +128,7 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
     onClose()
   }, [onClose])
 
+  // Handle clicks outside to close dropdown
   useEffect(() => {
     if (!expanded) return
 
@@ -118,13 +138,24 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
       const target = event.target as Node
       
       if (
-        !buttonRef.current ||
-        !dropdownRef.current ||
-        buttonRef.current.contains(target) ||
-        dropdownRef.current.contains(target)
+        buttonRef.current &&
+        dropdownRef.current &&
+        !buttonRef.current.contains(target) &&
+        !dropdownRef.current.contains(target)
       ) {
-        return
+        onClose()
       }
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+
+    // Add listeners after a small delay to prevent immediate closure
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside, true)
+      document.addEventListener('keydown', handleEscape, true)
+    }, 50)
       
       onClose()
     }
@@ -156,7 +187,6 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
           onClick={handleButtonClick}
           onMouseDown={(e) => e.stopPropagation()}
           className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
-          style={{ pointerEvents: 'auto', cursor: 'pointer' }}
           aria-haspopup="menu"
           aria-expanded={expanded}
         >
@@ -207,6 +237,7 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
                         key={item.path}
                         to={item.path}
                         className={`osd-dropdown-link ${itemActive ? 'osd-dropdown-link--active' : ''}`}
+                        onClick={onClose}
                         onClick={handleLinkClick}
                       >
                         <ItemIcon className="w-4 h-4 mr-2" />
@@ -308,10 +339,10 @@ function Sidebar({ category, currentPath }: SidebarProps) {
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
+  const [openGroupPath, setOpenGroupPath] = useState<string | null>(null)
   const [openCategoryPath, setOpenCategoryPath] = useState<string | null>(null)
   const { data: settings } = useAppSettings()
   const aiButtonRef = useRef<HTMLButtonElement>(null)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
   const [aiPanelOpen, setAiPanelOpen] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
@@ -358,6 +389,8 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [settings?.theme])
 
+  const toggleGroup = useCallback((groupPath: string) => {
+    setOpenGroupPath((prev) => (prev === groupPath ? null : groupPath))
   const toggleCategory = useCallback((categoryPath: string) => {
     setOpenCategoryPath((prev) => (prev === categoryPath ? null : categoryPath))
   }, [])
@@ -372,9 +405,7 @@ export default function Layout({ children }: LayoutProps) {
   }, [location.pathname])
 
   // Find active category based on current path
-  const activeCategory = useMemo(() => {
-    return findCategoryByPath(location.pathname) || navigationManifest[0]
-  }, [location.pathname])
+  const activeCategory = findCategoryByPath(location.pathname) || navigationManifest[0]
 
   // Check if a category is active
   const isCategoryActive = (category: NavCategory): boolean => {
@@ -392,6 +423,60 @@ export default function Layout({ children }: LayoutProps) {
     <div className="osd-shell min-h-screen text-[color:var(--osd-text)] flex flex-col">
       {/* Top Navigation Bar */}
       <nav className="osd-nav border-b border-[color:var(--osd-border)] sticky top-0 z-50 bg-[color:var(--osd-background)]/80 backdrop-blur-md">
+        <div className="w-full px-2 sm:px-4 lg:px-6">
+          <div className="flex justify-between h-16 items-center">
+            {/* Logo */}
+            <div className="flex items-center gap-3">
+              <div className="osd-logo w-8 h-8 bg-gradient-to-br from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] rounded-lg shadow-lg" />
+              <div className="hidden sm:block">
+                <p className="text-[0.6rem] uppercase tracking-[0.2em] text-[color:var(--osd-muted)] leading-none mb-1">
+                  Canonical Control Room
+                </p>
+                <h1 className="text-sm font-semibold tracking-wide">OS DASHBOARD</h1>
+              </div>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-1 flex-1 justify-center">
+              {navigationManifest.map((category) => {
+                const active = isCategoryActive(category)
+                const expanded = openGroupPath === category.path
+                const allPages = getAllPagesFromCategory(category)
+
+                if (allPages.length > 0) {
+                  return (
+                    <NavDropdown
+                      key={category.path}
+                      category={category}
+                      active={active}
+                      expanded={expanded}
+                      onToggle={() => toggleGroup(category.path)}
+                      onClose={() => closeGroup(category.path)}
+                      location={location}
+                    />
+                  )
+                }
+
+                return (
+                  <div key={category.path} className="flex items-center flex-shrink-0">
+                    <Link
+                      to={category.path}
+                      className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
+                      aria-current={active ? 'page' : undefined}
+                    >
+                      <category.icon className="w-5 h-5 mr-2 flex-shrink-0" />
+                      <span className="whitespace-nowrap">{category.label}</span>
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-2">
+              <Link to="/settings" className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors">
+                <Settings className="w-5 h-5" />
+              </Link>
         <div className="w-full px-2 sm:px-4 lg:px-6" style={{ overflow: 'visible' }}>
           <div className="flex flex-col w-full" style={{ overflow: 'visible' }}>
             {/* Primary Navigation */}
@@ -457,6 +542,7 @@ export default function Layout({ children }: LayoutProps) {
       </nav>
 
       {/* Main Content with Left Sidebar */}
+      <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-4rem)]">
       <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-8rem)]">
         <div className="flex w-full gap-6">
           {/* Left Sidebar Navigation - Shows features for active category */}
