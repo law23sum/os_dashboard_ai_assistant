@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Menu,
   X,
+  Settings,
   LogOut,
   User,
   Settings,
@@ -25,6 +26,7 @@ import { UnifiedAIPanel } from './UnifiedAIPanel'
 import { throttle } from '../shared/utils'
 import { navigationManifest, getAllPagesFromCategory, type NavCategory, type NavPage } from '../data/navigationManifest'
 import PlatformFeatureSidebar from './PlatformFeatureSidebar'
+import { navigationConfig, Category, Platform, FeatureOption } from '../config/navigation'
 import { navigationManifest, type NavCategory, type NavGroup, type NavPage } from '../data/navigationManifest'
 
 type ActiveNav = {
@@ -62,6 +64,8 @@ interface LayoutProps {
 }
 
 interface NavDropdownProps {
+  category: Category
+  platforms: Platform[]
   category: NavCategory
   active: boolean
   expanded: boolean
@@ -70,6 +74,15 @@ interface NavDropdownProps {
   location: { pathname: string }
 }
 
+function NavDropdown({ category, platforms, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  
+  // Use a generic icon if the category doesn't have one explicitly defined
+  const Icon = platforms[0]?.icon || LayoutDashboard
+
+  // Handle outside clicks
+  useEffect(() => {
+    if (!expanded) return
 function NavDropdown({ category, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -132,12 +145,55 @@ function NavDropdown({ category, active, expanded, onToggle, onClose, location }
     [updatePosition]
   )
 
-  useEffect(() => {
-    if (!expanded) {
-      if (dropdownRef.current) {
-        dropdownRef.current.style.top = ''
-        dropdownRef.current.style.left = ''
+    const handleClickOutside = (event: MouseEvent) => {
+      // If clicking inside the button container, don't close (let button onClick handle it)
+      if (
+        containerRef.current &&
+        containerRef.current.contains(event.target as Node)
+      ) {
+        return
       }
+      
+      // If clicking inside the portal dropdown, don't close
+      const dropdownElement = document.getElementById(`dropdown-${category.id}`)
+      if (dropdownElement && dropdownElement.contains(event.target as Node)) {
+        return
+      }
+
+      onClose()
+    }
+
+    // Use mousedown to capture the event before click can trigger other things
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [expanded, onClose, category.id])
+
+  // Update position of the dropdown
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
+  
+  useEffect(() => {
+    if (expanded && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      const viewportWidth = window.innerWidth
+      const dropdownWidth = 288 // w-72
+      
+      let left = rect.left
+      // Adjust if it goes off screen right
+      if (left + dropdownWidth > viewportWidth) {
+        left = viewportWidth - dropdownWidth - 16
+      }
+      // Adjust if it goes off screen left
+      if (left < 16) left = 16
+
+      setDropdownStyle({
+        position: 'fixed',
+        top: `${rect.bottom + 8}px`,
+        left: `${left}px`,
+        zIndex: 99999,
+        pointerEvents: 'auto',
+      })
+    }
+  }, [expanded])
       isTogglingRef.current = false
       return
     }
@@ -445,16 +501,21 @@ function FeatureRail({
 
   return (
     <>
-      <div className="relative group flex items-center">
+      <div ref={containerRef} className="relative group flex items-center">
         <button
-          ref={buttonRef}
           type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggle()
+          }}
           onClick={handleButtonClick}
           onMouseDown={(e) => e.stopPropagation()}
           className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
           aria-haspopup="menu"
           aria-expanded={expanded}
         >
+          {/* <Icon className="w-5 h-5 mr-2" /> */}
+          <span className="font-medium">{category.label}</span>
           <Icon className="w-5 h-5 mr-2" />
           {category.label}
           <ChevronDown
@@ -472,6 +533,9 @@ function FeatureRail({
             className="osd-dropdown w-72 max-h-[70vh] overflow-y-auto"
             style={{ position: 'fixed', zIndex: 99999, pointerEvents: 'auto' }}
           <div 
+            id={`dropdown-${category.id}`}
+            className="osd-dropdown w-72 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-xl shadow-xl backdrop-blur-md" 
+            style={dropdownStyle}
             ref={dropdownRef} 
             className="osd-dropdown w-72" 
             style={{ 
@@ -480,8 +544,31 @@ function FeatureRail({
               pointerEvents: 'auto'
             }}
             onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
           >
+            <div className="px-4 py-3">
+              <div className="mb-2">
+                <p className="text-[0.65rem] uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
+                  Categories
+                </p>
+              </div>
+              <div className="space-y-1">
+                {platforms.map((platform) => {
+                  const PlatformIcon = platform.icon
+                  const platformActive = location.pathname.startsWith(platform.path)
+                  return (
+                    <Link
+                      key={platform.id}
+                      to={platform.path}
+                      className={`osd-dropdown-link flex items-center px-3 py-2 rounded-lg transition-colors ${platformActive ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)]' : 'text-[color:var(--osd-muted)] hover:bg-[color:var(--osd-hover)] hover:text-[color:var(--osd-text)]'}`}
+                      onClick={() => onClose()}
+                    >
+                      <PlatformIcon className="w-4 h-4 mr-2" />
+                      {platform.label}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
             {category.groups.map((group, groupIndex) => (
               <div
                 key={`${category.path}-group-${groupIndex}`}
@@ -531,6 +618,52 @@ function FeatureRail({
   )
 }
 
+function FeatureSidebar({ platform, activeFeature }: { platform: Platform, activeFeature?: string }) {
+  if (!platform) return null;
+
+  return (
+    <div className="hidden lg:block w-64 flex-shrink-0 mr-8">
+      <div className="sticky top-24 space-y-6">
+        <div>
+          <h3 className="text-sm font-semibold text-[color:var(--osd-text)] flex items-center gap-2 mb-4">
+            <platform.icon className="w-4 h-4" />
+            {platform.label} Features
+          </h3>
+          <nav className="space-y-1">
+            {platform.features.map((feature) => (
+              <button
+                key={feature.id}
+                className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors text-left group ${
+                  activeFeature === feature.id 
+                    ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-accent)]' 
+                    : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
+                }`}
+              >
+                <span>{feature.label}</span>
+                {feature.complexity && (
+                  <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                    feature.complexity === 'simple' ? 'bg-emerald-500/10 text-emerald-500' :
+                    feature.complexity === 'intermediate' ? 'bg-amber-500/10 text-amber-500' :
+                    'bg-rose-500/10 text-rose-500'
+                  } opacity-0 group-hover:opacity-100 transition-opacity`}>
+                    {feature.complexity === 'simple' ? 'Basic' : 
+                     feature.complexity === 'intermediate' ? 'Inter' : 'Adv'}
+                  </span>
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
+        
+        {platform.description && (
+          <div className="p-4 rounded-lg bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)]">
+            <p className="text-xs text-[color:var(--osd-muted)] leading-relaxed">
+              {platform.description}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
 interface SidebarProps {
   category: NavCategory
   currentPath: string
@@ -796,6 +929,7 @@ function UserMenu() {
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
   // Single-open dropdown model for top nav
   const [openDropdownPath, setOpenDropdownPath] = useState<string | null>(null)
   const { data: settings } = useAppSettings()
@@ -825,6 +959,21 @@ export default function Layout() {
     }
   })
 
+  // Identify current category and platform
+  // In navigation.ts:
+  // Category (Top) -> Platform (Dropdown) -> Feature (Sidebar)
+  
+  const currentCategory = useMemo(() => navigationConfig.find(cat => 
+    location.pathname.startsWith(cat.path) || 
+    cat.platforms.some(p => location.pathname.startsWith(p.path))
+  ), [location.pathname])
+  
+  const currentPlatform = useMemo(() => currentCategory?.platforms.find(p => 
+    location.pathname.startsWith(p.path)
+  ), [currentCategory, location.pathname])
+
+  // Optional: Identify active feature if path matches deeper? 
+  // For now, we just show the features list.
   const active = useMemo(() => getActiveNav(location.pathname), [location.pathname])
 
   useEffect(() => {
@@ -877,6 +1026,17 @@ export default function Layout() {
     }
   }, [settings?.theme])
 
+  const toggleCategory = useCallback((categoryId: string) => {
+    setExpandedCategories((prev) => {
+      const newExpanded = new Set(prev)
+      if (newExpanded.has(categoryId)) {
+        newExpanded.delete(categoryId)
+      } else {
+        newExpanded.clear() // Single open
+        newExpanded.add(categoryId)
+      }
+      return newExpanded
+    })
   // Toggle dropdown - only one open at a time
   const toggleDropdown = useCallback((path: string) => {
     setOpenDropdownPath((prev) => (prev === path ? null : path))
@@ -890,6 +1050,11 @@ export default function Layout() {
   const toggleCategory = useCallback((categoryPath: string) => {
     setOpenCategoryPath((prev) => (prev === categoryPath ? null : categoryPath))
   }, [])
+
+  useEffect(() => {
+    // Close dropdowns on navigation
+    setExpandedCategories(new Set())
+  }, [location.pathname])
 
   const closeCategory = useCallback((categoryPath: string) => {
     setOpenCategoryPath((prev) => (prev === categoryPath ? null : prev))
@@ -959,6 +1124,7 @@ export default function Layout() {
                   <p className="text-[0.6rem] uppercase tracking-[0.2em] text-[color:var(--osd-muted)] leading-none mb-1">
                     Canonical Control Room
                   </p>
+                  <h1 className="text-sm font-semibold tracking-wide">OS DASHBOARD</h1>
                   <h1 className="text-sm font-semibold tracking-wide">OS Dashboard · AI Assistant</h1>
                 </div>
               </Link>
@@ -1069,6 +1235,53 @@ export default function Layout() {
 
             {/* Right Actions */}
             <div className="flex items-center gap-2">
+               <Link to="/settings" className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors">
+                 <Settings className="w-5 h-5" />
+               </Link>
+            </div>
+          </div>
+        </div>
+        
+        {/* Breadcrumbs */}
+        {location.pathname !== '/' && (
+           <div className="px-4 py-2 border-t border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/30 backdrop-blur-sm flex items-center text-xs">
+              <Link to="/" className="hover:text-[color:var(--osd-accent)] transition-colors">Mission Control</Link>
+              {currentCategory && (
+                <>
+                  <ChevronRight className="w-3 h-3 mx-2 text-[color:var(--osd-muted)]" />
+                  <span className={!currentPlatform ? 'font-semibold text-[color:var(--osd-text)]' : 'text-[color:var(--osd-muted)]'}>
+                    {currentCategory.label}
+                  </span>
+                </>
+              )}
+              {currentPlatform && (
+                <>
+                  <ChevronRight className="w-3 h-3 mx-2 text-[color:var(--osd-muted)]" />
+                  <span className="font-semibold text-[color:var(--osd-text)]">
+                    {currentPlatform.label}
+                  </span>
+                </>
+              )}
+           </div>
+        )}
+      </nav>
+
+      {/* Main Content Area */}
+      <div className="flex flex-1 min-h-0 relative">
+        {/* Left Sidebar (Desktop) - Features Only */}
+        <aside className="hidden lg:block w-64 border-r border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/20 overflow-y-auto">
+           {currentPlatform ? (
+             <div className="p-4">
+                <FeatureSidebar platform={currentPlatform} />
+             </div>
+           ) : (
+             <div className="p-4 text-center text-[color:var(--osd-muted)] text-sm italic mt-10">
+               {/* Select a platform to view features */}
+             </div>
+           )}
+        </aside>
+
+        {/* Content */}
               <UserMenu />
               <Link to="/settings" className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors">
                 <Settings className="w-5 h-5" />
@@ -1218,6 +1431,7 @@ export default function Layout() {
         <PlatformFeatureSidebar />
       </div>
 
+      {/* AI Assistant Toggle Button */}
       {/* Main Content with Left Sidebar */}
       <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-4rem)]">
       <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-8rem)]">

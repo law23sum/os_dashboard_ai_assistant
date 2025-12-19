@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { Shield, User, Lock, AlertCircle, LogIn } from 'lucide-react'
 import { LogIn, Lock, User, Shield, AlertCircle } from 'lucide-react'
 
 export default function Login() {
@@ -195,6 +196,8 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="glass-content p-8 rounded-2xl shadow-2xl">
           <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] mb-4 shadow-lg">
+              <Shield className="w-8 h-8 text-white" />
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[color:var(--osd-accent)]/20 to-[color:var(--osd-accentPurple)]/20 border border-[color:var(--osd-accent)]/30 mb-4">
               <Shield className="w-8 h-8 text-[color:var(--osd-accent)]" />
             </div>
@@ -204,6 +207,8 @@ export default function Login() {
 
           {error && (
             <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <span>{error}</span>
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <p>{error}</p>
             </div>
@@ -218,6 +223,8 @@ export default function Login() {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--osd-accent)]"
+                  placeholder="Enter your username"
                   className="w-full pl-10 pr-4 py-2 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--osd-accent)] text-[color:var(--osd-text)]"
                   required
                   autoFocus
@@ -252,6 +259,8 @@ export default function Login() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--osd-accent)]"
+                  placeholder="Enter your password"
                   className="w-full pl-10 pr-4 py-2 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--osd-accent)] text-[color:var(--osd-text)]"
                   required
                   disabled={isLoading}
@@ -261,6 +270,8 @@ export default function Login() {
 
             <button
               type="submit"
+              disabled={isLoading}
+              className="w-full py-3 bg-gradient-to-r from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-medium rounded-xl shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
@@ -282,9 +293,10 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-slate-700/50">
-            <p className="text-center text-sm text-slate-400">
+          <div className="mt-6 pt-6 border-t border-[color:var(--osd-border)]">
+            <p className="text-center text-sm text-[color:var(--osd-muted)]">
               Don't have an account?{' '}
+              <Link to="/signup" className="text-[color:var(--osd-accent)] hover:underline font-medium">
               <Link
                 to="/signup"
                 className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
@@ -295,17 +307,21 @@ export default function Login() {
             </p>
           </div>
 
+          {/* Demo Credentials Hint */}
+          <div className="mt-6 p-4 bg-[color:var(--osd-surface)]/50 border border-[color:var(--osd-border)] rounded-xl">
+            <p className="text-xs font-semibold text-[color:var(--osd-text)] mb-2">Demo Credentials:</p>
+            <div className="space-y-1 text-xs text-[color:var(--osd-muted)]">
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-slate-900/30 border border-slate-700/50 rounded-xl">
           <div className="mt-6 p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl">
             <p className="text-xs font-semibold text-slate-300 mb-2">Demo Credentials:</p>
             <div className="space-y-1 text-xs text-slate-400">
               <p>
-                <span className="font-mono">admin</span> / <span className="font-mono">admin123</span>{' '}
-                <span className="text-amber-400">(Admin)</span>
+                <span className="font-mono text-[color:var(--osd-accent)]">admin</span> / <span className="font-mono">admin123</span>{' '}
+                <span className="text-[color:var(--osd-warning)]">(Admin)</span>
               </p>
               <p>
-                <span className="font-mono">alice</span> / <span className="font-mono">password123</span>
+                <span className="font-mono text-[color:var(--osd-accent)]">alice</span> / <span className="font-mono">password123</span>
               </p>
             </div>
           </div>

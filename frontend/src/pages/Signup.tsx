@@ -166,6 +166,15 @@ export default function Signup() {
   }
 
   return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[color:var(--osd-background)] to-[color:var(--osd-surface)] p-4">
+      <div className="w-full max-w-md">
+        <div className="glass-content p-8 rounded-2xl shadow-2xl">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] mb-4 shadow-lg">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold mb-2">Create Account</h1>
+            <p className="text-[color:var(--osd-muted)]">Join OS Dashboard AI today</p>
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-12">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -181,10 +190,13 @@ export default function Signup() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/30 mb-4">
             <Shield className="w-8 h-8 text-indigo-400" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-          <p className="text-slate-400">Join OS Dashboard AI today</p>
-        </div>
 
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
         {/* Signup Form */}
         <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8">
         <div className="glass-card p-8">
@@ -214,15 +226,23 @@ export default function Signup() {
               </div>
             </div>
 
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
+              <label className="block text-sm font-medium mb-2">Username *</label>
               <label htmlFor="username" className="block text-sm font-medium text-slate-300 mb-2">
                 Username *
               </label>
               <label className="block text-sm font-medium text-slate-300 mb-2">Username *</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[color:var(--osd-muted)]" />
                 <input
                   type="text"
+                  value={formData.username}
+                  onChange={(e) => handleChange('username', e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--osd-accent)]"
+                  placeholder="Choose a username"
+                  required
+                  disabled={isLoading}
                   value={form.username}
                   onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
                   required
@@ -235,11 +255,17 @@ export default function Signup() {
             </div>
 
             <div>
+              <label className="block text-sm font-medium mb-2">Email *</label>
               <label className="block text-sm font-medium text-slate-300 mb-2">Email *</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[color:var(--osd-muted)]" />
                 <input
                   type="email"
+                  value={formData.email}
+                  onChange={(e) => handleChange('email', e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--osd-accent)]"
+                  placeholder="your@email.com"
+                  required
                   value={form.email}
                   onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                   required
@@ -281,13 +307,18 @@ export default function Signup() {
             </div>
 
             <div>
+              <label className="block text-sm font-medium mb-2">Full Name (Optional)</label>
               <label className="block text-sm font-medium text-slate-300 mb-2">
                 Full Name <span className="text-slate-500">(optional)</span>
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[color:var(--osd-muted)]" />
                 <input
                   type="text"
+                  value={formData.fullName}
+                  onChange={(e) => handleChange('fullName', e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--osd-accent)]"
+                  placeholder="John Doe"
                   value={form.fullName}
                   onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
                   className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700/60 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all"
@@ -309,6 +340,25 @@ export default function Signup() {
             </div>
 
             <div>
+              <label className="block text-sm font-medium mb-2">Password *</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[color:var(--osd-muted)]" />
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => handleChange('password', e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--osd-accent)]"
+                  placeholder="Create a strong password"
+                  required
+                  minLength={8}
+                  disabled={isLoading}
+                />
+              </div>
+              <p className="text-xs text-[color:var(--osd-muted)] mt-1">Must be at least 8 characters</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Confirm Password *</label>
               <label className="block text-sm font-medium text-slate-300 mb-2">Password *</label>
               <label className="block text-sm font-medium mb-2">Email</label>
               <div className="relative">
@@ -339,6 +389,10 @@ export default function Signup() {
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[color:var(--osd-muted)]" />
                 <input
                   type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleChange('confirmPassword', e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--osd-accent)]"
+                  placeholder="Confirm your password"
                   value={form.confirmPassword}
                   onChange={(e) => setForm((f) => ({ ...f, confirmPassword: e.target.value }))}
                   required
@@ -373,6 +427,8 @@ export default function Signup() {
 
             <button
               type="submit"
+              disabled={isLoading}
+              className="w-full py-3 bg-gradient-to-r from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-medium rounded-xl shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
@@ -394,6 +450,8 @@ export default function Signup() {
             </button>
           </form>
 
+          <div className="mt-6 pt-6 border-t border-[color:var(--osd-border)]">
+            <p className="text-center text-sm text-[color:var(--osd-muted)]">
           <div className="mt-6 pt-6 border-t border-slate-700/50">
             <p className="text-center text-sm text-slate-400">
               Already have an account?{' '}
@@ -405,7 +463,7 @@ export default function Signup() {
           <div className="mt-6 text-center">
             <p className="text-sm text-[color:var(--osd-muted)]">
               Already have an account?{' '}
-              <Link to="/login" className="text-[color:var(--osd-accent)] hover:underline">
+              <Link to="/login" className="text-[color:var(--osd-accent)] hover:underline font-medium">
                 Sign in
               </Link>
             </p>

@@ -1,3 +1,4 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
@@ -8,6 +9,12 @@ import {
   Server,
   FileText,
   Shield,
+  Eye,
+  RefreshCw,
+  ChevronDown,
+  ChevronRight,
+  BarChart3,
+  FileText
   TrendingUp,
   AlertCircle,
   RefreshCw,
@@ -28,6 +35,26 @@ import {
 } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 
+interface AdminDashboard {
+  dashboard: {
+    total_users: number
+    active_users: number
+    admin_users: number
+    active_24h: number
+    total_activities: number
+    activities_24h: number
+    total_tasks: number
+    total_projects: number
+    total_chat_messages: number
+    total_documents: number
+  }
+  timestamp: string
+  admin_user: string
+}
+
+interface TableInfo {
+  name: string
+  row_count: number
 interface TableSchema {
   name: string
   columns: Array<{
@@ -185,6 +212,11 @@ function formatCellValue(value: any, columnName: string, showSensitive: boolean)
   // JSON objects
   if (typeof value === 'object') {
     return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="w-12 h-12 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-400">Loading admin dashboard...</p>
+        </div>
       <span className="font-mono text-xs text-slate-400">
         {JSON.stringify(value).substring(0, 50)}...
       </span>
@@ -420,6 +452,11 @@ export default function Admin() {
             </button>
             <button
               onClick={() => {
+                queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] })
+                queryClient.invalidateQueries({ queryKey: ['admin-tables'] })
+                queryClient.invalidateQueries({ queryKey: ['admin-user-stats'] })
+                queryClient.invalidateQueries({ queryKey: ['admin-system-info'] })
+                toast.success('Dashboard refreshed')
                 queryClient.invalidateQueries({ queryKey: ['admin-overview'] })
                 refetch()
               }}
@@ -491,6 +528,16 @@ export default function Admin() {
             </div>
           </div>
 
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <MetricCard label="CPU Usage" value={`${systemInfo.system?.cpu_percent?.toFixed(1)}%`} />
+            <MetricCard label="Memory" value={`${systemInfo.system?.memory?.percent?.toFixed(1)}%`} />
+            <MetricCard label="Disk Usage" value={`${systemInfo.system?.disk?.percent?.toFixed(1)}%`} />
+            <MetricCard label="CPU Cores" value={systemInfo.system?.cpu_count} />
+            <MetricCard label="Main DB Size" value={systemInfo.databases?.main_db_size ? `${(systemInfo.databases.main_db_size / 1024 / 1024).toFixed(2)} MB` : 'N/A'} />
+            <MetricCard label="Users DB Size" value={systemInfo.databases?.users_db_size ? `${(systemInfo.databases.users_db_size / 1024 / 1024).toFixed(2)} MB` : 'N/A'} />
+          </div>
+        </section>
+      )}
           <div className="grid gap-4 md:grid-cols-3">
             <HealthMetric label="CPU Usage" value={data.system_health.cpu_percent} />
             <HealthMetric label="Memory" value={data.system_health.memory_percent} />
@@ -726,6 +773,11 @@ export default function Admin() {
         </section>
       )}
 
+function MetricCard({ label, value }: { label: string; value: any }) {
+  return (
+    <div className="p-4 bg-slate-800/50 border border-slate-700/50 rounded-xl">
+      <p className="text-xs text-slate-400 uppercase">{label}</p>
+      <p className="text-2xl font-semibold text-white mt-1">{value}</p>
       {/* Recent Activity */}
       {data.user_stats.recent_activity && data.user_stats.recent_activity.length > 0 && (
         <section className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
