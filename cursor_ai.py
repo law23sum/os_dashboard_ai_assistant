@@ -21,7 +21,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Sequence, Tuple
 import json
 
 # ==========================================
@@ -54,13 +54,51 @@ except ImportError:
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-# Load .env file if it exists
+PROVIDER_KEY_LINKS: Dict[str, Dict[str, str]] = {
+    # These are links to create/manage API keys (not keys themselves).
+    "openai": {
+        "keys": "https://platform.openai.com/api-keys",
+        "docs": "https://platform.openai.com/docs",
+        "billing": "https://platform.openai.com/account/billing",
+    },
+    "anthropic": {
+        "keys": "https://console.anthropic.com/settings/keys",
+        "docs": "https://docs.anthropic.com",
+        "billing": "https://console.anthropic.com/settings/billing",
+    },
+    "google": {
+        "keys": "https://aistudio.google.com/app/apikey",
+        "docs": "https://ai.google.dev/docs",
+    },
+    "grok": {
+        "keys": "https://console.x.ai/api-keys",
+        "docs": "https://docs.x.ai",
+    },
+    "cursor": {
+        "keys": "https://cursor.com/dashboard",
+        "docs": "https://cursor.com/docs",
+    },
+}
+
+
+def _iter_dotenv_candidates(root: Path) -> List[Path]:
+    """
+    Return an ordered list of .env-like files to load.
+    We intentionally avoid reading arbitrary files and only check common names.
+    """
+    candidates: List[Path] = []
+    # Common convention order: local overrides first, then base.
+    for name in (".env.local", ".env", ".env.development", ".env.dev", ".env.production", ".env.prod"):
+        candidates.append(root / name)
+    return candidates
+
+
 def load_dotenv(path: Path | str = ".env") -> None:
     """Lightweight .env loader to avoid external dependency."""
     env_path = Path(path)
     if not env_path.exists():
         return
-    
+
     for line in env_path.read_text().splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
@@ -70,10 +108,11 @@ def load_dotenv(path: Path | str = ".env") -> None:
         value = value.strip().strip('"').strip("'")
         os.environ.setdefault(key.strip(), value)
 
-# Load .env file from project root FIRST, before providers are initialized
-env_file = project_root / ".env"
-if env_file.exists():
-    load_dotenv(env_file)
+
+# Load .env-like files from project root FIRST, before providers are initialized
+for env_file in _iter_dotenv_candidates(project_root):
+    if env_file.exists():
+        load_dotenv(env_file)
 
 # Also try loading from config module if it exists
 try:

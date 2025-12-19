@@ -6,15 +6,18 @@ import base64
 import json
 import mimetypes
 import shutil
+import difflib
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile
 from pydantic import BaseModel, Field
 
 from assistant_hub_gui.assistant_hub.config import DATA_DIR, ensure_data_directories
+from backend_api.deps import get_current_user
+from backend_api.security import AuthUser
 
 router = APIRouter()
 
@@ -28,6 +31,30 @@ TEXT_RETURN_LIMIT = 500_000  # ~500 KB to keep API responses bounded
 
 ensure_data_directories()
 CHAT_DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
+
+def _migrate_legacy_chat_documents() -> None:
+    """Move legacy flat document dirs into the demo tenant folder."""
+    demo_root = CHAT_DOCUMENTS_DIR / "demo"
+    demo_root.mkdir(parents=True, exist_ok=True)
+    # Legacy layout: CHAT_DOCUMENTS_DIR/<doc_id>/metadata.json
+    for meta_file in CHAT_DOCUMENTS_DIR.glob(f"*/{METADATA_FILENAME}"):
+        # If parent is already a user folder (demo/admin/uuid), skip.
+        parent = meta_file.parent
+        # A user folder would contain multiple doc dirs; doc dir contains metadata.json.
+        # We treat any direct child of CHAT_DOCUMENTS_DIR as a doc dir in legacy layout.
+        if parent.parent != CHAT_DOCUMENTS_DIR:
+            continue
+        # parent is doc_id directory
+        target = demo_root / parent.name
+        if target.exists():
+            continue
+        try:
+            shutil.move(str(parent), str(target))
+        except Exception:
+            continue
+
+
+_migrate_legacy_chat_documents()
 
 
 def _now_iso() -> str:
@@ -136,24 +163,28 @@ def _preview_type(filename: str) -> str:
     return "text" if _extension(filename) in TEXT_EXTENSIONS else "binary"
 
 
-def _doc_dir(doc_id: str) -> Path:
-    return CHAT_DOCUMENTS_DIR / doc_id
+def _user_documents_dir(user_id: str) -> Path:
+    return CHAT_DOCUMENTS_DIR / user_id
 
 
-def _metadata_path(doc_id: str) -> Path:
-    return _doc_dir(doc_id) / METADATA_FILENAME
+def _doc_dir(user_id: str, doc_id: str) -> Path:
+    return _user_documents_dir(user_id) / doc_id
 
 
-def _versions_dir(doc_id: str) -> Path:
-    return _doc_dir(doc_id) / VERSION_DIR_NAME
+def _metadata_path(user_id: str, doc_id: str) -> Path:
+    return _doc_dir(user_id, doc_id) / METADATA_FILENAME
 
 
-def _file_path_from_metadata(metadata: Dict[str, Any]) -> Path:
-    return _doc_dir(metadata["id"]) / metadata["filename"]
+def _versions_dir(user_id: str, doc_id: str) -> Path:
+    return _doc_dir(user_id, doc_id) / VERSION_DIR_NAME
 
 
-def _load_metadata(doc_id: str) -> Dict[str, Any]:
-    meta_path = _metadata_path(doc_id)
+def _file_path_from_metadata(user_id: str, metadata: Dict[str, Any]) -> Path:
+    return _doc_dir(user_id, metadata["id"]) / metadata["filename"]
+
+
+def _load_metadata(user_id: str, doc_id: str) -> Dict[str, Any]:
+    meta_path = _metadata_path(user_id, doc_id)
     if not meta_path.exists():
         raise HTTPException(status_code=404, detail="Document not found")
     try:
@@ -162,20 +193,20 @@ def _load_metadata(doc_id: str) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail="Corrupt document metadata") from exc
 
 
-def _persist_metadata(doc: Dict[str, Any]) -> None:
-    meta_path = _metadata_path(doc["id"])
+def _persist_metadata(user_id: str, doc: Dict[str, Any]) -> None:
+    meta_path = _metadata_path(user_id, doc["id"])
     meta_path.parent.mkdir(parents=True, exist_ok=True)
     meta_path.write_text(json.dumps(doc, ensure_ascii=False, indent=2))
 
 
-def _build_document_payload(doc: Dict[str, Any]) -> Dict[str, Any]:
-    file_path = _file_path_from_metadata(doc)
+def _build_document_payload(user_id: str, doc: Dict[str, Any]) -> Dict[str, Any]:
+    file_path = _file_path_from_metadata(user_id, doc)
     size_bytes = file_path.stat().st_size if file_path.exists() else 0
     preview = doc.get("content_preview")
     if preview is None and doc.get("preview_type") == "text" and file_path.exists():
         preview = _read_text_preview(file_path)
         doc["content_preview"] = preview
-        _persist_metadata(doc)
+        _persist_metadata(user_id, doc)
     return {
         "id": doc["id"],
         "filename": doc["filename"],
@@ -190,15 +221,18 @@ def _build_document_payload(doc: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _list_chat_documents() -> List[Dict[str, Any]]:
+def _list_chat_documents(user_id: str) -> List[Dict[str, Any]]:
     documents: List[Dict[str, Any]] = []
-    for meta_file in CHAT_DOCUMENTS_DIR.glob(f"*/{METADATA_FILENAME}"):
+    user_root = _user_documents_dir(user_id)
+    if not user_root.exists():
+        return []
+    for meta_file in user_root.glob(f"*/{METADATA_FILENAME}"):
         try:
             doc = json.loads(meta_file.read_text())
         except Exception:
             continue
         try:
-            documents.append(_build_document_payload(doc))
+            documents.append(_build_document_payload(user_id, doc))
         except Exception:
             continue
     documents.sort(key=lambda d: d.get("uploaded_at") or "", reverse=True)
@@ -213,11 +247,11 @@ def _read_text_preview(path: Path) -> str:
         return ""
 
 
-def _snapshot_version(doc: Dict[str, Any]) -> Optional[str]:
-    file_path = _file_path_from_metadata(doc)
+def _snapshot_version(user_id: str, doc: Dict[str, Any]) -> Optional[str]:
+    file_path = _file_path_from_metadata(user_id, doc)
     if not file_path.exists():
         return None
-    versions_dir = _versions_dir(doc["id"])
+    versions_dir = _versions_dir(user_id, doc["id"])
     versions_dir.mkdir(parents=True, exist_ok=True)
     version_label = f"v{doc.get('version', 1)}-{_now_iso().replace(':', '').replace('-', '')}"
     snapshot_name = f"{version_label}{file_path.suffix or ''}"
@@ -228,9 +262,10 @@ def _snapshot_version(doc: Dict[str, Any]) -> Optional[str]:
             "version": doc.get("version", 1),
             "saved_at": _now_iso(),
             "path": str(snapshot_path),
+            "id": snapshot_name,
         }
     )
-    _persist_metadata(doc)
+    _persist_metadata(user_id, doc)
     return snapshot_name
 
 
@@ -318,9 +353,9 @@ def _serialize_entry(path: Path) -> DocumentEntry:
 
 
 @router.get("/", response_model=List[ChatDocument])
-async def list_workspace_documents() -> List[ChatDocument]:
+async def list_workspace_documents(user: AuthUser = Depends(get_current_user)) -> List[ChatDocument]:
     """Return uploaded chat/workspace documents."""
-    documents = _list_chat_documents()
+    documents = _list_chat_documents(user.id)
     return [ChatDocument(**doc) for doc in documents]
 
 
@@ -328,6 +363,7 @@ async def list_workspace_documents() -> List[ChatDocument]:
 async def upload_document(
     file: UploadFile = File(...),
     persona: str = Form("AIC"),
+    user: AuthUser = Depends(get_current_user),
 ) -> ChatDocument:
     """Upload a document into the workspace storage."""
     original_name = file.filename or "upload"
@@ -340,7 +376,7 @@ async def upload_document(
         )
 
     doc_id = uuid4().hex
-    doc_dir = _doc_dir(doc_id)
+    doc_dir = _doc_dir(user.id, doc_id)
     doc_dir.mkdir(parents=True, exist_ok=True)
     dest_path = doc_dir / safe_name
 
@@ -362,25 +398,32 @@ async def upload_document(
         "size_bytes": dest_path.stat().st_size,
         "preview_type": preview_type,
         "uploaded_at": _now_iso(),
-        "metadata": {"persona": persona},
+        "metadata": {"persona": persona, "owner_user_id": user.id},
         "version": 1,
     }
 
     if preview_type == "text":
         metadata["content_preview"] = _read_text_preview(dest_path)
 
-    _persist_metadata(metadata)
-    return ChatDocument(**_build_document_payload(metadata))
+    _persist_metadata(user.id, metadata)
+    return ChatDocument(**_build_document_payload(user.id, metadata))
 
 
 @router.get("/{document_id}/content", response_model=DocumentContentResponse)
-async def get_document_content(document_id: str) -> DocumentContentResponse:
+async def get_document_content(document_id: str, user: AuthUser = Depends(get_current_user)) -> DocumentContentResponse:
     """Return the raw content of a document for preview/download in the UI."""
+<<<<<<< HEAD
+    doc = _load_metadata(user.id, document_id)
+    file_path = _file_path_from_metadata(user.id, doc)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Document file missing on disk")
+=======
     try:
         doc = _load_metadata(document_id)
         file_path = _file_path_from_metadata(doc)
         if not file_path.exists():
             raise HTTPException(status_code=404, detail="Document file missing on disk")
+>>>>>>> incremeents
 
         content_type = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
         if doc.get("preview_type") == "text":
@@ -421,11 +464,186 @@ async def get_document_content(document_id: str) -> DocumentContentResponse:
         raise HTTPException(status_code=500, detail=f"Failed to fetch document content: {str(e)}")
 
 
+class PutContentRequest(BaseModel):
+    content: str
+    persona: str = "Chris"
+
+
+@router.put("/{document_id}/content", response_model=DocumentModifyResponse)
+async def put_document_content(
+    document_id: str,
+    payload: PutContentRequest,
+    user: AuthUser = Depends(get_current_user),
+) -> DocumentModifyResponse:
+    """Replace the content of a text document (creates a version snapshot first)."""
+    doc = _load_metadata(user.id, document_id)
+    file_path = _file_path_from_metadata(user.id, doc)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Document file missing on disk")
+    if doc.get("preview_type") != "text":
+        raise HTTPException(status_code=400, detail="Only text documents can be edited in-app")
+
+    snapshot_name = _snapshot_version(user.id, doc)
+    file_path.write_text(payload.content, encoding="utf-8", errors="ignore")
+    doc["version"] = doc.get("version", 1) + 1
+    doc["size_bytes"] = file_path.stat().st_size
+    doc["content_preview"] = _read_text_preview(file_path)
+    _persist_metadata(user.id, doc)
+
+    return DocumentModifyResponse(
+        document_id=document_id,
+        success=True,
+        modified_content=doc["content_preview"],
+        changes_summary=f"Saved changes by {payload.persona}",
+        new_version_id=snapshot_name,
+    )
+
+
+class DocumentVersionRow(BaseModel):
+    id: str
+    version_number: int
+    created_at: str
+    created_by: str
+    change_summary: str
+    is_ai_generated: bool = False
+    confidence_score: Optional[float] = None
+
+
+@router.get("/{document_id}/versions", response_model=List[DocumentVersionRow])
+async def list_document_versions(document_id: str, user: AuthUser = Depends(get_current_user)) -> List[DocumentVersionRow]:
+    doc = _load_metadata(user.id, document_id)
+    versions = doc.get("versions") or []
+    persona = (doc.get("metadata") or {}).get("persona") or "system"
+    rows: List[DocumentVersionRow] = []
+    # Newest first for UI
+    for v in reversed(versions):
+        rows.append(
+            DocumentVersionRow(
+                id=v.get("id") or Path(v.get("path") or "").name or "",
+                version_number=int(v.get("version") or 0),
+                created_at=v.get("saved_at") or doc.get("uploaded_at") or _now_iso(),
+                created_by=str(persona),
+                change_summary="Snapshot",
+                is_ai_generated=str(persona).lower() in ("aic", "aria", "sora"),
+            )
+        )
+    return rows
+
+
+class DiffResponse(BaseModel):
+    from_id: str
+    to_id: str
+    diff: str
+    format: str = "unified"
+
+
+def _read_version_bytes(user_id: str, doc: Dict[str, Any], version_id: str) -> bytes:
+    versions_dir = _versions_dir(user_id, doc["id"])
+    candidate = versions_dir / version_id
+    if not candidate.exists():
+        raise HTTPException(status_code=404, detail="Version not found")
+    return candidate.read_bytes()
+
+
+def _hexdump(raw: bytes, width: int = 16) -> List[str]:
+    lines: List[str] = []
+    for i in range(0, len(raw), width):
+        chunk = raw[i : i + width]
+        hex_bytes = " ".join(f"{b:02x}" for b in chunk)
+        ascii_bytes = "".join(chr(b) if 32 <= b < 127 else "." for b in chunk)
+        lines.append(f"{i:08x}  {hex_bytes:<{width*3}} |{ascii_bytes}|")
+    return lines
+
+
+@router.get("/{document_id}/diff", response_model=DiffResponse)
+async def diff_document_versions(
+    document_id: str,
+    from_id: str,
+    to_id: str,
+    mode: str = "unified",
+    user: AuthUser = Depends(get_current_user),
+) -> DiffResponse:
+    doc = _load_metadata(user.id, document_id)
+    file_path = _file_path_from_metadata(user.id, doc)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Document file missing on disk")
+
+    base_bytes = _read_version_bytes(user.id, doc, from_id) if from_id != "current" else file_path.read_bytes()
+    next_bytes = _read_version_bytes(user.id, doc, to_id) if to_id != "current" else file_path.read_bytes()
+
+    if doc.get("preview_type") == "text":
+        a = base_bytes.decode("utf-8", errors="ignore").splitlines(keepends=True)
+        b = next_bytes.decode("utf-8", errors="ignore").splitlines(keepends=True)
+        diff_lines = difflib.unified_diff(a, b, fromfile=from_id, tofile=to_id)
+        return DiffResponse(from_id=from_id, to_id=to_id, diff="".join(diff_lines), format="unified")
+
+    # Binary: compare hexdumps.
+    a_hex = _hexdump(base_bytes)
+    b_hex = _hexdump(next_bytes)
+    diff_lines = difflib.unified_diff([l + "\n" for l in a_hex], [l + "\n" for l in b_hex], fromfile=from_id, tofile=to_id)
+    return DiffResponse(from_id=from_id, to_id=to_id, diff="".join(diff_lines), format="unified")
+
+
+class MergeRequest(BaseModel):
+    # New API: merge many.
+    version_ids: List[str] = Field(default_factory=list, description="Version ids to merge into current")
+    # Backward-compat API: merge one into base (UI may send these)
+    base_version_id: Optional[str] = None
+    merge_version_id: Optional[str] = None
+    persona: str = "AIC"
+
+
+@router.post("/{document_id}/versions/merge", response_model=DocumentVersionRow)
+async def merge_versions_into_current(
+    document_id: str,
+    payload: MergeRequest,
+    user: AuthUser = Depends(get_current_user),
+) -> DocumentVersionRow:
+    doc = _load_metadata(user.id, document_id)
+    file_path = _file_path_from_metadata(user.id, doc)
+    if doc.get("preview_type") != "text":
+        raise HTTPException(status_code=400, detail="Only text documents can be merged in-app")
+
+    # Normalize to a list of version ids to merge.
+    version_ids = list(payload.version_ids)
+    if payload.merge_version_id:
+        version_ids.append(payload.merge_version_id)
+
+    current = file_path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    merged = list(current)
+    seen = set(current)
+    for vid in version_ids:
+        if vid == "current":
+            continue
+        text = _read_version_bytes(user.id, doc, vid).decode("utf-8", errors="ignore").splitlines()
+        for line in text:
+            if line not in seen:
+                merged.append(line)
+                seen.add(line)
+
+    snapshot_name = _snapshot_version(user.id, doc)
+    file_path.write_text("\n".join(merged) + "\n", encoding="utf-8", errors="ignore")
+    doc["version"] = doc.get("version", 1) + 1
+    doc["size_bytes"] = file_path.stat().st_size
+    doc["content_preview"] = _read_text_preview(file_path)
+    _persist_metadata(user.id, doc)
+
+    return DocumentVersionRow(
+        id=snapshot_name or f"v{doc.get('version', 0)}",
+        version_number=int(doc.get("version", 0)),
+        created_at=_now_iso(),
+        created_by=payload.persona,
+        change_summary=f"Merged {len(version_ids)} version(s) into current",
+        is_ai_generated=payload.persona.lower() in ("aic", "aria", "sora"),
+        confidence_score=0.85 if payload.persona.lower() in ("aic", "aria", "sora") else None,
+    )
+
+
 @router.post("/{document_id}/modify", response_model=DocumentModifyResponse)
-async def modify_document(document_id: str, request: DocumentModifyRequest) -> DocumentModifyResponse:
+async def modify_document(document_id: str, request: DocumentModifyRequest, user: AuthUser = Depends(get_current_user)) -> DocumentModifyResponse:
     """Apply a simple AI-style modification for demo purposes."""
-    doc = _load_metadata(document_id)
-    file_path = _file_path_from_metadata(doc)
+    doc = _load_metadata(user.id, document_id)
+    file_path = _file_path_from_metadata(user.id, doc)
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Document file missing on disk")
 
@@ -436,7 +654,7 @@ async def modify_document(document_id: str, request: DocumentModifyRequest) -> D
             changes_summary="Binary files cannot be auto-modified. Download and edit locally.",
         )
 
-    snapshot_name = _snapshot_version(doc)
+    snapshot_name = _snapshot_version(user.id, doc)
     update_header = f"\n\n[AI Update by {request.persona} @ {_now_iso()}]\n"
     update_body = request.prompt.strip() or "(No instructions provided.)"
     with file_path.open("a", encoding="utf-8", errors="ignore") as handle:
@@ -445,7 +663,7 @@ async def modify_document(document_id: str, request: DocumentModifyRequest) -> D
     doc["version"] = doc.get("version", 1) + 1
     doc["size_bytes"] = file_path.stat().st_size
     doc["content_preview"] = _read_text_preview(file_path)
-    _persist_metadata(doc)
+    _persist_metadata(user.id, doc)
 
     return DocumentModifyResponse(
         document_id=document_id,
@@ -457,9 +675,9 @@ async def modify_document(document_id: str, request: DocumentModifyRequest) -> D
 
 
 @router.delete("/{document_id}", status_code=204, response_class=Response)
-async def delete_document(document_id: str) -> Response:
+async def delete_document(document_id: str, user: AuthUser = Depends(get_current_user)) -> Response:
     """Delete a stored document and its metadata."""
-    doc_dir = _doc_dir(document_id)
+    doc_dir = _doc_dir(user.id, document_id)
     if not doc_dir.exists():
         raise HTTPException(status_code=404, detail="Document not found")
     shutil.rmtree(doc_dir, ignore_errors=True)
@@ -467,7 +685,7 @@ async def delete_document(document_id: str) -> Response:
 
 
 @router.get("/tree", response_model=List[DocumentEntry])
-async def list_documents_tree(path: Optional[str] = None) -> List[DocumentEntry]:
+async def list_documents_tree(path: Optional[str] = None, user: AuthUser = Depends(get_current_user)) -> List[DocumentEntry]:
     """List document folders/files beneath the repository's documents directory."""
     directory = _resolve_directory(path)
     entries = sorted(directory.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower()))
@@ -475,6 +693,6 @@ async def list_documents_tree(path: Optional[str] = None) -> List[DocumentEntry]
 
 
 @router.get("/tree/", response_model=List[DocumentEntry], include_in_schema=False)
-async def list_documents_tree_slash(path: Optional[str] = None) -> List[DocumentEntry]:
+async def list_documents_tree_slash(path: Optional[str] = None, user: AuthUser = Depends(get_current_user)) -> List[DocumentEntry]:
     """Alias with trailing slash for legacy desktop clients."""
-    return await list_documents_tree(path=path)
+    return await list_documents_tree(path=path, user=user)

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { RefreshCw, Loader2, GitBranch, Terminal, FileCode } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import apiClient, { apiPath } from '../lib/apiClient'
@@ -12,6 +12,19 @@ interface ChangeLogData {
   working_tree: string
   recent_commits: string
   agent_activity: string
+}
+
+interface LogEvent {
+  id: number
+  timestamp: string
+  source: string
+  level: string
+  message: string
+}
+
+interface LogStreamResponse {
+  cursor: number
+  events: LogEvent[]
 }
 
 const fetchChangeLog = async (): Promise<ChangeLogData> => {
@@ -30,12 +43,40 @@ const fetchChangeLog = async (): Promise<ChangeLogData> => {
 
 export default function ChangeMonitor({ className = '', chatMessages = [] }: ChangeMonitorProps) {
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [logEvents, setLogEvents] = useState<LogEvent[]>([])
+  const logCursorRef = useRef(0)
 
   const { data: changeLog, refetch } = useQuery({
     queryKey: ['change-log'],
     queryFn: fetchChangeLog,
     refetchInterval: 10000, // Refresh every 10 seconds
   })
+
+  useEffect(() => {
+    let cancelled = false
+    const tick = async () => {
+      try {
+        const cursor = logCursorRef.current || 0
+        const { data } = await apiClient.get<LogStreamResponse>(apiPath(`logs/stream?cursor=${cursor}&limit=200`))
+        if (cancelled) return
+        if (data?.events?.length) {
+          setLogEvents((prev) => {
+            const merged = [...prev, ...data.events]
+            return merged.slice(Math.max(0, merged.length - 600))
+          })
+          logCursorRef.current = data.cursor || cursor
+        }
+      } catch {
+        // ignore (auth/offline)
+      }
+    }
+    const interval = window.setInterval(tick, 2000)
+    tick()
+    return () => {
+      cancelled = true
+      window.clearInterval(interval)
+    }
+  }, [])
 
   // Summarize agent activity from chat messages
   const summarizeAgentActivity = (): string => {
@@ -129,6 +170,21 @@ export default function ChangeMonitor({ className = '', chatMessages = [] }: Cha
             </div>
             <div className="bg-slate-900/60 border border-slate-700/60 rounded-lg p-3 text-[11px] text-slate-300 whitespace-pre-wrap font-mono leading-relaxed max-h-32 overflow-y-auto">
               {agentActivity || 'No recent agent commands yet.'}
+            </div>
+          </div>
+
+          {/* Endless Event Log */}
+          <div className="bg-slate-900/40 border border-slate-700/50 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <FileCode className="w-4 h-4 text-primary-400" />
+              <h5 className="text-xs font-semibold text-slate-200 uppercase tracking-wider">Endless Event Log</h5>
+            </div>
+            <div className="bg-slate-900/60 border border-slate-700/60 rounded-lg p-3 text-[11px] text-slate-300 whitespace-pre-wrap font-mono leading-relaxed max-h-48 overflow-y-auto">
+              {logEvents.length === 0
+                ? 'No events yet.'
+                : logEvents
+                    .map((e) => `[${e.timestamp}] ${e.level.toUpperCase()} ${e.source}: ${e.message}`)
+                    .join('\n')}
             </div>
           </div>
         </div>

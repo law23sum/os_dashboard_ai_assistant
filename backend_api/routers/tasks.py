@@ -1,5 +1,5 @@
 """Tasks API router."""
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Optional
 from pydantic import BaseModel
 import sys
@@ -18,6 +18,9 @@ from assistant_hub_gui.assistant_hub.db import (
     db_record_project_event,
 )
 from backend_api.db import db_session
+from backend_api.auth import User, get_current_active_user
+from backend_api.deps import get_current_user
+from backend_api.security import AuthUser
 
 router = APIRouter()
 
@@ -84,14 +87,26 @@ class TaskResponse(BaseModel):
 
 @router.get("/", response_model=List[TaskResponse])
 async def list_tasks(
+    current_user: User = Depends(get_current_active_user),
     project: Optional[str] = None,
     status: Optional[str] = None,
     priority: Optional[str] = None,
+    owner: Optional[str] = None,
+    user: AuthUser = Depends(get_current_user),
 ):
     """List all tasks with optional filtering."""
+    query = "SELECT * FROM tasks WHERE 1=1 AND user_id = ?"
+    params = [user.id]
     try:
         query = "SELECT * FROM tasks WHERE 1=1"
         params = []
+
+        # Non-admins can only see their own tasks (Django-like per-user isolation).
+        is_admin = (current_user.role or "").lower() == "admin"
+        effective_owner = owner if is_admin else current_user.username
+        if effective_owner:
+            query += " AND owner = ?"
+            params.append(effective_owner)
 
         if project:
             query += " AND project = ?"
@@ -134,8 +149,14 @@ async def list_tasks(
         raise HTTPException(status_code=500, detail=f"Failed to fetch tasks: {str(e)}")
 
 @router.get("/{task_id}", response_model=TaskResponse)
-async def get_task(task_id: int):
+async def get_task(task_id: int, current_user: User = Depends(get_current_active_user)):
+async def get_task(task_id: int, user: AuthUser = Depends(get_current_user)):
     """Get a single task by ID."""
+    with db_session() as db:
+        cursor = db.execute("SELECT * FROM tasks WHERE id = ? AND user_id = ?", (task_id, user.id))
+        row = cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Task not found")
     try:
         with db_session() as db:
             cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
@@ -145,6 +166,10 @@ async def get_task(task_id: int):
 
             columns = [description[0] for description in cursor.description]
             task_dict = dict(zip(columns, row))
+            is_admin = (current_user.role or "").lower() == "admin"
+            if not is_admin and (task_dict.get("owner") or "") != current_user.username:
+                # Avoid leaking existence of other users' tasks.
+                raise HTTPException(status_code=404, detail="Task not found")
         return TaskResponse(**task_dict)
     except HTTPException:
         raise
@@ -154,32 +179,38 @@ async def get_task(task_id: int):
         raise HTTPException(status_code=500, detail=f"Failed to fetch task: {str(e)}")
 
 @router.post("/", response_model=TaskResponse, status_code=201)
-async def create_task(task: TaskCreate):
+async def create_task(task: TaskCreate, current_user: User = Depends(get_current_active_user)):
+async def create_task(task: TaskCreate, user: AuthUser = Depends(get_current_user)):
     """Create a new task."""
     if task.status not in STATUS_OPTIONS:
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of {STATUS_OPTIONS}")
     if task.priority not in PRIORITY_OPTIONS:
         raise HTTPException(status_code=400, detail=f"Invalid priority. Must be one of {PRIORITY_OPTIONS}")
     
+    is_admin = (current_user.role or "").lower() == "admin"
+    effective_owner = task.owner if (is_admin and task.owner) else current_user.username
+
     with db_session() as db:
-        task_id = db_insert_task(
-            db,
+        db_task = Task(
+            id=0,  # Will be assigned by database
             title=task.title,
             project=task.project,
             status=task.status,
             priority=task.priority,
             due_date=task.due_date or "",
             notes=task.notes,
-            owner=task.owner,
+            owner=effective_owner,
             depends_on=task.depends_on,
             recurrence_pattern=task.recurrence_pattern,
             recurrence_end=task.recurrence_end,
             time_estimated=task.time_estimated,
             time_logged=task.time_logged,
             template_id=task.template_id,
+            user_id=user.id,
         )
+        task_id = db_insert_task(db, db_task)
 
-        cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+        cursor = db.execute("SELECT * FROM tasks WHERE id = ? AND user_id = ?", (task_id, user.id))
         row = cursor.fetchone()
         columns = [description[0] for description in cursor.description]
         task_dict = dict(zip(columns, row))
@@ -190,31 +221,65 @@ async def create_task(task: TaskCreate):
             entity_type="task",
             entity_id=str(task_id),
             payload=_task_event_payload(task_dict),
+            user_id=user.id,
         )
     return TaskResponse(**task_dict)
 
 @router.put("/{task_id}", response_model=TaskResponse)
-async def update_task(task_id: int, task_update: TaskUpdate):
+async def update_task(task_id: int, task_update: TaskUpdate, current_user: User = Depends(get_current_active_user)):
+async def update_task(task_id: int, task_update: TaskUpdate, user: AuthUser = Depends(get_current_user)):
     """Update an existing task."""
     update_dict = task_update.model_dump(exclude_unset=True)
+    is_admin = (current_user.role or "").lower() == "admin"
+    if not is_admin:
+        # Prevent non-admins from reassigning tasks.
+        update_dict.pop("owner", None)
     if update_dict.get("status") and update_dict["status"] not in STATUS_OPTIONS:
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of {STATUS_OPTIONS}")
     if update_dict.get("priority") and update_dict["priority"] not in PRIORITY_OPTIONS:
         raise HTTPException(status_code=400, detail=f"Invalid priority. Must be one of {PRIORITY_OPTIONS}")
 
     with db_session() as db:
-        cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+        cursor = db.execute("SELECT * FROM tasks WHERE id = ? AND user_id = ?", (task_id, user.id))
         row = cursor.fetchone()
         if not row:
+            raise HTTPException(status_code=404, detail="Task not found")
+        columns = [description[0] for description in cursor.description]
+        existing = dict(zip(columns, row))
+        if not is_admin and (existing.get("owner") or "") != current_user.username:
             raise HTTPException(status_code=404, detail="Task not found")
 
         db_update_task(
             db,
             task_id=task_id,
             **update_dict
+        
+        # Get existing values
+        columns = [desc[0] for desc in cursor.description]
+        existing = dict(zip(columns, row))
+        
+        # Create Task object with merged values
+        db_task = Task(
+            id=task_id,
+            title=update_dict.get("title", existing.get("title", "")),
+            project=update_dict.get("project", existing.get("project", "General")),
+            status=update_dict.get("status", existing.get("status", "TODO")),
+            priority=update_dict.get("priority", existing.get("priority", "MEDIUM")),
+            due_date=update_dict.get("due_date", existing.get("due_date", "")),
+            notes=update_dict.get("notes", existing.get("notes", "")),
+            owner=update_dict.get("owner", existing.get("owner", "Chris")),
+            created_at=existing.get("created_at", ""),
+            depends_on=update_dict.get("depends_on", existing.get("depends_on")),
+            recurrence_pattern=update_dict.get("recurrence_pattern", existing.get("recurrence_pattern")),
+            recurrence_end=update_dict.get("recurrence_end", existing.get("recurrence_end")),
+            time_estimated=update_dict.get("time_estimated", existing.get("time_estimated")),
+            time_logged=update_dict.get("time_logged", existing.get("time_logged")),
+            template_id=update_dict.get("template_id", existing.get("template_id")),
         )
+        
+        db_update_task(db, db_task)
 
-        cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+        cursor = db.execute("SELECT * FROM tasks WHERE id = ? AND user_id = ?", (task_id, user.id))
         row = cursor.fetchone()
         columns = [description[0] for description in cursor.description]
         task_dict = dict(zip(columns, row))
@@ -225,19 +290,24 @@ async def update_task(task_id: int, task_update: TaskUpdate):
             entity_type="task",
             entity_id=str(task_id),
             payload=_task_event_payload(task_dict),
+            user_id=user.id,
         )
     return TaskResponse(**task_dict)
 
 @router.delete("/{task_id}", status_code=204)
-async def delete_task(task_id: int):
+async def delete_task(task_id: int, current_user: User = Depends(get_current_active_user)):
+async def delete_task(task_id: int, user: AuthUser = Depends(get_current_user)):
     """Delete a task."""
+    is_admin = (current_user.role or "").lower() == "admin"
     with db_session() as db:
-        cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+        cursor = db.execute("SELECT * FROM tasks WHERE id = ? AND user_id = ?", (task_id, user.id))
         row = cursor.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Task not found")
         columns = [description[0] for description in cursor.description]
         task_dict = dict(zip(columns, row))
+        if not is_admin and (task_dict.get("owner") or "") != current_user.username:
+            raise HTTPException(status_code=404, detail="Task not found")
 
         db_delete_task(db, task_id)
         db_record_project_event(
@@ -247,5 +317,6 @@ async def delete_task(task_id: int):
             entity_type="task",
             entity_id=str(task_id),
             payload=_task_event_payload(task_dict),
+            user_id=user.id,
         )
     return None
