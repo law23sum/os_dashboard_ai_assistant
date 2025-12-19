@@ -14,7 +14,7 @@ import {
   Zap,
 } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
-import apiClient, { apiPath } from '../api'
+import apiClient, { apiPath } from '../lib/apiClient'
 import { toast } from '../utils/toast'
 
 interface ProjectInfo {
