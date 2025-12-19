@@ -4,6 +4,9 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENTS_AI_SCRIPT="$SCRIPT_DIR/agents_ai.py"
 
+# Make the script executable
+chmod +x "$AGENTS_AI_SCRIPT"
+
 # Detect shell
 SHELL_NAME=$(basename "$SHELL")
 
@@ -24,6 +27,7 @@ if grep -q "alias agents_ai=" "$SHELL_RC" 2>/dev/null; then
     echo "   You may want to update it manually."
 else
     echo "" >> "$SHELL_RC"
+    echo "# Multi-Agent AI System command" >> "$SHELL_RC"
     echo "# AI Agents command" >> "$SHELL_RC"
     echo "$ALIAS_LINE" >> "$SHELL_RC"
     echo "✓ Added agents_ai alias to $SHELL_RC"
@@ -44,6 +48,11 @@ fi
 
 # Create wrapper script in local bin
 WRAPPER_SCRIPT="$LOCAL_BIN/agents_ai"
+cat > "$WRAPPER_SCRIPT" << EOF
+#!/bin/bash
+# Wrapper script for agents_ai
+SCRIPT_DIR="$SCRIPT_DIR"
+exec python3 "\$SCRIPT_DIR/agents_ai.py" "\$@"
 cat > "$WRAPPER_SCRIPT" << 'EOF'
 #!/bin/bash
 # Wrapper script for agents_ai
@@ -56,6 +65,14 @@ echo "✓ Created wrapper script at $WRAPPER_SCRIPT"
 
 echo ""
 echo "Setup complete! You can now use:"
+echo "  agents_ai                          # Interactive mode"
+echo "  agents_ai --analyze                # Analyze codebase"
+echo "  agents_ai --collaborate 'task'     # Collaborative task"
+echo "  agents_ai --propose 'problem'      # Propose solution"
+echo "  agents_ai --check-display          # Check display access"
+echo "  agents_ai --help                   # Show help"
+echo ""
+echo "📚 See AGENTS_AI_GUIDE.md for detailed documentation"
 echo "  agents_ai              # Interactive agent selection"
 echo "  agents_ai --list-agents"
 echo "  agents_ai --check-keys"
