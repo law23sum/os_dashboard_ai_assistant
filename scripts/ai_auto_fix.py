@@ -156,10 +156,12 @@ class ProcessRunner:
         spec: ProcessSpec,
         line_callback,
         exit_callback,
+        cwd: Path = REPO_ROOT,
     ) -> None:
         self.spec = spec
         self.line_callback = line_callback
         self.exit_callback = exit_callback
+        self.cwd = cwd
         self.process: Optional[subprocess.Popen] = None
         self.thread: Optional[threading.Thread] = None
         self.emit_exit_events = True
@@ -169,7 +171,7 @@ class ProcessRunner:
             raise RuntimeError(f"{self.spec.name} already running")
         self.process = subprocess.Popen(
             self.spec.command,
-            cwd=REPO_ROOT,
+            cwd=self.cwd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -672,7 +674,9 @@ class AutoFixOrchestrator:
         binary_poll_interval: float = 3.0,
         test_specs: Optional[List[TestSpec]] = None,
         test_interval: int = 0,
+        project_root: Path = REPO_ROOT,
     ) -> None:
+        self.project_root = project_root
         log_dirs = log_dirs or []
         self.test_specs = list(test_specs or [])
         self.test_interval = max(0, int(test_interval))
@@ -722,9 +726,9 @@ class AutoFixOrchestrator:
         self._test_lock = threading.Lock()
 
     def _default_binary_signatures(self) -> List[BinarySignature]:
-        base_logs = REPO_ROOT / "logs"
-        frontend_logs = REPO_ROOT / "frontend" / "logs"
-        desktop_logs = REPO_ROOT / "frontend" / "dist-electron" / "logs"
+        base_logs = self.project_root / "logs"
+        frontend_logs = self.project_root / "frontend" / "logs"
+        desktop_logs = self.project_root / "frontend" / "dist-electron" / "logs"
         return [
             BinarySignature("backend-uvicorn", ["uvicorn", "assistant_hub.api.server"], [base_logs]),
             BinarySignature("start-ui", ["start_ui.py"], [base_logs, frontend_logs, desktop_logs]),
@@ -760,7 +764,7 @@ class AutoFixOrchestrator:
             return
         path = Path(log_dir)
         if not path.is_absolute():
-            path = (REPO_ROOT / path).resolve()
+            path = (self.project_root / path).resolve()
         else:
             path = path.resolve()
         with self._watcher_lock:
@@ -805,7 +809,7 @@ class AutoFixOrchestrator:
                 try:
                     result = subprocess.run(
                         spec.command,
-                        cwd=REPO_ROOT,
+                        cwd=self.project_root,
                         capture_output=True,
                         text=True,
                     )
@@ -903,6 +907,7 @@ class AutoFixOrchestrator:
                 spec,
                 line_callback=self._handle_line,
                 exit_callback=self._handle_exit,
+                cwd=self.project_root,
             )
             try:
                 runner.start()
@@ -1216,7 +1221,7 @@ def _command_disabled(value: Optional[str]) -> bool:
     return normalized in {"", "none", "null", "off", "false", "skip", "disabled", "0"}
 
 
-def _parse_specs(args: argparse.Namespace) -> List[ProcessSpec]:
+def _parse_specs(args: argparse.Namespace, project_root: Path = REPO_ROOT) -> List[ProcessSpec]:
     specs: List[ProcessSpec] = []
 
     if args.backend is not None:
@@ -1229,7 +1234,7 @@ def _parse_specs(args: argparse.Namespace) -> List[ProcessSpec]:
         if not _command_disabled(args.frontend):
             specs.append(ProcessSpec("frontend", shlex.split(args.frontend)))
     elif not args.logs_only:
-        specs.append(ProcessSpec("frontend", _default_frontend_command()))
+        specs.append(ProcessSpec("frontend", _default_frontend_command(project_root)))
 
     for entry in args.watch or []:
         if "=" not in entry:
@@ -1272,8 +1277,8 @@ def _default_backend_command() -> List[str]:
     ]
 
 
-def _detect_frontend_script() -> str:
-    package_json = REPO_ROOT / "frontend" / "package.json"
+def _detect_frontend_script(root: Path = REPO_ROOT) -> str:
+    package_json = root / "frontend" / "package.json"
     if package_json.exists():
         try:
             data = json.loads(package_json.read_text())
@@ -1286,9 +1291,9 @@ def _detect_frontend_script() -> str:
     return "dev:web"
 
 
-def _default_frontend_command() -> List[str]:
+def _default_frontend_command(root: Path = REPO_ROOT) -> List[str]:
     npm = shutil.which("npm") or "npm"
-    script_name = _detect_frontend_script()
+    script_name = _detect_frontend_script(root)
     return [npm, "run", script_name]
 
 
@@ -1327,6 +1332,10 @@ def _build_parser() -> argparse.ArgumentParser:
             "  python scripts/ai_auto_fix.py --backend \"python start_ui.py --mode web\" --frontend \"npm run dev:web\"\n"
             "  python scripts/ai_auto_fix.py --watch celery=\"celery -A tasks worker\" --verify-seconds 90\n"
         ),
+    )
+    parser.add_argument(
+        "--project-root",
+        help="Path to the project root directory (defaults to the script's parent repository).",
     )
     parser.add_argument(
         "--backend",
@@ -1478,22 +1487,31 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.logs_only and args.disable_log_watch:
         parser.error("--logs-only requires log watching to remain enabled (remove --disable-log-watch).")
 
+    project_root = Path(args.project_root).resolve() if args.project_root else REPO_ROOT
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
     try:
-        specs = _parse_specs(args)
+        specs = _parse_specs(args, project_root)
     except ValueError as exc:
         parser.error(str(exc))
     test_specs = _parse_test_specs(args)
 
     _bootstrap_openai_key(args.openai_key)
 
-    fixer = AIFixer(persona=args.persona, diff_limit=args.diff_limit)
+    fixer = AIFixer(persona=args.persona, diff_limit=args.diff_limit, repo_root=project_root)
     log_dirs: List[Path] = []
     if not args.disable_log_watch:
         raw_dirs: List[Any]
         if args.log_dir:
             raw_dirs = args.log_dir
         else:
-            raw_dirs = list(DEFAULT_LOG_DIRS)
+            # Re-calculate default log dirs based on project_root
+            raw_dirs = [
+                project_root / "logs",
+                project_root / "frontend" / "logs",
+                project_root / "frontend" / "dist-electron" / "logs",
+            ]
         for entry in raw_dirs:
             if isinstance(entry, Path):
                 path = entry
@@ -1503,7 +1521,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                     continue
                 path = Path(normalized)
             if not path.is_absolute():
-                path = (REPO_ROOT / path).resolve()
+                path = (project_root / path).resolve()
             else:
                 path = path.resolve()
             log_dirs.append(path)
@@ -1539,6 +1557,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         binary_poll_interval=args.binary_poll_interval,
         test_specs=test_specs,
         test_interval=args.test_interval,
+        project_root=project_root,
     )
 
     try:

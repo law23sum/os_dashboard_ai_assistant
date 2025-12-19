@@ -7,6 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const apiTarget = process.env.VITE_API_TARGET || "http://127.0.0.1:8070";
+const apiTarget = process.env.VITE_API_TARGET || "http://localhost:8070";
 const wsTarget = apiTarget.replace(/^http/, "ws");
 
 export default defineConfig({

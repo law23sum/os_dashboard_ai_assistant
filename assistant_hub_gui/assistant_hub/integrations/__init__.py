@@ -1,16 +1,21 @@
 """External integrations for Assistant Hub."""
 
 from .base import BaseIntegration, IntegrationStatus
+<<<<<<< Updated upstream
 from .excel import (
     CloudExcelClient,
     LocalWorkbook,
     export_cloud_range_to_csv,
     summarize_local_workbook,
 )
+=======
+from .excel import CloudExcelClient, LocalWorkbook, export_cloud_range_to_csv, summarize_local_workbook
+>>>>>>> Stashed changes
 from .filesystem import TRACKED_EXTENSIONS, discover_files
 from .gmail import GmailIntegration
 from .github import GitHubIntegration
 from .google_calendar import GoogleCalendarIntegration
+<<<<<<< Updated upstream
 from .apple_calendar import AppleCalendarIntegration
 from .msgraph import (
     GraphClient,
@@ -18,10 +23,14 @@ from .msgraph import (
     load_credentials_from_env,
     request_access_token,
 )
+=======
+from .msgraph import GraphClient, GraphCredentials, load_credentials_from_env, request_access_token
+>>>>>>> Stashed changes
 from .notes import NotesIntegration
 from .onenote.service import OneNoteService
 from .excel.service import ExcelService
 from .onenote import OneNoteClient, clean_section, mirror_page_to_disk, summarize_page
+<<<<<<< Updated upstream
 
 # Word integration is optional - imports will succeed but classes raise errors when instantiated if python-docx is missing
 from .word import (
@@ -31,6 +40,10 @@ from .word import (
     draft_local_revision,
     upload_cloud_revision,
 )
+=======
+# Word integration is optional - imports will succeed but classes raise errors when instantiated if python-docx is missing
+from .word import CloudWordClient, LocalDocument, WordService, draft_local_revision, upload_cloud_revision
+>>>>>>> Stashed changes
 
 # Integration wrapper classes for GUI
 from .word_integration import WordIntegration
@@ -39,6 +52,7 @@ from .onenote_integration import OneNoteIntegration
 from .filesystem_integration import FilesystemIntegration
 from .git_integration import GitIntegration
 from .pdf_integration import PDFIntegration
+<<<<<<< Updated upstream
 from .api import IntegrationAPIGateway
 from .sample_data_preview import (
     IntegrationPreviewError,
@@ -50,6 +64,8 @@ from .sample_data_preview import (
     preview_unread_gmail,
     preview_word_document,
 )
+=======
+>>>>>>> Stashed changes
 
 __all__ = [
     "BaseIntegration",
@@ -65,7 +81,10 @@ __all__ = [
     "FilesystemIntegration",
     "GitIntegration",
     "PDFIntegration",
+<<<<<<< Updated upstream
     "IntegrationAPIGateway",
+=======
+>>>>>>> Stashed changes
     "GraphClient",
     "GraphCredentials",
     "load_credentials_from_env",
@@ -87,6 +106,7 @@ __all__ = [
     "upload_cloud_revision",
     "TRACKED_EXTENSIONS",
     "discover_files",
+<<<<<<< Updated upstream
     "IntegrationPreviewError",
     "preview_for_integration",
     "preview_excel_data",
@@ -95,4 +115,6 @@ __all__ = [
     "preview_unread_gmail",
     "preview_ical_events",
     "preview_adobe_assets",
+=======
+>>>>>>> Stashed changes
 ]
