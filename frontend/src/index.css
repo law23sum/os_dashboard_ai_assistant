@@ -168,14 +168,27 @@ html, body {
   border-radius: 16px;
   border: 1px solid var(--osd-border);
   background: var(--osd-dropdown);
-  box-shadow: 0 20px 80px rgba(2, 6, 23, 0.45);
-  backdrop-filter: blur(20px);
-  min-width: 14rem;
+  box-shadow: 0 20px 80px rgba(2, 6, 23, 0.45), 0 0 0 1px rgba(99, 102, 241, 0.1);
+  backdrop-filter: blur(20px) saturate(180%);
+  min-width: 18rem;
+  max-width: 20rem;
   pointer-events: auto;
   cursor: default;
   will-change: transform, opacity;
   transform: translateZ(0); /* Force GPU acceleration */
-  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .osd-dropdown-link {
@@ -204,6 +217,8 @@ html, body {
 .osd-dropdown-link--active {
   color: var(--osd-text);
   background: var(--osd-accentSoft);
+  border-left: 2px solid var(--osd-accent);
+  font-weight: 500;
 }
 
 /* Ensure dropdown container creates stacking context */

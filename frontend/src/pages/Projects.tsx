@@ -39,9 +39,24 @@ import type {
   ProjectTRFResponse,
 } from '../types'
 
+type StorageStatus = {
+  data_dir: string
+  db_path: string
+  db_exists: boolean
+  db_size_bytes: number
+  db_last_modified?: string | null
+  project_count: number
+  task_count: number
+}
+
 const fetchProjects = async (): Promise<Project[]> => {
   const { data } = await apiClient.get(apiPath('projects'))
   return extractArray<Project>(data, ['projects', 'items'])
+}
+
+const fetchStorageStatus = async (): Promise<StorageStatus> => {
+  const { data } = await apiClient.get<StorageStatus>(apiPath('settings/storage'))
+  return data
 }
 
 const fetchTasks = async (): Promise<Task[]> => {
@@ -179,6 +194,7 @@ export default function Projects() {
 
   const queryClient = useQueryClient()
   const projectsQuery = useQuery({ queryKey: ['projects'], queryFn: fetchProjects })
+  const storageQuery = useQuery({ queryKey: ['settings-storage'], queryFn: fetchStorageStatus, staleTime: 30000 })
   const tasksQuery = useQuery({ queryKey: ['tasks'], queryFn: fetchTasks })
   const linksQuery = useQuery({ queryKey: ['project-links'], queryFn: fetchProjectLinks })
   const ledgerQuery = useQuery({
@@ -304,6 +320,7 @@ export default function Projects() {
 
   const isLoading =
     projectsQuery.isLoading ||
+    storageQuery.isLoading ||
     tasksQuery.isLoading ||
     linksQuery.isLoading ||
     ledgerQuery.isLoading ||
@@ -664,7 +681,10 @@ export default function Projects() {
 
   return (
     <div className="space-y-8 px-4 py-8 text-[color:var(--osd-text)]">
-      <header className="rounded-3xl bg-gradient-to-r from-[var(--osd-accentBlue)] via-[var(--osd-accent)] to-[var(--osd-accentPurple)] p-8 shadow-2xl shadow-slate-900/40">
+      <header
+        id="overview"
+        className="rounded-3xl bg-gradient-to-r from-[var(--osd-accentBlue)] via-[var(--osd-accent)] to-[var(--osd-accentPurple)] p-8 shadow-2xl shadow-slate-900/40"
+      >
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.35em] text-white/70">Workspaces · Capsules · Ownership</p>
@@ -677,6 +697,7 @@ export default function Projects() {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={handleRefresh}
+              data-testid="projects-refresh"
               className="inline-flex items-center rounded-full bg-white/15 px-5 py-3 text-sm font-semibold text-white hover:bg-white/25"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
@@ -684,6 +705,7 @@ export default function Projects() {
             </button>
             <button
               onClick={openCreateForm}
+              data-testid="projects-new"
               className="inline-flex items-center rounded-full bg-white text-sm font-semibold text-[var(--osd-accent)] shadow-lg shadow-slate-900/30 px-5 py-3"
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -700,6 +722,22 @@ export default function Projects() {
             </div>
           ))}
         </div>
+        {storageQuery.data && (
+          <div className="mt-6 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white/85">
+            <p className="text-xs uppercase tracking-[0.35em] text-white/70">Persistence</p>
+            <p className="mt-1">
+              DB: <span className="font-mono text-white/90">{storageQuery.data.db_path}</span> · Projects:{' '}
+              <strong>{storageQuery.data.project_count}</strong> · Tasks: <strong>{storageQuery.data.task_count}</strong>
+            </p>
+            {storageQuery.data.project_count < 10 && (
+              <p className="mt-2 text-xs text-white/75">
+                If you expected many more projects, your backend may be pointing at a new/empty SQLite file. Point
+                <span className="font-mono"> ASSISTANT_HUB_DB</span> to your previous <span className="font-mono">assistant_hub.db</span>
+                (or copy it into the configured data directory) and reload.
+              </p>
+            )}
+          </div>
+        )}
       </header>
 
       {linkErrorMessage && (
@@ -718,8 +756,12 @@ export default function Projects() {
         </div>
       )}
 
-            {formMode && (
-        <form onSubmit={handleFormSubmit} className="glass-panel space-y-4 border border-[color:var(--osd-border)] p-6">
+      {formMode && (
+        <form
+          id="create"
+          onSubmit={handleFormSubmit}
+          className="glass-panel space-y-4 border border-[color:var(--osd-border)] p-6"
+        >
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">
               {formMode === 'edit' ? `Update ${editingProject?.name ?? 'Project'}` : 'Create Project'}
@@ -740,6 +782,7 @@ export default function Projects() {
                 value={form.name}
                 disabled={formMode === 'edit'}
                 onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                data-testid="project-form-name"
                 className="w-full rounded-xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] px-3 py-2 disabled:opacity-60"
                 placeholder="Atlas Master Stack"
                 required
@@ -750,6 +793,7 @@ export default function Projects() {
               <select
                 value={form.priority}
                 onChange={(e) => setForm((prev) => ({ ...prev, priority: e.target.value }))}
+                data-testid="project-form-priority"
                 className="w-full rounded-xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] px-3 py-2"
               >
                 {['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((level) => (
@@ -765,6 +809,7 @@ export default function Projects() {
             <select
               value={form.status}
               onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
+              data-testid="project-form-status"
               className="w-full rounded-xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] px-3 py-2"
             >
               {['active', 'planning', 'paused', 'completed'].map((status) => (
@@ -779,6 +824,7 @@ export default function Projects() {
             <textarea
               value={form.description}
               onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+              data-testid="project-form-description"
               className="w-full rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] px-3 py-2"
               rows={3}
               placeholder="Mission, scope, or capsule objectives"
@@ -788,6 +834,7 @@ export default function Projects() {
             <button
               type="submit"
               disabled={createMutation.isPending || updateMutation.isPending}
+              data-testid="project-form-submit"
               className="rounded-full bg-[color:var(--osd-accent)] px-5 py-2 text-sm font-semibold text-white hover:bg-[color:var(--osd-accentHover)] disabled:opacity-50"
             >
               {formMode === 'edit'
@@ -810,7 +857,7 @@ export default function Projects() {
       )
 }
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section id="workspaces" className="grid gap-6 lg:grid-cols-2">
         {orderedProjects.map((project, index) => {
           const gradient = statusGradients[project.status?.toLowerCase() ?? ''] || 'from-slate-600/50 to-slate-800/70'
           const tasks = project.tasks ?? []
@@ -915,6 +962,7 @@ export default function Projects() {
                 <button
                   type="button"
                   onClick={() => handleDelete(project)}
+                  data-testid={`project-delete:${project.name}`}
                   className="inline-flex items-center gap-2 rounded-full border border-rose-500/60 px-3 py-1 text-rose-200 hover:bg-rose-500/10"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -1013,6 +1061,90 @@ export default function Projects() {
         )}
       </section>
 
+      <section id="links" className="rounded-3xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">Spec §6.2 · §7.2</p>
+            <h3 className="text-lg font-semibold text-[color:var(--osd-text)]">Linked assets index</h3>
+            <p className="text-sm text-[color:var(--osd-muted)]">
+              Consolidated view of OneNote mirrors and document links tied to each project.
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 space-y-3 max-h-72 overflow-y-auto pr-1">
+          {orderedProjects.map((project) => {
+            const links = linksByProject.get(project.name) ?? []
+            return (
+              <div
+                key={`links-${project.name}`}
+                className="rounded-2xl border border-[color:var(--osd-border)] bg-[color:var(--osd-background)] p-4"
+              >
+                <p className="text-sm font-semibold text-[color:var(--osd-text)]">{project.name}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {links.length ? (
+                    links.map((link) => (
+                      <a
+                        key={`link-${link.id}`}
+                        href={link.href ?? '#'}
+                        target={link.href ? '_blank' : undefined}
+                        rel={link.href ? 'noreferrer' : undefined}
+                        className="rounded-full border border-[color:var(--osd-border)] px-3 py-1 text-xs text-[color:var(--osd-text)] hover:border-[color:var(--osd-accent)]"
+                        title={link.description || link.external_id}
+                        onClick={(event) => {
+                          if (!link.href) {
+                            event.preventDefault()
+                          }
+                        }}
+                      >
+                        {link.label}
+                      </a>
+                    ))
+                  ) : (
+                    <span className="rounded-full border border-dashed border-[color:var(--osd-border)] px-3 py-1 text-xs text-[color:var(--osd-muted)]">
+                      No linked assets
+                    </span>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+          {!orderedProjects.length && (
+            <p className="rounded-2xl border border-dashed border-[color:var(--osd-border)] px-4 py-6 text-center text-sm text-[color:var(--osd-muted)]">
+              Create a project to start attaching documents and OneNote mirrors.
+            </p>
+          )}
+        </div>
+      </section>
+
+      <section id="trf" className="rounded-3xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surfaceAlt)] p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">Spec §4.6–§4.8</p>
+            <h3 className="text-lg font-semibold text-[color:var(--osd-text)]">TRF trace viewer</h3>
+            <p className="text-sm text-[color:var(--osd-muted)]">
+              Open a project’s Theoretical Reasoning Framework trace to review entropy, resonance, continuity, and audit gates.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {orderedProjects.slice(0, 6).map((project) => (
+              <button
+                key={`trf-open-${project.name}`}
+                type="button"
+                onClick={() => openTrfPanel(project)}
+                className="rounded-full border border-[color:var(--osd-border)] bg-[color:var(--osd-background)] px-4 py-2 text-xs font-semibold text-[color:var(--osd-text)] hover:border-[color:var(--osd-accent)]"
+              >
+                Open · {project.name}
+              </button>
+            ))}
+            {orderedProjects.length > 6 && (
+              <span className="rounded-full border border-dashed border-[color:var(--osd-border)] px-4 py-2 text-xs text-[color:var(--osd-muted)]">
+                More via each project card
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
       <section className="space-y-6">
         <div className="glass-panel border border-[color:var(--osd-border)] p-6">
           <div className="grid gap-6 lg:grid-cols-2">
@@ -1052,15 +1184,18 @@ export default function Projects() {
             </div>
           </div>
         </div>
-        <ProjectIntelligencePanel
+        <div id="intelligence">
+          <ProjectIntelligencePanel
           highestRisk={highestRiskProjects}
           stats={intelligenceStats}
           isLoading={intelligenceQuery.isLoading}
           isFetching={intelligenceQuery.isFetching}
           error={intelligenceQuery.error}
           onRefresh={() => intelligenceQuery.refetch()}
-        />
-        <ProjectLedgerPanel
+          />
+        </div>
+        <div id="ledger">
+          <ProjectLedgerPanel
           events={latestLedgerEvents}
           integrityOk={ledgerIntegrityOk}
           isLoading={ledgerQuery.isLoading}
@@ -1070,8 +1205,10 @@ export default function Projects() {
           projectOptions={ledgerProjectOptions}
           onProjectChange={handleLedgerProjectChange}
           onRefresh={() => ledgerQuery.refetch()}
-        />
-        <ReasoningLabPanel
+          />
+        </div>
+        <div id="reasoning">
+          <ReasoningLabPanel
           personas={personaOptions}
           personasLoading={reasoningPersonasQuery.isLoading}
           history={reasoningHistory}
@@ -1086,7 +1223,8 @@ export default function Projects() {
           currentTrace={activeTrace}
           onSelectTrace={handleHistorySelect}
           runError={reasoningRunErrorMessage}
-        />
+          />
+        </div>
       </section>
       {insightsProject && (
       <ProjectInsightsDrawer

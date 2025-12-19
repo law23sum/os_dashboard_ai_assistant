@@ -49,9 +49,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 
-OSDASH_ROOT = Path(__file__).resolve().parent.parent
-if str(OSDASH_ROOT) not in sys.path:
-    sys.path.insert(0, str(OSDASH_ROOT))
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 try:
     from dotenv import load_dotenv  # type: ignore
@@ -59,7 +59,7 @@ except Exception:  # pragma: no cover - dotenv is optional
     load_dotenv = None
 
 if load_dotenv:
-    load_dotenv(OSDASH_ROOT / ".env")  # type: ignore[arg-type]
+    load_dotenv(REPO_ROOT / ".env")  # type: ignore[arg-type]
 
 try:
     import psutil  # type: ignore
@@ -115,9 +115,9 @@ class BinarySignature:
 
 
 DEFAULT_LOG_DIRS = [
-    OSDASH_ROOT / "logs",
-    OSDASH_ROOT / "frontend" / "logs",
-    OSDASH_ROOT / "frontend" / "dist-electron" / "logs",
+    REPO_ROOT / "logs",
+    REPO_ROOT / "frontend" / "logs",
+    REPO_ROOT / "frontend" / "dist-electron" / "logs",
 ]
 
 DEFAULT_AUTOFIX_TESTS: List[tuple[str, List[str]]] = [
@@ -154,15 +154,14 @@ class ProcessRunner:
     def __init__(
         self,
         spec: ProcessSpec,
-        *,
-        cwd: Path,
         line_callback,
         exit_callback,
+        cwd: Path = REPO_ROOT,
     ) -> None:
         self.spec = spec
-        self.cwd = cwd
         self.line_callback = line_callback
         self.exit_callback = exit_callback
+        self.cwd = cwd
         self.process: Optional[subprocess.Popen] = None
         self.thread: Optional[threading.Thread] = None
         self.emit_exit_events = True
@@ -221,13 +220,13 @@ class AIFixer:
         *,
         persona: str = "AIC",
         diff_limit: int = 400,
-        repo_root: Optional[Path] = None,
+        repo_root: Path = REPO_ROOT,
         max_ai_retries: int = 3,
         retry_backoff_seconds: int = 5,
     ) -> None:
         self.persona = persona
         self.diff_limit = diff_limit
-        self.repo_root = (repo_root or Path.cwd()).resolve()
+        self.repo_root = repo_root
         self.history: List[ChatMessage] = []
         self.max_ai_retries = max(1, max_ai_retries)
         self.retry_backoff_seconds = max(1, retry_backoff_seconds)
@@ -661,7 +660,6 @@ class AutoFixOrchestrator:
         specs: List[ProcessSpec],
         fixer: AIFixer,
         *,
-        repo_root: Optional[Path] = None,
         verify_seconds: int = 45,
         buffer_lines: int = 400,
         context_lines: int = 160,
@@ -676,8 +674,9 @@ class AutoFixOrchestrator:
         binary_poll_interval: float = 3.0,
         test_specs: Optional[List[TestSpec]] = None,
         test_interval: int = 0,
+        project_root: Path = REPO_ROOT,
     ) -> None:
-        self.repo_root = (repo_root or Path.cwd()).resolve()
+        self.project_root = project_root
         log_dirs = log_dirs or []
         self.test_specs = list(test_specs or [])
         self.test_interval = max(0, int(test_interval))
@@ -727,9 +726,9 @@ class AutoFixOrchestrator:
         self._test_lock = threading.Lock()
 
     def _default_binary_signatures(self) -> List[BinarySignature]:
-        base_logs = self.repo_root / "logs"
-        frontend_logs = self.repo_root / "frontend" / "logs"
-        desktop_logs = self.repo_root / "frontend" / "dist-electron" / "logs"
+        base_logs = self.project_root / "logs"
+        frontend_logs = self.project_root / "frontend" / "logs"
+        desktop_logs = self.project_root / "frontend" / "dist-electron" / "logs"
         return [
             BinarySignature("backend-uvicorn", ["uvicorn", "assistant_hub.api.server"], [base_logs]),
             BinarySignature("start-ui", ["start_ui.py"], [base_logs, frontend_logs, desktop_logs]),
@@ -765,7 +764,7 @@ class AutoFixOrchestrator:
             return
         path = Path(log_dir)
         if not path.is_absolute():
-            path = (self.repo_root / path).resolve()
+            path = (self.project_root / path).resolve()
         else:
             path = path.resolve()
         with self._watcher_lock:
@@ -810,7 +809,7 @@ class AutoFixOrchestrator:
                 try:
                     result = subprocess.run(
                         spec.command,
-                        cwd=self.repo_root,
+                        cwd=self.project_root,
                         capture_output=True,
                         text=True,
                     )
@@ -906,9 +905,9 @@ class AutoFixOrchestrator:
             print(f"🚀 Launching {spec.name}: {cmd_display}")
             runner = ProcessRunner(
                 spec,
-                cwd=self.repo_root,
                 line_callback=self._handle_line,
                 exit_callback=self._handle_exit,
+                cwd=self.project_root,
             )
             try:
                 runner.start()
@@ -1222,33 +1221,19 @@ def _command_disabled(value: Optional[str]) -> bool:
     return normalized in {"", "none", "null", "off", "false", "skip", "disabled", "0"}
 
 
-def _looks_like_osdash_repo(project_root: Path) -> bool:
-    """Heuristic to decide if default dev commands apply."""
-    return any(
-        (project_root / marker).exists()
-        for marker in (
-            "assistant_hub",
-            "assistant_core",
-            "backend_api",
-            "frontend",
-        )
-    )
-
-
-def _parse_specs(args: argparse.Namespace, project_root: Path) -> List[ProcessSpec]:
+def _parse_specs(args: argparse.Namespace, project_root: Path = REPO_ROOT) -> List[ProcessSpec]:
     specs: List[ProcessSpec] = []
-    allow_defaults = _looks_like_osdash_repo(project_root)
 
     if args.backend is not None:
         if not _command_disabled(args.backend):
             specs.append(ProcessSpec("backend", shlex.split(args.backend)))
-    elif not args.logs_only and allow_defaults:
+    elif not args.logs_only:
         specs.append(ProcessSpec("backend", _default_backend_command()))
 
     if args.frontend is not None:
         if not _command_disabled(args.frontend):
             specs.append(ProcessSpec("frontend", shlex.split(args.frontend)))
-    elif not args.logs_only and allow_defaults:
+    elif not args.logs_only:
         specs.append(ProcessSpec("frontend", _default_frontend_command(project_root)))
 
     for entry in args.watch or []:
@@ -1260,7 +1245,7 @@ def _parse_specs(args: argparse.Namespace, project_root: Path) -> List[ProcessSp
     return specs
 
 
-def _parse_test_specs(args: argparse.Namespace, project_root: Path) -> List[TestSpec]:
+def _parse_test_specs(args: argparse.Namespace) -> List[TestSpec]:
     specs: List[TestSpec] = []
     cli_tests = list(getattr(args, "tests", []) or [])
     for idx, raw in enumerate(cli_tests, start=1):
@@ -1275,11 +1260,7 @@ def _parse_test_specs(args: argparse.Namespace, project_root: Path) -> List[Test
         if not command:
             continue
         specs.append(TestSpec(label, command))
-    include_defaults = (
-        _looks_like_osdash_repo(project_root)
-        and os.environ.get("OSDASH_AUTOFIX_DISABLE_DEFAULT_TESTS", "").lower() not in {"1", "true", "yes"}
-    )
-    if include_defaults:
+    if os.environ.get("OSDASH_AUTOFIX_DISABLE_DEFAULT_TESTS", "").lower() not in {"1", "true", "yes"}:
         for name, command in DEFAULT_AUTOFIX_TESTS:
             specs.append(TestSpec(name, list(command)))
     return specs
@@ -1296,8 +1277,8 @@ def _default_backend_command() -> List[str]:
     ]
 
 
-def _detect_frontend_script(project_root: Path) -> str:
-    package_json = project_root / "frontend" / "package.json"
+def _detect_frontend_script(root: Path = REPO_ROOT) -> str:
+    package_json = root / "frontend" / "package.json"
     if package_json.exists():
         try:
             data = json.loads(package_json.read_text())
@@ -1310,9 +1291,9 @@ def _detect_frontend_script(project_root: Path) -> str:
     return "dev:web"
 
 
-def _default_frontend_command(project_root: Path) -> List[str]:
+def _default_frontend_command(root: Path = REPO_ROOT) -> List[str]:
     npm = shutil.which("npm") or "npm"
-    script_name = _detect_frontend_script(project_root)
+    script_name = _detect_frontend_script(root)
     return [npm, "run", script_name]
 
 
@@ -1342,29 +1323,6 @@ def _bootstrap_openai_key(manual_key: Optional[str]) -> None:
         os.environ["OPENAI_API_KEY"] = stored_key
 
 
-def _resolve_project_root(raw: Optional[str]) -> Path:
-    """
-    Determine which repository to operate on.
-
-    - CLI flag: --project-root
-    - Env: OSDASH_PROJECT_ROOT
-    - Default: current working directory
-    """
-    candidate = raw or os.environ.get("OSDASH_PROJECT_ROOT")
-    if candidate:
-        return Path(candidate).expanduser().resolve()
-    return Path.cwd().resolve()
-
-
-def _default_log_dirs_for_project(project_root: Path) -> List[Path]:
-    dirs: List[Path] = [project_root / "logs"]
-    frontend = project_root / "frontend"
-    if frontend.exists():
-        dirs.append(frontend / "logs")
-        dirs.append(frontend / "dist-electron" / "logs")
-    return dirs
-
-
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Continuously watch dev logs and auto-apply AI patches when errors appear.",
@@ -1377,10 +1335,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--project-root",
-        help=(
-            "Path to the repo to monitor/fix. Defaults to CWD (or $OSDASH_PROJECT_ROOT). "
-            "Useful when using one osdash installation to service sibling repos."
-        ),
+        help="Path to the project root directory (defaults to the script's parent repository).",
     )
     parser.add_argument(
         "--backend",
@@ -1529,16 +1484,18 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
 
-    project_root = _resolve_project_root(getattr(args, "project_root", None))
-
     if args.logs_only and args.disable_log_watch:
         parser.error("--logs-only requires log watching to remain enabled (remove --disable-log-watch).")
+
+    project_root = Path(args.project_root).resolve() if args.project_root else REPO_ROOT
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
 
     try:
         specs = _parse_specs(args, project_root)
     except ValueError as exc:
         parser.error(str(exc))
-    test_specs = _parse_test_specs(args, project_root)
+    test_specs = _parse_test_specs(args)
 
     _bootstrap_openai_key(args.openai_key)
 
@@ -1549,7 +1506,12 @@ def main(argv: Optional[List[str]] = None) -> int:
         if args.log_dir:
             raw_dirs = args.log_dir
         else:
-            raw_dirs = list(_default_log_dirs_for_project(project_root))
+            # Re-calculate default log dirs based on project_root
+            raw_dirs = [
+                project_root / "logs",
+                project_root / "frontend" / "logs",
+                project_root / "frontend" / "dist-electron" / "logs",
+            ]
         for entry in raw_dirs:
             if isinstance(entry, Path):
                 path = entry
@@ -1581,7 +1543,6 @@ def main(argv: Optional[List[str]] = None) -> int:
     orchestrator = AutoFixOrchestrator(
         specs,
         fixer,
-        repo_root=project_root,
         verify_seconds=args.verify_seconds,
         buffer_lines=args.buffer_lines,
         context_lines=args.context_lines,
@@ -1596,6 +1557,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         binary_poll_interval=args.binary_poll_interval,
         test_specs=test_specs,
         test_interval=args.test_interval,
+        project_root=project_root,
     )
 
     try:

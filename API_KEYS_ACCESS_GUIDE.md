@@ -1,111 +1,148 @@
 # API Keys Access Guide
-## Direct Links to Get API Keys for cursor_ai
 
-This guide provides direct links and instructions to obtain API keys for all AI providers supported by the `cursor_ai` command.
+This guide provides direct links and instructions for obtaining API keys for all supported AI providers.
 
----
+## Quick Access Links
 
-## 🔑 Quick Access Links
+### 1. OpenAI (GPT models)
+- **Get API Key**: https://platform.openai.com/api-keys
+- **Billing**: https://platform.openai.com/account/billing
+- **Documentation**: https://platform.openai.com/docs
+- **Environment Variable**: `OPENAI_API_KEY`
+- **Description**: Access to GPT-4, GPT-3.5, and other OpenAI models
+- **Setup**: 
+  1. Sign up at https://platform.openai.com
+  2. Go to API Keys section
+  3. Create a new secret key
+  4. Copy and set: `export OPENAI_API_KEY='sk-your-key-here'`
 
-### 1. **Cursor IDE API Key**
-**Direct Link:** https://cursor.com/dashboard
+### 2. Anthropic (Claude)
+- **Get API Key**: https://console.anthropic.com/settings/keys
+- **Billing**: https://console.anthropic.com/settings/billing
+- **Documentation**: https://docs.anthropic.com
+- **Environment Variable**: `ANTHROPIC_API_KEY`
+- **Description**: Access to Claude 3.5 Sonnet, Opus, and other Claude models
+- **Setup**:
+  1. Sign up at https://console.anthropic.com
+  2. Navigate to Settings > API Keys
+  3. Create a new key
+  4. Copy and set: `export ANTHROPIC_API_KEY='sk-ant-your-key-here'`
 
-**Steps:**
-1. Log in to your Cursor account
-2. Navigate to **Settings** tab
-3. Select **Cursor Admin API Keys**
-4. Click **Create New API Key**
-5. Copy the key immediately (it won't be shown again)
+### 3. Google (Gemini)
+- **Get API Key**: https://aistudio.google.com/app/apikey
+- **Billing**: https://console.cloud.google.com/billing
+- **Documentation**: https://ai.google.dev/docs
+- **Environment Variable**: `GOOGLE_API_KEY`
+- **Description**: Access to Gemini 2.5 Flash, Pro, and other Google AI models
+- **Setup**:
+  1. Go to https://aistudio.google.com
+  2. Click "Get API Key"
+  3. Create a new project or select existing
+  4. Copy and set: `export GOOGLE_API_KEY='your-google-key'`
 
-**Note:** Cursor API keys are primarily for team/analytics management. For chat functionality, use OpenAI or Anthropic keys (which Cursor uses internally).
+### 4. xAI (Grok)
+- **Get API Key**: https://console.x.ai/api-keys
+- **Billing**: https://console.x.ai/billing
+- **Documentation**: https://docs.x.ai
+- **Environment Variable**: `XAI_API_KEY`
+- **Description**: Access to Grok models
+- **Setup**:
+  1. Sign up at https://console.x.ai
+  2. Navigate to API Keys
+  3. Create a new key
+  4. Copy and set: `export XAI_API_KEY='your-grok-key'`
 
----
+### 5. Mistral AI
+- **Get API Key**: https://console.mistral.ai/api-keys
+- **Billing**: https://console.mistral.ai/billing
+- **Documentation**: https://docs.mistral.ai
+- **Environment Variable**: `MISTRAL_API_KEY`
+- **Description**: Access to Mistral Large, Medium, and other models
+- **Setup**:
+  1. Sign up at https://console.mistral.ai
+  2. Go to API Keys section
+  3. Create a new key
+  4. Copy and set: `export MISTRAL_API_KEY='your-mistral-key'`
 
-### 2. **OpenAI API Key** (Recommended for GPT models)
-**Direct Link:** https://platform.openai.com/api-keys
+### 6. Cohere
+- **Get API Key**: https://dashboard.cohere.com/api-keys
+- **Billing**: https://dashboard.cohere.com/billing
+- **Documentation**: https://docs.cohere.com
+- **Environment Variable**: `COHERE_API_KEY`
+- **Description**: Access to Command R+, Command R, and other Cohere models
+- **Setup**:
+  1. Sign up at https://dashboard.cohere.com
+  2. Navigate to API Keys
+  3. Create a new key
+  4. Copy and set: `export COHERE_API_KEY='your-cohere-key'`
 
-**Steps:**
-1. Create account or log in at https://platform.openai.com
-2. Go to **API Keys** section (or use direct link above)
-3. Click **"Create new secret key"**
-4. Name your key (e.g., "cursor_ai")
-5. Copy the key immediately
-6. **Important:** Add billing/payment method in **Billing** section first
+### 7. Perplexity AI
+- **Get API Key**: https://www.perplexity.ai/settings/api
+- **Billing**: https://www.perplexity.ai/settings/billing
+- **Documentation**: https://docs.perplexity.ai
+- **Environment Variable**: `PERPLEXITY_API_KEY`
+- **Description**: Access to Perplexity's online models with real-time web search
+- **Setup**:
+  1. Sign up at https://www.perplexity.ai
+  2. Go to Settings > API
+  3. Generate a new API key
+  4. Copy and set: `export PERPLEXITY_API_KEY='your-perplexity-key'`
 
-**Billing Setup:** https://platform.openai.com/account/billing
+### 8. Together AI
+- **Get API Key**: https://api.together.xyz/settings/api-keys
+- **Billing**: https://api.together.xyz/settings/billing
+- **Documentation**: https://docs.together.ai
+- **Environment Variable**: `TOGETHER_API_KEY`
+- **Description**: Access to various open-source models (Llama, Mistral, etc.)
+- **Setup**:
+  1. Sign up at https://api.together.xyz
+  2. Navigate to Settings > API Keys
+  3. Create a new key
+  4. Copy and set: `export TOGETHER_API_KEY='your-together-key'`
 
-**Documentation:** https://platform.openai.com/docs
+### 9. DeepSeek
+- **Get API Key**: https://platform.deepseek.com/api_keys
+- **Billing**: https://platform.deepseek.com/billing
+- **Documentation**: https://platform.deepseek.com/docs
+- **Environment Variable**: `DEEPSEEK_API_KEY`
+- **Description**: Access to DeepSeek Chat and Coder models
+- **Setup**:
+  1. Sign up at https://platform.deepseek.com
+  2. Go to API Keys section
+  3. Create a new key
+  4. Copy and set: `export DEEPSEEK_API_KEY='your-deepseek-key'`
 
----
+### 10. Cursor IDE
+- **Dashboard**: https://cursor.com/dashboard
+- **Billing**: https://cursor.com/settings/billing
+- **Environment Variable**: `CURSOR_API_KEY` (or use `OPENAI_API_KEY`/`ANTHROPIC_API_KEY`)
+- **Description**: Cursor IDE uses OpenAI/Anthropic keys internally
+- **Note**: For chat functionality, set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` instead
 
-### 3. **Anthropic API Key** (Recommended for Claude models)
-**Direct Link:** https://console.anthropic.com/settings/keys
+## Setup Methods
 
-**Steps:**
-1. Create account or log in at https://console.anthropic.com
-2. Navigate to **API Keys** section (or use direct link above)
-3. Click **"Create Key"**
-4. Name your key (e.g., "cursor_ai")
-5. Copy the key immediately
-6. **Important:** Add billing/payment method first
+### Method 1: Environment Variables (Recommended for Development)
 
-**Billing Setup:** https://console.anthropic.com/settings/billing
-
-**Documentation:** https://docs.anthropic.com
-
----
-
-### 4. **Google Gemini API Key**
-**Direct Link:** https://aistudio.google.com/app/apikey
-
-**Steps:**
-1. Create account or log in with Google account
-2. Go to **Get API Key** (or use direct link above)
-3. Select or create a Google Cloud project
-4. Click **"Create API Key"**
-5. Copy the key
-6. **Note:** May require enabling Gemini API in Google Cloud Console
-
-**Google AI Studio:** https://aistudio.google.com
-
-**Documentation:** https://ai.google.dev/docs
-
----
-
-### 5. **xAI (Grok) API Key**
-**Direct Link:** https://console.x.ai/api-keys
-
-**Steps:**
-1. Create account or log in at https://console.x.ai
-2. Navigate to **API Keys** section
-3. Click **"Create API Key"**
-4. Name your key
-5. Copy the key immediately
-
-**Documentation:** https://docs.x.ai
-
----
-
-## 📝 How to Set API Keys
-
-### Option 1: Environment Variables (Recommended)
-
-Add to your `~/.zshrc` or `~/.bashrc`:
+Add to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.):
 
 ```bash
-export OPENAI_API_KEY="sk-your-key-here"
-export ANTHROPIC_API_KEY="sk-ant-your-key-here"
-export GOOGLE_API_KEY="your-google-key-here"
-export XAI_API_KEY="your-xai-key-here"
-export CURSOR_API_KEY="your-cursor-key-here"
+export OPENAI_API_KEY='sk-your-key-here'
+export ANTHROPIC_API_KEY='sk-ant-your-key-here'
+export GOOGLE_API_KEY='your-google-key'
+export XAI_API_KEY='your-grok-key'
+export MISTRAL_API_KEY='your-mistral-key'
+export COHERE_API_KEY='your-cohere-key'
+export PERPLEXITY_API_KEY='your-perplexity-key'
+export TOGETHER_API_KEY='your-together-key'
+export DEEPSEEK_API_KEY='your-deepseek-key'
 ```
 
-Then reload:
+Then reload your shell:
 ```bash
-source ~/.zshrc  # or source ~/.bashrc
+source ~/.bashrc  # or source ~/.zshrc
 ```
 
-### Option 2: .env File (Project Directory)
+### Method 2: .env File (Recommended for Projects)
 
 Create a `.env` file in your project root:
 
@@ -113,110 +150,86 @@ Create a `.env` file in your project root:
 # AI Provider API Keys
 OPENAI_API_KEY=sk-your-key-here
 ANTHROPIC_API_KEY=sk-ant-your-key-here
-GOOGLE_API_KEY=your-google-key-here
-XAI_API_KEY=your-xai-key-here
-CURSOR_API_KEY=your-cursor-key-here
+GOOGLE_API_KEY=your-google-key
+XAI_API_KEY=your-grok-key
+MISTRAL_API_KEY=your-mistral-key
+COHERE_API_KEY=your-cohere-key
+PERPLEXITY_API_KEY=your-perplexity-key
+TOGETHER_API_KEY=your-together-key
+DEEPSEEK_API_KEY=your-deepseek-key
+
+# Optional: Model Preferences
+OPENAI_MODEL=gpt-4
+ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
+GOOGLE_MODEL=gemini-2.5-flash
+XAI_MODEL=grok-beta
+MISTRAL_MODEL=mistral-large-latest
+COHERE_MODEL=command-r-plus
+PERPLEXITY_MODEL=llama-3.1-sonar-large-128k-online
+TOGETHER_MODEL=meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo
+DEEPSEEK_MODEL=deepseek-chat
 ```
 
-The `cursor_ai.py` script will automatically load this file.
+**Important**: Add `.env` to your `.gitignore` to avoid committing secrets!
 
-### Option 3: Check Current Keys
+### Method 3: Check Current Keys
+
+Use the scripts to check which keys are set:
 
 ```bash
-cursor_ai --check-keys
+# Check cursor_ai keys
+python3 cursor_ai.py --check-keys
+
+# Get links to all API key pages
+python3 cursor_ai.py --get-keys
 ```
 
-This shows which API keys are currently set.
+## Security Best Practices
 
----
+1. **Never commit API keys** to version control
+2. **Use environment variables** or `.env` files (and add `.env` to `.gitignore`)
+3. **Rotate keys regularly** if exposed
+4. **Use separate keys** for development and production
+5. **Set usage limits** in provider dashboards
+6. **Monitor usage** regularly to detect unexpected activity
 
-## 🔒 Security Best Practices
+## Troubleshooting
 
-1. **Never commit API keys to Git:**
-   - Add `.env` to `.gitignore`
-   - Never share keys publicly
-   - Use environment variables in production
+### Key Not Working
+- Verify the key is correctly set: `echo $OPENAI_API_KEY`
+- Check for extra spaces or quotes
+- Ensure the key hasn't expired or been revoked
+- Verify billing is set up and account has credits
 
-2. **Rotate keys regularly:**
-   - Change keys every 90 days
-   - Revoke old keys when creating new ones
+### Import Errors
+- Install required packages: `pip install openai anthropic google-genai cohere`
+- For agents: `pip install openai-agents`
 
-3. **Set usage limits:**
-   - Configure spending limits in provider dashboards
-   - Monitor usage regularly
-   - Set up alerts for unusual activity
+### Permission Errors
+- Ensure the key has the correct permissions/scopes
+- Check provider-specific documentation for required permissions
 
-4. **Use separate keys:**
-   - Different keys for development/production
-   - Different keys for different projects
+## Cost Considerations
 
----
+Most providers offer:
+- **Free tiers** with limited usage
+- **Pay-as-you-go** pricing
+- **Usage-based billing**
 
-## 💰 Pricing Information
+Check each provider's pricing page for current rates:
+- OpenAI: https://openai.com/pricing
+- Anthropic: https://www.anthropic.com/pricing
+- Google: https://ai.google.dev/pricing
+- Others: Check their respective pricing pages
 
-### OpenAI
-- **Pricing:** Pay-per-use, varies by model
-- **Free Tier:** Limited credits for new accounts
-- **Link:** https://openai.com/pricing
+## Support
 
-### Anthropic (Claude)
-- **Pricing:** Pay-per-use, varies by model
-- **Free Tier:** Limited credits available
-- **Link:** https://www.anthropic.com/pricing
+For provider-specific issues:
+- Check provider documentation
+- Contact provider support
+- Review provider status pages
 
-### Google Gemini
-- **Pricing:** Free tier available, pay-per-use for higher limits
-- **Link:** https://ai.google.dev/pricing
-
-### xAI (Grok)
-- **Pricing:** Check current pricing at https://x.ai
-- **Link:** https://docs.x.ai/pricing
-
----
-
-## 🚀 Quick Start
-
-1. **Get at least one API key** (OpenAI or Anthropic recommended)
-2. **Set it as environment variable:**
-   ```bash
-   export OPENAI_API_KEY="sk-your-key-here"
-   ```
-3. **Test it:**
-   ```bash
-   cursor_ai --check-keys
-   cursor_ai --provider openai
-   ```
-
----
-
-## 📚 Additional Resources
-
-- **cursor_ai Documentation:** See `CURSOR_AI_README.md`
-- **OpenAI API Docs:** https://platform.openai.com/docs
-- **Anthropic API Docs:** https://docs.anthropic.com
-- **Google AI Docs:** https://ai.google.dev/docs
-- **xAI Docs:** https://docs.x.ai
-
----
-
-## ❓ Troubleshooting
-
-### "API key not set" error
-- Check key is set: `echo $OPENAI_API_KEY`
-- Reload shell: `source ~/.zshrc`
-- Check `.env` file exists and is in project root
-
-### "Invalid API key" error
-- Verify key is correct (no extra spaces)
-- Check key hasn't expired
-- Ensure billing is set up (for OpenAI/Anthropic)
-
-### "Rate limit exceeded" error
-- Check usage limits in provider dashboard
-- Wait for rate limit to reset
-- Consider upgrading plan if needed
-
----
-
-**Last Updated:** December 17, 2025
-
+For script issues:
+- Check script help: `python3 cursor_ai.py --help`
+- Review script documentation
+- Check GitHub issues (if applicable)

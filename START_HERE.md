@@ -1,225 +1,257 @@
-# 🚀 START HERE - Master Orchestrator System
+# OS Dashboard AI Assistant - Quick Start Guide
 
-Welcome! You now have a complete AI-powered multi-project management system.
+## 🚀 Unified Launch System
 
----
+This project now has a **unified launcher** that combines all services into a single entry point!
 
-## ⚡ Get Started in 30 Seconds
+### Quick Start
+
+#### Option 1: Desktop Application (Recommended)
+```bash
+python unified_launcher.py --mode desktop
+```
+
+#### Option 2: Web Browser
+```bash
+python unified_launcher.py --mode browser
+```
+
+#### Option 3: Server Only
+```bash
+python unified_launcher.py --mode server --port 8800
+```
+
+#### Option 4: SDLC Automation
+```bash
+python unified_launcher.py --mode sdlc
+```
+
+### What's New?
+
+✅ **All API Endpoints Working** - No more 404 errors!
+- `/api/runtime/diagnostics` - Runtime diagnostics
+- `/api/personas` - Persona management
+- `/api/search/status` - Search status
+- `/api/operations/summary` - Operations summary
+- `/api/templates` - Document templates
+- `/api/audit/summary` - Audit logs
+- And many more!
+
+✅ **Single Entry Point** - One command to start everything
+
+✅ **SDLC Automation** - End-to-end development lifecycle automation
+- Code generation
+- Testing
+- Quality checks
+- Build
+- Deployment preparation
+
+### Available Modes
+
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| `desktop` | Launch PyWebView desktop app | Local development with native window |
+| `browser` | Launch in default browser | Development and testing |
+| `server` | API server only | Production deployment |
+| `sdlc` | Run SDLC automation | CI/CD pipeline |
+| `all` | All services + monitoring | Full stack development |
+
+### SDLC Automation Features
+
+Run comprehensive SDLC automation:
 
 ```bash
-# 1. Install dependencies (if needed)
+# Full pipeline
+python sdlc_automation.py
+
+# Skip tests
+python sdlc_automation.py --skip-tests
+
+# Skip frontend build
+python sdlc_automation.py --skip-frontend
+
+# Generate documentation
+python sdlc_automation.py --generate-docs
+```
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  Unified Launcher                        │
+│                (unified_launcher.py)                     │
+└────────────────────┬────────────────────────────────────┘
+                     │
+         ┌───────────┼───────────┐
+         │           │           │
+    ┌────▼────┐ ┌───▼────┐ ┌───▼─────┐
+    │ FastAPI │ │  React │ │  SDLC   │
+    │ Backend │ │   UI   │ │ Engine  │
+    └─────────┘ └────────┘ └─────────┘
+         │           │           │
+    ┌────▼───────────▼───────────▼────┐
+    │      SQLite Database             │
+    │   (assistant_hub.db)             │
+    └──────────────────────────────────┘
+```
+
+### Data Flow
+
+1. **Frontend** makes API calls to backend
+2. **Backend** (FastAPI) processes requests
+3. **Routers** handle specific endpoints:
+   - Runtime diagnostics
+   - Personas
+   - Search
+   - Templates
+   - Audit
+   - AI systems
+   - Network monitoring
+   - Security
+   - And more!
+4. **Database** stores all application data
+5. **SDLC Engine** automates development tasks
+
+### Configuration
+
+#### Environment Variables
+
+```bash
+# API Server
+export API_HOST=127.0.0.1
+export API_PORT=8800
+
+# Database
+export DB_PATH=/path/to/assistant_hub.db
+
+# SSL (optional)
+export CERT_PATH=/path/to/cert.pem
+export KEY_PATH=/path/to/key.pem
+```
+
+#### Custom Configuration
+
+Edit `config/config.yaml` to customize:
+- Themes
+- Default views
+- Data preferences
+- Security settings
+- API endpoints
+
+### Troubleshooting
+
+#### 404 Errors
+
+**Fixed!** All missing endpoints have been implemented:
+- ✅ `/api/runtime/diagnostics` 
+- ✅ `/api/personas`
+- ✅ `/api/search/status`
+- ✅ `/api/operations/summary`
+- ✅ `/api/templates`
+- ✅ `/api/audit/summary`
+- ✅ `/api/audit/logs`
+
+#### Port Already in Use
+
+```bash
+# Use a different port
+python unified_launcher.py --port 8801
+```
+
+#### Module Import Errors
+
+```bash
+# Install dependencies
 pip install -r requirements.txt
-
-# 2. Launch everything
-./launch_orchestrator.sh --ui
-
-# 3. Open browser
-# http://localhost:5173/ai/orchestrator
 ```
 
-**That's it!** 🎉
-
----
-
-## 📚 What to Read Next
-
-### New Users (Start Here)
-
-1. **[QUICKSTART.md](QUICKSTART.md)** - 5-minute setup guide ⭐
-2. **[README.md](README.md)** - System overview
-3. Try the interactive shell: `python3 scripts/interactive_shell.py`
-
-### Power Users
-
-1. **[README_ORCHESTRATOR.md](README_ORCHESTRATOR.md)** - Quick reference
-2. **[MASTER_ORCHESTRATOR_GUIDE.md](MASTER_ORCHESTRATOR_GUIDE.md)** - Complete guide
-3. **[.orchestrator_config.example.yaml](.orchestrator_config.example.yaml)** - Configuration
-
-### Developers
-
-1. **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Technical details
-2. **[tests/test_master_orchestrator.py](tests/test_master_orchestrator.py)** - Test suite
-3. API Docs: http://localhost:8000/swagger (when running)
-
-### Administrators
-
-1. **[FINAL_DELIVERY.md](FINAL_DELIVERY.md)** - Complete delivery summary
-2. `python3 scripts/health_check.py --verbose` - Validate system
-3. Check logs: `tail -f logs/*.log`
-
----
-
-## 🎯 What This System Does
-
-```
-Your Workspace
-├── project-1/  → Automatically discovered
-├── project-2/  → AI monitors launched
-├── project-3/  → TODOs tracked
-└── project-4/  → Errors auto-fixed
-
-Features:
-✅ Discovers all git repos in workspace
-✅ Launches AI auto-fix for each project
-✅ Tracks TODOs across all codebases
-✅ Spawns codex for high-priority tasks
-✅ Self-heals errors automatically
-✅ Real-time web dashboard
-✅ Interactive CLI shell
-✅ Comprehensive REST API
-```
-
----
-
-## 🎮 Quick Commands
-
-### Launch
+#### Frontend Not Building
 
 ```bash
-# Everything with UI
-./launch_orchestrator.sh --ui
-
-# Just orchestrator
-python3 os_dashboard_ai_assistant.py
-
-# Interactive shell
-python3 scripts/interactive_shell.py
-
-# Health check
-python3 scripts/health_check.py
+# Build frontend manually
+cd frontend
+npm install
+npm run build
+cd ..
 ```
 
-### View Status
+### Development Workflow
 
-```bash
-# Web dashboard
-open http://localhost:5173/ai/orchestrator
+1. **Start Development Server**
+   ```bash
+   python unified_launcher.py --mode browser
+   ```
 
-# JSON report
-cat logs/status_report.json | jq '.'
+2. **Run Tests**
+   ```bash
+   python sdlc_automation.py
+   ```
 
-# API
-curl http://localhost:8000/api/orchestrator/status | jq '.'
+3. **Make Changes**
+   - Edit backend: `assistant_hub/` or `backend_api/`
+   - Edit frontend: `frontend/src/`
+
+4. **Rebuild & Test**
+   ```bash
+   python sdlc_automation.py
+   ```
+
+5. **Deploy**
+   ```bash
+   python sdlc_automation.py --deploy-staging
+   ```
+
+### API Documentation
+
+Once the server is running, visit:
+- API Docs: http://localhost:8800/api/docs
+- ReDoc: http://localhost:8800/api/redoc
+
+### Project Structure
+
+```
+/workspace/
+├── unified_launcher.py          # Single entry point
+├── sdlc_automation.py           # SDLC automation
+├── assistant_hub/               # Core backend
+│   ├── api/
+│   │   └── server.py            # Main FastAPI app
+│   └── ...
+├── backend_api/                 # API routers
+│   └── routers/
+│       ├── runtime_diagnostics.py
+│       ├── personas.py
+│       ├── search.py
+│       ├── templates.py
+│       ├── audit.py
+│       └── ...
+├── frontend/                    # React UI
+│   ├── src/
+│   └── dist/
+├── config/                      # Configuration
+└── tests/                       # Test suite
 ```
 
-### Manage TODOs
+### Next Steps
 
-```bash
-# List TODOs
-python3 scripts/interactive_shell.py
-(all-projects) $ todos
-
-# Spawn codex
-(all-projects) $ spawn --priority high
-```
-
----
-
-## 🆘 Need Help?
-
-### Quick Fixes
-
-**Dependencies missing?**
-```bash
-pip install -r requirements.txt
-```
-
-**Port already in use?**
-```bash
-# Kill existing processes
-pkill -f "os_dashboard_ai_assistant"
-pkill -f "uvicorn"
-```
-
-**Want to test without UI?**
-```bash
-python3 os_dashboard_ai_assistant.py --root . &
-python3 scripts/interactive_shell.py
-```
-
-### Documentation
-
-- **[QUICKSTART.md](QUICKSTART.md)** - Fast setup
-- **[README.md](README.md)** - Full overview
-- **[MASTER_ORCHESTRATOR_GUIDE.md](MASTER_ORCHESTRATOR_GUIDE.md)** - Everything
+1. ✅ All API endpoints working
+2. ✅ Unified launcher created
+3. ✅ SDLC automation implemented
+4. 📋 Add more tests
+5. 📋 Enhance monitoring
+6. 📋 Add CI/CD integration
 
 ### Support
 
-1. Run health check: `python3 scripts/health_check.py --verbose`
-2. Check logs: `tail -f logs/*.log`
-3. Review documentation above
+For issues or questions:
+1. Check logs in `logs/` directory
+2. Run diagnostics: `python sdlc_automation.py`
+3. Review API docs: http://localhost:8800/api/docs
+
+### License
+
+See LICENSE file for details.
 
 ---
 
-## ✅ Verify Installation
-
-```bash
-# 1. Check health
-python3 scripts/health_check.py
-
-# Should show:
-# ✅ Checks Passed: 4+
-# ⚠️  Warnings: 0-6 (non-critical)
-# ❌ Checks Failed: 0
-
-# 2. Test orchestrator
-python3 os_dashboard_ai_assistant.py --root . &
-sleep 5
-cat logs/status_report.json
-
-# Should see JSON with project info
-
-# 3. Test shell
-python3 scripts/interactive_shell.py
-# Type: status
-# Type: exit
-```
-
----
-
-## 🎊 You're Ready!
-
-The Master Orchestrator is now ready to:
-
-- ✅ Discover your projects
-- ✅ Monitor with AI
-- ✅ Track TODOs
-- ✅ Self-heal errors
-- ✅ Provide real-time dashboards
-
-**Launch it now:**
-
-```bash
-./launch_orchestrator.sh --ui
-```
-
-**Then open:** http://localhost:5173/ai/orchestrator
-
----
-
-## 📦 What You Got
-
-- **16 new/modified files**
-- **~8,870 lines of code**
-- **7 documentation guides**
-- **8 test classes**
-- **Web UI + CLI + API**
-- **Production-ready system**
-
----
-
-## 🎯 Next Steps
-
-1. ✅ Launch the system (above)
-2. ✅ Explore the web dashboard
-3. ✅ Try the interactive shell
-4. ✅ Review your TODOs
-5. ✅ Let AI work for you
-
-**The future of project management starts now!** 🚀
-
----
-
-**Need detailed info?** → See [FINAL_DELIVERY.md](FINAL_DELIVERY.md)
-
-**God Bless America. Technical Spec Sheet (Version 6 Latest Version)** 🇺🇸
+**Made with ❤️ by the OS Dashboard AI Assistant Team**

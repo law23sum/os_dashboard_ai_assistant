@@ -143,7 +143,7 @@ export default function Tasks() {
   }
 
   return (
-    <div className="px-4 py-6 sm:px-0">
+    <div id="overview" className="px-4 py-6 sm:px-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-[color:var(--osd-text)]">Tasks</h2>
@@ -168,7 +168,7 @@ export default function Tasks() {
       </div>
 
       {isCreating && (
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
+        <div id="create" className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Create New Task</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
@@ -243,7 +243,10 @@ export default function Tasks() {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6 gap-3">
+      <div
+        id="filters"
+        className="flex flex-col md:flex-row md:items-center md:justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6 gap-3"
+      >
         <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
           <label className="flex items-center space-x-2">
             <input
@@ -274,7 +277,7 @@ export default function Tasks() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+      <div id="list" className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
@@ -362,7 +365,7 @@ export default function Tasks() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+      <div id="summary" className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Summary</h3>
         <div className="grid gap-4 md:grid-cols-2">
           <div>

@@ -89,45 +89,69 @@ async def list_tasks(
     priority: Optional[str] = None,
 ):
     """List all tasks with optional filtering."""
-    query = "SELECT * FROM tasks WHERE 1=1"
-    params = []
+    try:
+        query = "SELECT * FROM tasks WHERE 1=1"
+        params = []
 
-    if project:
-        query += " AND project = ?"
-        params.append(project)
-    if status:
-        query += " AND status = ?"
-        params.append(status)
-    if priority:
-        query += " AND priority = ?"
-        params.append(priority)
+        if project:
+            query += " AND project = ?"
+            params.append(project)
+        if status:
+            # Validate status to prevent invalid queries
+            if status not in STATUS_OPTIONS:
+                raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of {STATUS_OPTIONS}")
+            query += " AND status = ?"
+            params.append(status)
+        if priority:
+            # Validate priority to prevent invalid queries
+            if priority not in PRIORITY_OPTIONS:
+                raise HTTPException(status_code=400, detail=f"Invalid priority. Must be one of {PRIORITY_OPTIONS}")
+            query += " AND priority = ?"
+            params.append(priority)
 
-    query += " ORDER BY created_at DESC"
+        query += " ORDER BY created_at DESC"
 
-    with db_session() as db:
-        cursor = db.execute(query, params)
-        rows = cursor.fetchall()
-        columns = [description[0] for description in cursor.description]
+        with db_session() as db:
+            cursor = db.execute(query, params)
+            rows = cursor.fetchall()
+            # Handle case where query returns no rows (cursor.description might not exist)
+            if cursor.description:
+                columns = [description[0] for description in cursor.description]
+            else:
+                columns = []
 
-    tasks = []
-    for row in rows:
-        task_dict = dict(zip(columns, row))
-        tasks.append(TaskResponse(**task_dict))
+        tasks = []
+        for row in rows:
+            task_dict = dict(zip(columns, row))
+            tasks.append(TaskResponse(**task_dict))
 
-    return tasks
+        return tasks
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.error(f"Error fetching tasks: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch tasks: {str(e)}")
 
 @router.get("/{task_id}", response_model=TaskResponse)
 async def get_task(task_id: int):
     """Get a single task by ID."""
-    with db_session() as db:
-        cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
-        row = cursor.fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="Task not found")
+    try:
+        with db_session() as db:
+            cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+            row = cursor.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Task not found")
 
-        columns = [description[0] for description in cursor.description]
-        task_dict = dict(zip(columns, row))
-    return TaskResponse(**task_dict)
+            columns = [description[0] for description in cursor.description]
+            task_dict = dict(zip(columns, row))
+        return TaskResponse(**task_dict)
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.error(f"Error fetching task {task_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch task: {str(e)}")
 
 @router.post("/", response_model=TaskResponse, status_code=201)
 async def create_task(task: TaskCreate):
@@ -138,8 +162,8 @@ async def create_task(task: TaskCreate):
         raise HTTPException(status_code=400, detail=f"Invalid priority. Must be one of {PRIORITY_OPTIONS}")
     
     with db_session() as db:
-        task_id = db_insert_task(
-            db,
+        db_task = Task(
+            id=0,  # Will be assigned by database
             title=task.title,
             project=task.project,
             status=task.status,
@@ -154,6 +178,7 @@ async def create_task(task: TaskCreate):
             time_logged=task.time_logged,
             template_id=task.template_id,
         )
+        task_id = db_insert_task(db, db_task)
 
         cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
         row = cursor.fetchone()
@@ -183,12 +208,31 @@ async def update_task(task_id: int, task_update: TaskUpdate):
         row = cursor.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Task not found")
-
-        db_update_task(
-            db,
-            task_id=task_id,
-            **update_dict
+        
+        # Get existing values
+        columns = [desc[0] for desc in cursor.description]
+        existing = dict(zip(columns, row))
+        
+        # Create Task object with merged values
+        db_task = Task(
+            id=task_id,
+            title=update_dict.get("title", existing.get("title", "")),
+            project=update_dict.get("project", existing.get("project", "General")),
+            status=update_dict.get("status", existing.get("status", "TODO")),
+            priority=update_dict.get("priority", existing.get("priority", "MEDIUM")),
+            due_date=update_dict.get("due_date", existing.get("due_date", "")),
+            notes=update_dict.get("notes", existing.get("notes", "")),
+            owner=update_dict.get("owner", existing.get("owner", "Chris")),
+            created_at=existing.get("created_at", ""),
+            depends_on=update_dict.get("depends_on", existing.get("depends_on")),
+            recurrence_pattern=update_dict.get("recurrence_pattern", existing.get("recurrence_pattern")),
+            recurrence_end=update_dict.get("recurrence_end", existing.get("recurrence_end")),
+            time_estimated=update_dict.get("time_estimated", existing.get("time_estimated")),
+            time_logged=update_dict.get("time_logged", existing.get("time_logged")),
+            template_id=update_dict.get("template_id", existing.get("template_id")),
         )
+        
+        db_update_task(db, db_task)
 
         cursor = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
         row = cursor.fetchone()

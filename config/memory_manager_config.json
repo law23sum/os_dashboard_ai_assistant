@@ -1,0 +1,46 @@
+{
+  "memory_threshold": 85.0,
+  "inactivity_threshold": 300,
+  "monitor_interval": 5,
+  "min_memory_mb": 100,
+  "history_size": 20,
+  "log_level": "INFO",
+  "log_file": "logs/memory_manager.log",
+  "state_file": "logs/memory_manager_state.json",
+  "whitelist": [
+    "kernel_task",
+    "WindowServer",
+    "loginwindow",
+    "launchd"
+  ],
+  "blacklist": [
+    "com.apple.WebKit.Networking",
+    "com.apple.WebKit.WebContent"
+  ],
+  "ai_decision_making": {
+    "enabled": false,
+    "model": "gpt-4",
+    "temperature": 0.3,
+    "max_tokens": 500
+  },
+  "throttle_policies": {
+    "exponential_complexity": {
+      "throttle_level": 0.1,
+      "suspend_after_seconds": 600
+    },
+    "quadratic_complexity": {
+      "throttle_level": 0.3,
+      "suspend_after_seconds": 900
+    },
+    "high_memory_score": {
+      "threshold": 70,
+      "throttle_level": 0.5
+    }
+  },
+  "suspension_policy": {
+    "enabled": true,
+    "min_inactivity_seconds": 600,
+    "min_memory_threshold": 90.0,
+    "max_suspensions": 3
+  }
+}
