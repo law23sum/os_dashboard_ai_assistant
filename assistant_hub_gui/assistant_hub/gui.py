@@ -1828,7 +1828,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         buttons = FrameCls(right, style="Glass.TFrame")
         buttons.grid(row=1, column=0, sticky="e", pady=(12, 0))
 
-<<<<<<< Updated upstream
     def _capture_tab_metadata(self):
         """Cache tab ids and labels so we can hide the strip but keep navigation."""
         self._tab_meta = []
@@ -19528,6 +19527,7 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         )
         save_btn.grid(row=0, column=0, sticky="e")
 
+        ButtonCls = ttkb.Button if TTKBOOTSTRAP_AVAILABLE else ttk.Button
         refresh_btn = ButtonCls(
             buttons,
             text="Refresh State",
