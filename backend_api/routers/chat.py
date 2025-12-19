@@ -7,6 +7,8 @@ from pathlib import Path
 import json
 import logging
 
+logger = logging.getLogger(__name__)
+
 parent_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
@@ -74,16 +76,22 @@ async def get_chat_history(
 ):
     """Get chat history."""
     try:
+        # Validate and sanitize limit parameter to prevent abuse
+        safe_limit = max(1, min(limit, 1000))  # Clamp between 1 and 1000
+        
         query = "SELECT id, persona, role, kind, content, created_at FROM chat_messages WHERE 1=1"
         params = []
         
         if persona:
+            # Validate persona to prevent SQL injection (defense in depth)
+            if persona not in PERSONAS:
+                raise HTTPException(status_code=400, detail=f"Invalid persona. Must be one of {PERSONAS}")
             query += " AND persona = ?"
             params.append(persona)
         
         # Order by created_at ASC, id ASC for chronological order
         query += " ORDER BY created_at ASC, id ASC LIMIT ?"
-        params.append(limit)
+        params.append(safe_limit)
         
         messages = []
         with db_session() as db:
@@ -103,7 +111,7 @@ async def get_chat_history(
         
         return messages  # Already in chronological order
     except Exception as e:
-        logging.error(f"Error fetching chat history: {e}", exc_info=True)
+        logger.error(f"Error fetching chat history: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch chat history: {str(e)}")
 
 @router.post("/", status_code=201)
@@ -219,7 +227,7 @@ async def create_chat_message(message: ChatMessageCreate):
     except HTTPException:
         raise
     except Exception as e:
-        logging.error(f"Error creating chat message: {e}", exc_info=True)
+        logger.error(f"Error creating chat message: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to create chat message: {str(e)}")
 
 @router.delete("/", status_code=204)

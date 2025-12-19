@@ -69,7 +69,7 @@ const buildOfflineDashboardSnapshot = (message?: string): DashboardStatsType => 
   },
   security_status: {
     status: 'offline',
-    message: message ?? 'Backend not available. Please ensure the backend server is running on port 8000.',
+    message: message ?? 'Backend not available. Please ensure the backend server is running on port 8070.',
     updated_at: new Date().toISOString(),
     source: 'local',
   },
@@ -292,7 +292,7 @@ export default function Dashboard() {
             <p className="text-xs uppercase tracking-wider text-slate-400 mb-2">Troubleshooting Steps:</p>
             <ol className="space-y-2 list-decimal list-inside">
               <li className="pl-2">Run <code className="rounded bg-black/30 px-2 py-1 text-xs font-mono">uvicorn backend_api.main:app --reload</code></li>
-              <li className="pl-2">Verify FastAPI is reachable on <code className="rounded bg-black/30 px-2 py-1 text-xs font-mono">http://127.0.0.1:8000</code></li>
+              <li className="pl-2">Verify FastAPI is reachable on <code className="rounded bg-black/30 px-2 py-1 text-xs font-mono">http://127.0.0.1:8070</code></li>
               <li className="pl-2">Refresh this page — it polls every 30 seconds.</li>
             </ol>
           </div>

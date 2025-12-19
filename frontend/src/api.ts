@@ -1,8 +1,8 @@
 import { resolveApiBase } from './lib/apiClient'
 
-const API_BASE = resolveApiBase()
-
 async function request<T = any>(path: string, options?: RequestInit): Promise<T> {
+  // Compute per-call so Electron/runtime-injected base URLs are honored.
+  const API_BASE = resolveApiBase()
   const res = await fetch(`${API_BASE}${path.startsWith("/") ? path : `/${path}`}`, {
     headers: { "Content-Type": "application/json" },
     ...options,
