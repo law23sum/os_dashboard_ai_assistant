@@ -361,6 +361,210 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [settings?.theme])
 
+  const toggleGroup = useCallback((groupPath: string) => {
+    setExpandedGroups((prev) => {
+      const newExpanded = new Set(prev)
+      if (newExpanded.has(groupPath)) {
+        newExpanded.delete(groupPath)
+      } else {
+        newExpanded.add(groupPath)
+      }
+      return newExpanded
+    })
+  }, [])
+
+  const closeGroup = useCallback((groupPath: string) => {
+    setExpandedGroups((prev) => {
+      const newExpanded = new Set(prev)
+      newExpanded.delete(groupPath)
+      return newExpanded
+    })
+  }, [])
+
+  const navItems: NavItem[] = [
+    {
+      path: '/dashboard',
+      icon: LayoutDashboard,
+      label: 'Mission Control',
+      groups: [
+        {
+          label: 'Core Flight Deck · Spec §1.7',
+          description: 'Dashboard, tasks, and projects for the driver-aware loop.',
+          items: [
+            { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+            { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
+            { path: '/projects', icon: FolderKanban, label: 'Projects' },
+          ],
+        },
+        {
+          label: 'Engagement & Persona Surfaces · Spec §7.12',
+          description: 'Chat, collaboration, and personalization stay one click away.',
+          items: [
+            { path: '/chat', icon: MessageSquare, label: 'Chat' },
+            { path: '/collaboration', icon: Users, label: 'Collaboration' },
+            { path: '/personalization', icon: Target, label: 'Personalization' },
+            { path: '/search', icon: SearchIcon, label: 'Search & Discovery' },
+          ],
+        },
+      ],
+    },
+    {
+      path: '/work',
+      icon: BookOpen,
+      label: 'Workspaces',
+      groups: [
+        {
+          label: 'Research & Simulation · Spec §7.4',
+          items: [{ path: '/research', icon: FlaskConical, label: 'Research Hub' }],
+        },
+        {
+          label: 'Writer & Templates · Spec §7.5',
+          items: [
+            { path: '/work/writer', icon: BookOpen, label: 'Writer Workstation' },
+            { path: '/work/templates', icon: LayoutTemplate, label: 'Templates' },
+          ],
+        },
+        {
+          label: 'Tools & Applied Intelligence',
+          description: 'Shared tools and terminal surfaces for workspace operators.',
+          items: [
+            { path: '/work/tools', icon: Terminal, label: 'Tools & Terminal' },
+            { path: '/workspace/health', icon: Activity, label: 'Workspace Health' },
+            { path: '/workspace/orchestrator', icon: Network, label: 'Project Orchestrator' },
+          ],
+        },
+      ],
+    },
+    {
+      path: '/ai',
+      icon: Brain,
+      label: 'AI Fabric',
+      groups: [
+        {
+          label: 'Ops & Driver Fabric · Spec §5.1/§5.12',
+          items: [
+            { path: '/ai/operations', icon: Cpu, label: 'AI Operations' },
+            { path: '/ai/os', icon: ServerCog, label: 'AI OS Control' },
+            { path: '/ai/mlops', icon: Bot, label: 'MLOps' },
+            { path: '/ai/intents', icon: Zap, label: 'Intent Processor' },
+          ],
+        },
+        {
+          label: 'Cognitive Engines · Spec §4',
+          items: [
+            { path: '/ai/copilot', icon: Bot, label: 'AI Copilot' },
+            { path: '/ai/advanced', icon: Brain, label: 'Advanced AI Engine' },
+            { path: '/ai/systems', icon: Layers, label: 'Systems Map' },
+          ],
+        },
+        {
+          label: 'Automation & Capsules · Spec §8',
+          items: [
+            { path: '/ai/workflows', icon: Workflow, label: 'Workflow Orchestrator' },
+            { path: '/ai/capsules', icon: Package, label: 'Capsule Marketplace' },
+            { path: '/ai/autofix', icon: Wrench, label: 'Auto-Fix Console' },
+          ],
+        },
+        {
+          label: 'Edge & Security · Spec §7.7/§10',
+          items: [
+            { path: '/ai/security', icon: Shield, label: 'Security Guardian' },
+            { path: '/ai/edge', icon: Satellite, label: 'Edge Computing' },
+            { path: '/ai/vision', icon: Eye, label: 'Computer Vision' },
+          ],
+        },
+        {
+          label: 'NAS & Simulation · Spec §7.4',
+          items: [
+            { path: '/ai/nas', icon: Dna, label: 'NAS Console' },
+            { path: '/ai/nas/experiments', icon: FlaskConical, label: 'Experiment Console' },
+            { path: '/ai/nas/simulator', icon: Layers, label: 'NAS Simulator' },
+          ],
+        },
+      ],
+    },
+    {
+      path: '/integrations',
+      icon: Plug,
+      label: 'Drivers & Integrations',
+      groups: [
+        {
+          label: 'Connectors · Spec §9.18',
+          items: [
+            { path: '/integrations', icon: Plug, label: 'Overview' },
+            { path: '/integrations/api-connectors', icon: Network, label: 'API Connectors' },
+            { path: '/integrations/office', icon: Activity, label: 'Office Realtime' },
+          ],
+        },
+        {
+          label: 'Execution Surfaces · Spec §5.3',
+          description: 'Driver-oriented system surfaces for workflows + security.',
+          items: [
+            { path: '/systems/security', icon: Shield, label: 'Security Operations' },
+            { path: '/systems/network', icon: Network, label: 'Network Monitoring' },
+            { path: '/systems/workflows', icon: Workflow, label: 'Workflow Orchestration' },
+            { path: '/systems/nas', icon: Layers, label: 'NAS Simulator' },
+            { path: '/systems/edge', icon: Satellite, label: 'Edge Systems' },
+          ],
+        },
+      ],
+    },
+    {
+      path: '/analytics',
+      icon: BarChart3,
+      label: 'Governance & Evidence',
+      groups: [
+        {
+          label: 'Telemetry · Spec §11',
+          items: [
+            { path: '/analytics', icon: BarChart3, label: 'Analytics' },
+            { path: '/monitoring', icon: Activity, label: 'Monitoring' },
+            { path: '/observability', icon: Radio, label: 'Observability' },
+          ],
+        },
+        {
+          label: 'Finance & Audit · Spec §8.17/§15',
+          items: [
+            { path: '/billing', icon: CreditCard, label: 'Billing & Usage' },
+            { path: '/audit', icon: ClipboardList, label: 'Audit Evidence' },
+          ],
+        },
+      ],
+    },
+    {
+      path: '/vision',
+      icon: Sparkles,
+      label: 'Vision & Docs',
+      groups: [
+        {
+          label: 'Vision Deck · Spec §17',
+          items: [
+            { path: '/vision', icon: Compass, label: 'Vision Deck Hub' },
+            { path: '/future/core_os', icon: Layers, label: 'Core OS Engines' },
+            { path: '/future/advanced', icon: Brain, label: 'Advanced Horizons' },
+            { path: '/future/super', icon: Dna, label: 'Super Capabilities' },
+            { path: '/future/hyper', icon: Satellite, label: 'Hyper Network' },
+            { path: '/future/ultra', icon: Workflow, label: 'Ultra Scale' },
+            { path: '/future/supreme', icon: Shield, label: 'Supreme' },
+            { path: '/future/ascend', icon: Shield, label: 'Ascend' },
+            { path: '/future/meta', icon: Compass, label: 'Meta Envelope' },
+          ],
+        },
+        {
+          label: 'Canon & References',
+          description: 'Spec + migration docs stay co-located.',
+          items: [
+            { path: '/docs', icon: FileText, label: 'Docs Hub' },
+            { path: '/docs/spec-sheet', icon: Compass, label: 'Technical Spec Sheet' },
+            { path: '/docs/migration_continued.md', icon: FileText, label: 'Migration Continued' },
+            { path: '/docs/projects.html', icon: ExternalLink, label: 'Legacy Projects HTML' },
+          ],
+        },
+      ],
+    },
+    { path: '/settings', icon: Settings, label: 'Settings' },
+  ]
+
   const isActive = (path: string, children?: NavItem[]): boolean => {
     if (path === '/') {
       return location.pathname === '/'
