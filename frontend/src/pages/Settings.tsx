@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Activity,
   Bell,
@@ -20,7 +20,7 @@ import type {
   RiskAppetite,
   Settings as SettingsType,
 } from '../types'
-import { updateSettings as updateSettingsRequest } from '../api/settings'
+import { fetchStorageStatus, updateSettings as updateSettingsRequest } from '../api/settings'
 import { useAppSettings } from '../hooks/useSettings'
 import { availableThemes, describeTheme } from '../theme'
 
@@ -217,6 +217,11 @@ export default function SettingsPage() {
   const queryClient = useQueryClient()
   const { data: settings, isLoading } = useAppSettings()
   const [localSettings, setLocalSettings] = useState<SettingsType | null>(null)
+  const storageQuery = useQuery({
+    queryKey: ['settings-storage'],
+    queryFn: fetchStorageStatus,
+    staleTime: 30_000,
+  })
 
   const updateMutation = useMutation({
     mutationFn: updateSettingsRequest,
@@ -499,6 +504,43 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
+        <SettingPanel
+          title="Storage & Persistence"
+          description="Confirm where projects/tasks are stored and whether the backend is using the expected SQLite file."
+          icon={<Database className="h-5 w-5" />}
+        >
+          {storageQuery.isLoading ? (
+            <p className="text-sm text-slate-500 dark:text-slate-300">Loading storage status…</p>
+          ) : storageQuery.error ? (
+            <p className="text-sm text-rose-600 dark:text-rose-200">
+              Unable to load `/api/settings/storage`. Ensure the backend is updated and running.
+            </p>
+          ) : storageQuery.data ? (
+            <div className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
+              <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-900/60">
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">SQLite store</p>
+                <p className="mt-1">
+                  DB path: <span className="font-mono">{storageQuery.data.db_path}</span>
+                </p>
+                <p>
+                  Projects: <strong>{storageQuery.data.project_count}</strong> · Tasks:{' '}
+                  <strong>{storageQuery.data.task_count}</strong>
+                </p>
+                {storageQuery.data.db_last_modified ? (
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Last modified: {new Date(storageQuery.data.db_last_modified).toLocaleString()}
+                  </p>
+                ) : null}
+              </div>
+              <div className="rounded-2xl border border-dashed border-indigo-300/40 bg-indigo-50/60 p-4 text-xs text-indigo-900 dark:border-indigo-700/40 dark:bg-indigo-950/40 dark:text-indigo-100">
+                If you expected more projects (e.g. ~50) and this count is low, point{' '}
+                <span className="font-mono">ASSISTANT_HUB_DB</span> to your previous{' '}
+                <span className="font-mono">assistant_hub.db</span> file (or copy it into the configured data directory)
+                and restart the backend.
+              </div>
+            </div>
+          ) : null}
+        </SettingPanel>
         <SettingPanel
           title="Continuity Modes & Risk Appetite"
           description="Express how aggressive the assistant can be when recovering, containing, or simulating failures."

@@ -44,6 +44,7 @@ import { applyTheme, defaultTheme } from '../theme'
 import { useAppSettings } from '../hooks/useSettings'
 import { UnifiedAIPanel } from './UnifiedAIPanel'
 import { throttle } from '../shared/utils'
+import PlatformFeatureSidebar from './PlatformFeatureSidebar'
 
 interface LayoutProps {
   children: ReactNode
@@ -607,8 +608,9 @@ export default function Layout({ children }: LayoutProps) {
     return location.pathname.startsWith(`${path}/`)
   }
 
-  const isExpanded = (item: NavItem): boolean =>
-    expandedGroups.has(item.path) || isActive(item.path, extractChildren(item))
+  // Expanded should be an explicit user toggle. Being "active" should not force open
+  // (it makes dropdowns impossible to close when the current route matches).
+  const isExpanded = (item: NavItem): boolean => expandedGroups.has(item.path)
 
   return (
     <div className="osd-shell min-h-screen text-[color:var(--osd-text)]">
@@ -717,6 +719,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-8rem)]">
         <div className="flex flex-col gap-8 lg:flex-row w-full">
+          <PlatformFeatureSidebar />
           <div className="flex-1 min-w-0 w-full">{children}</div>
         </div>
       </main>
