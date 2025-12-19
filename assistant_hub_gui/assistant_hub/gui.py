@@ -118,13 +118,13 @@ from .ai import (
     execute_tool_call,
 )
 from .terminal import run_bash_command
-<<<<<<< Updated upstream
 from assistant_hub.command_catalog import (
     SPEC_SHEET_COMMANDS,
     BACKEND_CLI_COMMANDS,
     BACKEND_CLI_TEMPLATES,
-=======
+)
 from .sync_scheduler import create_default_scheduler
+
 from .integrations import (
     GoogleCalendarIntegration,
     GmailIntegration,
@@ -136,9 +136,7 @@ from .integrations import (
     FilesystemIntegration,
     GitIntegration,
     PDFIntegration,
->>>>>>> Stashed changes
 )
-from .sync_scheduler import create_default_scheduler
 from assistant_hub.writer_workspace import WriterWorkspaceState
 from assistant_hub.dashboard_workspace import build_dashboard_snapshot
 from assistant_hub.tasks_workspace import build_task_snapshot
@@ -17435,7 +17433,6 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         for row in self.integrations_tree.get_children():
             self.integrations_tree.delete(row)
         
-<<<<<<< Updated upstream
         # Load saved credentials/configs before checking status
         self._load_saved_credentials()
         
@@ -17469,9 +17466,8 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
             integrations["🔌 PDF Connector"] = APIConnectorStatus("PDF", API_CONNECTORS_AVAILABLE)
             integrations["🔌 Office Files API"] = APIConnectorStatus("Office Files", API_CONNECTORS_AVAILABLE)
             integrations["🔌 OpenAI API"] = APIConnectorStatus("OpenAI", API_CONNECTORS_AVAILABLE)
-=======
         # Get integration statuses - all available integrations
-        integrations = {
+            integrations = {
             "Local Notes": NotesIntegration(self.conn),
             "Google Calendar": GoogleCalendarIntegration(self.conn),
             "Gmail": GmailIntegration(self.conn),
@@ -17483,7 +17479,6 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
             "Git": GitIntegration(self.conn),
             "PDF": PDFIntegration(self.conn),
         }
->>>>>>> Stashed changes
         
         for name, integration in integrations.items():
             # Try to authenticate to get current status

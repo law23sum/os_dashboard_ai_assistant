@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-<<<<<<< Updated upstream
 """Unified launcher for the shared React UI (desktop + browser)."""
 from __future__ import annotations
 
@@ -116,13 +115,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-=======
-"""GUI entrypoint for OS Dashboard AI Assistant."""
-
-from assistant_hub.gui import run_gui
-from assistant_hub.logging_config import configure_logging
-
-if __name__ == "__main__":
-    configure_logging()
-    run_gui()
->>>>>>> Stashed changes

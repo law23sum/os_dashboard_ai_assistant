@@ -24,13 +24,8 @@ dependencies = [
     "openpyxl>=3.1.0",
     "python-docx>=1.1.0",
     "requests>=2.31.0",
-<<<<<<< Updated upstream
     "PyPDF2>=3.0.0",
     "pdfplumber>=0.10.0",
-=======
->>>>>>> Stashed changes
-]
-
 [project.scripts]
 osdash = "assistant_hub.ui.terminal.cli:main"
 osdash-gui = "assistant_hub.gui:run_gui"
