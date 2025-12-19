@@ -27,7 +27,7 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS middleware
+# CORS middleware - more restrictive for security
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -38,8 +38,10 @@ app.add_middleware(
         "https://0.0.0.0:8000", "https://localhost:8000", "https://127.0.0.1:8000"
     ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods instead of "*"
+    allow_headers=["Content-Type", "Authorization", "Accept"],  # Explicit headers instead of "*"
+    expose_headers=["Content-Type", "X-Total-Count"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
 
 # API Routes
@@ -186,8 +188,26 @@ if frontend_dist.exists():
 
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint."""
-    return {"status": "ok", "message": "OS Dashboard AI Assistant API is running"}
+    """Health check endpoint with database connectivity check."""
+    try:
+        from backend_api.db import db_session
+        # Test database connectivity
+        with db_session() as db:
+            db.execute("SELECT 1").fetchone()
+        return {
+            "status": "ok",
+            "message": "OS Dashboard AI Assistant API is running",
+            "database": "connected"
+        }
+    except Exception as e:
+        import logging
+        logging.error(f"Health check failed: {e}", exc_info=True)
+        return {
+            "status": "degraded",
+            "message": "OS Dashboard AI Assistant API is running but database is unavailable",
+            "database": "disconnected",
+            "error": str(e)
+        }
 
 
 @app.get("/api/docs/technical-spec-sheet")
