@@ -7,6 +7,7 @@
 
 ## 2. Experience Layer
 - [x] Surface orchestrator + auto-fix health status within the React dashboard (banner + diagnostics drawer), consuming the structured log snapshots.
+- [ ] Extend `run.py` / launcher prompts to optionally kick off `project_autofix_orchestrator.py --scan-only` before presenting UX mode choices.
 - [x] Extend `run.py` / launcher prompts to optionally kick off `project_autofix_orchestrator.py --scan-only` before presenting UX mode choices.
 
 ## 3. Documentation & Ops
