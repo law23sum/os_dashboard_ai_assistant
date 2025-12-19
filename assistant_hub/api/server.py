@@ -59,6 +59,7 @@ from assistant_hub.theme import get_theme_definition, list_available_themes
 from backend_api.routers import (
     api_connectors as api_connectors_router,
     ai_systems as ai_systems_router,
+    audit as audit_router,
     autofix as autofix_router,
     capsules as capsules_router,
     coach as coach_router,
@@ -74,7 +75,9 @@ from backend_api.routers import (
     projects as projects_router,
     reasoning as reasoning_router,
     runtime_diagnostics as runtime_router,
+    search as search_router,
     security_threat as security_router,
+    templates as templates_router,
     workflow_orchestration as workflows_router,
     workspace as workspace_router,
 )
@@ -120,6 +123,7 @@ class StripPrefixMiddleware:
             if self._should_strip(path):
                 new_scope = dict(scope)
                 trimmed = path[len(self.prefix) :] or "/"
+                logger.info(f"StripPrefixMiddleware: stripping '{path}' to '{trimmed}'")
                 new_scope["path"] = trimmed
                 raw_path = scope.get("raw_path")
                 if isinstance(raw_path, (bytes, bytearray)):
@@ -371,22 +375,25 @@ def create_app(
     # the desktop (Tkinter/PyWebView) and browser clients.
     app.include_router(api_connectors_router.router, prefix="/api-connectors", tags=["api_connectors"])
     app.include_router(ai_systems_router.router, prefix="/ai", tags=["ai_systems"])
+    app.include_router(audit_router.router, prefix="/audit", tags=["audit"])
+    app.include_router(autofix_router.router, prefix="/autofix", tags=["autofix"])
     app.include_router(capsules_router.router, prefix="/ai", tags=["capsules"])
     app.include_router(coach_router.router, prefix="/ai", tags=["coach"])
-    app.include_router(intelligence_router.router, prefix="/intelligence", tags=["intelligence"])
-    app.include_router(reasoning_router.router, prefix="/reasoning", tags=["reasoning"])
-    app.include_router(intents_router.router, tags=["intents"])
-    app.include_router(autofix_router.router, prefix="/autofix", tags=["autofix"])
     app.include_router(computer_vision_router.router, prefix="/computer-vision", tags=["computer_vision"])
-    app.include_router(neural_architecture_router.router, prefix="/neural-architecture", tags=["neural_architecture"])
-    app.include_router(security_router.router, prefix="/security", tags=["security"])
-    app.include_router(network_router.router, prefix="/network", tags=["network"])
     app.include_router(edge_router.router, prefix="/edge-computing", tags=["edge_computing"])
+    app.include_router(git_router.router, tags=["git"])
+    app.include_router(intelligence_router.router, prefix="/intelligence", tags=["intelligence"])
+    app.include_router(intents_router.router, tags=["intents"])
+    app.include_router(network_router.router, prefix="/network", tags=["network"])
+    app.include_router(neural_architecture_router.router, prefix="/neural-architecture", tags=["neural_architecture"])
+    app.include_router(personas_router.router, prefix="/personas", tags=["personas"])
+    app.include_router(reasoning_router.router, prefix="/reasoning", tags=["reasoning"])
+    app.include_router(runtime_router.router, tags=["runtime"])
+    app.include_router(search_router.router, prefix="/search", tags=["search"])
+    app.include_router(security_router.router, prefix="/security", tags=["security"])
+    app.include_router(templates_router.router, prefix="/templates", tags=["templates"])
     app.include_router(workflows_router.router, prefix="/workflows", tags=["workflows"])
     app.include_router(workspace_router.router, tags=["workspace"])
-    app.include_router(git_router.router, tags=["git"])
-    app.include_router(personas_router.router, prefix="/personas", tags=["personas"])
-    app.include_router(runtime_router.router, tags=["runtime"])
 
     docs_dir = REPO_ROOT / "docs"
     if docs_dir.exists():
@@ -908,6 +915,44 @@ def create_app(
     @app.get("/operations")
     def operations(limit: int = Query(25, ge=1, le=200)):
         return {"operations": _fetch_agent_runs(limit), "limit": limit}
+
+    @app.get("/operations/summary")
+    def operations_summary():
+        """Return summary statistics for operations/agent runs."""
+        operations = _fetch_agent_runs(200)
+        total = len(operations)
+        
+        # Calculate statistics
+        by_agent = {}
+        by_action = {}
+        recent_24h = 0
+        
+        from datetime import datetime, timedelta
+        now = datetime.utcnow()
+        cutoff = now - timedelta(hours=24)
+        
+        for op in operations:
+            agent = op.get("agent", "unknown")
+            action = op.get("action_type", "unknown")
+            created_at = op.get("created_at", "")
+            
+            by_agent[agent] = by_agent.get(agent, 0) + 1
+            by_action[action] = by_action.get(action, 0) + 1
+            
+            try:
+                op_time = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                if op_time > cutoff:
+                    recent_24h += 1
+            except (ValueError, AttributeError):
+                pass
+        
+        return {
+            "total": total,
+            "recent_24h": recent_24h,
+            "by_agent": by_agent,
+            "by_action": by_action,
+            "last_updated": now.isoformat() + "Z"
+        }
 
     @app.get("/chat", response_model=List[ChatMessageResponse])
     def list_chat_messages(

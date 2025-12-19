@@ -420,7 +420,7 @@ export default function DocumentViewer({
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-base font-semibold text-slate-100 truncate mb-0.5">
-                {document.original_name}
+                    {document.original_name}
               </h2>
               <div className="flex items-center gap-3 text-xs text-slate-400">
                 <span className="capitalize">{document.category}</span>
@@ -431,8 +431,8 @@ export default function DocumentViewer({
                   <Clock className="w-3 h-3" />
                   {new Date(document.uploaded_at).toLocaleDateString()}
                 </span>
-              </div>
             </div>
+          </div>
           </div>
 
           {/* Action Buttons - Grouped */}
@@ -480,31 +480,31 @@ export default function DocumentViewer({
         <div className="flex items-center justify-between gap-4">
           {/* View/Edit Mode Toggle */}
           <div className="flex items-center gap-1 p-1 bg-slate-800/50 rounded-lg border border-slate-700/50">
-            <button
-              onClick={() => setViewMode('view')}
+          <button
+            onClick={() => setViewMode('view')}
               className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'view'
+              viewMode === 'view'
                   ? 'bg-primary-500/20 text-primary-300 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
+            }`}
+          >
               <Eye className="w-4 h-4" />
-              View
-            </button>
-            <button
-              onClick={() => {
-                setViewMode('edit')
-                setEditedContent(currentContent?.content || '')
-              }}
+            View
+          </button>
+          <button
+            onClick={() => {
+              setViewMode('edit')
+              setEditedContent(currentContent?.content || '')
+            }}
               className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'edit'
+              viewMode === 'edit'
                   ? 'bg-primary-500/20 text-primary-300 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
+            }`}
+          >
               <Edit3 className="w-4 h-4" />
-              Edit
-            </button>
+            Edit
+          </button>
           </div>
 
           {/* View Type Tabs - Only in view mode */}
@@ -553,13 +553,13 @@ export default function DocumentViewer({
                 <X className="w-4 h-4" />
                 Cancel
               </button>
-            </div>
-          )}
         </div>
-      </div>
+          )}
+              </div>
+            </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* Pending AI Changes */}
           {pendingChanges.length > 0 && (
             <div className="p-4 border-b border-slate-700/30 bg-amber-500/5">
@@ -624,25 +624,25 @@ export default function DocumentViewer({
               </div>
             ) : viewMode === 'edit' ? (
               <div className="h-full p-6">
-                <textarea
-                  ref={editorRef}
-                  value={editedContent}
-                  onChange={(e) => {
-                    setEditedContent(e.target.value)
-                    const textarea = e.target
-                    textarea.style.height = 'auto'
-                    textarea.style.height = `${textarea.scrollHeight}px`
-                  }}
+              <textarea
+                ref={editorRef}
+                value={editedContent}
+                onChange={(e) => {
+                  setEditedContent(e.target.value)
+                  const textarea = e.target
+                  textarea.style.height = 'auto'
+                  textarea.style.height = `${textarea.scrollHeight}px`
+                }}
                   className="w-full h-full bg-slate-900/60 border border-slate-700/60 rounded-xl p-6 text-sm text-slate-100 font-mono resize-none focus:outline-none focus:ring-2 focus:ring-primary-500/50 leading-relaxed"
                   placeholder="Start editing your document..."
-                />
+              />
               </div>
             ) : (
               <div className="h-full p-6">
                 <div className="max-w-4xl mx-auto">
                   {viewType === 'raw' && (
                     <div className="bg-slate-900/60 border border-slate-700/60 rounded-xl p-8 text-sm text-slate-200 whitespace-pre-wrap font-mono leading-relaxed">
-                      {displayContent || 'No content available'}
+                {displayContent || 'No content available'}
                     </div>
                   )}
                   {viewType === 'formatted' && (
@@ -744,11 +744,11 @@ export default function DocumentViewer({
         </div>
 
       {/* Version Control - Bottom Right Floating Panel */}
-      {showVersionHistory && (
+        {showVersionHistory && (
         <div className="fixed bottom-6 right-6 w-[420px] h-[560px] bg-slate-900/98 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
           <div className="p-4 border-b border-slate-700/50 bg-gradient-to-r from-slate-800/50 to-slate-900/50">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-primary-500/20 flex items-center justify-center">
                   <GitBranch className="w-4 h-4 text-primary-400" />
                 </div>
@@ -758,132 +758,132 @@ export default function DocumentViewer({
                     <p className="text-xs text-slate-400">{versions.length} version{versions.length !== 1 ? 's' : ''}</p>
                   )}
                 </div>
-              </div>
-              <button
-                onClick={() => setShowVersionHistory(false)}
+                </div>
+                <button
+                  onClick={() => setShowVersionHistory(false)}
                 className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 rounded-lg transition-all"
-                title="Hide version control"
-              >
+                  title="Hide version control"
+                >
                 <X className="w-4 h-4" />
-              </button>
-            </div>
-            <button
-              onClick={handleProposeChange}
-              disabled={proposeMutation.isPending}
+                </button>
+              </div>
+                <button
+                  onClick={handleProposeChange}
+                  disabled={proposeMutation.isPending}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-500/20 border border-primary-500/30 rounded-lg text-sm font-medium text-primary-300 hover:bg-primary-500/30 disabled:opacity-50 transition-all"
-            >
+                >
               <Sparkles className="w-4 h-4" />
-              AI Propose New Content
-            </button>
-          </div>
+                  AI Propose New Content
+                </button>
+            </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {versions.length === 0 ? (
+                {versions.length === 0 ? (
               <div className="text-center py-12 text-slate-500">
                 <GitBranch className="w-12 h-12 mx-auto mb-3 opacity-30" />
                 <p className="text-sm font-medium mb-1">No version history yet</p>
                 <p className="text-xs text-slate-600">Versions will appear here after changes</p>
-              </div>
-            ) : (
-              versions.map((version, index) => {
-                const isSelected = version.id === selectedVersion
-                const isCurrent = index === 0
-                return (
-                  <div
-                    key={version.id}
+                  </div>
+                ) : (
+                versions.map((version, index) => {
+                  const isSelected = version.id === selectedVersion
+                  const isCurrent = index === 0
+                  return (
+                    <div
+                      key={version.id}
                     className={`p-4 rounded-xl border transition-all ${
-                      isSelected
-                        ? 'border-primary-500/50 bg-primary-500/10'
-                        : 'border-slate-700/50 bg-slate-800/30 hover:bg-slate-800/50'
-                    }`}
-                  >
+                        isSelected
+                          ? 'border-primary-500/50 bg-primary-500/10'
+                          : 'border-slate-700/50 bg-slate-800/30 hover:bg-slate-800/50'
+                      }`}
+                    >
                     <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex-1">
+                        <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-sm font-semibold text-slate-200">
-                            v{version.version_number}
-                          </span>
-                          {isCurrent && (
+                              v{version.version_number}
+                            </span>
+                            {isCurrent && (
                             <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded-md border border-emerald-500/30">
-                              Current
-                            </span>
-                          )}
-                          {version.is_ai_generated && (
+                                Current
+                              </span>
+                            )}
+                            {version.is_ai_generated && (
                             <span className="px-2 py-0.5 bg-primary-500/20 text-primary-400 text-xs rounded-md border border-primary-500/30">
-                              AI
-                            </span>
-                          )}
-                        </div>
+                                AI
+                              </span>
+                            )}
+                          </div>
                         <p className="text-sm text-slate-300 leading-relaxed mb-2">
-                          {version.change_summary}
-                        </p>
+                            {version.change_summary}
+                          </p>
                         <div className="flex items-center gap-2 text-xs text-slate-500">
-                          {version.is_ai_generated ? (
+                        {version.is_ai_generated ? (
                             <Bot className="w-3.5 h-3.5" />
-                          ) : (
+                        ) : (
                             <User className="w-3.5 h-3.5" />
-                          )}
-                          <span>{version.created_by}</span>
-                          <span>•</span>
-                          <span>{new Date(version.created_at).toLocaleString()}</span>
-                          {version.confidence_score && (
-                            <>
-                              <span>•</span>
-                              <span>{Math.round(version.confidence_score * 100)}% confidence</span>
-                            </>
-                          )}
-                        </div>
+                        )}
+                        <span>{version.created_by}</span>
+                        <span>•</span>
+                        <span>{new Date(version.created_at).toLocaleString()}</span>
+                        {version.confidence_score && (
+                          <>
+                            <span>•</span>
+                            <span>{Math.round(version.confidence_score * 100)}% confidence</span>
+                          </>
+                        )}
+                      </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 mt-3">
-                      <button
-                        onClick={() => setSelectedVersion(isSelected ? null : version.id)}
+                        <button
+                          onClick={() => setSelectedVersion(isSelected ? null : version.id)}
                         className="flex-1 px-3 py-2 bg-slate-700/50 text-slate-300 text-xs font-medium rounded-lg hover:bg-slate-700 transition-colors"
-                      >
-                        {isSelected ? 'Deselect' : 'Select'}
-                      </button>
-                      {!isCurrent && (
-                        <>
-                          <button
-                            onClick={() => acceptVersionMutation.mutate(version.id)}
-                            disabled={acceptVersionMutation.isPending}
+                        >
+                          {isSelected ? 'Deselect' : 'Select'}
+                        </button>
+                        {!isCurrent && (
+                          <>
+                            <button
+                              onClick={() => acceptVersionMutation.mutate(version.id)}
+                              disabled={acceptVersionMutation.isPending}
                             className="px-3 py-2 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-lg hover:bg-emerald-500/30 disabled:opacity-50 transition-all"
-                            title="Accept this version"
-                          >
+                              title="Accept this version"
+                            >
                             <Check className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => rejectVersionMutation.mutate(version.id)}
+                            </button>
+                            <button
+                              onClick={() => rejectVersionMutation.mutate(version.id)}
                             className="px-3 py-2 bg-rose-500/20 text-rose-400 text-xs font-medium rounded-lg hover:bg-rose-500/30 transition-all"
-                            title="Reject this version"
-                          >
+                              title="Reject this version"
+                            >
                             <X className="w-4 h-4" />
-                          </button>
-                        </>
+                            </button>
+                          </>
+                        )}
+                      </div>
+                      {selectedVersion && selectedVersion === version.id && index > 0 && (
+                        <button
+                          onClick={() =>
+                            mergeMutation.mutate({
+                              baseId: versions[0].id,
+                              mergeId: version.id,
+                            })
+                          }
+                          disabled={mergeMutation.isPending}
+                        className="w-full mt-2 flex items-center justify-center gap-2 px-3 py-2 bg-violet-500/20 text-violet-400 text-xs font-medium rounded-lg border border-violet-500/30 hover:bg-violet-500/30 disabled:opacity-50 transition-all"
+                        >
+                        <GitMerge className="w-4 h-4" />
+                          Merge with Current
+                        </button>
                       )}
                     </div>
-                    {selectedVersion && selectedVersion === version.id && index > 0 && (
-                      <button
-                        onClick={() =>
-                          mergeMutation.mutate({
-                            baseId: versions[0].id,
-                            mergeId: version.id,
-                          })
-                        }
-                        disabled={mergeMutation.isPending}
-                        className="w-full mt-2 flex items-center justify-center gap-2 px-3 py-2 bg-violet-500/20 text-violet-400 text-xs font-medium rounded-lg border border-violet-500/30 hover:bg-violet-500/30 disabled:opacity-50 transition-all"
-                      >
-                        <GitMerge className="w-4 h-4" />
-                        Merge with Current
-                      </button>
-                    )}
-                  </div>
-                )
-              })
-            )}
+                  )
+                })
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   )
 }
