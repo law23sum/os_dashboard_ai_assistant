@@ -338,7 +338,9 @@ function NavDropdown({ item, childItems, active, expanded, onToggle, onClose, lo
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
+  // Single-open dropdown model for the top nav.
+  // (Portaled menus behave best when only one is open at a time.)
+  const [openGroupPath, setOpenGroupPath] = useState<string | null>(null)
   const { data: settings } = useAppSettings()
   const aiButtonRef = useRef<HTMLButtonElement>(null)
   const [aiPanelOpen, setAiPanelOpen] = useState<boolean>(() => {
@@ -394,24 +396,17 @@ export default function Layout({ children }: LayoutProps) {
   }, [settings?.theme])
 
   const toggleGroup = useCallback((groupPath: string) => {
-    setExpandedGroups((prev) => {
-      const newExpanded = new Set(prev)
-      if (newExpanded.has(groupPath)) {
-        newExpanded.delete(groupPath)
-      } else {
-        newExpanded.add(groupPath)
-      }
-      return newExpanded
-    })
+    setOpenGroupPath((prev) => (prev === groupPath ? null : groupPath))
   }, [])
 
   const closeGroup = useCallback((groupPath: string) => {
-    setExpandedGroups((prev) => {
-      const newExpanded = new Set(prev)
-      newExpanded.delete(groupPath)
-      return newExpanded
-    })
+    setOpenGroupPath((prev) => (prev === groupPath ? null : prev))
   }, [])
+
+  useEffect(() => {
+    // Close any open dropdown when navigation occurs.
+    setOpenGroupPath(null)
+  }, [location.pathname])
 
   const navItems: NavItem[] = [
     {
@@ -608,7 +603,7 @@ export default function Layout({ children }: LayoutProps) {
   }
 
   const isExpanded = (item: NavItem): boolean =>
-    expandedGroups.has(item.path) || isActive(item.path, extractChildren(item))
+    openGroupPath === item.path
 
   return (
     <div className="osd-shell min-h-screen text-[color:var(--osd-text)]">
