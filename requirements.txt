@@ -140,7 +140,7 @@ opencv-python>=4.5.0
 streamlit>=1.0.0
 
 # Optional: Machine Learning
-torch==2.1.1; extra == "ml"
+torch==2.8.0; extra == "ml"
 transformers==4.53.0; extra == "ml"
 
 # Optional: Advanced PDF processing
