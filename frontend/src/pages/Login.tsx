@@ -1,87 +1,135 @@
-import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { login } from '../api/auth'
-import { useAuth } from '../auth/AuthContext'
+import { useState, FormEvent } from 'react'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
+import { Shield, Lock, User, AlertCircle, LogIn } from 'lucide-react'
+import apiClient, { apiPath } from '../lib/apiClient'
 import { toast } from '../utils/toast'
 
 export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { refresh } = useAuth()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const from = (location.state as any)?.from || '/'
+  const from = (location.state as any)?.from?.pathname || '/'
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!email.trim() || !password) return
-    setIsSubmitting(true)
+    setError(null)
+    setIsLoading(true)
+
     try {
-      await login(email.trim(), password)
-      await refresh()
-      toast.success('Signed in')
+      const response = await apiClient.post(apiPath('auth/login'), {
+        username,
+        password,
+      })
+
+      const { access_token, refresh_token } = response.data
+
+      // Store tokens
+      localStorage.setItem('access_token', access_token)
+      localStorage.setItem('refresh_token', refresh_token)
+
+      // Get user info
+      const userResponse = await apiClient.get(apiPath('auth/me'), {
+        headers: { Authorization: `Bearer ${access_token}` },
+      })
+
+      const userData = userResponse.data
+      localStorage.setItem('user', JSON.stringify(userData))
+
+      toast.success('Login successful!')
       navigate(from, { replace: true })
     } catch (err: any) {
-      toast.error(err?.response?.data?.detail || 'Login failed')
+      const message = err.response?.data?.detail || 'Login failed. Please try again.'
+      setError(message)
+      toast.error(message)
     } finally {
-      setIsSubmitting(false)
+      setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl">
-        <div className="mb-6">
-          <p className="text-xs uppercase tracking-[0.25em] text-slate-400">OS Dashboard</p>
-          <h1 className="mt-2 text-2xl font-semibold">Sign in</h1>
-          <p className="mt-2 text-sm text-slate-300">
-            Access your tasks, documents, audit trails, and admin console.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-xs text-slate-300">Email</label>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-              autoComplete="email"
-              className="mt-1 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
-              placeholder="you@company.com"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-slate-300">Password</label>
-            <input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              autoComplete="current-password"
-              className="mt-1 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
-              placeholder="••••••••"
-            />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[color:var(--osd-background)] to-[color:var(--osd-surface)] p-4">
+      <div className="w-full max-w-md">
+        <div className="glass-content p-8 rounded-2xl shadow-2xl">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[color:var(--osd-accent)]/20 to-[color:var(--osd-accentPurple)]/20 border border-[color:var(--osd-accent)]/30 mb-4">
+              <Shield className="w-8 h-8 text-[color:var(--osd-accent)]" />
+            </div>
+            <h1 className="text-3xl font-bold mb-2">OS Dashboard</h1>
+            <p className="text-[color:var(--osd-muted)]">Sign in to your account</p>
           </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-3 text-sm font-semibold shadow-lg shadow-blue-500/20 disabled:opacity-60"
-          >
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <p>{error}</p>
+            </div>
+          )}
 
-        <div className="mt-5 flex items-center justify-between text-sm">
-          <span className="text-slate-400">New here?</span>
-          <Link className="text-primary-300 hover:text-primary-200" to="/signup">
-            Create an account
-          </Link>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Username</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[color:var(--osd-muted)]" />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--osd-accent)] text-[color:var(--osd-text)]"
+                  required
+                  autoFocus
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[color:var(--osd-muted)]" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--osd-accent)] text-[color:var(--osd-text)]"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 bg-gradient-to-r from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-5 h-5" />
+                  Sign In
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-[color:var(--osd-muted)]">
+              Don't have an account?{' '}
+              <Link to="/signup" className="text-[color:var(--osd-accent)] hover:underline">
+                Sign up
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
   )
 }
-

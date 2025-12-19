@@ -26,6 +26,7 @@ from assistant_hub_gui.assistant_hub.db import (  # pylint: disable=wrong-import
     db_record_project_event,
     db_upsert_project,
     load_state,
+    Project as DBProject,
 )
 from assistant_hub_gui.assistant_hub.config import DATA_DIR  # pylint: disable=wrong-import-position
 from assistant_hub_gui.assistant_hub.project_insights import (  # pylint: disable=wrong-import-position
@@ -104,7 +105,7 @@ class ProjectLedgerEvent(BaseModel):
     payload: Dict[str, Any]
     created_at: str
     hash_prev: Optional[str]
-    hash_curr: str
+    hash_curr: Optional[str]
 
 
 class ProjectRiskInsight(BaseModel):
@@ -112,18 +113,18 @@ class ProjectRiskInsight(BaseModel):
     severity: str
     risks: List[Dict[str, Any]]
     recommendations: str
-    total_tasks: int
-    completed_tasks: int
-    completion_rate: float
+    total_tasks: Optional[int] = 0
+    completed_tasks: Optional[int] = 0
+    completion_rate: Optional[float] = 0.0
 
 
 class ProjectForecastInsight(BaseModel):
     predicted_date: Optional[str]
-    confidence: str
-    reasoning: str
-    estimated_days: Optional[int]
+    confidence: str = "unknown"
+    reasoning: str = ""
+    estimated_days: Optional[int] = None
     avg_completion_days: Optional[float] = None
-    pending_task_count: int
+    pending_task_count: Optional[int] = 0
 
 
 class ProjectInsightResponse(BaseModel):
@@ -570,15 +571,15 @@ def _serialize_events(events: List[Dict[str, Any]]) -> List[ProjectLedgerEvent]:
     for event in events:
         serialized.append(
             ProjectLedgerEvent(
-                id=event["id"],
-                project_id=event["project_id"],
+                id=str(event["id"]),
+                project_id=str(event["project_id"]),
                 event_type=event["event_type"],
                 entity_type=event.get("entity_type"),
                 entity_id=event.get("entity_id"),
                 payload=event.get("payload") or {},
                 created_at=event["created_at"],
                 hash_prev=event.get("hash_prev"),
-                hash_curr=event["hash_curr"],
+                hash_curr=event.get("hash_curr"),
             )
         )
     return serialized
@@ -587,26 +588,40 @@ def _serialize_events(events: List[Dict[str, Any]]) -> List[ProjectLedgerEvent]:
 @router.get("/", response_model=List[ProjectResponse])
 async def list_projects(status: Optional[str] = None, user: AuthUser = Depends(get_current_user)):
     """List all projects with optional status filtering."""
+<<<<<<< HEAD
     query = "SELECT * FROM projects WHERE 1=1 AND user_id = ?"
     params = [user.id]
+=======
+    try:
+        query = "SELECT * FROM projects WHERE 1=1"
+        params = []
+>>>>>>> incremeents
 
-    if status:
-        query += " AND status = ?"
-        params.append(status)
+        if status:
+            query += " AND status = ?"
+            params.append(status)
 
-    query += " ORDER BY order_num, name"
+        query += " ORDER BY order_num, name"
 
-    with db_session() as db:
-        cursor = db.execute(query, params)
-        rows = cursor.fetchall()
-        columns = [description[0] for description in cursor.description]
+        with db_session() as db:
+            cursor = db.execute(query, params)
+            rows = cursor.fetchall()
+            # Handle case where query returns no rows
+            if cursor.description:
+                columns = [description[0] for description in cursor.description]
+            else:
+                columns = []
 
-    projects = []
-    for row in rows:
-        project_dict = dict(zip(columns, row))
-        projects.append(ProjectResponse(**project_dict))
+        projects = []
+        for row in rows:
+            project_dict = dict(zip(columns, row))
+            projects.append(ProjectResponse(**project_dict))
 
-    return projects
+        return projects
+    except Exception as e:
+        import logging
+        logging.error(f"Error fetching projects: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch projects: {str(e)}")
 
 
 @router.get("/links", response_model=List[ProjectLinkResponse])
@@ -651,8 +666,26 @@ async def list_links(
 @router.get("/ledger", response_model=List[ProjectLedgerEvent])
 async def list_project_ledger(project: Optional[str] = None, limit: int = 50, user: AuthUser = Depends(get_current_user)):
     """Return recent ledger events for one or all projects."""
-    safe_limit = max(1, min(limit, 500))
+    try:
+        safe_limit = max(1, min(limit, 500))
+        with db_session() as db:
+            if project and not _project_exists(db, project):
+                raise HTTPException(status_code=404, detail="Project not found")
+            events = db_list_project_events(db, project_id=project, limit=safe_limit)
+        return _serialize_events(events)
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.error(f"Error fetching project ledger: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch project ledger: {str(e)}")
+
+
+@router.get("/count")
+async def get_project_count():
+    """Get total count of projects for quick health check."""
     with db_session() as db:
+<<<<<<< HEAD
         if project and not _project_exists(db, project, user.id):
             raise HTTPException(status_code=404, detail="Project not found")
         # Enforce user_id scoping at query level (db helper does not filter).
@@ -693,6 +726,23 @@ async def list_project_ledger(project: Optional[str] = None, limit: int = 50, us
                 }
             )
     return _serialize_events(events)
+=======
+        cursor = db.execute("SELECT COUNT(*) as count FROM projects")
+        row = cursor.fetchone()
+        return {"count": row["count"] if row else 0}
+
+
+@router.get("/intelligence", response_model=List[ProjectIntelligenceResponse])
+async def list_project_intelligence():
+    """Return calculated project intelligence/health metrics."""
+    with db_session() as db:
+        cursor = db.execute("SELECT name FROM projects ORDER BY order_num, name")
+        project_rows = cursor.fetchall()
+        tasks_map = _group_tasks_by_project(db)
+        return [
+            _compute_project_intelligence(db, project_row["name"], tasks_map) for project_row in project_rows
+        ]
+>>>>>>> incremeents
 
 
 @router.get("/{project_name}", response_model=ProjectResponse)
@@ -740,7 +790,10 @@ async def get_project_insights(project_name: str, user: AuthUser = Depends(get_c
     )
 
 
+<<<<<<< HEAD
+=======
 @router.get("/intelligence", response_model=List[ProjectIntelligenceResponse])
+<<<<<<< HEAD
 async def list_project_intelligence(user: AuthUser = Depends(get_current_user)):
     """Return calculated project intelligence/health metrics."""
     with db_session() as db:
@@ -750,8 +803,29 @@ async def list_project_intelligence(user: AuthUser = Depends(get_current_user)):
         return [
             _compute_project_intelligence(db, project_row["name"], tasks_map) for project_row in project_rows
         ]
+=======
+async def list_project_intelligence():
+    """Return calculated project intelligence/health metrics.
+    
+    Optimized to fetch all tasks once instead of per-project queries (N+1 fix).
+    """
+    try:
+        with db_session() as db:
+            cursor = db.execute("SELECT name FROM projects ORDER BY order_num, name")
+            project_rows = cursor.fetchall()
+            # Fetch all tasks once and group by project (fixes N+1 query issue)
+            tasks_map = _group_tasks_by_project(db)
+            return [
+                _compute_project_intelligence(db, project_row["name"], tasks_map) for project_row in project_rows
+            ]
+    except Exception as e:
+        import logging
+        logging.error(f"Error fetching project intelligence: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch project intelligence: {str(e)}")
+>>>>>>> incremeents
 
 
+>>>>>>> incremeents
 @router.get("/{project_name}/intelligence", response_model=ProjectIntelligenceResponse)
 async def get_project_intelligence(project_name: str, user: AuthUser = Depends(get_current_user)):
     """Return intelligence metrics for a single project."""
@@ -795,8 +869,7 @@ async def get_project_trf(project_name: str, limit: int = 10, user: AuthUser = D
 async def create_project(project: ProjectCreate, user: AuthUser = Depends(get_current_user)):
     """Create a new project."""
     with db_session() as db:
-        db_upsert_project(
-            db,
+        db_project = DBProject(
             name=project.name,
             description=project.description,
             status=project.status,
@@ -804,6 +877,7 @@ async def create_project(project: ProjectCreate, user: AuthUser = Depends(get_cu
             order_num=project.order_num,
             user_id=user.id,
         )
+        db_upsert_project(db, db_project)
 
         cursor = db.execute("SELECT * FROM projects WHERE name = ? AND user_id = ?", (project.name, user.id))
         row = cursor.fetchone()
@@ -833,12 +907,28 @@ async def update_project(project_name: str, project_update: ProjectUpdate, user:
         row = cursor.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Get existing values from the row
+        columns = [desc[0] for desc in cursor.description]
+        existing = dict(zip(columns, row))
 
         update_dict = project_update.model_dump(exclude_unset=True)
-        update_dict["name"] = project_name if "name" not in update_dict else update_dict["name"]
+        
+        # Create a DBProject with merged values
+        db_project = DBProject(
+            name=update_dict.get("name", project_name),
+            description=update_dict.get("description", existing.get("description", "")),
+            status=update_dict.get("status", existing.get("status", "active")),
+            priority=update_dict.get("priority", existing.get("priority", "MEDIUM")),
+            order_num=update_dict.get("order_num", existing.get("order_num", 0)),
+        )
 
+<<<<<<< HEAD
         update_dict["user_id"] = user.id
         db_upsert_project(db, **update_dict)
+=======
+        db_upsert_project(db, db_project)
+>>>>>>> incremeents
 
         cursor = db.execute(
             "SELECT * FROM projects WHERE name = ? AND user_id = ?",
@@ -889,3 +979,248 @@ async def delete_project(project_name: str, user: AuthUser = Depends(get_current
             user_id=user.id,
         )
     return None
+
+
+# ============================================================================
+# IMPORT/EXPORT ENDPOINTS - Prevent data loss (Spec §6.7 Archive & Backup)
+# ============================================================================
+
+class ProjectExportData(BaseModel):
+    """Complete project data for export/import."""
+    name: str
+    description: str = ""
+    status: str = "active"
+    priority: str = "MEDIUM"
+    order_num: int = 0
+    tasks: List[Dict[str, Any]] = []
+    links: List[Dict[str, Any]] = []
+    ledger_events: List[Dict[str, Any]] = []
+
+
+class ExportResponse(BaseModel):
+    """Full export bundle with metadata."""
+    version: str = "1.0"
+    exported_at: str
+    environment: str = "local"
+    projects: List[ProjectExportData]
+    total_projects: int
+    total_tasks: int
+    total_links: int
+    total_ledger_events: int
+
+
+class ImportRequest(BaseModel):
+    """Import request with projects data."""
+    projects: List[Dict[str, Any]]
+    overwrite_existing: bool = False
+    import_tasks: bool = True
+    import_links: bool = True
+
+
+class ImportResult(BaseModel):
+    """Import operation result."""
+    success: bool
+    projects_imported: int
+    projects_skipped: int
+    projects_updated: int
+    tasks_imported: int
+    links_imported: int
+    errors: List[str]
+
+
+@router.get("/export/all", response_model=ExportResponse)
+async def export_all_projects():
+    """Export all projects with their tasks, links, and ledger events."""
+    with db_session() as db:
+        # Get all projects
+        cursor = db.execute("SELECT * FROM projects ORDER BY order_num, name")
+        project_rows = cursor.fetchall()
+        columns = [desc[0] for desc in cursor.description]
+        
+        projects_data: List[ProjectExportData] = []
+        total_tasks = 0
+        total_links = 0
+        total_ledger = 0
+        
+        for row in project_rows:
+            project_dict = dict(zip(columns, row))
+            project_name = project_dict["name"]
+            
+            # Get tasks for this project
+            task_cursor = db.execute(
+                "SELECT * FROM tasks WHERE project = ?", (project_name,)
+            )
+            task_rows = task_cursor.fetchall()
+            task_columns = [desc[0] for desc in task_cursor.description]
+            tasks = [dict(zip(task_columns, t)) for t in task_rows]
+            total_tasks += len(tasks)
+            
+            # Get links for this project
+            links = db_get_note_links(db, project_id=project_name)
+            link_dicts = [
+                {
+                    "integration_type": link.integration_type,
+                    "external_id": link.external_id,
+                    "title": link.title,
+                    "description": link.description,
+                    "created_at": link.created_at,
+                    "last_synced": link.last_synced,
+                }
+                for link in links
+            ]
+            total_links += len(link_dicts)
+            
+            # Get ledger events for this project
+            events = db_list_project_events(db, project_id=project_name, limit=1000)
+            total_ledger += len(events)
+            
+            projects_data.append(
+                ProjectExportData(
+                    name=project_dict["name"],
+                    description=project_dict.get("description", ""),
+                    status=project_dict.get("status", "active"),
+                    priority=project_dict.get("priority", "MEDIUM"),
+                    order_num=project_dict.get("order_num", 0),
+                    tasks=tasks,
+                    links=link_dicts,
+                    ledger_events=events,
+                )
+            )
+        
+        return ExportResponse(
+            version="1.0",
+            exported_at=datetime.now(timezone.utc).isoformat(),
+            environment="local",
+            projects=projects_data,
+            total_projects=len(projects_data),
+            total_tasks=total_tasks,
+            total_links=total_links,
+            total_ledger_events=total_ledger,
+        )
+
+
+@router.post("/import/bulk", response_model=ImportResult)
+async def import_projects_bulk(request: ImportRequest):
+    """Import multiple projects with their associated data."""
+    errors: List[str] = []
+    projects_imported = 0
+    projects_skipped = 0
+    projects_updated = 0
+    tasks_imported = 0
+    links_imported = 0
+    
+    with db_session() as db:
+        for project_data in request.projects:
+            try:
+                project_name = project_data.get("name", "").strip()
+                if not project_name:
+                    errors.append("Skipped project with empty name")
+                    continue
+                
+                # Check if project exists
+                existing = _project_exists(db, project_name)
+                
+                if existing and not request.overwrite_existing:
+                    projects_skipped += 1
+                    continue
+                
+                # Upsert project
+                db_project = DBProject(
+                    name=project_name,
+                    description=project_data.get("description", ""),
+                    status=project_data.get("status", "active"),
+                    priority=project_data.get("priority", "MEDIUM"),
+                    order_num=project_data.get("order_num", 0),
+                )
+                db_upsert_project(db, db_project)
+                
+                if existing:
+                    projects_updated += 1
+                else:
+                    projects_imported += 1
+                
+                # Import tasks if requested
+                if request.import_tasks and "tasks" in project_data:
+                    for task_data in project_data.get("tasks", []):
+                        try:
+                            # Insert task (always create new to avoid ID conflicts)
+                            db.execute(
+                                """
+                                INSERT INTO tasks (title, project, status, priority, due_date, 
+                                    notes, owner, created_at, depends_on, recurrence_pattern,
+                                    recurrence_end, time_estimated, time_logged, template_id)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                """,
+                                (
+                                    task_data.get("title", "Imported Task"),
+                                    project_name,
+                                    task_data.get("status", "TODO"),
+                                    task_data.get("priority", "MEDIUM"),
+                                    task_data.get("due_date"),
+                                    task_data.get("notes", ""),
+                                    task_data.get("owner", "Chris"),
+                                    task_data.get("created_at", datetime.now().isoformat()),
+                                    task_data.get("depends_on"),
+                                    task_data.get("recurrence_pattern"),
+                                    task_data.get("recurrence_end"),
+                                    task_data.get("time_estimated"),
+                                    task_data.get("time_logged"),
+                                    task_data.get("template_id"),
+                                ),
+                            )
+                            tasks_imported += 1
+                        except Exception as task_err:
+                            errors.append(f"Task import error in {project_name}: {str(task_err)}")
+                
+                # Import links if requested
+                if request.import_links and "links" in project_data:
+                    for link_data in project_data.get("links", []):
+                        try:
+                            db.execute(
+                                """
+                                INSERT INTO note_links (project_id, integration_type, external_id, 
+                                    title, description, created_at, last_synced)
+                                VALUES (?, ?, ?, ?, ?, ?, ?)
+                                """,
+                                (
+                                    project_name,
+                                    link_data.get("integration_type", "local_document"),
+                                    link_data.get("external_id", ""),
+                                    link_data.get("title", ""),
+                                    link_data.get("description", ""),
+                                    link_data.get("created_at", datetime.now().isoformat()),
+                                    link_data.get("last_synced"),
+                                ),
+                            )
+                            links_imported += 1
+                        except Exception as link_err:
+                            errors.append(f"Link import error in {project_name}: {str(link_err)}")
+                
+                # Record import event in ledger
+                db_record_project_event(
+                    db,
+                    project_id=project_name,
+                    event_type="project_imported",
+                    entity_type="project",
+                    entity_id=project_name,
+                    payload={
+                        "source": "bulk_import",
+                        "tasks_imported": len(project_data.get("tasks", [])),
+                        "links_imported": len(project_data.get("links", [])),
+                    },
+                )
+                
+            except Exception as project_err:
+                errors.append(f"Project {project_data.get('name', 'unknown')} import error: {str(project_err)}")
+        
+        db.commit()
+    
+    return ImportResult(
+        success=len(errors) == 0,
+        projects_imported=projects_imported,
+        projects_skipped=projects_skipped,
+        projects_updated=projects_updated,
+        tasks_imported=tasks_imported,
+        links_imported=links_imported,
+        errors=errors,
+    )
