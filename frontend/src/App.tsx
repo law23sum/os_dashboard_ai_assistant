@@ -46,6 +46,9 @@ import CapsuleMarketplace from './pages/CapsuleMarketplace'
 import AutoFix from './pages/AutoFix'
 import IntentProcessor from './pages/IntentProcessor'
 import WorkspaceHealth from './pages/WorkspaceHealth'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import Admin from './pages/Admin'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 
 const normalizeBasePath = (value?: string | null): string => {
@@ -109,10 +112,15 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router basename={useHashRouter ? undefined : basePath}>
         <AppErrorBoundary>
-          <Layout>
-            <Routes>
-            {/* Root & Core Pages */}
-            <Route path="/" element={<Dashboard />} />
+          <Routes>
+            {/* Public Routes (No Layout) */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            
+            {/* Protected Routes (With Layout) */}
+            <Route element={<Layout />}>
+              {/* Root & Core Pages */}
+              <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/projects" element={<Projects />} />
@@ -218,10 +226,13 @@ function App() {
             {/* Settings */}
             <Route path="/settings" element={<Settings />} />
 
+            {/* Admin Panel */}
+            <Route path="/admin" element={<Admin />} />
+
             {/* Catch-all */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Layout>
+            <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
         </AppErrorBoundary>
       </Router>
       <Toaster position="top-right" />

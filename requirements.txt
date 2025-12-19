@@ -73,6 +73,7 @@ cryptography==41.0.7
 bcrypt==4.1.2
 python-jose[cryptography]==3.3.0
 PyJWT>=2.8.0
+passlib[bcrypt]>=1.7.4
 
 # Configuration and environment
 python-dotenv==1.0.0
