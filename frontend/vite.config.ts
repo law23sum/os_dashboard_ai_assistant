@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Support multiple port configurations: 8070 (assistant_hub_gui direct), 8000 (start_ui.py)
 const apiTarget = process.env.VITE_API_TARGET || "http://127.0.0.1:8070";
 const apiTarget = process.env.VITE_API_TARGET || "http://localhost:8070";
 const wsTarget = apiTarget.replace(/^http/, "ws");
