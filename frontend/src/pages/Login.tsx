@@ -1,6 +1,6 @@
 import { useState, FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Shield, Mail, Lock, User, AlertCircle, LogIn } from 'lucide-react'
+import { Shield, User, Lock, AlertCircle, LogIn } from 'lucide-react'
 import apiClient, { apiPath } from '../lib/apiClient'
 import { toast } from '../utils/toast'
 
@@ -43,100 +43,25 @@ export default function Login() {
       toast.error(message)
     } finally {
       setIsLoading(false)
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { LogIn, Mail, Lock, User } from 'lucide-react'
-
-export default function Login() {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.detail || 'Login failed')
-      }
-
-      const data = await response.json()
-      localStorage.setItem('access_token', data.access_token)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      
-      navigate('/dashboard')
-    } catch (err: any) {
-      setError(err.message || 'Login failed')
-    } finally {
-      setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative w-full max-w-md px-6">
-        {/* Logo and Title */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500/20 to-violet-500/20 border border-primary-500/30 mb-4">
-            <Shield className="w-8 h-8 text-primary-400" />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2">OS Dashboard AI</h1>
-          <p className="text-slate-400">Sign in to your account</p>
-        </div>
-
-        {/* Login Form */}
-        <div className="glass-card p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
-                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-200">{error}</p>
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-slate-300 mb-2">
-                Username
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700/60 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all"
-                  placeholder="Enter your username"
-                  disabled={isLoading}
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[color:var(--osd-background)] to-[color:var(--osd-surface)] p-4">
       <div className="w-full max-w-md">
         <div className="glass-content p-8 rounded-2xl shadow-2xl">
           <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] mb-4 shadow-lg">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
             <h1 className="text-3xl font-bold mb-2">OS Dashboard</h1>
             <p className="text-[color:var(--osd-muted)]">Sign in to your account</p>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
-              {error}
+            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
@@ -150,27 +75,15 @@ export default function Login() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--osd-accent)]"
+                  placeholder="Enter your username"
                   required
                   autoFocus
+                  disabled={isLoading}
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700/60 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all"
-                  placeholder="Enter your password"
-                  disabled={isLoading}
               <label className="block text-sm font-medium mb-2">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[color:var(--osd-muted)]" />
@@ -179,7 +92,9 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--osd-accent)]"
+                  placeholder="Enter your password"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -187,7 +102,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-medium rounded-xl shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full py-3 bg-gradient-to-r from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
             >
               {isLoading ? (
                 <>
@@ -198,52 +113,32 @@ export default function Login() {
                 <>
                   <LogIn className="w-5 h-5" />
                   <span>Sign In</span>
-              disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>Loading...</>
-              ) : (
-                <>
-                  <LogIn className="w-5 h-5" />
-                  Sign In
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-slate-700/50">
-            <p className="text-center text-sm text-slate-400">
+          <div className="mt-6 pt-6 border-t border-[color:var(--osd-border)]">
+            <p className="text-center text-sm text-[color:var(--osd-muted)]">
               Don't have an account?{' '}
-              <Link
-                to="/signup"
-                className="text-primary-400 hover:text-primary-300 font-medium transition-colors"
-              >
+              <Link to="/signup" className="text-[color:var(--osd-accent)] hover:underline font-medium">
                 Create one
               </Link>
             </p>
           </div>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl">
-            <p className="text-xs font-semibold text-slate-300 mb-2">Demo Credentials:</p>
-            <div className="space-y-1 text-xs text-slate-400">
+          {/* Demo Credentials Hint */}
+          <div className="mt-6 p-4 bg-[color:var(--osd-surface)]/50 border border-[color:var(--osd-border)] rounded-xl">
+            <p className="text-xs font-semibold text-[color:var(--osd-text)] mb-2">Demo Credentials:</p>
+            <div className="space-y-1 text-xs text-[color:var(--osd-muted)]">
               <p>
-                <span className="font-mono">admin</span> / <span className="font-mono">admin123</span>{' '}
-                <span className="text-amber-400">(Admin)</span>
+                <span className="font-mono text-[color:var(--osd-accent)]">admin</span> / <span className="font-mono">admin123</span>{' '}
+                <span className="text-[color:var(--osd-warning)]">(Admin)</span>
               </p>
               <p>
-                <span className="font-mono">alice</span> / <span className="font-mono">password123</span>
+                <span className="font-mono text-[color:var(--osd-accent)]">alice</span> / <span className="font-mono">password123</span>
               </p>
             </div>
-          </div>
-          <div className="mt-6 text-center">
-            <p className="text-sm text-[color:var(--osd-muted)]">
-              Don't have an account?{' '}
-              <Link to="/signup" className="text-[color:var(--osd-accent)] hover:underline">
-                Sign up
-              </Link>
-            </p>
           </div>
         </div>
       </div>
