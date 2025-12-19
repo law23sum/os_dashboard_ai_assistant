@@ -24,9 +24,18 @@ class ExcelService:
         code = excel_generate_pandas_code(
             df.head(20).to_markdown(index=False), instruction
         )
-        local_vars: dict = {"df": df.copy()}
+        
+        # Validate generated code doesn't contain dangerous operations
+        dangerous_patterns = ['import os', 'import sys', '__import__', 'eval', 'exec', 'compile', 'open(', 'file(']
+        if any(pattern in code.lower() for pattern in dangerous_patterns):
+            raise RuntimeError(
+                f"Generated code contains potentially dangerous operations and cannot be executed.\nCode:\n{code}"
+            )
+        
+        local_vars: dict = {"df": df.copy(), "pd": pd}
         try:
-            exec(code, {}, local_vars)  # noqa: S102
+            # Execute with restricted builtins
+            exec(code, {"__builtins__": {"len": len, "str": str, "int": int, "float": float, "bool": bool, "list": list, "dict": dict, "range": range}}, local_vars)  # noqa: S102
         except Exception as exc:
             raise RuntimeError(
                 f"Generated pandas code failed: {exc}\nCode:\n{code}"
