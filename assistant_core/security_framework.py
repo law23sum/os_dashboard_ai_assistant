@@ -563,7 +563,10 @@ class AISecurityFramework:
             for network in self.suspicious_patterns.get("suspicious_ips", []):
                 if ip_obj in ipaddress.ip_network(network):
                     return True
-        except:
+        except (ValueError, TypeError) as e:
+            # Invalid IP address or network format
+            import logging
+            logging.warning(f"Invalid IP address or network in security check: {e}")
             pass
         return False
 

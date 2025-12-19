@@ -213,8 +213,25 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
     # Allow use across background worker threads (integrations, daemons, API).
     conn = sqlite3.connect(str(target), check_same_thread=False)
     conn.row_factory = sqlite3.Row
+    
+    # ========================================================================
+    # PERFORMANCE OPTIMIZATION: Configure SQLite for better performance
+    # ========================================================================
     conn.execute("PRAGMA foreign_keys = ON")
     conn.execute("PRAGMA busy_timeout = 5000")
+    
+    # Enable WAL mode for better concurrency (multiple readers, one writer)
+    conn.execute("PRAGMA journal_mode = WAL")
+    
+    # Increase cache size for better performance (default is -2000 KB, we set to -10000 KB = 10 MB)
+    conn.execute("PRAGMA cache_size = -10000")
+    
+    # Use memory for temporary tables
+    conn.execute("PRAGMA temp_store = MEMORY")
+    
+    # Optimize for write operations
+    conn.execute("PRAGMA synchronous = NORMAL")
+    
     c = conn.cursor()
 
     c.execute("""
@@ -581,7 +598,72 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
     except Exception:
         pass
 
-
+    # ========================================================================
+    # PERFORMANCE OPTIMIZATION: Add indexes for commonly queried columns
+    # ========================================================================
+    # Index for tasks by status (used in dashboard, task lists)
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_tasks_status 
+        ON tasks(status)
+    """)
+    
+    # Index for tasks by project (used in project views)
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_tasks_project 
+        ON tasks(project)
+    """)
+    
+    # Index for tasks by owner (used in persona views)
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_tasks_owner 
+        ON tasks(owner)
+    """)
+    
+    # Index for tasks by priority (used in filtering)
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_tasks_priority 
+        ON tasks(priority)
+    """)
+    
+    # Composite index for common queries (status + project)
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_tasks_status_project 
+        ON tasks(status, project)
+    """)
+    
+    # Index for chat messages by persona (used in chat history)
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_chat_messages_persona 
+        ON chat_messages(persona)
+    """)
+    
+    # Index for chat messages by created_at for chronological sorting
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at 
+        ON chat_messages(created_at)
+    """)
+    
+    # Index for note_links by project_id (used in project views)
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_note_links_project 
+        ON note_links(project_id)
+    """)
+    
+    # Index for document_operations by status (used in operation tracking)
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_document_operations_status 
+        ON document_operations(status)
+    """)
+    
+    # Check if project_ledger table exists before creating index
+    cursor = c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='project_ledger'")
+    if cursor.fetchone() is not None:
+        # Index for project_ledger by project_id and created_at
+        c.execute("""
+            CREATE INDEX IF NOT EXISTS idx_project_ledger_project_created 
+            ON project_ledger(project_id, created_at DESC)
+        """)
+    
     conn.commit()
     return conn
 
