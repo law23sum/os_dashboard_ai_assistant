@@ -89,6 +89,52 @@ export interface NavCategory {
 
 export const navigationManifest: NavCategory[] = [
   {
+    path: '/mission',
+    icon: Target,
+    label: 'Mission & Architecture',
+    spec: '§0, §1, §2',
+    description: 'Mission, modes, identity, architecture, and planes',
+    groups: [
+      {
+        label: 'Mission & Identity',
+        spec: '§0',
+        description: 'Mission, modes, identity surfaces, cognitive agents',
+        items: [
+          { path: '/mission/overview', icon: Target, label: 'Mission & Scope', spec: '§0.1', backend: 'routers.platform', status: 'new' },
+          { path: '/mission/modes', icon: Layers, label: 'Deployment Modes', spec: '§0.3', backend: 'routers.platform', status: 'new' },
+          { path: '/mission/identity', icon: Users, label: 'Identity & Roles', spec: '§0.4', backend: 'routers.settings', status: 'new' },
+          { path: '/ai/personas', icon: Bot, label: 'Cognitive Agents & Personas', spec: '§0.5', backend: 'routers.personas', status: 'new' },
+          { path: '/mission/daemons', icon: ServerCog, label: 'Daemon Families', spec: '§0.6', backend: 'routers.ai_systems', status: 'new' },
+          { path: '/mission/ai-stack', icon: Brain, label: 'AI + Driver Stack', spec: '§0.7', backend: 'routers.ai_systems', status: 'new' },
+          { path: '/mission/models', icon: Dna, label: 'Model Provider Layer', spec: '§0.8', backend: 'routers.ai_systems', status: 'new' },
+        ],
+      },
+      {
+        label: 'Architecture & Principles',
+        spec: '§1',
+        description: 'Logical architecture, components, principles',
+        items: [
+          { path: '/mission/architecture', icon: Layers, label: 'Architecture Overview', spec: '§1.1', backend: 'routers.platform', status: 'new' },
+          { path: '/mission/components', icon: Package, label: 'Major Components', spec: '§1.2', backend: 'routers.platform', status: 'new' },
+          { path: '/mission/principles', icon: Shield, label: 'Architectural Principles', spec: '§1.3', backend: 'routers.platform', status: 'new' },
+          { path: '/mission/mapping', icon: Network, label: 'Component Mapping', spec: '§1.4-1.5', backend: 'routers.platform', status: 'new' },
+          { path: '/mission/orchestrator', icon: Cpu, label: 'Driver-Aware Orchestrator', spec: '§1.7', backend: 'routers.ai_systems', status: 'new' },
+        ],
+      },
+      {
+        label: 'Planes Architecture',
+        spec: '§2',
+        description: 'Data, control, and governance planes',
+        items: [
+          { path: '/mission/planes/data', icon: Database, label: 'Data Plane', spec: '§2.1', backend: 'routers.platform', status: 'new' },
+          { path: '/mission/planes/control', icon: Cpu, label: 'Control Plane', spec: '§2.2', backend: 'routers.platform', status: 'new' },
+          { path: '/mission/planes/governance', icon: Shield, label: 'Governance Plane', spec: '§2.3', backend: 'routers.settings', status: 'new' },
+          { path: '/mission/planes/cross-plane', icon: Network, label: 'Cross-Plane Flows', spec: '§2.4', backend: 'routers.platform', status: 'new' },
+        ],
+      },
+    ],
+  },
+  {
     path: '/dashboard',
     icon: LayoutDashboard,
     label: 'Mission Control',
@@ -792,6 +838,46 @@ export const navigationManifest: NavCategory[] = [
         description: 'User preferences, tenant configuration',
         items: [
           { path: '/settings', icon: Settings, label: 'Settings', spec: '§0.4', backend: 'routers.settings', status: 'existing' },
+        ],
+      },
+    ],
+  },
+  {
+    path: '/roadmap',
+    icon: Compass,
+    label: 'Roadmap & Risks',
+    spec: '§16',
+    description: 'Open questions, risks, roadmap, and spec maintenance',
+    groups: [
+      {
+        label: 'Roadmap & Planning',
+        spec: '§16',
+        description: 'Phased delivery, milestones, long-term bets',
+        items: [
+          { path: '/roadmap/overview', icon: Compass, label: 'Roadmap Overview', spec: '§16.3', backend: 'routers.documents', status: 'new' },
+          { path: '/roadmap/phases', icon: Layers, label: 'Phased Delivery', spec: '§16.3', backend: 'routers.documents', status: 'new' },
+          { path: '/roadmap/milestones', icon: Target, label: 'Milestones', spec: '§16.3', backend: 'routers.documents', status: 'new' },
+          { path: '/roadmap/future', icon: Sparkles, label: 'Long-Term Bets', spec: '§16.4', backend: 'routers.documents', status: 'new' },
+        ],
+      },
+      {
+        label: 'Risks & Decisions',
+        spec: '§16.1-16.2, 16.5',
+        description: 'Open questions, risks, decision log',
+        items: [
+          { path: '/roadmap/risks', icon: AlertTriangle, label: 'Risk Register', spec: '§16.5', backend: 'routers.documents', status: 'new' },
+          { path: '/roadmap/decisions', icon: FileCheck, label: 'Decision Log', spec: '§16.8', backend: 'routers.documents', status: 'new' },
+          { path: '/roadmap/gaps', icon: AlertTriangle, label: 'Known Gaps', spec: '§16.2', backend: 'routers.documents', status: 'new' },
+          { path: '/roadmap/questions', icon: MessageSquare, label: 'Open Questions', spec: '§16.1', backend: 'routers.documents', status: 'new' },
+        ],
+      },
+      {
+        label: 'Spec Maintenance',
+        spec: '§16.6-16.7',
+        description: 'Spec versioning, change management, future capabilities',
+        items: [
+          { path: '/roadmap/spec', icon: FileText, label: 'Spec Versioning', spec: '§16.6', backend: 'routers.documents', status: 'new' },
+          { path: '/roadmap/future-capabilities', icon: Sparkles, label: 'Future Capabilities', spec: '§16.7', backend: 'routers.documents', status: 'new' },
         ],
       },
     ],

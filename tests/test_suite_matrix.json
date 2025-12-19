@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated_at": "2025-12-18T17:42:06.800258+00:00",
-    "repo_root": "/Users/sum/Project/os_dashboard_ai_assistant",
-    "feature_count": 77,
+    "generated_at": "2025-12-19T03:39:25.362172+00:00",
+    "repo_root": "/Users/chrisdixon/Projects/os_dashboard_ai_assistant",
+    "feature_count": 79,
     "level_count": 4,
     "mode_count": 4
   },
@@ -5606,6 +5606,198 @@
                 "Verify regression acceptance criteria and record findings."
               ],
               "expected_result": "Personalization Page satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Project Orchestrator Page",
+      "source": "frontend",
+      "path": "frontend/src/pages/ProjectOrchestrator.tsx",
+      "slug": "frontend-projectorchestrator",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "frontend-projectorchestrator-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-projectorchestrator-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-projectorchestrator-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-projectorchestrator-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "frontend-projectorchestrator-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-projectorchestrator-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-projectorchestrator-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-projectorchestrator-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "frontend-projectorchestrator-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-projectorchestrator-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-projectorchestrator-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-projectorchestrator-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "frontend-projectorchestrator-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "frontend-projectorchestrator-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "frontend-projectorchestrator-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies functional constraints without regressions."
+            },
+            {
+              "id": "frontend-projectorchestrator-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Project Orchestrator Page.",
+              "steps": [
+                "Exercise Project Orchestrator Page at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator Page satisfies regression constraints without regressions."
             }
           ]
         }
@@ -12326,6 +12518,198 @@
                 "Verify regression acceptance criteria and record findings."
               ],
               "expected_result": "Platform API satisfies regression constraints without regressions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Project Orchestrator API",
+      "source": "backend",
+      "path": "backend_api/routers/project_orchestrator.py",
+      "slug": "backend-project-orchestrator",
+      "levels": [
+        {
+          "type": "unit",
+          "description": "Component-level validation focusing on isolated logic.",
+          "cases": [
+            {
+              "id": "backend-project-orchestrator-unit-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the unit scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-project-orchestrator-unit-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the unit scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-project-orchestrator-unit-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the unit scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-project-orchestrator-unit-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the unit scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "integration",
+          "description": "Cross-module checks covering API + UI contracts.",
+          "cases": [
+            {
+              "id": "backend-project-orchestrator-integration-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the integration scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-project-orchestrator-integration-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the integration scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-project-orchestrator-integration-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the integration scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-project-orchestrator-integration-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the integration scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system",
+          "description": "End-to-end validation of a single deployable surface.",
+          "cases": [
+            {
+              "id": "backend-project-orchestrator-system-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the system scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-project-orchestrator-system-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the system scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-project-orchestrator-system-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the system scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-project-orchestrator-system-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the system scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies regression constraints without regressions."
+            }
+          ]
+        },
+        {
+          "type": "system_of_systems",
+          "description": "Multi-surface scenarios spanning desktop/web/backend orchestration.",
+          "cases": [
+            {
+              "id": "backend-project-orchestrator-system_of_systems-sanity",
+              "mode": "sanity",
+              "objective": "Happy-path verification after builds. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the system_of_systems scope.",
+                "Verify sanity acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies sanity constraints without regressions."
+            },
+            {
+              "id": "backend-project-orchestrator-system_of_systems-smoke",
+              "mode": "smoke",
+              "objective": "Critical path coverage for deployments. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the system_of_systems scope.",
+                "Verify smoke acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies smoke constraints without regressions."
+            },
+            {
+              "id": "backend-project-orchestrator-system_of_systems-functional",
+              "mode": "functional",
+              "objective": "Detailed behavior checks per feature. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the system_of_systems scope.",
+                "Verify functional acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies functional constraints without regressions."
+            },
+            {
+              "id": "backend-project-orchestrator-system_of_systems-regression",
+              "mode": "regression",
+              "objective": "Guards against known/previous issues. for Project Orchestrator API.",
+              "steps": [
+                "Exercise Project Orchestrator API at the system_of_systems scope.",
+                "Verify regression acceptance criteria and record findings."
+              ],
+              "expected_result": "Project Orchestrator API satisfies regression constraints without regressions."
             }
           ]
         }

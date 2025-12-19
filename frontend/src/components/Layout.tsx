@@ -43,270 +43,222 @@ import {
 import { applyTheme, defaultTheme } from '../theme'
 import { useAppSettings } from '../hooks/useSettings'
 import { UnifiedAIPanel } from './UnifiedAIPanel'
-import { throttle } from '../shared/utils'
+import { navigationManifest, findCategoryByPath, getAllPagesFromCategory, type NavCategory } from '../data/navigationManifest'
 
 interface LayoutProps {
   children: ReactNode
 }
 
-interface NavItem {
-  path: string
-  icon: React.ComponentType<{ className?: string }>
-  label: string
-  children?: NavItem[]
-  groups?: NavGroup[]
+interface NavDropdownProps {
+  category: NavCategory
+  active: boolean
+  expanded: boolean
+  onToggle: () => void
+  onClose: () => void
+  location: { pathname: string }
 }
 
-interface NavGroup {
-  label: string
-  description?: string
-  items: NavItem[]
-}
+function NavDropdown({ category, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const Icon = category.icon
 
-const extractChildren = (item: NavItem): NavItem[] => {
-  if (item.groups && item.groups.length) {
-    return item.groups.flatMap((group) => group.items)
-  }
-  return item.children ?? []
-}
+  useEffect(() => {
+    if (expanded && buttonRef.current && dropdownRef.current) {
+      const buttonRect = buttonRef.current.getBoundingClientRect()
+      const viewportWidth = window.innerWidth
+      const dropdownWidth = 288 // w-72
+      
+      let left = buttonRect.left
+      if (left + dropdownWidth > viewportWidth) {
+        left = viewportWidth - dropdownWidth - 16
+      }
+      if (left < 16) {
+        left = 16
+      }
 
-const NAV_ITEMS: NavItem[] = [
-  {
-    path: '/dashboard',
-    icon: LayoutDashboard,
-    label: 'Mission Control',
-    groups: [
-      {
-        label: 'Core Flight Deck · Spec §1.7',
-        description: 'Dashboard, tasks, and projects for the driver-aware loop.',
-        items: [
-          { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-          { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
-          { path: '/projects', icon: FolderKanban, label: 'Projects' },
-        ],
-      },
-      {
-        label: 'Engagement & Persona Surfaces · Spec §7.12',
-        description: 'Chat, collaboration, and personalization stay one click away.',
-        items: [
-          { path: '/chat', icon: MessageSquare, label: 'Chat' },
-          { path: '/collaboration', icon: Users, label: 'Collaboration' },
-          { path: '/personalization', icon: Target, label: 'Personalization' },
-          { path: '/search', icon: SearchIcon, label: 'Search & Discovery' },
-        ],
-      },
-    ],
-  },
-  {
-    path: '/work',
-    icon: BookOpen,
-    label: 'Workspaces',
-    groups: [
-      {
-        label: 'Research & Simulation · Spec §7.4',
-        items: [{ path: '/research', icon: FlaskConical, label: 'Research Hub' }],
-      },
-      {
-        label: 'Writer & Templates · Spec §7.5',
-        items: [
-          { path: '/work/writer', icon: BookOpen, label: 'Writer Workstation' },
-          { path: '/work/templates', icon: LayoutTemplate, label: 'Templates' },
-        ],
-      },
-      {
-        label: 'Tools & Applied Intelligence',
-        description: 'Shared tools and terminal surfaces for workspace operators.',
-        items: [
-          { path: '/work/tools', icon: Terminal, label: 'Tools & Terminal' },
-          { path: '/workspace/health', icon: Activity, label: 'Workspace Health' },
-        ],
-      },
-    ],
-  },
-  {
-    path: '/ai',
-    icon: Brain,
-    label: 'AI Fabric',
-    groups: [
-      {
-        label: 'Ops & Driver Fabric · Spec §5.1/§5.12',
-        items: [
-          { path: '/ai/operations', icon: Cpu, label: 'AI Operations' },
-          { path: '/ai/os', icon: ServerCog, label: 'AI OS Control' },
-          { path: '/ai/mlops', icon: Bot, label: 'MLOps' },
-          { path: '/ai/intents', icon: Zap, label: 'Intent Processor' },
-        ],
-      },
-      {
-        label: 'Cognitive Engines · Spec §4',
-        items: [
-          { path: '/ai/copilot', icon: Bot, label: 'AI Copilot' },
-          { path: '/ai/advanced', icon: Brain, label: 'Advanced AI Engine' },
-          { path: '/ai/systems', icon: Layers, label: 'Systems Map' },
-        ],
-      },
-      {
-        label: 'Automation & Capsules · Spec §8',
-        items: [
-          { path: '/ai/workflows', icon: Workflow, label: 'Workflow Orchestrator' },
-          { path: '/ai/capsules', icon: Package, label: 'Capsule Marketplace' },
-          { path: '/ai/autofix', icon: Wrench, label: 'Auto-Fix Console' },
-        ],
-      },
-      {
-        label: 'Edge & Security · Spec §7.7/§10',
-        items: [
-          { path: '/ai/security', icon: Shield, label: 'Security Guardian' },
-          { path: '/ai/edge', icon: Satellite, label: 'Edge Computing' },
-          { path: '/ai/vision', icon: Eye, label: 'Computer Vision' },
-        ],
-      },
-      {
-        label: 'NAS & Simulation · Spec §7.4',
-        items: [
-          { path: '/ai/nas', icon: Dna, label: 'NAS Console' },
-          { path: '/ai/nas/experiments', icon: FlaskConical, label: 'Experiment Console' },
-          { path: '/ai/nas/simulator', icon: Layers, label: 'NAS Simulator' },
-        ],
-      },
-    ],
-  },
-  {
-    path: '/integrations',
-    icon: Plug,
-    label: 'Drivers & Integrations',
-    groups: [
-      {
-        label: 'Connectors · Spec §9.18',
-        items: [
-          { path: '/integrations', icon: Plug, label: 'Overview' },
-          { path: '/integrations/api-connectors', icon: Network, label: 'API Connectors' },
-          { path: '/integrations/office', icon: Activity, label: 'Office Realtime' },
-        ],
-      },
-      {
-        label: 'Execution Surfaces · Spec §5.3',
-        description: 'Driver-oriented system surfaces for workflows + security.',
-        items: [
-          { path: '/systems/security', icon: Shield, label: 'Security Operations' },
-          { path: '/systems/network', icon: Network, label: 'Network Monitoring' },
-          { path: '/systems/workflows', icon: Workflow, label: 'Workflow Orchestration' },
-          { path: '/systems/nas', icon: Layers, label: 'NAS Simulator' },
-          { path: '/systems/edge', icon: Satellite, label: 'Edge Systems' },
-        ],
-      },
-    ],
-  },
-  {
-    path: '/analytics',
-    icon: BarChart3,
-    label: 'Governance & Evidence',
-    groups: [
-      {
-        label: 'Telemetry · Spec §11',
-        items: [
-          { path: '/analytics', icon: BarChart3, label: 'Analytics' },
-          { path: '/monitoring', icon: Activity, label: 'Monitoring' },
-          { path: '/observability', icon: Radio, label: 'Observability' },
-        ],
-      },
-      {
-        label: 'Finance & Audit · Spec §8.17/§15',
-        items: [
-          { path: '/billing', icon: CreditCard, label: 'Billing & Usage' },
-          { path: '/audit', icon: ClipboardList, label: 'Audit Evidence' },
-        ],
-      },
-    ],
-  },
-  {
-    path: '/vision',
-    icon: Sparkles,
-    label: 'Vision & Docs',
-    groups: [
-      {
-        label: 'Vision Deck · Spec §17',
-        items: [
-          { path: '/vision', icon: Compass, label: 'Vision Deck Hub' },
-          { path: '/future/core_os', icon: Layers, label: 'Core OS Engines' },
-          { path: '/future/advanced', icon: Brain, label: 'Advanced Horizons' },
-          { path: '/future/super', icon: Dna, label: 'Super Capabilities' },
-          { path: '/future/hyper', icon: Satellite, label: 'Hyper Network' },
-          { path: '/future/ultra', icon: Workflow, label: 'Ultra Scale' },
-          { path: '/future/supreme', icon: Shield, label: 'Supreme' },
-          { path: '/future/ascend', icon: Shield, label: 'Ascend' },
-          { path: '/future/meta', icon: Compass, label: 'Meta Envelope' },
-        ],
-      },
-      {
-        label: 'Canon & References',
-        description: 'Spec + migration docs stay co-located.',
-        items: [
-          { path: '/docs', icon: FileText, label: 'Docs Hub' },
-          { path: '/docs/spec-sheet', icon: Compass, label: 'Technical Spec Sheet' },
-          { path: '/docs/migration_continued.md', icon: FileText, label: 'Migration Continued' },
-          { path: '/docs/projects.html', icon: ExternalLink, label: 'Legacy Projects HTML' },
-        ],
-      },
-    ],
-  },
-  { path: '/settings', icon: Settings, label: 'Settings' },
-]
+      dropdownRef.current.style.top = `${buttonRect.bottom + 8}px`
+      dropdownRef.current.style.left = `${left}px`
+    }
+  }, [expanded])
 
-interface SidebarProps {
-  item: NavItem
-  currentPath: string
-}
+  useEffect(() => {
+    if (!expanded) return
 
-function Sidebar({ item, currentPath }: SidebarProps) {
-  if (!item.groups && !item.children) return null
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        buttonRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        onClose()
+      }
+    }
 
-  const groups = item.groups || [{ label: '', items: item.children || [] }]
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [expanded, onClose])
 
   return (
-    <aside className="hidden lg:block w-64 flex-shrink-0">
-      <div className="sticky top-24 space-y-6">
-        <div className="bg-[color:var(--osd-surface)]/80 backdrop-blur-md rounded-xl shadow-sm border border-[color:var(--osd-border)] p-4">
-          <div className="mb-4 pb-3 border-b border-[color:var(--osd-border)]">
-            <h2 className="font-semibold text-[color:var(--osd-text)] flex items-center gap-2">
-              <item.icon className="w-5 h-5 text-[color:var(--osd-accent)]" />
-              {item.label}
-            </h2>
-          </div>
-          
-          <div className="space-y-6">
-            {groups.map((group, idx) => (
-              <div key={idx} className="space-y-2">
+    <>
+      <div className="relative group flex items-center">
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={onToggle}
+          className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
+          aria-haspopup="menu"
+          aria-expanded={expanded}
+        >
+          <Icon className="w-5 h-5 mr-2" />
+          {category.label}
+          <ChevronDown
+            className={`w-4 h-4 ml-1 transition-transform duration-150 ${
+              expanded ? 'transform rotate-180' : ''
+            }`}
+          />
+        </button>
+      </div>
+      {expanded &&
+        createPortal(
+          <div ref={dropdownRef} className="osd-dropdown w-72" style={{ position: 'fixed', zIndex: 99999 }}>
+            {category.groups.map((group, groupIndex) => (
+              <div
+                key={`${category.path}-group-${groupIndex}`}
+                className="px-4 py-3 border-b border-white/5 last:border-b-0"
+              >
                 {group.label && (
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-[color:var(--osd-muted)] px-2">
-                    {group.label}
-                  </h3>
+                  <div className="mb-2 space-y-1">
+                    <p className="text-[0.65rem] uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
+                      {group.label}
+                      {group.spec && <span className="ml-1 text-[0.6rem]">· {group.spec}</span>}
+                    </p>
+                    {group.description && (
+                      <p className="text-[0.7rem] text-[color:var(--osd-muted)]">{group.description}</p>
+                    )}
+                  </div>
                 )}
                 <div className="space-y-1">
-                  {group.items.map((subItem) => {
-                    const isActive = currentPath === subItem.path || currentPath.startsWith(subItem.path + '/')
+                  {group.items.map((item) => {
+                    const ItemIcon = item.icon
+                    const itemActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/')
                     return (
                       <Link
-                        key={subItem.path}
-                        to={subItem.path}
-                        className={`
-                          flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                          ${isActive 
-                            ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20' 
-                            : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surfaceAlt)]'
-                          }
-                        `}
+                        key={item.path}
+                        to={item.path}
+                        className={`osd-dropdown-link ${itemActive ? 'osd-dropdown-link--active' : ''}`}
+                        onClick={onClose}
                       >
-                        <subItem.icon className={`w-4 h-4 ${isActive ? 'text-[color:var(--osd-accent)]' : ''}`} />
-                        {subItem.label}
+                        <ItemIcon className="w-4 h-4 mr-2" />
+                        {item.label}
+                        {item.status === 'new' && (
+                          <span className="ml-auto text-[0.6rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">
+                            NEW
+                          </span>
+                        )}
                       </Link>
                     )
                   })}
                 </div>
               </div>
             ))}
+          </div>,
+          document.body
+        )}
+    </>
+  )
+}
+
+interface SidebarProps {
+  category: NavCategory
+  currentPath: string
+}
+
+function Sidebar({ category, currentPath }: SidebarProps) {
+  const allPages = getAllPagesFromCategory(category)
+  if (allPages.length === 0) return null
+
+  return (
+    <aside className="hidden lg:block w-64 flex-shrink-0">
+      <div className="sticky top-24 space-y-4">
+        {/* Category Header */}
+        <div className="bg-[color:var(--osd-surface)]/80 backdrop-blur-md rounded-xl shadow-sm border border-[color:var(--osd-border)] p-4">
+          <div className="mb-4 pb-3 border-b border-[color:var(--osd-border)]">
+            <div className="flex items-center gap-2 mb-1">
+              <category.icon className="w-5 h-5 text-[color:var(--osd-accent)]" />
+              <h2 className="font-semibold text-[color:var(--osd-text)]">{category.label}</h2>
+            </div>
+            {category.spec && (
+              <p className="text-[0.65rem] uppercase tracking-[0.35em] text-[color:var(--osd-muted)] mt-1">
+                Spec {category.spec}
+              </p>
+            )}
+            {category.description && (
+              <p className="text-[0.7rem] text-[color:var(--osd-muted)] mt-2">{category.description}</p>
+            )}
           </div>
         </div>
+
+        {/* Groups and Pages */}
+        {category.groups.map((group, groupIdx) => (
+          <div
+            key={`sidebar-group-${groupIdx}`}
+            className="bg-[color:var(--osd-surface)]/80 backdrop-blur-md rounded-xl shadow-sm border border-[color:var(--osd-border)]"
+          >
+            <div className="px-4 pt-3">
+              {group.label && (
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[color:var(--osd-muted)] mb-2">
+                  {group.label}
+                  {group.spec && <span className="ml-1 text-[0.6rem] normal-case">· {group.spec}</span>}
+                </h3>
+              )}
+              {group.description && (
+                <p className="text-[0.7rem] text-[color:var(--osd-muted)] mb-2">{group.description}</p>
+              )}
+            </div>
+            <nav className="px-2 pb-2">
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const ItemIcon = item.icon
+                  const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/')
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`
+                        flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                        ${isActive 
+                          ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20 shadow-sm' 
+                          : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
+                        }
+                      `}
+                      aria-current={isActive ? 'page' : undefined}
+                    >
+                      <ItemIcon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[color:var(--osd-accent)]' : ''}`} />
+                      <span className="truncate flex-1">{item.label}</span>
+                      {item.status === 'new' && (
+                        <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 shrink-0">
+                          NEW
+                        </span>
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
+            </nav>
+          </div>
+        ))}
       </div>
     </aside>
   )
@@ -314,6 +266,7 @@ function Sidebar({ item, currentPath }: SidebarProps) {
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const { data: settings } = useAppSettings()
   const aiButtonRef = useRef<HTMLButtonElement>(null)
   const [aiPanelOpen, setAiPanelOpen] = useState<boolean>(() => {
@@ -381,205 +334,22 @@ export default function Layout({ children }: LayoutProps) {
     })
   }, [])
 
-  const navItems: NavItem[] = [
-    {
-      path: '/dashboard',
-      icon: LayoutDashboard,
-      label: 'Mission Control',
-      groups: [
-        {
-          label: 'Core Flight Deck · Spec §1.7',
-          description: 'Dashboard, tasks, and projects for the driver-aware loop.',
-          items: [
-            { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-            { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
-            { path: '/projects', icon: FolderKanban, label: 'Projects' },
-          ],
-        },
-        {
-          label: 'Engagement & Persona Surfaces · Spec §7.12',
-          description: 'Chat, collaboration, and personalization stay one click away.',
-          items: [
-            { path: '/chat', icon: MessageSquare, label: 'Chat' },
-            { path: '/collaboration', icon: Users, label: 'Collaboration' },
-            { path: '/personalization', icon: Target, label: 'Personalization' },
-            { path: '/search', icon: SearchIcon, label: 'Search & Discovery' },
-          ],
-        },
-      ],
-    },
-    {
-      path: '/work',
-      icon: BookOpen,
-      label: 'Workspaces',
-      groups: [
-        {
-          label: 'Research & Simulation · Spec §7.4',
-          items: [{ path: '/research', icon: FlaskConical, label: 'Research Hub' }],
-        },
-        {
-          label: 'Writer & Templates · Spec §7.5',
-          items: [
-            { path: '/work/writer', icon: BookOpen, label: 'Writer Workstation' },
-            { path: '/work/templates', icon: LayoutTemplate, label: 'Templates' },
-          ],
-        },
-        {
-          label: 'Tools & Applied Intelligence',
-          description: 'Shared tools and terminal surfaces for workspace operators.',
-          items: [
-            { path: '/work/tools', icon: Terminal, label: 'Tools & Terminal' },
-            { path: '/workspace/health', icon: Activity, label: 'Workspace Health' },
-            { path: '/workspace/orchestrator', icon: Network, label: 'Project Orchestrator' },
-          ],
-        },
-      ],
-    },
-    {
-      path: '/ai',
-      icon: Brain,
-      label: 'AI Fabric',
-      groups: [
-        {
-          label: 'Ops & Driver Fabric · Spec §5.1/§5.12',
-          items: [
-            { path: '/ai/operations', icon: Cpu, label: 'AI Operations' },
-            { path: '/ai/os', icon: ServerCog, label: 'AI OS Control' },
-            { path: '/ai/mlops', icon: Bot, label: 'MLOps' },
-            { path: '/ai/intents', icon: Zap, label: 'Intent Processor' },
-          ],
-        },
-        {
-          label: 'Cognitive Engines · Spec §4',
-          items: [
-            { path: '/ai/copilot', icon: Bot, label: 'AI Copilot' },
-            { path: '/ai/advanced', icon: Brain, label: 'Advanced AI Engine' },
-            { path: '/ai/systems', icon: Layers, label: 'Systems Map' },
-          ],
-        },
-        {
-          label: 'Automation & Capsules · Spec §8',
-          items: [
-            { path: '/ai/workflows', icon: Workflow, label: 'Workflow Orchestrator' },
-            { path: '/ai/capsules', icon: Package, label: 'Capsule Marketplace' },
-            { path: '/ai/autofix', icon: Wrench, label: 'Auto-Fix Console' },
-          ],
-        },
-        {
-          label: 'Edge & Security · Spec §7.7/§10',
-          items: [
-            { path: '/ai/security', icon: Shield, label: 'Security Guardian' },
-            { path: '/ai/edge', icon: Satellite, label: 'Edge Computing' },
-            { path: '/ai/vision', icon: Eye, label: 'Computer Vision' },
-          ],
-        },
-        {
-          label: 'NAS & Simulation · Spec §7.4',
-          items: [
-            { path: '/ai/nas', icon: Dna, label: 'NAS Console' },
-            { path: '/ai/nas/experiments', icon: FlaskConical, label: 'Experiment Console' },
-            { path: '/ai/nas/simulator', icon: Layers, label: 'NAS Simulator' },
-          ],
-        },
-      ],
-    },
-    {
-      path: '/integrations',
-      icon: Plug,
-      label: 'Drivers & Integrations',
-      groups: [
-        {
-          label: 'Connectors · Spec §9.18',
-          items: [
-            { path: '/integrations', icon: Plug, label: 'Overview' },
-            { path: '/integrations/api-connectors', icon: Network, label: 'API Connectors' },
-            { path: '/integrations/office', icon: Activity, label: 'Office Realtime' },
-          ],
-        },
-        {
-          label: 'Execution Surfaces · Spec §5.3',
-          description: 'Driver-oriented system surfaces for workflows + security.',
-          items: [
-            { path: '/systems/security', icon: Shield, label: 'Security Operations' },
-            { path: '/systems/network', icon: Network, label: 'Network Monitoring' },
-            { path: '/systems/workflows', icon: Workflow, label: 'Workflow Orchestration' },
-            { path: '/systems/nas', icon: Layers, label: 'NAS Simulator' },
-            { path: '/systems/edge', icon: Satellite, label: 'Edge Systems' },
-          ],
-        },
-      ],
-    },
-    {
-      path: '/analytics',
-      icon: BarChart3,
-      label: 'Governance & Evidence',
-      groups: [
-        {
-          label: 'Telemetry · Spec §11',
-          items: [
-            { path: '/analytics', icon: BarChart3, label: 'Analytics' },
-            { path: '/monitoring', icon: Activity, label: 'Monitoring' },
-            { path: '/observability', icon: Radio, label: 'Observability' },
-          ],
-        },
-        {
-          label: 'Finance & Audit · Spec §8.17/§15',
-          items: [
-            { path: '/billing', icon: CreditCard, label: 'Billing & Usage' },
-            { path: '/audit', icon: ClipboardList, label: 'Audit Evidence' },
-          ],
-        },
-      ],
-    },
-    {
-      path: '/vision',
-      icon: Sparkles,
-      label: 'Vision & Docs',
-      groups: [
-        {
-          label: 'Vision Deck · Spec §17',
-          items: [
-            { path: '/vision', icon: Compass, label: 'Vision Deck Hub' },
-            { path: '/future/core_os', icon: Layers, label: 'Core OS Engines' },
-            { path: '/future/advanced', icon: Brain, label: 'Advanced Horizons' },
-            { path: '/future/super', icon: Dna, label: 'Super Capabilities' },
-            { path: '/future/hyper', icon: Satellite, label: 'Hyper Network' },
-            { path: '/future/ultra', icon: Workflow, label: 'Ultra Scale' },
-            { path: '/future/supreme', icon: Shield, label: 'Supreme' },
-            { path: '/future/ascend', icon: Shield, label: 'Ascend' },
-            { path: '/future/meta', icon: Compass, label: 'Meta Envelope' },
-          ],
-        },
-        {
-          label: 'Canon & References',
-          description: 'Spec + migration docs stay co-located.',
-          items: [
-            { path: '/docs', icon: FileText, label: 'Docs Hub' },
-            { path: '/docs/spec-sheet', icon: Compass, label: 'Technical Spec Sheet' },
-            { path: '/docs/migration_continued.md', icon: FileText, label: 'Migration Continued' },
-            { path: '/docs/projects.html', icon: ExternalLink, label: 'Legacy Projects HTML' },
-          ],
-        },
-      ],
-    },
-    { path: '/settings', icon: Settings, label: 'Settings' },
-  ]
+  // Find active category based on current path
+  const activeCategory = useMemo(() => {
+    return findCategoryByPath(location.pathname) || navigationManifest[0]
+  }, [location.pathname])
 
-  const isActive = (path: string, children?: NavItem[]): boolean => {
-    if (path === '/') {
-      return location.pathname === '/'
-    }
-    if (location.pathname === path) return true
-    if (children && children.length) {
-      return children.some((child) => location.pathname.startsWith(child.path))
-    }
-    return location.pathname.startsWith(`${path}/`)
+  // Check if a category is active
+  const isCategoryActive = (category: NavCategory): boolean => {
+    if (location.pathname === category.path) return true
+    const allPages = getAllPagesFromCategory(category)
+    return allPages.some((page) => location.pathname === page.path || location.pathname.startsWith(page.path + '/'))
   }
 
-  // Find the current active top-level category
-  const activeCategory = NAV_ITEMS.find(item => 
-    isActive(item.path, extractChildren(item))
-  )
+  // Check if category is expanded
+  const isCategoryExpanded = (category: NavCategory): boolean => {
+    return expandedGroups.has(category.path) || isCategoryActive(category)
+  }
 
   return (
     <div className="osd-shell min-h-screen text-[color:var(--osd-text)]">
@@ -600,20 +370,34 @@ export default function Layout({ children }: LayoutProps) {
                   </div>
                 </div>
                 <div className="hidden sm:ml-6 sm:flex sm:space-x-2 flex-1 overflow-x-auto overflow-y-visible items-center scrollbar-hide" style={{ position: 'relative', zIndex: 2 }}>
-                  {NAV_ITEMS.map((item) => {
-                    const Icon = item.icon
-                    const childItems = extractChildren(item)
-                    const active = isActive(item.path, childItems)
+                  {navigationManifest.map((category) => {
+                    const active = isCategoryActive(category)
+                    const expanded = isCategoryExpanded(category)
+                    const allPages = getAllPagesFromCategory(category)
+
+                    if (allPages.length > 0) {
+                      return (
+                        <NavDropdown
+                          key={category.path}
+                          category={category}
+                          active={active}
+                          expanded={expanded}
+                          onToggle={() => toggleGroup(category.path)}
+                          onClose={() => closeGroup(category.path)}
+                          location={location}
+                        />
+                      )
+                    }
 
                     return (
-                      <div key={item.path} className="flex items-center flex-shrink-0">
+                      <div key={category.path} className="flex items-center flex-shrink-0">
                         <Link
-                          to={item.path}
+                          to={category.path}
                           className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
                           aria-current={active ? 'page' : undefined}
                         >
-                          <Icon className="w-5 h-5 mr-2 flex-shrink-0" />
-                          <span className="whitespace-nowrap">{item.label}</span>
+                          <category.icon className="w-5 h-5 mr-2 flex-shrink-0" />
+                          <span className="whitespace-nowrap">{category.label}</span>
                         </Link>
                       </div>
                     )
@@ -668,14 +452,16 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </nav>
 
-      {/* Main Content */}
+      {/* Main Content with Left Sidebar */}
       <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-8rem)]">
-        <div className="flex flex-col lg:flex-row gap-8 w-full">
-          {activeCategory && <Sidebar item={activeCategory} currentPath={location.pathname} />}
-          
-          <div className="flex-1 min-w-0 w-full">
-            {children}
-          </div>
+        <div className="flex w-full gap-6">
+          {/* Left Sidebar Navigation - Shows pages for active category */}
+          {activeCategory && getAllPagesFromCategory(activeCategory).length > 0 && (
+            <Sidebar category={activeCategory} currentPath={location.pathname} />
+          )}
+
+          {/* Main Content Pane */}
+          <div className="flex-1 min-w-0 w-full">{children}</div>
         </div>
       </main>
 
