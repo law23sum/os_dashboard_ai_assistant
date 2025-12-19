@@ -405,6 +405,67 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
         """
     )
     
+    # Create indexes for frequently queried columns to improve performance
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_tasks_project 
+        ON tasks(project)
+    """)
+    
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_tasks_status 
+        ON tasks(status)
+    """)
+    
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_tasks_priority 
+        ON tasks(priority)
+    """)
+    
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_tasks_created_at 
+        ON tasks(created_at DESC)
+    """)
+    
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_tasks_project_status 
+        ON tasks(project, status)
+    """)
+    
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_projects_status 
+        ON projects(status)
+    """)
+    
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_projects_order 
+        ON projects(order_num, name)
+    """)
+    
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_chat_messages_persona 
+        ON chat_messages(persona, created_at ASC, id ASC)
+    """)
+    
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_note_links_project 
+        ON note_links(project_id)
+    """)
+    
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_note_links_integration 
+        ON note_links(integration_type)
+    """)
+    
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_project_events_project 
+        ON project_events(project_id, created_at DESC)
+    """)
+    
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_agent_runs_created 
+        ON agent_runs(created_at DESC)
+    """)
+    
     # Document versions table for tracking document history
     c.execute("""
         CREATE TABLE IF NOT EXISTS document_versions (
