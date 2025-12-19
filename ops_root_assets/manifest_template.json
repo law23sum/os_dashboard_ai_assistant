@@ -1,0 +1,63 @@
+{
+  "$schema": "https://os-dashboard.ai/schemas/osdash-auto-manifest-v1.json",
+  "version": "1.0",
+  "enabled": true,
+  "project": {
+    "name": "Your Project Name",
+    "description": "Brief project description",
+    "language": "python",
+    "framework": null
+  },
+  "automation": {
+    "autofix_enabled": true,
+    "todo_continuation": true,
+    "lint_on_save": false,
+    "test_on_commit": false
+  },
+  "commands": {
+    "test": "python -m pytest -q",
+    "lint": "python -m ruff check .",
+    "format": "python -m ruff format .",
+    "type_check": "python -m mypy .",
+    "build": null,
+    "deploy": null
+  },
+  "custom_scripts": {
+    "example": "echo 'Custom script example'"
+  },
+  "health_checks": {
+    "endpoints": [],
+    "files": [],
+    "commands": []
+  },
+  "skip_patterns": [
+    "node_modules",
+    "__pycache__",
+    ".venv",
+    "venv",
+    ".git",
+    "dist",
+    "build",
+    ".mypy_cache",
+    ".pytest_cache"
+  ],
+  "dependencies": {
+    "required_tools": ["python", "git"],
+    "optional_tools": ["ruff", "mypy", "pytest"],
+    "python_version": ">=3.9",
+    "node_version": null
+  },
+  "notifications": {
+    "on_failure": [],
+    "on_success": [],
+    "slack_webhook": null,
+    "email": null
+  },
+  "metadata": {
+    "owner": null,
+    "team": null,
+    "priority": "normal",
+    "tags": []
+  },
+  "notes": "This is a template manifest. Customize it for your project."
+}

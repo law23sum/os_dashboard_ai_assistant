@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "test_command": "python -m pytest -q --tb=short",
+  "lint_command": "python -m ruff check .",
+  "autofix_enabled": true,
+  "todo_continuation": true,
+  "skip_patterns": [
+    "node_modules",
+    "__pycache__",
+    ".venv",
+    "dist",
+    "build"
+  ],
+  "custom_scripts": {
+    "full_test": "python -m pytest tests/ -v",
+    "type_check": "python -m mypy backend_api assistant_core",
+    "format": "python -m ruff format ."
+  },
+  "notes": "OS Dashboard AI Assistant - Primary project manifest. This file configures how the unified orchestrator and auto-fix systems interact with this project."
+}
