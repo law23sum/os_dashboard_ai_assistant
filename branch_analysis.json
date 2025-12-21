@@ -1,0 +1,172 @@
+[
+  {
+    "branch": "integration/restore-pages-ia",
+    "page_count": 1551,
+    "has_navigation": true
+  },
+  {
+    "branch": "emergency-restore-dec20",
+    "page_count": 1355,
+    "has_navigation": true
+  },
+  {
+    "branch": "hotfix/gui-restore-dec20",
+    "page_count": 1355,
+    "has_navigation": true
+  },
+  {
+    "branch": "integration/merge-commits-preserve-pages",
+    "page_count": 720,
+    "has_navigation": true
+  },
+  {
+    "branch": "integration/restore-pages-ia-codex-final",
+    "page_count": 720,
+    "has_navigation": true
+  },
+  {
+    "branch": "integration/restore-pages-ia-ktg",
+    "page_count": 487,
+    "has_navigation": true
+  },
+  {
+    "branch": "ia-reorg-merge-20251221",
+    "page_count": 53,
+    "has_navigation": true
+  },
+  {
+    "branch": "integration/ia-navigation-merge",
+    "page_count": 53,
+    "has_navigation": true
+  },
+  {
+    "branch": "backup-gui-crash-state",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "backup-pre-restore-20251220",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "fix/ia-navigation-merge",
+    "page_count": 48,
+    "has_navigation": true
+  },
+  {
+    "branch": "fix/ia-navigation-structure",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "fix/ia-navigation-structure-updated",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "fix/restore-gui-glory",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "fix/restore-gui-glory-20251220",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "gui-fully-restored",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "gui-restore-3a154a6-work",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "gui-restore-stable",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "gui-restore-stable-3a154a6",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "integration-merge-20251221",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "integration/codex-ia-restore-final",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "integration/ia-fix-merge",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "integration/ia-merge",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "integration/ia-navigation-final",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "integration/ia-refactor",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "integration/merge-gui-commits-20251221",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "integration/restore-pages-ia-codex",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "integration/restore-pages-ia-v2",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "kno/gui-restore-58cfc34",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "restore-gui-comprehensive",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "restore-gui-fix",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "restore-ui",
+    "page_count": 48,
+    "has_navigation": false
+  },
+  {
+    "branch": "bugfix-from-old-commit",
+    "page_count": 0,
+    "has_navigation": false
+  },
+  {
+    "branch": "merge-a27-chain",
+    "page_count": 0,
+    "has_navigation": false
+  }
+]

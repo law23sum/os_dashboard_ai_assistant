@@ -38,6 +38,18 @@ export function isAuthenticated(): boolean {
   return !!localStorage.getItem('access_token')
 }
 
+export function getAccessToken(): string | null {
+  return localStorage.getItem('access_token')
+}
+
+export function setAccessToken(token: string | null): void {
+  if (token) {
+    localStorage.setItem('access_token', token)
+  } else {
+    localStorage.removeItem('access_token')
+  }
+}
+
 export function getCurrentUser() {
   const userStr = localStorage.getItem('user')
   return userStr ? JSON.parse(userStr) : null

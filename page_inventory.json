@@ -1,0 +1,1010 @@
+{
+  "frontend/src/pages/FutureDeck.tsx": {
+    "path": "frontend/src/pages/FutureDeck.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": -2,
+        "final_score": -1.7
+      },
+      "incremeents": {
+        "exists": true,
+        "score": -2,
+        "final_score": -1.8
+      },
+      "backup": {
+        "exists": true,
+        "score": -2,
+        "final_score": -1.9
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/AICopilot.tsx": {
+    "path": "frontend/src/pages/AICopilot.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Collaboration.tsx": {
+    "path": "frontend/src/pages/Collaboration.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Monitoring.tsx": {
+    "path": "frontend/src/pages/Monitoring.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/MasterOrchestrator.tsx": {
+    "path": "frontend/src/pages/MasterOrchestrator.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/IntentProcessor.tsx": {
+    "path": "frontend/src/pages/IntentProcessor.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Docs.tsx": {
+    "path": "frontend/src/pages/Docs.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 0,
+        "final_score": 0.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 0,
+        "final_score": 0.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 0,
+        "final_score": 0.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Personalization.tsx": {
+    "path": "frontend/src/pages/Personalization.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Dashboard.tsx": {
+    "path": "frontend/src/pages/Dashboard.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Admin.tsx": {
+    "path": "frontend/src/pages/Admin.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Audit.tsx": {
+    "path": "frontend/src/pages/Audit.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/APIConnectors.tsx": {
+    "path": "frontend/src/pages/APIConnectors.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Research.tsx": {
+    "path": "frontend/src/pages/Research.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 4,
+        "final_score": 4.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 4,
+        "final_score": 4.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 4,
+        "final_score": 4.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Observability.tsx": {
+    "path": "frontend/src/pages/Observability.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Billing.tsx": {
+    "path": "frontend/src/pages/Billing.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/VisionDeck.tsx": {
+    "path": "frontend/src/pages/VisionDeck.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Signup.tsx": {
+    "path": "frontend/src/pages/Signup.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 0,
+        "final_score": 0.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 0,
+        "final_score": 0.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Chat.tsx": {
+    "path": "frontend/src/pages/Chat.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Projects.tsx": {
+    "path": "frontend/src/pages/Projects.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/AutoFix.tsx": {
+    "path": "frontend/src/pages/AutoFix.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 6,
+        "final_score": 6.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 6,
+        "final_score": 6.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 6,
+        "final_score": 6.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Analytics.tsx": {
+    "path": "frontend/src/pages/Analytics.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/AdvancedSystems.tsx": {
+    "path": "frontend/src/pages/AdvancedSystems.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 2,
+        "final_score": 2.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 2,
+        "final_score": 2.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 2,
+        "final_score": 2.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Documentation.tsx": {
+    "path": "frontend/src/pages/Documentation.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/SpecPage.tsx": {
+    "path": "frontend/src/pages/SpecPage.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 1,
+        "final_score": 1.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 1,
+        "final_score": 1.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 1,
+        "final_score": 1.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Workflows.tsx": {
+    "path": "frontend/src/pages/Workflows.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/ProjectOrchestrator.tsx": {
+    "path": "frontend/src/pages/ProjectOrchestrator.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/NetworkMonitoring.tsx": {
+    "path": "frontend/src/pages/NetworkMonitoring.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 6,
+        "final_score": 6.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 6,
+        "final_score": 6.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 6,
+        "final_score": 6.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/SearchEngine.tsx": {
+    "path": "frontend/src/pages/SearchEngine.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/NAS.tsx": {
+    "path": "frontend/src/pages/NAS.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Templates.tsx": {
+    "path": "frontend/src/pages/Templates.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Settings.tsx": {
+    "path": "frontend/src/pages/Settings.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 2,
+        "final_score": 2.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 2,
+        "final_score": 2.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 2,
+        "final_score": 2.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/NeuralArchitectureSearch.tsx": {
+    "path": "frontend/src/pages/NeuralArchitectureSearch.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 4,
+        "final_score": 4.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 4,
+        "final_score": 4.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 4,
+        "final_score": 4.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Tools.tsx": {
+    "path": "frontend/src/pages/Tools.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 5,
+        "final_score": 5.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/AdvancedAI.tsx": {
+    "path": "frontend/src/pages/AdvancedAI.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/EdgeComputing.tsx": {
+    "path": "frontend/src/pages/EdgeComputing.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/SpecSheet.tsx": {
+    "path": "frontend/src/pages/SpecSheet.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 0,
+        "final_score": 0.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 0,
+        "final_score": 0.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 0,
+        "final_score": 0.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/OfficeRealtime.tsx": {
+    "path": "frontend/src/pages/OfficeRealtime.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Login.tsx": {
+    "path": "frontend/src/pages/Login.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Writer.tsx": {
+    "path": "frontend/src/pages/Writer.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 1,
+        "final_score": 1.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 1,
+        "final_score": 1.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 1,
+        "final_score": 1.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Security.tsx": {
+    "path": "frontend/src/pages/Security.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/WorkspaceHealth.tsx": {
+    "path": "frontend/src/pages/WorkspaceHealth.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 2,
+        "final_score": 2.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 2,
+        "final_score": 2.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 2,
+        "final_score": 2.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Integrations.tsx": {
+    "path": "frontend/src/pages/Integrations.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 4,
+        "final_score": 4.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 4,
+        "final_score": 4.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 4,
+        "final_score": 4.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/AIOS.tsx": {
+    "path": "frontend/src/pages/AIOS.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/MLOps.tsx": {
+    "path": "frontend/src/pages/MLOps.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/AIOps.tsx": {
+    "path": "frontend/src/pages/AIOps.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/Tasks.tsx": {
+    "path": "frontend/src/pages/Tasks.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 1,
+        "final_score": 1.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 1,
+        "final_score": 1.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 1,
+        "final_score": 1.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/ComputerVision.tsx": {
+    "path": "frontend/src/pages/ComputerVision.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  },
+  "frontend/src/pages/CapsuleMarketplace.tsx": {
+    "path": "frontend/src/pages/CapsuleMarketplace.tsx",
+    "versions": {
+      "stable": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.3
+      },
+      "incremeents": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.2
+      },
+      "backup": {
+        "exists": true,
+        "score": 3,
+        "final_score": 3.1
+      }
+    },
+    "best_commit": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256"
+  }
+}

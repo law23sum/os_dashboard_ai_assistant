@@ -1,0 +1,90 @@
+{
+  "analysis_date": "2025-12-21 10:12:36 -0500",
+  "current_branch": "incremeents",
+  "final_counts": {
+    "platforms": 15,
+    "categories": 66,
+    "features": 573,
+    "editions": 2
+  },
+  "branches_analyzed": 7,
+  "branches_merged": [
+    {
+      "branch": "ia-reorg-merge-20251221",
+      "counts": {
+        "platforms": 15,
+        "categories": 66,
+        "features": 504,
+        "editions": 2
+      },
+      "score": 5400,
+      "commit": "d51b0f3d0f44d5203cb7c55be089c14b8edb91cf"
+    },
+    {
+      "branch": "fix/restore-gui-glory",
+      "counts": {
+        "platforms": 15,
+        "categories": 66,
+        "features": 442,
+        "editions": 2
+      },
+      "score": 4780,
+      "commit": "4acea80190121b8ab79d8cd1367166bcfead8bde"
+    },
+    {
+      "branch": "fix/restore-gui-glory-20251220",
+      "counts": {
+        "platforms": 15,
+        "categories": 66,
+        "features": 442,
+        "editions": 2
+      },
+      "score": 4780,
+      "commit": "7de94feda8fb4444d2603f14bc76ee2beebb71ca"
+    },
+    {
+      "branch": "gui-fully-restored",
+      "counts": {
+        "platforms": 15,
+        "categories": 66,
+        "features": 442,
+        "editions": 2
+      },
+      "score": 4780,
+      "commit": "21406287643f3decb9d70ac43a1fb03af1f1182d"
+    },
+    {
+      "branch": "integration/ia-navigation-final",
+      "counts": {
+        "platforms": 15,
+        "categories": 66,
+        "features": 442,
+        "editions": 2
+      },
+      "score": 4780,
+      "commit": "b40d565c13b3e84ae23e0cbf3744be9d9aa6bc06"
+    },
+    {
+      "branch": "fix/ia-navigation-merge",
+      "counts": {
+        "platforms": 15,
+        "categories": 66,
+        "features": 441,
+        "editions": 2
+      },
+      "score": 4770,
+      "commit": "a0051d6e48c48cc1ebc5b9b0d8b86784015ad779"
+    },
+    {
+      "branch": "integration/restore-pages-ia-ktg",
+      "counts": {
+        "platforms": 15,
+        "categories": 66,
+        "features": 441,
+        "editions": 2
+      },
+      "score": 4770,
+      "commit": "4816a3a918645d4211f1575c9cc9b2209081b2e6"
+    }
+  ]
+}

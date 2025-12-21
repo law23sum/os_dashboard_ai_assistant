@@ -1,0 +1,176 @@
+{
+  "platforms": {
+    "workspace-3": {
+      "id": "workspace-3",
+      "label": "Dev & DevOps Workspace",
+      "path": "/workspaces/dev-&-devops",
+      "section": "7.3"
+    },
+    "workspace-4": {
+      "id": "workspace-4",
+      "label": "Research & Simulation Workspace",
+      "path": "/workspaces/research-&-simulation",
+      "section": "7.4"
+    },
+    "workspace-5": {
+      "id": "workspace-5",
+      "label": "Writer Workspace",
+      "path": "/workspaces/writer",
+      "section": "7.5"
+    },
+    "workspace-6": {
+      "id": "workspace-6",
+      "label": "Archive, Continuity & Resonance Workspace",
+      "path": "/workspaces/archive,-continuity-&-resonance",
+      "section": "7.6"
+    },
+    "workspace-7": {
+      "id": "workspace-7",
+      "label": "Cybersecurity Workspace",
+      "path": "/workspaces/cybersecurity",
+      "section": "7.7"
+    },
+    "workspace-8": {
+      "id": "workspace-8",
+      "label": "Business / Finance Workspace",
+      "path": "/workspaces/business-/-finance",
+      "section": "7.8"
+    },
+    "workspace-9": {
+      "id": "workspace-9",
+      "label": "Record Auditor & Logbook Workspace",
+      "path": "/workspaces/record-auditor-&-logbook",
+      "section": "7.9"
+    },
+    "workspace-10": {
+      "id": "workspace-10",
+      "label": "Operator & SRE Workspace",
+      "path": "/workspaces/operator-&-sre",
+      "section": "7.10"
+    },
+    "workspace-11": {
+      "id": "workspace-11",
+      "label": "Digital Twin & Enterprise Twin Workspace",
+      "path": "/workspaces/digital-twin-&-enterprise-twin",
+      "section": "7.11"
+    },
+    "mission-control": {
+      "id": "mission-control",
+      "label": "Mission Control",
+      "path": "/dashboard",
+      "section": "2"
+    },
+    "mission-architecture": {
+      "id": "mission-architecture",
+      "label": "Mission & Architecture",
+      "path": "/mission",
+      "section": "1"
+    },
+    "drivers": {
+      "id": "drivers",
+      "label": "Drivers & Integrations",
+      "path": "/drivers",
+      "section": "5"
+    },
+    "governance": {
+      "id": "governance",
+      "label": "Governance & Security",
+      "path": "/governance",
+      "section": "10"
+    },
+    "observability": {
+      "id": "observability",
+      "label": "Observability & Evidence",
+      "path": "/observability",
+      "section": "11"
+    },
+    "operations": {
+      "id": "operations",
+      "label": "Operations & Infrastructure",
+      "path": "/operations",
+      "section": "12-14"
+    }
+  },
+  "categories": {
+    "workspace-11-3": {
+      "id": "workspace-11-3",
+      "label": "Reality Twin Mesh (Full-Stack Digital Twins of Reality",
+      "path": "/workspaces/reality-twin-mesh-(full-stack-digital-twins-of-reality",
+      "platform_id": "workspace-11",
+      "section": "7.11.3"
+    },
+    "workspace-archive-1": {
+      "id": "workspace-archive-1",
+      "label": "HyperMesh",
+      "path": "/workspaces/hypermesh",
+      "platform_id": "workspace-archive",
+      "section": "7.5.1"
+    },
+    "workspace-archive-2": {
+      "id": "workspace-archive-2",
+      "label": "HyperFoundry",
+      "path": "/workspaces/hyperfoundry",
+      "platform_id": "workspace-archive",
+      "section": "7.5.2"
+    },
+    "workspace-archive-3": {
+      "id": "workspace-archive-3",
+      "label": "HyperLab",
+      "path": "/workspaces/hyperlab",
+      "platform_id": "workspace-archive",
+      "section": "7.5.3"
+    },
+    "workspace-archive-4": {
+      "id": "workspace-archive-4",
+      "label": "HyperRegent",
+      "path": "/workspaces/hyperregent",
+      "platform_id": "workspace-archive",
+      "section": "7.5.4"
+    },
+    "workspace-archive-5": {
+      "id": "workspace-archive-5",
+      "label": "HyperSymphony",
+      "path": "/workspaces/hypersymphony",
+      "platform_id": "workspace-archive",
+      "section": "7.5.5"
+    },
+    "workspace-archive-6": {
+      "id": "workspace-archive-6",
+      "label": "HyperDaemon",
+      "path": "/workspaces/hyperdaemon",
+      "platform_id": "workspace-archive",
+      "section": "7.5.6"
+    },
+    "workspace-archive-7": {
+      "id": "workspace-archive-7",
+      "label": "HyperContinuity",
+      "path": "/workspaces/hypercontinuity",
+      "platform_id": "workspace-archive",
+      "section": "7.5.7"
+    },
+    "workspace-archive-8": {
+      "id": "workspace-archive-8",
+      "label": "HyperGenesis",
+      "path": "/workspaces/hypergenesis",
+      "platform_id": "workspace-archive",
+      "section": "7.5.8"
+    }
+  },
+  "features": {},
+  "platform_categories": {
+    "workspace-11": [
+      "workspace-11-3"
+    ],
+    "workspace-archive": [
+      "workspace-archive-1",
+      "workspace-archive-2",
+      "workspace-archive-3",
+      "workspace-archive-4",
+      "workspace-archive-5",
+      "workspace-archive-6",
+      "workspace-archive-7",
+      "workspace-archive-8"
+    ]
+  },
+  "category_features": {}
+}
