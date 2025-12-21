@@ -87,7 +87,7 @@ reads/writes the shared writer workspace store so it stays in sync with the web 
 
 ## Documentation
 
-- Canonical spec structure: `documentation/OS_DashboardAIAssistantTOC.md`
+- Canonical spec structure: `documentation/os_dashboard_ai_assistant_toc.md`
 - Queue/stack map: `documentation/QUEUE_STACK_MAP.md`
 - Dead-code linkage & future hook-ups: `documentation/DEAD_CODE_LINKAGE.md`
 - UI deployment guide: `docs/ui_deployment.md`

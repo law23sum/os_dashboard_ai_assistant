@@ -124,6 +124,19 @@ from assistant_hub.command_catalog import (
     BACKEND_CLI_TEMPLATES,
 )
 from .sync_scheduler import create_default_scheduler
+
+from .integrations import (
+    GoogleCalendarIntegration,
+    GmailIntegration,
+    GitHubIntegration,
+    NotesIntegration,
+    WordIntegration,
+    ExcelIntegration,
+    OneNoteIntegration,
+    FilesystemIntegration,
+    GitIntegration,
+    PDFIntegration,
+)
 from assistant_hub.writer_workspace import WriterWorkspaceState
 from assistant_hub.dashboard_workspace import build_dashboard_snapshot
 from assistant_hub.tasks_workspace import build_task_snapshot
@@ -1828,9 +1841,6 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         buttons = FrameCls(right, style="Glass.TFrame")
         buttons.grid(row=1, column=0, sticky="e", pady=(12, 0))
 
-<<<<<<< Updated upstream
-        save_btn = ButtonCls(
-=======
     def _capture_tab_metadata(self):
         """Cache tab ids and labels so we can hide the strip but keep navigation."""
         self._tab_meta = []
@@ -17456,6 +17466,19 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
             integrations["🔌 PDF Connector"] = APIConnectorStatus("PDF", API_CONNECTORS_AVAILABLE)
             integrations["🔌 Office Files API"] = APIConnectorStatus("Office Files", API_CONNECTORS_AVAILABLE)
             integrations["🔌 OpenAI API"] = APIConnectorStatus("OpenAI", API_CONNECTORS_AVAILABLE)
+        # Get integration statuses - all available integrations
+            integrations = {
+            "Local Notes": NotesIntegration(self.conn),
+            "Google Calendar": GoogleCalendarIntegration(self.conn),
+            "Gmail": GmailIntegration(self.conn),
+            "GitHub": GitHubIntegration(self.conn),
+            "Word": WordIntegration(self.conn),
+            "Excel": ExcelIntegration(self.conn),
+            "OneNote": OneNoteIntegration(self.conn),
+            "Local Files": FilesystemIntegration(self.conn),
+            "Git": GitIntegration(self.conn),
+            "PDF": PDFIntegration(self.conn),
+        }
         
         for name, integration in integrations.items():
             # Try to authenticate to get current status
@@ -19521,9 +19544,7 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
                 self.cyberchef_status_var.set(f"{label} opened in your browser.")
             except Exception as exc:
                 messagebox.showerror("CyberChef", f"Could not open {label}:\n{exc}")
-
-        ttk.Button(
->>>>>>> Stashed changes
+        save_btn = ttk.Button(
             buttons,
             text="Save Layout",
             command=self._save_with_feedback,
@@ -19532,6 +19553,7 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         )
         save_btn.grid(row=0, column=0, sticky="e")
 
+        ButtonCls = ttkb.Button if TTKBOOTSTRAP_AVAILABLE else ttk.Button
         refresh_btn = ButtonCls(
             buttons,
             text="Refresh State",

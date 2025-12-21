@@ -3,14 +3,17 @@ FastAPI backend for OS Dashboard AI Assistant.
 Provides REST API endpoints to replace the Tkinter GUI frontend.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.responses import RedirectResponse
 import sys
 import os
+import time
+from uuid import uuid4
 from pathlib import Path
+from typing import Optional
 
 # Add parent directory to path for imports
 parent_dir = Path(__file__).parent.parent
@@ -26,23 +29,103 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS middleware
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database and ensure demo users exist on startup."""
+    try:
+        from backend_api.db import db_session
+        from backend_api.routers.auth import _ensure_demo_users
+        
+        # Initialize database connection
+        with db_session() as db:
+            db.execute("SELECT 1").fetchone()
+        
+        # Ensure demo users exist
+        await _ensure_demo_users()
+        
+        import logging
+        logging.info("Database initialized and demo users created")
+    except Exception as e:
+        import logging
+        logging.error(f"Startup initialization failed: {e}", exc_info=True)
+        # Don't fail startup - let requests handle errors
+
+# CORS middleware - more restrictive for security
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000", "http://127.0.0.1:3000", 
         "http://localhost:5173", "http://127.0.0.1:5173",
+        "http://localhost:5174", "http://127.0.0.1:5174",
+        "http://0.0.0.0:5173", "http://0.0.0.0:5174",
+        # Electron file:// origin is often serialized as `null`
+        "null",
         "https://localhost:3000", "https://127.0.0.1:3000",
         "https://localhost:5173", "https://127.0.0.1:5173",
+        "https://localhost:5174", "https://127.0.0.1:5174",
+        "https://0.0.0.0:5173", "https://0.0.0.0:5174",
         "https://0.0.0.0:8000", "https://localhost:8000", "https://127.0.0.1:8000"
     ],
+    # Allow any localhost/loopback port and private network IPs for dev/preview builds.
+    # This includes: localhost, 127.0.0.1, 0.0.0.0, 192.168.x.x, 10.x.x.x, 172.16-31.x.x
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$",
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods instead of "*"
+    allow_headers=["Content-Type", "Authorization", "Accept"],  # Explicit headers instead of "*"
+    expose_headers=["Content-Type", "X-Total-Count"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
+
+# ---------------------------------------------------------------------------
+# Request tracing + unified event log
+# ---------------------------------------------------------------------------
+try:
+    from backend_api.deps import get_optional_user  # type: ignore
+    from backend_api.routers.logs import record_event  # type: ignore
+    from backend_api.db import db_session  # type: ignore
+
+    @app.middleware("http")
+    async def _trace_requests(request: Request, call_next):
+        started = time.time()
+        request_id = request.headers.get("x-correlation-id") or request.headers.get("x-request-id") or uuid4().hex
+        user = None
+        try:
+            user = get_optional_user(request)  # type: ignore[arg-type]
+        except Exception:
+            user = None
+        response = await call_next(request)
+        duration_ms = int((time.time() - started) * 1000)
+        response.headers["x-correlation-id"] = request_id
+        try:
+            with db_session() as db:
+                record_event(
+                    db=db,
+                    source="http",
+                    level="info",
+                    message=f"{request.method} {request.url.path} -> {response.status_code} ({duration_ms}ms)",
+                    user_id=getattr(user, "id", None),
+                    metadata={
+                        "request_id": request_id,
+                        "method": request.method,
+                        "path": request.url.path,
+                        "status_code": response.status_code,
+                        "duration_ms": duration_ms,
+                    },
+                )
+        except Exception:
+            pass
+        return response
+except Exception:
+    # If imports fail during early bootstrap, skip tracing.
+    pass
 
 # API Routes
 from backend_api.routers import (
+    auth,
+    admin,
+    logs,
+    files,
     tasks,
     projects,
     intents,
@@ -77,11 +160,28 @@ from backend_api.routers import (
     coach,
     git,
     network_monitoring,
+    workspace,
+    orchestrator,
+    workspace_health,
+    auth,
+    admin,
+    logs,
+    ai_enhanced,
+    version_control,
+    unified_logging,
+    document_viewer,
+    ai_integration,
+    data_management,
+    project_orchestrator,
 )
 
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
+app.include_router(auth.router, prefix="/api", tags=["auth"])
+app.include_router(admin.router, prefix="/api", tags=["admin"])
+app.include_router(logs.router, prefix="/api", tags=["logs"])
+app.include_router(files.router, prefix="/api", tags=["files"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(templates.router, prefix="/api/templates", tags=["templates"])
@@ -131,6 +231,23 @@ app.include_router(git.router, prefix="/api", tags=["git"])
 app.include_router(personas.router, prefix="/api/personas", tags=["personas"])
 app.include_router(office.router, prefix="/api/office", tags=["office"])
 app.include_router(runtime_diagnostics.router, prefix="/api", tags=["runtime"])
+app.include_router(workspace.router, prefix="/api", tags=["workspace"])
+app.include_router(orchestrator.router, tags=["orchestrator"])
+app.include_router(workspace_health.router, prefix="/api", tags=["workspace_health"])
+# Auth router mounted at /api/auth for /api/auth/login, /api/auth/signup, etc.
+app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
+# Admin router
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+# Logs router
+app.include_router(logs.router, prefix="/api", tags=["logs"])
+# AI enhanced router
+app.include_router(ai_enhanced.router, prefix="/api", tags=["ai_enhanced"])
+app.include_router(version_control.router, prefix="/api/versions", tags=["version_control"])
+app.include_router(unified_logging.router, prefix="/api/logs", tags=["logging"])
+app.include_router(document_viewer.router, prefix="/api/viewer", tags=["document_viewer"])
+app.include_router(ai_integration.router, prefix="/api/ai-integration", tags=["ai_integration"])
+app.include_router(data_management.router, prefix="/api/data", tags=["data_management"])
+app.include_router(project_orchestrator.router, prefix="/api", tags=["project_orchestrator"])
 
 # Legacy compatibility routes without the /api prefix.
 @app.get("/system", include_in_schema=False)
@@ -151,8 +268,8 @@ async def legacy_billing_usage(limit: int = 20):
 @app.get("/operations", include_in_schema=False)
 async def legacy_operations(
     limit: int = 50,
-    status: str | None = None,
-    integration_type: str | None = None,
+    status: Optional[str] = None,
+    integration_type: Optional[str] = None,
 ):
     return await document_operations.list_document_operations(
         limit=limit, status=status, integration_type=integration_type
@@ -183,8 +300,26 @@ if frontend_dist.exists():
 
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint."""
-    return {"status": "ok", "message": "OS Dashboard AI Assistant API is running"}
+    """Health check endpoint with database connectivity check."""
+    try:
+        from backend_api.db import db_session
+        # Test database connectivity
+        with db_session() as db:
+            db.execute("SELECT 1").fetchone()
+        return {
+            "status": "ok",
+            "message": "OS Dashboard AI Assistant API is running",
+            "database": "connected"
+        }
+    except Exception as e:
+        import logging
+        logging.error(f"Health check failed: {e}", exc_info=True)
+        return {
+            "status": "degraded",
+            "message": "OS Dashboard AI Assistant API is running but database is unavailable",
+            "database": "disconnected",
+            "error": str(e)
+        }
 
 
 @app.get("/api/docs/technical-spec-sheet")

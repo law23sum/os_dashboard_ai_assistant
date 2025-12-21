@@ -49,6 +49,29 @@ interface PlaneHealth {
   throughput: number
 }
 
+interface HarnessProjectSummary {
+  name: string
+  status: string
+  failed: number
+  passed: number
+  skipped: number
+  commands: string[]
+}
+
+interface HarnessReport {
+  generated_at?: string
+  status: string
+  root: string
+  total_projects: number
+  total_checks: number
+  failed_checks: number
+  passed_checks: number
+  skipped_checks: number
+  run_id?: string
+  report_path?: string
+  projects: HarnessProjectSummary[]
+}
+
 interface ObservabilityData {
   events: DiagnosticEvent[]
   metrics: SystemMetric[]
@@ -57,6 +80,8 @@ interface ObservabilityData {
   total_requests: number
   error_count: number
   ai_calls: number
+  diagnostics_summary?: DiagnosticsSummary
+  harness?: HarnessReport
 }
 
 interface PlanCommand {
@@ -85,17 +110,42 @@ interface MemoryThreadPlan {
   follow_up: string[]
 }
 
+interface DiagnosticsSummary {
+  total: number
+  errors: number
+  warnings: number
+  infos: number
+  last_seen?: string
+  log_path?: string
+}
+
+interface DiagnosticsResponse {
+  events: DiagnosticEvent[]
+  summary: DiagnosticsSummary
+}
+
 const fetchObservabilityData = async (): Promise<ObservabilityData> => {
   try {
-    const [diagnostics, system, planes] = await Promise.all([
-      apiClient.get(apiPath('runtime/diagnostics')).catch(() => ({ data: { events: [] } })),
+    const [diagnostics, system, planes, harness] = await Promise.all([
+      apiClient.get<DiagnosticsResponse>(apiPath('runtime/diagnostics')).catch(() => ({
+        data: {
+          events: [],
+          summary: { total: 0, errors: 0, warnings: 0, infos: 0 },
+        },
+      })),
       apiClient.get(apiPath('system')).catch(() => ({ data: {} })),
       apiClient.get(apiPath('planes/status')).catch(() => ({ data: {} })),
+      apiClient.get<HarnessReport>(apiPath('runtime/harness-report')).catch(() => ({ data: undefined })),
     ])
 
     const systemData = system.data || {}
     const planesData = planes.data || {}
-    const eventsData = diagnostics.data?.events || []
+    const eventsData = (diagnostics.data?.events || []).map((event, idx) => ({
+      ...event,
+      id: event.id || `evt-${idx}`,
+      type: (event as any).type || (event as any).severity || 'info',
+    }))
+    const diagSummary = diagnostics.data?.summary
 
     return {
       events: eventsData.slice(0, 50),
@@ -153,8 +203,10 @@ const fetchObservabilityData = async (): Promise<ObservabilityData> => {
       ],
       uptime_seconds: systemData.uptime || 0,
       total_requests: systemData.total_requests || 12450,
-      error_count: eventsData.filter((e: DiagnosticEvent) => e.type === 'error').length,
+      error_count: diagSummary?.errors ?? eventsData.filter((e: DiagnosticEvent) => e.type === 'error').length,
       ai_calls: systemData.ai_calls || 847,
+      diagnostics_summary: diagSummary,
+      harness: harness.data,
     }
   } catch {
     return {
@@ -165,6 +217,8 @@ const fetchObservabilityData = async (): Promise<ObservabilityData> => {
       total_requests: 0,
       error_count: 0,
       ai_calls: 0,
+      diagnostics_summary: { total: 0, errors: 0, warnings: 0, infos: 0 },
+      harness: undefined,
     }
   }
 }
@@ -200,6 +254,32 @@ const StatusBadge = ({ status }: { status: string }) => {
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${styles[status] || styles.unknown}`}>
       {icons[status] || icons.unknown}
       {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+  )
+}
+
+const HarnessStatusBadge = ({ status }: { status: string }) => {
+  const normalized = status?.toLowerCase?.() || 'unknown'
+  const styles: Record<string, string> = {
+    passed: 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30',
+    failed: 'bg-red-500/15 text-red-300 border-red-400/30',
+    missing: 'bg-slate-500/20 text-slate-200 border-slate-400/30',
+    pending: 'bg-amber-500/15 text-amber-200 border-amber-400/30',
+    unknown: 'bg-slate-500/15 text-slate-200 border-slate-400/30',
+  }
+  const icons: Record<string, React.ReactNode> = {
+    passed: <CheckCircle className="w-3 h-3" />,
+    failed: <XCircle className="w-3 h-3" />,
+    missing: <Eye className="w-3 h-3" />,
+    pending: <Clock className="w-3 h-3" />,
+    unknown: <Eye className="w-3 h-3" />,
+  }
+  const label = normalized.charAt(0).toUpperCase() + normalized.slice(1)
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${styles[normalized] || styles.unknown}`}>
+      {icons[normalized] || icons.unknown}
+      {label}
     </span>
   )
 }
@@ -338,6 +418,7 @@ export default function Observability() {
   const filteredEvents = data?.events.filter(
     (event) => eventFilter === 'all' || event.type === eventFilter
   ) || []
+  const diagnosticsSummary = data?.diagnostics_summary
   const memoryPlan = memoryPlanQuery.data
 
   return (
@@ -381,7 +462,7 @@ export default function Observability() {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-transparent to-indigo-500/10" />
           <div className="relative">
             <p className="eyebrow-text">Total Requests</p>
-            <p className="text-3xl font-bold text-white mt-2">{data?.total_requests.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-white mt-2">{(data?.total_requests || 0).toLocaleString()}</p>
             <p className="text-sm text-slate-300 mt-1">API calls processed</p>
           </div>
         </div>
@@ -399,12 +480,83 @@ export default function Observability() {
             <Sparkles className="w-8 h-8 text-purple-400" />
             <div>
               <p className="eyebrow-text">AI Calls</p>
-              <p className="text-3xl font-bold text-white">{data?.ai_calls.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-white">{(data?.ai_calls || 0).toLocaleString()}</p>
               <p className="text-sm text-slate-300">OpenAI API</p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Workspace Harness */}
+      {data?.harness && (
+        <section className="glass-card border border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/10">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3">
+              <Server className="w-5 h-5 text-indigo-300" />
+              <div>
+                <p className="eyebrow-text">Workspace Harness</p>
+                <h2 className="text-xl font-semibold text-white">osdash scan/test summary</h2>
+                <p className="text-xs text-slate-300">
+                  Aggregated lint/test/build/security results from the latest harness run.
+                </p>
+                {data.harness.run_id && (
+                  <p className="mt-1 text-xs text-slate-400">Run ID: {data.harness.run_id}</p>
+                )}
+              </div>
+            </div>
+            <HarnessStatusBadge status={data.harness.status} />
+          </div>
+          {data.harness.total_projects === 0 ? (
+            <div className="text-sm text-slate-300">No harness reports found yet.</div>
+          ) : (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Projects</p>
+                  <p className="text-2xl font-semibold text-white mt-1">{data.harness.total_projects}</p>
+                </div>
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3">
+                  <p className="text-xs uppercase tracking-[0.2em] text-emerald-300">Passed</p>
+                  <p className="text-2xl font-semibold text-white mt-1">{data.harness.passed_checks}</p>
+                </div>
+                <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-3">
+                  <p className="text-xs uppercase tracking-[0.2em] text-red-300">Failed</p>
+                  <p className="text-2xl font-semibold text-white mt-1">{data.harness.failed_checks}</p>
+                </div>
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
+                  <p className="text-xs uppercase tracking-[0.2em] text-amber-200">Skipped</p>
+                  <p className="text-2xl font-semibold text-white mt-1">{data.harness.skipped_checks}</p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {data.harness.projects.slice(0, 4).map((project) => (
+                  <div key={project.name} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-white">{project.name}</p>
+                        <p className="text-xs text-slate-400">
+                          Checks: {project.passed} passed · {project.failed} failed · {project.skipped} skipped
+                        </p>
+                      </div>
+                      <HarnessStatusBadge status={project.status} />
+                    </div>
+                    {project.commands.length > 0 && (
+                      <p className="mt-2 text-[11px] text-slate-400 line-clamp-2">
+                        {project.commands.slice(0, 2).join(' · ')}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {data.harness.report_path && (
+                <p className="mt-3 text-[11px] text-slate-400 break-words">
+                  Report: {data.harness.report_path}
+                </p>
+              )}
+            </>
+          )}
+        </section>
+      )}
 
       {/* System Metrics */}
       <section>
@@ -544,6 +696,31 @@ export default function Observability() {
             </select>
           </div>
         </div>
+        {diagnosticsSummary && (
+          <div className="grid gap-3 md:grid-cols-4 mb-4">
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Total</p>
+              <p className="text-xl font-semibold text-white mt-1">{diagnosticsSummary.total}</p>
+            </div>
+            <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-red-300">Errors</p>
+              <p className="text-xl font-semibold text-white mt-1">{diagnosticsSummary.errors}</p>
+            </div>
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-amber-300">Warnings</p>
+              <p className="text-xl font-semibold text-white mt-1">{diagnosticsSummary.warnings}</p>
+            </div>
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-emerald-300">Last Seen</p>
+              <p className="text-xs text-slate-200 mt-1">
+                {diagnosticsSummary.last_seen ? new Date(diagnosticsSummary.last_seen).toLocaleString() : 'N/A'}
+              </p>
+              {diagnosticsSummary.log_path && (
+                <p className="text-[11px] text-slate-400 mt-1 break-words">Log: {diagnosticsSummary.log_path}</p>
+              )}
+            </div>
+          </div>
+        )}
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {filteredEvents.length === 0 ? (
             <div className="text-center py-8 text-slate-400">
@@ -577,5 +754,8 @@ export default function Observability() {
     </div>
   )
 }
+
+
+
 
 

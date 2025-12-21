@@ -300,6 +300,60 @@ const GUIDE_LIBRARY: GuideProfile[] = [
       },
     ],
   },
+  {
+    matchers: [/^\/workspace\/health$/],
+    persona: 'Chris',
+    personaRole: 'Reliability Operator',
+    title: 'Workspace Health Guide',
+    summary:
+      'Chris helps you scan every repo, run safe checks, and trigger auto-fix loops with an audit-friendly workflow.',
+    signal: 'Run a dry-run first · enable autofix only when needed',
+    health: 'nominal',
+    actions: [
+      {
+        title: 'Run safe dry-run',
+        detail: 'Preview commands without executing anything risky.',
+        prompt:
+          'In Workspace Health, run a dry-run scan and summarize which repos would execute which checks. Highlight any missing autofix scripts.',
+      },
+      {
+        title: 'Execute checks with autofix',
+        detail: 'Run checks and invoke auto-fix only on failures.',
+        prompt:
+          'Execute workspace checks with autofix enabled. Summarize failures and point to the report path + run_id.',
+      },
+    ],
+    prompts: [
+      {
+        label: 'CLI quickstart (multi-repo)',
+        persona: 'Chris',
+        prompt:
+          "Give me the exact CLI commands to: (1) scan sibling repos, (2) launch the autofix orchestrator, (3) run a single repo through preflight + execute using scripts/osd_run.sh.",
+      },
+      {
+        label: 'Codex handoff prompt',
+        persona: 'AIC',
+        prompt:
+          'Generate a Codex-ready prompt that includes the latest failing check outputs plus REMAINING_TODOS.md and FUTURE_TODOS.md, then list the minimum steps to get back to green.',
+      },
+    ],
+    tutorials: [
+      {
+        title: 'Start with dry-run',
+        description: 'Use dry-run to verify what will execute before turning on auto-fix.',
+      },
+      {
+        title: 'Prefer per-repo remediation',
+        description:
+          'If a single repo fails, fix it first (or run scripts/osd_autofix.py) before fanning changes out.',
+      },
+      {
+        title: 'Capture evidence',
+        description:
+          'Use the report_path/run_id fields to attach the evidence to Audit / incident notes.',
+      },
+    ],
+  },
 ]
 
 const DEFAULT_GUIDE: GuideProfile = {

@@ -690,3 +690,5 @@ log "Monitor discovery in logs:"
 log "  tail -f ~/Library/Logs/Synergy/synergy.log | grep -i discovery"
 
 
+
+

@@ -24,3 +24,5 @@ echo "Done! You should now be able to delete Synergy.app"
 
 
 
+
+

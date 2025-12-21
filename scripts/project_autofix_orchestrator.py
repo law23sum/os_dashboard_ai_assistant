@@ -25,6 +25,7 @@ capabilities are missing.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shlex
 import signal
@@ -134,15 +135,18 @@ def parse_args() -> argparse.Namespace:
 class RepoTarget:
     path: Path
     autofix_script: Optional[Path]
+    fallback_script: Optional[Path] = None
 
     @property
     def name(self) -> str:
         return self.path.name
 
     def command(self, extra_args: Sequence[str]) -> List[str]:
-        if not self.autofix_script:
-            raise RuntimeError(f"{self.path} does not have scripts/ai_auto_fix.py")
-        return [sys.executable, str(self.autofix_script), *extra_args]
+        if self.autofix_script:
+            return [sys.executable, str(self.autofix_script), *extra_args]
+        if self.fallback_script:
+            return [sys.executable, str(self.fallback_script), "--project-root", str(self.path), *extra_args]
+        raise RuntimeError(f"{self.path} does not have scripts/ai_auto_fix.py and no fallback available")
 
 
 def discover_git_repos(root: Path, max_depth: int, skip_dirs: Iterable[str]) -> List[Path]:
@@ -173,9 +177,16 @@ def discover_git_repos(root: Path, max_depth: int, skip_dirs: Iterable[str]) -> 
 
 def resolve_targets(paths: Iterable[Path]) -> List[RepoTarget]:
     targets: List[RepoTarget] = []
+    central_script = REPO_ROOT / "scripts" / "ai_auto_fix.py"
     for repo_path in paths:
         script_path = repo_path / "scripts" / "ai_auto_fix.py"
-        targets.append(RepoTarget(path=repo_path, autofix_script=script_path if script_path.exists() else None))
+        targets.append(
+            RepoTarget(
+                path=repo_path,
+                autofix_script=script_path if script_path.exists() else None,
+                fallback_script=central_script if central_script.exists() else None,
+            )
+        )
     return targets
 
 
@@ -250,8 +261,10 @@ def ensure_log_directory(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
 
-def make_logger(log_path: Path):
+def make_logger(log_path: Path, status_path: Optional[Path] = None):
     ensure_log_directory(log_path)
+    if status_path:
+        ensure_log_directory(status_path)
 
     def _log(message: str) -> None:
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -259,6 +272,18 @@ def make_logger(log_path: Path):
         print(line)
         with log_path.open("a", encoding="utf-8") as handle:
             handle.write(line + "\n")
+        
+        if status_path:
+            try:
+                status_data = {
+                    "last_update": timestamp,
+                    "last_message": message,
+                    "status": "active"
+                }
+                with status_path.open("w", encoding="utf-8") as f:
+                    json.dump(status_data, f)
+            except Exception:
+                pass
 
     return _log
 
@@ -276,17 +301,28 @@ def main() -> None:
     if args.max_repos and len(targets) > args.max_repos:
         targets = targets[: args.max_repos]
 
-    logger = make_logger(args.health_log)
+    status_path = REPO_ROOT / "frontend" / "public" / "autofix_status.json"
+    logger = make_logger(args.health_log, status_path)
     logger(f"Discovered {len(targets)} repositories under {args.root}")
     for repo in targets:
         logger(format_repo(repo))
 
     if args.scan_only:
+        output = []
+        for repo in targets:
+            output.append({
+                "name": repo.name,
+                "path": str(repo.path),
+                "has_autofix_script": bool(repo.autofix_script),
+                "using_fallback": not repo.autofix_script and bool(repo.fallback_script),
+                "status": "READY" if (repo.autofix_script or repo.fallback_script) else "MISSING_SCRIPT"
+            })
+        print(json.dumps(output, indent=2))
         return
 
-    ready = [repo for repo in targets if repo.autofix_script]
+    ready = [repo for repo in targets if repo.autofix_script or repo.fallback_script]
     if not ready:
-        logger("No repositories with scripts/ai_auto_fix.py were found. Exiting.")
+        logger("No repositories with scripts/ai_auto_fix.py (or fallback) were found. Exiting.")
         return
 
     if args.dry_run:

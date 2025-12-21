@@ -1,16 +1,32 @@
-import { resolveApiBase } from './lib/apiClient'
-
-const API_BASE = resolveApiBase()
+const resolveApiBase = (): string => {
+  // Prefer runtime/base-tag aware paths when available (desktop builds).
+  if (typeof document !== 'undefined') {
+    const base = document.querySelector('base')?.getAttribute('href')
+    if (base) return base.replace(/\/+$/, '')
+  }
+  return (import.meta.env.VITE_API_BASE || '/api').replace(/\/+$/, '')
+}
 
 async function request<T = any>(path: string, options?: RequestInit): Promise<T> {
+  // Compute per-call so Electron/runtime-injected base URLs are honored.
+  const API_BASE = resolveApiBase()
   const res = await fetch(`${API_BASE}${path.startsWith("/") ? path : `/${path}`}`, {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
+
+  const requestId = res.headers.get("x-correlation-id") || res.headers.get("x-request-id") || undefined;
+
   if (!res.ok) {
-    throw new Error(`Request failed: ${res.status}`);
+    const message = `Request failed: ${res.status}${requestId ? ` (request_id=${requestId})` : ""}`;
+    throw new Error(message);
   }
-  return res.json();
+
+  const data = await res.json();
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    (data as Record<string, unknown>)._requestId = requestId;
+  }
+  return data;
 }
 
 export const API = {

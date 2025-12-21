@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, useQueries } from '@tanstack/react-query'
 import {
   FileText,
   Save,
@@ -46,7 +46,17 @@ import {
 import apiClient, { apiPath } from '../lib/apiClient'
 import { QUICK_ACTIONS } from '../constants/documentActions'
 
-type ViewType = 'raw' | 'formatted' | 'preview' | 'markdown' | 'code' | 'hex'
+type ViewType =
+  | 'raw'
+  | 'formatted'
+  | 'preview'
+  | 'markdown'
+  | 'code'
+  | 'hex'
+  | 'pdf'
+  | 'image'
+  | 'json'
+  | 'csv'
 type FileSource = 'chat' | 'local' | 'server'
 
 interface UnifiedDocumentViewerProps {
@@ -63,10 +73,47 @@ interface FileContentResponse {
   mtime?: string
 }
 
+interface DocumentVersionRow {
+  id: string
+  version_number: number
+  created_at: string
+  created_by: string
+  change_summary: string
+  is_ai_generated: boolean
+  confidence_score?: number | null
+}
+
+interface DiffResponse {
+  from_id: string
+  to_id: string
+  diff: string
+  format: string
+}
+
 const fetchFileContent = async (filePath: string): Promise<FileContentResponse> => {
   const { data } = await apiClient.get<FileContentResponse>(
     apiPath(`files/preview?path=${encodeURIComponent(filePath)}`)
   )
+  return data
+}
+
+const fetchVersions = async (documentId: string): Promise<DocumentVersionRow[]> => {
+  const { data } = await apiClient.get<DocumentVersionRow[]>(apiPath(`documents/${documentId}/versions`))
+  return data || []
+}
+
+const fetchDiff = async (documentId: string, fromId: string, toId: string): Promise<DiffResponse> => {
+  const { data } = await apiClient.get<DiffResponse>(
+    apiPath(`documents/${documentId}/diff?from_id=${encodeURIComponent(fromId)}&to_id=${encodeURIComponent(toId)}`)
+  )
+  return data
+}
+
+const mergeVersions = async (documentId: string, versionIds: string[], persona: string) => {
+  const { data } = await apiClient.post(apiPath(`documents/${documentId}/versions/merge`), {
+    version_ids: versionIds,
+    persona,
+  })
   return data
 }
 
@@ -124,6 +171,7 @@ export default function UnifiedDocumentViewer({
   onDocumentSelect,
   className = '',
 }: UnifiedDocumentViewerProps) {
+  const queryClient = useQueryClient()
   const [viewMode, setViewMode] = useState<'view' | 'edit'>('view')
   const [viewType, setViewType] = useState<ViewType>('formatted')
   const [editedContent, setEditedContent] = useState('')
@@ -132,11 +180,19 @@ export default function UnifiedDocumentViewer({
   const [localFileContent, setLocalFileContent] = useState<string | null>(null)
   const [serverFilePath, setServerFilePath] = useState<string | null>(null)
   const editorRef = useRef<HTMLTextAreaElement>(null)
+  const [showVersions, setShowVersions] = useState(false)
+  const [selectedVersionIds, setSelectedVersionIds] = useState<string[]>([])
 
   // Fetch chat document content
   const { data: currentContent, isLoading: isLoadingContent } = useQuery<DocumentContentResponse>({
     queryKey: ['document-content', document?.id],
     queryFn: () => fetchChatDocumentContent(document!.id),
+    enabled: !!document && fileSource === 'chat',
+  })
+
+  const { data: versions = [] } = useQuery<DocumentVersionRow[]>({
+    queryKey: ['document-versions', document?.id],
+    queryFn: () => fetchVersions(document!.id),
     enabled: !!document && fileSource === 'chat',
   })
 
@@ -194,17 +250,27 @@ export default function UnifiedDocumentViewer({
   useEffect(() => {
     if (activeFile) {
       if (isBinary) {
-        setViewType('hex')
+        if (currentContent?.content_type === 'application/pdf') {
+          setViewType('pdf')
+        } else if (currentContent?.content_type?.startsWith('image/')) {
+          setViewType('image')
+        } else {
+          setViewType('hex')
+        }
         setViewMode('view')
       } else if (activeFile.fileType === 'md' || activeFile.fileType === 'markdown') {
         setViewType('markdown')
+      } else if (activeFile.fileType === 'json') {
+        setViewType('json')
+      } else if (activeFile.fileType === 'csv' || activeFile.fileType === 'tsv') {
+        setViewType('csv')
       } else if (['js', 'ts', 'jsx', 'tsx', 'py', 'java', 'c', 'cpp', 'html', 'css', 'json', 'xml'].includes(activeFile.fileType)) {
         setViewType('code')
       } else {
         setViewType('formatted')
       }
     }
-  }, [activeFile, isBinary])
+  }, [activeFile, isBinary, currentContent?.content_type])
 
   const handleChooseLocalFile = () => {
     const input = document.createElement('input')
@@ -244,12 +310,19 @@ export default function UnifiedDocumentViewer({
   }
 
   const saveMutation = useMutation({
-    mutationFn: modifyChatDocument,
+    mutationFn: async () => {
+      if (!document || !canEdit) throw new Error('No editable document selected')
+      const { data } = await apiClient.put(apiPath(`documents/${document.id}/content`), { content: editedContent, persona })
+      return data as DocumentModifyResponse
+    },
     onSuccess: (response: DocumentModifyResponse) => {
       toast.success('Document saved successfully')
       if (onDocumentUpdate && document) {
-        onDocumentUpdate({ ...document, ...response.document })
+        onDocumentUpdate({ ...document, content_preview: response.modified_content ?? document.content_preview })
       }
+      queryClient.invalidateQueries({ queryKey: ['document-content', document?.id] })
+      queryClient.invalidateQueries({ queryKey: ['document-versions', document?.id] })
+      queryClient.invalidateQueries({ queryKey: ['chat-documents'] })
       setViewMode('view')
     },
     onError: (error) => {
@@ -259,10 +332,7 @@ export default function UnifiedDocumentViewer({
 
   const handleSave = () => {
     if (!document || !canEdit) return
-    saveMutation.mutate({
-      documentId: document.id,
-      content: editedContent,
-    })
+    saveMutation.mutate()
   }
 
   const displayContent = viewMode === 'edit' ? editedContent : activeFile?.content || ''
@@ -271,10 +341,17 @@ export default function UnifiedDocumentViewer({
   const viewTypeOptions = useMemo(() => {
     if (!activeFile) return []
     if (isBinary) {
-      return [
+      const options = [
+        ...(currentContent?.content_type === 'application/pdf'
+          ? [{ type: 'pdf' as ViewType, label: 'PDF', icon: FileType }]
+          : []),
+        ...(currentContent?.content_type?.startsWith('image/')
+          ? [{ type: 'image' as ViewType, label: 'Image', icon: ImageIcon }]
+          : []),
         { type: 'hex' as ViewType, label: 'Hex View', icon: Hexagon },
         { type: 'preview' as ViewType, label: 'Info', icon: Eye },
       ]
+      return options
     }
     const options = [
       { type: 'formatted' as ViewType, label: 'Formatted', icon: Type },
@@ -283,11 +360,44 @@ export default function UnifiedDocumentViewer({
     if (activeFile.fileType === 'md' || activeFile.fileType === 'markdown') {
       options.push({ type: 'markdown' as ViewType, label: 'Markdown', icon: FileText })
     }
+    if (activeFile.fileType === 'json') {
+      options.push({ type: 'json' as ViewType, label: 'JSON', icon: FileJson })
+    }
+    if (activeFile.fileType === 'csv' || activeFile.fileType === 'tsv') {
+      options.push({ type: 'csv' as ViewType, label: activeFile.fileType.toUpperCase(), icon: FileSpreadsheet })
+    }
     if (['js', 'ts', 'jsx', 'tsx', 'py', 'java', 'c', 'cpp', 'html', 'css', 'json', 'xml'].includes(activeFile.fileType)) {
       options.push({ type: 'code' as ViewType, label: 'Code', icon: Code })
     }
     return options
-  }, [activeFile, isBinary])
+  }, [activeFile, isBinary, currentContent?.content_type])
+
+  const diffs = useQueries({
+    queries: (selectedVersionIds || []).map((fromId) => ({
+      queryKey: ['document-diff', document?.id, fromId],
+      queryFn: () => fetchDiff(document!.id, fromId, 'current'),
+      enabled: !!document && fileSource === 'chat' && !!fromId,
+      staleTime: 10_000,
+    })),
+  })
+
+  const mergeMutation = useMutation({
+    mutationFn: async () => {
+      if (!document) throw new Error('No document selected')
+      if (!selectedVersionIds.length) throw new Error('Select versions to merge')
+      return mergeVersions(document.id, selectedVersionIds, persona)
+    },
+    onSuccess: async () => {
+      toast.success('Merged into current')
+      setSelectedVersionIds([])
+      queryClient.invalidateQueries({ queryKey: ['document-content', document?.id] })
+      queryClient.invalidateQueries({ queryKey: ['document-versions', document?.id] })
+      queryClient.invalidateQueries({ queryKey: ['chat-documents'] })
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.detail || err?.message || 'Merge failed')
+    },
+  })
 
   if (!activeFile && !document) {
     return (
@@ -336,6 +446,30 @@ export default function UnifiedDocumentViewer({
 
   const isLoading = isLoadingContent || isLoadingServerFile
 
+  const binaryDataUrl =
+    fileSource === 'chat' && currentContent?.encoding === 'base64'
+      ? `data:${currentContent.content_type};base64,${currentContent.content}`
+      : null
+
+  const formattedJson = useMemo(() => {
+    if (!activeFile || viewType !== 'json') return null
+    try {
+      return JSON.stringify(JSON.parse(activeFile.content || '{}'), null, 2)
+    } catch {
+      return activeFile.content
+    }
+  }, [activeFile, viewType])
+
+  const csvTable = useMemo(() => {
+    if (!activeFile || viewType !== 'csv') return null
+    const sep = activeFile.fileType === 'tsv' ? '\t' : ','
+    const lines = (activeFile.content || '').split(/\r?\n/).filter(Boolean)
+    const rows = lines.slice(0, 200).map((l) => l.split(sep))
+    const header = rows[0] || []
+    const body = rows.slice(1)
+    return { header, body }
+  }, [activeFile, viewType])
+
   return (
     <div className={`flex flex-col h-full bg-slate-900/50 ${className}`}>
       {/* Header */}
@@ -371,6 +505,17 @@ export default function UnifiedDocumentViewer({
           <div className="flex items-center gap-2">
             {fileSource === 'chat' && document && (
               <>
+                <button
+                  onClick={() => setShowVersions((v) => !v)}
+                  className={`p-2 rounded-lg transition-all ${
+                    showVersions
+                      ? 'bg-primary-500/20 text-primary-300 border border-primary-500/30'
+                      : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
+                  }`}
+                  title="Version control"
+                >
+                  <History className="w-4 h-4" />
+                </button>
                 <button
                   onClick={() => setViewMode('view')}
                   className={`p-2 rounded-lg transition-all ${
@@ -476,7 +621,7 @@ export default function UnifiedDocumentViewer({
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6 relative">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
@@ -497,6 +642,40 @@ export default function UnifiedDocumentViewer({
             {viewType === 'raw' && (
               <div className="bg-slate-900/60 border border-slate-700/60 rounded-xl p-8 text-sm text-slate-200 whitespace-pre-wrap font-mono leading-relaxed overflow-x-auto">
                 {displayContent || 'No content available'}
+              </div>
+            )}
+            {viewType === 'json' && (
+              <div className="bg-slate-900/60 border border-slate-700/60 rounded-xl p-8 text-sm text-slate-200 font-mono">
+                <pre className="whitespace-pre-wrap leading-relaxed overflow-x-auto">
+                  {formattedJson || 'No content available'}
+                </pre>
+              </div>
+            )}
+            {viewType === 'csv' && csvTable && (
+              <div className="bg-slate-900/60 border border-slate-700/60 rounded-xl p-6 overflow-x-auto">
+                <table className="min-w-full text-xs text-slate-200">
+                  <thead className="text-slate-300">
+                    <tr>
+                      {csvTable.header.map((h, idx) => (
+                        <th key={idx} className="text-left font-semibold pb-2 pr-4 whitespace-nowrap">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="text-slate-200">
+                    {csvTable.body.map((row, rIdx) => (
+                      <tr key={rIdx} className="border-t border-white/5">
+                        {row.map((cell, cIdx) => (
+                          <td key={cIdx} className="py-2 pr-4 whitespace-nowrap">
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="mt-3 text-[11px] text-slate-500">Showing up to 200 rows.</p>
               </div>
             )}
             {viewType === 'formatted' && (
@@ -562,6 +741,16 @@ export default function UnifiedDocumentViewer({
                 </div>
               </div>
             )}
+            {viewType === 'pdf' && binaryDataUrl && (
+              <div className="bg-slate-900/60 border border-slate-700/60 rounded-xl overflow-hidden">
+                <iframe src={binaryDataUrl} title="PDF Viewer" className="w-full h-[70vh]" />
+              </div>
+            )}
+            {viewType === 'image' && binaryDataUrl && (
+              <div className="bg-slate-900/60 border border-slate-700/60 rounded-xl p-6">
+                <img src={binaryDataUrl} alt={activeFile?.name || 'image'} className="w-full max-h-[70vh] object-contain" />
+              </div>
+            )}
             {viewType === 'preview' && isBinary && (
               <div className="bg-slate-900/60 border border-slate-700/60 rounded-xl p-8">
                 <div className="text-center py-12 space-y-4">
@@ -601,10 +790,109 @@ export default function UnifiedDocumentViewer({
             )}
           </div>
         )}
+
+        {/* Hidden version control drawer */}
+        {showVersions && fileSource === 'chat' && document && (
+          <div className="absolute inset-y-0 right-0 w-[420px] bg-slate-950/95 border-l border-slate-700/50 backdrop-blur-xl shadow-2xl overflow-hidden">
+            <div className="p-4 border-b border-slate-700/50 flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Version Control</p>
+                <p className="text-sm text-slate-200">{versions.length} snapshot(s)</p>
+              </div>
+              <button
+                onClick={() => setShowVersions(false)}
+                className="p-2 rounded-lg bg-slate-800/50 text-slate-300 hover:bg-slate-700/50"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 border-b border-slate-700/50">
+              <button
+                disabled={!selectedVersionIds.length || mergeMutation.isPending}
+                onClick={() => mergeMutation.mutate()}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-violet-500/20 border border-violet-500/30 text-violet-200 disabled:opacity-50"
+              >
+                <GitMerge className="w-4 h-4" />
+                {mergeMutation.isPending ? 'Merging…' : 'Merge selected into current'}
+              </button>
+              <p className="mt-2 text-[11px] text-slate-500">
+                Select multiple versions to stack diffs and merge unique lines into the current document.
+              </p>
+            </div>
+
+            <div className="p-4 overflow-y-auto h-full space-y-3">
+              {versions.length === 0 ? (
+                <div className="text-sm text-slate-400">No snapshots yet. Save or run an AI edit to create one.</div>
+              ) : (
+                versions.map((v) => {
+                  const checked = selectedVersionIds.includes(v.id)
+                  return (
+                    <label
+                      key={v.id}
+                      className={`block rounded-xl border p-3 cursor-pointer transition ${
+                        checked ? 'border-primary-500/60 bg-primary-500/10' : 'border-white/10 bg-white/5 hover:border-white/25'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => {
+                              setSelectedVersionIds((prev) =>
+                                prev.includes(v.id) ? prev.filter((id) => id !== v.id) : [v.id, ...prev]
+                              )
+                            }}
+                            className="mt-1"
+                          />
+                          <div>
+                            <p className="text-sm font-semibold text-slate-100">v{v.version_number}</p>
+                            <p className="text-xs text-slate-400">
+                              {new Date(v.created_at).toLocaleString()} · {v.created_by}
+                            </p>
+                            <p className="text-xs text-slate-300 mt-1">{v.change_summary}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                  )
+                })
+              )}
+
+              {selectedVersionIds.length > 0 && (
+                <div className="pt-2 space-y-3">
+                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Stacked diffs</p>
+                  {diffs.map((q, idx) => {
+                    const fromId = selectedVersionIds[idx]
+                    const diffText = (q.data as any)?.diff as string | undefined
+                    return (
+                      <div key={fromId} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                        <p className="text-xs text-slate-300 font-semibold mb-2">Diff: {fromId} → current</p>
+                        {q.isLoading ? (
+                          <div className="text-xs text-slate-400">Loading diff…</div>
+                        ) : q.isError ? (
+                          <div className="text-xs text-rose-300">Failed to load diff.</div>
+                        ) : (
+                          <pre className="text-[11px] text-slate-200 whitespace-pre-wrap font-mono max-h-64 overflow-y-auto">
+                            {diffText || '(empty diff)'}
+                          </pre>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
 }
+
+
 
 
 

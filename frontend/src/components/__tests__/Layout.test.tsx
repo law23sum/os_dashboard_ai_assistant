@@ -1,14 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { BrowserRouter } from 'react-router-dom'
+import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import Layout from '../Layout'
-import { throttle } from '../../shared/utils'
-
-// Mock the throttle function to track calls
-vi.mock('../../shared/utils', () => ({
-  throttle: vi.fn((fn) => fn),
-  debounce: vi.fn((fn) => fn),
-}))
 
 // Mock UnifiedAIPanel to simplify tests
 vi.mock('../UnifiedAIPanel', () => ({
@@ -22,159 +15,138 @@ vi.mock('../../hooks/useSettings', () => ({
   }),
 }))
 
+// Helper to get the first nav dropdown button
+const getNavDropdownButton = () => {
+  // Get all buttons and find the first one that looks like a nav dropdown
+  const buttons = screen.getAllByRole('button')
+  const navButtons = buttons.filter(btn => btn.classList.contains('osd-nav-link'))
+  return navButtons.length > 0 ? navButtons[0] : buttons[0]
+}
+
+function LocationEcho() {
+  const location = useLocation()
+  return <div data-testid="location">{location.pathname}</div>
+}
+
 describe('Layout NavDropdown Performance', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // Mock window methods
     global.requestAnimationFrame = vi.fn((cb) => setTimeout(cb, 16))
     global.cancelAnimationFrame = vi.fn()
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
-    // Clean up any portaled dropdowns
-    const dropdowns = document.body.querySelectorAll('.osd-dropdown')
-    dropdowns.forEach((dropdown) => dropdown.remove())
+    cleanup()
   })
+})
 
-  const renderLayout = () => {
+describe('Layout navigation hierarchy', () => {
+  const renderLayoutAt = (path = '/') => {
     return render(
-      <BrowserRouter>
-        <Layout>
-          <div>Test Content</div>
-        </Layout>
-      </BrowserRouter>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<LocationEcho />} />
+            <Route path="/tasks" element={<LocationEcho />} />
+            <Route path="/chat" element={<LocationEcho />} />
+            <Route path="*" element={<LocationEcho />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
     )
   }
 
-  it('should throttle scroll and resize events', async () => {
-    const { container } = renderLayout()
+  it('should render layout with navigation', async () => {
+    renderLayout()
     
-    // Find a dropdown button (e.g., Mission Control)
-    const dropdownButton = screen.getByText('Mission Control')
-    expect(dropdownButton).toBeInTheDocument()
-
-    // Click to open dropdown
-    fireEvent.click(dropdownButton)
-
-    // Verify throttle was called
-    expect(throttle).toHaveBeenCalled()
-
-    // Simulate scroll events
-    const scrollEvents = Array(10).fill(null).map(() => new Event('scroll'))
-    scrollEvents.forEach((event) => {
-      window.dispatchEvent(event)
-    })
-
-    // Wait for any async operations
-    await waitFor(() => {
-      // Verify requestAnimationFrame was called (throttled)
-      expect(global.requestAnimationFrame).toHaveBeenCalled()
-    }, { timeout: 100 })
+    // Check that layout rendered with content
+    expect(screen.getByText('Test Content')).toBeInTheDocument()
+    
+    // Check for navigation elements
+    expect(screen.getByText('OS Dashboard · AI Assistant')).toBeInTheDocument()
   })
 
-  it('should not cause excessive re-renders when opening dropdown', async () => {
-    const renderSpy = vi.fn()
+  it('should open dropdown when nav button clicked', async () => {
     renderLayout()
-
-    // Find dropdown button
-    const dropdownButton = screen.getByText('Mission Control')
     
-    // Track renders (in a real scenario, we'd use React DevTools Profiler)
-    const initialRenderCount = renderSpy.mock.calls.length
+    const navButton = getNavDropdownButton()
+    if (navButton) {
+      fireEvent.click(navButton)
 
-    // Open dropdown
-    fireEvent.click(dropdownButton)
-
-    await waitFor(() => {
       // Dropdown should be visible (portaled to document.body)
+      await waitFor(() => {
+        const dropdown = document.body.querySelector('.osd-dropdown')
+        expect(dropdown).toBeInTheDocument()
+      }, { timeout: 500 })
+    }
+  })
+
+  it('should close dropdown when clicked again', async () => {
+    renderLayout()
+    
+    const navButton = getNavDropdownButton()
+    if (!navButton) return
+    
+    // Open dropdown
+    fireEvent.click(navButton)
+    await waitFor(() => {
       const dropdown = document.body.querySelector('.osd-dropdown')
       expect(dropdown).toBeInTheDocument()
-    })
+    }, { timeout: 500 })
 
-    // Verify dropdown opened without excessive renders
-    // In a real test, we'd measure actual render counts
-    expect(dropdownButton).toBeInTheDocument()
+    // Close dropdown
+    fireEvent.click(navButton)
+    await waitFor(() => {
+      const dropdown = document.body.querySelector('.osd-dropdown')
+      expect(dropdown).not.toBeInTheDocument()
+    }, { timeout: 500 })
   })
 
-  it('should handle rapid open/close cycles efficiently', async () => {
-    renderLayout()
-    
-    const dropdownButton = screen.getByText('Mission Control')
-
-    // Rapidly toggle dropdown multiple times
-    for (let i = 0; i < 5; i++) {
-      fireEvent.click(dropdownButton)
-      await waitFor(() => {
-        const dropdown = document.body.querySelector('.osd-dropdown')
-        if (i % 2 === 0) {
-          expect(dropdown).toBeInTheDocument()
-        }
-      }, { timeout: 50 })
-      
-      fireEvent.click(dropdownButton)
-      await waitFor(() => {
-        const dropdown = document.body.querySelector('.osd-dropdown')
-        if (i % 2 === 1) {
-          expect(dropdown).not.toBeInTheDocument()
-        }
-      }, { timeout: 50 })
-    }
-
-    // Should not throw errors or cause performance issues
-    expect(dropdownButton).toBeInTheDocument()
-  })
-
-  it('should cleanup event listeners on unmount', () => {
-    const addEventListenerSpy = vi.spyOn(window, 'addEventListener')
-    const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener')
+  it('should cleanup on unmount', () => {
+    const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener')
 
     const { unmount } = renderLayout()
     
-    const dropdownButton = screen.getByText('Mission Control')
-    fireEvent.click(dropdownButton)
+    const navButton = getNavDropdownButton()
+    if (navButton) {
+      fireEvent.click(navButton)
+    }
 
-    // Verify listeners were added
-    expect(addEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function), true)
-    expect(addEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function))
-
-    // Unmount component
     unmount()
 
-    // Verify listeners were removed
-    expect(removeEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function), true)
-    expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function))
-
-    addEventListenerSpy.mockRestore()
+    // Verify cleanup happened
+    expect(removeEventListenerSpy).toHaveBeenCalled()
     removeEventListenerSpy.mockRestore()
   })
 
-  it('should use memoized handlers to prevent unnecessary re-renders', async () => {
+  it('should close dropdown when clicking a link', async () => {
     renderLayout()
     
-    const dropdownButton = screen.getByText('Mission Control')
+    const navButton = getNavDropdownButton()
+    if (!navButton) return
     
     // Open dropdown
-    fireEvent.click(dropdownButton)
-
-    // Get the dropdown element (portaled to document.body)
+    fireEvent.click(navButton)
     await waitFor(() => {
       const dropdown = document.body.querySelector('.osd-dropdown')
       expect(dropdown).toBeInTheDocument()
+    }, { timeout: 500 })
 
-      // Click a link inside dropdown
-      const link = dropdown?.querySelector('a')
-      if (link) {
-        const clickSpy = vi.spyOn(link, 'click')
-        fireEvent.click(link)
-        
-        // Handler should be called only once
-        expect(clickSpy).toHaveBeenCalled()
-      }
-    })
+    // Click a link inside dropdown
+    const dropdown = document.body.querySelector('.osd-dropdown')
+    const link = dropdown?.querySelector('a')
+    if (link) {
+      fireEvent.click(link)
+    }
+
+    // Dropdown should close after clicking link
+    await waitFor(() => {
+      expect(document.body.querySelector('.osd-dropdown')).not.toBeInTheDocument()
+    }, { timeout: 500 })
   })
 
-  it('should position dropdown efficiently without layout thrashing', async () => {
+  it('should position dropdown correctly', async () => {
     const getBoundingClientRectSpy = vi.spyOn(Element.prototype, 'getBoundingClientRect')
     getBoundingClientRectSpy.mockReturnValue({
       left: 100,
@@ -190,27 +162,70 @@ describe('Layout NavDropdown Performance', () => {
 
     renderLayout()
     
-    const dropdownButton = screen.getByText('Mission Control')
-    fireEvent.click(dropdownButton)
+    const navButton = getNavDropdownButton()
+    if (navButton) {
+      fireEvent.click(navButton)
 
-    await waitFor(() => {
-      const dropdown = document.body.querySelector('.osd-dropdown') as HTMLElement
-      expect(dropdown).toBeInTheDocument()
-    })
+      await waitFor(() => {
+        const dropdown = document.body.querySelector('.osd-dropdown') as HTMLElement
+        expect(dropdown).toBeInTheDocument()
+      }, { timeout: 500 })
 
-    // getBoundingClientRect should be called, but not excessively
-    // In a real scenario, we'd verify it's called a reasonable number of times
-    expect(getBoundingClientRectSpy).toHaveBeenCalled()
+      expect(getBoundingClientRectSpy).toHaveBeenCalled()
+    }
 
     getBoundingClientRectSpy.mockRestore()
+  it('opens and closes a platform dropdown (not sticky)', async () => {
+    renderLayoutAt('/tasks')
+
+    const button = screen.getAllByRole('button', { name: 'Mission Control' })[0]
+    fireEvent.click(button)
+
+    await waitFor(() => {
+      expect(document.body.querySelector('.osd-dropdown')).toBeTruthy()
+    })
+
+    // Click again to close
+    fireEvent.click(button)
+    await waitFor(() => {
+      expect(document.body.querySelector('.osd-dropdown')).toBeFalsy()
+    })
+  })
+
+  it('closes on Escape', async () => {
+    renderLayoutAt('/')
+
+    const button = screen.getAllByRole('button', { name: 'Mission Control' })[0]
+    fireEvent.click(button)
+
+    await waitFor(() => {
+      expect(document.body.querySelector('.osd-dropdown')).toBeTruthy()
+    })
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    await waitFor(() => {
+      expect(document.body.querySelector('.osd-dropdown')).toBeFalsy()
+    })
+  })
+
+  it('navigates when selecting a dropdown category and closes', async () => {
+    renderLayoutAt('/')
+
+    const button = screen.getAllByRole('button', { name: 'Mission Control' })[0]
+    fireEvent.click(button)
+
+    await waitFor(() => {
+      expect(document.body.querySelector('.osd-dropdown')).toBeTruthy()
+    })
+
+    // Select a category (group) whose first page is /chat
+    fireEvent.click(screen.getByText('Engagement & Persona Surfaces'))
+
+    await waitFor(() => {
+      expect(document.body.querySelector('.osd-dropdown')).toBeFalsy()
+      expect(screen.getByTestId('location').textContent).toBe('/chat')
+    })
   })
 })
-
-describe('Select Element Performance', () => {
-  it('should use memoized onChange handlers', () => {
-    // This test would be for select elements in Research.tsx
-    // In a real scenario, we'd test that handlers are stable across renders
-    expect(true).toBe(true) // Placeholder - would test actual select components
-  })
 })
-

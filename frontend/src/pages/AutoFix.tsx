@@ -22,6 +22,7 @@ import {
   X,
   XCircle,
   Zap,
+  Activity,
 } from 'lucide-react'
 import apiClient, { apiPath } from '../lib/apiClient'
 import { toast } from '../utils/toast'
@@ -465,8 +466,34 @@ export default function AutoFix() {
   const appliedCount = data?.issues.filter((i) => i.status === 'applied').length || 0
   const criticalCount = data?.issues.filter((i) => i.severity === 'critical' && i.status === 'pending').length || 0
 
+  const { data: orchestratorStatus } = useQuery({
+    queryKey: ['orchestratorStatus'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/autofix_status.json')
+        return await res.json()
+      } catch {
+        return null
+      }
+    },
+    refetchInterval: 5000,
+  })
+
   return (
     <div className="px-4 py-6 sm:px-0 space-y-8 text-slate-100">
+      {/* Orchestrator Status Banner */}
+      {orchestratorStatus && (
+        <div className="glass-card border-l-4 border-l-emerald-500 bg-emerald-500/10 p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+                <Activity className="w-5 h-5 text-emerald-400 animate-pulse" />
+                <div>
+                    <p className="font-medium text-emerald-200">Orchestrator Active</p>
+                    <p className="text-xs text-emerald-400/70">Last update: {orchestratorStatus.last_update} — {orchestratorStatus.last_message}</p>
+                </div>
+            </div>
+        </div>
+      )}
+
       {/* Header */}
       <section className="glass-card relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-teal-500/10 to-cyan-500/10" />
@@ -805,6 +832,8 @@ export default function AutoFix() {
     </div>
   )
 }
+
+
 
 
 

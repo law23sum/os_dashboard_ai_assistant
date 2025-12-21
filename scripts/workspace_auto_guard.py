@@ -45,7 +45,7 @@ class RepoCommand:
 
 
 def discover_git_repos(root: Path, max_depth: int) -> List[Path]:
-    """Return directories that directly contain a `.git` folder."""
+    """Return directories that directly contain a `.git` folder (or file)."""
     repos: List[Path] = []
     root = root.expanduser().resolve()
     queue: List[tuple[Path, int]] = [(root, 0)]
@@ -57,7 +57,7 @@ def discover_git_repos(root: Path, max_depth: int) -> List[Path]:
             continue
         seen.add(current)
         git_dir = current / ".git"
-        if git_dir.is_dir():
+        if git_dir.exists():
             repos.append(current)
             continue
         if depth >= max_depth:

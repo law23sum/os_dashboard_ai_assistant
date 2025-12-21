@@ -21,7 +21,7 @@ from assistant_hub_gui.autofix_monitor import (
 REPO_ROOT = Path(__file__).resolve().parent
 FRONTEND_DIR = REPO_ROOT / "frontend"
 FRONTEND_DIST = FRONTEND_DIR / "dist"
-DEFAULT_API_HOST = "127.0.0.1"
+DEFAULT_API_HOST = "0.0.0.0"  # Bind to all interfaces to allow network access
 DEFAULT_API_PORT = 8000
 DEFAULT_MODE = "web"
 PREFLIGHT_SCRIPT = REPO_ROOT / "scripts" / "run_tests_with_autofix.py"
@@ -84,6 +84,32 @@ def _run_preflight_tests() -> None:
         raise SystemExit(
             "Preflight tests did not pass. Review logs/tests for context before relaunching."
         )
+
+
+def _launch_master_orchestrator() -> Optional[subprocess.Popen]:
+    """Launch the master AI orchestrator in the background."""
+    orchestrator_enabled = os.environ.get("OSDASH_ENABLE_ORCHESTRATOR", "").strip().lower()
+    if orchestrator_enabled not in {"1", "true", "yes"}:
+        return None
+    
+    orchestrator_script = REPO_ROOT / "os_dashboard_ai_assistant.py"
+    if not orchestrator_script.exists():
+        return None
+    
+    print("🤖 Launching Master AI Orchestrator...")
+    try:
+        process = subprocess.Popen(
+            [sys.executable, str(orchestrator_script), "--root", str(REPO_ROOT.parent)],
+            cwd=REPO_ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        print(f"  ✓ Master Orchestrator launched (PID: {process.pid})")
+        return process
+    except Exception as e:
+        print(f"  ⚠️  Failed to launch orchestrator: {e}")
+        return None
 
 
 def _import_webview_app():
@@ -354,6 +380,9 @@ Examples:
   python start_ui.py --mode desktop     # Launch desktop app
   DEV_MODE=web python start_ui.py       # Use environment variable
   
+Master Orchestrator:
+  OSDASH_ENABLE_ORCHESTRATOR=1 python start_ui.py    # Enable master orchestrator
+  
 For more information, see README.md and DEPLOYMENT.md
         """
     )
@@ -362,9 +391,21 @@ For more information, see README.md and DEPLOYMENT.md
         choices=sorted(MODE_LOOKUP.keys()),
         help="Run without prompting (web, desktop, web-build, desktop-build)",
     )
+    parser.add_argument(
+        "--enable-orchestrator",
+        action="store_true",
+        help="Enable the master AI orchestrator for multi-project management",
+    )
     args = parser.parse_args()
 
     _run_preflight_tests()
+    
+    # Launch master orchestrator if enabled
+    orchestrator_process = None
+    if args.enable_orchestrator:
+        os.environ["OSDASH_ENABLE_ORCHESTRATOR"] = "1"
+    orchestrator_process = _launch_master_orchestrator()
+    
     monitor = start_auto_fix_monitor()
     try:
         mode = _resolve_mode(args.mode)
@@ -382,11 +423,20 @@ For more information, see README.md and DEPLOYMENT.md
                 if mode == "web"
                 else "🌐 Serving from: frontend/dist/"
             )
+        if orchestrator_process:
+            print(f"🤖 Master Orchestrator: Running (PID: {orchestrator_process.pid})")
         print()
         result = runner()
         return int(result or 0)
     finally:
         stop_auto_fix_monitor(monitor)
+        if orchestrator_process:
+            print("\n🛑 Stopping Master Orchestrator...")
+            try:
+                orchestrator_process.terminate()
+                orchestrator_process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                orchestrator_process.kill()
 
 
 if __name__ == "__main__":

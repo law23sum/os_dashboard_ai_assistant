@@ -4,15 +4,19 @@ from __future__ import annotations
 import logging
 import sqlite3
 from contextlib import closing
+from contextvars import ContextVar
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Literal, Tuple
+import time
+import uuid
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, Response, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict
+from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Scope, Receive, Send
 
 from ai_os.app.system_monitor import get_system_stats
@@ -55,6 +59,8 @@ from assistant_hub.theme import get_theme_definition, list_available_themes
 from backend_api.routers import (
     api_connectors as api_connectors_router,
     ai_systems as ai_systems_router,
+    audit as audit_router,
+    auth as auth_router,
     autofix as autofix_router,
     capsules as capsules_router,
     coach as coach_router,
@@ -67,10 +73,14 @@ from backend_api.routers import (
     neural_architecture as neural_architecture_router,
     office as office_router,
     personas as personas_router,
+    projects as projects_router,
     reasoning as reasoning_router,
     runtime_diagnostics as runtime_router,
+    search as search_router,
     security_threat as security_router,
+    templates as templates_router,
     workflow_orchestration as workflows_router,
+    workspace as workspace_router,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -78,6 +88,7 @@ FRONTEND_DIST = REPO_ROOT / "frontend" / "dist"
 LEGACY_UI_DIST = REPO_ROOT / "ui" / "web" / "dist"
 SPEC_SHEET_PATH = REPO_ROOT / "Technical Spec Sheet (Version 6 Latest Version).pdf"
 logger = logging.getLogger(__name__)
+request_id_ctx: ContextVar[str] = ContextVar("request_id", default="")
 
 
 class StripPrefixMiddleware:
@@ -113,12 +124,53 @@ class StripPrefixMiddleware:
             if self._should_strip(path):
                 new_scope = dict(scope)
                 trimmed = path[len(self.prefix) :] or "/"
+                logger.info(f"StripPrefixMiddleware: stripping '{path}' to '{trimmed}'")
                 new_scope["path"] = trimmed
                 raw_path = scope.get("raw_path")
                 if isinstance(raw_path, (bytes, bytearray)):
                     new_scope["raw_path"] = trimmed.encode("utf-8")
                 scope = new_scope
         await self.app(scope, receive, send)
+
+
+class CorrelationIdMiddleware:
+    """Assign a correlation ID to every request and expose it via headers/context."""
+
+    def __init__(self, app: ASGIApp, header_name: str = "x-correlation-id") -> None:
+        self.app = app
+        self.header_name = header_name.lower()
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        headers = dict(scope.get("headers") or [])
+        existing = headers.get(self.header_name.encode())
+        correlation_id = (
+            existing.decode("utf-8") if existing else str(uuid.uuid4())
+        )
+        scope["correlation_id"] = correlation_id
+        token = request_id_ctx.set(correlation_id)
+        start = time.perf_counter()
+
+        async def send_wrapper(message: Dict[str, Any]) -> None:
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                headers.append(self.header_name, correlation_id)
+                duration_ms = int((time.perf_counter() - start) * 1000)
+                headers.setdefault("x-response-time-ms", str(duration_ms))
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_wrapper)
+        finally:
+            request_id_ctx.reset(token)
+
+
+def _current_correlation_id() -> str:
+    cid = request_id_ctx.get()
+    return cid or ""
 
 
 class TaskPayload(BaseModel):
@@ -276,41 +328,93 @@ def create_app(
 ) -> FastAPI:
     """Create FastAPI application."""
     app = FastAPI(title="OS Dashboard API", version="0.2.0")
+    # CORS configuration - must specify origins when allow_credentials=True
+    # Cannot use wildcard "*" with credentials
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=[
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5174",
+            "http://0.0.0.0:5173",
+            "http://0.0.0.0:5174",
+            # Electron file:// origin
+            "null",
+        ],
+        # Allow any localhost/loopback and local network IPs on any port for dev
+        allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$",
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        allow_headers=["Content-Type", "Authorization", "Accept", "X-Requested-With"],
+        expose_headers=["Content-Type", "X-Total-Count", "x-correlation-id"],
+        max_age=3600,
     )
     app.add_middleware(
         StripPrefixMiddleware,
         prefix="/api",
         exclusions=("/api/docs",),
     )
+    app.add_middleware(CorrelationIdMiddleware)
+
+    @app.exception_handler(HTTPException)
+    async def _http_exception_handler(request: Request, exc: HTTPException):
+        cid = _current_correlation_id()
+        payload = {
+            "error": {
+                "type": exc.__class__.__name__,
+                "code": exc.status_code,
+                "message": exc.detail,
+            },
+            "correlation_id": cid,
+        }
+        return JSONResponse(status_code=exc.status_code, content=payload)
+
+    @app.exception_handler(Exception)
+    async def _unhandled_exception_handler(request: Request, exc: Exception):
+        cid = _current_correlation_id()
+        logger.exception("Unhandled exception", extra={"correlation_id": cid})
+        payload = {
+            "error": {
+                "type": exc.__class__.__name__,
+                "code": 500,
+                "message": "Internal server error",
+            },
+            "correlation_id": cid,
+        }
+        return JSONResponse(status_code=500, content=payload)
 
     # Surface the realtime Office router so the React frontend can read metrics
     # and trigger AI actions without spinning up the separate demo server.
     app.include_router(office_router.router, prefix="/office", tags=["office"])
+    # Authentication router (middleware strips /api, so /api/auth/login becomes /auth/login)
+    # Router endpoints are /login, /signup, /me, so we mount at /auth prefix
+    app.include_router(auth_router.router, prefix="/auth", tags=["auth"])
     # Additional routers from backend_api to keep advanced surfaces in sync across
     # the desktop (Tkinter/PyWebView) and browser clients.
     app.include_router(api_connectors_router.router, prefix="/api-connectors", tags=["api_connectors"])
     app.include_router(ai_systems_router.router, prefix="/ai", tags=["ai_systems"])
+    app.include_router(audit_router.router, prefix="/audit", tags=["audit"])
+    app.include_router(autofix_router.router, prefix="/autofix", tags=["autofix"])
     app.include_router(capsules_router.router, prefix="/ai", tags=["capsules"])
     app.include_router(coach_router.router, prefix="/ai", tags=["coach"])
-    app.include_router(intelligence_router.router, prefix="/intelligence", tags=["intelligence"])
-    app.include_router(reasoning_router.router, prefix="/reasoning", tags=["reasoning"])
-    app.include_router(intents_router.router, tags=["intents"])
-    app.include_router(autofix_router.router, prefix="/autofix", tags=["autofix"])
     app.include_router(computer_vision_router.router, prefix="/computer-vision", tags=["computer_vision"])
-    app.include_router(neural_architecture_router.router, prefix="/neural-architecture", tags=["neural_architecture"])
-    app.include_router(security_router.router, prefix="/security", tags=["security"])
-    app.include_router(network_router.router, prefix="/network", tags=["network"])
     app.include_router(edge_router.router, prefix="/edge-computing", tags=["edge_computing"])
-    app.include_router(workflows_router.router, prefix="/workflows", tags=["workflows"])
     app.include_router(git_router.router, tags=["git"])
+    app.include_router(intelligence_router.router, prefix="/intelligence", tags=["intelligence"])
+    app.include_router(intents_router.router, tags=["intents"])
+    app.include_router(network_router.router, prefix="/network", tags=["network"])
+    app.include_router(neural_architecture_router.router, prefix="/neural-architecture", tags=["neural_architecture"])
     app.include_router(personas_router.router, prefix="/personas", tags=["personas"])
+    app.include_router(reasoning_router.router, prefix="/reasoning", tags=["reasoning"])
     app.include_router(runtime_router.router, tags=["runtime"])
+    app.include_router(search_router.router, prefix="/search", tags=["search"])
+    app.include_router(security_router.router, prefix="/security", tags=["security"])
+    app.include_router(templates_router.router, prefix="/templates", tags=["templates"])
+    app.include_router(workflows_router.router, prefix="/workflows", tags=["workflows"])
+    app.include_router(workspace_router.router, tags=["workspace"])
 
     docs_dir = REPO_ROOT / "docs"
     if docs_dir.exists():
@@ -332,6 +436,15 @@ def create_app(
         conn = sqlite3.connect(str(db_path), check_same_thread=False)
         conn.row_factory = sqlite3.Row
         return conn
+
+    def _db_ready() -> bool:
+        try:
+            with closing(connect()) as conn:
+                conn.execute("SELECT 1").fetchone()
+            return True
+        except Exception:
+            logger.exception("Database readiness check failed")
+            return False
 
     scheduler_conn = sqlite3.connect(str(db_path), check_same_thread=False)
     scheduler_conn.row_factory = sqlite3.Row
@@ -653,8 +766,17 @@ def create_app(
         raise HTTPException(status_code=404, detail=f"Unknown daemon: {slug}")
 
     @app.get("/health")
-    def health():
-        return {"status": "ok"}
+    def health(request: Request):
+        cid = _current_correlation_id()
+        return {"status": "ok", "correlation_id": cid}
+
+    @app.get("/ready")
+    def ready(request: Request):
+        cid = _current_correlation_id()
+        return {
+            "status": "ok" if _db_ready() else "degraded",
+            "correlation_id": cid,
+        }
 
     @app.get("/system")
     def system_status():
@@ -706,6 +828,57 @@ def create_app(
         with closing(connect()) as conn:
             db_delete_project(conn, project_name)
         return {"deleted": project_name}
+
+    @app.get("/projects/links", response_model=List[projects_router.ProjectLinkResponse])
+    async def list_project_links(
+        project: Optional[str] = None, integration: Optional[str] = None
+    ):
+        return await projects_router.list_links(project=project, integration=integration)
+
+    @app.get("/projects/ledger", response_model=List[projects_router.ProjectLedgerEvent])
+    async def list_project_ledger(project: Optional[str] = None, limit: int = 50):
+        return await projects_router.list_project_ledger(project=project, limit=limit)
+
+    @app.get(
+        "/projects/intelligence",
+        response_model=List[projects_router.ProjectIntelligenceResponse],
+    )
+    async def list_project_intelligence():
+        return await projects_router.list_project_intelligence()
+
+    @app.get(
+        "/projects/{project_name}/links",
+        response_model=List[projects_router.ProjectLinkResponse],
+    )
+    async def get_project_links(project_name: str, integration: Optional[str] = None):
+        return await projects_router.get_project_links(
+            project_name=project_name, integration=integration
+        )
+
+    @app.get(
+        "/projects/{project_name}/ledger",
+        response_model=List[projects_router.ProjectLedgerEvent],
+    )
+    async def get_project_ledger(project_name: str, limit: int = 50):
+        return await projects_router.get_project_ledger(project_name=project_name, limit=limit)
+
+    @app.get(
+        "/projects/{project_name}/intelligence",
+        response_model=projects_router.ProjectIntelligenceResponse,
+    )
+    async def get_project_intelligence(project_name: str):
+        return await projects_router.get_project_intelligence(project_name=project_name)
+
+    @app.get(
+        "/projects/{project_name}/insights",
+        response_model=projects_router.ProjectInsightResponse,
+    )
+    async def get_project_insights(project_name: str):
+        return await projects_router.get_project_insights(project_name=project_name)
+
+    @app.get("/projects/{project_name}/trf", response_model=projects_router.ProjectTRFResponse)
+    async def get_project_trf(project_name: str, limit: int = 10):
+        return await projects_router.get_project_trf(project_name=project_name, limit=limit)
 
     @app.get("/tasks")
     def list_tasks(limit: int = Query(100, ge=1, le=500)):
@@ -763,6 +936,44 @@ def create_app(
     @app.get("/operations")
     def operations(limit: int = Query(25, ge=1, le=200)):
         return {"operations": _fetch_agent_runs(limit), "limit": limit}
+
+    @app.get("/operations/summary")
+    def operations_summary():
+        """Return summary statistics for operations/agent runs."""
+        operations = _fetch_agent_runs(200)
+        total = len(operations)
+        
+        # Calculate statistics
+        by_agent = {}
+        by_action = {}
+        recent_24h = 0
+        
+        from datetime import datetime, timedelta
+        now = datetime.utcnow()
+        cutoff = now - timedelta(hours=24)
+        
+        for op in operations:
+            agent = op.get("agent", "unknown")
+            action = op.get("action_type", "unknown")
+            created_at = op.get("created_at", "")
+            
+            by_agent[agent] = by_agent.get(agent, 0) + 1
+            by_action[action] = by_action.get(action, 0) + 1
+            
+            try:
+                op_time = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                if op_time > cutoff:
+                    recent_24h += 1
+            except (ValueError, AttributeError):
+                pass
+        
+        return {
+            "total": total,
+            "recent_24h": recent_24h,
+            "by_agent": by_agent,
+            "by_action": by_action,
+            "last_updated": now.isoformat() + "Z"
+        }
 
     @app.get("/chat", response_model=List[ChatMessageResponse])
     def list_chat_messages(

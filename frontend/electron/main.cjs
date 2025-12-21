@@ -5,7 +5,7 @@ const backendLauncher = require('./backendLauncher.cjs');
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 const BACKEND_HOST = process.env.BACKEND_HOST || '127.0.0.1';
-const BACKEND_PORT = parseInt(process.env.BACKEND_PORT || '8000', 10);
+const BACKEND_PORT = parseInt(process.env.BACKEND_PORT || '8070', 10);
 const BACKEND_URL = `http://${BACKEND_HOST}:${BACKEND_PORT}`;
 process.env.OSDASH_BACKEND_URL = BACKEND_URL;
 const DEFAULT_REPO_ROOT = path.resolve(__dirname, '../..');
