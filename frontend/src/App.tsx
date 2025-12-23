@@ -16,6 +16,7 @@ import Dashboard from './pages/Dashboard'
 import Tasks from './pages/Tasks'
 import Projects from './pages/Projects'
 import Chat from './pages/Chat'
+import ResponsesChat from './pages/ResponsesChat'
 import Collaboration from './pages/Collaboration'
 import Personalization from './pages/Personalization'
 import SearchEngine from './pages/SearchEngine'
@@ -55,6 +56,7 @@ import VisionDeck from './pages/VisionDeck'
 import FutureDeck from './pages/FutureDeck'
 import Settings from './pages/Settings'
 import SpecPage from './pages/SpecPage'
+import VectorStores from './pages/VectorStores'
 
 // Auth
 import { AuthProvider } from './auth/AuthContext'
@@ -142,6 +144,7 @@ function App() {
                 <Route path="/tasks" element={<Tasks />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/chat" element={<Chat />} />
+                <Route path="/chat/responses" element={<ResponsesChat />} />
                 <Route path="/research" element={<Research />} />
                 <Route path="/collaboration" element={<Collaboration />} />
                 <Route path="/personalization" element={<Personalization />} />

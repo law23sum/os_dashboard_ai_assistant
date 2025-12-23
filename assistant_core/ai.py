@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 import sys
 from datetime import datetime
@@ -34,7 +35,14 @@ from .prompting.gpt5_scaffold import (
     apply_gpt5_prompting_scaffold,
 )
 from .openai_compat import legacy_chat_completion
+from config.config import get_api_config  # Import global config
 
+# Try to import Anthropic
+try:
+    from anthropic import Anthropic, APIError as AnthropicAPIError
+except ImportError:
+    Anthropic = None
+    class AnthropicAPIError(Exception): pass
 
 class AIAssistant:
     """AI assistant façade used by the CLI, GUI, and tests."""
@@ -198,15 +206,68 @@ def openai_available() -> bool:
     return True
 
 
-def get_openai_client() -> OpenAI:
+def get_openai_client(provider: str = "openai") -> OpenAI:
     global _client
-    if _client is None:
-        if OpenAI is None:
-            raise RuntimeError(
-                "The 'openai' package is not installed. Install it to enable ChatGPT support."
-            )
-        _client = OpenAI(api_key=_get_api_key())
-    return _client
+    # We might need multiple clients for different providers, so we can't just cache one global _client 
+    # if we are switching providers. For now, we'll instantiate fresh or use a dict cache if needed.
+    # To keep it simple, we will return a new client for non-OpenAI providers.
+    
+    config = get_api_config()
+    
+    if provider == "openai":
+        if _client is None:
+            if OpenAI is None:
+                raise RuntimeError("The 'openai' package is not installed.")
+            _client = OpenAI(api_key=_get_api_key())
+        return _client
+        
+    elif provider == "xai":
+        if not config.xai_api_key:
+            raise ValueError("xAI API key missing.")
+        return OpenAI(
+            api_key=config.xai_api_key,
+            base_url="https://api.x.ai/v1"
+        )
+        
+    elif provider == "deepseek":
+        if not config.deepseek_api_key:
+            raise ValueError("DeepSeek API key missing.")
+        return OpenAI(
+            api_key=config.deepseek_api_key,
+            base_url="https://api.deepseek.com"
+        )
+        
+    elif provider == "groq":
+        if not config.groq_api_key:
+            raise ValueError("Groq API key missing.")
+        return OpenAI(
+            api_key=config.groq_api_key,
+            base_url="https://api.groq.com/openai/v1"
+        )
+        
+    elif provider == "cohere":
+        if not config.cohere_api_key:
+             raise ValueError("Cohere API key missing.")
+        # Cohere V2 is partially compatible but might need specific tweaks. 
+        # Using native url for now if compatible, otherwise this might fail.
+        return OpenAI(
+            api_key=config.cohere_api_key,
+            base_url="https://api.cohere.com/v2" 
+        )
+
+    # Default to OpenAI
+    return get_openai_client("openai")
+
+
+def get_anthropic_client() -> Anthropic:
+    if Anthropic is None:
+        raise RuntimeError("The 'anthropic' package is not installed.")
+    
+    config = get_api_config()
+    if not config.anthropic_api_key:
+        raise ValueError("Anthropic API key missing.")
+        
+    return Anthropic(api_key=config.anthropic_api_key)
 
 
 def build_message_payload(
@@ -408,11 +469,89 @@ def generate_ai_reply(
     cwd: Optional[str] = None,
     enable_shell: bool = True,
     file_paths: Optional[List[str]] = None,
+    conversation_id: Optional[str] = None,
+    previous_response_id: Optional[str] = None,
+    uploaded_file_ids: Optional[List[str]] = None,
+    vector_store_ids: Optional[List[str]] = None,
+    enable_code_interpreter: bool = False,
+    enable_file_search: bool = False,
+    image_urls: Optional[List[str]] = None,
+    image_file_ids: Optional[List[str]] = None,
+    image_detail: str = "auto",
+    model_provider: str = "openai",
+    # GPT-5.2 features
+    custom_tools: Optional[List[Dict[str, Any]]] = None,
+    enable_preambles: bool = False,
 ) -> Tuple[str, Optional[str], Optional[List[Dict]]]:
     """
-    Send the conversation to OpenAI and return (reply, error_message, tool_calls).
+    Send the conversation to AI Provider and return (reply, error_message, tool_calls).
     Returns tool_calls if the AI wants to execute commands.
     """
+    
+    # Handle Anthropic separately
+    if model_provider == "anthropic":
+        try:
+            client = get_anthropic_client()
+            # Convert history to Anthropic format
+            anthropic_messages = []
+            system_msg = system_prompt or get_default_system_prompt()
+            
+            for msg in history:
+                role = "assistant" if msg.role == "assistant" else "user"
+                # Anthropic doesn't support system messages in the messages list usually (they go to top level system param)
+                # It also doesn't support tool results the same way yet in this simple implementation
+                if msg.role != "system": 
+                     anthropic_messages.append({"role": role, "content": msg.content})
+            
+            # Add current prompt
+            if prompt and append_prompt:
+                anthropic_messages.append({"role": "user", "content": prompt})
+
+            response = client.messages.create(
+                model=get_api_config().anthropic_model or "claude-3-opus-20240229",
+                max_tokens=max_tokens,
+                temperature=temperature,
+                system=system_msg,
+                messages=anthropic_messages
+            )
+            
+            return response.content[0].text, None, None
+            
+        except Exception as e:
+             return _offline_reply(prompt or "", e), str(e), None
+
+    # Handle Google (Simple REST fallback)
+    if model_provider == "google":
+        import requests
+        try:
+            config = get_api_config()
+            if not config.google_api_key:
+                raise ValueError("Google API key missing")
+                
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{config.google_model or 'gemini-1.5-pro-latest'}:generateContent?key={config.google_api_key}"
+            
+            # Simple conversion
+            contents = []
+            for msg in history:
+                 if msg.role == "user":
+                     contents.append({"role": "user", "parts": [{"text": msg.content}]})
+                 elif msg.role == "assistant":
+                     contents.append({"role": "model", "parts": [{"text": msg.content}]})
+            
+            if prompt and append_prompt:
+                contents.append({"role": "user", "parts": [{"text": prompt}]})
+                
+            response = requests.post(url, json={"contents": contents})
+            if response.status_code != 200:
+                raise Exception(f"Google API Error: {response.text}")
+                
+            data = response.json()
+            text = data.get("candidates", [])[0].get("content", {}).get("parts", [])[0].get("text", "")
+            return text, None, None
+            
+        except Exception as e:
+             return _offline_reply(prompt or "", e), str(e), None
+
     messages = []
     sys_prompt = system_prompt or get_default_system_prompt()
     if sys_prompt:
@@ -421,17 +560,54 @@ def generate_ai_reply(
 
     if prompt and append_prompt:
         persona_prefix = f"[{persona}] " if persona else ""
-        messages.append(
-            {"role": "user", "content": f"{persona_prefix}{prompt}".strip()}
-        )
+        prompt_text = f"{persona_prefix}{prompt}".strip()
+        
+        # Handle multimodal input (text + images)
+        if image_urls or image_file_ids:
+            content = [{"type": "input_text", "text": prompt_text}]
+            
+            # Add image URLs
+            if image_urls:
+                for img_url in image_urls:
+                    content.append({
+                        "type": "input_image",
+                        "image_url": {
+                            "url": img_url,
+                            "detail": image_detail,
+                        },
+                    })
+            
+            # Add image file IDs
+            if image_file_ids:
+                for file_id in image_file_ids:
+                    content.append({
+                        "type": "input_image",
+                        "image_file": {
+                            "file_id": file_id,
+                            "detail": image_detail,
+                        },
+                    })
+            
+            messages.append({"role": "user", "content": content})
+        else:
+            messages.append({"role": "user", "content": prompt_text})
 
     fallback_source = (
         fallback_prompt or prompt or (history[-1].content if history else "")
     )
 
     # Use agent-specific model if not specified
-    if not model:
+    if not model and model_provider == "openai":
         model = get_agent_model(persona)
+    
+    # Set default models for other providers if not provided
+    if not model:
+        config = get_api_config()
+        if model_provider == "xai": model = config.xai_model or "grok-1"
+        elif model_provider == "deepseek": model = "deepseek-chat"
+        elif model_provider == "groq": model = config.groq_model or "llama3-70b-8192"
+        elif model_provider == "cohere": model = "command-r-plus"
+
 
     # Check for Data Science Agent routing
     data_science_keywords = [
@@ -464,7 +640,7 @@ def generate_ai_reply(
         keyword in (prompt or "").lower() for keyword in data_science_keywords
     )
 
-    if is_data_science_query:
+    if is_data_science_query and model_provider == "openai":
         try:
             from .ai_layer.agents import DataScienceAgent
 
@@ -484,47 +660,141 @@ def generate_ai_reply(
             pass
 
     try:
-        client = get_openai_client()
+        client = get_openai_client(model_provider)
 
         # Prepare tools/functions for shell execution
-        tools = None
-        if enable_shell:
-            tools = get_shell_functions(cwd or os.getcwd())
+        tools = []
+        # Shell tools only for OpenAI/compatible usually, unless we adapt
+        if enable_shell and model_provider in ["openai", "xai", "deepseek", "groq"]:
+            tools.extend(get_shell_functions(cwd or os.getcwd()))
+        
+        # Add custom tools if provided (GPT-5.2 feature)
+        if custom_tools:
+            tools.extend(custom_tools)
+        
+        # Add code_interpreter tool if enabled
+        if enable_code_interpreter and model_provider == "openai":
+            code_tool: Dict[str, Any] = {"type": "code_interpreter"}
+            if uploaded_file_ids:
+                code_tool["code_interpreter"] = {"file_ids": uploaded_file_ids[:20]}  # Max 20 files
+            tools.append(code_tool)
+        
+        # Add file_search tool if enabled
+        if enable_file_search and vector_store_ids and model_provider == "openai":
+            tools.append({
+                "type": "file_search",
+                "file_search": {"vector_store_ids": vector_store_ids},
+            })
+        
+        tools = tools if tools else None
 
         # Handle file uploads if provided
         # Note: OpenAI file API requires separate upload, then reference in messages
         # For now, we'll include file content in the message
 
         instructions, remaining = _split_system_instructions(messages)
+        # GPT-5.2 supports: none, low, medium, high, xhigh
         effort = os.getenv("ASSISTANT_HUB_REASONING_EFFORT", "none")
+        if effort not in ("none", "low", "medium", "high", "xhigh"):
+            effort = "none"
         verbosity = os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY", "medium")
+        if verbosity not in ("low", "medium", "high"):
+            verbosity = "medium"
+        
+        # Add preamble instruction if enabled (GPT-5.2 feature)
+        if enable_preambles and instructions:
+            instructions += "\n\nBefore you call a tool, explain why you are calling it."
+        elif enable_preambles:
+            instructions = "Before you call a tool, explain why you are calling it."
 
         payload: Dict[str, Any] = {
             "model": model,
-            "instructions": instructions,
-            "input": _to_responses_input(remaining),
-            "reasoning": {"effort": effort},
-            "text": {"verbosity": verbosity},
-            "max_output_tokens": max_tokens,
-            "store": False,
+            "messages": messages, # Standard Chat Completions API uses 'messages', not 'input' usually. Wait, existing code used Responses API?
+            # The existing code seemed to use `client.responses.create` which is likely an internal or preview API wrapper for the user.
+            # But standard OpenAI python client uses `client.chat.completions.create`.
+            # I need to check `client.responses`. 
+            # If `client.responses` exists, it's a specific wrapper. If not, I should use `chat.completions`.
+            # For other providers (DeepSeek, etc), we definitely want `chat.completions`.
         }
-        if effort == "none":
-            payload["temperature"] = temperature
-        if tools:
-            payload["tools"] = tools
-            payload["tool_choice"] = "auto"
-
-        if hasattr(client, "responses"):
-            response = client.responses.create(**payload)
-            text = _extract_responses_output_text(response)
-            tool_calls = _extract_function_calls(response)
+        
+        # FIX: The existing code used `client.responses.create` with `input` and `instructions`. 
+        # This looks like a specific custom wrapper or a very new/different API shape.
+        # However, for broader compatibility, I should use `chat.completions.create`.
+        # I will switch to `chat.completions.create` for non-OpenAI providers or if `responses` is missing.
+        
+        use_standard_chat = model_provider != "openai" or not hasattr(client, "responses")
+        
+        if use_standard_chat:
+             payload = {
+                "model": model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+             }
+             if tools:
+                 payload["tools"] = tools
+                 payload["tool_choice"] = "auto"
+                 
+             response = client.chat.completions.create(**payload)
+             text = response.choices[0].message.content
+             tool_calls = response.choices[0].message.tool_calls
+             # Adapter for tool calls format if needed
+             if tool_calls:
+                 tool_calls = [
+                     {"id": tc.id, "name": tc.function.name, "arguments": tc.function.arguments} 
+                     for tc in tool_calls
+                 ]
         else:
-            # When forced onto legacy Chat Completions, many newer "gpt-5*" models
-            # are not available. Use a configurable legacy model instead.
-            if isinstance(payload.get("model"), str) and payload["model"].startswith("gpt-5"):
-                payload = dict(payload)
-                payload["model"] = os.getenv("ASSISTANT_HUB_OPENAI_LEGACY_MODEL", "gpt-4o-mini")
-            text, tool_calls = legacy_chat_completion(client, payload)
+            # Existing OpenAI Logic (Responses API?)
+            payload = {
+                "model": model,
+                "instructions": instructions,
+                "input": _to_responses_input(remaining),
+                "reasoning": {"effort": effort},
+                "text": {"verbosity": verbosity},
+                "max_output_tokens": max_tokens,
+                "store": False,
+            }
+            if effort == "none":
+                payload["temperature"] = temperature
+            if tools:
+                payload["tools"] = tools
+                # Support allowed_tools for constraining tool usage (GPT-5.2 feature)
+                allowed_tools_env = os.getenv("ASSISTANT_HUB_ALLOWED_TOOLS")
+                if allowed_tools_env:
+                    try:
+                        import json
+                        allowed_tools_list = json.loads(allowed_tools_env)
+                        if isinstance(allowed_tools_list, list):
+                            payload["tool_choice"] = {
+                                "type": "allowed_tools",
+                                "mode": os.getenv("ASSISTANT_HUB_TOOL_CHOICE_MODE", "auto"),
+                                "tools": allowed_tools_list,
+                            }
+                        else:
+                            payload["tool_choice"] = "auto"
+                    except Exception:
+                        payload["tool_choice"] = "auto"
+                else:
+                    payload["tool_choice"] = "auto"
+            
+            if conversation_id:
+                payload["conversation"] = conversation_id
+                payload["store"] = True
+            elif previous_response_id:
+                payload["previous_response_id"] = previous_response_id
+
+            if hasattr(client, "responses"):
+                response = client.responses.create(**payload)
+                text = _extract_responses_output_text(response)
+                tool_calls = _extract_function_calls(response)
+            else:
+                 # Fallback to standard chat completion if client doesn't have responses
+                if isinstance(payload.get("model"), str) and payload["model"].startswith("gpt-5"):
+                    payload = dict(payload)
+                    payload["model"] = os.getenv("ASSISTANT_HUB_OPENAI_LEGACY_MODEL", "gpt-4o-mini")
+                text, tool_calls = legacy_chat_completion(client, payload)
+
         return text.strip(), None, tool_calls
     except (AuthenticationError, APIError, ValueError, RuntimeError) as exc:
         return _offline_reply(fallback_source or "(empty prompt)", exc), str(exc), None

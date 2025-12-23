@@ -261,7 +261,30 @@ class OpenAIClient:
     async def create_assistant(
         self, name: str, instructions: str, tools: List[str] = None
     ) -> Dict[str, Any]:
-        """Create an OpenAI Assistant"""
+        """
+        DEPRECATED: Create an OpenAI Assistant using the legacy Assistants API.
+        
+        The Assistants API is deprecated and will be shut down on August 26, 2026.
+        Migrate to the Responses API using Prompts instead.
+        
+        Migration guide: https://platform.openai.com/docs/assistants/migration
+        
+        Key changes:
+        - Assistants → Prompts (create/manage in OpenAI dashboard, reference by ID)
+        - Threads → Conversations
+        - Runs → Responses
+        - Use client.responses.create() with prompt_id parameter instead
+        
+        This method is kept for backward compatibility only.
+        """
+        import warnings
+        warnings.warn(
+            "create_assistant() uses the deprecated Assistants API. "
+            "Migrate to Responses API with Prompts. "
+            "See: https://platform.openai.com/docs/assistants/migration",
+            DeprecationWarning,
+            stacklevel=2
+        )
         try:
             assistant_tools = []
             if tools:
@@ -288,6 +311,54 @@ class OpenAIClient:
             self.logger.error(f"Assistant creation failed: {e}")
             raise
 
+    async def create_conversation(
+        self, items: Optional[List[Dict[str, Any]]] = None, metadata: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Create a Conversation object for persistent chat state.
+        
+        Conversations replace Threads in the Responses API and can store items
+        (messages, tool calls, outputs) for long-running context.
+        
+        Args:
+            items: Initial conversation items (messages, tool calls, etc.)
+            metadata: Optional metadata to attach to the conversation
+            
+        Returns:
+            Conversation object with id and metadata
+        """
+        try:
+            payload: Dict[str, Any] = {}
+            if items:
+                payload["items"] = items
+            if metadata:
+                payload["metadata"] = metadata
+                
+            conversation = await self.client.conversations.create(**payload)
+            return {
+                "id": conversation.id,
+                "object": conversation.object,
+                "created_at": conversation.created_at,
+                "metadata": getattr(conversation, "metadata", {}),
+            }
+        except Exception as e:
+            self.logger.error(f"Conversation creation failed: {e}")
+            raise
+
+    async def get_conversation(self, conversation_id: str) -> Dict[str, Any]:
+        """Retrieve a conversation by ID."""
+        try:
+            conversation = await self.client.conversations.retrieve(conversation_id)
+            return {
+                "id": conversation.id,
+                "object": conversation.object,
+                "created_at": conversation.created_at,
+                "metadata": getattr(conversation, "metadata", {}),
+            }
+        except Exception as e:
+            self.logger.error(f"Conversation retrieval failed: {e}")
+            raise
+
     async def shutdown(self):
         """Shutdown OpenAI client"""
         if self.client:
@@ -298,7 +369,17 @@ class OpenAIClient:
     def chat(
         self, model: str, messages: List[Dict[str, Any]], **kwargs
     ) -> Dict[str, Any]:
-        """Legacy helper: call the Responses API but return the raw SDK response object."""
+        """
+        Legacy helper: call the Responses API but return the raw SDK response object.
+        
+        GPT-5.2 Features Supported:
+        - reasoning.effort: none, low, medium, high, xhigh
+        - text.verbosity: low, medium, high
+        - previous_response_id: Pass CoT between turns
+        - allowed_tools: Constrain tool usage
+        - custom tools: type: custom for freeform inputs
+        - preambles: Enable tool call explanations
+        """
         # For backward compatibility, create a sync client.
         sync_client = openai.OpenAI(
             api_key=self.config.openai_api_key,
@@ -306,10 +387,23 @@ class OpenAIClient:
         )
         instructions, remaining = _split_system_instructions(messages)
         effort = kwargs.pop("reasoning_effort", os.getenv("ASSISTANT_HUB_REASONING_EFFORT", "none"))
+        if effort not in ("none", "low", "medium", "high", "xhigh"):
+            effort = "none"
         verbosity = kwargs.pop("verbosity", os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY", "medium"))
+        if verbosity not in ("low", "medium", "high"):
+            verbosity = "medium"
         max_tokens = kwargs.pop("max_tokens", None)
         # Only valid to pass sampling params when effort == "none" for GPT-5.2 family.
         temperature = kwargs.pop("temperature", None)
+        previous_response_id = kwargs.pop("previous_response_id", None)
+        enable_preambles = kwargs.pop("enable_preambles", False)
+        
+        # Add preamble instruction if enabled (GPT-5.2 feature)
+        if enable_preambles and instructions:
+            instructions += "\n\nBefore you call a tool, explain why you are calling it."
+        elif enable_preambles:
+            instructions = "Before you call a tool, explain why you are calling it."
+        
         payload: Dict[str, Any] = {
             "model": model,
             "instructions": instructions,
@@ -322,6 +416,8 @@ class OpenAIClient:
             payload["max_output_tokens"] = max_tokens
         if temperature is not None and effort == "none":
             payload["temperature"] = temperature
+        if previous_response_id:
+            payload["previous_response_id"] = previous_response_id
         payload.update(kwargs)
         return sync_client.responses.create(**payload)
 

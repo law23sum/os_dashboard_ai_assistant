@@ -7,18 +7,9 @@ import sys
 from pathlib import Path
 
 from assistant_hub.db import init_db as db_init_db
-from .commands import (
-    handle_onenote_command,
-    handle_excel_command,
-    handle_word_command,
-    handle_projects_command,
-    handle_history_command,
-    handle_chat_command,
-    handle_scan_command,
-    handle_test_command,
-    handle_run_command,
-    handle_doctor_command,
-)
+
+# Import commands lazily to avoid hard dependency requirements for unused commands
+# from .commands import ... (removed top-level import)
 
 
 def create_cli_parser() -> argparse.ArgumentParser:
@@ -158,24 +149,34 @@ def main() -> int:
 
     try:
         if args.command == "projects":
+            from .commands.projects import handle_projects_command
             return handle_projects_command(args, conn)
         elif args.command == "onenote":
+            from .commands.onenote import handle_onenote_command
             return handle_onenote_command(args, conn)
         elif args.command == "excel":
+            from .commands.excel import handle_excel_command
             return handle_excel_command(args, conn)
         elif args.command == "word":
+            from .commands.word import handle_word_command
             return handle_word_command(args, conn)
         elif args.command == "history":
+            from .commands.history import handle_history_command
             return handle_history_command(args, conn)
         elif args.command == "chat":
+            from .commands.chat import handle_chat_command
             return handle_chat_command(args)
         elif args.command == "scan":
+            from .commands.workspace import handle_scan_command
             return handle_scan_command(args)
         elif args.command == "test":
+            from .commands.workspace import handle_test_command
             return handle_test_command(args)
         elif args.command == "run":
+            from .commands.workspace import handle_run_command
             return handle_run_command(args)
         elif args.command == "doctor":
+            from .commands.workspace import handle_doctor_command
             return handle_doctor_command(args)
         else:
             print(f"Unknown command: {args.command}")

@@ -470,35 +470,7 @@ def create_app(
             if candidate.exists():
                 index_path = candidate
                 
-                def _get_index_html() -> str:
-                    """Get index.html content with base tag injected."""
-                    html_content = index_path.read_text(encoding="utf-8")
-                    # Inject base tag if not present to ensure relative paths work correctly
-                    if "<base" not in html_content.lower():
-                        # Insert base tag right after <head>
-                        html_content = html_content.replace(
-                            "<head>",
-                            '<head>\n    <base href="/app/">',
-                            1
-                        )
-                    return html_content
-
-                @app.get("/", include_in_schema=False)
-                async def serve_root():
-                    return Response(content=_get_index_html(), media_type="text/html")
-
-                @app.get("/app", include_in_schema=False)
-                async def serve_app_redirect():
-                    """Redirect /app to /app/."""
-                    from fastapi.responses import RedirectResponse
-                    return RedirectResponse(url="/app/", status_code=301)
-
-                @app.get("/app/", include_in_schema=False)
-                async def serve_app_index():
-                    """Serve index.html with base tag for proper asset resolution."""
-                    return Response(content=_get_index_html(), media_type="text/html")
-
-                # Mount static files for assets - this must come after the route handlers
+                # Mount static files FIRST - mounts take precedence over route handlers
                 # Mount assets directory separately to ensure they're served correctly
                 assets_dir = dist_path / "assets"
                 if assets_dir.exists():
@@ -518,7 +490,66 @@ def create_app(
                             name=f"spa-{static_dir}",
                         )
                 
+                def _get_index_html() -> str:
+                    """Get index.html content with base tag injected."""
+                    html_content = index_path.read_text(encoding="utf-8")
+                    # Inject base tag if not present to ensure relative paths work correctly
+                    # The base tag must have a trailing slash for proper resolution
+                    import re
+                    base_pattern = r'<base\s+[^>]*href=["\']([^"\']*)["\'][^>]*>'
+                    if not re.search(base_pattern, html_content, re.IGNORECASE):
+                        # Insert base tag right after <head> or after charset meta
+                        if '<head>' in html_content:
+                            html_content = html_content.replace(
+                                "<head>",
+                                '<head>\n    <base href="/app/">',
+                                1
+                            )
+                        elif '<meta charset' in html_content:
+                            # Insert after charset meta tag
+                            html_content = re.sub(
+                                r'(<meta\s+charset[^>]*>)',
+                                r'\1\n    <base href="/app/">',
+                                html_content,
+                                count=1,
+                                flags=re.IGNORECASE
+                            )
+                        else:
+                            # Fallback: insert at start of head section
+                            html_content = re.sub(
+                                r'(<head[^>]*>)',
+                                r'\1\n    <base href="/app/">',
+                                html_content,
+                                count=1,
+                                flags=re.IGNORECASE
+                            )
+                    else:
+                        # Ensure existing base tag has correct href
+                        html_content = re.sub(
+                            base_pattern,
+                            '<base href="/app/">',
+                            html_content,
+                            flags=re.IGNORECASE
+                        )
+                    return html_content
+
+                @app.get("/", include_in_schema=False)
+                async def serve_root():
+                    return Response(content=_get_index_html(), media_type="text/html")
+
+                @app.get("/app", include_in_schema=False)
+                async def serve_app_redirect():
+                    """Redirect /app to /app/."""
+                    from fastapi.responses import RedirectResponse
+                    return RedirectResponse(url="/app/", status_code=301)
+
+                @app.get("/app/", include_in_schema=False)
+                async def serve_app_index():
+                    """Serve index.html with base tag for proper asset resolution."""
+                    return Response(content=_get_index_html(), media_type="text/html")
+
                 # Mount root for SPA routing (fallback to index.html for non-asset routes)
+                # This must come AFTER mounts so assets are served by mounts first
                 @app.get("/app/{full_path:path}", include_in_schema=False)
                 async def serve_spa_routes(full_path: str):
                     """Serve index.html for SPA routes, but not for assets."""

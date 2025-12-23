@@ -109,6 +109,60 @@ def load_dotenv(path: Path | str = ".env") -> None:
         os.environ.setdefault(key.strip(), value)
 
 
+def load_from_shell_config() -> None:
+    """Load environment variables from shell config files (.bashrc, .zshrc, etc.)."""
+    home = Path.home()
+    shell_config_files = [
+        home / ".zshrc",      # Zsh (default on macOS)
+        home / ".bashrc",     # Bash (Linux)
+        home / ".bash_profile",  # Bash (macOS)
+        home / ".profile",    # Generic profile
+    ]
+    
+    for config_file in shell_config_files:
+        if not config_file.exists():
+            continue
+        
+        try:
+            content = config_file.read_text(encoding='utf-8', errors='ignore')
+            for line in content.splitlines():
+                line = line.strip()
+                # Skip comments and empty lines
+                if not line or line.startswith("#"):
+                    continue
+                
+                # Match export statements: export VAR="value" or export VAR='value' or export VAR=value
+                if line.startswith("export "):
+                    # Remove 'export ' prefix
+                    line = line[7:].strip()
+                    if "=" not in line:
+                        continue
+                    
+                    # Split on first = sign
+                    parts = line.split("=", 1)
+                    if len(parts) != 2:
+                        continue
+                    
+                    key = parts[0].strip()
+                    value = parts[1].strip()
+                    
+                    # Remove quotes if present
+                    if (value.startswith('"') and value.endswith('"')) or \
+                       (value.startswith("'") and value.endswith("'")):
+                        value = value[1:-1]
+                    
+                    # Only set if not already in environment (don't override existing)
+                    if key and value and key not in os.environ:
+                        # Skip placeholder values
+                        if value in ["your-key-here", "sk-your-key-here", "your-openai-api-key"] or \
+                           value.startswith("your-") or "placeholder" in value.lower():
+                            continue
+                        os.environ[key] = value
+        except (IOError, UnicodeDecodeError):
+            # Skip files that can't be read
+            continue
+
+
 # Load .env-like files from project root FIRST, before providers are initialized
 for env_file in _iter_dotenv_candidates(project_root):
     if env_file.exists():
@@ -120,6 +174,10 @@ try:
     config_load_dotenv()
 except ImportError:
     pass
+
+# Load from shell config files (.bashrc, .zshrc, etc.) as fallback
+# This only sets variables that aren't already in the environment
+load_from_shell_config()
 
 
 class AIProvider:
@@ -313,6 +371,9 @@ class PerplexityProvider(AIProvider):
     
     def initialize(self):
         # Perplexity uses OpenAI-compatible API
+        pass
+
+
 class ChatGPTAgentsProvider(OpenAIProvider):
     """ChatGPT Agents provider (specialized assistants)."""
     
@@ -389,25 +450,13 @@ class CohereProvider(AIProvider):
             chat_history = []
             user_message = ""
             
-            for msg in messages:
-                if msg["role"] == "system":
-                    continue  # Cohere handles system context differently
-                elif msg["role"] == "user":
-                    user_message = msg["content"]
-                elif msg["role"] == "assistant":
-                    chat_history.append({
-                        "role": "CHATBOT",
-                        "message": msg["content"]
-                    })
-            
-            response = self.client.chat(
-                model=model or self.default_model,
-                message=user_message,
             prompt = messages[-1]["content"] if messages else ""
             
             for i in range(len(messages) - 1):
                 msg = messages[i]
-                if msg["role"] == "user":
+                if msg["role"] == "system":
+                    continue  # Cohere handles system context differently
+                elif msg["role"] == "user":
                     chat_history.append({"role": "USER", "message": msg["content"]})
                 elif msg["role"] == "assistant":
                     chat_history.append({"role": "CHATBOT", "message": msg["content"]})
@@ -432,6 +481,31 @@ class MistralProvider(AIProvider):
     
     def initialize(self):
         # Mistral uses OpenAI-compatible API
+        try:
+            from openai import OpenAI
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url=self.base_url
+            )
+            return True
+        except ImportError:
+            print("⚠️  openai package not installed. Install with: pip install openai")
+            return False
+    
+    def chat(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> str:
+        if not self.client:
+            return "❌ Mistral client not initialized"
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=model or self.default_model,
+                messages=messages
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"❌ Error: {str(e)}"
+
+
 class PerplexityProvider(AIProvider):
     """Perplexity AI provider."""
     
@@ -454,7 +528,6 @@ class PerplexityProvider(AIProvider):
     
     def chat(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> str:
         if not self.client:
-            return "❌ Mistral client not initialized"
             return "❌ Perplexity client not initialized"
         
         try:
@@ -477,6 +550,31 @@ class DeepSeekProvider(AIProvider):
     
     def initialize(self):
         # DeepSeek uses OpenAI-compatible API
+        try:
+            from openai import OpenAI
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url=self.base_url
+            )
+            return True
+        except ImportError:
+            print("⚠️  openai package not installed. Install with: pip install openai")
+            return False
+    
+    def chat(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> str:
+        if not self.client:
+            return "❌ DeepSeek client not initialized"
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=model or self.default_model,
+                messages=messages
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"❌ Error: {str(e)}"
+
+
 class TogetherProvider(AIProvider):
     """Together AI provider."""
     
@@ -522,6 +620,31 @@ class GroqProvider(AIProvider):
     
     def initialize(self):
         # Groq uses OpenAI-compatible API
+        try:
+            from openai import OpenAI
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url=self.base_url
+            )
+            return True
+        except ImportError:
+            print("⚠️  openai package not installed. Install with: pip install openai")
+            return False
+    
+    def chat(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> str:
+        if not self.client:
+            return "❌ Groq client not initialized"
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=model or self.default_model,
+                messages=messages
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"❌ Error: {str(e)}"
+
+
 class DeepSeekProvider(AIProvider):
     """DeepSeek AI provider."""
     
@@ -1044,11 +1167,11 @@ def main():
         print("\n💡 Quick Setup:")
         print("   Option 1: Export in your shell:")
         print("   export OPENAI_API_KEY='sk-your-key-here'")
-        print("   export ANTHROPIC_API_KEY='sk-ant-your-key-here'")
+        print("   export ANTHROPIC_API_KEY='sk-ant-REDACTED'")
         print("   source ~/.zshrc  # or ~/.bashrc")
         print("\n   Option 2: Create a .env file in project root:")
         print("   OPENAI_API_KEY=sk-your-key-here")
-        print("   ANTHROPIC_API_KEY=sk-ant-your-key-here")
+        print("   ANTHROPIC_API_KEY=sk-ant-REDACTED")
         print("   GOOGLE_API_KEY=your-google-key")
         print("   XAI_API_KEY=your-grok-key")
         print("   MISTRAL_API_KEY=your-mistral-key")

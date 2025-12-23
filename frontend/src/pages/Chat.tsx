@@ -20,6 +20,8 @@ import { ChatMessage } from '../types'
 import UnifiedDocumentViewer from '../components/UnifiedDocumentViewer'
 import DocumentPanel from '../components/DocumentPanel'
 import ChangeMonitor from '../components/ChangeMonitor'
+import GPT52Settings from '../components/GPT52Settings'
+import { API } from '../api'
 import type { ChatDocument } from '../types/documents'
 
 const fetchChatHistory = async (persona?: string): Promise<ChatMessage[]> => {
@@ -30,15 +32,29 @@ const fetchChatHistory = async (persona?: string): Promise<ChatMessage[]> => {
 
 const sendMessage = async (message: {
   persona: string
+  model_provider: string
   content: string
   attachments?: string[]
+  reasoning_effort?: string
+  verbosity?: string
+  previous_response_id?: string
+  enable_preambles?: boolean
+  enable_apply_patch?: boolean
+  allowed_tools?: string[]
 }): Promise<{ user_message: ChatMessage; ai_reply: ChatMessage }> => {
   const payload = {
     persona: message.persona,
+    model_provider: message.model_provider,
     role: 'user',
     kind: 'chat',
     content: message.content,
     attachments: message.attachments ?? undefined,
+    reasoning_effort: message.reasoning_effort,
+    verbosity: message.verbosity,
+    previous_response_id: message.previous_response_id,
+    enable_preambles: message.enable_preambles,
+    enable_apply_patch: message.enable_apply_patch,
+    allowed_tools: message.allowed_tools && message.allowed_tools.length > 0 ? message.allowed_tools : undefined,
   }
   const { data } = await apiClient.post(apiPath('chat/'), payload)
   
@@ -76,13 +92,35 @@ const PERSONAS = [
   { id: 'Sora', label: 'Sora', role: 'Creative AI', color: 'from-amber-500 to-orange-600' },
 ]
 
+const MODEL_PROVIDERS = [
+  { id: 'openai', label: 'OpenAI' },
+  { id: 'anthropic', label: 'Anthropic' },
+  { id: 'google', label: 'Google (Gemini)' },
+  { id: 'xai', label: 'xAI (Grok)' },
+  { id: 'cohere', label: 'Cohere' },
+  { id: 'deepseek', label: 'DeepSeek' },
+  { id: 'groq', label: 'Groq' },
+  { id: 'perplexity', label: 'Perplexity' },
+  { id: 'mistral', label: 'Mistral' },
+  { id: 'together', label: 'Together AI' },
+]
+
 export default function Chat() {
   const [message, setMessage] = useState('')
   const [persona, setPersona] = useState('Chris')
+  const [modelProvider, setModelProvider] = useState('openai')
   const [selectedDoc, setSelectedDoc] = useState<ChatDocument | null>(null)
   const [copiedId, setCopiedId] = useState<number | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  
+  // GPT-5.2 settings state
+  const [reasoningEffort, setReasoningEffort] = useState('none')
+  const [verbosity, setVerbosity] = useState('medium')
+  const [enablePreambles, setEnablePreambles] = useState(false)
+  const [enableApplyPatch, setEnableApplyPatch] = useState(false)
+  const [allowedTools, setAllowedTools] = useState<string[]>([])
+  const [previousResponseId, setPreviousResponseId] = useState<string | undefined>(undefined)
   
   // Panel state management
   const [documentPanelHeight, setDocumentPanelHeight] = useState(400) // Default height in pixels
@@ -143,6 +181,14 @@ export default function Chat() {
   const sendMutation = useMutation({
     mutationFn: sendMessage,
     onSuccess: (response) => {
+      // Store previous response ID for CoT passing (GPT-5.2 feature)
+      // In a real implementation, you'd extract this from the API response
+      // For now, we'll use the AI reply ID as a proxy
+      if (response.ai_reply?.id) {
+        // Note: This is a placeholder - actual implementation would use response_id from API
+        // setPreviousResponseId(response.ai_reply.id.toString())
+      }
+      
       // Optimistically update the cache with both messages
       queryClient.setQueryData<ChatMessage[]>(['chat', persona], (old = []) => {
         // Add both user message and AI reply to the cache
@@ -199,8 +245,15 @@ export default function Chat() {
 
     sendMutation.mutate({
       persona,
+      model_provider: modelProvider,
       content: finalMessage,
       attachments: selectedDoc ? [selectedDoc.id] : undefined,
+      reasoning_effort: reasoningEffort,
+      verbosity: verbosity,
+      previous_response_id: previousResponseId,
+      enable_preambles: enablePreambles,
+      enable_apply_patch: enableApplyPatch,
+      allowed_tools: allowedTools.length > 0 ? allowedTools : undefined,
     })
     // Don't clear selectedDoc - let user keep it attached for multiple messages
   }
@@ -260,13 +313,29 @@ export default function Chat() {
             </div>
           )}
         </div>
+        
+        {/* GPT-5.2 Settings */}
+        <div className="mt-4">
+          <GPT52Settings
+            reasoningEffort={reasoningEffort}
+            verbosity={verbosity}
+            enablePreambles={enablePreambles}
+            enableApplyPatch={enableApplyPatch}
+            allowedTools={allowedTools}
+            onReasoningEffortChange={setReasoningEffort}
+            onVerbosityChange={setVerbosity}
+            onPreamblesChange={setEnablePreambles}
+            onApplyPatchChange={setEnableApplyPatch}
+            onAllowedToolsChange={setAllowedTools}
+          />
+        </div>
       </div>
 
       {/* Main Content - Split Layout */}
       <div className="flex-1 flex flex-col overflow-hidden bg-slate-900/30">
         <div className="flex-1 flex overflow-hidden">
           {/* Left: Chat Area */}
-          <div className="w-1/2 flex flex-col min-w-0 border-r border-slate-700/50 bg-slate-900/50 backdrop-blur-sm">
+          <div className="w-1/2 flex flex-col min-w-0 border-r border-slate-700/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 backdrop-blur-sm">
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
             {messages.length === 0 && (
@@ -433,6 +502,32 @@ export default function Chat() {
                 </div>
               </div>
 
+              {/* Model Provider Selector */}
+              <div className="relative">
+                <select
+                  value={modelProvider}
+                  onChange={(e) => {
+                    e.stopPropagation()
+                    setModelProvider(e.target.value)
+                  }}
+                  className="appearance-none px-4 py-3 pr-8 bg-slate-800/80 border border-slate-700/60 rounded-xl text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 cursor-pointer transition-all hover:bg-slate-800 hover:border-slate-600 active:scale-[0.98]"
+                  style={{ 
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {MODEL_PROVIDERS.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                   <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                </div>
+              </div>
+
               {/* Message Input */}
               <div className="flex-1 relative">
                 <textarea
@@ -497,7 +592,7 @@ export default function Chat() {
           {/* Right: Multi-panel layout */}
           <div className="w-1/2 flex flex-col min-w-0">
             {/* Top: Document Panel - Resizable */}
-            <div className="relative border-b border-slate-700/50 overflow-hidden bg-slate-900/50 backdrop-blur-sm">
+            <div className="relative border-b border-slate-700/50 overflow-hidden bg-gradient-to-br from-slate-900/50 to-slate-800/30 backdrop-blur-sm">
               {/* Resize Handle */}
               <div
                 className={`absolute top-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-primary-500/50 transition-colors z-10 ${

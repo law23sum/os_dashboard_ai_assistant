@@ -57,6 +57,15 @@ class ChatMessageCreate(BaseModel):
     kind: str = "chat"
     content: str
     attachments: Optional[List[str]] = None
+    model_provider: Optional[str] = "openai"
+    # GPT-5.2 features
+    reasoning_effort: Optional[str] = None  # none, low, medium, high, xhigh
+    verbosity: Optional[str] = None  # low, medium, high
+    previous_response_id: Optional[str] = None  # For CoT passing
+    enable_preambles: Optional[bool] = False  # Tool call explanations
+    custom_tools: Optional[List[dict]] = None  # Custom tool definitions
+    allowed_tools: Optional[List[str]] = None  # Constrain tool usage
+    enable_apply_patch: Optional[bool] = False  # Enable apply_patch tool
 
 class ChatMessageResponse(BaseModel):
     id: int
@@ -220,14 +229,55 @@ async def create_chat_message(message: ChatMessageCreate, user: AuthUser = Depen
                     )
                 )
 
-            # Generate AI reply
+            # Generate AI reply with GPT-5.2 features
             try:
-                reply_text, error, _ = generate_ai_reply(
-                    history,
-                    persona=message.persona,
-                    append_prompt=False,
-                    fallback_prompt=message.content,
-                )
+                # Temporarily set environment variables for GPT-5.2 features if provided
+                original_reasoning = os.getenv("ASSISTANT_HUB_REASONING_EFFORT")
+                original_verbosity = os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY")
+                original_apply_patch = os.getenv("ASSISTANT_HUB_ENABLE_APPLY_PATCH")
+                
+                if message.reasoning_effort:
+                    os.environ["ASSISTANT_HUB_REASONING_EFFORT"] = message.reasoning_effort
+                if message.verbosity:
+                    os.environ["ASSISTANT_HUB_TEXT_VERBOSITY"] = message.verbosity
+                if message.enable_apply_patch:
+                    os.environ["ASSISTANT_HUB_ENABLE_APPLY_PATCH"] = "true"
+                
+                # Handle allowed_tools if provided
+                if message.allowed_tools:
+                    import json
+                    os.environ["ASSISTANT_HUB_ALLOWED_TOOLS"] = json.dumps(message.allowed_tools)
+                
+                try:
+                    reply_text, error, _ = generate_ai_reply(
+                        history,
+                        persona=message.persona,
+                        append_prompt=False,
+                        fallback_prompt=message.content,
+                        model_provider=message.model_provider,
+                        previous_response_id=message.previous_response_id,
+                        custom_tools=message.custom_tools,
+                        enable_preambles=message.enable_preambles or False,
+                    )
+                finally:
+                    # Restore original environment variables
+                    if original_reasoning is not None:
+                        os.environ["ASSISTANT_HUB_REASONING_EFFORT"] = original_reasoning
+                    elif "ASSISTANT_HUB_REASONING_EFFORT" in os.environ:
+                        del os.environ["ASSISTANT_HUB_REASONING_EFFORT"]
+                    
+                    if original_verbosity is not None:
+                        os.environ["ASSISTANT_HUB_TEXT_VERBOSITY"] = original_verbosity
+                    elif "ASSISTANT_HUB_TEXT_VERBOSITY" in os.environ:
+                        del os.environ["ASSISTANT_HUB_TEXT_VERBOSITY"]
+                    
+                    if original_apply_patch is not None:
+                        os.environ["ASSISTANT_HUB_ENABLE_APPLY_PATCH"] = original_apply_patch
+                    elif "ASSISTANT_HUB_ENABLE_APPLY_PATCH" in os.environ:
+                        del os.environ["ASSISTANT_HUB_ENABLE_APPLY_PATCH"]
+                    
+                    if "ASSISTANT_HUB_ALLOWED_TOOLS" in os.environ:
+                        del os.environ["ASSISTANT_HUB_ALLOWED_TOOLS"]
             except Exception as exc:
                 reply_text = f"[offline] Unable to reach AI engine: {exc}"
                 error = str(exc)

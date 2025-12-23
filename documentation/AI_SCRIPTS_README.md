@@ -27,7 +27,7 @@ pip install openai openai-agents
 **Option A: Environment Variables**
 ```bash
 export OPENAI_API_KEY='sk-your-key-here'
-export ANTHROPIC_API_KEY='sk-ant-your-key-here'
+export ANTHROPIC_API_KEY='sk-ant-REDACTED'
 # ... etc
 ```
 
@@ -35,7 +35,7 @@ export ANTHROPIC_API_KEY='sk-ant-your-key-here'
 Create a `.env` file in the project root:
 ```bash
 OPENAI_API_KEY=sk-your-key-here
-ANTHROPIC_API_KEY=sk-ant-your-key-here
+ANTHROPIC_API_KEY=sk-ant-REDACTED
 GOOGLE_API_KEY=your-google-key
 # ... etc
 ```

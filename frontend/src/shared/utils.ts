@@ -128,3 +128,11 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
     return false
   }
 }
+
+/**
+ * Utility function to merge class names (cn = className)
+ * Similar to clsx but simpler for our use case
+ */
+export function cn(...classes: (string | undefined | null | false)[]): string {
+  return classes.filter(Boolean).join(' ')
+}

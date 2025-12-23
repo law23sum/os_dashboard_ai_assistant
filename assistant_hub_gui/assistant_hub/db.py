@@ -1079,16 +1079,29 @@ def set_meta(conn: sqlite3.Connection, key: str, value: str):
 OPENAI_API_KEY_META = "openai.api_key"
 
 
+def save_api_key(conn: sqlite3.Connection, provider: str, api_key: str) -> None:
+    """Persist an API key in the shared metadata table."""
+    if not api_key:
+        # Don't save empty keys, maybe delete if it exists?
+        return
+    key = f"{provider.lower()}.api_key"
+    set_meta(conn, key, api_key)
+
+
+def load_api_key(conn: sqlite3.Connection, provider: str, default: Optional[str] = None) -> Optional[str]:
+    """Fetch an API key from the database."""
+    key = f"{provider.lower()}.api_key"
+    return get_meta(conn, key, default)
+
+
 def save_openai_api_key(conn: sqlite3.Connection, api_key: str) -> None:
     """Persist the OpenAI API key in the shared metadata table."""
-    if not api_key:
-        raise ValueError("api_key must be provided")
-    set_meta(conn, OPENAI_API_KEY_META, api_key)
+    save_api_key(conn, "openai", api_key)
 
 
 def load_openai_api_key(conn: sqlite3.Connection, default: Optional[str] = None) -> Optional[str]:
     """Fetch the OpenAI API key from the database, if present."""
-    return get_meta(conn, OPENAI_API_KEY_META, default)
+    return load_api_key(conn, "openai", default)
 
 
 def clear_openai_api_key(conn: sqlite3.Connection) -> None:

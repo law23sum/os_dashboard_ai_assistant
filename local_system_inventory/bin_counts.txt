@@ -1,0 +1,6 @@
+/opt/homebrew/bin: 1998
+/usr/local/bin: 53
+/usr/bin: 921
+/bin: 37
+/usr/sbin: 228
+/sbin: 74

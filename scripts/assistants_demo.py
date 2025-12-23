@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """Run the Assistants API end-to-end from the command line.
 
+⚠️  DEPRECATED: This script uses the deprecated Assistants API which will
+shut down on August 26, 2026. Use scripts/responses_demo.py instead.
+
+Migration guide: https://platform.openai.com/docs/assistants/migration
+
 This helper condenses the long-form notebook demo of the Assistants API
 into a single CLI so teammates can exercise the workflow without copying
 snippets manually.
@@ -18,6 +23,8 @@ Examples:
 The script intentionally mirrors the major sections of the cookbook style
 notebook the user shared (assistant creation, threads, runs, messages, tool
 calls) so it is easier to map the concepts to runnable code.
+
+For the migrated version using Responses API, see: scripts/responses_demo.py
 """
 
 from __future__ import annotations

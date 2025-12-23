@@ -341,33 +341,39 @@ async def _ensure_demo_users() -> None:
     
     try:
         with db_session() as db:
-            # Check if demo users already exist
-            admin_user = db.execute("SELECT id FROM users WHERE email = ?", ("admin@demo.local",)).fetchone()
-            regular_user = db.execute("SELECT id FROM users WHERE email = ?", ("user@demo.local",)).fetchone()
-            
             now = datetime.now().isoformat(timespec="seconds")
             
-            # Create admin user if it doesn't exist
-            if not admin_user:
-                admin_id = str(uuid4())
-                db.execute(
-                    """
-                    INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
-                    VALUES (?, ?, ?, ?, 1, 'demo', 0, ?, NULL)
-                    """,
-                    (admin_id, "admin@demo.local", "Admin User", hash_password("admin123"), now),
-                )
+            # Demo users to create
+            demo_users = [
+                ("admin@demo.local", "Admin User", "admin123", True),
+                ("user@demo.local", "Regular User", "user123", False),
+                ("alice@demo.local", "Alice", "password123", False),
+                ("bob@demo.local", "Bob", "password123", False),
+                ("charlie@demo.local", "Charlie", "password123", False),
+            ]
             
-            # Create regular user if it doesn't exist
-            if not regular_user:
-                user_id = str(uuid4())
-                db.execute(
-                    """
-                    INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
-                    VALUES (?, ?, ?, ?, 0, 'demo', 0, ?, NULL)
-                    """,
-                    (user_id, "user@demo.local", "Regular User", hash_password("user123"), now),
-                )
+            for email, display_name, password, is_admin in demo_users:
+                existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+                hashed_pw = hash_password(password)
+                if not existing:
+                    user_id = str(uuid4())
+                    db.execute(
+                        """
+                        INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
+                        VALUES (?, ?, ?, ?, ?, 'demo', 0, ?, NULL)
+                        """,
+                        (user_id, email, display_name, hashed_pw, 1 if is_admin else 0, now),
+                    )
+                else:
+                    # Update password/details for existing demo users to ensure they are always valid
+                    db.execute(
+                        """
+                        UPDATE users 
+                        SET password_hash = ?, display_name = ?, is_admin = ?, disabled = 0
+                        WHERE email = ?
+                        """,
+                        (hashed_pw, display_name, 1 if is_admin else 0, email),
+                    )
     except Exception as e:
         import logging
         logging.error(f"Error ensuring demo users: {e}", exc_info=True)

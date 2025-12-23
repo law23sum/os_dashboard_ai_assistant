@@ -173,6 +173,7 @@ from backend_api.routers import (
     ai_integration,
     data_management,
     project_orchestrator,
+    responses_api,
 )
 
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
@@ -248,6 +249,8 @@ app.include_router(document_viewer.router, prefix="/api/viewer", tags=["document
 app.include_router(ai_integration.router, prefix="/api/ai-integration", tags=["ai_integration"])
 app.include_router(data_management.router, prefix="/api/data", tags=["data_management"])
 app.include_router(project_orchestrator.router, prefix="/api", tags=["project_orchestrator"])
+# Responses API router for Next.js quickstart integration
+app.include_router(responses_api.router, prefix="/api/responses", tags=["responses_api"])
 
 # Legacy compatibility routes without the /api prefix.
 @app.get("/system", include_in_schema=False)

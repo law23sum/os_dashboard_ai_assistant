@@ -33,7 +33,8 @@ import {
   FileText,
   ExternalLink,
   Settings,
-  Sparkles
+  Sparkles,
+  Database
 } from 'lucide-react';
 
 export interface FeatureOption {
@@ -111,7 +112,8 @@ export const navigationConfig: Category[] = [
         path: '/chat',
         icon: MessageSquare,
         features: [
-          { id: 'recent', label: 'Recent Chats', complexity: 'simple' },
+          { id: 'recent', label: 'Recent Chats', path: '/chat', complexity: 'simple' },
+          { id: 'responses', label: 'Responses API Chat', path: '/chat/responses', icon: Sparkles, complexity: 'intermediate', description: 'Modern chat with Responses API' },
           { id: 'contacts', label: 'Contacts', complexity: 'simple' },
           { id: 'archived', label: 'Archived', complexity: 'intermediate' }
         ]
@@ -273,6 +275,19 @@ export const navigationConfig: Category[] = [
         features: [
           { id: 'logs', label: 'Access Logs', complexity: 'intermediate' },
           { id: 'compliance', label: 'Compliance Checks', complexity: 'complex' }
+        ]
+      },
+      {
+        id: 'vector_stores',
+        label: 'Vector Stores',
+        path: '/vector-stores',
+        icon: Database,
+        description: 'Manage vector stores for file search',
+        features: [
+          { id: 'manage', label: 'Manage Stores', complexity: 'simple' },
+          { id: 'upload', label: 'Upload Files', complexity: 'intermediate' },
+          { id: 'search', label: 'Search', complexity: 'intermediate' },
+          { id: 'settings', label: 'Settings', complexity: 'intermediate' }
         ]
       },
       {
