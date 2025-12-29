@@ -1,0 +1,1271 @@
+{
+  "/aicopilot": {
+    "route": "/aicopilot",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/AICopilot.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/AICopilot.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/AICopilot.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/AICopilot.tsx"
+  },
+  "/aios": {
+    "route": "/aios",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/AIOS.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/AIOS.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/AIOS.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/AIOS.tsx"
+  },
+  "/aiops": {
+    "route": "/aiops",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/AIOps.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/AIOps.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/AIOps.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/AIOps.tsx"
+  },
+  "/apiconnectors": {
+    "route": "/apiconnectors",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/APIConnectors.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/APIConnectors.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/APIConnectors.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/APIConnectors.tsx"
+  },
+  "/admin": {
+    "route": "/admin",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Admin.tsx",
+        "score": 5
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Admin.tsx",
+        "score": 5
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Admin.tsx",
+        "score": 5
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 5,
+    "componentPath": "frontend/src/pages/Admin.tsx"
+  },
+  "/advancedai": {
+    "route": "/advancedai",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/AdvancedAI.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/AdvancedAI.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/AdvancedAI.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/AdvancedAI.tsx"
+  },
+  "/advancedsystems": {
+    "route": "/advancedsystems",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/AdvancedSystems.tsx",
+        "score": 0
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/AdvancedSystems.tsx",
+        "score": 0
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/AdvancedSystems.tsx",
+        "score": 0
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 0,
+    "componentPath": "frontend/src/pages/AdvancedSystems.tsx"
+  },
+  "/analytics": {
+    "route": "/analytics",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Analytics.tsx",
+        "score": 5
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Analytics.tsx",
+        "score": 5
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Analytics.tsx",
+        "score": 5
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 5,
+    "componentPath": "frontend/src/pages/Analytics.tsx"
+  },
+  "/audit": {
+    "route": "/audit",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Audit.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Audit.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Audit.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/Audit.tsx"
+  },
+  "/autofix": {
+    "route": "/autofix",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/AutoFix.tsx",
+        "score": 4
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/AutoFix.tsx",
+        "score": 4
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/AutoFix.tsx",
+        "score": 4
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 4,
+    "componentPath": "frontend/src/pages/AutoFix.tsx"
+  },
+  "/billing": {
+    "route": "/billing",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Billing.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Billing.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Billing.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/Billing.tsx"
+  },
+  "/capsulemarketplace": {
+    "route": "/capsulemarketplace",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/CapsuleMarketplace.tsx",
+        "score": 4
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/CapsuleMarketplace.tsx",
+        "score": 4
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/CapsuleMarketplace.tsx",
+        "score": 4
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 4,
+    "componentPath": "frontend/src/pages/CapsuleMarketplace.tsx"
+  },
+  "/chat": {
+    "route": "/chat",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Chat.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Chat.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Chat.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/Chat.tsx"
+  },
+  "/collaboration": {
+    "route": "/collaboration",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Collaboration.tsx",
+        "score": 5
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Collaboration.tsx",
+        "score": 5
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Collaboration.tsx",
+        "score": 5
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 5,
+    "componentPath": "frontend/src/pages/Collaboration.tsx"
+  },
+  "/computervision": {
+    "route": "/computervision",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/ComputerVision.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/ComputerVision.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/ComputerVision.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/ComputerVision.tsx"
+  },
+  "/docs": {
+    "route": "/docs",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Docs.tsx",
+        "score": 0
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Docs.tsx",
+        "score": 0
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Docs.tsx",
+        "score": 0
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 0,
+    "componentPath": "frontend/src/pages/Docs.tsx"
+  },
+  "/documentation": {
+    "route": "/documentation",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Documentation.tsx",
+        "score": 5
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Documentation.tsx",
+        "score": 5
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Documentation.tsx",
+        "score": 5
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 5,
+    "componentPath": "frontend/src/pages/Documentation.tsx"
+  },
+  "/edgecomputing": {
+    "route": "/edgecomputing",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/EdgeComputing.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/EdgeComputing.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/EdgeComputing.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/EdgeComputing.tsx"
+  },
+  "/futuredeck": {
+    "route": "/futuredeck",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/FutureDeck.tsx",
+        "score": 0
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/FutureDeck.tsx",
+        "score": 0
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/FutureDeck.tsx",
+        "score": 0
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 0,
+    "componentPath": "frontend/src/pages/FutureDeck.tsx"
+  },
+  "/integrations": {
+    "route": "/integrations",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Integrations.tsx",
+        "score": 4
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Integrations.tsx",
+        "score": 4
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Integrations.tsx",
+        "score": 4
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 4,
+    "componentPath": "frontend/src/pages/Integrations.tsx"
+  },
+  "/intentprocessor": {
+    "route": "/intentprocessor",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/IntentProcessor.tsx",
+        "score": 4
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/IntentProcessor.tsx",
+        "score": 4
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/IntentProcessor.tsx",
+        "score": 4
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 4,
+    "componentPath": "frontend/src/pages/IntentProcessor.tsx"
+  },
+  "/login": {
+    "route": "/login",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Login.tsx",
+        "score": 0
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Login.tsx",
+        "score": 0
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Login.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "3a154a6",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/Login.tsx"
+  },
+  "/mlops": {
+    "route": "/mlops",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/MLOps.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/MLOps.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/MLOps.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/MLOps.tsx"
+  },
+  "/masterorchestrator": {
+    "route": "/masterorchestrator",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/MasterOrchestrator.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/MasterOrchestrator.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/MasterOrchestrator.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/MasterOrchestrator.tsx"
+  },
+  "/monitoring": {
+    "route": "/monitoring",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Monitoring.tsx",
+        "score": 2
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Monitoring.tsx",
+        "score": 2
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Monitoring.tsx",
+        "score": 2
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 2,
+    "componentPath": "frontend/src/pages/Monitoring.tsx"
+  },
+  "/nas": {
+    "route": "/nas",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/NAS.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/NAS.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/NAS.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/NAS.tsx"
+  },
+  "/networkmonitoring": {
+    "route": "/networkmonitoring",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/NetworkMonitoring.tsx",
+        "score": 6
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/NetworkMonitoring.tsx",
+        "score": 6
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/NetworkMonitoring.tsx",
+        "score": 6
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 6,
+    "componentPath": "frontend/src/pages/NetworkMonitoring.tsx"
+  },
+  "/neuralarchitecturesearch": {
+    "route": "/neuralarchitecturesearch",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/NeuralArchitectureSearch.tsx",
+        "score": 6
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/NeuralArchitectureSearch.tsx",
+        "score": 6
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/NeuralArchitectureSearch.tsx",
+        "score": 6
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 6,
+    "componentPath": "frontend/src/pages/NeuralArchitectureSearch.tsx"
+  },
+  "/observability": {
+    "route": "/observability",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Observability.tsx",
+        "score": 5
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Observability.tsx",
+        "score": 5
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Observability.tsx",
+        "score": 5
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 5,
+    "componentPath": "frontend/src/pages/Observability.tsx"
+  },
+  "/officerealtime": {
+    "route": "/officerealtime",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/OfficeRealtime.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/OfficeRealtime.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/OfficeRealtime.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/OfficeRealtime.tsx"
+  },
+  "/personalization": {
+    "route": "/personalization",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Personalization.tsx",
+        "score": 2
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Personalization.tsx",
+        "score": 2
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Personalization.tsx",
+        "score": 2
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 2,
+    "componentPath": "frontend/src/pages/Personalization.tsx"
+  },
+  "/projectorchestrator": {
+    "route": "/projectorchestrator",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/ProjectOrchestrator.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/ProjectOrchestrator.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/ProjectOrchestrator.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/ProjectOrchestrator.tsx"
+  },
+  "/projects": {
+    "route": "/projects",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Projects.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Projects.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Projects.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/Projects.tsx"
+  },
+  "/research": {
+    "route": "/research",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Research.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Research.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Research.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/Research.tsx"
+  },
+  "/searchengine": {
+    "route": "/searchengine",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/SearchEngine.tsx",
+        "score": 5
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/SearchEngine.tsx",
+        "score": 5
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/SearchEngine.tsx",
+        "score": 5
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 5,
+    "componentPath": "frontend/src/pages/SearchEngine.tsx"
+  },
+  "/security": {
+    "route": "/security",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Security.tsx",
+        "score": 4
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Security.tsx",
+        "score": 4
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Security.tsx",
+        "score": 4
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 4,
+    "componentPath": "frontend/src/pages/Security.tsx"
+  },
+  "/settings": {
+    "route": "/settings",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Settings.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Settings.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Settings.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/Settings.tsx"
+  },
+  "/signup": {
+    "route": "/signup",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Signup.tsx",
+        "score": 0
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Signup.tsx",
+        "score": 0
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Signup.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "3a154a6",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/Signup.tsx"
+  },
+  "/specpage": {
+    "route": "/specpage",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/SpecPage.tsx",
+        "score": 4
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/SpecPage.tsx",
+        "score": 4
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/SpecPage.tsx",
+        "score": 4
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 4,
+    "componentPath": "frontend/src/pages/SpecPage.tsx"
+  },
+  "/specsheet": {
+    "route": "/specsheet",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/SpecSheet.tsx",
+        "score": 0
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/SpecSheet.tsx",
+        "score": 0
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/SpecSheet.tsx",
+        "score": 0
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 0,
+    "componentPath": "frontend/src/pages/SpecSheet.tsx"
+  },
+  "/tasks": {
+    "route": "/tasks",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Tasks.tsx",
+        "score": 1
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Tasks.tsx",
+        "score": 1
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Tasks.tsx",
+        "score": 1
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 1,
+    "componentPath": "frontend/src/pages/Tasks.tsx"
+  },
+  "/templates": {
+    "route": "/templates",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Templates.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Templates.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Templates.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/Templates.tsx"
+  },
+  "/tools": {
+    "route": "/tools",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Tools.tsx",
+        "score": 4
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Tools.tsx",
+        "score": 4
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Tools.tsx",
+        "score": 4
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 4,
+    "componentPath": "frontend/src/pages/Tools.tsx"
+  },
+  "/visiondeck": {
+    "route": "/visiondeck",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/VisionDeck.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/VisionDeck.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/VisionDeck.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/VisionDeck.tsx"
+  },
+  "/workflows": {
+    "route": "/workflows",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Workflows.tsx",
+        "score": 3
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Workflows.tsx",
+        "score": 3
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Workflows.tsx",
+        "score": 3
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 3,
+    "componentPath": "frontend/src/pages/Workflows.tsx"
+  },
+  "/workspacehealth": {
+    "route": "/workspacehealth",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/WorkspaceHealth.tsx",
+        "score": 2
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/WorkspaceHealth.tsx",
+        "score": 2
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/WorkspaceHealth.tsx",
+        "score": 2
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 2,
+    "componentPath": "frontend/src/pages/WorkspaceHealth.tsx"
+  },
+  "/writer": {
+    "route": "/writer",
+    "placement": "categoryHome",
+    "candidates": [
+      {
+        "commit": "4acea80",
+        "label": "backup-broken-gui",
+        "path": "frontend/src/pages/Writer.tsx",
+        "score": 1
+      },
+      {
+        "commit": "58cfc34",
+        "label": "origin/incremeents",
+        "path": "frontend/src/pages/Writer.tsx",
+        "score": 1
+      },
+      {
+        "commit": "3a154a6",
+        "label": "stable-alpha",
+        "path": "frontend/src/pages/Writer.tsx",
+        "score": 1
+      }
+    ],
+    "bestCommit": "4acea80",
+    "bestScore": 1,
+    "componentPath": "frontend/src/pages/Writer.tsx"
+  }
+}

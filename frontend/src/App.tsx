@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { BrowserRouter, HashRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
@@ -90,8 +90,28 @@ const resolveRouterBasePath = (): string => {
 
 const shouldUseHashRouter = (): boolean => {
   if (typeof window === 'undefined') return false
+  
   // Electron `file://` URLs break BrowserRouter.
-  return window.location.protocol === 'file:'
+  if (window.location.protocol === 'file:') return true
+  
+  // Check if history API is available and secure
+  try {
+    // Test if we can safely use the history API
+    if (typeof window.history === 'undefined' || typeof window.history.pushState === 'undefined') {
+      return true
+    }
+    // Additional security check for mixed content or insecure contexts
+    if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      // Prefer HashRouter for non-localhost HTTP to avoid security issues
+      return false // Keep BrowserRouter for HTTP, but this can be adjusted
+    }
+  } catch (e) {
+    // If we can't access history API, fall back to HashRouter
+    console.warn('History API not available, falling back to HashRouter:', e)
+    return true
+  }
+  
+  return false
 }
 
 const queryClient = new QueryClient({
@@ -108,6 +128,42 @@ const queryClient = new QueryClient({
   },
 })
 
+// Safe Router wrapper that falls back to HashRouter if BrowserRouter initialization fails
+function SafeRouter({ children, useHashRouter, basePath }: { 
+  children: React.ReactNode
+  useHashRouter: boolean
+  basePath: string
+}) {
+  const [shouldUseHash, setShouldUseHash] = useState(useHashRouter)
+  
+  useEffect(() => {
+    // Test if BrowserRouter can be safely used
+    if (!useHashRouter && typeof window !== 'undefined') {
+      try {
+        // Test history API access
+        const testState = { test: true }
+        window.history.replaceState(testState, '', window.location.href)
+        // If we get here, history API works
+        setShouldUseHash(false)
+      } catch (error) {
+        // History API not available or insecure, fall back to HashRouter
+        console.warn('BrowserRouter not available, falling back to HashRouter:', error)
+        setShouldUseHash(true)
+      }
+    } else {
+      setShouldUseHash(useHashRouter)
+    }
+  }, [useHashRouter])
+
+  const Router = shouldUseHash ? HashRouter : BrowserRouter
+  
+  return (
+    <Router basename={shouldUseHash ? undefined : basePath}>
+      {children}
+    </Router>
+  )
+}
+
 // Layout wrapper component for protected routes
 function LayoutWrapper() {
   return (
@@ -122,14 +178,20 @@ function App() {
     applyTheme(defaultTheme)
   }, [])
 
-  const basePath = resolveRouterBasePath()
-  const useHashRouter = shouldUseHashRouter()
-  const Router = useHashRouter ? HashRouter : BrowserRouter
+  // Memoize router configuration to prevent recreation on every render
+  const { basePath, useHashRouter } = useMemo(() => {
+    const base = resolveRouterBasePath()
+    const useHash = shouldUseHashRouter()
+    return {
+      basePath: base,
+      useHashRouter: useHash,
+    }
+  }, [])
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router basename={useHashRouter ? undefined : basePath}>
+        <SafeRouter useHashRouter={useHashRouter} basePath={basePath}>
           <AppErrorBoundary>
             <Routes>
               {/* Public Routes */}
@@ -450,7 +512,7 @@ function App() {
               </Route>
             </Routes>
           </AppErrorBoundary>
-        </Router>
+        </SafeRouter>
       </AuthProvider>
       <Toaster position="top-right" />
     </QueryClientProvider>

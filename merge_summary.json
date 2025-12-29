@@ -1,0 +1,24 @@
+{
+  "merged_branches": [
+    "+ fix/ia-navigation-merge",
+    "+ fix/restore-gui-glory",
+    "+ fix/restore-gui-glory-20251220",
+    "+ gui-fully-restored",
+    "+ gui-restore-3a154a6-work",
+    "+ gui-restore-stable",
+    "+ gui-restore-stable-3a154a6",
+    "+ ia-reorg-merge-20251221",
+    "+ integration/codex-ia-restore-final",
+    "+ integration/ia-navigation-final"
+  ],
+  "final_stats": {
+    "platforms": 8,
+    "categories": 55,
+    "features": 460,
+    "platform_category_pairs": 98,
+    "category_feature_pairs": 1192
+  },
+  "paths_remapped": 1049,
+  "path_mapping_file": "/Users/chrisdixon/Projects/os_dashboard_ai_assistant/path_mapping.json",
+  "merged_nav_file": "/Users/chrisdixon/Projects/os_dashboard_ai_assistant/frontend/public/gui_nav.merged.json"
+}

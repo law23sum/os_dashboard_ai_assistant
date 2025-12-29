@@ -41,8 +41,26 @@ export default function Signup() {
       setError('Passwords do not match')
       return
     }
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters')
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
+    
+    // Ensure we have a valid email
+    const email = formData.email || formData.username
+    if (!email) {
+      setError('Email or username is required')
+      return
+    }
+    
+    // If username is provided but no email, convert username to email format
+    // Otherwise use the provided email
+    const finalEmail = formData.email || (formData.username.includes('@') ? formData.username : `${formData.username}@demo.local`)
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(finalEmail)) {
+      setError('Please enter a valid email address')
       return
     }
 
@@ -51,7 +69,7 @@ export default function Signup() {
     try {
       // Use signup API - it expects email, password, display_name
       const response = await signup(
-        formData.email || formData.username, // Use email if provided, otherwise username
+        finalEmail,
         formData.password,
         formData.fullName || formData.username, // Use fullName if provided, otherwise username
         'demo' // Default to demo environment

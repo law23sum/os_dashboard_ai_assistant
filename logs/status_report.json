@@ -1,126 +1,206 @@
 {
-  "timestamp": "2025-12-22 23:40:00",
-  "root": "/Users/sum/Project",
-  "total_projects": 15,
+  "timestamp": "2025-12-29 12:20:00",
+  "root": "/Users/chrisdixon/Projects",
+  "total_projects": 25,
   "projects": {
     "os_dashboard_ai_assistant": {
-      "path": "/Users/sum/Project/os_dashboard_ai_assistant",
+      "path": "/Users/chrisdixon/Projects/os_dashboard_ai_assistant",
       "status": "stopped",
-      "branch": "incremeents",
+      "branch": "ai+os+app+exec+binaries",
       "has_ai_autofix": true,
       "has_tests": true,
       "todo_count": 0
     },
-    "trader_exchange": {
-      "path": "/Users/sum/Project/trader_exchange",
-      "status": "discovered",
-      "branch": "main",
-      "has_ai_autofix": false,
-      "has_tests": false,
-      "todo_count": 0
-    },
     "portfolio_strategist": {
-      "path": "/Users/sum/Project/portfolio_strategist",
+      "path": "/Users/chrisdixon/Projects/portfolio_strategist",
       "status": "discovered",
-      "branch": "main",
+      "branch": "increments",
       "has_ai_autofix": false,
       "has_tests": true,
       "todo_count": 0
     },
-    "JavaTutorial": {
-      "path": "/Users/sum/Project/Archive/IdeaProjects/JavaTutorial",
+    "jetson-inference": {
+      "path": "/Users/chrisdixon/Projects/external_projects/jetson-inference",
       "status": "discovered",
-      "branch": "mvn_gradle_wrapper",
+      "branch": "master",
       "has_ai_autofix": false,
       "has_tests": false,
       "todo_count": 0
     },
-    "my-app": {
-      "path": "/Users/sum/Project/Archive/WebstormProjects/my-app",
+    "light": {
+      "path": "/Users/chrisdixon/Projects/research_papers/light",
       "status": "discovered",
       "branch": "main",
-      "has_ai_autofix": false,
-      "has_tests": true,
-      "todo_count": 0
-    },
-    "dashboard": {
-      "path": "/Users/sum/Project/Archive/PycharmProjects/dashboard",
-      "status": "discovered",
-      "branch": "main",
-      "has_ai_autofix": false,
-      "has_tests": true,
-      "todo_count": 0
-    },
-    "codenest": {
-      "path": "/Users/sum/Project/Archive/BusinessProjects/Archive/codenest",
-      "status": "discovered",
-      "branch": "cities",
-      "has_ai_autofix": false,
-      "has_tests": true,
-      "todo_count": 0
-    },
-    "Repositories": {
-      "path": "/Users/sum/Project/Archive/IdeaProjects/Repositories",
-      "status": "discovered",
-      "branch": "develop_pull",
       "has_ai_autofix": false,
       "has_tests": false,
       "todo_count": 0
     },
-    "JavaProject": {
-      "path": "/Users/sum/Project/Archive/IdeaProjects/JavaProject",
+    "PythonOneLiners": {
+      "path": "/Users/chrisdixon/Projects/external_projects/python_projects/PythonOneLiners",
       "status": "discovered",
-      "branch": "contribute",
+      "branch": "master",
       "has_ai_autofix": false,
       "has_tests": false,
       "todo_count": 0
     },
-    "law23sum": {
-      "path": "/Users/sum/Project/Archive/IdeaProjects/law23sum",
+    "Real_World_Python": {
+      "path": "/Users/chrisdixon/Projects/external_projects/python_projects/Real_World_Python",
       "status": "discovered",
-      "branch": "develop",
+      "branch": "master",
       "has_ai_autofix": false,
       "has_tests": false,
       "todo_count": 0
     },
-    "supabase_nextjs_starter": {
-      "path": "/Users/sum/Project/Archive/WebstormProjects/template_vercel/supabase_nextjs_starter",
+    "openai-python": {
+      "path": "/Users/chrisdixon/Projects/external_projects/python_projects/openai-python",
       "status": "discovered",
       "branch": "main",
       "has_ai_autofix": false,
       "has_tests": true,
       "todo_count": 0
     },
-    "nextjs-flask": {
-      "path": "/Users/sum/Project/Archive/WebstormProjects/template_vercel/nextjs-flask",
+    "PracticalDeepLearningPython": {
+      "path": "/Users/chrisdixon/Projects/external_projects/python_projects/PracticalDeepLearningPython",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "mbms": {
+      "path": "/Users/chrisdixon/Projects/external_projects/python_projects/mbms",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "awesome-cheatsheets": {
+      "path": "/Users/chrisdixon/Projects/external_projects/misc/awesome-cheatsheets",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "freeCodeCamp": {
+      "path": "/Users/chrisdixon/Projects/external_projects/misc/freeCodeCamp",
       "status": "discovered",
       "branch": "main",
       "has_ai_autofix": false,
       "has_tests": true,
       "todo_count": 0
     },
-    "aws-s3-image-upload": {
-      "path": "/Users/sum/Project/Archive/WebstormProjects/template_vercel/aws-s3-image-upload",
+    "HackLikeALegend": {
+      "path": "/Users/chrisdixon/Projects/external_projects/cybersecurity/HackLikeALegend",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "How-Cybersecurity-Really-Works": {
+      "path": "/Users/chrisdixon/Projects/external_projects/cybersecurity/How-Cybersecurity-Really-Works",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "examples": {
+      "path": "/Users/chrisdixon/Projects/external_projects/CICD/examples",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "devops_for_the_desperate": {
+      "path": "/Users/chrisdixon/Projects/external_projects/CICD/devops_for_the_desperate",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "Treasure-Hunt": {
+      "path": "/Users/chrisdixon/Projects/external_projects/MATLAB/Treasure-Hunt",
+      "status": "discovered",
+      "branch": "release",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "Matlab_Real_Space": {
+      "path": "/Users/chrisdixon/Projects/external_projects/MATLAB/Matlab_Real_Space",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "Programming-Organizing-Data": {
+      "path": "/Users/chrisdixon/Projects/external_projects/MATLAB/Programming-Organizing-Data",
+      "status": "discovered",
+      "branch": "release",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "Fundamentals-of-Programming": {
+      "path": "/Users/chrisdixon/Projects/external_projects/MATLAB/Fundamentals-of-Programming",
+      "status": "discovered",
+      "branch": "release",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "Programming-Structuring-Code": {
+      "path": "/Users/chrisdixon/Projects/external_projects/MATLAB/Programming-Structuring-Code",
+      "status": "discovered",
+      "branch": "release",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "openai-node": {
+      "path": "/Users/chrisdixon/Projects/external_projects/graphical_user_interface/openai-node",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "openai-agents-js": {
+      "path": "/Users/chrisdixon/Projects/external_projects/graphical_user_interface/openai-agents-js",
       "status": "discovered",
       "branch": "main",
       "has_ai_autofix": false,
       "has_tests": true,
       "todo_count": 0
     },
-    "cms-contentstack-commerce": {
-      "path": "/Users/sum/Project/Archive/WebstormProjects/template_vercel/cms-contentstack-commerce",
+    "gpt-5-coding-examples": {
+      "path": "/Users/chrisdixon/Projects/external_projects/AI_projects/gpt-5-coding-examples",
       "status": "discovered",
       "branch": "main",
       "has_ai_autofix": false,
-      "has_tests": true,
+      "has_tests": false,
       "todo_count": 0
     },
-    "geolocation": {
-      "path": "/Users/sum/Project/Archive/WebstormProjects/template_vercel/geolocation",
+    "openai-cookbook": {
+      "path": "/Users/chrisdixon/Projects/external_projects/AI_projects/openai-cookbook",
       "status": "discovered",
       "branch": "main",
       "has_ai_autofix": false,
-      "has_tests": true,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "latex-paper": {
+      "path": "/Users/chrisdixon/Projects/research_papers/force/latex-paper",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
       "todo_count": 0
     }
   },

@@ -1,0 +1,1060 @@
+[
+  {
+    "route": "/aicopilot",
+    "filepath": "frontend/src/pages/AICopilot.tsx",
+    "bestCommit": "stable",
+    "bestScore": 0,
+    "implementations": {
+      "stable": {
+        "score": 0,
+        "filepath": "frontend/src/pages/AICopilot.tsx",
+        "content_length": 43392
+      },
+      "increments": {
+        "score": 0,
+        "filepath": "frontend/src/pages/AICopilot.tsx",
+        "content_length": 43392
+      },
+      "backup": {
+        "score": 0,
+        "filepath": "frontend/src/pages/AICopilot.tsx",
+        "content_length": 43392
+      }
+    }
+  },
+  {
+    "route": "/aios",
+    "filepath": "frontend/src/pages/AIOS.tsx",
+    "bestCommit": "stable",
+    "bestScore": 4,
+    "implementations": {
+      "stable": {
+        "score": 4,
+        "filepath": "frontend/src/pages/AIOS.tsx",
+        "content_length": 14518
+      },
+      "increments": {
+        "score": 4,
+        "filepath": "frontend/src/pages/AIOS.tsx",
+        "content_length": 14518
+      },
+      "backup": {
+        "score": 4,
+        "filepath": "frontend/src/pages/AIOS.tsx",
+        "content_length": 14518
+      }
+    }
+  },
+  {
+    "route": "/aiops",
+    "filepath": "frontend/src/pages/AIOps.tsx",
+    "bestCommit": "stable",
+    "bestScore": 2,
+    "implementations": {
+      "stable": {
+        "score": 2,
+        "filepath": "frontend/src/pages/AIOps.tsx",
+        "content_length": 29453
+      },
+      "increments": {
+        "score": 2,
+        "filepath": "frontend/src/pages/AIOps.tsx",
+        "content_length": 29453
+      },
+      "backup": {
+        "score": 2,
+        "filepath": "frontend/src/pages/AIOps.tsx",
+        "content_length": 29453
+      }
+    }
+  },
+  {
+    "route": "/apiconnectors",
+    "filepath": "frontend/src/pages/APIConnectors.tsx",
+    "bestCommit": "stable",
+    "bestScore": 2,
+    "implementations": {
+      "stable": {
+        "score": 2,
+        "filepath": "frontend/src/pages/APIConnectors.tsx",
+        "content_length": 15467
+      },
+      "increments": {
+        "score": 2,
+        "filepath": "frontend/src/pages/APIConnectors.tsx",
+        "content_length": 15467
+      },
+      "backup": {
+        "score": 2,
+        "filepath": "frontend/src/pages/APIConnectors.tsx",
+        "content_length": 15467
+      }
+    }
+  },
+  {
+    "route": "/admin",
+    "filepath": "frontend/src/pages/Admin.tsx",
+    "bestCommit": "stable",
+    "bestScore": 2,
+    "implementations": {
+      "stable": {
+        "score": 2,
+        "filepath": "frontend/src/pages/Admin.tsx",
+        "content_length": 35260
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Admin.tsx",
+        "content_length": 12480
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Admin.tsx",
+        "content_length": 12480
+      }
+    }
+  },
+  {
+    "route": "/advancedai",
+    "filepath": "frontend/src/pages/AdvancedAI.tsx",
+    "bestCommit": "stable",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 1,
+        "filepath": "frontend/src/pages/AdvancedAI.tsx",
+        "content_length": 8737
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/AdvancedAI.tsx",
+        "content_length": 8737
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/AdvancedAI.tsx",
+        "content_length": 8737
+      }
+    }
+  },
+  {
+    "route": "/advancedsystems",
+    "filepath": "frontend/src/pages/AdvancedSystems.tsx",
+    "bestCommit": "stable",
+    "bestScore": 2,
+    "implementations": {
+      "stable": {
+        "score": 2,
+        "filepath": "frontend/src/pages/AdvancedSystems.tsx",
+        "content_length": 8554
+      },
+      "increments": {
+        "score": 2,
+        "filepath": "frontend/src/pages/AdvancedSystems.tsx",
+        "content_length": 8554
+      },
+      "backup": {
+        "score": 2,
+        "filepath": "frontend/src/pages/AdvancedSystems.tsx",
+        "content_length": 8554
+      }
+    }
+  },
+  {
+    "route": "/analytics",
+    "filepath": "frontend/src/pages/Analytics.tsx",
+    "bestCommit": "stable",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Analytics.tsx",
+        "content_length": 12507
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Analytics.tsx",
+        "content_length": 12507
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Analytics.tsx",
+        "content_length": 12507
+      }
+    }
+  },
+  {
+    "route": "/audit",
+    "filepath": "frontend/src/pages/Audit.tsx",
+    "bestCommit": "stable",
+    "bestScore": 4,
+    "implementations": {
+      "stable": {
+        "score": 4,
+        "filepath": "frontend/src/pages/Audit.tsx",
+        "content_length": 17418
+      },
+      "increments": {
+        "score": 4,
+        "filepath": "frontend/src/pages/Audit.tsx",
+        "content_length": 17418
+      },
+      "backup": {
+        "score": 4,
+        "filepath": "frontend/src/pages/Audit.tsx",
+        "content_length": 17418
+      }
+    }
+  },
+  {
+    "route": "frontend/src/pages/Dashboard.tsx",
+    "filepath": "frontend/src/pages/AutoFix.tsx",
+    "bestCommit": "stable",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 1,
+        "filepath": "frontend/src/pages/AutoFix.tsx",
+        "content_length": 33004
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/AutoFix.tsx",
+        "content_length": 33004
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/AutoFix.tsx",
+        "content_length": 33004
+      }
+    }
+  },
+  {
+    "route": "/billing",
+    "filepath": "frontend/src/pages/Billing.tsx",
+    "bestCommit": "stable",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Billing.tsx",
+        "content_length": 7132
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Billing.tsx",
+        "content_length": 7132
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Billing.tsx",
+        "content_length": 7132
+      }
+    }
+  },
+  {
+    "route": "/capsulemarketplace",
+    "filepath": "frontend/src/pages/CapsuleMarketplace.tsx",
+    "bestCommit": "stable",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 1,
+        "filepath": "frontend/src/pages/CapsuleMarketplace.tsx",
+        "content_length": 23261
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/CapsuleMarketplace.tsx",
+        "content_length": 23261
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/CapsuleMarketplace.tsx",
+        "content_length": 23261
+      }
+    }
+  },
+  {
+    "route": "/chat",
+    "filepath": "frontend/src/pages/Chat.tsx",
+    "bestCommit": "stable",
+    "bestScore": 0,
+    "implementations": {
+      "stable": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Chat.tsx",
+        "content_length": 24659
+      },
+      "increments": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Chat.tsx",
+        "content_length": 24659
+      },
+      "backup": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Chat.tsx",
+        "content_length": 24659
+      }
+    }
+  },
+  {
+    "route": "/collaboration",
+    "filepath": "frontend/src/pages/Collaboration.tsx",
+    "bestCommit": "stable",
+    "bestScore": 0,
+    "implementations": {
+      "stable": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Collaboration.tsx",
+        "content_length": 7790
+      },
+      "increments": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Collaboration.tsx",
+        "content_length": 7790
+      },
+      "backup": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Collaboration.tsx",
+        "content_length": 7790
+      }
+    }
+  },
+  {
+    "route": "/computervision",
+    "filepath": "frontend/src/pages/ComputerVision.tsx",
+    "bestCommit": "stable",
+    "bestScore": -1,
+    "implementations": {
+      "stable": {
+        "score": -1,
+        "filepath": "frontend/src/pages/ComputerVision.tsx",
+        "content_length": 11710
+      },
+      "increments": {
+        "score": -1,
+        "filepath": "frontend/src/pages/ComputerVision.tsx",
+        "content_length": 11710
+      },
+      "backup": {
+        "score": -1,
+        "filepath": "frontend/src/pages/ComputerVision.tsx",
+        "content_length": 11710
+      }
+    }
+  },
+  {
+    "route": "/docs/dashboard",
+    "filepath": "frontend/src/pages/Dashboard.tsx",
+    "bestCommit": "stable",
+    "bestScore": 2,
+    "implementations": {
+      "stable": {
+        "score": 2,
+        "filepath": "frontend/src/pages/Dashboard.tsx",
+        "content_length": 39825
+      },
+      "increments": {
+        "score": 2,
+        "filepath": "frontend/src/pages/Dashboard.tsx",
+        "content_length": 39825
+      },
+      "backup": {
+        "score": 2,
+        "filepath": "frontend/src/pages/Dashboard.tsx",
+        "content_length": 39825
+      }
+    }
+  },
+  {
+    "route": "/docs",
+    "filepath": "frontend/src/pages/Docs.tsx",
+    "bestCommit": "stable",
+    "bestScore": 4,
+    "implementations": {
+      "stable": {
+        "score": 0,
+        "filepath": "frontend/src/pages/FutureDeck.tsx",
+        "content_length": 6172
+      },
+      "increments": {
+        "score": 0,
+        "filepath": "frontend/src/pages/FutureDeck.tsx",
+        "content_length": 6172
+      },
+      "backup": {
+        "score": 0,
+        "filepath": "frontend/src/pages/FutureDeck.tsx",
+        "content_length": 6172
+      }
+    }
+  },
+  {
+    "route": "/edgecomputing",
+    "filepath": "frontend/src/pages/EdgeComputing.tsx",
+    "bestCommit": "stable",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 1,
+        "filepath": "frontend/src/pages/EdgeComputing.tsx",
+        "content_length": 11556
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/EdgeComputing.tsx",
+        "content_length": 11556
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/EdgeComputing.tsx",
+        "content_length": 11556
+      }
+    }
+  },
+  {
+    "route": "/integrations",
+    "filepath": "frontend/src/pages/Integrations.tsx",
+    "bestCommit": "stable",
+    "bestScore": -2,
+    "implementations": {
+      "stable": {
+        "score": -2,
+        "filepath": "frontend/src/pages/Integrations.tsx",
+        "content_length": 25980
+      },
+      "increments": {
+        "score": -2,
+        "filepath": "frontend/src/pages/Integrations.tsx",
+        "content_length": 25980
+      },
+      "backup": {
+        "score": -2,
+        "filepath": "frontend/src/pages/Integrations.tsx",
+        "content_length": 25980
+      }
+    }
+  },
+  {
+    "route": "/intentprocessor",
+    "filepath": "frontend/src/pages/IntentProcessor.tsx",
+    "bestCommit": "stable",
+    "bestScore": 2,
+    "implementations": {
+      "stable": {
+        "score": 2,
+        "filepath": "frontend/src/pages/IntentProcessor.tsx",
+        "content_length": 10184
+      },
+      "increments": {
+        "score": 2,
+        "filepath": "frontend/src/pages/IntentProcessor.tsx",
+        "content_length": 10184
+      },
+      "backup": {
+        "score": 2,
+        "filepath": "frontend/src/pages/IntentProcessor.tsx",
+        "content_length": 10184
+      }
+    }
+  },
+  {
+    "route": "/signup",
+    "filepath": "frontend/src/pages/Login.tsx",
+    "bestCommit": "stable",
+    "bestScore": 0,
+    "implementations": {
+      "stable": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Login.tsx",
+        "content_length": 16123
+      },
+      "increments": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Login.tsx",
+        "content_length": 7125
+      },
+      "backup": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Login.tsx",
+        "content_length": 7603
+      }
+    }
+  },
+  {
+    "route": "/mlops",
+    "filepath": "frontend/src/pages/MLOps.tsx",
+    "bestCommit": "stable",
+    "bestScore": 2,
+    "implementations": {
+      "stable": {
+        "score": 2,
+        "filepath": "frontend/src/pages/MLOps.tsx",
+        "content_length": 7315
+      },
+      "increments": {
+        "score": 2,
+        "filepath": "frontend/src/pages/MLOps.tsx",
+        "content_length": 7315
+      },
+      "backup": {
+        "score": 2,
+        "filepath": "frontend/src/pages/MLOps.tsx",
+        "content_length": 7315
+      }
+    }
+  },
+  {
+    "route": "/masterorchestrator",
+    "filepath": "frontend/src/pages/MasterOrchestrator.tsx",
+    "bestCommit": "stable",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 1,
+        "filepath": "frontend/src/pages/MasterOrchestrator.tsx",
+        "content_length": 17471
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/MasterOrchestrator.tsx",
+        "content_length": 17471
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/MasterOrchestrator.tsx",
+        "content_length": 17471
+      }
+    }
+  },
+  {
+    "route": "/monitoring",
+    "filepath": "frontend/src/pages/Monitoring.tsx",
+    "bestCommit": "stable",
+    "bestScore": 0,
+    "implementations": {
+      "stable": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Monitoring.tsx",
+        "content_length": 7522
+      },
+      "increments": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Monitoring.tsx",
+        "content_length": 7522
+      },
+      "backup": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Monitoring.tsx",
+        "content_length": 7522
+      }
+    }
+  },
+  {
+    "route": "/ai/nas/experiments",
+    "filepath": "frontend/src/pages/NAS.tsx",
+    "bestCommit": "stable",
+    "bestScore": 2,
+    "implementations": {
+      "stable": {
+        "score": 2,
+        "filepath": "frontend/src/pages/NAS.tsx",
+        "content_length": 17529
+      },
+      "increments": {
+        "score": 2,
+        "filepath": "frontend/src/pages/NAS.tsx",
+        "content_length": 17529
+      },
+      "backup": {
+        "score": 2,
+        "filepath": "frontend/src/pages/NAS.tsx",
+        "content_length": 17529
+      }
+    }
+  },
+  {
+    "route": "/networkmonitoring",
+    "filepath": "frontend/src/pages/NetworkMonitoring.tsx",
+    "bestCommit": "stable",
+    "bestScore": 3,
+    "implementations": {
+      "stable": {
+        "score": 3,
+        "filepath": "frontend/src/pages/NetworkMonitoring.tsx",
+        "content_length": 42146
+      },
+      "increments": {
+        "score": 3,
+        "filepath": "frontend/src/pages/NetworkMonitoring.tsx",
+        "content_length": 42146
+      },
+      "backup": {
+        "score": 3,
+        "filepath": "frontend/src/pages/NetworkMonitoring.tsx",
+        "content_length": 42146
+      }
+    }
+  },
+  {
+    "route": "/neuralarchitecturesearch",
+    "filepath": "frontend/src/pages/NeuralArchitectureSearch.tsx",
+    "bestCommit": "stable",
+    "bestScore": 5,
+    "implementations": {
+      "stable": {
+        "score": 5,
+        "filepath": "frontend/src/pages/NeuralArchitectureSearch.tsx",
+        "content_length": 11818
+      },
+      "increments": {
+        "score": 5,
+        "filepath": "frontend/src/pages/NeuralArchitectureSearch.tsx",
+        "content_length": 11818
+      },
+      "backup": {
+        "score": 5,
+        "filepath": "frontend/src/pages/NeuralArchitectureSearch.tsx",
+        "content_length": 11818
+      }
+    }
+  },
+  {
+    "route": "/observability",
+    "filepath": "frontend/src/pages/Observability.tsx",
+    "bestCommit": "stable",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Observability.tsx",
+        "content_length": 30056
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Observability.tsx",
+        "content_length": 30056
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Observability.tsx",
+        "content_length": 30056
+      }
+    }
+  },
+  {
+    "route": "/officerealtime",
+    "filepath": "frontend/src/pages/OfficeRealtime.tsx",
+    "bestCommit": "stable",
+    "bestScore": 2,
+    "implementations": {
+      "stable": {
+        "score": 2,
+        "filepath": "frontend/src/pages/OfficeRealtime.tsx",
+        "content_length": 26390
+      },
+      "increments": {
+        "score": 2,
+        "filepath": "frontend/src/pages/OfficeRealtime.tsx",
+        "content_length": 26390
+      },
+      "backup": {
+        "score": 2,
+        "filepath": "frontend/src/pages/OfficeRealtime.tsx",
+        "content_length": 26390
+      }
+    }
+  },
+  {
+    "route": "/personalization",
+    "filepath": "frontend/src/pages/Personalization.tsx",
+    "bestCommit": "stable",
+    "bestScore": 0,
+    "implementations": {
+      "stable": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Personalization.tsx",
+        "content_length": 6935
+      },
+      "increments": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Personalization.tsx",
+        "content_length": 6935
+      },
+      "backup": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Personalization.tsx",
+        "content_length": 6935
+      }
+    }
+  },
+  {
+    "route": "/projectorchestrator",
+    "filepath": "frontend/src/pages/ProjectOrchestrator.tsx",
+    "bestCommit": "stable",
+    "bestScore": -2,
+    "implementations": {
+      "stable": {
+        "score": -2,
+        "filepath": "frontend/src/pages/ProjectOrchestrator.tsx",
+        "content_length": 13022
+      },
+      "increments": {
+        "score": -2,
+        "filepath": "frontend/src/pages/ProjectOrchestrator.tsx",
+        "content_length": 13022
+      },
+      "backup": {
+        "score": -2,
+        "filepath": "frontend/src/pages/ProjectOrchestrator.tsx",
+        "content_length": 13022
+      }
+    }
+  },
+  {
+    "route": "/projects",
+    "filepath": "frontend/src/pages/Projects.tsx",
+    "bestCommit": "stable",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Projects.tsx",
+        "content_length": 97112
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Projects.tsx",
+        "content_length": 97112
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Projects.tsx",
+        "content_length": 97112
+      }
+    }
+  },
+  {
+    "route": "/research",
+    "filepath": "frontend/src/pages/Research.tsx",
+    "bestCommit": "stable",
+    "bestScore": 0,
+    "implementations": {
+      "stable": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Research.tsx",
+        "content_length": 23115
+      },
+      "increments": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Research.tsx",
+        "content_length": 23115
+      },
+      "backup": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Research.tsx",
+        "content_length": 23115
+      }
+    }
+  },
+  {
+    "route": "/searchengine",
+    "filepath": "frontend/src/pages/SearchEngine.tsx",
+    "bestCommit": "stable",
+    "bestScore": 2,
+    "implementations": {
+      "stable": {
+        "score": 2,
+        "filepath": "frontend/src/pages/SearchEngine.tsx",
+        "content_length": 7945
+      },
+      "increments": {
+        "score": 2,
+        "filepath": "frontend/src/pages/SearchEngine.tsx",
+        "content_length": 7945
+      },
+      "backup": {
+        "score": 2,
+        "filepath": "frontend/src/pages/SearchEngine.tsx",
+        "content_length": 7945
+      }
+    }
+  },
+  {
+    "route": "/security",
+    "filepath": "frontend/src/pages/Security.tsx",
+    "bestCommit": "stable",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Security.tsx",
+        "content_length": 9903
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Security.tsx",
+        "content_length": 9903
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Security.tsx",
+        "content_length": 9903
+      }
+    }
+  },
+  {
+    "route": "/settings",
+    "filepath": "frontend/src/pages/Settings.tsx",
+    "bestCommit": "stable",
+    "bestScore": 3,
+    "implementations": {
+      "stable": {
+        "score": 3,
+        "filepath": "frontend/src/pages/Settings.tsx",
+        "content_length": 33108
+      },
+      "increments": {
+        "score": 3,
+        "filepath": "frontend/src/pages/Settings.tsx",
+        "content_length": 33108
+      },
+      "backup": {
+        "score": 3,
+        "filepath": "frontend/src/pages/Settings.tsx",
+        "content_length": 33108
+      }
+    }
+  },
+  {
+    "route": "/login",
+    "filepath": "frontend/src/pages/Signup.tsx",
+    "bestCommit": "increments",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Signup.tsx",
+        "content_length": 24020
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Signup.tsx",
+        "content_length": 10056
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Signup.tsx",
+        "content_length": 10056
+      }
+    }
+  },
+  {
+    "route": "/specpage",
+    "filepath": "frontend/src/pages/SpecPage.tsx",
+    "bestCommit": "stable",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 1,
+        "filepath": "frontend/src/pages/SpecPage.tsx",
+        "content_length": 9850
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/SpecPage.tsx",
+        "content_length": 9850
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/SpecPage.tsx",
+        "content_length": 9850
+      }
+    }
+  },
+  {
+    "route": "/docs/migration_continued.md",
+    "filepath": "frontend/src/pages/SpecSheet.tsx",
+    "bestCommit": "stable",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 1,
+        "filepath": "frontend/src/pages/SpecSheet.tsx",
+        "content_length": 7037
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/SpecSheet.tsx",
+        "content_length": 7037
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/SpecSheet.tsx",
+        "content_length": 7037
+      }
+    }
+  },
+  {
+    "route": "/tasks",
+    "filepath": "frontend/src/pages/Tasks.tsx",
+    "bestCommit": "stable",
+    "bestScore": 2,
+    "implementations": {
+      "stable": {
+        "score": 2,
+        "filepath": "frontend/src/pages/Tasks.tsx",
+        "content_length": 17492
+      },
+      "increments": {
+        "score": 2,
+        "filepath": "frontend/src/pages/Tasks.tsx",
+        "content_length": 17492
+      },
+      "backup": {
+        "score": 2,
+        "filepath": "frontend/src/pages/Tasks.tsx",
+        "content_length": 17492
+      }
+    }
+  },
+  {
+    "route": "/templates",
+    "filepath": "frontend/src/pages/Templates.tsx",
+    "bestCommit": "stable",
+    "bestScore": -1,
+    "implementations": {
+      "stable": {
+        "score": -1,
+        "filepath": "frontend/src/pages/Templates.tsx",
+        "content_length": 27746
+      },
+      "increments": {
+        "score": -1,
+        "filepath": "frontend/src/pages/Templates.tsx",
+        "content_length": 27746
+      },
+      "backup": {
+        "score": -1,
+        "filepath": "frontend/src/pages/Templates.tsx",
+        "content_length": 27746
+      }
+    }
+  },
+  {
+    "route": "/tools",
+    "filepath": "frontend/src/pages/Tools.tsx",
+    "bestCommit": "stable",
+    "bestScore": 0,
+    "implementations": {
+      "stable": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Tools.tsx",
+        "content_length": 25165
+      },
+      "increments": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Tools.tsx",
+        "content_length": 25165
+      },
+      "backup": {
+        "score": 0,
+        "filepath": "frontend/src/pages/Tools.tsx",
+        "content_length": 25165
+      }
+    }
+  },
+  {
+    "route": "/docs/future_meta.html",
+    "filepath": "frontend/src/pages/VisionDeck.tsx",
+    "bestCommit": "stable",
+    "bestScore": 4,
+    "implementations": {
+      "stable": {
+        "score": 4,
+        "filepath": "frontend/src/pages/VisionDeck.tsx",
+        "content_length": 7845
+      },
+      "increments": {
+        "score": 4,
+        "filepath": "frontend/src/pages/VisionDeck.tsx",
+        "content_length": 7845
+      },
+      "backup": {
+        "score": 4,
+        "filepath": "frontend/src/pages/VisionDeck.tsx",
+        "content_length": 7845
+      }
+    }
+  },
+  {
+    "route": "/workflows",
+    "filepath": "frontend/src/pages/Workflows.tsx",
+    "bestCommit": "stable",
+    "bestScore": 1,
+    "implementations": {
+      "stable": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Workflows.tsx",
+        "content_length": 8706
+      },
+      "increments": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Workflows.tsx",
+        "content_length": 8706
+      },
+      "backup": {
+        "score": 1,
+        "filepath": "frontend/src/pages/Workflows.tsx",
+        "content_length": 8706
+      }
+    }
+  },
+  {
+    "route": "/workspacehealth",
+    "filepath": "frontend/src/pages/WorkspaceHealth.tsx",
+    "bestCommit": "stable",
+    "bestScore": 3,
+    "implementations": {
+      "stable": {
+        "score": 3,
+        "filepath": "frontend/src/pages/WorkspaceHealth.tsx",
+        "content_length": 21790
+      },
+      "increments": {
+        "score": 3,
+        "filepath": "frontend/src/pages/WorkspaceHealth.tsx",
+        "content_length": 21790
+      },
+      "backup": {
+        "score": 3,
+        "filepath": "frontend/src/pages/WorkspaceHealth.tsx",
+        "content_length": 21790
+      }
+    }
+  },
+  {
+    "route": "/writer",
+    "filepath": "frontend/src/pages/Writer.tsx",
+    "bestCommit": "stable",
+    "bestScore": -1,
+    "implementations": {
+      "stable": {
+        "score": -1,
+        "filepath": "frontend/src/pages/Writer.tsx",
+        "content_length": 25728
+      },
+      "increments": {
+        "score": -1,
+        "filepath": "frontend/src/pages/Writer.tsx",
+        "content_length": 25728
+      },
+      "backup": {
+        "score": -1,
+        "filepath": "frontend/src/pages/Writer.tsx",
+        "content_length": 25728
+      }
+    }
+  }
+]

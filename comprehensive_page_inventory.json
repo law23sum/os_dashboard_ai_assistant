@@ -1,0 +1,378 @@
+{
+  "frontend/src/pages/AICopilot.tsx": {
+    "path": "frontend/src/pages/AICopilot.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/AIOS.tsx": {
+    "path": "frontend/src/pages/AIOS.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/AIOps.tsx": {
+    "path": "frontend/src/pages/AIOps.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/APIConnectors.tsx": {
+    "path": "frontend/src/pages/APIConnectors.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Admin.tsx": {
+    "path": "frontend/src/pages/Admin.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/AdvancedAI.tsx": {
+    "path": "frontend/src/pages/AdvancedAI.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/AdvancedSystems.tsx": {
+    "path": "frontend/src/pages/AdvancedSystems.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Analytics.tsx": {
+    "path": "frontend/src/pages/Analytics.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Audit.tsx": {
+    "path": "frontend/src/pages/Audit.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/AutoFix.tsx": {
+    "path": "frontend/src/pages/AutoFix.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Billing.tsx": {
+    "path": "frontend/src/pages/Billing.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/CapsuleMarketplace.tsx": {
+    "path": "frontend/src/pages/CapsuleMarketplace.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Chat.tsx": {
+    "path": "frontend/src/pages/Chat.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Collaboration.tsx": {
+    "path": "frontend/src/pages/Collaboration.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/ComputerVision.tsx": {
+    "path": "frontend/src/pages/ComputerVision.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Docs.tsx": {
+    "path": "frontend/src/pages/Docs.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Documentation.tsx": {
+    "path": "frontend/src/pages/Documentation.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/EdgeComputing.tsx": {
+    "path": "frontend/src/pages/EdgeComputing.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/FutureDeck.tsx": {
+    "path": "frontend/src/pages/FutureDeck.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Integrations.tsx": {
+    "path": "frontend/src/pages/Integrations.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/IntentProcessor.tsx": {
+    "path": "frontend/src/pages/IntentProcessor.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Login.tsx": {
+    "path": "frontend/src/pages/Login.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/MLOps.tsx": {
+    "path": "frontend/src/pages/MLOps.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/MasterOrchestrator.tsx": {
+    "path": "frontend/src/pages/MasterOrchestrator.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Monitoring.tsx": {
+    "path": "frontend/src/pages/Monitoring.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/NAS.tsx": {
+    "path": "frontend/src/pages/NAS.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/NetworkMonitoring.tsx": {
+    "path": "frontend/src/pages/NetworkMonitoring.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/NeuralArchitectureSearch.tsx": {
+    "path": "frontend/src/pages/NeuralArchitectureSearch.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Observability.tsx": {
+    "path": "frontend/src/pages/Observability.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/OfficeRealtime.tsx": {
+    "path": "frontend/src/pages/OfficeRealtime.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Personalization.tsx": {
+    "path": "frontend/src/pages/Personalization.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/ProjectOrchestrator.tsx": {
+    "path": "frontend/src/pages/ProjectOrchestrator.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Projects.tsx": {
+    "path": "frontend/src/pages/Projects.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Research.tsx": {
+    "path": "frontend/src/pages/Research.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/SearchEngine.tsx": {
+    "path": "frontend/src/pages/SearchEngine.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Security.tsx": {
+    "path": "frontend/src/pages/Security.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Settings.tsx": {
+    "path": "frontend/src/pages/Settings.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Signup.tsx": {
+    "path": "frontend/src/pages/Signup.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/SpecPage.tsx": {
+    "path": "frontend/src/pages/SpecPage.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/SpecSheet.tsx": {
+    "path": "frontend/src/pages/SpecSheet.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Tasks.tsx": {
+    "path": "frontend/src/pages/Tasks.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Templates.tsx": {
+    "path": "frontend/src/pages/Templates.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Tools.tsx": {
+    "path": "frontend/src/pages/Tools.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/VisionDeck.tsx": {
+    "path": "frontend/src/pages/VisionDeck.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Workflows.tsx": {
+    "path": "frontend/src/pages/Workflows.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/WorkspaceHealth.tsx": {
+    "path": "frontend/src/pages/WorkspaceHealth.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  },
+  "frontend/src/pages/Writer.tsx": {
+    "path": "frontend/src/pages/Writer.tsx",
+    "foundIn": [
+      "origin-incremeents",
+      "stable-alpha",
+      "backup-broken-gui"
+    ]
+  }
+}

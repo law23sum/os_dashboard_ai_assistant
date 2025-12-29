@@ -1,0 +1,175 @@
+#!/usr/bin/env python3
+"""
+Auto-generated route migration script
+Updates route references from old paths to new paths
+"""
+
+PATH_MAPPING = {
+  "/workspaces/dev/tools": "/workspaces-enterprise-extensions/dev-devops-workspace/tools",
+  "/workspaces/dev/cicd": "/workspaces-enterprise-extensions/dev-devops-workspace/cicd",
+  "/workspaces/dev/commit-tasks": "/workspaces-enterprise-extensions/dev-devops-workspace/commit-tasks",
+  "/workspaces/dev/reviews": "/workspaces-enterprise-extensions/dev-devops-workspace/reviews",
+  "/workspaces/dev/merge-advisor": "/workspaces-enterprise-extensions/dev-devops-workspace/merge-advisor",
+  "/workspaces/dev/overview": "/workspaces-enterprise-extensions/dev-devops-workspace/overview",
+  "/workspaces/dev/repo": "/workspaces-enterprise-extensions/dev-devops-workspace/repo",
+  "/workspaces/dev/environment": "/workspaces-enterprise-extensions/dev-devops-workspace/environment",
+  "/workspaces/dev/release-evidence": "/workspaces-enterprise-extensions/dev-devops-workspace/release-evidence",
+  "/workspaces/dev/sbom": "/workspaces-enterprise-extensions/dev-devops-workspace/sbom",
+  "/workspaces/dev/runbooks": "/workspaces-enterprise-extensions/dev-devops-workspace/runbooks",
+  "/workspaces/dev/todos": "/workspaces-enterprise-extensions/dev-devops-workspace/todos",
+  "/workspaces/research/lab": "/workspaces-enterprise-extensions/research-simulation-workspace/lab",
+  "/workspaces/research/experiments": "/workspaces-enterprise-extensions/research-simulation-workspace/experiments",
+  "/workspaces/research/simulation": "/workspaces-enterprise-extensions/research-simulation-workspace/simulation",
+  "/workspaces/research/hpc": "/workspaces-enterprise-extensions/research-simulation-workspace/hpc",
+  "/workspaces/research/validation": "/workspaces-enterprise-extensions/research-simulation-workspace/validation",
+  "/workspaces/research/digital-twins": "/workspaces-enterprise-extensions/research-simulation-workspace/digital-twins",
+  "/workspaces/research/overview": "/workspaces-enterprise-extensions/research-simulation-workspace/overview",
+  "/workspaces/research/data-sources": "/workspaces-enterprise-extensions/research-simulation-workspace/data-sources",
+  "/workspaces/research/sweeps": "/workspaces-enterprise-extensions/research-simulation-workspace/sweeps",
+  "/workspaces/research/cad-multiphysics": "/workspaces-enterprise-extensions/research-simulation-workspace/cad-multiphysics",
+  "/workspaces/research/optimization": "/workspaces-enterprise-extensions/research-simulation-workspace/optimization",
+  "/workspaces/research/calibration": "/workspaces-enterprise-extensions/research-simulation-workspace/calibration",
+  "/workspaces/research/composer": "/workspaces-enterprise-extensions/research-simulation-workspace/composer",
+  "/workspaces/research/knowledge-graph": "/workspaces-enterprise-extensions/research-simulation-workspace/knowledge-graph",
+  "/workspaces/research/ip-assistant": "/workspaces-enterprise-extensions/research-simulation-workspace/ip-assistant",
+  "/workspaces/research/training": "/workspaces-enterprise-extensions/research-simulation-workspace/training",
+  "/workspaces/research/cross-tool": "/workspaces-enterprise-extensions/research-simulation-workspace/cross-tool",
+  "/workspaces/research/knowledge-atlas": "/workspaces-enterprise-extensions/research-simulation-workspace/knowledge-atlas",
+  "/workspaces/research/todos": "/workspaces-enterprise-extensions/research-simulation-workspace/todos",
+  "/workspaces/writer/templates": "/workspaces-enterprise-extensions/writer-workspace/templates",
+  "/workspaces/writer/canon": "/workspaces-enterprise-extensions/writer-workspace/canon",
+  "/workspaces/writer/narrative": "/workspaces-enterprise-extensions/writer-workspace/narrative",
+  "/workspaces/writer/qa": "/workspaces-enterprise-extensions/writer-workspace/qa",
+  "/workspaces/writer/publishing": "/workspaces-enterprise-extensions/writer-workspace/publishing",
+  "/workspaces/writer/overview": "/workspaces-enterprise-extensions/writer-workspace/overview",
+  "/workspaces/writer/workstation": "/workspaces-enterprise-extensions/writer-workspace/workstation",
+  "/workspaces/writer/drafting": "/workspaces-enterprise-extensions/writer-workspace/drafting",
+  "/workspaces/writer/collaboration": "/workspaces-enterprise-extensions/writer-workspace/collaboration",
+  "/workspaces/writer/production": "/workspaces-enterprise-extensions/writer-workspace/production",
+  "/workspaces/writer/rights": "/workspaces-enterprise-extensions/writer-workspace/rights",
+  "/workspaces/writer/todos": "/workspaces-enterprise-extensions/writer-workspace/todos",
+  "/workspaces/cyber/findings": "/workspaces-enterprise-extensions/cybersecurity-workspace/findings",
+  "/workspaces/cyber/threat-modeling": "/workspaces-enterprise-extensions/cybersecurity-workspace/threat-modeling",
+  "/workspaces/cyber/incidents": "/workspaces-enterprise-extensions/cybersecurity-workspace/incidents",
+  "/workspaces/cyber/auto-remediation": "/workspaces-enterprise-extensions/cybersecurity-workspace/auto-remediation",
+  "/workspaces/cyber/overview": "/workspaces-enterprise-extensions/cybersecurity-workspace/overview",
+  "/workspaces/cyber/guardian": "/workspaces-enterprise-extensions/cybersecurity-workspace/guardian",
+  "/workspaces/cyber/assets": "/workspaces-enterprise-extensions/cybersecurity-workspace/assets",
+  "/workspaces/cyber/hardening": "/workspaces-enterprise-extensions/cybersecurity-workspace/hardening",
+  "/workspaces/cyber/forensics": "/workspaces-enterprise-extensions/cybersecurity-workspace/forensics",
+  "/workspaces/cyber/compliance": "/workspaces-enterprise-extensions/cybersecurity-workspace/compliance",
+  "/workspaces/cyber/todos": "/workspaces-enterprise-extensions/cybersecurity-workspace/todos",
+  "/workspaces/finance/budgets": "/workspaces-enterprise-extensions/business-finance-workspace/budgets",
+  "/workspaces/finance/scenarios": "/workspaces-enterprise-extensions/business-finance-workspace/scenarios",
+  "/workspaces/finance/overview": "/workspaces-enterprise-extensions/business-finance-workspace/overview",
+  "/workspaces/finance/accounting": "/workspaces-enterprise-extensions/business-finance-workspace/accounting",
+  "/workspaces/finance/studio": "/workspaces-enterprise-extensions/business-finance-workspace/studio",
+  "/workspaces/finance/cost-governance": "/workspaces-enterprise-extensions/business-finance-workspace/cost-governance",
+  "/workspaces/finance/billing-insights": "/workspaces-enterprise-extensions/business-finance-workspace/billing-insights",
+  "/workspaces/finance/todos": "/workspaces-enterprise-extensions/business-finance-workspace/todos",
+  "/workspaces/sre/reliability": "/workspaces-enterprise-extensions/operator-sre-workspace/reliability",
+  "/workspaces/sre/health": "/workspaces-enterprise-extensions/operator-sre-workspace/health",
+  "/workspaces/sre/runbooks": "/workspaces-enterprise-extensions/operator-sre-workspace/runbooks",
+  "/workspaces/sre/incidents": "/workspaces-enterprise-extensions/operator-sre-workspace/incidents",
+  "/workspaces/sre/sandbox": "/workspaces-enterprise-extensions/operator-sre-workspace/sandbox",
+  "/workspaces/sre/overview": "/workspaces-enterprise-extensions/operator-sre-workspace/overview",
+  "/workspaces/sre/oncall": "/workspaces-enterprise-extensions/operator-sre-workspace/oncall",
+  "/workspaces/sre/capacity": "/workspaces-enterprise-extensions/operator-sre-workspace/capacity",
+  "/workspaces/sre/todos": "/workspaces-enterprise-extensions/operator-sre-workspace/todos",
+  "/workspaces/archive/time-travel": "/workspaces-enterprise-extensions/archive-continuity-workspace/time-travel",
+  "/workspaces/archive/overview": "/workspaces-enterprise-extensions/archive-continuity-workspace/overview",
+  "/workspaces/archive/engine": "/workspaces-enterprise-extensions/archive-continuity-workspace/engine",
+  "/workspaces/archive/search": "/workspaces-enterprise-extensions/archive-continuity-workspace/search",
+  "/workspaces/archive/drift": "/workspaces-enterprise-extensions/archive-continuity-workspace/drift",
+  "/workspaces/archive/resonance": "/workspaces-enterprise-extensions/archive-continuity-workspace/resonance",
+  "/workspaces/archive/todos": "/workspaces-enterprise-extensions/archive-continuity-workspace/todos",
+  "/workspaces/twins/reality-mesh": "/workspaces-enterprise-extensions/digital-twin-enterprise-twin-workspace/reality-mesh",
+  "/workspaces/twins/enterprise": "/workspaces-enterprise-extensions/digital-twin-enterprise-twin-workspace/enterprise",
+  "/workspaces/twins/overview": "/workspaces-enterprise-extensions/digital-twin-enterprise-twin-workspace/overview",
+  "/workspaces/twins/builder": "/workspaces-enterprise-extensions/digital-twin-enterprise-twin-workspace/builder",
+  "/workspaces/twins/catalog": "/workspaces-enterprise-extensions/digital-twin-enterprise-twin-workspace/catalog",
+  "/workspaces/twins/runtime": "/workspaces-enterprise-extensions/digital-twin-enterprise-twin-workspace/runtime",
+  "/workspaces/twins/dependencies": "/workspaces-enterprise-extensions/digital-twin-enterprise-twin-workspace/dependencies",
+  "/workspaces/twins/strategy": "/workspaces-enterprise-extensions/digital-twin-enterprise-twin-workspace/strategy",
+  "/workspaces/twins/todos": "/workspaces-enterprise-extensions/digital-twin-enterprise-twin-workspace/todos",
+  "/workspaces/auditor/overview": "/workspaces-enterprise-extensions/record-auditor-logbook-workspace/overview",
+  "/workspaces/auditor/trails": "/workspaces-enterprise-extensions/record-auditor-logbook-workspace/trails",
+  "/workspaces/auditor/evidence": "/workspaces-enterprise-extensions/record-auditor-logbook-workspace/evidence",
+  "/workspaces/auditor/audit-logs": "/workspaces-enterprise-extensions/record-auditor-logbook-workspace/audit-logs",
+  "/workspaces/auditor/replay": "/workspaces-enterprise-extensions/record-auditor-logbook-workspace/replay",
+  "/workspaces/auditor/regulator": "/workspaces-enterprise-extensions/record-auditor-logbook-workspace/regulator",
+  "/workspaces/auditor/requests": "/workspaces-enterprise-extensions/record-auditor-logbook-workspace/requests",
+  "/workspaces/auditor/todos": "/workspaces-enterprise-extensions/record-auditor-logbook-workspace/todos",
+  "/ai/personas": "/mission-architecture/mission-identity/personas",
+  "/settings/user/overview": "/settings-admin-enterprise-extensions/user-profile-preferences/overview",
+  "/settings/user/profile": "/settings-admin-enterprise-extensions/user-profile-preferences/profile",
+  "/settings/user/personas": "/settings-admin-enterprise-extensions/user-profile-preferences/personas",
+  "/settings/user/notifications": "/settings-admin-enterprise-extensions/user-profile-preferences/notifications",
+  "/settings/user/ui": "/settings-admin-enterprise-extensions/user-profile-preferences/ui",
+  "/settings/user/export": "/settings-admin-enterprise-extensions/user-profile-preferences/export",
+  "/settings/workspaces/overview": "/settings-admin-enterprise-extensions/workspace-settings/overview",
+  "/settings/workspaces/manage": "/settings-admin-enterprise-extensions/workspace-settings/manage",
+  "/settings/workspaces/defaults": "/settings-admin-enterprise-extensions/workspace-settings/defaults",
+  "/settings/workspaces/environment-profiles": "/settings-admin-enterprise-extensions/workspace-settings/environment-profiles",
+  "/settings/integrations/overview": "/settings-admin-enterprise-extensions/integrations-credentials/overview",
+  "/settings/integrations/connected-apps": "/settings-admin-enterprise-extensions/integrations-credentials/connected-apps",
+  "/settings/integrations/credentials": "/settings-admin-enterprise-extensions/integrations-credentials/credentials",
+  "/settings/integrations/permissions": "/settings-admin-enterprise-extensions/integrations-credentials/permissions",
+  "/settings/integrations/rotation": "/settings-admin-enterprise-extensions/integrations-credentials/rotation",
+  "/settings/security/overview": "/settings-admin-enterprise-extensions/security-privacy/overview",
+  "/settings/security/auth": "/settings-admin-enterprise-extensions/security-privacy/auth",
+  "/settings/security/devices": "/settings-admin-enterprise-extensions/security-privacy/devices",
+  "/settings/security/privacy": "/settings-admin-enterprise-extensions/security-privacy/privacy",
+  "/settings/security/keys": "/settings-admin-enterprise-extensions/security-privacy/keys",
+  "/settings/billing/overview": "/settings-admin-enterprise-extensions/billing-usage/overview",
+  "/settings/billing/plan": "/settings-admin-enterprise-extensions/billing-usage/plan",
+  "/settings/billing/usage": "/settings-admin-enterprise-extensions/billing-usage/usage",
+  "/settings/billing/budgets": "/settings-admin-enterprise-extensions/billing-usage/budgets",
+  "/settings/billing/payment": "/settings-admin-enterprise-extensions/billing-usage/payment",
+  "/settings/tenant/overview": "/settings-admin-enterprise-extensions/tenant-org-admin/overview",
+  "/settings/tenant/sso": "/settings-admin-enterprise-extensions/tenant-org-admin/sso",
+  "/settings/tenant/rbac": "/settings-admin-enterprise-extensions/tenant-org-admin/rbac",
+  "/settings/tenant/compliance": "/settings-admin-enterprise-extensions/tenant-org-admin/compliance",
+  "/settings/tenant/residency": "/settings-admin-enterprise-extensions/tenant-org-admin/residency",
+  "/settings/tenant/billing": "/settings-admin-enterprise-extensions/tenant-org-admin/billing",
+  "/settings/labs/overview": "/settings-admin-enterprise-extensions/feature-flags-labs/overview",
+  "/settings/labs/feature-flags": "/settings-admin-enterprise-extensions/feature-flags-labs/feature-flags",
+  "/settings/labs/model-providers": "/settings-admin-enterprise-extensions/feature-flags-labs/model-providers",
+  "/settings/system/overview": "/settings-admin-enterprise-extensions/system-diagnostics/overview",
+  "/settings/system/health": "/settings-admin-enterprise-extensions/system-diagnostics/health",
+  "/settings/system/support-bundle": "/settings-admin-enterprise-extensions/system-diagnostics/support-bundle",
+  "/settings/system/version": "/settings-admin-enterprise-extensions/system-diagnostics/version"
+}
+
+def migrate_routes():
+    """Migrate route references in frontend code"""
+    import re
+    from pathlib import Path
+    
+    frontend_dir = Path(__file__).parent.parent / "frontend"
+    
+    # Files to update
+    route_files = [
+        frontend_dir / "src" / "routes.tsx",
+        frontend_dir / "src" / "routes-generated.tsx",
+        frontend_dir / "src" / "routesIA.tsx",
+    ]
+    
+    for route_file in route_files:
+        if not route_file.exists():
+            continue
+        
+        content = route_file.read_text()
+        updated = False
+        
+        for old_path, new_path in PATH_MAPPING.items():
+            if old_path in content:
+                content = content.replace(old_path, new_path)
+                updated = True
+        
+        if updated:
+            route_file.write_text(content)
+            print(f"Updated: {route_file}")
+
+if __name__ == "__main__":
+    migrate_routes()

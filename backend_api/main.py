@@ -41,11 +41,15 @@ async def startup_event():
         with db_session() as db:
             db.execute("SELECT 1").fetchone()
         
-        # Ensure demo users exist
-        await _ensure_demo_users()
+        # Ensure demo users exist (non-blocking)
+        try:
+            await _ensure_demo_users()
+        except Exception as e:
+            import logging
+            logging.warning(f"Could not ensure demo users on startup (non-fatal): {e}")
         
         import logging
-        logging.info("Database initialized and demo users created")
+        logging.info("Database initialized")
     except Exception as e:
         import logging
         logging.error(f"Startup initialization failed: {e}", exc_info=True)
@@ -179,7 +183,7 @@ from backend_api.routers import (
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
-app.include_router(auth.router, prefix="/api", tags=["auth"])
+# Auth router is registered below at /api/auth
 app.include_router(admin.router, prefix="/api", tags=["admin"])
 app.include_router(logs.router, prefix="/api", tags=["logs"])
 app.include_router(files.router, prefix="/api", tags=["files"])
