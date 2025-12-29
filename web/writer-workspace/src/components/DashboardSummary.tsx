@@ -1,4 +1,4 @@
-import { DashboardSnapshot } from "../api/dashboard";
+import { DashboardSnapshot, WebPageLink } from "../api/dashboard";
 import { StatsCard } from "./StatsCard";
 
 interface Props {
@@ -46,6 +46,14 @@ export function DashboardSummary({ snapshot, loading, error, onRefresh }: Props)
             <StatusCard title="Status Breakdown" data={snapshot.status_counts} />
             <StatusCard title="Persona Load" data={snapshot.persona_load} />
           </div>
+          {snapshot.web_pages && snapshot.web_pages.length > 0 ? (
+            <section className="dashboard-card">
+              <header>
+                <h3>Reference Web Pages</h3>
+              </header>
+              <LinkList pages={snapshot.web_pages} />
+            </section>
+          ) : null}
         </>
       ) : (
         <div className="workspace loading">
@@ -109,5 +117,23 @@ function StatusCard({ title, data }: { title: string; data: Record<string, numbe
         ))}
       </ul>
     </section>
+  );
+}
+
+function LinkList({ pages }: { pages: WebPageLink[] }) {
+  return (
+    <ul className="link-list">
+      {pages.map((page) => (
+        <li key={page.url}>
+          <div>
+            <strong>{page.label}</strong>
+            <span className="muted">{page.kind}</span>
+          </div>
+          <a href={page.url} target="_blank" rel="noreferrer">
+            Open
+          </a>
+        </li>
+      ))}
+    </ul>
   );
 }

@@ -6,15 +6,10 @@ import argparse
 import sys
 from pathlib import Path
 
-from ...config import init_db
-from ...db import init_db as db_init_db
-from .commands import (
-    handle_onenote_command,
-    handle_excel_command,
-    handle_word_command,
-    handle_projects_command,
-    handle_history_command,
-)
+from assistant_hub.db import init_db as db_init_db
+
+# Import commands lazily to avoid hard dependency requirements for unused commands
+# from .commands import ... (removed top-level import)
 
 
 def create_cli_parser() -> argparse.ArgumentParser:
@@ -71,6 +66,72 @@ def create_cli_parser() -> argparse.ArgumentParser:
     history_parser.add_argument("--agent", help="Filter by agent")
     history_parser.add_argument("--tag", help="Filter by tag (onenote, excel, word, etc.)")
 
+    # Chat command - interactive AI chat
+    chat_parser = subparsers.add_parser("chat", help="Interactive chat with AI agents")
+    chat_parser.add_argument(
+        "--agent",
+        choices=["AIC", "Aria", "Sora", "Chris"],
+        help="AI agent to use (default: interactive selection)",
+    )
+    chat_parser.add_argument(
+        "--clear-history",
+        action="store_true",
+        help="Start with empty conversation history",
+    )
+    chat_parser.add_argument(
+        "--clear-on-switch",
+        action="store_true",
+        help="Clear history when switching agents",
+    )
+    chat_parser.add_argument(
+        "--enable-shell",
+        action="store_true",
+        default=True,
+        help="Allow AI to execute shell commands (default: True)",
+    )
+    chat_parser.add_argument(
+        "--no-shell",
+        dest="enable_shell",
+        action="store_false",
+        help="Disable shell command execution",
+    )
+    chat_parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Show verbose error messages",
+    )
+
+    # Workspace orchestration commands
+    scan_parser = subparsers.add_parser("scan", help="Discover git repos and inferred commands")
+    scan_parser.add_argument("--root", help="Workspace root to scan (defaults to parent of repo)")
+    scan_parser.add_argument("--max-depth", type=int, default=3, help="Maximum directory depth to search")
+    scan_parser.add_argument("--exclude", action="append", default=[], help="Paths to exclude")
+    scan_parser.add_argument("--json", action="store_true", help="Output as JSON")
+
+    test_parser = subparsers.add_parser("test", help="Run lint/test/security suites across repos")
+    test_parser.add_argument("--root", help="Workspace root (defaults to parent of repo)")
+    test_parser.add_argument("--max-depth", type=int, default=2, help="Maximum directory depth to search")
+    test_parser.add_argument("--project", help="Restrict to a single repo name")
+    test_parser.add_argument(
+        "--categories",
+        nargs="+",
+        default=["lint", "test", "security"],
+        help="Categories to run (lint, test, security, build)",
+    )
+    test_parser.add_argument("--autofix", action="store_true", help="Invoke autofix script on failures when available")
+    test_parser.add_argument("--dry-run", action="store_true", help="List commands without executing them")
+
+    run_parser = subparsers.add_parser("run", help="Start a repo using inferred run commands")
+    run_parser.add_argument("project", nargs="?", help="Repo name to run (defaults to current repo)")
+    run_parser.add_argument("--root", help="Workspace root (defaults to parent of repo)")
+    run_parser.add_argument("--max-depth", type=int, default=3, help="Maximum directory depth to search")
+    run_parser.add_argument("--command", help="Override run command")
+
+    doctor_parser = subparsers.add_parser("doctor", help="Diagnose common workspace issues")
+    doctor_parser.add_argument("--root", help="Workspace root (defaults to parent of repo)")
+    doctor_parser.add_argument("--max-depth", type=int, default=3, help="Maximum directory depth to search")
+    doctor_parser.add_argument("--json", action="store_true", help="Output as JSON")
+
     return parser
 
 
@@ -88,15 +149,35 @@ def main() -> int:
 
     try:
         if args.command == "projects":
+            from .commands.projects import handle_projects_command
             return handle_projects_command(args, conn)
         elif args.command == "onenote":
+            from .commands.onenote import handle_onenote_command
             return handle_onenote_command(args, conn)
         elif args.command == "excel":
+            from .commands.excel import handle_excel_command
             return handle_excel_command(args, conn)
         elif args.command == "word":
+            from .commands.word import handle_word_command
             return handle_word_command(args, conn)
         elif args.command == "history":
+            from .commands.history import handle_history_command
             return handle_history_command(args, conn)
+        elif args.command == "chat":
+            from .commands.chat import handle_chat_command
+            return handle_chat_command(args)
+        elif args.command == "scan":
+            from .commands.workspace import handle_scan_command
+            return handle_scan_command(args)
+        elif args.command == "test":
+            from .commands.workspace import handle_test_command
+            return handle_test_command(args)
+        elif args.command == "run":
+            from .commands.workspace import handle_run_command
+            return handle_run_command(args)
+        elif args.command == "doctor":
+            from .commands.workspace import handle_doctor_command
+            return handle_doctor_command(args)
         else:
             print(f"Unknown command: {args.command}")
             return 1
@@ -107,4 +188,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

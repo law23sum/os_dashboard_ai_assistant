@@ -79,7 +79,7 @@ class OSDashboardConfig:
                     "enabled": False,
                     "settings": {
                         "api_key": "",
-                        "default_model": "gpt-4"
+                        "default_model": "gpt-5-mini"
                     }
                 },
                 "apple": {

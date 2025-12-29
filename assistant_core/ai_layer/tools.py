@@ -8,7 +8,7 @@ from .openai_client import get_default_client
 
 
 def summarize_text(
-    text: str, style: str = "neutral", model: str = "gpt-4.1-mini"
+    text: str, style: str = "neutral", model: str = "gpt-5-mini"
 ) -> str:
     """Summarize text with a given tone.
 
@@ -40,7 +40,7 @@ def summarize_text(
     return response.choices[0].message.content
 
 
-def rewrite_html(html: str, instruction: str, model: str = "gpt-4.1-mini") -> str:
+def rewrite_html(html: str, instruction: str, model: str = "gpt-5-mini") -> str:
     """Rewrite HTML content with structure-preserving instructions."""
 
     client = get_default_client()
@@ -61,7 +61,7 @@ def rewrite_html(html: str, instruction: str, model: str = "gpt-4.1-mini") -> st
 
 
 def excel_generate_pandas_code(
-    df_sample: str, instruction: str, model: str = "gpt-4.1-mini"
+    df_sample: str, instruction: str, model: str = "gpt-5-mini"
 ) -> str:
     """Ask the model to generate pandas code given a DataFrame sample."""
 

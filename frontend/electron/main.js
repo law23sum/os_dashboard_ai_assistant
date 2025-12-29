@@ -1,9 +1,111 @@
 const { app, BrowserWindow, Menu, ipcMain, dialog, shell } = require('electron');
+const fs = require('fs');
 const path = require('path');
+const backendLauncher = require('./backendLauncher.cjs');
+
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+const BACKEND_HOST = process.env.BACKEND_HOST || '127.0.0.1';
+const BACKEND_PORT = parseInt(process.env.BACKEND_PORT || '8070', 10);
+const BACKEND_URL = `http://${BACKEND_HOST}:${BACKEND_PORT}`;
+process.env.OSDASH_BACKEND_URL = BACKEND_URL;
+const DEFAULT_REPO_ROOT = path.resolve(__dirname, '../..');
 
 // Keep a global reference of the window object
 let mainWindow;
+let backendProcess = null;
+
+function resolveBackendRoot() {
+  if (process.env.BACKEND_REPO_ROOT) {
+    return path.resolve(process.env.BACKEND_REPO_ROOT);
+  }
+  if (app.isPackaged) {
+    const candidates = [
+      path.join(process.resourcesPath, 'backend'),
+      path.join(process.resourcesPath, 'apps'),
+      process.resourcesPath,
+    ];
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) {
+        return candidate;
+      }
+    }
+  }
+  return DEFAULT_REPO_ROOT;
+}
+
+function getFallbackIndexPath() {
+  const overrides = [
+    process.env.OSDASH_FALLBACK_INDEX,
+    app.isPackaged ? path.join(process.resourcesPath, 'dist', 'index.html') : null,
+    path.join(resolveBackendRoot(), 'frontend', 'dist', 'index.html'),
+  ].filter(Boolean);
+  for (const candidate of overrides) {
+    if (candidate && fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+async function loadFallbackBundle(targetWindow) {
+  const fallbackPath = getFallbackIndexPath();
+  if (fallbackPath) {
+    console.warn(`[Electron] Loading fallback bundle from ${fallbackPath}`);
+    await targetWindow.loadFile(fallbackPath);
+    dialog.showMessageBox(targetWindow, {
+      type: 'warning',
+      title: 'Backend unavailable',
+      message: 'FastAPI backend is offline.',
+      detail: `The desktop shell loaded a local build instead. Start the backend on ${BACKEND_URL} for live data.`,
+    });
+    return;
+  }
+
+  const html = `<!doctype html><html><body style="background:#0f172a;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;">
+    <div><h1>Backend unavailable</h1><p>Start the FastAPI backend on ${BACKEND_URL} then relaunch the desktop app.</p></div>
+  </body></html>`;
+  await targetWindow.loadURL(`data:text/html,${encodeURIComponent(html)}`);
+}
+
+async function ensureBackendReady() {
+  if (isDev) {
+    return true;
+  }
+  try {
+    const repoRoot = resolveBackendRoot();
+    const result = await backendLauncher.ensureBackendServer({
+      backendUrl: BACKEND_URL,
+      host: BACKEND_HOST,
+      port: BACKEND_PORT,
+      repoRoot,
+    });
+    backendProcess = result.process;
+    if (result.alreadyRunning) {
+      console.log(`[Electron] Backend server already running at ${BACKEND_URL}`);
+    } else {
+      console.log('[Electron] Backend server started via Electron host');
+    }
+    if (backendProcess) {
+      backendProcess.on('exit', (code, signal) => {
+        console.warn(`[Electron] Backend exited (code=${code} signal=${signal ?? 'none'})`);
+      });
+    }
+    return true;
+  } catch (error) {
+    console.error('[Electron] Backend startup failed:', error);
+    dialog.showErrorBox(
+      'Backend startup failed',
+      [
+        'The FastAPI server did not start automatically.',
+        'Ensure Python + uvicorn dependencies are installed or start the API manually:',
+        'python start_ui.py --mode desktop',
+        '',
+        String(error && error.message ? error.message : error),
+      ].join('\n'),
+    );
+    return false;
+  }
+}
 
 function createWindow() {
   // Create the browser window
@@ -27,17 +129,40 @@ function createWindow() {
 
   // Load the app
   const startUrl = isDev
-    ? 'http://localhost:5173'
-    : `file://${path.join(__dirname, '../dist/index.html')}`;
+    ? (process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173')
+    : `${BACKEND_URL}/app/`;
 
-  mainWindow.loadURL(startUrl);
+  const loadApp = () => {
+    console.log(`[Electron] Loading app from: ${startUrl}`);
+    return mainWindow.loadURL(startUrl).catch((error) => {
+      console.error('[Electron] Failed to load primary URL:', error);
+      return loadFallbackBundle(mainWindow);
+    });
+  };
+
+  if (isDev) {
+    loadApp();
+  } else {
+    ensureBackendReady()
+      .then((ready) => {
+        if (ready) {
+          return loadApp();
+        }
+        return loadFallbackBundle(mainWindow);
+      })
+      .catch((error) => {
+        console.error('[Electron] Backend readiness check failed:', error);
+        return loadFallbackBundle(mainWindow);
+      });
+  }
 
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    
-    // Open DevTools in development
-    if (isDev) {
+
+    // Open DevTools in development only when explicitly requested
+    const devtoolsOptIn = process.env.OSDASH_ELECTRON_DEVTOOLS === '1';
+    if (isDev && devtoolsOptIn) {
       mainWindow.webContents.openDevTools();
     }
   });
@@ -209,6 +334,14 @@ app.whenReady().then(() => {
   });
 });
 
+app.on('before-quit', () => {
+  if (backendProcess) {
+    console.log('[Electron] Stopping backend server...');
+    backendProcess.kill();
+    backendProcess = null;
+  }
+});
+
 app.on('window-all-closed', () => {
   // On macOS, keep app running even when all windows are closed
   if (process.platform !== 'darwin') {
@@ -223,4 +356,3 @@ app.on('web-contents-created', (event, contents) => {
     shell.openExternal(navigationUrl);
   });
 });
-

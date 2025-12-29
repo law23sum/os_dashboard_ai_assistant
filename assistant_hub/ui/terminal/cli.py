@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
+from typing import List
 
-from ...config import init_db
 from ...db import init_db as db_init_db
 from .commands import (
     handle_onenote_command,
@@ -15,6 +16,17 @@ from .commands import (
     handle_projects_command,
     handle_history_command,
 )
+from .harness import (
+    detect_project_profile,
+    doctor as doctor_profile,
+    run_workspace_checks,
+    run_target,
+    scan_summary,
+)
+from .workspace import doctor_workspace, print_profiles, scan_workspace
+
+
+DEFAULT_WORKSPACE_ROOT = Path(__file__).resolve().parents[3]
 
 
 def create_cli_parser() -> argparse.ArgumentParser:
@@ -35,6 +47,73 @@ def create_cli_parser() -> argparse.ArgumentParser:
     )
     projects_sub.add_parser("create", help="Create a new project").add_argument(
         "name", help="Project name"
+    )
+
+    # Workspace scan command
+    scan_parser = subparsers.add_parser("scan", help="Discover git repos and available checks")
+    scan_parser.add_argument(
+        "--root",
+        default=DEFAULT_WORKSPACE_ROOT,
+        type=Path,
+        help=f"Workspace root to scan (default: {DEFAULT_WORKSPACE_ROOT})",
+    )
+    scan_parser.add_argument(
+        "--max-depth", type=int, default=2, help="Directory depth to scan"
+    )
+    scan_parser.add_argument(
+        "--json", action="store_true", help="Print JSON output"
+    )
+
+    # Workspace test command
+    test_parser = subparsers.add_parser("test", help="Run lint/test/build/security checks")
+    test_parser.add_argument(
+        "--root",
+        default=DEFAULT_WORKSPACE_ROOT,
+        type=Path,
+        help=f"Workspace root to scan (default: {DEFAULT_WORKSPACE_ROOT})",
+    )
+    test_parser.add_argument(
+        "--max-depth", type=int, default=2, help="Directory depth to scan"
+    )
+    test_parser.add_argument(
+        "--categories",
+        type=str,
+        default="lint,test",
+        help="Comma-separated categories to run (lint,test,build,security)",
+    )
+    test_parser.add_argument(
+        "--autofix",
+        action="store_true",
+        help="Trigger scripts/ai_auto_fix.py after failures when present",
+    )
+    test_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Plan checks without executing commands",
+    )
+    test_parser.add_argument(
+        "--report",
+        type=Path,
+        help="Optional path for a single aggregated workspace report (JSON)",
+    )
+
+    # Workspace run command
+    run_parser = subparsers.add_parser("run", help="Launch a dev target")
+    run_parser.add_argument("target", choices=["backend", "frontend", "desktop"])
+    run_parser.add_argument(
+        "--root",
+        default=DEFAULT_WORKSPACE_ROOT,
+        type=Path,
+        help=f"Workspace root to scan (default: {DEFAULT_WORKSPACE_ROOT})",
+    )
+
+    # Workspace doctor command
+    doctor_parser = subparsers.add_parser("doctor", help="Diagnose workspace health")
+    doctor_parser.add_argument(
+        "--root",
+        default=DEFAULT_WORKSPACE_ROOT,
+        type=Path,
+        help=f"Workspace root to scan (default: {DEFAULT_WORKSPACE_ROOT})",
     )
 
     # OneNote command
@@ -104,6 +183,78 @@ def main() -> int:
     if not args.command:
         parser.print_help()
         return 1
+
+    # Harness commands do not require DB access
+    if args.command == "scan":
+        summary = scan_summary(args.root, max_depth=args.max_depth)
+        workspace_profiles = scan_workspace(args.root, max_depth=args.max_depth)
+        workspace_notes = doctor_workspace(workspace_profiles)
+        payload = {
+            "root": summary["root"],
+            "projects": summary.get("projects", []),
+            "workspace_profiles": [profile.to_dict() for profile in workspace_profiles],
+            "notes": workspace_notes,
+        }
+        if args.json:
+            print(json.dumps(payload, indent=2))
+        else:
+            print(f"[osdash] scanned {summary['root']}")
+            for project in summary.get("projects", []):
+                commands = ", ".join(project.get("commands", {}).keys()) or "no checks"
+                print(f" - {project.get('name')}: {commands}")
+            if workspace_profiles:
+                print("[osdash] workspace profiles:")
+                print_profiles(workspace_profiles, as_json=False)
+            for note in workspace_notes:
+                print(f"[osdash] note: {note}")
+        return 0
+
+    if args.command == "test":
+        categories: List[str] = [
+            part.strip() for part in args.categories.split(",") if part.strip()
+        ]
+        report = run_workspace_checks(
+            args.root,
+            categories,
+            max_depth=args.max_depth,
+            autofix=args.autofix,
+            dry_run=args.dry_run,
+            report_path=args.report,
+        )
+        summary = report.get("summary", {})
+        projects = summary.get("projects", 0)
+        root = summary.get("root", args.root)
+        print(f"[osdash] scanned {projects} project(s) under {root}")
+        print(
+            "[osdash] checks: {total} | passed: {passed} | failed: {failed} | skipped: {skipped}".format(
+                total=summary.get("checks", 0),
+                passed=summary.get("passed", 0),
+                failed=summary.get("failed", 0),
+                skipped=summary.get("skipped", 0),
+            )
+        )
+        if summary.get("report_path"):
+            print(f"[osdash] report saved to {summary.get('report_path')}")
+        return 1 if summary.get("failed", 0) else 0
+
+    if args.command == "run":
+        profile = detect_project_profile(args.root.resolve())
+        if not profile.commands:
+            print("[osdash] no commands detected in this project; ensure dependencies are installed")
+        return run_target(profile, args.target)
+
+    if args.command == "doctor":
+        summary = doctor_profile(args.root)
+        workspace_profiles = scan_workspace(args.root, max_depth=1)
+        workspace_notes = doctor_workspace(workspace_profiles)
+        for check in summary["checks"]:
+            label = check["label"]
+            status = check["status"]
+            detail = "; ".join(check.get("output", []))
+            print(f"[osdash] {label}: {status} ({detail})")
+        for note in workspace_notes:
+            print(f"[osdash] note: {note}")
+        return 0
 
     # Initialize database
     conn = db_init_db()

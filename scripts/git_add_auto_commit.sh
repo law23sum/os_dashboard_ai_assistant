@@ -6,6 +6,9 @@
 #   ./scripts/git_add_auto_commit.sh .          # behaves like `git add .` and commits immediately
 #   ./scripts/git_add_auto_commit.sh <paths...> # just runs `git add` on selected paths
 #
+# Environment variables:
+#   GIT_STAGE_SKIP_PROMPTS=1  Skip all prompts and use AI to generate reasons
+#
 # For a fully transparent experience, add an alias in your shell profile:
 #   alias gitadd='./scripts/git_add_auto_commit.sh'
 # then run `gitadd .` instead of `git add .`.
@@ -24,7 +27,12 @@ if ! git add "$@"; then
 fi
 
 # Capture staged files and collect reasoning metadata.
-if ! python3 scripts/git_stage_reasoner.py; then
+# Pass through GIT_STAGE_SKIP_PROMPTS if set
+REASONER_ARGS=""
+if [[ "${GIT_STAGE_SKIP_PROMPTS:-}" == "1" ]]; then
+    REASONER_ARGS="--skip-prompts"
+fi
+if ! python3 scripts/git_stage_reasoner.py $REASONER_ARGS; then
     echo "Warning: unable to capture staged file reasons." >&2
 fi
 

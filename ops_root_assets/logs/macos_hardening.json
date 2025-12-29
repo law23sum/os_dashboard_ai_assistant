@@ -1,0 +1,124 @@
+{
+  "generated_at": "2025-12-11T23:46:55.959832Z",
+  "hostname": "Mac.home",
+  "controls": [
+    {
+      "name": "firewall_enabled",
+      "ok": true,
+      "evidence": "Firewall is enabled. (State = 1)",
+      "remediation": [
+        "sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on",
+        "sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setblockall off"
+      ],
+      "apply_commands": [
+        [
+          "/usr/libexec/ApplicationFirewall/socketfilterfw",
+          "--setglobalstate",
+          "on"
+        ],
+        [
+          "/usr/libexec/ApplicationFirewall/socketfilterfw",
+          "--setblockall",
+          "off"
+        ]
+      ]
+    },
+    {
+      "name": "remote_login_disabled",
+      "ok": true,
+      "evidence": "Remote Login: Off",
+      "remediation": [
+        "sudo systemsetup -setremotelogin off"
+      ],
+      "apply_commands": [
+        [
+          "systemsetup",
+          "-setremotelogin",
+          "off"
+        ]
+      ]
+    },
+    {
+      "name": "filevault_enabled",
+      "ok": true,
+      "evidence": "FileVault is On.",
+      "remediation": [
+        "Open System Settings \u25b8 Privacy & Security \u25b8 FileVault \u25b8 Turn On"
+      ],
+      "apply_commands": []
+    },
+    {
+      "name": "automatic_updates_enabled",
+      "ok": true,
+      "evidence": "Automatic checking for updates is turned on",
+      "remediation": [
+        "sudo softwareupdate --schedule on"
+      ],
+      "apply_commands": [
+        [
+          "softwareupdate",
+          "--schedule",
+          "on"
+        ]
+      ]
+    },
+    {
+      "name": "gatekeeper_enabled",
+      "ok": true,
+      "evidence": "assessments enabled",
+      "remediation": [
+        "sudo spctl --master-enable"
+      ],
+      "apply_commands": [
+        [
+          "spctl",
+          "--master-enable"
+        ]
+      ]
+    },
+    {
+      "name": "screensaver_password",
+      "ok": false,
+      "evidence": "{\"askForPassword\": \"2025-12-11 18:46:55.894 defaults[93582:571215] \\nThe domain/default pair of (com.apple.screensaver, askForPassword) does not exist\", \"askForPasswordDelay\": \"2025-12-11 18:46:55.900 defaults[93583:571232] \\nThe domain/default pair of (com.apple.screensaver, askForPasswordDelay) does not exist\"}",
+      "remediation": [
+        "defaults -currentHost write com.apple.screensaver askForPassword -int 1",
+        "defaults write com.apple.screensaver askForPasswordDelay -int 0"
+      ],
+      "apply_commands": [
+        [
+          "defaults",
+          "-currentHost",
+          "write",
+          "com.apple.screensaver",
+          "askForPassword",
+          "-int",
+          "1"
+        ],
+        [
+          "defaults",
+          "write",
+          "com.apple.screensaver",
+          "askForPasswordDelay",
+          "-int",
+          "0"
+        ]
+      ]
+    }
+  ],
+  "applied": [
+    {
+      "control": "screensaver_password",
+      "command": "defaults -currentHost write com.apple.screensaver askForPassword -int 1",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "control": "screensaver_password",
+      "command": "defaults write com.apple.screensaver askForPasswordDelay -int 0",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

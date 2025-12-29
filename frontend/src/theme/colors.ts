@@ -4,7 +4,25 @@
  * These colors ensure visual consistency between Tkinter and React surfaces
  */
 
-export const darkTheme = {
+export interface ThemeColors {
+  background: string
+  surface: string
+  surfaceAlt: string
+  border: string
+  text: string
+  muted: string
+  accent: string
+  accentHover: string
+  pill: string
+  success: string
+  error: string
+  warning: string
+  info: string
+  primary: string
+  secondary: string
+}
+
+export const darkTheme: ThemeColors = {
   background: '#030713',      // Deep navy background
   surface: '#0f172a',          // Primary surface (cards, panels)
   surfaceAlt: '#18223d',       // Secondary surface (alternate cards)
@@ -22,9 +40,9 @@ export const darkTheme = {
   // Tkinter-specific colors
   primary: '#4facfe',           // Primary button color
   secondary: '#667eea',         // Secondary button color
-} as const
+}
 
-export const lightTheme = {
+export const lightTheme: ThemeColors = {
   background: '#f4f6fb',       // Light background
   surface: '#ffffff',           // White surface
   surfaceAlt: '#f7f9fd',        // Light alternate surface
@@ -42,9 +60,7 @@ export const lightTheme = {
   // Tkinter-specific colors
   primary: '#6366f1',
   secondary: '#64748b',
-} as const
-
-export type ThemeColors = typeof darkTheme
+}
 
 export const getTheme = (isDark: boolean): ThemeColors => {
   return isDark ? darkTheme : lightTheme

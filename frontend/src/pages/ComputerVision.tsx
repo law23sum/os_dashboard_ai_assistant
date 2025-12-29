@@ -149,7 +149,7 @@ export default function ComputerVision() {
     setDetections(null)
   }
 
-  const busy = analyzeMutation.isLoading || ocrMutation.isLoading || detectMutation.isLoading
+  const busy = analyzeMutation.isPending || ocrMutation.isPending || detectMutation.isPending
 
   const detectionBadges = useMemo(() => {
     if (!detections) return []

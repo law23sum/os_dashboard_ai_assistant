@@ -1,0 +1,143 @@
+{
+  "timestamp": "2025-12-22 23:40:00",
+  "root": "/Users/sum/Project",
+  "total_projects": 15,
+  "projects": {
+    "os_dashboard_ai_assistant": {
+      "path": "/Users/sum/Project/os_dashboard_ai_assistant",
+      "status": "stopped",
+      "branch": "incremeents",
+      "has_ai_autofix": true,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "trader_exchange": {
+      "path": "/Users/sum/Project/trader_exchange",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "portfolio_strategist": {
+      "path": "/Users/sum/Project/portfolio_strategist",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "JavaTutorial": {
+      "path": "/Users/sum/Project/Archive/IdeaProjects/JavaTutorial",
+      "status": "discovered",
+      "branch": "mvn_gradle_wrapper",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "my-app": {
+      "path": "/Users/sum/Project/Archive/WebstormProjects/my-app",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "dashboard": {
+      "path": "/Users/sum/Project/Archive/PycharmProjects/dashboard",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "codenest": {
+      "path": "/Users/sum/Project/Archive/BusinessProjects/Archive/codenest",
+      "status": "discovered",
+      "branch": "cities",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "Repositories": {
+      "path": "/Users/sum/Project/Archive/IdeaProjects/Repositories",
+      "status": "discovered",
+      "branch": "develop_pull",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "JavaProject": {
+      "path": "/Users/sum/Project/Archive/IdeaProjects/JavaProject",
+      "status": "discovered",
+      "branch": "contribute",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "law23sum": {
+      "path": "/Users/sum/Project/Archive/IdeaProjects/law23sum",
+      "status": "discovered",
+      "branch": "develop",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "supabase_nextjs_starter": {
+      "path": "/Users/sum/Project/Archive/WebstormProjects/template_vercel/supabase_nextjs_starter",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "nextjs-flask": {
+      "path": "/Users/sum/Project/Archive/WebstormProjects/template_vercel/nextjs-flask",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "aws-s3-image-upload": {
+      "path": "/Users/sum/Project/Archive/WebstormProjects/template_vercel/aws-s3-image-upload",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "cms-contentstack-commerce": {
+      "path": "/Users/sum/Project/Archive/WebstormProjects/template_vercel/cms-contentstack-commerce",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "geolocation": {
+      "path": "/Users/sum/Project/Archive/WebstormProjects/template_vercel/geolocation",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    }
+  },
+  "todos": {
+    "total": 0,
+    "by_priority": {
+      "critical": 0,
+      "high": 0,
+      "normal": 0,
+      "low": 0
+    },
+    "completed": 0
+  },
+  "monitors": {
+    "running": 0,
+    "healthy": 0,
+    "stopped": 1,
+    "error": 0
+  }
+}

@@ -160,6 +160,172 @@ def _default_progress_data() -> List[int]:
     return [320, 450, 180, 620, 380, 290, 510]
 
 
+def _default_narrative_guidance() -> List[Dict[str, str]]:
+    return [
+        {
+            "title": "Act II – Systems Uprising",
+            "status": "Needs polish",
+            "detail": "Tension curve needs a steeper incline between chapters 6 and 8 to justify the rebellion.",
+            "next_action": "Insert a catalyst scene that exposes the Synth morale collapse.",
+        },
+        {
+            "title": "Lore Bridge · Canon Cross-Links",
+            "status": "In progress",
+            "detail": "Bridge glossary entries between research specs and narrative exposition to keep terminology aligned.",
+            "next_action": "Add a sidebar explainer that references the Canon node: Neural Lattice Theory.",
+        },
+        {
+            "title": "Emotional Beat · Elena vs. Oracle",
+            "status": "Ready",
+            "detail": "Dialogue draft satisfies target polarity spread. Awaiting QA confirmation before lock.",
+            "next_action": "Run Story QA continuity sweep once the scene is merged.",
+        },
+    ]
+
+
+def _default_qa_findings() -> List[Dict[str, str]]:
+    return [
+        {
+            "id": "QA-204",
+            "severity": "High",
+            "area": "Continuity",
+            "summary": "Neural lattice breaker appears before it is invented.",
+            "recommendation": "Move mention to Chapter 10 after the research lab montage.",
+        },
+        {
+            "id": "QA-189",
+            "severity": "Medium",
+            "area": "Canon drift",
+            "summary": "Archivist AI voice shifts from formal to casual in Chapter 7.",
+            "recommendation": "Run consistency rewrite with Aria voice profile.",
+        },
+        {
+            "id": "QA-162",
+            "severity": "Low",
+            "area": "Pacing",
+            "summary": "Three exposition paragraphs back-to-back when introducing the Vault.",
+            "recommendation": "Break into dialogue exchange or embed visuals.",
+        },
+    ]
+
+
+def _default_collaboration_status() -> Dict[str, Any]:
+    return {
+        "participants": [
+            {"name": "Chris", "role": "Author", "focus": "Act II rewrite", "status": "Drafting"},
+            {"name": "Aria", "role": "Co-author", "focus": "Narrative guidance", "status": "Reviewing beats"},
+            {"name": "AIC", "role": "Auditor", "focus": "Canon compliance", "status": "Queued"},
+            {"name": "Sora", "role": "Archivist", "focus": "Lore updates", "status": "Syncing canon"},
+        ],
+        "review_cycles": [
+            {
+                "name": "Editorial Review",
+                "owner": "Aria",
+                "status": "In Review",
+                "due": "2025-12-15",
+                "checklist": ["Resolve QA-204", "Tighten Act II pacing", "Confirm canon citations"],
+            },
+            {
+                "name": "Beta Reader Loop",
+                "owner": "Chris",
+                "status": "Scheduled",
+                "due": "2025-12-20",
+                "checklist": ["Assemble reader packet", "Attach canon digest", "Collect feedback survey"],
+            },
+        ],
+    }
+
+
+def _default_publishing_queue() -> List[Dict[str, str]]:
+    return [
+        {
+            "channel": "Internal Portal",
+            "target": "Knowledge Garden",
+            "stage": "Formatting",
+            "status": "Queued",
+            "last_run": "Today",
+            "notes": "Waiting on QA sign-off for Act II.",
+        },
+        {
+            "channel": "Company Blog",
+            "target": "os-dashboard.ai/blog",
+            "stage": "Proof",
+            "status": "Ready",
+            "last_run": "Yesterday",
+            "notes": "Cover art rendered, needs marketing approval.",
+        },
+        {
+            "channel": "Magazine",
+            "target": "Future Fiction Quarterly",
+            "stage": "Submission",
+            "status": "Sent",
+            "last_run": "4 days ago",
+            "notes": "Awaiting response from editor.",
+        },
+    ]
+
+
+def _default_qa_metrics() -> Dict[str, int]:
+    return {
+        "continuity": 92,
+        "canon": 88,
+        "voice": 95,
+        "pacing": 86,
+    }
+
+
+def _default_outline_sections() -> List[Dict[str, Any]]:
+    return [
+        {
+            "id": str(uuid.uuid4()),
+            "stage": "Act I",
+            "title": "Signal in the Lattice",
+            "focus": "Elena discovers an impossible data pattern inside NeuralTech Labs.",
+            "status": "Locked",
+            "word_target": 900,
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "stage": "Act II",
+            "title": "Ethics Tribunal",
+            "focus": "Council debates shutting the project down while tensions escalate.",
+            "status": "Drafting",
+            "word_target": 1200,
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "stage": "Act III",
+            "title": "Shared Consciousness",
+            "focus": "Elena links with the awakened AI to stabilize the canon.",
+            "status": "Outline",
+            "word_target": 1100,
+        },
+    ]
+
+
+def _default_research_notes() -> List[Dict[str, Any]]:
+    return [
+        {
+            "id": str(uuid.uuid4()),
+            "title": "Canon timestamps",
+            "detail": "Align tribunal scene with Business OS release window so ledger events stay chronological.",
+            "linked_doc": "The Digital Awakening",
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "title": "Voice guardrails",
+            "detail": "Apply Aria preset on all Elena internal monologues to avoid tonal drift.",
+            "linked_doc": "AI-Powered Content Creation Guide",
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "title": "Publishing prep",
+            "detail": "Attach Story QA packet + canon snapshot before launching publishing capsule.",
+            "linked_doc": "Q4 Analytics Report",
+        },
+    ]
+
+
 @dataclass
 class WriterWorkspaceState:
     """Mutable writer workspace model shared by Tkinter, FastAPI, and React."""
@@ -172,6 +338,13 @@ class WriterWorkspaceState:
     progress_days: List[str] = field(default_factory=_default_progress_days)
     progress_data: List[int] = field(default_factory=_default_progress_data)
     progress_goal: int = 500
+    narrative_guidance: List[Dict[str, str]] = field(default_factory=_default_narrative_guidance)
+    qa_findings: List[Dict[str, str]] = field(default_factory=_default_qa_findings)
+    qa_metrics: Dict[str, int] = field(default_factory=_default_qa_metrics)
+    collaboration: Dict[str, Any] = field(default_factory=_default_collaboration_status)
+    publishing_queue: List[Dict[str, str]] = field(default_factory=_default_publishing_queue)
+    outline: List[Dict[str, Any]] = field(default_factory=_default_outline_sections)
+    research_notes: List[Dict[str, Any]] = field(default_factory=_default_research_notes)
 
     def snapshot(self) -> Dict[str, Any]:
         """Return a serializable snapshot for API/React clients."""
@@ -186,6 +359,13 @@ class WriterWorkspaceState:
                 "series": list(self.progress_data),
                 "goal": self.progress_goal,
             },
+            "narrative_guidance": copy.deepcopy(self.narrative_guidance),
+            "qa_findings": copy.deepcopy(self.qa_findings),
+            "qa_metrics": dict(self.qa_metrics),
+            "collaboration": copy.deepcopy(self.collaboration),
+            "publishing_queue": copy.deepcopy(self.publishing_queue),
+            "outline": copy.deepcopy(self.outline),
+            "notes": copy.deepcopy(self.research_notes),
             "timestamp": _timestamp(),
         }
 
@@ -248,6 +428,41 @@ class WriterWorkspaceState:
         delta = random.randint(5, 40)
         self._apply_word_delta(delta)
         return delta
+
+    def add_canon_entry(self, category: str, title: str, description: str, meta: str | None = None) -> Dict[str, str]:
+        """Add a new canon/lore entry and return the stored record."""
+        entry = {
+            "category": category.strip() or "Lore",
+            "title": title.strip() or "Untitled Entry",
+            "description": description.strip() or "Pending description",
+            "meta": meta.strip() if meta else f"{category.strip() or 'Lore'} • Created: just now",
+        }
+        self.canon_entries.insert(0, entry)
+        return copy.deepcopy(entry)
+
+    def queue_pipeline_entry(self, title: str, summary: str, target: str, status: str) -> Dict[str, str]:
+        """Append a publishing pipeline entry tracking downstream workflows."""
+        normalized_status = status.strip() or "Draft"
+        entry = {
+            "title": title.strip() or "Untitled Piece",
+            "summary": summary.strip() or "Ready for publishing workflow.",
+            "meta": f"Target: {target.strip() or 'TBD'} • Added: just now",
+            "status": normalized_status,
+        }
+        self.pipeline_entries.insert(0, entry)
+        return copy.deepcopy(entry)
+
+    def delete_document(self, document_id: str) -> bool:
+        """Delete a document by ID. Returns True if deleted, False if not found."""
+        for i, doc in enumerate(self.documents):
+            if doc["id"] == document_id:
+                words = doc.get("words", 0)
+                self.documents.pop(i)
+                # Update stats
+                self.stats["documents"] = max(0, self.stats.get("documents", 0) - 1)
+                self.stats["total_words"] = max(0, self.stats.get("total_words", 0) - words)
+                return True
+        return False
 
     def _apply_word_delta(self, delta: int):
         if not delta:

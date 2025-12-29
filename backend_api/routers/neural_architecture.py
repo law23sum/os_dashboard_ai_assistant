@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
@@ -50,9 +50,9 @@ class NASStatus(BaseModel):
 
     active_experiments: int
     total_experiments: int
-    current_experiment: NASExperiment | None
+    current_experiment: Optional[NASExperiment]
     evolution_metrics: NASEvolutionMetrics
-    best_architecture: NASArchitecture | None
+    best_architecture: Optional[NASArchitecture]
     available_strategies: List[str]
 
 

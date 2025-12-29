@@ -68,7 +68,7 @@ class TestAPISettings(unittest.TestCase):
 
         assert settings.openai_api_key is None
         # Note: google_scopes field has issues, so we just test that object creation works
-        assert settings.openai_model == "gpt-4"
+        assert settings.openai_model == "gpt-5-mini"
         assert settings.microsoft_client_id is None
         assert settings.google_credentials_file == "credentials.json"
         assert settings.google_token_file == "token.json"

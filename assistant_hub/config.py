@@ -6,7 +6,22 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Iterable, Optional
-from pydantic import BaseSettings, Field
+from pydantic import Field
+
+try:  # Prefer the dedicated package when available (Pydantic v2+).
+    from pydantic_settings import BaseSettings  # type: ignore
+except Exception:  # pragma: no cover - fall back for older environments
+    try:
+        from pydantic import BaseSettings  # type: ignore
+    except Exception:  # pragma: no cover - final fallback to BaseModel semantics
+        from pydantic import BaseModel
+
+        class BaseSettings(BaseModel):  # type: ignore
+            """Minimal shim so legacy configs still import without pydantic-settings."""
+
+            class Config:
+                env_file = ".env"
+                case_sensitive = False
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -24,7 +39,10 @@ def _path_from_env(key: str, fallback: Path) -> Path:
 
 default_data_dir = _path_from_env("ASSISTANT_HUB_DATA_DIR", _DEFAULT_DATA_DIR)
 DATA_DIR = default_data_dir
-DB_PATH = _path_from_env("ASSISTANT_HUB_DB", DATA_DIR / "assistant_hub.db")
+DB_PATH = _path_from_env(
+    "ASSISTANT_HUB_DB",
+    PROJECT_ROOT / "assistant_hub_gui" / "assistant_hub" / "assistant_hub.db",
+)
 ATTACHMENTS_DIR = _path_from_env(
     "ASSISTANT_HUB_ATTACHMENTS_DIR", DATA_DIR / "attachments"
 )
@@ -58,7 +76,7 @@ class APISettings(BaseSettings):
     # OpenAI/ChatGPT Configuration
     openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
     openai_organization: Optional[str] = Field(default=None, env="OPENAI_ORGANIZATION")
-    openai_model: str = Field(default="gpt-4", env="OPENAI_MODEL")
+    openai_model: str = Field(default="gpt-5-mini", env="OPENAI_MODEL")
 
     # Microsoft Graph API Configuration
     microsoft_client_id: Optional[str] = Field(default=None, env="MICROSOFT_CLIENT_ID")
@@ -111,6 +129,7 @@ class APISettings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "allow"
 
 
 # Global configuration instances

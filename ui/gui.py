@@ -152,7 +152,8 @@ class AnimationHelper:
             # Temporarily change color
             widget.configure(bootstyle="success")
             widget.after(200, lambda: widget.configure(bootstyle=current_bootstyle or "primary"))
-        except:
+        except (AttributeError, Exception):
+            # Widget doesn't support styling
             pass
     
     @staticmethod
@@ -164,7 +165,8 @@ class AnimationHelper:
                     # Slightly increase size or change style
                     if enter_color:
                         button.configure(bootstyle="primary")
-            except:
+            except (AttributeError, Exception):
+                # Widget doesn't support styling
                 pass
         
         def on_leave(e):
@@ -172,7 +174,8 @@ class AnimationHelper:
                 if TTKBOOTSTRAP_AVAILABLE and hasattr(button, 'configure'):
                     if leave_color:
                         button.configure(bootstyle="secondary")
-            except:
+            except (AttributeError, Exception):
+                # Widget doesn't support styling
                 pass
         
         button.bind("<Enter>", on_enter)
@@ -372,7 +375,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         # Add fade-in animation to main window if supported
         try:
             AnimationHelper.fade_in(self)
-        except:
+        except (AttributeError, Exception):
+            # Animation not supported
             pass
 
     # ---------- Top bar ----------
@@ -1610,7 +1614,14 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.model_combo = ttkb.Combobox(
                 compose,
                 textvariable=self.chat_model_var,
-                values=["auto", "gpt-4o", "gpt-4o-mini", "o1-preview", "gpt-4-turbo"],
+                values=[
+                    "auto",
+                    "gpt-5.2-pro",
+                    "gpt-5.2",
+                    "gpt-5.1-codex-max",
+                    "gpt-5-mini",
+                    "gpt-5-nano",
+                ],
                 state="readonly",
                 width=16,
                 bootstyle="success"
@@ -1632,7 +1643,14 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             self.model_combo = ttk.Combobox(
                 compose,
                 textvariable=self.chat_model_var,
-                values=["auto", "gpt-4o", "gpt-4o-mini", "o1-preview", "gpt-4-turbo"],
+                values=[
+                    "auto",
+                    "gpt-5.2-pro",
+                    "gpt-5.2",
+                    "gpt-5.1-codex-max",
+                    "gpt-5-mini",
+                    "gpt-5-nano",
+                ],
                 state="readonly",
                 width=16,
             )

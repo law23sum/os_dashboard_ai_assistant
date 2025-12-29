@@ -1,0 +1,340 @@
+{
+  "generated_at": "20251211T223848Z",
+  "repo_count": 26,
+  "unhealthy": true,
+  "statuses": [
+    {
+      "name": "os_dashboard_ai_assistant",
+      "path": "/Users/chrisdixon/Projects/os_dashboard_ai_assistant",
+      "priority": "p0",
+      "stack": [
+        "python",
+        "fastapi",
+        "react"
+      ],
+      "notes": "Core orchestrator and SaaS surface.",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "M assistant_hub.db\n M assistant_hub_gui/autofix_monitor.py\n M docs/future_supreme.html\n M frontend/electron/main.cjs\n M frontend/electron/main.js\n M frontend/public/docs/future_supreme.html\n M frontend/src/App.tsx\n M frontend/src/main.tsx\n M frontend/src/pages/Projects.tsx\n?? README.md\n?? SECURITY_CHANGES.md\n?? apps/\n?? config/repo_manifest.json\n?? docs/DEVELOPMENT_SECURITY.md\n?? docs/NETWORK_MONITORING.md\n?? docs/codex_sentinel_hooks.md\n?? docs/v1000_blueprint.md\n?? docs/v1000_sequential_task_queue.md\n?? email_validator.py\n?? frontend/public/docs/future_god.html\n?? frontend/public/docs/home.html\n?? frontend/public/docs/install.html\n?? frontend/public/docs/products.html\n?? frontend/public/docs/scripts/\n?? frontend/public/docs/styles.css\n?? frontend/public/docs/subscription.html\n?? frontend/src/api/navigation.ts\n?? frontend/src/components/CommandPalette.tsx\n?? frontend/src/components/ProfileSummary.tsx\n?? frontend/src/components/RequireAuth.tsx\n?? frontend/src/components/SystemPulse.tsx\n?? frontend/src/context/\n?? frontend/src/hooks/useNavigation.ts\n?? frontend/src/hooks/useSystemSettings.ts\n?? frontend/src/pages/Login.tsx\n?? frontend/src/pages/Onboarding.tsx\n?? frontend/src/pages/Signup.tsx\n?? frontend/src/types/navigation.ts\n?? package-lock.json\n?? repo_paths.py\n?? scripts/codex_sentinel.py\n?? sitecustomize.py\n?? tests/test_navigation_map.py\n?? tests/test_openai_model.py\n?? tmp_pkg/\n?? tmp_pkg2/\n?? tmp_pkg3/\n?? tmp_pkg4/\n?? utils/openai_model.py"
+    },
+    {
+      "name": "portfolio_strategist",
+      "path": "/Users/chrisdixon/Projects/portfolio_strategist",
+      "priority": "p1",
+      "stack": [
+        "python",
+        "django",
+        "react"
+      ],
+      "notes": "Customer-facing financial strategy platform.",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "M apps/chat/management/commands/test_openai.py\n M apps/content/migrations/0004_bootstrap_initial_blog_content.py\n M apps/records/financial_aggregation.py\n M apps/stock_analysis/resources/offline_data/nvda_fundamentals.json\n M assets/javascript/mobile/FEATURES.md\n D assets/javascript/mobile/ios/Podfile.lock\n M assets/javascript/mobile/src/screens/auth/RegisterScreen.tsx\n M assets/javascript/mobile/src/screens/records/ExplorerScreen.tsx\n M assets/javascript/mobile/src/screens/records/InsightsScreen.tsx\n M assets/javascript/mobile/src/screens/stock/AnalysisResultsScreen.tsx\n D media/financial_documents/OfficialBudget24_yk6OfY0.numbers\n D node_modules/@types/node/buffer.d.ts\n D node_modules/@types/node/child_process.d.ts\n D node_modules/@types/node/crypto.d.ts\n D node_modules/@types/node/fs.d.ts\n D node_modules/@types/node/http.d.ts\n D node_modules/@types/node/http2.d.ts\n D node_modules/@types/node/process.d.ts\n D node_modules/@types/node/stream.d.ts\n D node_modules/@types/node/test.d.ts\n D node_modules/@types/node/util.d.ts\n D node_modules/csstype/index.d.ts\n D node_modules/csstype/index.js.flow\n D node_modules/fsevents/fsevents.node\n m reference/financia\n D static/images/pegasus/landing-page-screenshot-small.png\n D static/images/pegasus/landing-page-screenshot.png\n D static/images/pegasus/object-demo-icons.png\n D static/images/pegasus/pricing-page-screenshot-small.png\n D static/images/pegasus/pricing-page-screenshot.png\n D static/images/pegasus/stars-pano-banner.jpg\n D static_root/images/pegasus/landing-page-screenshot-small.png\n D static_root/images/pegasus/landing-page-screenshot.png\n D static_root/images/pegasus/object-demo-icons.png\n D static_root/images/pegasus/pricing-page-screenshot-small.png\n D static_root/images/pegasus/pricing-page-screenshot.png\n D static_root/images/pegasus/stars-pano-banner.jpg\n D static_root/images/web/Kruskal_diagram_of_Schwarzschild_chart.svg\n D static_root/images/web/aggregate.jpeg\n D static_root/images/web/create.jpeg\n D static_root/images/web/create.svg\n D static_root/images/web/finance-illustration.jpeg\n D static_root/images/web/predict.jpeg\n D static_root/images/web/predict.svg\n D static_root/images/web/reports.jpeg\n D static_root/images/web/reports.svg\n D static_root/rest_framework/css/bootstrap-theme.min.css.map\n D static_root/rest_framework/css/bootstrap.min.css.map\n D static_root/rest_framework/fonts/fontawesome-webfont.svg\n D static_root/rest_framework/fonts/fontawesome-webfont.ttf\n D static_root/rest_framework/fonts/glyphicons-halflings-regular.svg\n M templates/records/linked_accounts.html\n?? .matplotlib/\n?? Library/\n?? \"The Statistics..pdf\"\n?? apps/chat/knowledge_manifest.py\n?? apps/content/migrations/0005_fix_revision_submitted_for_moderation.py\n?? apps/mobile_sync/\n?? apps/web/admin.py\n?? apps/web/management/commands/populate_equations.py\n?? apps/web/migrations/0004_initial.py\n?? apps/web/migrations/0005_remove_equation_related_equations_and_more.py\n?? apps/web/models.py\n?? apps/web/services.py\n?? assets/javascript/mobile/src/config/.api.ts.swp\n?? documentation/equation_library_implementation.md\n?? documentation/equation_library_summary.md\n?? documentation/formula_library_plan.md\n?? documentation/mobile_sync.md\n?? fix_wagtailsearch.sql\n?? fix_wagtailsearch_table.sql\n?? templates/web/components/advanced_premium_studio_menu_items.html\n?? templates/web/equation_library.html\n?? templates/web/formula_library.html"
+    },
+    {
+      "name": "portfolio_ref_budget_app",
+      "path": "/Users/chrisdixon/Projects/portfolio_strategist/reference/budget_app",
+      "priority": "p2",
+      "stack": [
+        "python",
+        "django"
+      ],
+      "notes": "Reference budgeting micro-app",
+      "exists": true,
+      "git_clean": true,
+      "git_summary": ""
+    },
+    {
+      "name": "portfolio_ref_financia",
+      "path": "/Users/chrisdixon/Projects/portfolio_strategist/reference/financia",
+      "priority": "p2",
+      "stack": [
+        "python",
+        "flask"
+      ],
+      "notes": "Financial reference prototype",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "M stock_analyzer/README.md\n M stock_analyzer/main.py\n M stock_analyzer/stock_fetcher.py\n M stock_analyzer/stock_gui.py\n M stock_analyzer/stock_statistics.py\n?? stock_analyzer/investment_utils.py\n?? stock_analyzer/notification_service.py\n?? stock_analyzer/tests/"
+    },
+    {
+      "name": "research_papers_light",
+      "path": "/Users/chrisdixon/Projects/research_papers/light",
+      "priority": "p3",
+      "stack": [
+        "latex",
+        "python"
+      ],
+      "notes": "Research artifacts (light)",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "M latex_paper/paper.log\n M latex_paper/paper.pdf\n M texput.log"
+    },
+    {
+      "name": "research_papers_energy",
+      "path": "/Users/chrisdixon/Projects/research_papers/energy/latex-paper",
+      "priority": "p3",
+      "stack": [
+        "latex"
+      ],
+      "notes": "Energy paper pipeline",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "D arxiv/figures.pdf"
+    },
+    {
+      "name": "research_papers_matter",
+      "path": "/Users/chrisdixon/Projects/research_papers/matter/latex-paper",
+      "priority": "p3",
+      "stack": [
+        "latex"
+      ],
+      "notes": "Matter paper pipeline",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "D appendix.pdf\n D arxiv/figures.pdf\n D bibliography.bst\n D figures.pdf\n D paper.pdf"
+    },
+    {
+      "name": "research_papers_force",
+      "path": "/Users/chrisdixon/Projects/research_papers/force/latex-paper",
+      "priority": "p3",
+      "stack": [
+        "latex"
+      ],
+      "notes": "Force paper pipeline",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "D appendix.pdf\n D arxiv/figures.pdf\n D bibliography.bst\n D figures.pdf\n D paper.pdf"
+    },
+    {
+      "name": "trader_exchange",
+      "path": "/Users/chrisdixon/PycharmProjects/trader_exchange",
+      "priority": "p2",
+      "stack": [
+        "python",
+        "fastapi"
+      ],
+      "notes": "Quant trading backend",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "M .DS_Store\n M backend/.DS_Store\n M backend/target/classes/com/tradeexchange/JavaBackendApplication.class\n M backend/target/classes/com/tradeexchange/api/AdminController.class\n M backend/target/classes/com/tradeexchange/api/AuthAndTraderController$CheckoutRequest.class\n M backend/target/classes/com/tradeexchange/api/AuthAndTraderController$SignInRequest.class\n M backend/target/classes/com/tradeexchange/api/AuthAndTraderController$SignRequest.class\n M backend/target/classes/com/tradeexchange/api/AuthAndTraderController$UpsertListing.class\n M backend/target/classes/com/tradeexchange/api/AuthAndTraderController.class\n M backend/target/classes/com/tradeexchange/api/ConversationsController$NewConversation.class\n M backend/target/classes/com/tradeexchange/api/ConversationsController$NewMessage.class\n M backend/target/classes/com/tradeexchange/api/ConversationsController.class\n M backend/target/classes/com/tradeexchange/api/HealthController.class\n M backend/target/classes/com/tradeexchange/api/OrdersController$Action.class\n M backend/target/classes/com/tradeexchange/api/OrdersController$NewRequest.class\n M backend/target/classes/com/tradeexchange/api/OrdersController.class\n M backend/target/classes/com/tradeexchange/api/PublicController$NewReview.class\n M backend/target/classes/com/tradeexchange/api/PublicController.class\n M backend/target/classes/com/tradeexchange/api/TraderProfileController.class\n M backend/target/classes/com/tradeexchange/api/UserDataController.class\n M backend/target/classes/com/tradeexchange/api/dto/TraderProfileRequest.class\n M backend/target/classes/com/tradeexchange/common/SessionResolver$UserSession.class\n M backend/target/classes/com/tradeexchange/common/SessionResolver.class\n M backend/target/classes/com/tradeexchange/common/dto/ApiError.class\n M backend/target/classes/com/tradeexchange/config/DataSeeder.class\n M backend/target/classes/com/tradeexchange/config/DataSourceConfig.class\n M backend/target/classes/com/tradeexchange/config/DatabaseSchemaInitializer.class\n M backend/target/classes/com/tradeexchange/config/SchemaInit.class\n M backend/target/classes/com/tradeexchange/config/SecurityConfig.class\n M frontend/.DS_Store\n D frontend/node_modules/@babel/core/lib/vendor/import-meta-resolve.js.map\n D frontend/node_modules/@babel/generator/lib/printer.js.map\n D frontend/node_modules/@babel/helpers/lib/helpers-generated.js.map\n D frontend/node_modules/@babel/parser/lib/index.js.map\n D frontend/node_modules/@babel/traverse/lib/scope/index.js.map\n D frontend/node_modules/@babel/types/lib/asserts/generated/index.js.map\n D frontend/node_modules/@babel/types/lib/ast-types/generated/index.js.map\n D frontend/node_modules/@babel/types/lib/builders/generated/lowercase.js.map\n D frontend/node_modules/@babel/types/lib/definitions/core.js.map\n D frontend/node_modules/@babel/types/lib/index-legacy.d.ts\n D frontend/node_modules/@babel/types/lib/index.d.ts\n D frontend/node_modules/@babel/types/lib/index.js.flow\n D frontend/node_modules/@babel/types/lib/validators/generated/index.js.map\n D frontend/node_modules/@esbuild/darwin-arm64/bin/esbuild\n D frontend/node_modules/@remix-run/router/dist/router.cjs.js.map\n D frontend/node_modules/@remix-run/router/dist/router.js.map\n D frontend/node_modules/@remix-run/router/dist/router.umd.js.map\n D frontend/node_modules/@remix-run/router/dist/router.umd.min.js.map\n D frontend/node_modules/@remix-run/router/router.ts\n D frontend/node_modules/@rollup/rollup-darwin-arm64/rollup.darwin-arm64.node\n D frontend/node_modules/@types/babel__traverse/index.d.ts\n D frontend/node_modules/esbuild/bin/esbuild\n D frontend/node_modules/fsevents/fsevents.node\n D frontend/node_modules/jackspeak/dist/commonjs/index.js.map\n D frontend/node_modules/jackspeak/dist/esm/index.js.map\n D frontend/node_modules/minimatch/dist/commonjs/index.js.map\n D frontend/node_modules/minimatch/dist/esm/index.js.map\n D frontend/node_modules/minipass/dist/commonjs/index.js.map\n D frontend/node_modules/minipass/dist/esm/index.js.map\n D frontend/node_modules/path-scurry/dist/commonjs/index.js.map\n D frontend/node_modules/path-scurry/dist/esm/index.js.map\n D frontend/node_modules/path-scurry/node_modules/lru-cache/dist/commonjs/index.js.map\n D frontend/node_modules/path-scurry/node_modules/lru-cache/dist/commonjs/index.min.js.map\n D frontend/node_modules/path-scurry/node_modules/lru-cache/dist/esm/index.js.map\n D frontend/node_modules/path-scurry/node_modules/lru-cache/dist/esm/index.min.js.map\n D frontend/node_modules/react-router-dom/dist/index.js.map\n D frontend/node_modules/react-router-dom/dist/react-router-dom.development.js.map\n D frontend/node_modules/react-router-dom/dist/react-router-dom.production.min.js.map\n D frontend/node_modules/react-router-dom/dist/umd/react-router-dom.development.js.map\n D frontend/node_modules/react-router-dom/dist/umd/react-router-dom.production.min.js.map\n D frontend/node_modules/react-router/dist/index.js.map\n D frontend/node_modules/react-router/dist/react-router.development.js.map\n D frontend/node_modules/react-router/dist/react-router.production.min.js.map\n D frontend/node_modules/react-router/dist/umd/react-router.development.js.map\n D frontend/node_modules/react-router/dist/umd/react-router.production.min.js.map\n D frontend/node_modules/rollup/dist/bin/rollup\n D frontend/node_modules/tailwindcss/CHANGELOG.md\n M frontend/src/pages/CustomerDetails.jsx\n M frontend/src/pages/StripeSuccess.jsx"
+    },
+    {
+      "name": "python_tutorial",
+      "path": "/Users/chrisdixon/PycharmProjects/python_tutorial",
+      "priority": "p4",
+      "stack": [
+        "python"
+      ],
+      "notes": "Tutorial code",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "D sample_code/application/automate_online-materials/dictionary.txt\n?? apps/finance_documents/\n?? assets/javascript/finance_documents/\n?? templates/web/finance_documents/"
+    },
+    {
+      "name": "codenest",
+      "path": "/Users/chrisdixon/PycharmProjects/codenest",
+      "priority": "p3",
+      "stack": [
+        "python",
+        "django"
+      ],
+      "notes": "App incubator",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "D assets/images/about-page-images/about-banner.webp\n D assets/images/about-page-images/about-team-image.webp\n D assets/images/contact-page-images/contact-banner.webp\n D assets/images/home-page-images/hero-background.webp\n D assets/images/pegasus/landing-page-screenshot-small.png\n D assets/images/pegasus/landing-page-screenshot.png\n D assets/images/pegasus/object-demo-icons.png\n D assets/images/pegasus/pricing-page-screenshot-small.png\n D assets/images/pegasus/pricing-page-screenshot.png\n D assets/images/pegasus/stars-pano-banner.jpg\n M docs/run.txt\n D scripts/tools/chromedriver_1\n D scripts/tools/chromedriver_10\n D scripts/tools/chromedriver_11\n D scripts/tools/chromedriver_12\n D scripts/tools/chromedriver_13\n D scripts/tools/chromedriver_14\n D scripts/tools/chromedriver_15\n D scripts/tools/chromedriver_16\n D scripts/tools/chromedriver_17\n D scripts/tools/chromedriver_18\n D scripts/tools/chromedriver_19\n D scripts/tools/chromedriver_2\n D scripts/tools/chromedriver_20\n D scripts/tools/chromedriver_21\n D scripts/tools/chromedriver_22\n D scripts/tools/chromedriver_23\n D scripts/tools/chromedriver_24\n D scripts/tools/chromedriver_25\n D scripts/tools/chromedriver_3\n D scripts/tools/chromedriver_4\n D scripts/tools/chromedriver_5\n D scripts/tools/chromedriver_6\n D scripts/tools/chromedriver_7\n D scripts/tools/chromedriver_8\n D scripts/tools/chromedriver_9\n D scripts/tools/geckodriver_1\n D scripts/tools/geckodriver_10\n D scripts/tools/geckodriver_11\n D scripts/tools/geckodriver_12\n D scripts/tools/geckodriver_13\n D scripts/tools/geckodriver_14\n D scripts/tools/geckodriver_15\n D scripts/tools/geckodriver_2\n D scripts/tools/geckodriver_3\n D scripts/tools/geckodriver_4\n D scripts/tools/geckodriver_5\n D scripts/tools/geckodriver_6\n D scripts/tools/geckodriver_7\n D scripts/tools/geckodriver_8\n D scripts/tools/geckodriver_9\n M static/css/front-end.css\n D static/e23d3f041a1b1848f56f.webp\n D static/fonts/Feather/Feather.eot\n D static/fonts/Feather/Feather.svg\n D static/fonts/Feather/Feather.ttf\n D static/fonts/Feather/Feather.woff\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-Bold.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-BoldItalic.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-Book.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-BookItalic.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-ExtraLight.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-ExtraLightItalic.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-Hairline.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-HairlineItalic.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-Italic.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-Light.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-LightItalic.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-Medium.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-MediumItalic.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-Regular.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-SemiBold.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-SemiBoldItalic.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-Thin.otf\"\n D \"static/fonts/HK Grotesk Pro/HKGroteskPro-ThinItalic.otf\"\n D static/images/avatars/avatar-3.jpg\n D static/images/avatars/avatar-4.jpg\n D static/images/contact-page-images/contact-banner.webp\n D static/images/covers/cover-1.jpg\n D static/images/covers/cover-10.jpg\n D static/images/covers/cover-11.jpg\n D static/images/covers/cover-12.jpg\n D static/images/covers/cover-13.jpg\n D static/images/covers/cover-14.jpg\n D static/images/covers/cover-15.jpg\n D static/images/covers/cover-16.jpg\n D static/images/covers/cover-17.jpg\n D static/images/covers/cover-19.jpg\n D static/images/covers/cover-2.jpg\n D static/images/covers/cover-3.jpg\n D static/images/covers/cover-4.jpg\n D static/images/covers/cover-5.jpg\n D static/images/covers/cover-6.jpg\n D static/images/covers/cover-7.jpg\n D static/images/covers/cover-8.jpg\n D static/images/covers/cover-9.jpg\n D static/images/home-page-images/hero-background.webp\n D static/images/illustrations/illustration-1-cropped.png\n D static/images/illustrations/illustration-1-dark.png\n D static/images/illustrations/illustration-1.png\n D static/images/illustrations/illustration-2.png\n D static/images/illustrations/illustration-3.png\n D static/images/illustrations/illustration-4-cropped.png\n D static/images/illustrations/illustration-4.png\n D static/images/illustrations/illustration-5.png\n D static/images/illustrations/illustration-6-cropped.png\n D static/images/illustrations/illustration-6.png\n D static/images/illustrations/illustration-7.png\n D static/images/illustrations/illustration-8.png\n D static/images/illustrations/illustration-9.png\n D static/images/patterns/pattern-1.svg\n D static/images/pegasus/landing-page-screenshot-small.png\n D static/images/pegasus/landing-page-screenshot.png\n D static/images/pegasus/object-demo-icons.png\n D static/images/pegasus/pricing-page-screenshot-small.png\n D static/images/pegasus/pricing-page-screenshot.png\n D static/images/pegasus/stars-pano-banner.jpg\n D static/images/photos/photo-12.jpg\n D static/images/photos/photo-15.jpg\n D static/images/photos/photo-18.jpg\n D static/images/photos/photo-21.jpg\n D static/images/photos/photo-22.jpg\n D static/images/photos/photo-23.jpg\n D static/images/photos/photo-25.jpg\n D static/images/photos/photo-27.jpg\n D static/images/photos/photo-28.jpg\n D static/images/photos/photo-29.jpg\n D static/images/photos/photo-3.jpg\n D static/images/photos/photo-30.jpg\n D static/images/photos/photo-7.jpg\n D static/images/photos/photo-8.jpg\n D static/images/portfolio/portfolio-1.jpg\n D static/images/portfolio/portfolio-10.jpg\n D static/images/portfolio/portfolio-11.jpg\n D static/images/portfolio/portfolio-12.jpg\n D static/images/portfolio/portfolio-13.jpg\n D static/images/portfolio/portfolio-14.jpg\n D static/images/portfolio/portfolio-15.jpg\n D static/images/portfolio/portfolio-16.jpg\n D static/images/portfolio/portfolio-17.jpg\n D static/images/portfolio/portfolio-18.jpg\n D static/images/portfolio/portfolio-19.jpg\n D static/images/portfolio/portfolio-2.jpg\n D static/images/portfolio/portfolio-20.jpg\n D static/images/portfolio/portfolio-21.jpg\n D static/images/portfolio/portfolio-22.jpg\n D static/images/portfolio/portfolio-23.jpg\n D static/images/portfolio/portfolio-24.jpg\n D static/images/portfolio/portfolio-25.jpg\n D static/images/portfolio/portfolio-26.jpg\n D static/images/portfolio/portfolio-3.jpg\n D static/images/portfolio/portfolio-4.jpg\n D static/images/portfolio/portfolio-5.jpg\n D static/images/portfolio/portfolio-7.jpg\n D static/images/portfolio/portfolio-8.jpg\n D static/images/portfolio/portfolio-9.jpg\n D static/images/portfolio/portfolio-cover-1.jpg\n D static/images/portfolio/portfolio-cover-2.jpg\n D static/images/portfolio/portfolio-cover-3.jpg\n D static/images/portfolio/portfolio-cover-4.jpg\n D static/images/portfolio/portfolio-cover-5.jpg\n D static/images/portfolio/portfolio-cover-6.jpg\n D static/images/portfolio/portfolio-cover-7.jpg\n D static/images/portfolio/portfolio-cover-8.jpg\n D static/images/screenshots/desktop/rental.jpg\n D static/images/screenshots/landkit/account/error-cover.jpg\n D static/images/screenshots/landkit/account/error-illustration.jpg\n D static/images/screenshots/landkit/account/general.jpg\n D static/images/screenshots/landkit/account/notifications.jpg\n D static/images/screenshots/landkit/account/password-reset-cover.jpg\n D static/images/screenshots/landkit/account/password-reset-illustration.jpg\n D static/images/screenshots/landkit/account/plans-and-payments.jpg\n D static/images/screenshots/landkit/account/security.jpg\n D static/images/screenshots/landkit/account/signin-cover.jpg\n D static/images/screenshots/landkit/account/signin-illustration.jpg\n D static/images/screenshots/landkit/account/signin-modal-horizontal.jpg\n D static/images/screenshots/landkit/account/signin-modal-vertical.jpg\n D static/images/screenshots/landkit/account/signup-cover.jpg\n D static/images/screenshots/landkit/account/signup-illustration.jpg\n D static/images/screenshots/landkit/account/signup-modal-horizontal.jpg\n D static/images/screenshots/landkit/account/signup-modal-vertical.jpg\n D static/images/screenshots/landkit/account/users.jpg\n D static/images/screenshots/landkit/figma.jpg\n D static/images/screenshots/landkit/landing/agency.jpg\n D static/images/screenshots/landkit/landing/coworking.jpg\n D static/images/screenshots/landkit/landing/framework.jpg\n D static/images/screenshots/landkit/landing/jobs.jpg\n D static/images/screenshots/landkit/landing/rental.jpg\n D static/images/screenshots/landkit/landing/startup.jpg\n D static/images/screenshots/landkit/pages/blog-post.jpg\n D static/images/screenshots/landkit/pages/blog-rich.jpg\n D static/images/screenshots/landkit/pages/blog-search.jpg\n D static/images/screenshots/landkit/pages/blog-showcase.jpg\n D static/images/screenshots/landkit/pages/portfolio-basic-grid.jpg\n D static/images/screenshots/landkit/pages/portfolio-case-study.jpg\n D static/images/screenshots/landkit/pages/portfolio-grid-rows.jpg\n D static/images/screenshots/landkit/pages/portfolio-masonry.jpg\n D static/images/screenshots/landkit/pages/portfolio-parallax.jpg\n D static/images/screenshots/landkit/pages/portfolio-sidebar-fluid.jpg\n D static/images/screenshots/landkit/pages/portfolio-sidebar.jpg\n D static/images/screenshots/mobile/home.jpg\n D static/images/screenshots/mobile/jobs.jpg\n D static/images/screenshots/mobile/rental.jpg\n D static/images/screenshots/ui/dashkit-layered.png\n D static/images/screenshots/ui/landkit-figma.png\n D static/images/screenshots/ui/mobile-chat.png\n D static/images/undraw/Logo.jpg\n M templates/dashboard/user_dashboard.html\n?? docs/commands.txt\n?? scripts/cities/clearwater/city_of_weston_json/\n?? scripts/cities/oakland_park/sunrise_json/progress_10.json\n?? scripts/cities/saint_pete/saintpete_json/progress_0.json\n?? scripts/cities/saint_pete/saintpete_json/progress_1.json\n?? scripts/cities/saint_pete/saintpete_json/progress_7.json\n?? scripts/cities/tampa/city_of_weston_json/\n?? scripts/cities/tampa/tampa_permit.csv\n?? scripts/cities/west_palm_beach/\n?? scripts/counties/brevard/\n?? scripts/counties/citrus/\n?? scripts/counties/hillsborough/hillsborough_permit.csv\n?? scripts/counties/pinellas/pinellas.csv\n?? scripts/counties/pinellas/pinellas_permit.csv\n?? scripts/counties/pinellas/pinellas_permits.csv\n?? scripts/jobs/playground.py"
+    },
+    {
+      "name": "manim_tutorial",
+      "path": "/Users/chrisdixon/PycharmProjects/external/manim_tutorial",
+      "priority": "p4",
+      "stack": [
+        "python",
+        "manim"
+      ],
+      "notes": "Learning resources",
+      "exists": true,
+      "git_clean": true,
+      "git_summary": ""
+    },
+    {
+      "name": "manim_core",
+      "path": "/Users/chrisdixon/PycharmProjects/external/manim",
+      "priority": "p4",
+      "stack": [
+        "python",
+        "cairo"
+      ],
+      "notes": "Upstream fork",
+      "exists": true,
+      "git_clean": true,
+      "git_summary": ""
+    },
+    {
+      "name": "media_videos",
+      "path": "/Users/chrisdixon/PycharmProjects/external/videos",
+      "priority": "p4",
+      "stack": [
+        "python"
+      ],
+      "notes": "Video tooling",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "M _2015/complex_multiplication_article.py\n M _2015/counting_in_binary.py\n M _2015/eulers_characteristic_formula.py\n M _2015/generate_logo.py\n M _2015/inventing_math.py\n M _2015/inventing_math_images.py\n D _2015/ka_playgrounds/__init__.py\n D _2015/ka_playgrounds/circuits.py\n D _2015/ka_playgrounds/fluid_flow.py\n D _2015/ka_playgrounds/jacobian_animations.py\n D _2015/ka_playgrounds/parametric_curves.py\n D _2015/ka_playgrounds/transform_article.py\n M _2015/matrix_as_transform_2d.py\n M _2015/moser_intro.py\n M _2015/moser_main.py\n M _2015/music_and_measure.py\n M _2015/playground_counting_in_binary.py\n M _2015/pythagorean_proof.py\n M _2015/tau_poem.py\n M _2015/three_dimensions.py\n M _2016/brachistochrone/curves.py\n M _2016/brachistochrone/cycloid.py\n M _2016/brachistochrone/drawing_images.py\n M _2016/brachistochrone/graveyard.py\n M _2016/brachistochrone/light.py\n M _2016/brachistochrone/misc.py\n M _2016/brachistochrone/multilayered.py\n M _2016/brachistochrone/wordplay.py\n M _2016/eola/chapter0.py\n M _2016/eola/chapter1.py\n M _2016/eola/chapter10.py\n M _2016/eola/chapter11.py\n M _2016/eola/chapter2.py\n M _2016/eola/chapter3.py\n M _2016/eola/chapter4.py\n M _2016/eola/chapter5.py\n M _2016/eola/chapter6.py\n M _2016/eola/chapter7.py\n M _2016/eola/chapter8.py\n M _2016/eola/chapter8p2.py\n M _2016/eola/chapter9.py\n M _2016/eola/footnote.py\n M _2016/eola/footnote2.py\n M _2016/eola/thumbnails.py\n M _2016/fractal_charm.py\n M _2016/hanoi.py\n M _2016/hilbert/fractal_porn.py\n M _2016/hilbert/section1.py\n M _2016/hilbert/section2.py\n M _2016/hilbert/section3.py\n M _2016/patreon.py\n M _2016/triangle_of_power/end.py\n M _2016/triangle_of_power/intro.py\n M _2016/triangle_of_power/triangle.py\n M _2016/wcat.py\n M _2016/zeta.py\n M _2017/256.py\n M _2017/bell.py\n M _2017/borsuk.py\n M _2017/cba.py\n M _2017/crypto.py\n M _2017/dominos/domino_play.py\n M _2017/efvgt.py\n M _2017/eoc/chapter1.py\n M _2017/eoc/chapter10.py\n M _2017/eoc/chapter2.py\n M _2017/eoc/chapter3.py\n M _2017/eoc/chapter4.py\n M _2017/eoc/chapter5.py\n M _2017/eoc/chapter6.py\n M _2017/eoc/chapter7.py\n M _2017/eoc/chapter8.py\n M _2017/eoc/chapter9.py\n M _2017/eoc/footnote.py\n M _2017/eoc/old_chapter1.py\n M _2017/fractal_dimension.py\n M _2017/gradient.py\n M _2017/highD.py\n M _2017/leibniz.py\n M _2017/mug.py\n M _2017/nn/mnist_loader.py\n M _2017/nn/network.py\n M _2017/nn/part1.py\n M _2017/nn/part2.py\n M _2017/nn/part3.py\n M _2017/nn/playground.py\n M _2017/putnam.py\n M _2017/qa_round_two.py\n M _2017/tattoo.py\n M _2017/triples.py\n M _2017/waves.py\n M _2018/WindingNumber.py\n M _2018/WindingNumber_G.py\n M _2018/alt_calc.py\n M _2018/basel/basel.py\n M _2018/basel/basel2.py\n M _2018/borsuk_addition.py\n M _2018/cramer.py\n M _2018/dandelin.py\n M _2018/determinant_puzzle.py\n M _2018/div_curl.py\n M _2018/eop/bayes.py\n M _2018/eop/bayes_footnote.py\n M _2018/eop/birthday.py\n M _2018/eop/chapter0.py\n M _2018/eop/chapter0/intro.py\n M _2018/eop/chapter1/all_sequences.py\n M _2018/eop/chapter1/area_model_bayes.py\n M _2018/eop/chapter1/area_model_erf.py\n M _2018/eop/chapter1/area_model_expectation.py\n M _2018/eop/chapter1/brick_row_scene.py\n M _2018/eop/chapter1/entire_brick_wall.py\n M _2018/eop/chapter1/intro.py\n M _2018/eop/chapter1/just_randy_flipping_coin.py\n M _2018/eop/chapter1/million_flips.py\n M _2018/eop/chapter1/morph_brick_row_into_histogram.py\n M _2018/eop/chapter1/prob_dist_visuals.py\n M _2018/eop/chapter1/quiz_result.py\n M _2018/eop/chapter1/show_proportion.py\n M _2018/eop/chapter1/show_uncertainty_darts.py\n M _2018/eop/chapter1/show_uncertainty_dice.py\n M _2018/eop/chapter1/show_uncertainty_disease.py\n M _2018/eop/chapter1/stacking_coins.py\n M _2018/eop/chapter1/think_about_coin.py\n M _2018/eop/chapter1/various_intro_visuals.py\n M _2018/eop/chapter1/what_does_probability_mean.py\n M _2018/eop/chapter2/permutation_grid.py\n M _2018/eop/combinations.py\n M _2018/eop/independence.py\n M _2018/eop/pascal.py\n M _2018/eop/reusables/brick_row.py\n M _2018/eop/reusables/histograms.py\n M _2018/eop/what_does_probability_mean.py\n M _2018/fc1.py\n M _2018/for_flammy.py\n M _2018/fourier.py\n M _2018/gauss.py\n M _2018/holomorphic.py\n M _2018/lost_lecture.py\n M _2018/mvcr.py\n M _2018/pi_day.py\n M _2018/quat3d.py\n M _2018/quaternions.py\n M _2018/sphere_area.py\n M _2018/turbulence.py\n M _2018/uncertainty.py\n M _2018/wallis.py\n M _2019/QA_2to21.py\n M _2019/aliquot.py\n M _2019/bayes/footnote.py\n M _2019/bayes/part1.py\n M _2019/bimo_image.py\n M _2019/bimo_images.py\n M _2019/clacks/name_bump.py\n M _2019/clacks/question.py\n M _2019/clacks/solution1.py\n M _2019/clacks/solution2/block_collision_scenes.py\n M _2019/clacks/solution2/mirror_scenes.py\n M _2019/clacks/solution2/pi_creature_scenes.py\n M _2019/clacks/solution2/position_phase_space.py\n M _2019/clacks/solution2/simple_scenes.py\n M _2019/clacks/solution2/wordy_scenes.py\n M _2019/diffyq/part1/pendulum.py\n M _2019/diffyq/part1/phase_space.py\n M _2019/diffyq/part1/pi_scenes.py\n M _2019/diffyq/part1/shared_constructs.py\n M _2019/diffyq/part1/staging.py\n M _2019/diffyq/part1/wordy_scenes.py\n M _2019/diffyq/part2/fourier_series.py\n M _2019/diffyq/part2/heat_equation.py\n M _2019/diffyq/part2/pi_scenes.py\n M _2019/diffyq/part2/shared_constructs.py\n M _2019/diffyq/part2/staging.py\n M _2019/diffyq/part2/wordy_scenes.py\n M _2019/diffyq/part3/discrete_case.py\n M _2019/diffyq/part3/pi_creature_scenes.py\n M _2019/diffyq/part3/staging.py\n M _2019/diffyq/part3/temperature_graphs.py\n M _2019/diffyq/part3/wordy_scenes.py\n M _2019/diffyq/part4/complex_functions.py\n M _2019/diffyq/part4/fourier_series_scenes.py\n M _2019/diffyq/part4/long_fourier_scenes.py\n M _2019/diffyq/part4/pi_creature_scenes.py\n M _2019/diffyq/part4/staging.py\n M _2019/diffyq/part4/temperature_scenes.py\n M _2019/diffyq/part4/three_d_graphs.py\n M _2019/diffyq/part5/staging.py\n M _2019/hyperdarts.py\n M _2019/minute_physics_gr_equations.py\n M _2019/moduli.py\n M _2019/spirals.py\n M _2019/valentines.py\n M _2019/windmill.py\n M _2020/18S191/convolutions.py\n M _2020/18S191/dft.py\n M _2020/18S191/diffusion.py\n M _2020/18S191/dynamic_prog.py\n M _2020/18S191/seam_carving.py\n M _2020/antipode.py\n M _2020/beta/beta1.py\n M _2020/beta/beta2.py\n M _2020/beta/beta3.py\n M _2020/beta/helpers.py\n M _2020/chess.py\n M _2020/covid.py\n M _2020/ctracing.py\n M _2020/hamming.py\n M _2020/ldm.py\n M _2020/med_test.py\n M _2020/monster.py\n M _2020/patreon_tier_images.py\n M _2020/sir.py\n M _2020/surface_play.py\n M _2020/telestration_contribution.py\n M _2021/bertrands_paradox.py\n M _2021/holomorphic_dynamics.py\n M _2021/matrix_exp.py\n M _2021/newton_fractal.py\n M _2021/quick_eigen.py\n M _2021/shadows.py\n M _2021/siggraph.py\n M _2021/some1.py\n M _2021/some1_winners.py\n M _2022/borwein/main.py\n M _2022/borwein/supplements.py\n M _2022/convolutions/discrete.py\n M _2022/convolutions/supplements.py\n M _2022/galois/art_supplements.py\n M _2022/galois/groups.py\n M _2022/infinity/roar_to_picture.py\n M _2022/piano/fourier_animations.py\n M _2022/piano/midi_animations.py\n M _2022/piano/wav_to_midi.py\n M _2022/puzzles/subsets.py\n M _2022/quintic/cubic.py\n M _2022/quintic/polynomial_baisics.py\n M _2022/quintic/roots_and_coefs.py\n M _2022/some2/announcement.py\n M _2022/some2/winners.py\n M _2022/visual_proofs/lies.py\n M _2022/wordle/footnote.py\n M _2022/wordle/scenes.py\n M _2022/wordle/simulations.py\n M _2022/zeta/part1.py\n M _2023/SoME3/main.py\n M _2023/clt/dice_sims.py\n M _2023/clt/galton_board.py\n M _2023/clt/main.py\n M _2023/clt/wordy_scenes.py\n M _2023/clt_proof/main.py\n M _2023/convolutions2/continuous.py\n M _2023/convolutions2/diagonal_slices.py\n M _2023/convolutions2/dice.py\n M _2023/convolutions2/gauss_example_supplements.py\n M _2023/convolutions2/supplements.py\n M _2023/gauss_int/herschel.py\n M _2023/gauss_int/integral.py\n M _2023/gauss_int/supplements.py\n M _2023/moser_reboot/main.py\n M _2023/numberphile/prime_race.py\n M _2023/optics_puzzles/adding_waves.py\n M _2023/optics_puzzles/annotations.py\n M _2023/optics_puzzles/bending_waves.py\n M _2023/optics_puzzles/cylinder.py\n M _2023/optics_puzzles/driven_harmonic_oscillator.py\n M _2023/optics_puzzles/e_field.py\n M _2023/optics_puzzles/ior_annotations.py\n M _2023/optics_puzzles/objects.py\n M _2023/optics_puzzles/slowing_waves.py\n M _2023/optics_puzzles/slowing_waves_insert_embed.py\n M _2023/optics_puzzles/wave_machine.py\n M _2023/standup_maths/basketball.py\n M _2023/standup_maths/pool.py\n M _2024/antp/main.py\n M _2024/holograms/diffraction.py\n M _2024/holograms/model.py\n M _2024/holograms/supplements.py\n M _2024/linalg/eigenlecture.py\n M _2024/manim_demo/lorenz.py\n M _2024/puzzles/added_dimension.py\n M _2024/puzzles/max_rand.py\n M _2024/puzzles/supplements.py\n M _2024/transformers/attention.py\n M _2024/transformers/auto_regression.py\n M _2024/transformers/chm.py\n M _2024/transformers/embedding.py\n M _2024/transformers/generation.py\n M _2024/transformers/helpers.py\n M _2024/transformers/ml_basics.py\n M _2024/transformers/mlp.py\n M _2024/transformers/network_flow.py\n M _2024/transformers/old_auto_regression.py\n M _2024/transformers/supplements.py\n M custom_config.yml\n M manim_imports_ext.py\n M once_useful_constructs/butterfly_curve.py\n M once_useful_constructs/homeless.py\n M once_useful_constructs/sed.py\n M outside_videos/aeoud.py\n M outside_videos/analysis.py\n M outside_videos/banners.py\n M outside_videos/for_site.py\n M outside_videos/geometry.py\n M outside_videos/gifs.py\n M outside_videos/grover.py\n M outside_videos/merch_designs.py\n M outside_videos/misc_thumbnails.py\n M outside_videos/mug_to_torus.py\n M outside_videos/name_animation.py\n M outside_videos/patterns.py\n M outside_videos/podcast.py\n M outside_videos/probability.py\n M outside_videos/qa_examples.py\n M outside_videos/short_links.py\n M outside_videos/talk_scenes.py\n M outside_videos/tweets/addition_anagram.py\n M outside_videos/tweets/door_puzzle.py\n M outside_videos/tweets/image_manipulation.py\n M outside_videos/tweets/powers_of_two.py\n M outside_videos/tweets/starry_night.py\n M outside_videos/tweets/sudanese_band.py\n M sublime_custom_commands/manim_plugins.py\n?? .idea/"
+    },
+    {
+      "name": "idea_trade_exchange",
+      "path": "/Users/chrisdixon/IdeaProjects/trade-exchange",
+      "priority": "p2",
+      "stack": [
+        "kotlin",
+        "android"
+      ],
+      "notes": "Android client",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "M .DS_Store\n M backend/.DS_Store\n M backend/pom.xml\n M backend/src/main/java/com/tradeexchange/JavaBackendApplication.java\n M backend/src/main/java/com/tradeexchange/api/AdminController.java\n M backend/src/main/java/com/tradeexchange/api/AuthAndTraderController.java\n D backend/src/main/java/com/tradeexchange/api/ConversationsController.java\n M backend/src/main/java/com/tradeexchange/api/OrdersController.java\n M backend/src/main/java/com/tradeexchange/api/PublicController.java\n M backend/src/main/java/com/tradeexchange/api/TraderProfileController.java\n M backend/src/main/java/com/tradeexchange/api/UserDataController.java\n M backend/src/main/java/com/tradeexchange/api/dto/TraderProfileRequest.java\n M backend/src/main/java/com/tradeexchange/config/DataSeeder.java\n M backend/src/main/java/com/tradeexchange/config/DatabaseSchemaInitializer.java\n M backend/src/main/java/com/tradeexchange/config/SchemaInit.java\n M backend/src/main/java/com/tradeexchange/messaging/ConversationController.java\n M backend/src/main/java/com/tradeexchange/payments/StripeWebhookController.java\n M backend/src/main/resources/application.yml\n D backend/target/classes/application.properties\n M backend/target/classes/application.yml\n M backend/target/classes/com/tradeexchange/JavaBackendApplication.class\n M backend/target/classes/com/tradeexchange/api/AdminController.class\n M backend/target/classes/com/tradeexchange/api/AuthAndTraderController$CheckoutRequest.class\n M backend/target/classes/com/tradeexchange/api/AuthAndTraderController$SignInRequest.class\n M backend/target/classes/com/tradeexchange/api/AuthAndTraderController$SignRequest.class\n M backend/target/classes/com/tradeexchange/api/AuthAndTraderController$UpsertListing.class\n M backend/target/classes/com/tradeexchange/api/AuthAndTraderController.class\n D backend/target/classes/com/tradeexchange/api/ConversationsController$NewConversation.class\n D backend/target/classes/com/tradeexchange/api/ConversationsController$NewMessage.class\n D backend/target/classes/com/tradeexchange/api/ConversationsController.class\n M backend/target/classes/com/tradeexchange/api/OrdersController$Action.class\n M backend/target/classes/com/tradeexchange/api/OrdersController$NewRequest.class\n M backend/target/classes/com/tradeexchange/api/OrdersController.class\n M backend/target/classes/com/tradeexchange/api/PublicController$NewReview.class\n M backend/target/classes/com/tradeexchange/api/PublicController.class\n M backend/target/classes/com/tradeexchange/api/TraderProfileController.class\n M backend/target/classes/com/tradeexchange/api/UserDataController.class\n M backend/target/classes/com/tradeexchange/api/dto/TraderProfileRequest.class\n D backend/target/classes/com/tradeexchange/auth/Account.class\n D backend/target/classes/com/tradeexchange/auth/AccountRepository.class\n D backend/target/classes/com/tradeexchange/auth/AuthController$LoginRequest.class\n D backend/target/classes/com/tradeexchange/auth/AuthController$RegisterRequest.class\n D backend/target/classes/com/tradeexchange/auth/AuthController.class\n D backend/target/classes/com/tradeexchange/auth/Role.class\n M backend/target/classes/com/tradeexchange/config/DataSeeder.class\n M backend/target/classes/com/tradeexchange/config/DatabaseSchemaInitializer.class\n M backend/target/classes/com/tradeexchange/config/SchemaInit.class\n D backend/target/classes/com/tradeexchange/messaging/ConversationController$NewMessage.class\n M backend/target/classes/com/tradeexchange/messaging/ConversationController.class\n M backend/target/classes/com/tradeexchange/payments/StripeWebhookController.class\n D backend/target/classes/com/tradeexchange/traders/ServiceOffering.class\n D backend/target/classes/com/tradeexchange/traders/TraderController$UpsertServiceRequest.class\n D backend/target/classes/com/tradeexchange/traders/TraderController.class\n D backend/target/classes/com/tradeexchange/traders/TraderProfile.class\n M backend/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst\n M backend/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst\n M backend/target/trade-exchange-backend-0.1.0.jar\n M backend/target/trade-exchange-backend-0.1.0.jar.original\n M backend/trade.db\n M frontend/.DS_Store\n D frontend/dist/assets/index-D6WCxBIR.js\n D frontend/dist/assets/index-DsIXS3sM.css\n M frontend/dist/index.html\n D frontend/node_modules/.DS_Store\n M frontend/node_modules/.package-lock.json\n M frontend/node_modules/.vite/deps/_metadata.json\n D frontend/node_modules/.vite/deps/chunk-I4MZPW7S.js\n D frontend/node_modules/.vite/deps/chunk-I4MZPW7S.js.map\n D frontend/node_modules/.vite/deps/chunk-XPR23Y44.js\n D frontend/node_modules/.vite/deps/chunk-XPR23Y44.js.map\n M frontend/node_modules/.vite/deps/react-dom.js\n M frontend/node_modules/.vite/deps/react-dom_client.js\n M frontend/node_modules/.vite/deps/react-dom_client.js.map\n M frontend/node_modules/.vite/deps/react-router-dom.js\n M frontend/node_modules/.vite/deps/react-router-dom.js.map\n M frontend/node_modules/.vite/deps/react.js\n M frontend/node_modules/.vite/deps/react_jsx-dev-runtime.js\n M frontend/node_modules/.vite/deps/react_jsx-dev-runtime.js.map\n M frontend/node_modules/.vite/deps/react_jsx-runtime.js\n M frontend/node_modules/.vite/deps/react_jsx-runtime.js.map\n D frontend/node_modules/@babel/core/lib/vendor/import-meta-resolve.js.map\n D frontend/node_modules/@babel/helpers/lib/helpers-generated.js.map\n D frontend/node_modules/@babel/types/lib/asserts/generated/index.js.map\n D frontend/node_modules/@babel/types/lib/builders/generated/lowercase.js.map\n M frontend/node_modules/@esbuild/darwin-arm64/bin/esbuild\n M frontend/node_modules/@esbuild/darwin-arm64/package.json\n D frontend/node_modules/@remix-run/router/router.ts\n D frontend/node_modules/@types/babel__traverse/index.d.ts\n M frontend/node_modules/baseline-browser-mapping/README.md\n D frontend/node_modules/baseline-browser-mapping/dist/index.cjs\n M frontend/node_modules/baseline-browser-mapping/dist/index.js\n M frontend/node_modules/baseline-browser-mapping/package.json\n D frontend/node_modules/esbuild/bin/esbuild\n M frontend/node_modules/esbuild/install.js\n M frontend/node_modules/esbuild/lib/main.d.ts\n M frontend/node_modules/esbuild/lib/main.js\n M frontend/node_modules/esbuild/package.json\n D frontend/node_modules/fsevents/fsevents.node\n M frontend/node_modules/glob/dist/commonjs/has-magic.d.ts.map\n M frontend/node_modules/glob/dist/commonjs/index.d.ts\n M frontend/node_modules/glob/dist/esm/bin.mjs\n M frontend/node_modules/glob/dist/esm/bin.mjs.map\n M frontend/node_modules/glob/dist/esm/has-magic.d.ts.map\n M frontend/node_modules/glob/dist/esm/index.d.ts\n M frontend/node_modules/glob/package.json\n D frontend/node_modules/jackspeak/dist/commonjs/index.js.map\n D frontend/node_modules/jackspeak/dist/esm/index.js.map\n D frontend/node_modules/minimatch/dist/commonjs/index.js.map\n D frontend/node_modules/minimatch/dist/esm/index.js.map\n D frontend/node_modules/minipass/dist/commonjs/index.js.map\n D frontend/node_modules/minipass/dist/esm/index.js.map\n D frontend/node_modules/path-scurry/dist/commonjs/index.js.map\n D frontend/node_modules/path-scurry/dist/esm/index.js.map\n D frontend/node_modules/path-scurry/node_modules/lru-cache/dist/commonjs/index.js.map\n D frontend/node_modules/path-scurry/node_modules/lru-cache/dist/commonjs/index.min.js.map\n D frontend/node_modules/path-scurry/node_modules/lru-cache/dist/esm/index.js.map\n D frontend/node_modules/path-scurry/node_modules/lru-cache/dist/esm/index.min.js.map\n D frontend/node_modules/react-router-dom/dist/index.js.map\n D frontend/node_modules/react-router-dom/dist/react-router-dom.development.js.map\n D frontend/node_modules/react-router-dom/dist/react-router-dom.production.min.js.map\n D frontend/node_modules/react-router-dom/dist/umd/react-router-dom.development.js.map\n D frontend/node_modules/react-router-dom/dist/umd/react-router-dom.production.min.js.map\n D frontend/node_modules/react-router/dist/index.js.map\n D frontend/node_modules/react-router/dist/react-router.development.js.map\n D frontend/node_modules/react-router/dist/react-router.production.min.js.map\n D frontend/node_modules/react-router/dist/umd/react-router.development.js.map\n D frontend/node_modules/react-router/dist/umd/react-router.production.min.js.map\n D frontend/node_modules/vite/LICENSE.md\n M frontend/node_modules/vite/README.md\n D frontend/node_modules/vite/bin/openChrome.applescript\n M frontend/node_modules/vite/bin/openChrome.js\n M frontend/node_modules/vite/bin/vite.js\n M frontend/node_modules/vite/client.d.ts\n M frontend/node_modules/vite/dist/client/client.mjs\n M frontend/node_modules/vite/dist/client/env.mjs\n D frontend/node_modules/vite/dist/node-cjs/publicUtils.cjs\n D frontend/node_modules/vite/dist/node/chunks/dep-BuoK8Wda.js\n D frontend/node_modules/vite/dist/node/chunks/dep-BvyJBvVx.js\n D frontend/node_modules/vite/dist/node/chunks/dep-Cs9lwdKu.js\n D frontend/node_modules/vite/dist/node/chunks/dep-D-7KCb9p.js\n D frontend/node_modules/vite/dist/node/chunks/dep-DCVhRpiz.js\n D frontend/node_modules/vite/dist/node/chunks/dep-DDbTn5rw.js\n D frontend/node_modules/vite/dist/node/chunks/dep-D_YDhiNx.js\n D frontend/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js\n D frontend/node_modules/vite/dist/node/chunks/dep-IQS-Za7F.js\n D frontend/node_modules/vite/dist/node/chunks/dep-M_KD0XSK.js\n D frontend/node_modules/vite/dist/node/chunks/dep-SmwnYDP9.js\n D frontend/node_modules/vite/dist/node/chunks/dep-YkMKzX4u.js\n D frontend/node_modules/vite/dist/node/chunks/dep-cWFO4sv4.js\n D frontend/node_modules/vite/dist/node/chunks/dep-e9kYborm.js\n D frontend/node_modules/vite/dist/node/chunks/dep-lCKrEJQm.js\n D frontend/node_modules/vite/dist/node/chunks/dep-sDKrrA4S.js\n D frontend/node_modules/vite/dist/node/chunks/dep-yxQqhtZq.js\n M frontend/node_modules/vite/dist/node/cli.js\n D frontend/node_modules/vite/dist/node/constants.js\n D frontend/node_modules/vite/dist/node/index.d.ts\n M frontend/node_modules/vite/dist/node/index.js\n M frontend/node_modules/vite/dist/node/module-runner.d.ts\n M frontend/node_modules/vite/dist/node/module-runner.js\n D frontend/node_modules/vite/dist/node/moduleRunnerTransport-BWUZBVLX.d.ts\n D frontend/node_modules/vite/dist/node/runtime.d.ts\n D frontend/node_modules/vite/dist/node/runtime.js\n D frontend/node_modules/vite/dist/node/types.d-aGj9QkWt.d.ts\n D frontend/node_modules/vite/index.cjs\n D frontend/node_modules/vite/index.d.cts\n M frontend/node_modules/vite/package.json\n M frontend/node_modules/vite/types/customEvent.d.ts\n M frontend/node_modules/vite/types/hmrPayload.d.ts\n M frontend/node_modules/vite/types/hot.d.ts\n M frontend/node_modules/vite/types/importGlob.d.ts\n M frontend/node_modules/vite/types/importMeta.d.ts\n M frontend/node_modules/vite/types/metadata.d.ts\n M frontend/package-lock.json\n M frontend/package.json\n M frontend/src/App.jsx\n D frontend/src/components/TraderChat.jsx\n M frontend/src/components/ui.js\n M frontend/src/components/ui.jsx\n M frontend/src/mock/api.js\n M frontend/src/pages/AdminDashboard.jsx\n M frontend/src/pages/CheckoutPage.jsx\n M frontend/src/pages/ComparePage.jsx\n M frontend/src/pages/ConfirmationPage.jsx\n D frontend/src/pages/ConversationPage.jsx\n M frontend/src/pages/EditTraderDetails.jsx\n M frontend/src/pages/Help.jsx\n M frontend/src/pages/HomeSearch.jsx\n M frontend/src/pages/MessagesList.jsx\n M frontend/src/pages/ResultsPage.jsx\n M frontend/src/pages/TraderDashboard.jsx\n M frontend/src/pages/TraderDetailsPage.jsx\n M frontend/src/pages/UserDashboard.jsx\n M frontend/src/pages/ViewDetails.jsx\n?? backend/package-lock.json\n?? backend/src/main/java/com/tradeexchange/ai/\n?? backend/src/main/java/com/tradeexchange/payments/StripePaymentService.java\n?? backend/src/main/java/com/tradeexchange/payments/StripeProperties.java\n?? backend/target/classes/com/tradeexchange/ai/\n?? backend/target/classes/com/tradeexchange/api/AdminController$CreateTraderRequest.class\n?? backend/target/classes/com/tradeexchange/api/AdminController$CreateUserRequest.class\n?? backend/target/classes/com/tradeexchange/common/PasswordService.class\n?? backend/target/classes/com/tradeexchange/messaging/ConversationController$ConversationRow.class\n?? backend/target/classes/com/tradeexchange/messaging/ConversationController$CreateConversationRequest.class\n?? backend/target/classes/com/tradeexchange/messaging/ConversationController$NewMessageRequest.class\n?? backend/target/classes/com/tradeexchange/payments/StripePaymentService$CheckoutSessionResult.class\n?? backend/target/classes/com/tradeexchange/payments/StripePaymentService$CreateCheckoutSessionRequest.class\n?? backend/target/classes/com/tradeexchange/payments/StripePaymentService.class\n?? backend/target/classes/com/tradeexchange/payments/StripeProperties.class\n?? frontend/dist/assets/index-8RErlNK-.js\n?? frontend/dist/assets/index-Dybl4PfP.css\n?? frontend/node_modules/.vite/deps/@stripe_stripe-js.js\n?? frontend/node_modules/.vite/deps/@stripe_stripe-js.js.map\n?? frontend/node_modules/.vite/deps/chunk-5WRI5ZAA.js\n?? frontend/node_modules/.vite/deps/chunk-5WRI5ZAA.js.map\n?? frontend/node_modules/.vite/deps/chunk-N7R36T7K.js\n?? frontend/node_modules/.vite/deps/chunk-N7R36T7K.js.map\n?? frontend/node_modules/.vite/deps/chunk-THTF43LA.js\n?? frontend/node_modules/.vite/deps/chunk-THTF43LA.js.map\n?? frontend/node_modules/@stripe/\n?? frontend/node_modules/vite/dist/node/chunks/build.js\n?? frontend/node_modules/vite/dist/node/chunks/build2.js\n?? frontend/node_modules/vite/dist/node/chunks/chunk.js\n?? frontend/node_modules/vite/dist/node/chunks/config.js\n?? frontend/node_modules/vite/dist/node/chunks/config2.js\n?? frontend/node_modules/vite/dist/node/chunks/dist.js\n?? frontend/node_modules/vite/dist/node/chunks/lib.js\n?? frontend/node_modules/vite/dist/node/chunks/logger.js\n?? frontend/node_modules/vite/dist/node/chunks/moduleRunnerTransport.d.ts\n?? frontend/node_modules/vite/dist/node/chunks/optimizer.js\n?? frontend/node_modules/vite/dist/node/chunks/postcss-import.js\n?? frontend/node_modules/vite/dist/node/chunks/preview.js\n?? frontend/node_modules/vite/dist/node/chunks/server.js\n?? frontend/src/components/CheckoutSteps.jsx\n?? frontend/src/hooks/useFavorites.js\n?? frontend/src/pages/AiWorkbench.jsx\n?? frontend/src/pages/CheckoutResult.jsx\n?? reference/"
+    },
+    {
+      "name": "idea_budget_app",
+      "path": "/Users/chrisdixon/IdeaProjects/budget_app",
+      "priority": "p3",
+      "stack": [
+        "kotlin",
+        "android"
+      ],
+      "notes": "Budget mobile",
+      "exists": true,
+      "git_clean": true,
+      "git_summary": ""
+    },
+    {
+      "name": "idea_repositories",
+      "path": "/Users/chrisdixon/IdeaProjects/Repositories",
+      "priority": "p4",
+      "stack": [
+        "java",
+        "gradle"
+      ],
+      "notes": "Misc java repos",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "?? .idea/"
+    },
+    {
+      "name": "idea_java_project",
+      "path": "/Users/chrisdixon/IdeaProjects/JavaProject",
+      "priority": "p4",
+      "stack": [
+        "java"
+      ],
+      "notes": "Example project",
+      "exists": true,
+      "git_clean": true,
+      "git_summary": ""
+    },
+    {
+      "name": "idea_java_tutorial",
+      "path": "/Users/chrisdixon/IdeaProjects/JavaTutorial",
+      "priority": "p4",
+      "stack": [
+        "java"
+      ],
+      "notes": "Tutorials",
+      "exists": true,
+      "git_clean": true,
+      "git_summary": ""
+    },
+    {
+      "name": "matlab_mathematica",
+      "path": "/Users/chrisdixon/MATLAB/Project/Projects/mathematica",
+      "priority": "p3",
+      "stack": [
+        "matlab"
+      ],
+      "notes": "Mathematica translations",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "M .venv/bin/Activate.ps1\n M .venv/bin/activate\n M .venv/bin/activate.csh\n M .venv/bin/activate.fish\n M .venv/bin/pip\n M .venv/bin/pip3\n M .venv/lib/python3.11/site-packages/__pycache__/argparse.cpython-311.pyc\n M .venv/pyvenv.cfg\nAD custom/winding_number.py\nAM demonstrations/dice.py\nAM demonstrations/herschel.py\nAD demonstrations/reference/winding_number.py\nA  experiment/manim/draft.py\nAM experiment/manim/dummy.py\n D media/videos/graph/1080p60/MovingAngle.mp4\n D media/videos/graph/1080p60/partial_movie_files/FollowingGraphCamera/1528668315_1666412814_1433043067.mp4\n D media/videos/graph/1080p60/partial_movie_files/FollowingGraphCamera/4144742159_1073004596_3137883830.mp4\n D media/videos/graph/1080p60/partial_movie_files/FollowingGraphCamera/850779236_991701719_3129556555.mp4\n D media/videos/shapes/1080p60/partial_movie_files/DifferentRotations/3529212410_3252515515_2792856867.mp4\n D media/videos/shapes/1080p60/partial_movie_files/DifferentRotations/3529212410_3815250030_2792856867.mp4\n D media/videos/shapes/1080p60/partial_movie_files/DifferentRotations/3977891868_251387179_2792856867.mp4\n M tutorial/manim/__pycache__/dimensional.cpython-311.pyc\n D tutorial/manim/__pycache__/draft.cpython-311.pyc\n M tutorial/manim/__pycache__/point.cpython-311.pyc\n M tutorial/manim/dimensional.py\n D tutorial/manim/draft.py\n M tutorial/manim/equations.py\nAD tutorial/manim/matrix.py\n M tutorial/manim/point.py\n?? .DS_Store\n?? .venv/bin/pip3.9\n?? .venv/bin/python3.9\n?? .venv/lib/.DS_Store\n?? .venv/lib/python3.11/site-packages/.DS_Store\n?? .venv/lib/python3.11/site-packages/OpenGL/.DS_Store\n?? .venv/lib/python3.11/site-packages/manim_plugintemplate-0.1.5.dist-info/\n?? .venv/lib/python3.11/site-packages/manim_plugintemplate/\n?? .venv/lib/python3.9/\n?? demonstrations/__pycache__/herschel.cpython-311.pyc\n?? experiment/manim/__pycache__/\n?? media/Tex/03eca29655b82e8c.svg\n?? media/Tex/03eca29655b82e8c.tex\n?? media/Tex/1fb6bd60323e1d7d.svg\n?? media/Tex/1fb6bd60323e1d7d.tex\n?? media/Tex/26492b37e43d0cc1.svg\n?? media/Tex/26492b37e43d0cc1.tex\n?? media/Tex/383d1fb9b7d92e82.svg\n?? media/Tex/383d1fb9b7d92e82.tex\n?? media/Tex/5e11032bc7eed7f3.svg\n?? media/Tex/5e11032bc7eed7f3.tex\n?? media/Tex/7b1ce3e32e4f325f.svg\n?? media/Tex/7b1ce3e32e4f325f.tex\n?? media/Tex/ace87e377f098ba2.svg\n?? media/Tex/ace87e377f098ba2.tex\n?? media/Tex/fd8562405d515996.svg\n?? media/Tex/fd8562405d515996.tex\n?? shapes/cylinder.m\n?? shapes/elliptic_hyperboloid.m\n?? shapes/elliptic_hyperboloid_.m\n?? shapes/elliptic_paraboloid.m\n?? tutorial/manim/__pycache__/equations.cpython-311.pyc"
+    },
+    {
+      "name": "matlab_prog_starter",
+      "path": "/Users/chrisdixon/MATLAB/Project/ExternalProjects/Programming-A-Starter-Project-Using-MATLAB-and-Python",
+      "priority": "p4",
+      "stack": [
+        "matlab",
+        "python"
+      ],
+      "notes": "Starter joint proj",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "D Images/SeaSurfaceTemps.png\n D Images/windTokyo.gif"
+    },
+    {
+      "name": "matlab_treasure_hunt",
+      "path": "/Users/chrisdixon/MATLAB/Project/ExternalProjects/Treasure-Hunt",
+      "priority": "p4",
+      "stack": [
+        "matlab"
+      ],
+      "notes": "Educational game",
+      "exists": true,
+      "git_clean": true,
+      "git_summary": ""
+    },
+    {
+      "name": "matlab_real_space",
+      "path": "/Users/chrisdixon/MATLAB/Project/ExternalProjects/Matlab_Real_Space",
+      "priority": "p4",
+      "stack": [
+        "matlab"
+      ],
+      "notes": "Linear algebra demos",
+      "exists": true,
+      "git_clean": true,
+      "git_summary": ""
+    },
+    {
+      "name": "matlab_programming_data",
+      "path": "/Users/chrisdixon/MATLAB/Project/ExternalProjects/Programming-Organizing-Data",
+      "priority": "p4",
+      "stack": [
+        "matlab"
+      ],
+      "notes": "Data organization coursework",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "D Images/TokyoWindPrediction.gif\n D Images/sst.png"
+    },
+    {
+      "name": "matlab_fundamentals",
+      "path": "/Users/chrisdixon/MATLAB/Project/ExternalProjects/Fundamentals-of-Programming",
+      "priority": "p4",
+      "stack": [
+        "matlab"
+      ],
+      "notes": "Intro curriculum",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "D Images/TokyoWindMap.gif\n D Images/sst.png"
+    },
+    {
+      "name": "matlab_structuring_code",
+      "path": "/Users/chrisdixon/MATLAB/Project/ExternalProjects/Programming-Structuring-Code",
+      "priority": "p4",
+      "stack": [
+        "matlab"
+      ],
+      "notes": "Structuring exercises",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "D Images/turkeys1.jpg"
+    }
+  ],
+  "reports": {
+    "mode": "all",
+    "overview": "/Users/chrisdixon/OS_Dashboard_AI_Assistant/FEATURES_OVERVIEW.md",
+    "deep_dive": "/Users/chrisdixon/OS_Dashboard_AI_Assistant/ARCHITECTURE_DEEP_DIVE.md",
+    "todo_report": "/Users/chrisdixon/OS_Dashboard_AI_Assistant/TODO_REMAINING_20251211T223848Z.md"
+  }
+}

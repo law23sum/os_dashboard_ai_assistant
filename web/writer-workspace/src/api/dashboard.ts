@@ -1,3 +1,5 @@
+import { apiRequest } from "./client";
+
 export interface DashboardTask {
   id: number;
   title: string;
@@ -7,6 +9,12 @@ export interface DashboardTask {
   due_date?: string;
   owner: string;
   notes: string;
+}
+
+export interface WebPageLink {
+  label: string;
+  url: string;
+  kind: string;
 }
 
 export interface DashboardSnapshot {
@@ -22,12 +30,9 @@ export interface DashboardSnapshot {
   status_counts: Record<string, number>;
   persona_load: Record<string, number>;
   generated_at: string;
+  web_pages?: WebPageLink[];
 }
 
 export async function fetchDashboardSummary(): Promise<DashboardSnapshot> {
-  const resp = await fetch("/dashboard/summary");
-  if (!resp.ok) {
-    throw new Error(`Dashboard API error (${resp.status})`);
-  }
-  return resp.json();
+  return apiRequest<DashboardSnapshot>("/dashboard/summary");
 }
