@@ -91,3 +91,4 @@ This is intentional and correct for edition-based feature gating.
 - ❌ "does a feature have multiple categories" → **NOT VALID** (each feature belongs to one category)
 
 
+

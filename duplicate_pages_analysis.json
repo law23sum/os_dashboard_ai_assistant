@@ -1,0 +1,1996 @@
+{
+  "total_pages": 904,
+  "duplicate_groups": 218,
+  "combinations": [
+    {
+      "normalized": "safetyalignmentoverview",
+      "primary": "Safety&AlignmentOverview.tsx",
+      "others": [
+        "SafetyAlignmentOverview.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "findingstriage",
+      "primary": "Findings&Triage.tsx",
+      "others": [
+        "FindingsTriage.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "projects",
+      "primary": "Projects.tsx",
+      "others": [
+        "Missioncontrol/Coreflightdeck/Projects.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "writer",
+      "primary": "Writer.tsx",
+      "others": [
+        "Workspaces/Writer.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "keyrotationkmsintegrations",
+      "primary": "KeyRotation&KMSIntegrations.tsx",
+      "others": [
+        "KeyRotationKMSIntegrations.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "reviewsratings",
+      "primary": "Reviews&Ratings.tsx",
+      "others": [
+        "ReviewsRatings.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "driverhealthtelemetry",
+      "primary": "DriverHealth&Telemetry.tsx",
+      "others": [
+        "DriverHealthTelemetry.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "archive",
+      "primary": "Archive.tsx",
+      "others": [
+        "Workspaces/Archive.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "verticaleditions",
+      "primary": "VerticalEditions.tsx",
+      "others": [
+        "Drivers/Verticaleditions.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "compliancepacks",
+      "primary": "CompliancePacks.tsx",
+      "others": [
+        "Governancesecurity/Complianceregulator/Compliancepacks.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "strategysimulation",
+      "primary": "StrategySimulation.tsx",
+      "others": [
+        "Workspaces/Businessfinance/Strategysimulation.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "templates",
+      "primary": "Templates.tsx",
+      "others": [
+        "Workspaces/Twins/Templates.tsx",
+        "Workspaces/Writerworkspace/Templates.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "playbooksrunbooks",
+      "primary": "Playbooks&Runbooks.tsx",
+      "others": [
+        "PlaybooksRunbooks.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "versioningdeprecation",
+      "primary": "Versioning&Deprecation.tsx",
+      "others": [
+        "VersioningDeprecation.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "businesscontinuitydr",
+      "primary": "BusinessContinuity&DR.tsx",
+      "others": [
+        "BusinessContinuityDR.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "loggingtracingoverview",
+      "primary": "Logging&TracingOverview.tsx",
+      "others": [
+        "LoggingTracingOverview.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "agentregistrylifecycle",
+      "primary": "AgentRegistry&Lifecycle.tsx",
+      "others": [
+        "AgentRegistryLifecycle.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "businessconsole",
+      "primary": "BusinessConsole.tsx",
+      "others": [
+        "Workspaces/Businessfinance/Businessconsole.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "operatorstudio",
+      "primary": "OperatorStudio.tsx",
+      "others": [
+        "Ai/Capsules/OperatorStudio.tsx",
+        "Aifabric/Capsulesworkflow/Operatorstudio.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "modelpackagingdeployment",
+      "primary": "ModelPackaging&Deployment.tsx",
+      "others": [
+        "ModelPackagingDeployment.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "crossplaneflows",
+      "primary": "Cross-PlaneFlows.tsx",
+      "others": [
+        "CrossPlaneFlows.tsx",
+        "Missionarchitecture/Planesarchitecture/Crossplaneflows.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "futurecapabilities",
+      "primary": "FutureCapabilities.tsx",
+      "others": [
+        "Roadmap/FutureCapabilities.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "slisslos",
+      "primary": "SLIs&SLOs.tsx",
+      "others": [
+        "SLIsSLOs.tsx",
+        "Observabilityevidence/Telemetrymetrics/Slisslos.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "intentlogsreplay",
+      "primary": "IntentLogs&Replay.tsx",
+      "others": [
+        "IntentLogsReplay.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "intenttaxonomyroutingrules",
+      "primary": "IntentTaxonomy&RoutingRules.tsx",
+      "others": [
+        "IntentTaxonomyRoutingRules.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "aioscontrol",
+      "primary": "AIOSControl.tsx",
+      "others": [
+        "Aifabric/Driverfabric/Aioscontrol.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "multitenantbilling",
+      "primary": "Multi-TenantBilling.tsx",
+      "others": [
+        "MultiTenantBilling.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "policyascodechecks",
+      "primary": "Policy-as-CodeChecks.tsx",
+      "others": [
+        "PolicyasCodeChecks.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "datamappingtransformations",
+      "primary": "DataMapping&Transformations.tsx",
+      "others": [
+        "DataMappingTransformations.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "missionarchitecturehome",
+      "primary": "Mission&ArchitectureHome.tsx",
+      "others": [
+        "MissionArchitectureHome.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "datafeedssync",
+      "primary": "DataFeeds&Sync.tsx",
+      "others": [
+        "DataFeedsSync.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "taskautomationrules",
+      "primary": "TaskAutomation&Rules.tsx",
+      "others": [
+        "TaskAutomationRules.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "multiregiondr",
+      "primary": "Multi-Region&DR.tsx",
+      "others": [
+        "MultiRegionDR.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "operationsinfrastructurehome",
+      "primary": "Operations&InfrastructureHome.tsx",
+      "others": [
+        "OperationsInfrastructureHome.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "driverversioningdeprecation",
+      "primary": "DriverVersioning&Deprecation.tsx",
+      "others": [
+        "DriverVersioningDeprecation.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "governancesecurityhome",
+      "primary": "Governance&SecurityHome.tsx",
+      "others": [
+        "GovernanceSecurityHome.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "metricsmodel",
+      "primary": "MetricsModel.tsx",
+      "others": [
+        "Observabilityevidence/Telemetrymetrics/Metricsmodel.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "citationsreferences",
+      "primary": "Citations&References.tsx",
+      "others": [
+        "CitationsReferences.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "mentionspresence",
+      "primary": "Mentions&Presence.tsx",
+      "others": [
+        "MentionsPresence.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "secretsconfigurationvault",
+      "primary": "Secrets&ConfigurationVault.tsx",
+      "others": [
+        "SecretsConfigurationVault.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "simulationworkbench",
+      "primary": "SimulationWorkbench.tsx",
+      "others": [
+        "Workspaces/Researchsimulation/Simulationworkbench.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "architectureoverview",
+      "primary": "ArchitectureOverview.tsx",
+      "others": [
+        "Missionarchitecture/Architectureprinciples/Architectureoverview.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "visionmetastackhome",
+      "primary": "Vision&Meta-StackHome.tsx",
+      "others": [
+        "VisionMeta-StackHome.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "repobranchbrowser",
+      "primary": "Repo&BranchBrowser.tsx",
+      "others": [
+        "RepoBranchBrowser.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "driverawareorchestrator",
+      "primary": "Driver-AwareOrchestrator.tsx",
+      "others": [
+        "DriverAwareOrchestrator.tsx",
+        "Missionarchitecture/Architectureprinciples/Driverawareorchestrator.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "dataknowledgehome",
+      "primary": "Data&KnowledgeHome.tsx",
+      "others": [
+        "DataKnowledgeHome.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "daemonfamilies",
+      "primary": "DaemonFamilies.tsx",
+      "others": [
+        "Missionarchitecture/Missionidentity/Daemonfamilies.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "lineagereplay",
+      "primary": "Lineage&Replay.tsx",
+      "others": [
+        "LineageReplay.tsx",
+        "Aifabric/Capsulesworkflow/Lineagereplay.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "temporalreconstruction",
+      "primary": "TemporalReconstruction.tsx",
+      "others": [
+        "Workspaces/Archivecontinuity/Temporalreconstruction.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "capacitycostinsights",
+      "primary": "Capacity&CostInsights.tsx",
+      "others": [
+        "CapacityCostInsights.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "selfhealing",
+      "primary": "Self-Healing.tsx",
+      "others": [
+        "SelfHealing.tsx",
+        "Observability/SelfHealing.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "settingsadminhome",
+      "primary": "Settings&AdminHome.tsx",
+      "others": [
+        "SettingsAdminHome.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "governanceplane",
+      "primary": "GovernancePlane.tsx",
+      "others": [
+        "Missionarchitecture/Planesarchitecture/Governanceplane.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "backpressurethrottling",
+      "primary": "Backpressure&Throttling.tsx",
+      "others": [
+        "BackpressureThrottling.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "mystackcapsules",
+      "primary": "MyStackCapsules.tsx",
+      "others": [
+        "Aifabric/Capsulesworkflow/Mystackcapsules.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "advancedaiengine",
+      "primary": "AdvancedAIEngine.tsx",
+      "others": [
+        "Aifabric/Cognitiveagents/Advancedaiengine.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "teammembers",
+      "primary": "Team&Members.tsx",
+      "others": [
+        "TeamMembers.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "autofixconsole",
+      "primary": "Auto-FixConsole.tsx",
+      "others": [
+        "AutoFixConsole.tsx",
+        "Aifabric/Capsulesworkflow/Autofixconsole.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "softwaresaasdrivers",
+      "primary": "Software&SaaSDrivers.tsx",
+      "others": [
+        "SoftwareSaaSDrivers.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "capsuletemplates",
+      "primary": "CapsuleTemplates.tsx",
+      "others": [
+        "Aifabric/Capsulesworkflow/Capsuletemplates.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "legacymainframe",
+      "primary": "Legacy&Mainframe.tsx",
+      "others": [
+        "LegacyMainframe.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "settingsadminenterpriseextensionshome",
+      "primary": "Settings&Admin(EnterpriseExtensions)Home.tsx",
+      "others": [
+        "SettingsAdminEnterpriseExtensionsHome.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "dashboard",
+      "primary": "Dashboard.tsx",
+      "others": [
+        "Missioncontrol/Coreflightdeck/Dashboard.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "projectmembersroles",
+      "primary": "ProjectMembers&Roles.tsx",
+      "others": [
+        "ProjectMembersRoles.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "exceptionswaivers",
+      "primary": "Exceptions&Waivers.tsx",
+      "others": [
+        "ExceptionsWaivers.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "architecturalprinciples",
+      "primary": "ArchitecturalPrinciples.tsx",
+      "others": [
+        "Missionarchitecture/Architectureprinciples/Architecturalprinciples.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "roadmapriskshome",
+      "primary": "Roadmap&RisksHome.tsx",
+      "others": [
+        "RoadmapRisksHome.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "thirdpartyrisk",
+      "primary": "Third-PartyRisk.tsx",
+      "others": [
+        "ThirdPartyRisk.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "researchsimulationdrivers",
+      "primary": "Research&SimulationDrivers.tsx",
+      "others": [
+        "ResearchSimulationDrivers.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "apikeystokens",
+      "primary": "APIKeys&Tokens.tsx",
+      "others": [
+        "APIKeysTokens.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "exportintegrations",
+      "primary": "Export&Integrations.tsx",
+      "others": [
+        "ExportIntegrations.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "researchhub",
+      "primary": "ResearchHub.tsx",
+      "others": [
+        "Workspaces/Researchsimulation/Researchhub.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "legalhold",
+      "primary": "LegalHold.tsx",
+      "others": [
+        "Data/LegalHold.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "nasconsole",
+      "primary": "NASConsole.tsx",
+      "others": [
+        "Aifabric/Mlopsneuralarch/Nasconsole.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "archiveworkspace",
+      "primary": "ArchiveWorkspace.tsx",
+      "others": [
+        "Workspaces/Archivecontinuity/Archiveworkspace.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "regulatorfabric",
+      "primary": "RegulatorFabric.tsx",
+      "others": [
+        "Governancesecurity/Complianceregulator/Regulatorfabric.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "datasetfeaturestore",
+      "primary": "Dataset&FeatureStore.tsx",
+      "others": [
+        "DatasetFeatureStore.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "monitoring",
+      "primary": "Monitoring.tsx",
+      "others": [
+        "Observabilityevidence/Telemetrymetrics/Monitoring.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "daemonframework",
+      "primary": "DaemonFramework.tsx",
+      "others": [
+        "Aifabric/Cognitiveagents/Daemonframework.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "forensicsevidence",
+      "primary": "Forensics&Evidence.tsx",
+      "others": [
+        "ForensicsEvidence.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "apikeys",
+      "primary": "APIKeys.tsx",
+      "others": [
+        "Settings/ApiKeys.tsx",
+        "governance/Identity/ApiKeys.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "restoreexport",
+      "primary": "Restore&Export.tsx",
+      "others": [
+        "RestoreExport.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "changelogsreleasenotes",
+      "primary": "ChangeLogs&ReleaseNotes.tsx",
+      "others": [
+        "ChangeLogsReleaseNotes.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "narrativeguidance",
+      "primary": "NarrativeGuidance.tsx",
+      "others": [
+        "Workspaces/Writerworkspace/Narrativeguidance.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "regulatortenancy",
+      "primary": "RegulatorTenancy.tsx",
+      "others": [
+        "Governancesecurity/Complianceregulator/Regulatortenancy.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "policylibrarytemplates",
+      "primary": "PolicyLibrary&Templates.tsx",
+      "others": [
+        "PolicyLibraryTemplates.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "hybridedge",
+      "primary": "Hybrid&Edge.tsx",
+      "others": [
+        "HybridEdge.tsx",
+        "Operationsinfrastructure/Deploymentmodels/Hybridedge.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "backupretention",
+      "primary": "Backup&Retention.tsx",
+      "others": [
+        "BackupRetention.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "taskboardkanban",
+      "primary": "TaskBoard(Kanban).tsx",
+      "others": [
+        "TaskBoardKanban.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "hardwaredrivers",
+      "primary": "HardwareDrivers.tsx",
+      "others": [
+        "Aifabric/Driverfabric/Hardwaredrivers.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "nassimulator",
+      "primary": "NASSimulator.tsx",
+      "others": [
+        "Aifabric/Mlopsneuralarch/Nassimulator.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "realitytwinmesh",
+      "primary": "RealityTwinMesh.tsx",
+      "others": [
+        "Workspaces/Digitaltwinenterprise/Realitytwinmesh.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "intentprocessor",
+      "primary": "IntentProcessor.tsx",
+      "others": [
+        "Aifabric/Intentprocessing/Intentprocessor.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "evaluationbenchmarks",
+      "primary": "Evaluation&Benchmarks.tsx",
+      "others": [
+        "EvaluationBenchmarks.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "tokenization",
+      "primary": "Tokenization.tsx",
+      "others": [
+        "governance/DataProtection/Tokenization.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "exportpublishing",
+      "primary": "Export&Publishing.tsx",
+      "others": [
+        "ExportPublishing.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "workfloworchestrator",
+      "primary": "WorkflowOrchestrator.tsx",
+      "others": [
+        "Aifabric/Capsulesworkflow/Workfloworchestrator.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "sandboxmanagement",
+      "primary": "SandboxManagement.tsx",
+      "others": [
+        "Workspaces/Operatorsre/Sandboxmanagement.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "releasenotes",
+      "primary": "ReleaseNotes.tsx",
+      "others": [
+        "Docs/ReleaseNotes.tsx",
+        "Workspaces/Dev/ReleaseNotes.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "modelproviderlayer",
+      "primary": "ModelProviderLayer.tsx",
+      "others": [
+        "Missionarchitecture/Missionidentity/Modelproviderlayer.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "hpcorchestrator",
+      "primary": "HPCOrchestrator.tsx",
+      "others": [
+        "Workspaces/Researchsimulation/Hpcorchestrator.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "financebanking",
+      "primary": "Finance&Banking.tsx",
+      "others": [
+        "FinanceBanking.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "licensingentitlements",
+      "primary": "Licensing&Entitlements.tsx",
+      "others": [
+        "LicensingEntitlements.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "tenancyorgsettings",
+      "primary": "Tenancy&OrgSettings.tsx",
+      "others": [
+        "TenancyOrgSettings.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "alertsrules",
+      "primary": "Alerts&Rules.tsx",
+      "others": [
+        "AlertsRules.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "datamodelcontracts",
+      "primary": "DataModel&Contracts.tsx",
+      "others": [
+        "DataModelContracts.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "versioningchangelog",
+      "primary": "Versioning&ChangeLog.tsx",
+      "others": [
+        "VersioningChangeLog.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "savedsearchesalerts",
+      "primary": "SavedSearches&Alerts.tsx",
+      "others": [
+        "SavedSearchesAlerts.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "reliabilitydashboard",
+      "primary": "ReliabilityDashboard.tsx",
+      "others": [
+        "Workspaces/Operatorsre/Reliabilitydashboard.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "apiconnectors",
+      "primary": "APIConnectors.tsx",
+      "others": [
+        "Integrations/ApiConnectors.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "observability",
+      "primary": "Observability.tsx",
+      "others": [
+        "Observabilityevidence/Telemetrymetrics/Observability.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "schedulingtriggers",
+      "primary": "Scheduling&Triggers.tsx",
+      "others": [
+        "SchedulingTriggers.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "writerworkstation",
+      "primary": "WriterWorkstation.tsx",
+      "others": [
+        "Workspaces/Writerworkspace/Writerworkstation.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "aicopilot",
+      "primary": "AICopilot.tsx",
+      "others": [
+        "Aifabric/Cognitiveagents/Aicopilot.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "driverpermissionssandboxing",
+      "primary": "DriverPermissions&Sandboxing.tsx",
+      "others": [
+        "DriverPermissionsSandboxing.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "projectledger",
+      "primary": "ProjectLedger.tsx",
+      "others": [
+        "Aifabric/Capsulesworkflow/Projectledger.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "identityroles",
+      "primary": "Identity&Roles.tsx",
+      "others": [
+        "IdentityRoles.tsx",
+        "Missionarchitecture/Missionidentity/Identityroles.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "driverregistry",
+      "primary": "DriverRegistry.tsx",
+      "others": [
+        "Aifabric/Driverfabric/Driverregistry.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "tasks",
+      "primary": "Tasks.tsx",
+      "others": [
+        "Missioncontrol/Coreflightdeck/Tasks.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "storyqacontinuity",
+      "primary": "StoryQA&Continuity.tsx",
+      "others": [
+        "StoryQAContinuity.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "policyversioningapprovals",
+      "primary": "PolicyVersioning&Approvals.tsx",
+      "others": [
+        "PolicyVersioningApprovals.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "personasagents",
+      "primary": "Personas&Agents.tsx",
+      "others": [
+        "PersonasAgents.tsx",
+        "Aifabric/Cognitiveagents/Personasagents.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "budgetsquotas",
+      "primary": "Budgets&Quotas.tsx",
+      "others": [
+        "BudgetsQuotas.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "projectintelligence",
+      "primary": "ProjectIntelligence.tsx",
+      "others": [
+        "Ai/ProjectIntelligence.tsx",
+        "Aifabric/Cognitiveagents/Projectintelligence.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "autoremediation",
+      "primary": "Auto-Remediation.tsx",
+      "others": [
+        "AutoRemediation.tsx",
+        "Workspaces/Cyber/AutoRemediation.tsx",
+        "Workspaces/Cybersecurityworkspace/Autoremediation.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "dataplane",
+      "primary": "DataPlane.tsx",
+      "others": [
+        "Missionarchitecture/Planesarchitecture/Dataplane.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "policyengine",
+      "primary": "PolicyEngine.tsx",
+      "others": [
+        "Governancesecurity/Policygovernance/Policyengine.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "performancetargets",
+      "primary": "PerformanceTargets.tsx",
+      "others": [
+        "Mission/Performancetargets.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "exceptionsapprovals",
+      "primary": "Exceptions&Approvals.tsx",
+      "others": [
+        "ExceptionsApprovals.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "majorcomponents",
+      "primary": "MajorComponents.tsx",
+      "others": [
+        "Missionarchitecture/Architectureprinciples/Majorcomponents.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "research",
+      "primary": "Research.tsx",
+      "others": [
+        "Drivers/Integrations/Research.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "driversintegrationshome",
+      "primary": "Drivers&IntegrationsHome.tsx",
+      "others": [
+        "DriversIntegrationsHome.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "localmode",
+      "primary": "LocalMode.tsx",
+      "others": [
+        "Operationsinfrastructure/Deploymentmodels/Localmode.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "securityincidents",
+      "primary": "SecurityIncidents.tsx",
+      "others": [
+        "Operations/SecurityIncidents.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "observabilityevidencehome",
+      "primary": "Observability&EvidenceHome.tsx",
+      "others": [
+        "ObservabilityEvidenceHome.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "secretsinputs",
+      "primary": "Secrets&Inputs.tsx",
+      "others": [
+        "SecretsInputs.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "componentmapping",
+      "primary": "ComponentMapping.tsx",
+      "others": [
+        "Missionarchitecture/Architectureprinciples/Componentmapping.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "dataprotection",
+      "primary": "DataProtection.tsx",
+      "others": [
+        "Operations/DataProtection.tsx",
+        "governance/DataProtection.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "analytics",
+      "primary": "Analytics.tsx",
+      "others": [
+        "Drivers/Analytics.tsx",
+        "Observabilityevidence/Telemetrymetrics/Analytics.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "deploymentserving",
+      "primary": "Deployment&Serving.tsx",
+      "others": [
+        "DeploymentServing.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "longtermbets",
+      "primary": "Long-TermBets.tsx",
+      "others": [
+        "LongTermBets.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "marketplace",
+      "primary": "Marketplace.tsx",
+      "others": [
+        "Drivers/Marketplace.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "webhooksevents",
+      "primary": "Webhooks&Events.tsx",
+      "others": [
+        "WebhooksEvents.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "devworkspace",
+      "primary": "DevWorkspace.tsx",
+      "others": [
+        "Workspaces/Devdevops/Devworkspace.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "retentiontiering",
+      "primary": "Retention&Tiering.tsx",
+      "others": [
+        "RetentionTiering.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "schemaontology",
+      "primary": "Schema&Ontology.tsx",
+      "others": [
+        "SchemaOntology.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "securityguardian",
+      "primary": "SecurityGuardian.tsx",
+      "others": [
+        "Workspaces/Cybersecurityworkspace/Securityguardian.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "driverperformance",
+      "primary": "DriverPerformance.tsx",
+      "others": [
+        "Operations/DriverPerformance.tsx",
+        "Operationsinfrastructure/Performancescalability/Driverperformance.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "capacityplanning",
+      "primary": "CapacityPlanning.tsx",
+      "others": [
+        "Operationsinfrastructure/Performancescalability/Capacityplanning.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "gettingstarted",
+      "primary": "GettingStarted.tsx",
+      "others": [
+        "Docs/GettingStarted.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "mlops",
+      "primary": "MLOps.tsx",
+      "others": [
+        "Aifabric/Mlopsneuralarch/Mlops.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "systemsmap",
+      "primary": "SystemsMap.tsx",
+      "others": [
+        "Aifabric/Intentprocessing/Systemsmap.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "multiregionreplication",
+      "primary": "Multi-RegionReplication.tsx",
+      "others": [
+        "MultiRegionReplication.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "distributedtracing",
+      "primary": "DistributedTracing.tsx",
+      "others": [
+        "Observabilityevidence/Loggingtracing/Distributedtracing.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "safetyharnesses",
+      "primary": "SafetyHarnesses.tsx",
+      "others": [
+        "Governancesecurity/Policygovernance/Safetyharnesses.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "missionscope",
+      "primary": "Mission&Scope.tsx",
+      "others": [
+        "MissionScope.tsx",
+        "Missionarchitecture/Missionidentity/Missionscope.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "packageenvdrivers",
+      "primary": "Package&EnvDrivers.tsx",
+      "others": [
+        "PackageEnvDrivers.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "fulltextsearch",
+      "primary": "Full-TextSearch.tsx",
+      "others": [
+        "FullTextSearch.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "sreworkspace",
+      "primary": "SREWorkspace.tsx",
+      "others": [
+        "Workspaces/Operatorsre/Sreworkspace.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "capsulemarketplace",
+      "primary": "CapsuleMarketplace.tsx",
+      "others": [
+        "Aifabric/Capsulesworkflow/Capsulemarketplace.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "datadrivers",
+      "primary": "DataDrivers.tsx",
+      "others": [
+        "Aifabric/Driverfabric/Datadrivers.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "healthdriftmonitors",
+      "primary": "Health&DriftMonitors.tsx",
+      "others": [
+        "HealthDriftMonitors.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "authratelimits",
+      "primary": "Auth&RateLimits.tsx",
+      "others": [
+        "AuthRateLimits.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "experimentconsole",
+      "primary": "ExperimentConsole.tsx",
+      "others": [
+        "Aifabric/Mlopsneuralarch/Experimentconsole.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "computervision",
+      "primary": "ComputerVision.tsx",
+      "others": [
+        "Aifabric/Edgevision/Computervision.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "aidriverstack",
+      "primary": "AI+DriverStack.tsx",
+      "others": [
+        "Missionarchitecture/Missionidentity/Aidriverstack.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "scalingstrategies",
+      "primary": "ScalingStrategies.tsx",
+      "others": [
+        "Operationsinfrastructure/Performancescalability/Scalingstrategies.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "approvalpublishing",
+      "primary": "Approval&Publishing.tsx",
+      "others": [
+        "ApprovalPublishing.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "ratelimitsquotas",
+      "primary": "RateLimits&Quotas.tsx",
+      "others": [
+        "RateLimitsQuotas.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "queuessearch",
+      "primary": "Queues&Search.tsx",
+      "others": [
+        "QueuesSearch.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "cloudenterprise",
+      "primary": "CloudEnterprise.tsx",
+      "others": [
+        "Operationsinfrastructure/Deploymentmodels/Cloudenterprise.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "evidenceaccess",
+      "primary": "EvidenceAccess.tsx",
+      "others": [
+        "Governancesecurity/Complianceregulator/Evidenceaccess.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "structuredlogging",
+      "primary": "StructuredLogging.tsx",
+      "others": [
+        "Observabilityevidence/Loggingtracing/Structuredlogging.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "systemboundariesnongoals",
+      "primary": "SystemBoundaries&Non-Goals.tsx",
+      "others": [
+        "SystemBoundariesNonGoals.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "chat",
+      "primary": "Chat.tsx",
+      "others": [
+        "Missioncontrol/Engagementpersona/Chat.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "docsspechome",
+      "primary": "Docs&SpecHome.tsx",
+      "others": [
+        "DocsSpecHome.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "encryptionkeys",
+      "primary": "Encryption&Keys.tsx",
+      "others": [
+        "EncryptionKeys.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "specsheet",
+      "primary": "SpecSheet.tsx",
+      "others": [
+        "Docs/SpecSheet.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "personalization",
+      "primary": "Personalization.tsx",
+      "others": [
+        "Missioncontrol/Engagementpersona/Personalization.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "deploymentmodes",
+      "primary": "DeploymentModes.tsx",
+      "others": [
+        "Missionarchitecture/Missionidentity/Deploymentmodes.tsx",
+        "Operationsinfrastructure/Deploymentmodels/Deploymentmodes.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "digitaltwinbuilder",
+      "primary": "DigitalTwinBuilder.tsx",
+      "others": [
+        "Workspaces/Digitaltwinenterprise/Digitaltwinbuilder.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "forecasting",
+      "primary": "Forecasting.tsx",
+      "others": [
+        "Workspaces/Finance/Forecasting.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "performance",
+      "primary": "Performance.tsx",
+      "others": [
+        "Operationsinfrastructure/Performancescalability/Performance.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "canonlore",
+      "primary": "Canon&Lore.tsx",
+      "others": [
+        "CanonLore.tsx",
+        "Workspaces/Writerworkspace/Canonlore.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "enterprisetwin",
+      "primary": "EnterpriseTwin.tsx",
+      "others": [
+        "Workspaces/Digitaltwinenterprise/Enterprisetwin.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "edgecomputing",
+      "primary": "EdgeComputing.tsx",
+      "others": [
+        "Aifabric/Edgevision/Edgecomputing.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "correlationcontext",
+      "primary": "Correlation&Context.tsx",
+      "others": [
+        "CorrelationContext.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "osdrivers",
+      "primary": "OSDrivers.tsx",
+      "others": [
+        "Aifabric/Driverfabric/Osdrivers.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "runbooks",
+      "primary": "Runbooks.tsx",
+      "others": [
+        "Workspaces/Sre/Runbooks.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "planeapiseventcontracts",
+      "primary": "PlaneAPIs&EventContracts.tsx",
+      "others": [
+        "PlaneAPIsEventContracts.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "controlplane",
+      "primary": "ControlPlane.tsx",
+      "others": [
+        "Missionarchitecture/Planesarchitecture/Controlplane.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "security",
+      "primary": "Security.tsx",
+      "others": [
+        "governance/Security.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "collaboration",
+      "primary": "Collaboration.tsx",
+      "others": [
+        "Missioncontrol/Engagementpersona/Collaboration.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "glossary",
+      "primary": "Glossary.tsx",
+      "others": [
+        "Mission/Glossary.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "policydsl",
+      "primary": "PolicyDSL.tsx",
+      "others": [
+        "Governancesecurity/Policygovernance/Policydsl.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "auditlogs",
+      "primary": "AuditLogs.tsx",
+      "others": [
+        "Observability/AuditLogs.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "annotationlabeling",
+      "primary": "Annotation&Labeling.tsx",
+      "others": [
+        "AnnotationLabeling.tsx"
+      ],
+      "theme": "general",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "recordauditor",
+      "primary": "RecordAuditor.tsx",
+      "others": [
+        "Observability/RecordAuditor.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "experimentdesign",
+      "primary": "ExperimentDesign.tsx",
+      "others": [
+        "Workspaces/Researchsimulation/Experimentdesign.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "threatmodeling",
+      "primary": "ThreatModeling.tsx",
+      "others": [
+        "Workspaces/Cyber/ThreatModeling.tsx",
+        "Workspaces/Cybersecurityworkspace/Threatmodeling.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "timeline",
+      "primary": "Calendar/Timeline.tsx",
+      "others": [
+        "Observability/RecordAuditor/Timeline.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "publishing",
+      "primary": "Drivers/Publishing.tsx",
+      "others": [
+        "Workspaces/Research/Publishing.tsx",
+        "Workspaces/Writer/Publishing.tsx"
+      ],
+      "theme": "driver",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "versioning",
+      "primary": "Drivers/Versioning.tsx",
+      "others": [
+        "Workspaces/Writer/Versioning.tsx"
+      ],
+      "theme": "driver",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "risk",
+      "primary": "Drivers/Risk.tsx",
+      "others": [
+        "Workspaces/Finance/Risk.tsx"
+      ],
+      "theme": "driver",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "routescaffold",
+      "primary": "Ai/RouteScaffold.tsx",
+      "others": [
+        "Roadmap/RouteScaffold.tsx",
+        "Operations/RouteScaffold.tsx",
+        "Data/RouteScaffold.tsx",
+        "Ai/Capsules/RouteScaffold.tsx",
+        "Operations/BcDr/RouteScaffold.tsx"
+      ],
+      "theme": "ai",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "loggingtracing",
+      "primary": "Observability/LoggingTracing.tsx",
+      "others": [
+        "Observabilityevidence/Loggingtracing.tsx"
+      ],
+      "theme": "observability",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "finance",
+      "primary": "Workspaces/Finance.tsx",
+      "others": [
+        "Drivers/Integrations/Finance.tsx"
+      ],
+      "theme": "workspace",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "contracts",
+      "primary": "Mission/Contracts.tsx",
+      "others": [
+        "Mission/Planes/Contracts.tsx"
+      ],
+      "theme": "mission",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "enterprise",
+      "primary": "Cloud/Enterprise.tsx",
+      "others": [
+        "Workspaces/Twins/Enterprise.tsx"
+      ],
+      "theme": "general",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "governance",
+      "primary": "Mission/Planes/Governance.tsx",
+      "others": [
+        "Workspaces/Twins/Governance.tsx"
+      ],
+      "theme": "mission",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "digitaltwins",
+      "primary": "Workspaces/Research/DigitalTwins.tsx",
+      "others": [
+        "Workspaces/Researchsimulation/Digitaltwins.tsx"
+      ],
+      "theme": "workspace",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "incidents",
+      "primary": "Workspaces/Cyber/Incidents.tsx",
+      "others": [
+        "Workspaces/Sre/Incidents.tsx"
+      ],
+      "theme": "workspace",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "scenarios",
+      "primary": "Workspaces/Finance/Scenarios.tsx",
+      "others": [
+        "Workspaces/Twins/Scenarios.tsx"
+      ],
+      "theme": "workspace",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "mergeadvisor",
+      "primary": "Workspaces/Dev/MergeAdvisor.tsx",
+      "others": [
+        "Workspaces/Devdevops/Mergeadvisor.tsx"
+      ],
+      "theme": "workspace",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "cicd",
+      "primary": "Workspaces/Dev/Cicd.tsx",
+      "others": [
+        "Workspaces/Devdevops/Cicd.tsx"
+      ],
+      "theme": "workspace",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "committasks",
+      "primary": "Workspaces/Dev/CommitTasks.tsx",
+      "others": [
+        "Workspaces/Devdevops/Committasks.tsx"
+      ],
+      "theme": "workspace",
+      "strategy": "merge"
+    },
+    {
+      "normalized": "reviews",
+      "primary": "Drivers/Marketplace/Reviews.tsx",
+      "others": [
+        "Workspaces/Dev/Reviews.tsx"
+      ],
+      "theme": "driver",
+      "strategy": "keep_separate"
+    },
+    {
+      "normalized": "reports",
+      "primary": "Workspaces/Auditor/Reports.tsx",
+      "others": [
+        "Workspaces/Finance/Reports.tsx"
+      ],
+      "theme": "workspace",
+      "strategy": "merge"
+    }
+  ]
+}

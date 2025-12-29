@@ -104,3 +104,4 @@ All navigation elements have been restored and properly organized according to t
 - No duplication between dropdown and sidebar
 - Personal vs Enterprise edition visibility properly handled
 
+

@@ -174,3 +174,4 @@ if __name__ == '__main__':
         print(f"  {i}. {branch}: {counts['total']} total ({counts['platforms']} platforms, {counts['categories']} categories, {counts['features']} features)")
 
 
+

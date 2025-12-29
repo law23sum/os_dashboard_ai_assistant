@@ -110,8 +110,14 @@ cd os_dashboard_ai_assistant
 #### Step 2: Install Python Dependencies
 
 ```bash
+# Check Python version first (must be 3.9 or higher)
+python --version  # or python3 --version on some systems
+# Should show: Python 3.9.x or higher
+
 # Create virtual environment (recommended)
 python -m venv venv
+# On systems where 'python' refers to Python 2, use:
+# python3 -m venv venv
 
 # Activate virtual environment
 # On macOS/Linux:
@@ -119,8 +125,12 @@ source venv/bin/activate
 # On Windows:
 venv\Scripts\activate
 
+# Upgrade pip (recommended)
+pip install --upgrade pip
+
 # Install dependencies
 pip install -r requirements.txt
+# Note: If not using a virtual environment, use: pip3 install -r requirements.txt
 ```
 
 #### Step 3: Install Frontend Dependencies
@@ -145,16 +155,27 @@ chmod +x *.sh scripts/*.py *.py
 
 # Or use the launcher
 ./launch_orchestrator.sh --help
+python -m uvicorn assistant_hub.api.server:create_app --factory --host 0.0.0.0 --port 8000
 ```
+
+### Python Command Notes
+
+On some Linux distributions and macOS systems, `python` may refer to Python 2 (deprecated). Use:
+- `python3` instead of `python` if needed
+- `pip3` instead of `pip` if needed
+- Check your system: `which python python3` or `python --version`
 
 ### Verify Installation
 
 ```bash
+# Check Python version
+python --version  # Should be 3.9 or higher
+
 # Check Python dependencies
 python -c "import fastapi, uvicorn; print('✓ Backend dependencies OK')"
 
 # Check Node.js
-node --version
+node --version  # Should be 18 or higher
 npm --version
 
 # Check frontend dependencies
@@ -176,6 +197,7 @@ python start_ui.py
 # Direct mode selection
 python start_ui.py --mode web           # Vite dev server + FastAPI proxy
 python start_ui.py --mode desktop       # Electron dev shell
+VITE_DEV_SERVER_PORT=5174 npm run dev:desktop
 python start_ui.py --mode web-build     # Serve built React bundle in browser
 python start_ui.py --mode desktop-build # Serve built React in pywebview
 ```
@@ -254,6 +276,18 @@ For component-only iteration (without the launcher):
 ```bash
 cd frontend
 npm install
+# Validate everything
+npm run validate:ci
+
+# Generate inventory
+npm run generate:page-inventory
+
+# Run tests
+npm test                    # Frontend
+pytest tests/ -v           # Backend
+
+# Build for production
+npm run build
 npm run dev:web      # Browser/Vite
 npm run dev:desktop  # Electron dev shell
 ```
@@ -261,13 +295,18 @@ npm run dev:desktop  # Electron dev shell
 **Backend:**
 ```bash
 # FastAPI server
-uvicorn assistant_hub.api.server:create_app --factory --reload --host 127.0.0.1 --port 8000
+python -m uvicorn assistant_hub.api.server:create_app --factory --reload --host 127.0.0.1 --port 8000
 
 # Or compatibility entrypoint (auto-picks port, supports TLS from certs/)
 python backend_api/main.py
 
-# Or webview app
-python -m assistant_hub_gui.webview_app --host 0.0.0.0 --port 8000
+# Or webview app (⚠️ must run from project root, not from frontend/)
+# From project root:
+PYTHONPATH=. python -m assistant_hub_gui.webview_app --host 0.0.0.0 --port 8000
+
+# Or run directly as a script (⚠️ must run from project root, not from frontend/)
+# From project root:
+python assistant_hub_gui/webview_app.py --host 0.0.0.0 --port 8000
 ```
 
 ### Method 5: Legacy Tkinter GUI
@@ -331,6 +370,16 @@ curl -X POST http://localhost:8000/api/orchestrator/spawn-codex \
 - 🛡️ **Security** - API authentication, rate limiting
 - 🌐 **Distributed** - Multi-machine support (coming soon)
 - 📈 **Scalable** - Handles 100+ projects efficiently
+
+### Project Management System (PMS)
+
+- ✅ **Epics & Initiatives** - Group tasks into large features
+- ✅ **Deterministic Scheduler** - "What's Next" based on priority tiers
+- ✅ **Execution Runs** - Track automation outputs and artifacts
+- ✅ **Managed Documents** - Version control with publishing workflow
+- ✅ **Meeting Journal** - Structured transcripts and notes
+- ✅ **Finance Tracking** - Expenses and labor cost analysis
+- ✅ **Audit Ledger** - Append-only hash-chained event log
 
 ### Additional Tools
 
@@ -544,7 +593,7 @@ cd frontend && npm run build:web && cd ..
 python start_ui.py --mode web-build
 
 # Or use FastAPI to serve
-uvicorn assistant_hub.api.server:create_app --factory --host 0.0.0.0 --port 8000
+python -m uvicorn assistant_hub.api.server:create_app --factory --host 0.0.0.0 --port 8000
 ```
 
 ### Desktop Packaging
@@ -842,6 +891,14 @@ ls -la logs/status_report.json
 python os_dashboard_ai_assistant.py
 ```
 
+**404 Errors for Frontend Routes**
+```bash
+# Note: 404 errors for routes like /docs/*, /operations/*, /ai/* are EXPECTED
+# These are frontend routes handled by React Router, not backend API endpoints
+# The browser makes initial requests that return 404, but React Router handles them client-side
+# This is normal SPA behavior and not an error
+```
+
 **Frontend Build Issues**
 ```bash
 # Clear node modules and reinstall
@@ -1043,3 +1100,67 @@ open http://localhost:5173/ai/orchestrator
 ---
 
 **God Bless America. Technical Spec Sheet (Version 6 Latest Version)** 🇺🇸
+
+---
+
+## Project Management System (PMS) quick reference
+
+The backend now exposes a deterministic scheduler and scoped project hierarchy via `/api/pms`. Canonical truth lives in the `pms_*` tables; derived scheduler indices are rebuilt on demand.
+
+### Core entities
+- **Project**: `projectId`, `name`, `mode (personal|enterprise)`, `scope`, `config`, `budget`, `createdAt`, `updatedAt`
+- **Epic**: `epicId`, `projectId`, `title`, `description`, `acceptanceCriteria`, `status`, timestamps
+- **Task**: `taskId`, `projectId`, `epicId?`, `title`, `deliverableSpec`, `acceptanceCriteria`, `priority (P0–P3)`, `category`, `type`, `status`, `enqueueTime`, timestamps
+- **Todo**: `todoId`, `taskId`, `text`, `status`, `position`, timestamps
+- **SchedulerIndex (derived)**: tiers → lanes `(category,type)` → FIFO queue by `enqueueTime`; rebuilt on load, never persisted
+
+### Runs, artifacts, documents
+- **ExecutionRun**: `runId`, `projectId`, `epicId?`, `taskId?`, `todoId?`, `inputParams`, `status`, `startedAt`, `endedAt`, `summary`, `createdBy`, `logsRef`
+- **Artifact**: `artifactId`, `runId`, `projectId`, `kind`, `filename`, `mimeType`, `size`, `sha256`, `storageRef`, `createdAt`
+- **Document**: `documentId`, links to project/epic/task, `title`, `kind`, `visibility`, `publishedRevisionHash`, `latestRevisionHash`, timestamps  
+  **DocumentRevision**: `revisionHash = sha256(content)`, `documentId`, `parentHash?`, `author`, `createdAt`, `metadata`, `blob_path`
+
+### Meetings, finance, audit
+- **MeetingSession**: `meetingId`, links to project/epic/task, `title`, `occurredAt`, `startedAt`, `endedAt`, `participants`, `language`, `recordingStatus`, `speakerMap`, `createdBy`, timestamps
+- **TranscriptSegment**: `segmentId`, `meetingId`, `tsStart`, `tsEnd`, `speakerLabel`, `textOriginal`, `textTranslated?`, `confidence`
+- **JournalBlock**: `blockId`, `meetingId`, `sectionType` (Comments, KnowledgeTransfer, DisputableDebate, ChallengesRisks, SolutionsMitigations, ProposalRaised, MisunderstandingClarification, TechnicalDesign, CommonDiscussions, Questions, NextSteps), `content`, references, timestamps
+- **ExpenseEntry**: `expenseId`, links to project/epic/task, `amount`, `currency`, `category`, `vendor`, `occurredAt`, timestamps, `receiptArtifactId?`
+- **TimeEntry**: `timeEntryId`, links to project/epic/task, `actorId`, `role`, `durationMinutes`, `hourlyRate`, `occurredAt`, timestamps, derived labor cost
+- **AuditEvent**: append-only hash-chained ledger: `eventId`, `projectId`, `actorId`, `entityType`, `entityId`, `action`, `timestamp`, `before`, `after`, `correlationId`, `hashPrev`, `hashThis`
+
+### Scheduler behavior
+1. Pick the highest priority tier with eligible tasks (excludes DONE/ARCHIVED).
+2. Within the tier, pick the lane whose head has the oldest `enqueueTime`; tie-break on lane key then `taskId`.
+3. `next_task` re-enqueues the head by updating `enqueueTime` to reduce starvation; `peek_next` is non-mutating.
+4. `validate_invariants` checks missing links and duplicate todo positions.
+
+### Scoping
+- All PMS records carry `user_id`; personal scope is enforced by filtering on the authenticated user. Enterprise/tenant scopes can be layered via the `scope` field in projects.
+
+### Key endpoints (all under `/api/pms`, auth required)
+- `POST /projects`, `GET /projects`, `GET /projects/{id}`
+- `POST /epics`, `GET /epics`, `PATCH /epics/{id}`
+- `POST /tasks`, `GET /tasks`, `PATCH /tasks/{id}`
+- `POST /todos`, `GET /tasks/{taskId}/todos`, `POST /tasks/{taskId}/todos/reorder`
+- Scheduler: `POST /schedule/next`, `GET /schedule/peek`, `POST /schedule/validate`
+- Runs & artifacts: `POST /runs/start`, `POST /runs/{id}/complete`, `POST /runs/{id}/artifacts`, `GET /runs`, `GET /artifacts`
+- Documents: `POST /documents`, `POST /documents/{id}/revisions`, `POST /documents/{id}/publish`, `GET /documents/{id}?view=published|latest|history`, `GET /documents`
+- Meetings/journal: `POST /meetings`, `POST /meetings/{id}/segments`, `GET /meetings/{id}/segments`, `POST /meetings/{id}/journal`, `GET /meetings/{id}/journal`, `POST /meetings/{id}/recording/start|finalize`
+- Finance: `POST /finance/expense`, `POST /finance/time`, `GET /finance/expenses`, `GET /finance/time`, `GET /finance/rollup/{projectId}`
+- Audit/evidence: `GET /audit`, `POST /audit/evidence-pack`
+
+### Sample payloads
+- Create task:
+```json
+POST /api/pms/tasks
+{ "projectId": "proj-123", "title": "Write spec", "priority": "P1", "category": "engineering", "type": "spec" }
+```
+- Peek queue:
+```http
+GET /api/pms/schedule/peek?projectId=proj-123&n=5
+```
+- Add expense:
+```json
+POST /api/pms/finance/expense
+{ "projectId": "proj-123", "amount": 250.0, "currency": "USD", "category": "software", "vendor": "SaaSCo" }
+```

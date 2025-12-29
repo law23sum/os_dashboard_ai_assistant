@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-12-21 12:35:00",
+  "timestamp": "2025-12-29 12:20:00",
   "root": "/Users/chrisdixon/Projects",
   "total_projects": 25,
   "projects": {
     "os_dashboard_ai_assistant": {
       "path": "/Users/chrisdixon/Projects/os_dashboard_ai_assistant",
       "status": "stopped",
-      "branch": "incremeents",
+      "branch": "ai+os+app+exec+binaries",
       "has_ai_autofix": true,
       "has_tests": true,
       "todo_count": 0

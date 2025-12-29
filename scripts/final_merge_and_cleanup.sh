@@ -92,3 +92,4 @@ echo "Current branch: $(git branch --show-current)"
 echo "Branches remaining:"
 git branch --list
 
+

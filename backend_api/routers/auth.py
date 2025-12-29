@@ -67,33 +67,48 @@ async def _ensure_demo_users() -> None:
     """Ensure demo users exist in the database for testing."""
     try:
         with db_session() as db:
-            # Check if demo users already exist
-            admin_user = db.execute("SELECT id FROM users WHERE email = ?", ("admin@demo.local",)).fetchone()
-            regular_user = db.execute("SELECT id FROM users WHERE email = ?", ("user@demo.local",)).fetchone()
-            
             now = datetime.now().isoformat(timespec="seconds")
             
-            # Create admin user if it doesn't exist
-            if not admin_user:
-                admin_id = str(uuid4())
-                db.execute(
-                    """
-                    INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
-                    VALUES (?, ?, ?, ?, 1, 'demo', 0, ?, NULL)
-                    """,
-                    (admin_id, "admin@demo.local", "Admin User", hash_password("admin123"), now),
-                )
+            # Demo users to create
+            demo_users = [
+                {
+                    "email": "admin@demo.local",
+                    "display_name": "Admin User",
+                    "password": "admin123",
+                    "is_admin": True,
+                },
+                {
+                    "email": "user@demo.local",
+                    "display_name": "Regular User",
+                    "password": "user123",
+                    "is_admin": False,
+                },
+                {
+                    "email": "alice@demo.local",
+                    "display_name": "Alice",
+                    "password": "password123",
+                    "is_admin": False,
+                },
+            ]
             
-            # Create regular user if it doesn't exist
-            if not regular_user:
-                user_id = str(uuid4())
-                db.execute(
-                    """
-                    INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
-                    VALUES (?, ?, ?, ?, 0, 'demo', 0, ?, NULL)
-                    """,
-                    (user_id, "user@demo.local", "Regular User", hash_password("user123"), now),
-                )
+            for user_data in demo_users:
+                existing = db.execute("SELECT id FROM users WHERE email = ?", (user_data["email"],)).fetchone()
+                if not existing:
+                    user_id = str(uuid4())
+                    db.execute(
+                        """
+                        INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
+                        VALUES (?, ?, ?, ?, ?, 'demo', 0, ?, NULL)
+                        """,
+                        (
+                            user_id,
+                            user_data["email"],
+                            user_data["display_name"],
+                            hash_password(user_data["password"]),
+                            1 if user_data["is_admin"] else 0,
+                            now,
+                        ),
+                    )
     except Exception as e:
         import logging
         logging.error(f"Error ensuring demo users: {e}", exc_info=True)
@@ -103,6 +118,9 @@ async def _ensure_demo_users() -> None:
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def signup(payload: SignupRequest, request: Request) -> TokenResponse:
     """Register a new user account."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
         email = payload.email.strip().lower()
         now = datetime.now().isoformat(timespec="seconds")
@@ -110,6 +128,7 @@ async def signup(payload: SignupRequest, request: Request) -> TokenResponse:
         with db_session() as db:
             existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
             if existing:
+                logger.warning(f"Signup attempt with existing email: {email}")
                 raise HTTPException(status_code=400, detail="Email already registered")
             
             user_id = str(uuid4())
@@ -126,6 +145,7 @@ async def signup(payload: SignupRequest, request: Request) -> TokenResponse:
         user = _row_to_user(row)
         token = create_access_token(user=user, expires_in=timedelta(hours=12))
         
+        logger.info(f"User signed up successfully: {email}")
         return TokenResponse(
             access_token=token,
             token_type="bearer",
@@ -139,9 +159,12 @@ async def signup(payload: SignupRequest, request: Request) -> TokenResponse:
         )
     except HTTPException:
         raise
+    except ValueError as e:
+        # Pydantic validation errors
+        logger.error(f"Signup validation error: {e}")
+        raise HTTPException(status_code=400, detail=f"Invalid input: {str(e)}")
     except Exception as e:
-        import logging
-        logging.error(f"Signup error: {e}", exc_info=True)
+        logger.error(f"Signup error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error during signup")
 
 
