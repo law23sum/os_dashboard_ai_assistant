@@ -73,7 +73,40 @@ def print_help():
     print("  /clear, /c    - Clear conversation history")
     print("  /exit, /quit  - Exit the chat")
     print("  /model        - Show current AI model")
+    print("  /provider, /p - Switch AI provider (OpenAI, Anthropic, etc.)")
     print()
+
+
+def print_provider_selection():
+    """Display available AI providers and get user selection."""
+    providers = [
+        "openai", "anthropic", "google", "xai", 
+        "cohere", "deepseek", "groq"
+    ]
+    
+    print("\nAvailable AI Providers:")
+    print("-" * 70)
+    for i, p in enumerate(providers, 1):
+        print(f"  {i}) {p}")
+    print("-" * 70)
+    
+    while True:
+        try:
+            choice = input("\nSelect Provider (1-7) or name [openai]: ").strip().lower()
+            if not choice:
+                return "openai"
+                
+            if choice.isdigit():
+                idx = int(choice) - 1
+                if 0 <= idx < len(providers):
+                    return providers[idx]
+            
+            if choice in providers:
+                return choice
+                
+            print(f"Invalid selection. Please choose 1-{len(providers)}")
+        except (EOFError, KeyboardInterrupt):
+            return "openai"
 
 
 def handle_chat_command(args) -> int:
@@ -89,9 +122,13 @@ def handle_chat_command(args) -> int:
         selected_agent = args.agent
     else:
         selected_agent = print_ai_selection()
+
+    # Default provider
+    selected_provider = "openai"
     
     print(f"\n✓ Selected AI: {selected_agent}")
     print(f"  Model: {AGENT_MODELS.get(selected_agent, 'gpt-5-mini')}")
+    print(f"  Provider: {selected_provider}")
     print("\nType your message (or /help for commands)")
     print("-" * 70)
     
@@ -143,6 +180,14 @@ def handle_chat_command(args) -> int:
                     elif cmd == "/model":
                         print(f"\nCurrent AI: {selected_agent}")
                         print(f"Model: {AGENT_MODELS.get(selected_agent, 'gpt-5-mini')}")
+                        print(f"Provider: {selected_provider}")
+                        continue
+
+                    elif cmd in ("/provider", "/p"):
+                        new_provider = print_provider_selection()
+                        if new_provider != selected_provider:
+                            selected_provider = new_provider
+                            print(f"\n✓ Switched to Provider: {selected_provider}")
                         continue
                     
                     else:
@@ -162,13 +207,14 @@ def handle_chat_command(args) -> int:
                 db_insert_chat_message(conn, user_msg)
                 
                 # Get AI response
-                print(f"\n[{selected_agent}] Thinking...", end="", flush=True)
+                print(f"\n[{selected_agent} via {selected_provider}] Thinking...", end="", flush=True)
                 
                 reply, error, tool_calls = generate_ai_reply(
                     history,
                     persona=selected_agent,
                     prompt=prompt,
                     enable_shell=args.enable_shell,
+                    model_provider=selected_provider,
                 )
                 
                 if error:

@@ -26,7 +26,7 @@ This guide provides direct links and instructions for obtaining API keys for all
   1. Sign up at https://console.anthropic.com
   2. Navigate to Settings > API Keys
   3. Create a new key
-  4. Copy and set: `export ANTHROPIC_API_KEY='sk-ant-your-key-here'`
+  4. Copy and set: `export ANTHROPIC_API_KEY='sk-ant-REDACTED'`
 
 ### 3. Google (Gemini)
 - **Get API Key**: https://aistudio.google.com/app/apikey
@@ -127,7 +127,7 @@ Add to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.):
 
 ```bash
 export OPENAI_API_KEY='sk-your-key-here'
-export ANTHROPIC_API_KEY='sk-ant-your-key-here'
+export ANTHROPIC_API_KEY='sk-ant-REDACTED'
 export GOOGLE_API_KEY='your-google-key'
 export XAI_API_KEY='your-grok-key'
 export MISTRAL_API_KEY='your-mistral-key'
@@ -149,7 +149,7 @@ Create a `.env` file in your project root:
 ```bash
 # AI Provider API Keys
 OPENAI_API_KEY=sk-your-key-here
-ANTHROPIC_API_KEY=sk-ant-your-key-here
+ANTHROPIC_API_KEY=sk-ant-REDACTED
 GOOGLE_API_KEY=your-google-key
 XAI_API_KEY=your-grok-key
 MISTRAL_API_KEY=your-mistral-key

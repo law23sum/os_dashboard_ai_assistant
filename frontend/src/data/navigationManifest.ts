@@ -157,6 +157,7 @@ export const navigationManifest: NavCategory[] = [
         description: 'Chat, collaboration, and personalization',
         items: [
           { path: '/chat', icon: MessageSquare, label: 'Chat', spec: '§1.7.2, §7.12.3', backend: 'routers.chat', status: 'existing' },
+          { path: '/chat/responses', icon: Sparkles, label: 'Responses API Chat', spec: '§1.7.2', backend: 'routers.responses_api', status: 'new', description: 'Modern chat interface with Responses API' },
           { path: '/collaboration', icon: Users, label: 'Collaboration', spec: '§7.12', backend: 'routers.projects', status: 'existing' },
           { path: '/personalization', icon: Target, label: 'Personalization', spec: '§0.5', backend: 'routers.settings', status: 'existing' },
           { path: '/search', icon: SearchIcon, label: 'Search & Discovery', spec: '§6.5, §3.6', backend: 'routers.search', status: 'existing' },

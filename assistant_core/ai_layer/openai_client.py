@@ -153,13 +153,21 @@ class OpenAIClient:
             messages.append({"role": "user", "content": message})
 
             instructions, remaining = _split_system_instructions(messages)
+            # GPT-5.2 supports: none, low, medium, high, xhigh
+            effort = os.getenv("ASSISTANT_HUB_REASONING_EFFORT", "none")
+            if effort not in ("none", "low", "medium", "high", "xhigh"):
+                effort = "none"
+            verbosity = os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY", "medium")
+            if verbosity not in ("low", "medium", "high"):
+                verbosity = "medium"
+            
             response = await self.client.responses.create(
                 model=self.config.openai_model,
                 instructions=instructions,
                 input=_to_responses_input(remaining),
-                reasoning={"effort": "none"},
-                text={"verbosity": os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY", "medium")},
-                temperature=temperature,
+                reasoning={"effort": effort},
+                text={"verbosity": verbosity},
+                temperature=temperature if effort == "none" else None,
                 max_output_tokens=max_tokens,
                 store=False,
             )
@@ -187,6 +195,14 @@ class OpenAIClient:
     ) -> str:
         """Analyze image using the configured multimodal model via Responses API."""
         try:
+            # GPT-5.2 supports: none, low, medium, high, xhigh
+            effort = os.getenv("ASSISTANT_HUB_REASONING_EFFORT", "none")
+            if effort not in ("none", "low", "medium", "high", "xhigh"):
+                effort = "none"
+            verbosity = os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY", "medium")
+            if verbosity not in ("low", "medium", "high"):
+                verbosity = "medium"
+            
             response = await self.client.responses.create(
                 model=self.config.openai_model,
                 input=[
@@ -198,8 +214,8 @@ class OpenAIClient:
                         ],
                     }
                 ],
-                reasoning={"effort": "none"},
-                text={"verbosity": "medium"},
+                reasoning={"effort": effort},
+                text={"verbosity": verbosity},
                 max_output_tokens=600,
                 store=False,
             )
@@ -215,13 +231,37 @@ class OpenAIClient:
         """Use OpenAI function calling (Responses API custom tools)."""
         try:
             tools = [{"type": "function", "function": fn} for fn in (functions or [])]
+            # GPT-5.2 supports: none, low, medium, high, xhigh
+            effort = os.getenv("ASSISTANT_HUB_REASONING_EFFORT", "none")
+            if effort not in ("none", "low", "medium", "high", "xhigh"):
+                effort = "none"
+            verbosity = os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY", "medium")
+            if verbosity not in ("low", "medium", "high"):
+                verbosity = "medium"
+            
+            # Support allowed_tools for constraining tool usage (GPT-5.2 feature)
+            tool_choice = "auto" if tools else None
+            allowed_tools_env = os.getenv("ASSISTANT_HUB_ALLOWED_TOOLS")
+            if allowed_tools_env and tools:
+                try:
+                    import json
+                    allowed_tools_list = json.loads(allowed_tools_env)
+                    if isinstance(allowed_tools_list, list):
+                        tool_choice = {
+                            "type": "allowed_tools",
+                            "mode": os.getenv("ASSISTANT_HUB_TOOL_CHOICE_MODE", "auto"),
+                            "tools": allowed_tools_list,
+                        }
+                except Exception:
+                    pass
+            
             response = await self.client.responses.create(
                 model=self.config.openai_model,
                 input=[{"role": "user", "content": [{"type": "input_text", "text": message}]}],
                 tools=tools or None,
-                tool_choice="auto" if tools else None,
-                reasoning={"effort": "none"},
-                text={"verbosity": os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY", "medium")},
+                tool_choice=tool_choice,
+                reasoning={"effort": effort},
+                text={"verbosity": verbosity},
                 max_output_tokens=800,
                 store=False,
             )
@@ -239,7 +279,30 @@ class OpenAIClient:
     async def create_assistant(
         self, name: str, instructions: str, tools: List[str] = None
     ) -> Dict[str, Any]:
-        """Create an OpenAI Assistant"""
+        """
+        DEPRECATED: Create an OpenAI Assistant using the legacy Assistants API.
+        
+        The Assistants API is deprecated and will be shut down on August 26, 2026.
+        Migrate to the Responses API using Prompts instead.
+        
+        Migration guide: https://platform.openai.com/docs/assistants/migration
+        
+        Key changes:
+        - Assistants → Prompts (create/manage in OpenAI dashboard, reference by ID)
+        - Threads → Conversations
+        - Runs → Responses
+        - Use client.responses.create() with prompt_id parameter instead
+        
+        This method is kept for backward compatibility only.
+        """
+        import warnings
+        warnings.warn(
+            "create_assistant() uses the deprecated Assistants API. "
+            "Migrate to Responses API with Prompts. "
+            "See: https://platform.openai.com/docs/assistants/migration",
+            DeprecationWarning,
+            stacklevel=2
+        )
         try:
             assistant_tools = []
             if tools:
@@ -264,6 +327,54 @@ class OpenAIClient:
 
         except Exception as e:
             self.logger.error(f"Assistant creation failed: {e}")
+            raise
+
+    async def create_conversation(
+        self, items: Optional[List[Dict[str, Any]]] = None, metadata: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Create a Conversation object for persistent chat state.
+        
+        Conversations replace Threads in the Responses API and can store items
+        (messages, tool calls, outputs) for long-running context.
+        
+        Args:
+            items: Initial conversation items (messages, tool calls, etc.)
+            metadata: Optional metadata to attach to the conversation
+            
+        Returns:
+            Conversation object with id and metadata
+        """
+        try:
+            payload: Dict[str, Any] = {}
+            if items:
+                payload["items"] = items
+            if metadata:
+                payload["metadata"] = metadata
+                
+            conversation = await self.client.conversations.create(**payload)
+            return {
+                "id": conversation.id,
+                "object": conversation.object,
+                "created_at": conversation.created_at,
+                "metadata": getattr(conversation, "metadata", {}),
+            }
+        except Exception as e:
+            self.logger.error(f"Conversation creation failed: {e}")
+            raise
+
+    async def get_conversation(self, conversation_id: str) -> Dict[str, Any]:
+        """Retrieve a conversation by ID."""
+        try:
+            conversation = await self.client.conversations.retrieve(conversation_id)
+            return {
+                "id": conversation.id,
+                "object": conversation.object,
+                "created_at": conversation.created_at,
+                "metadata": getattr(conversation, "metadata", {}),
+            }
+        except Exception as e:
+            self.logger.error(f"Conversation retrieval failed: {e}")
             raise
 
     async def shutdown(self):

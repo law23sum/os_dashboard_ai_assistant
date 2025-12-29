@@ -39,7 +39,7 @@ export OPENAI_API_KEY='sk-your-key-here'
 
 **Setup**:
 ```bash
-export ANTHROPIC_API_KEY='sk-ant-your-key-here'
+export ANTHROPIC_API_KEY='sk-ant-REDACTED'
 ```
 
 ---
@@ -75,7 +75,7 @@ export GOOGLE_API_KEY='your-google-api-key'
 
 **Setup**:
 ```bash
-export XAI_API_KEY='xai-your-key-here'
+export XAI_API_KEY='xai-REDACTED'
 ```
 
 ---
@@ -421,7 +421,7 @@ Create a `.env` file in your project root:
 ```bash
 # AI Chat Providers
 OPENAI_API_KEY=sk-your-key-here
-ANTHROPIC_API_KEY=sk-ant-your-key-here
+ANTHROPIC_API_KEY=sk-ant-REDACTED
 GOOGLE_API_KEY=your-google-key
 XAI_API_KEY=xai-your-key
 PERPLEXITY_API_KEY=pplx-your-key

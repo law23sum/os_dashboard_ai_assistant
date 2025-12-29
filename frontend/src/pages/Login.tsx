@@ -62,7 +62,21 @@ export default function Login() {
       toast.success('Login successful!')
       navigate(from, { replace: true })
     } catch (err: any) {
-      const message = err.response?.data?.detail || err.message || 'Login failed. Please try again.'
+      // Extract error message properly - apiClient throws Error objects, not axios-style errors
+      let message = 'Login failed. Please try again.'
+      if (err instanceof Error) {
+        message = err.message
+      } else if (typeof err === 'string') {
+        message = err
+      } else if (err?.message) {
+        message = String(err.message)
+      } else if (err?.detail) {
+        message = String(err.detail)
+      } else if (err?.response?.data?.detail) {
+        message = String(err.response.data.detail)
+      } else if (err?.response?.data?.error?.message) {
+        message = String(err.response.data.error.message)
+      }
       setError(message)
       toast.error(message)
     } finally {

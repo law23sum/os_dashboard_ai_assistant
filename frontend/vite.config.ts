@@ -19,6 +19,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: process.env.VITE_HOST || '127.0.0.1', // Bind to localhost only for security (use VITE_HOST=0.0.0.0 for network access)
     port: 5173,
     https: false,
     proxy: {

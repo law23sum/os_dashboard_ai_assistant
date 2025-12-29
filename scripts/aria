@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""
+Aria Agent Command Script
+
+Direct interface to Aria (Sir Doctor Fellow Philosopher Metaphysician Phenomenologist 
+Axiologist Semiotician Dialectician Rhetorician Conceptual Cartographer Interdisciplinary 
+Synthesist Canon Curator Professor).
+This is the meaning/value agent specializing in philosophy, theology, and institutional identity.
+
+Usage:
+    aria <message>             # Send message to Aria
+    aria                       # Interactive chat with Aria
+"""
+
+import sys
+import os
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(project_root))
+
+try:
+    from agents_ai import AgentSystem
+    import asyncio
+except ImportError as e:
+    error_msg = str(e)
+    if "openai" in error_msg.lower() or "No module named 'openai'" in error_msg:
+        print("❌ OpenAI package not installed.")
+        print("\n📦 To install: pip install openai")
+        print("💡 Then set your API key: export OPENAI_API_KEY='your-key-here'")
+    elif "agents_ai" in error_msg:
+        print(f"❌ Error importing agents_ai: {e}")
+        print(f"Make sure agents_ai.py exists at: {project_root / 'agents_ai.py'}")
+    else:
+        print(f"❌ Error importing agents: {e}")
+    sys.exit(1)
+
+
+async def chat_with_aria(message: str = None):
+    """Chat with Aria agent"""
+    try:
+        system = AgentSystem()
+    except Exception as e:
+        if "API key" in str(e) or "OPENAI_API_KEY" in str(e):
+            print("❌ OpenAI API key not set.")
+            print("💡 Set your API key: export OPENAI_API_KEY='your-key-here'")
+        else:
+            print(f"❌ Error initializing Aria: {e}")
+        sys.exit(1)
+    
+    if "Aria" not in system.agents:
+        print("❌ Aria agent not available.")
+        sys.exit(1)
+    
+    aria = system.agents["Aria"]
+    
+    if message:
+        # Single message mode
+        print(f"\n🤖 Aria thinking...\n")
+        try:
+            response = await aria.think(message)
+            print(f"\n[Aria]:\n{response}\n")
+        except Exception as e:
+            print(f"\n❌ Error: {e}")
+            sys.exit(1)
+    else:
+        # Interactive mode
+        print("\n" + "=" * 70)
+        print("  Aria - Sir Doctor Fellow Philosopher Metaphysician Phenomenologist")
+        print("         Axiologist Semiotician Dialectician Rhetorician")
+        print("         Conceptual Cartographer Interdisciplinary Synthesist")
+        print("         Canon Curator Professor")
+        print("=" * 70)
+        print("\nYou are chatting with Aria, the meaning and value agent.")
+        print("Type your message or '/quit' to exit.\n")
+        
+        while True:
+            try:
+                user_input = input("You > ").strip()
+                
+                if not user_input:
+                    continue
+                
+                if user_input.lower() in ["/quit", "/exit", "quit", "exit"]:
+                    print("Goodbye!")
+                    break
+                
+                print(f"\n🤖 Aria thinking...\n")
+                response = await aria.think(user_input)
+                print(f"\n[Aria]:\n{response}\n")
+                
+            except KeyboardInterrupt:
+                print("\nGoodbye!")
+                break
+            except Exception as e:
+                print(f"❌ Error: {e}")
+                print("Type '/quit' to exit or continue with another message.")
+
+
+def main():
+    """Main entry point"""
+    message = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else None
+    try:
+        asyncio.run(chat_with_aria(message))
+    except KeyboardInterrupt:
+        print("\n\nInterrupted.")
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

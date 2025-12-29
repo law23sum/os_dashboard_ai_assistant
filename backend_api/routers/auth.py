@@ -71,28 +71,16 @@ async def _ensure_demo_users() -> None:
             
             # Demo users to create
             demo_users = [
-                {
-                    "email": "admin@demo.local",
-                    "display_name": "Admin User",
-                    "password": "admin123",
-                    "is_admin": True,
-                },
-                {
-                    "email": "user@demo.local",
-                    "display_name": "Regular User",
-                    "password": "user123",
-                    "is_admin": False,
-                },
-                {
-                    "email": "alice@demo.local",
-                    "display_name": "Alice",
-                    "password": "password123",
-                    "is_admin": False,
-                },
+                ("admin@demo.local", "Admin User", "admin123", True),
+                ("user@demo.local", "Regular User", "user123", False),
+                ("alice@demo.local", "Alice", "password123", False),
+                ("bob@demo.local", "Bob", "password123", False),
+                ("charlie@demo.local", "Charlie", "password123", False),
             ]
             
-            for user_data in demo_users:
-                existing = db.execute("SELECT id FROM users WHERE email = ?", (user_data["email"],)).fetchone()
+            for email, display_name, password, is_admin in demo_users:
+                existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+                hashed_pw = hash_password(password)
                 if not existing:
                     user_id = str(uuid4())
                     db.execute(
@@ -100,14 +88,17 @@ async def _ensure_demo_users() -> None:
                         INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
                         VALUES (?, ?, ?, ?, ?, 'demo', 0, ?, NULL)
                         """,
-                        (
-                            user_id,
-                            user_data["email"],
-                            user_data["display_name"],
-                            hash_password(user_data["password"]),
-                            1 if user_data["is_admin"] else 0,
-                            now,
-                        ),
+                        (user_id, email, display_name, hashed_pw, 1 if is_admin else 0, now),
+                    )
+                else:
+                    # Update password/details for existing demo users to ensure they are always valid
+                    db.execute(
+                        """
+                        UPDATE users 
+                        SET password_hash = ?, display_name = ?, is_admin = ?, disabled = 0
+                        WHERE email = ?
+                        """,
+                        (hashed_pw, display_name, 1 if is_admin else 0, email),
                     )
     except Exception as e:
         import logging

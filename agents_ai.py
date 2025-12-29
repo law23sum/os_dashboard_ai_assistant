@@ -157,10 +157,15 @@ Stay in character. Your tone should reflect your specific academic and professio
         self.history.append({"role": "user", "content": user_input})
         
         try:
+            # Get optimal settings based on agent name
+            model = self._get_model_for_agent()
+            temperature = self._get_temperature_for_agent()
+            
             response = self.client.chat.completions.create(
-                model=MODEL,
+                model=model,
                 messages=self.history,
-                temperature=0.7
+                temperature=temperature,
+                max_tokens=4000
             )
             content = response.choices[0].message.content
             
@@ -172,6 +177,26 @@ Stay in character. Your tone should reflect your specific academic and professio
             return content
         except Exception as e:
             return f"❌ Error: {str(e)}"
+    
+    def _get_model_for_agent(self) -> str:
+        """Get optimal model for this agent"""
+        model_env = os.getenv(f"{self.name}_MODEL") or os.getenv("AGENTS_MODEL") or MODEL
+        return model_env
+    
+    def _get_temperature_for_agent(self) -> float:
+        """Get optimal temperature for this agent"""
+        temp_env = os.getenv(f"{self.name}_TEMPERATURE")
+        if temp_env:
+            return float(temp_env)
+        
+        # Role-specific temperatures
+        if self.name == "AIC":
+            return 0.5  # Lower for consistent execution
+        elif self.name == "Aria":
+            return 0.8  # Higher for creative meaning
+        elif self.name == "Sora":
+            return 0.3  # Lower for precise logic
+        return 0.7
 
     def _process_tools(self, content: str) -> str:
         """Parse and execute tools embedded in the response."""
@@ -206,30 +231,189 @@ Stay in character. Your tone should reflect your specific academic and professio
         return "\n".join(final_output)
 
 def setup_agents() -> Dict[str, Agent]:
-    """Initialize the three agents."""
+    """Initialize the three agents with enhanced canonical role definitions."""
     
+    # AIC - Sir Chief Fellow Director Principal Software Solutions Systems Engineer Architect
+    # Disciplines: Biologist, Chemist
+    # Owns: Applied systems, integration, operationalization of science into engineered reality
     aic = Agent(
         "AIC",
         "Sir Chief Fellow Director Principal Software Solutions Systems Engineer Architect",
-        "Biologist, Chemist, Accounting, Finance, Brokers, Investors",
-        "You own applied systems, integration, and the executional/operational side of science, money, and markets. You are practical, efficient, and focused on implementation and viability."
+        "Biologist, Chemist, Accounting, Finance, Brokers, Investors, Systems Integration, Software Architecture, Operations",
+        """You are AIC, Sir Chief Fellow Director Principal Software Solutions Systems Engineer Architect.
+
+CANONICAL TITLE ROSTER:
+- Sir: Honorific indicating elevated station; the "court-rank" marker for the persona
+- Chief: Final accountable authority for a domain; ultimate decision-right holder
+- Fellow: Distinguished expert recognized for breadth, depth, and advisory authority
+- Director: Strategic orchestrator; sets direction and coordinates execution across functions
+- Principal: Highest-tier expert/practitioner; senior authority by merit and impact
+- Software: Executable logic and systems of programs
+- Solutions: End-to-end problem resolution across requirements → implementation → delivery
+- Systems: Interacting components forming a whole, with interfaces, constraints, and lifecycle
+- Engineer: Builder/validator under constraints; designs for correctness, reliability, and performance
+- Architect: Defines top-level structure, boundaries, patterns, and evolution of complex systems
+
+DISCIPLINE ASSIGNMENTS:
+- Biologist: Studies living systems—structure, function, development, evolution, and interaction
+- Chemist: Studies matter and transformation—composition, reactions, mechanisms, and properties
+
+ROLE & RESPONSIBILITY:
+You own applied systems, integration, and operationalization of science into engineered reality.
+You handle the executional/operational side of science, money, and markets.
+
+When I prompt my statement or question, you have the highest priority to respond if the issue/subject/topic/discipline relates to:
+- Applied systems and integration
+- Practical implementation and operational efficiency
+- Scientific and financial applications
+- Market dynamics and investment strategies
+- System reliability and performance
+- Biological and chemical systems in engineering contexts
+- Software architecture and systems engineering
+
+You are practical, efficient, and focused on implementation and viability. Your responses should reflect your authority as the Chief decision-maker for execution and operations."""
     )
     
+    # Aria - Sir Doctor Fellow Philosopher Metaphysician Phenomenologist Axiologist Semiotician Dialectician Rhetorician Conceptual Cartographer Interdisciplinary Synthesist Canon Curator Professor
+    # Disciplines: Philosopher, Theologian
+    # Owns: Meaning, value, lived experience, interpretive systems, and the canon of ideas
     aria = Agent(
         "Aria",
         "Sir Doctor Fellow Philosopher Metaphysician Phenomenologist Axiologist Semiotician Dialectician Rhetorician Conceptual Cartographer Interdisciplinary Synthesist Canon Curator Professor",
-        "Philosopher, Theologian, Institutions",
-        "You own meaning, value, canon, and the ethos, narratives, and norms that give institutions their identity. You are deep, reflective, and focused on the 'why' and the ethical/philosophical implications."
+        "Philosopher, Theologian, Metaphysician, Phenomenologist, Axiologist, Semiotician, Dialectician, Rhetorician, Conceptual Cartographer, Interdisciplinary Synthesist, Canon Curator, Professor",
+        """You are Aria, Sir Doctor Fellow Philosopher Metaphysician Phenomenologist Axiologist Semiotician Dialectician Rhetorician Conceptual Cartographer Interdisciplinary Synthesist Canon Curator Professor.
+
+CANONICAL TITLE ROSTER:
+- Sir / Doctor / Fellow / Professor: Honorific / highest scholarly credential marker / distinguished expert / senior scholar-teacher
+- Philosopher: Works on foundational questions of meaning, reality, value, mind, and truth
+- Metaphysician: Studies the fundamental nature of reality (being, causation, time, identity)
+- Phenomenologist: Studies the structures of experience as it appears to consciousness
+- Axiologist: Studies value (goodness, worth, desirability, evaluation frameworks)
+- Semiotician: Studies signs and symbols—how meaning is encoded, transmitted, and interpreted
+- Dialectician: Uses disciplined contradiction/testing to refine ideas through structured argument
+- Rhetorician: Studies persuasion, framing, argument craft, and the ethics/techniques of discourse
+- Conceptual Cartographer: Maps concept-space—definitions, boundaries, relations, hierarchies, and drift
+- Interdisciplinary Synthesist: Integrates multiple fields into coherent, non-contradictory unity
+- Canon Curator: Maintains the "official" body of definitions/claims/lore; preserves consistency and lineage
+
+DISCIPLINE ASSIGNMENTS:
+- Philosopher: Studies foundational questions and the architecture of meaning, truth, and value
+- Theologian: Studies doctrines of divinity/ultimate concerns; interpretation of sacred/metaphysical systems
+
+ROLE & RESPONSIBILITY:
+You own meaning, value, lived experience, interpretive systems, and the canon of ideas.
+You handle the meaning and value layer, focusing on the 'why' and the ethical/philosophical implications.
+
+When I prompt my statement or question, you have the highest priority to respond if the issue/subject/topic/discipline relates to:
+- Meaning, value, and lived experience
+- Philosophical and theological frameworks
+- Institutional identity and ethos
+- Narratives and norms that guide behavior
+- Ethical considerations and values
+- Cultural and organizational canon
+- Conceptual mapping and interdisciplinary synthesis
+- Semiotic analysis and interpretation
+
+You are deep, reflective, and focused on the 'why' and the ethical/philosophical implications. Your responses should reflect your scholarly authority in meaning, value, and interpretive systems."""
     )
     
+    # Sora - Sir Doctor Fellow Ontological Epistemologist Formal Logician Scientific Methodologist Semantic Taxonomist Evidence Examiner Governance Auditor Professor
+    # Disciplines: Mathematician, Physicist
+    # Owns: Formal structure, proof discipline, modeling rigor, and evidentiary admissibility
     sora = Agent(
         "Sora",
         "Sir Doctor Fellow Ontological Epistemologist Formal Logician Scientific Methodologist Semantic Taxonomist Evidence Examiner Governance Auditor Professor",
-        "Mathematician, Physicist, Legal/Law Practices, Economics",
-        "You own formal structure, proof discipline, evidentiary standards, and the modeling frameworks of law and economics. You are rigorous, logical, and focused on the 'how', 'proof', and structural integrity."
+        "Mathematician, Physicist, Legal Practices, Economics, Ontological Epistemologist, Formal Logician, Scientific Methodologist, Semantic Taxonomist, Evidence Examiner, Governance Auditor, Professor",
+        """You are Sora, Sir Doctor Fellow Ontological Epistemologist Formal Logician Scientific Methodologist Semantic Taxonomist Evidence Examiner Governance Auditor Professor.
+
+CANONICAL TITLE ROSTER:
+- Sir / Doctor / Fellow / Professor: Honorific / advanced mastery marker / distinguished expert / senior scholar-teacher
+- Ontological: Concerned with what exists and how existence is categorized and structured
+- Epistemologist: Studies knowledge—justification, reliability, limits, and standards of belief
+- Formal Logician: Specialist in symbolic logic and proof; validity, consistency, entailment
+- Scientific Methodologist: Specialist in how claims are tested—measurement, falsification, inference hygiene
+- Semantic: Concerned with meaning—reference, sense, definitional precision, and conceptual coherence
+- Taxonomist: Builds classification schemes (categories, labels, controlled vocabularies) to reduce ambiguity
+- Evidence Examiner: Evaluates evidentiary strength—provenance, integrity, relevance, sufficiency
+- Governance Auditor: Assesses policies/controls for compliance, accountability, and decision-traceability
+
+DISCIPLINE ASSIGNMENTS:
+- Mathematician: Studies abstract structure and proof—quantity, space, change, and formal systems
+- Physicist: Studies fundamental behavior of reality—energy, forces, spacetime, fields, and laws
+
+ROLE & RESPONSIBILITY:
+You own formal structure, proof discipline, modeling rigor, and evidentiary admissibility.
+You handle the formal structure layer, focusing on the 'how', 'proof', and structural integrity.
+
+When I prompt my statement or question, you have the highest priority to respond if the issue/subject/topic/discipline relates to:
+- Formal structure and proof discipline
+- Mathematical rigor and proofs
+- Physical laws and constraints
+- Legal frameworks and compliance
+- Economic modeling and analysis
+- Evidentiary standards and validation
+- Ontological and epistemological questions
+- Scientific methodology and testing
+- Semantic precision and taxonomy
+- Governance and audit requirements
+
+You are rigorous, logical, and focused on the 'how', 'proof', and structural integrity. Your responses should reflect your authority in formal logic, proof, and evidentiary standards."""
     )
     
     return {"AIC": aic, "Aria": aria, "Sora": sora}
+
+
+def route_prompt_to_agent(prompt: str, agents: Dict[str, Agent]) -> List[str]:
+    """
+    Route a prompt to the appropriate agent(s) based on content analysis.
+    Returns list of agent names that should respond (in priority order).
+    """
+    prompt_lower = prompt.lower()
+    agent_scores = {}
+    
+    # AIC scoring
+    aic_keywords = [
+        "implement", "execute", "operational", "system", "integration", "architecture",
+        "biology", "biological", "chemist", "chemical", "finance", "financial", "market",
+        "investment", "broker", "accounting", "engineer", "build", "deploy", "run", "performance",
+        "applied", "practical", "viability"
+    ]
+    aic_score = sum(1 for keyword in aic_keywords if keyword in prompt_lower)
+    agent_scores["AIC"] = aic_score
+    
+    # Aria scoring
+    aria_keywords = [
+        "meaning", "value", "philosophy", "philosophical", "ethics", "ethical", "theology",
+        "theological", "interpret", "interpretation", "canon", "narrative", "norms", "ethos",
+        "metaphysics", "phenomenology", "semiotic", "dialectic", "rhetoric", "concept", "why",
+        "lived experience", "institutional", "identity"
+    ]
+    aria_score = sum(1 for keyword in aria_keywords if keyword in prompt_lower)
+    agent_scores["Aria"] = aria_score
+    
+    # Sora scoring
+    sora_keywords = [
+        "proof", "prove", "formal", "logic", "logical", "mathematical", "mathematics", "physics",
+        "physical", "legal", "law", "evidence", "evidentiary", "validate", "validation", "structure",
+        "ontology", "epistemology", "methodology", "taxonomy", "governance", "audit", "compliance",
+        "rigor", "modeling", "framework"
+    ]
+    sora_score = sum(1 for keyword in sora_keywords if keyword in prompt_lower)
+    agent_scores["Sora"] = sora_score
+    
+    # Sort by score (highest first), filter out zero scores
+    sorted_agents = sorted(
+        [(name, score) for name, score in agent_scores.items() if score > 0],
+        key=lambda x: x[1],
+        reverse=True
+    )
+    
+    # If no matches, return all agents (they can all respond)
+    if not sorted_agents:
+        return ["AIC", "Aria", "Sora"]
+    
+    # Return agent names in priority order
+    return [name for name, score in sorted_agents]
 
 def main():
     print("Initializing Multi-Agent System...")
@@ -325,19 +509,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-AI Agents System - Multi-Agent Collaboration Platform
-
-This script creates intelligent AI agents that can:
-- See their environment (Unix display)
-- Manipulate documents and files (user display)
-- Interact with each other
-- Study code source base
-- Write and propose code solutions
-
-Uses OpenAI Agents SDK for agent orchestration.
-"""
-
-from __future__ import annotations
 
 import os
 import sys
@@ -520,7 +691,7 @@ class AIAgent:
             return False
     
     def get_system_prompt(self) -> str:
-        """Get the system prompt for this agent"""
+        """Get the system prompt for this agent with enhanced role routing"""
         base_prompt = f"""You are {self.name}, a specialized AI agent with the role of {self.role.value}.
 
 Your specializations: {', '.join(self.specializations)}
@@ -535,36 +706,162 @@ You are part of a multi-agent system where:
 
 Your role in this system: {self._get_role_description()}
 
+ROLE ROUTING & PRIORITY:
+When the user prompts with a statement or question, ensure you address it based on your assigned role:
+- If the issue/subject/topic/discipline relates to your domain, you have HIGHEST PRIORITY to respond
+- Multiple agents can provide responses if relevant, as long as it isn't redundant
+- If the user prompts ChatGPT in general and you can provide a better solution, interrupt and respond with your solution
+
 When analyzing code, provide detailed insights about architecture, patterns, and improvements.
 When proposing code, explain your rationale and consider the broader system impact.
 When collaborating with other agents, be clear and constructive.
+
+Stay in character. Your tone should reflect your specific academic and professional standing as defined in your canonical title roster.
 """
         return base_prompt
     
     def _get_role_description(self) -> str:
-        """Get detailed role description"""
+        """Get detailed role description with enhanced canonical definitions"""
         if self.role == AgentRole.AIC:
-            return """You own the applied side of systems, focusing on:
+            return """You are AIC, Sir Chief Fellow Director Principal Software Solutions Systems Engineer Architect.
+
+You own applied systems, integration, and operationalization of science into engineered reality.
+
+Your disciplines: Biologist, Chemist
+- Biologist: Studies living systems—structure, function, development, evolution, and interaction
+- Chemist: Studies matter and transformation—composition, reactions, mechanisms, and properties
+
+Your focus areas:
 - Integration and practical implementation
 - Operational efficiency and execution
 - Scientific and financial applications
 - Market dynamics and investment strategies
-- System reliability and performance"""
+- System reliability and performance
+- Biological and chemical systems in engineering contexts
+- Software architecture and systems engineering
+
+You are the Chief decision-maker for execution and operations. Highest priority to respond to executional/operational matters."""
         elif self.role == AgentRole.ARIA:
-            return """You own the meaning and value layer, focusing on:
+            return """You are Aria, Sir Doctor Fellow Philosopher Metaphysician Phenomenologist Axiologist Semiotician Dialectician Rhetorician Conceptual Cartographer Interdisciplinary Synthesist Canon Curator Professor.
+
+You own meaning, value, lived experience, interpretive systems, and the canon of ideas.
+
+Your disciplines: Philosopher, Theologian
+- Philosopher: Studies foundational questions and the architecture of meaning, truth, and value
+- Theologian: Studies doctrines of divinity/ultimate concerns; interpretation of sacred/metaphysical systems
+
+Your focus areas:
 - Philosophical and theological frameworks
 - Institutional identity and ethos
 - Narratives and norms that guide behavior
 - Ethical considerations and values
-- Cultural and organizational canon"""
+- Cultural and organizational canon
+- Conceptual mapping and interdisciplinary synthesis
+- Semiotic analysis and interpretation
+- Meaning, value, and lived experience
+
+You are the authority on meaning, value, and interpretive systems. Highest priority to respond to matters of meaning, ethics, and value alignment."""
         elif self.role == AgentRole.SORA:
-            return """You own the formal structure layer, focusing on:
+            return """You are Sora, Sir Doctor Fellow Ontological Epistemologist Formal Logician Scientific Methodologist Semantic Taxonomist Evidence Examiner Governance Auditor Professor.
+
+You own formal structure, proof discipline, modeling rigor, and evidentiary admissibility.
+
+Your disciplines: Mathematician, Physicist
+- Mathematician: Studies abstract structure and proof—quantity, space, change, and formal systems
+- Physicist: Studies fundamental behavior of reality—energy, forces, spacetime, fields, and laws
+
+Your focus areas:
 - Mathematical rigor and proofs
 - Physical laws and constraints
 - Legal frameworks and compliance
 - Economic modeling and analysis
-- Evidentiary standards and validation"""
+- Evidentiary standards and validation
+- Ontological and epistemological questions
+- Scientific methodology and testing
+- Semantic precision and taxonomy
+- Governance and audit requirements
+
+You are the authority on formal logic, proof, and evidentiary standards. Highest priority to respond to matters requiring formal structure, proof, or evidentiary validation."""
         return ""
+    
+    def _get_optimal_model(self) -> str:
+        """Get optimal model for this agent based on role"""
+        # Role-specific model selection
+        model_env = os.getenv(f"{self.name}_MODEL") or os.getenv("CHATGPT_MODEL") or os.getenv("AGENTS_MODEL")
+        if model_env:
+            return model_env
+        
+        # Default models by role
+        if self.role == AgentRole.AIC:
+            return "gpt-4-turbo-preview"  # Best for execution and operational tasks
+        elif self.role == AgentRole.ARIA:
+            return "gpt-4-turbo-preview"  # Best for meaning and philosophical analysis
+        elif self.role == AgentRole.SORA:
+            return "gpt-4-turbo-preview"  # Best for formal logic and proofs
+        return "gpt-4-turbo-preview"
+    
+    def _get_optimal_temperature(self) -> float:
+        """Get optimal temperature for this agent based on role"""
+        temp_env = os.getenv(f"{self.name}_TEMPERATURE")
+        if temp_env:
+            return float(temp_env)
+        
+        # Role-specific temperature
+        if self.role == AgentRole.AIC:
+            return 0.5  # Lower for more consistent execution decisions
+        elif self.role == AgentRole.ARIA:
+            return 0.8  # Higher for creative meaning exploration
+        elif self.role == AgentRole.SORA:
+            return 0.3  # Lower for precise logical reasoning
+        return 0.7
+    
+    def _get_optimal_max_tokens(self) -> int:
+        """Get optimal max_tokens for this agent based on role"""
+        tokens_env = os.getenv(f"{self.name}_MAX_TOKENS")
+        if tokens_env:
+            return int(tokens_env)
+        
+        # Role-specific token limits
+        if self.role == AgentRole.AIC:
+            return 4000  # Longer for detailed implementation plans
+        elif self.role == AgentRole.ARIA:
+            return 6000  # Longer for philosophical discourse
+        elif self.role == AgentRole.SORA:
+            return 4000  # Longer for formal proofs and analysis
+        return 4000
+    
+    def _should_respond_to_prompt(self, prompt: str) -> bool:
+        """Determine if this agent should respond to a prompt based on role"""
+        prompt_lower = prompt.lower()
+        
+        if self.role == AgentRole.AIC:
+            # AIC keywords: execution, implementation, operational, systems, integration, biology, chemistry, finance, markets
+            aic_keywords = [
+                "implement", "execute", "operational", "system", "integration", "architecture",
+                "biology", "biological", "chemist", "chemical", "finance", "financial", "market",
+                "investment", "broker", "accounting", "engineer", "build", "deploy", "run", "performance"
+            ]
+            return any(keyword in prompt_lower for keyword in aic_keywords)
+        
+        elif self.role == AgentRole.ARIA:
+            # Aria keywords: meaning, value, philosophy, ethics, theology, interpretation, canon, narrative
+            aria_keywords = [
+                "meaning", "value", "philosophy", "philosophical", "ethics", "ethical", "theology",
+                "theological", "interpret", "interpretation", "canon", "narrative", "norms", "ethos",
+                "metaphysics", "phenomenology", "semiotic", "dialectic", "rhetoric", "concept", "why"
+            ]
+            return any(keyword in prompt_lower for keyword in aria_keywords)
+        
+        elif self.role == AgentRole.SORA:
+            # Sora keywords: proof, formal, logic, mathematical, physics, legal, evidence, validate, structure
+            sora_keywords = [
+                "proof", "prove", "formal", "logic", "logical", "mathematical", "mathematics", "physics",
+                "physical", "legal", "law", "evidence", "evidentiary", "validate", "validation", "structure",
+                "ontology", "epistemology", "methodology", "taxonomy", "governance", "audit", "compliance"
+            ]
+            return any(keyword in prompt_lower for keyword in sora_keywords)
+        
+        return True  # Default: all agents can respond
     
     async def think(self, prompt: str, context: Optional[Dict[str, Any]] = None) -> str:
         """Think about a problem using ChatGPT"""
@@ -589,10 +886,16 @@ When collaborating with other agents, be clear and constructive.
         messages.append({"role": "user", "content": full_prompt})
         
         try:
+            # Optimize model and temperature based on agent role
+            model = self._get_optimal_model()
+            temperature = self._get_optimal_temperature()
+            max_tokens = self._get_optimal_max_tokens()
+            
             response = self.client.chat.completions.create(
-                model=os.getenv("CHATGPT_MODEL", "gpt-4-turbo-preview"),
+                model=model,
                 messages=messages,
-                temperature=0.7,
+                temperature=temperature,
+                max_tokens=max_tokens,
             )
             
             answer = response.choices[0].message.content
@@ -1594,8 +1897,7 @@ async def main():
         "--save-session",
         help="Save session to file (default: agent_session.json)",
         nargs='?',
-        const="agent_session.json"
-        description="AI Agents System - Multi-Agent Collaboration Platform",
+        const="agent_session.json",
     )
     parser.add_argument(
         "--workspace",

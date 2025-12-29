@@ -56,6 +56,36 @@ export const API = {
       body: JSON.stringify({ prompt }),
     }),
   
+  // GPT-5.2 Chat with advanced features
+  chat: {
+    send: (message: {
+      persona: string
+      model_provider: string
+      content: string
+      attachments?: string[]
+      reasoning_effort?: string
+      verbosity?: string
+      previous_response_id?: string
+      enable_preambles?: boolean
+      custom_tools?: Array<Record<string, unknown>>
+      allowed_tools?: string[]
+      enable_apply_patch?: boolean
+    }) =>
+      request("/api/chat/", {
+        method: "POST",
+        body: JSON.stringify(message),
+      }),
+    history: (persona?: string) => {
+      const params = persona ? `?persona=${encodeURIComponent(persona)}` : ""
+      return request(`/api/chat/${params}`)
+    },
+    clear: (persona?: string) =>
+      request("/api/chat/", {
+        method: "DELETE",
+        body: persona ? JSON.stringify({ persona }) : undefined,
+      }),
+  },
+  
   // Research workspace
   researchWorkspace: () => request("/research/workspace"),
   runSimulation: (payload: { type: string; modelId: string; iterations: number }) =>
