@@ -180,46 +180,46 @@
       ]
     },
     "Workspaces": {
-      "Digital Twin & Enterprise Twin Workspace": [
+      "Master Stack & Project Management Engine": [
         {
-          "title": "Digital Twin & Enterprise Twin Workspace",
-          "path": "/workspaces/digital-twin-enterprise-twin-workspace",
-          "new": false
-        },
-        {
-          "title": "Digital Twin Builder",
-          "path": "/workspaces/twins",
-          "new": false
-        },
-        {
-          "title": "Twin Templates",
-          "path": "/workspaces/twins/templates",
+          "title": "Project Management System",
+          "path": "/pms",
           "new": true
         },
         {
-          "title": "Data Feeds & Sync",
-          "path": "/workspaces/twins/feeds",
+          "title": "Projects",
+          "path": "/pms/projects",
           "new": true
         },
         {
-          "title": "Scenario Runner",
-          "path": "/workspaces/twins/scenarios",
+          "title": "Runs",
+          "path": "/pms/runs",
           "new": true
         },
         {
-          "title": "Reality Twin Mesh",
-          "path": "/workspaces/twins/reality-mesh",
-          "new": false
-        },
-        {
-          "title": "Twin Governance",
-          "path": "/workspaces/twins/governance",
+          "title": "Documents",
+          "path": "/pms/documents",
           "new": true
         },
         {
-          "title": "Enterprise Twin",
-          "path": "/workspaces/twins/enterprise",
-          "new": false
+          "title": "Journal",
+          "path": "/pms/journal",
+          "new": true
+        },
+        {
+          "title": "Finance",
+          "path": "/pms/finance",
+          "new": true
+        },
+        {
+          "title": "Audit",
+          "path": "/pms/audit",
+          "new": true
+        },
+        {
+          "title": "Settings",
+          "path": "/pms/settings",
+          "new": true
         }
       ],
       "Dev & DevOps Workspace": [
@@ -286,189 +286,6 @@
         {
           "title": "Developer Tools",
           "path": "/work/tools",
-          "new": false
-        }
-      ],
-      "Archive & Continuity Workspace": [
-        {
-          "title": "Archive & Continuity Workspace",
-          "path": "/workspaces/archive-continuity-workspace",
-          "new": false
-        },
-        {
-          "title": "Archive Workspace",
-          "path": "/workspaces/archive",
-          "new": false
-        },
-        {
-          "title": "Snapshot Manager",
-          "path": "/workspaces/archive/snapshots",
-          "new": true
-        },
-        {
-          "title": "Retention Policies",
-          "path": "/workspaces/archive/retention",
-          "new": true
-        },
-        {
-          "title": "Temporal Reconstruction",
-          "path": "/workspaces/archive/time-travel",
-          "new": false
-        },
-        {
-          "title": "Restore & Export",
-          "path": "/workspaces/archive/restore",
-          "new": true
-        }
-      ],
-      "Operator & SRE Workspace": [
-        {
-          "title": "Operator & SRE Workspace",
-          "path": "/workspaces/operator-sre-workspace",
-          "new": false
-        },
-        {
-          "title": "SRE Workspace",
-          "path": "/workspaces/sre",
-          "new": false
-        },
-        {
-          "title": "Reliability Dashboard",
-          "path": "/workspaces/sre/reliability",
-          "new": false
-        },
-        {
-          "title": "Health & Drift Monitors",
-          "path": "/workspaces/sre/health",
-          "new": false
-        },
-        {
-          "title": "Runbook Library",
-          "path": "/workspaces/sre/runbooks",
-          "new": true
-        },
-        {
-          "title": "Incident Timeline",
-          "path": "/workspaces/sre/incidents",
-          "new": true
-        },
-        {
-          "title": "Change Management",
-          "path": "/workspaces/sre/changes",
-          "new": true
-        },
-        {
-          "title": "Capacity & Cost Insights",
-          "path": "/workspaces/sre/capacity-cost",
-          "new": true
-        },
-        {
-          "title": "Maintenance Windows",
-          "path": "/workspaces/sre/maintenance",
-          "new": true
-        },
-        {
-          "title": "Sandbox Management",
-          "path": "/workspaces/sre/sandbox",
-          "new": false
-        }
-      ],
-      "Business & Finance Workspace": [
-        {
-          "title": "Business & Finance Workspace",
-          "path": "/workspaces/business-finance-workspace",
-          "new": false
-        },
-        {
-          "title": "Business Console",
-          "path": "/workspaces/finance",
-          "new": false
-        },
-        {
-          "title": "KPI Dashboard",
-          "path": "/workspaces/finance/kpis",
-          "new": true
-        },
-        {
-          "title": "Budget Planner",
-          "path": "/workspaces/finance/budgets",
-          "new": true
-        },
-        {
-          "title": "Forecasting Lab",
-          "path": "/workspaces/finance/forecasting",
-          "new": true
-        },
-        {
-          "title": "Strategy Simulation",
-          "path": "/workspaces/finance/scenarios",
-          "new": false
-        },
-        {
-          "title": "Risk Register",
-          "path": "/workspaces/finance/risk",
-          "new": true
-        },
-        {
-          "title": "Report Generator",
-          "path": "/workspaces/finance/reports",
-          "new": true
-        }
-      ],
-      "Cybersecurity Workspace": [
-        {
-          "title": "Cybersecurity Workspace",
-          "path": "/workspaces/cybersecurity-workspace",
-          "new": false
-        },
-        {
-          "title": "Security Guardian",
-          "path": "/workspaces/cyber",
-          "new": false
-        },
-        {
-          "title": "Findings & Triage",
-          "path": "/workspaces/cyber/findings",
-          "new": true
-        },
-        {
-          "title": "Threat Modeling",
-          "path": "/workspaces/cyber/threat-modeling",
-          "new": false
-        },
-        {
-          "title": "Policy-as-Code Checks",
-          "path": "/workspaces/cyber/policy-checks",
-          "new": true
-        },
-        {
-          "title": "Vulnerability Scan Integrations",
-          "path": "/workspaces/cyber/scanners",
-          "new": true
-        },
-        {
-          "title": "Threat Intel Feeds",
-          "path": "/workspaces/cyber/intel",
-          "new": true
-        },
-        {
-          "title": "Playbooks & Runbooks",
-          "path": "/workspaces/cyber/playbooks",
-          "new": true
-        },
-        {
-          "title": "Incident Commander",
-          "path": "/workspaces/cyber/incidents",
-          "new": true
-        },
-        {
-          "title": "Auto-Remediation",
-          "path": "/workspaces/cyber/auto-remediation",
-          "new": false
-        },
-        {
-          "title": "Security Guardian",
-          "path": "/ai/security",
           "new": false
         }
       ],
@@ -608,6 +425,231 @@
         {
           "title": "Templates",
           "path": "/work/templates",
+          "new": false
+        }
+      ],
+      "Archive & Continuity Workspace": [
+        {
+          "title": "Archive & Continuity Workspace",
+          "path": "/workspaces/archive-continuity-workspace",
+          "new": false
+        },
+        {
+          "title": "Archive Workspace",
+          "path": "/workspaces/archive",
+          "new": false
+        },
+        {
+          "title": "Snapshot Manager",
+          "path": "/workspaces/archive/snapshots",
+          "new": true
+        },
+        {
+          "title": "Retention Policies",
+          "path": "/workspaces/archive/retention",
+          "new": true
+        },
+        {
+          "title": "Temporal Reconstruction",
+          "path": "/workspaces/archive/time-travel",
+          "new": false
+        },
+        {
+          "title": "Restore & Export",
+          "path": "/workspaces/archive/restore",
+          "new": true
+        }
+      ],
+      "Cybersecurity Workspace": [
+        {
+          "title": "Cybersecurity Workspace",
+          "path": "/workspaces/cybersecurity-workspace",
+          "new": false
+        },
+        {
+          "title": "Security Guardian",
+          "path": "/workspaces/cyber",
+          "new": false
+        },
+        {
+          "title": "Findings & Triage",
+          "path": "/workspaces/cyber/findings",
+          "new": true
+        },
+        {
+          "title": "Threat Modeling",
+          "path": "/workspaces/cyber/threat-modeling",
+          "new": false
+        },
+        {
+          "title": "Policy-as-Code Checks",
+          "path": "/workspaces/cyber/policy-checks",
+          "new": true
+        },
+        {
+          "title": "Vulnerability Scan Integrations",
+          "path": "/workspaces/cyber/scanners",
+          "new": true
+        },
+        {
+          "title": "Threat Intel Feeds",
+          "path": "/workspaces/cyber/intel",
+          "new": true
+        },
+        {
+          "title": "Playbooks & Runbooks",
+          "path": "/workspaces/cyber/playbooks",
+          "new": true
+        },
+        {
+          "title": "Incident Commander",
+          "path": "/workspaces/cyber/incidents",
+          "new": true
+        },
+        {
+          "title": "Auto-Remediation",
+          "path": "/workspaces/cyber/auto-remediation",
+          "new": false
+        },
+        {
+          "title": "Security Guardian",
+          "path": "/ai/security",
+          "new": false
+        }
+      ],
+      "Business & Finance Workspace": [
+        {
+          "title": "Business & Finance Workspace",
+          "path": "/workspaces/business-finance-workspace",
+          "new": false
+        },
+        {
+          "title": "Business Console",
+          "path": "/workspaces/finance",
+          "new": false
+        },
+        {
+          "title": "KPI Dashboard",
+          "path": "/workspaces/finance/kpis",
+          "new": true
+        },
+        {
+          "title": "Budget Planner",
+          "path": "/workspaces/finance/budgets",
+          "new": true
+        },
+        {
+          "title": "Forecasting Lab",
+          "path": "/workspaces/finance/forecasting",
+          "new": true
+        },
+        {
+          "title": "Strategy Simulation",
+          "path": "/workspaces/finance/scenarios",
+          "new": false
+        },
+        {
+          "title": "Risk Register",
+          "path": "/workspaces/finance/risk",
+          "new": true
+        },
+        {
+          "title": "Report Generator",
+          "path": "/workspaces/finance/reports",
+          "new": true
+        }
+      ],
+      "Operator & SRE Workspace": [
+        {
+          "title": "Operator & SRE Workspace",
+          "path": "/workspaces/operator-sre-workspace",
+          "new": false
+        },
+        {
+          "title": "SRE Workspace",
+          "path": "/workspaces/sre",
+          "new": false
+        },
+        {
+          "title": "Reliability Dashboard",
+          "path": "/workspaces/sre/reliability",
+          "new": false
+        },
+        {
+          "title": "Health & Drift Monitors",
+          "path": "/workspaces/sre/health",
+          "new": false
+        },
+        {
+          "title": "Runbook Library",
+          "path": "/workspaces/sre/runbooks",
+          "new": true
+        },
+        {
+          "title": "Incident Timeline",
+          "path": "/workspaces/sre/incidents",
+          "new": true
+        },
+        {
+          "title": "Change Management",
+          "path": "/workspaces/sre/changes",
+          "new": true
+        },
+        {
+          "title": "Capacity & Cost Insights",
+          "path": "/workspaces/sre/capacity-cost",
+          "new": true
+        },
+        {
+          "title": "Maintenance Windows",
+          "path": "/workspaces/sre/maintenance",
+          "new": true
+        },
+        {
+          "title": "Sandbox Management",
+          "path": "/workspaces/sre/sandbox",
+          "new": false
+        }
+      ],
+      "Digital Twin & Enterprise Twin Workspace": [
+        {
+          "title": "Digital Twin & Enterprise Twin Workspace",
+          "path": "/workspaces/digital-twin-enterprise-twin-workspace",
+          "new": false
+        },
+        {
+          "title": "Digital Twin Builder",
+          "path": "/workspaces/twins",
+          "new": false
+        },
+        {
+          "title": "Twin Templates",
+          "path": "/workspaces/twins/templates",
+          "new": true
+        },
+        {
+          "title": "Data Feeds & Sync",
+          "path": "/workspaces/twins/feeds",
+          "new": true
+        },
+        {
+          "title": "Scenario Runner",
+          "path": "/workspaces/twins/scenarios",
+          "new": true
+        },
+        {
+          "title": "Reality Twin Mesh",
+          "path": "/workspaces/twins/reality-mesh",
+          "new": false
+        },
+        {
+          "title": "Twin Governance",
+          "path": "/workspaces/twins/governance",
+          "new": true
+        },
+        {
+          "title": "Enterprise Twin",
+          "path": "/workspaces/twins/enterprise",
           "new": false
         }
       ]

@@ -27,6 +27,7 @@ import AIOps from './pages/AIOps'
 import AIOS from './pages/AIOS'
 import AICopilot from './pages/AICopilot'
 import AdvancedAI from './pages/AdvancedAI'
+import CookbookLab from './pages/CookbookLab'
 import AdvancedSystems from './pages/AdvancedSystems'
 import MLOps from './pages/MLOps'
 import NeuralArchitectureSearch from './pages/NeuralArchitectureSearch'
@@ -57,6 +58,15 @@ import FutureDeck from './pages/FutureDeck'
 import Settings from './pages/Settings'
 import SpecPage from './pages/SpecPage'
 import VectorStores from './pages/VectorStores'
+import PmsHome from './pages/pms/PmsHome'
+import PmsProjects from './pages/pms/PmsProjects'
+import PmsProjectDetail from './pages/pms/PmsProjectDetail'
+import PmsRuns from './pages/pms/PmsRuns'
+import PmsDocuments from './pages/pms/PmsDocuments'
+import PmsJournal from './pages/pms/PmsJournal'
+import PmsFinance from './pages/pms/PmsFinance'
+import PmsAudit from './pages/pms/PmsAudit'
+import PmsSettings from './pages/pms/PmsSettings'
 
 // Auth
 import { AuthProvider } from './auth/AuthContext'
@@ -205,6 +215,15 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/tasks" element={<Tasks />} />
                 <Route path="/projects" element={<Projects />} />
+                <Route path="/pms" element={<PmsHome />} />
+                <Route path="/pms/projects" element={<PmsProjects />} />
+                <Route path="/pms/projects/:projectId" element={<PmsProjectDetail />} />
+                <Route path="/pms/runs" element={<PmsRuns />} />
+                <Route path="/pms/documents" element={<PmsDocuments />} />
+                <Route path="/pms/journal" element={<PmsJournal />} />
+                <Route path="/pms/finance" element={<PmsFinance />} />
+                <Route path="/pms/audit" element={<PmsAudit />} />
+                <Route path="/pms/settings" element={<PmsSettings />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/chat/responses" element={<ResponsesChat />} />
                 <Route path="/research" element={<Research />} />
@@ -276,6 +295,7 @@ function App() {
                 <Route path="/ai/operations" element={<AIOps />} />
                 <Route path="/ai/os" element={<AIOS />} />
                 <Route path="/ai/advanced" element={<AdvancedAI />} />
+                <Route path="/ai/cookbook" element={<CookbookLab />} />
                 <Route path="/ai/systems" element={<AdvancedSystems />} />
                 <Route path="/ai/mlops" element={<MLOps />} />
                 <Route path="/ai/copilot" element={<AICopilot />} />

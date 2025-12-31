@@ -24,6 +24,59 @@ export interface PaginatedResponse<T> {
   pageSize: number
 }
 
+export interface CookbookToolExample {
+  prompt: string
+  tool_name: string
+}
+
+export interface CookbookToolExamplesResponse {
+  tools: Record<string, unknown>[]
+  examples: CookbookToolExample[]
+  openapi_hint: string
+}
+
+export interface CookbookTriageRequest {
+  prompt: string
+  mode?: 'auto' | 'heuristic' | 'llm'
+  max_agents?: number
+  model?: string
+}
+
+export interface CookbookTriageResponse {
+  agents: string[]
+  rationale: string
+  confidence: number
+  mode: string
+}
+
+export interface CookbookGuardrailsRequest {
+  response_text: string
+  blocked_phrases?: string[]
+  max_response_chars?: number
+  require_safe_language?: boolean
+}
+
+export interface CookbookGuardrailsResponse {
+  allowed: boolean
+  score: number
+  violations: { rule: string; detail: string }[]
+  notes: string[]
+}
+
+export interface CookbookFileSearchRequest {
+  query: string
+  vector_store_ids: string[]
+  max_num_results?: number
+  ranking_options?: Record<string, unknown>
+  model?: string
+}
+
+export interface CookbookFileSearchResponse {
+  response: string
+  results: Record<string, unknown>[]
+  tool_calls: Record<string, unknown>[]
+}
+
 // ============================================================================
 // Tasks API
 // ============================================================================
@@ -292,6 +345,32 @@ export const terminalApi = {
 }
 
 // ============================================================================
+// Cookbook Patterns API
+// ============================================================================
+
+export const cookbookApi = {
+  getToolExamples: async (): Promise<CookbookToolExamplesResponse> => {
+    const { data } = await apiClient.get(apiPath('cookbook/tool-examples'))
+    return data
+  },
+
+  triage: async (payload: CookbookTriageRequest): Promise<CookbookTriageResponse> => {
+    const { data } = await apiClient.post(apiPath('cookbook/triage'), payload)
+    return data
+  },
+
+  guardrails: async (payload: CookbookGuardrailsRequest): Promise<CookbookGuardrailsResponse> => {
+    const { data } = await apiClient.post(apiPath('cookbook/guardrails'), payload)
+    return data
+  },
+
+  fileSearch: async (payload: CookbookFileSearchRequest): Promise<CookbookFileSearchResponse> => {
+    const { data } = await apiClient.post(apiPath('cookbook/file-search'), payload)
+    return data
+  },
+}
+
+// ============================================================================
 // AI Systems API
 // ============================================================================
 
@@ -324,8 +403,7 @@ export const api = {
   workspace: workspaceApi,
   terminal: terminalApi,
   ai: aiSystemsApi,
+  cookbook: cookbookApi,
 }
 
 export default api
-
-

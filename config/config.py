@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 
-def load_dotenv(path: Path | str = ".env") -> None:
+def load_dotenv(path: Path | str = ".env", *, override: bool = False) -> None:
     """Lightweight .env loader to avoid external dependency."""
 
     env_path = Path(path)
@@ -18,11 +18,53 @@ def load_dotenv(path: Path | str = ".env") -> None:
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
-        os.environ.setdefault(key.strip(), value.strip())
+        key = key.strip()
+        value = value.strip()
+        if override:
+            os.environ[key] = value
+        else:
+            os.environ.setdefault(key, value)
+
+
+def _iter_env_files() -> list[Path]:
+    candidates: list[Path] = []
+    explicit = (
+        os.getenv("ASSISTANT_HUB_ENV_FILE")
+        or os.getenv("OSDASH_ENV_FILE")
+        or os.getenv("ENV_FILE")
+    )
+    if explicit:
+        candidates.append(Path(explicit))
+    env_name = os.getenv("ENVIRONMENT") or os.getenv("ENV")
+    if env_name:
+        candidates.append(Path(f".env.{env_name}"))
+        candidates.append(Path(f"env.{env_name}.example"))
+    candidates.extend(
+        [
+            Path(".env"),
+            Path(".env.local"),
+            Path("env.dev.example"),
+        ]
+    )
+    seen: set[Path] = set()
+    ordered: list[Path] = []
+    for path in candidates:
+        path = path.expanduser()
+        if path in seen:
+            continue
+        seen.add(path)
+        ordered.append(path)
+    return ordered
+
+
+def load_dotenv_chain() -> None:
+    """Load environment variables from a prioritized list of env files."""
+    for path in _iter_env_files():
+        load_dotenv(path)
 
 
 # Load environment variables
-load_dotenv()
+load_dotenv_chain()
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
 PROJECT_ROOT = PACKAGE_ROOT.parent

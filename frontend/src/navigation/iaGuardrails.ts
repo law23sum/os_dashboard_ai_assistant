@@ -25,8 +25,7 @@ export function verifyIACompliance(): IAViolation[] {
   const categoryHomeRoutes = new Set<string>()
   const featureRoutes = new Set<string>()
   
-  // Collect all routes from both personal and enterprise editions
-  const allPlatforms = [...iaManifest.personal, ...iaManifest.enterprise]
+  const allPlatforms = iaManifest
   
   for (const platform of allPlatforms) {
     for (const category of platform.categories) {
@@ -99,7 +98,7 @@ export function assertIACompliance(): void {
  * Check if a route is a category home
  */
 export function isCategoryHome(route: string): boolean {
-  const allPlatforms = [...iaManifest.personal, ...iaManifest.enterprise]
+  const allPlatforms = iaManifest
   for (const platform of allPlatforms) {
     for (const category of platform.categories) {
       if (category.homeRoute === route) {
@@ -114,7 +113,7 @@ export function isCategoryHome(route: string): boolean {
  * Check if a route is a feature
  */
 export function isFeature(route: string): boolean {
-  const allPlatforms = [...iaManifest.personal, ...iaManifest.enterprise]
+  const allPlatforms = iaManifest
   for (const platform of allPlatforms) {
     for (const category of platform.categories) {
       for (const feature of category.features) {
@@ -131,7 +130,7 @@ export function isFeature(route: string): boolean {
  * Get platform for a route
  */
 export function getPlatformForRoute(route: string): Platform | null {
-  const allPlatforms = [...iaManifest.personal, ...iaManifest.enterprise]
+  const allPlatforms = iaManifest
   for (const platform of allPlatforms) {
     for (const category of platform.categories) {
       if (category.homeRoute === route) {
@@ -161,5 +160,4 @@ export function validateNavigationStructure(): {
     violations
   }
 }
-
 

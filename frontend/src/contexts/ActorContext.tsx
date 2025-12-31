@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { ActorType } from '../components/ActorSwitch';
+import type { ActorType } from '../types/actor';
 
 interface ActorContextType {
   currentActor: ActorType;
@@ -23,7 +23,6 @@ export const ActorProvider: React.FC<ActorProviderProps> = ({ children }) => {
     if (savedActor && (savedActor === 'personal' || savedActor === 'enterprise')) {
       setCurrentActor(savedActor);
     } else {
-      // Default to personal for new users
       setCurrentActor('personal');
       localStorage.setItem('osdash-actor', 'personal');
     }
@@ -57,7 +56,6 @@ export const useActor = (): ActorContextType => {
 };
 
 export default ActorContext;
-
 
 
 

@@ -3,197 +3,44 @@ import { createPortal } from 'react-dom'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   ChevronDown,
-  ChevronRight,
-  LayoutDashboard,
   LogOut,
   Menu,
+  Pin,
+  PinOff,
   Settings,
   Shield,
   Sparkles,
-  User,
-  X
+  X,
 } from 'lucide-react'
 import { applyTheme, defaultTheme } from '../theme'
 import { useAppSettings } from '../hooks/useSettings'
 import { UnifiedAIPanel } from './UnifiedAIPanel'
-import { throttle } from '../shared/utils'
-import { navigationManifest, findCategoryByPath, getAllPagesFromCategory, type NavCategory, type NavGroup, type NavPage } from '../data/navigationManifest'
-import PlatformFeatureSidebar from './PlatformFeatureSidebar'
-import { navigationConfig, Category, Platform, FeatureOption } from '../config/navigation'
+import GlobalSearch from './GlobalSearch'
+import ActorSwitch from './ActorSwitch'
+import { useActor } from '../contexts/ActorContext'
+import {
+  findRouteContext,
+  getCategories,
+  getFeatures,
+  getPlatforms,
+  type Category,
+  type NavItem,
+  type Platform,
+} from '../data/iaManifest'
 
-type ActiveNav = {
-  platform: NavCategory | null
-  group: NavGroup | null
-  page: NavPage | null
-}
-
-function matchPage(currentPath: string, pagePath: string): boolean {
-  return currentPath === pagePath || currentPath.startsWith(pagePath + '/')
-}
-
-function getActiveNav(pathname: string): ActiveNav {
-  const platform =
-    navigationManifest.find((p) => pathname.startsWith(p.path)) ??
-    // Dashboard is special: root routes live under Mission Control.
-    navigationManifest.find((p) => p.path === '/dashboard') ??
-    null
-
-  if (!platform) return { platform: null, group: null, page: null }
-
-  let group: NavGroup | null = null
-  let page: NavPage | null = null
-
-  for (const g of platform.groups) {
-    const found = g.items.find((item) => matchPage(pathname, item.path))
-    if (found) {
-      group = g
-      page = found
-      break
-    }
-  }
-
-  return { platform, group, page }
+type Breadcrumb = {
+  label: string
+  path: string
 }
 
 interface LayoutProps {
   children?: ReactNode
 }
 
-interface NavDropdownProps {
-  category: NavCategory
-  platforms?: Platform[]
-  active: boolean
-  expanded: boolean
-  onToggle: () => void
-  onClose: () => void
-  location: { pathname: string }
-}
-
-function NavDropdown({ category, platforms, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
-  const buttonRef = useRef<HTMLButtonElement>(null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const Icon = category.icon
-
-  // Position dropdown when expanded - simple direct style approach
-  useEffect(() => {
-    if (expanded && buttonRef.current && dropdownRef.current) {
-      const buttonRect = buttonRef.current.getBoundingClientRect()
-      const viewportWidth = window.innerWidth
-      const dropdownWidth = 288
-      const margin = 16
-      
-      let left = buttonRect.left
-      if (left + dropdownWidth > viewportWidth - margin) {
-        left = viewportWidth - dropdownWidth - margin
-      }
-      if (left < margin) left = margin
-
-      dropdownRef.current.style.top = `${buttonRect.bottom + 8}px`
-      dropdownRef.current.style.left = `${left}px`
-      dropdownRef.current.style.position = 'fixed'
-      dropdownRef.current.style.zIndex = '99999'
-      dropdownRef.current.style.visibility = 'visible'
-    }
-  }, [expanded])
-
-  // Handle clicks outside to close dropdown
-  useEffect(() => {
-    if (!expanded) return
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        buttonRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        onClose()
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [expanded, onClose])
-
-  return (
-    <>
-      <div className="relative group flex items-center">
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={onToggle}
-          className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
-          aria-haspopup="menu"
-          aria-expanded={expanded}
-        >
-          <Icon className="w-5 h-5 mr-2" />
-          {category.label}
-          <ChevronDown
-            className={`w-4 h-4 ml-1 transition-transform duration-150 ${
-              expanded ? 'transform rotate-180' : ''
-            }`}
-          />
-        </button>
-      </div>
-      {expanded &&
-        createPortal(
-          <div
-            ref={dropdownRef}
-            className="osd-dropdown w-72 max-h-[70vh] overflow-y-auto"
-            style={{ position: 'fixed', zIndex: 99999 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {category.groups.map((group, groupIndex) => (
-              <div
-                key={`${category.path}-group-${groupIndex}`}
-                className="px-4 py-3 border-b border-white/5 last:border-b-0"
-              >
-                {group.label && (
-                  <div className="mb-2 space-y-1">
-                    <p className="text-[0.65rem] uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
-                      {group.label}
-                      {group.spec && <span className="ml-1 text-[0.6rem]">· {group.spec}</span>}
-                    </p>
-                    {group.description && (
-                      <p className="text-[0.7rem] text-[color:var(--osd-muted)]">{group.description}</p>
-                    )}
-                  </div>
-                )}
-                <div className="space-y-1">
-                  {group.items.map((item) => {
-                    const ItemIcon = item.icon
-                    const itemActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/')
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        className={`osd-dropdown-link ${itemActive ? 'osd-dropdown-link--active' : ''}`}
-                        onClick={onClose}
-                      >
-                        <ItemIcon className="w-4 h-4 mr-2" />
-                        {item.label}
-                        {item.status === 'new' && (
-                          <span className="ml-auto text-[0.6rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">
-                            NEW
-                          </span>
-                        )}
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>,
-          document.body
-        )}
-    </>
-  )
-}
-
 function useDropdownPosition(
   open: boolean,
   buttonRef: React.RefObject<HTMLButtonElement>,
-  dropdownRef: React.RefObject<HTMLDivElement>
+  dropdownRef: React.RefObject<HTMLDivElement>,
 ) {
   const update = useCallback(() => {
     const button = buttonRef.current
@@ -238,11 +85,13 @@ function useDropdownPosition(
 
 function PlatformDropdown({
   platform,
+  categories,
   open,
   onOpen,
   onClose,
 }: {
-  platform: NavCategory
+  platform: Platform
+  categories: Category[]
   open: boolean
   onOpen: () => void
   onClose: () => void
@@ -254,7 +103,11 @@ function PlatformDropdown({
 
   useDropdownPosition(open, buttonRef, dropdownRef)
 
-  // Handle click outside to close dropdown
+  const isActive = useMemo(() => {
+    if (location.pathname === '/' && platform.path === '/') return true
+    return location.pathname.startsWith(platform.path)
+  }, [location.pathname, platform.path])
+
   useEffect(() => {
     if (!open) return
 
@@ -269,28 +122,6 @@ function PlatformDropdown({
     return () => document.removeEventListener('click', onDocClick, true)
   }, [open, onClose])
 
-  const isActive = useMemo(() => {
-    if (platform.path === '/dashboard') {
-      return (
-        location.pathname === '/' ||
-        location.pathname === '/dashboard' ||
-        location.pathname.startsWith('/tasks') ||
-        location.pathname.startsWith('/projects') ||
-        location.pathname.startsWith('/chat') ||
-        location.pathname.startsWith('/collaboration') ||
-        location.pathname.startsWith('/personalization') ||
-        location.pathname.startsWith('/search')
-      )
-    }
-    return location.pathname.startsWith(platform.path)
-  }, [location.pathname, platform.path])
-
-  const handleCategorySelect = (group: NavGroup) => {
-    const target = group.items[0]?.path ?? (platform.path === '/dashboard' ? '/' : platform.path)
-    onClose()
-    navigate(target)
-  }
-
   return (
     <>
       <button
@@ -299,15 +130,14 @@ function PlatformDropdown({
         className={`osd-nav-link ${isActive ? 'osd-nav-link--active' : ''}`}
         aria-haspopup="menu"
         aria-expanded={open}
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
+        onClick={(event) => {
+          event.preventDefault()
+          event.stopPropagation()
           if (open) onClose()
           else onOpen()
         }}
-        onMouseDown={(e) => e.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
       >
-        <platform.icon className="w-5 h-5 mr-2" />
         <span className="whitespace-nowrap">{platform.label}</span>
         <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -318,8 +148,8 @@ function PlatformDropdown({
               ref={dropdownRef}
               className="osd-dropdown w-80"
               style={{ position: 'fixed', zIndex: 99999, pointerEvents: 'auto' }}
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
+              onMouseDown={(event) => event.stopPropagation()}
               role="menu"
             >
               <div className="px-4 py-3 border-b border-white/5">
@@ -327,115 +157,96 @@ function PlatformDropdown({
                   Categories
                 </p>
                 <p className="mt-1 text-sm font-semibold text-[color:var(--osd-text)]">{platform.label}</p>
-                <p className="mt-1 text-xs text-[color:var(--osd-muted)]">{platform.description}</p>
               </div>
               <div className="py-2">
-                {platform.groups.map((group) => (
+                {categories.map((category) => (
                   <button
-                    key={group.label}
+                    key={category.id}
                     type="button"
                     className="w-full text-left px-4 py-2 hover:bg-[color:var(--osd-surface)] transition-colors"
-                    onClick={() => handleCategorySelect(group)}
+                    onClick={() => {
+                      onClose()
+                      navigate(category.homeRoute)
+                    }}
                   >
-                    <div className="text-sm font-medium text-[color:var(--osd-text)]">{group.label}</div>
-                    {group.description ? (
-                      <div className="text-xs text-[color:var(--osd-muted)] mt-0.5">{group.description}</div>
-                    ) : null}
+                    <div className="text-sm font-medium text-[color:var(--osd-text)]">{category.label}</div>
+                    <div className="text-xs text-[color:var(--osd-muted)] mt-0.5">
+                      {category.features.length} features
+                    </div>
                   </button>
                 ))}
               </div>
             </div>,
-            document.body
+            document.body,
           )
         : null}
     </>
   )
 }
 
-function FeatureRail({
-  platform,
-  group,
+function FeatureSidebar({
+  category,
+  features,
   currentPath,
 }: {
-  platform: NavCategory
-  group: NavGroup
+  category: Category
+  features: NavItem[]
   currentPath: string
 }) {
-  return null
-}
-
-interface SidebarProps {
-  category: NavCategory
-  currentPath: string
-}
-
-// Feature Sidebar - Shows features for the current category (distinct from dropdown categories)
-function FeatureSidebar({ category, currentPath }: SidebarProps) {
-  const allPages = getAllPagesFromCategory(category)
-  if (allPages.length === 0) return null
-
-  // Get all features/flows/simulations/etc from the category groups
-  // This is the left sidebar showing features, not categories
-  const allFeatures = category.groups.flatMap(group => group.items)
+  const [pinned, setPinned] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const expanded = pinned || hovered
 
   return (
-    <aside className="hidden lg:block w-72 shrink-0 border-r border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/20 overflow-y-auto">
-      <div className="p-4 space-y-4">
-        {/* Groups and Pages */}
-        {category.groups.map((group, groupIdx) => (
-          <div
-            key={`sidebar-group-${groupIdx}`}
-            className="bg-[color:var(--osd-surface)]/80 backdrop-blur-md rounded-xl shadow-sm border border-[color:var(--osd-border)]"
-          >
-            <div className="px-4 pt-3">
-              {group.label && (
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[color:var(--osd-muted)] mb-2">
-                  {group.label}
-                  {group.spec && <span className="ml-1 text-[0.6rem] normal-case">· {group.spec}</span>}
-                </h3>
-              )}
-              {group.description && (
-                <p className="text-[0.7rem] text-[color:var(--osd-muted)] mb-2">{group.description}</p>
-              )}
-            </div>
-            <nav className="px-2 pb-2">
-              <div className="space-y-1">
-                {group.items.map((item) => {
-                  const ItemIcon = item.icon
-                  const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/')
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`
-                        flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
-                        ${isActive
-                          ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20 shadow-sm'
-                          : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
-                        }
-                      `}
-                      aria-current={isActive ? 'page' : undefined}
-                    >
-                      <ItemIcon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[color:var(--osd-accent)]' : ''}`} />
-                      <span className="truncate flex-1">{item.label}</span>
-                      {item.status === 'new' && (
-                        <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 shrink-0">
-                          NEW
-                        </span>
-                      )}
-                    </Link>
-                  )
-                })}
-              </div>
-            </nav>
-          </div>
-        ))}
+    <aside
+      className={`hidden lg:flex flex-col shrink-0 border-r border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/20 transition-all duration-200 ${
+        expanded ? 'w-72' : 'w-14'
+      }`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div className="flex items-center justify-between gap-2 px-3 py-3 border-b border-[color:var(--osd-border)]">
+        <div className={`min-w-0 ${expanded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-150`}>
+          <p className="text-[0.6rem] uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">Category</p>
+          <p className="text-sm font-semibold text-[color:var(--osd-text)] truncate">{category.label}</p>
+        </div>
+        <button
+          type="button"
+          className="text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)]"
+          onClick={() => setPinned((prev) => !prev)}
+          aria-label={pinned ? 'Unpin sidebar' : 'Pin sidebar'}
+        >
+          {pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+        </button>
       </div>
+
+      <nav className={`flex-1 overflow-y-auto ${expanded ? 'px-2 pb-3' : 'px-1 pb-2'}`}>
+        <div className="space-y-1">
+          {features.map((item) => {
+            const isActive = currentPath === item.route || currentPath.startsWith(item.route + '/')
+            return (
+              <Link
+                key={item.route}
+                to={item.route}
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                  isActive
+                    ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20 shadow-sm'
+                    : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
+                }`}
+                title={item.label}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <Sparkles className={`w-4 h-4 shrink-0 ${isActive ? 'text-[color:var(--osd-accent)]' : ''}`} />
+                <span className={expanded ? 'truncate' : 'sr-only'}>{item.label}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
     </aside>
   )
 }
 
-// User menu component
 function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -504,9 +315,7 @@ function UserMenu() {
           </span>
         </div>
         <span className="text-sm font-medium hidden sm:block">{user?.username || 'User'}</span>
-        {isAdmin && (
-          <Shield className="w-4 h-4 text-amber-400" />
-        )}
+        {isAdmin && <Shield className="w-4 h-4 text-amber-400" />}
         <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
@@ -557,7 +366,8 @@ function UserMenu() {
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
-  const [openPlatformPath, setOpenPlatformPath] = useState<string | null>(null)
+  const { currentActor } = useActor()
+  const [openPlatformId, setOpenPlatformId] = useState<string | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const aiButtonRef = useRef<HTMLButtonElement>(null)
   const { data: settings } = useAppSettings()
@@ -572,27 +382,77 @@ export default function Layout({ children }: LayoutProps) {
     }
   })
 
-  // Identify current category and platform
-  // In navigation.ts:
-  // Category (Top) -> Platform (Dropdown) -> Feature (Sidebar)
-  
-  const currentCategory = useMemo(() => navigationConfig.find(cat => 
-    location.pathname.startsWith(cat.path) || 
-    cat.platforms.some(p => location.pathname.startsWith(p.path))
-  ), [location.pathname])
-  
-  const currentPlatform = useMemo(() => currentCategory?.platforms.find(p => 
-    location.pathname.startsWith(p.path)
-  ), [currentCategory, location.pathname])
+  const platforms = useMemo(() => getPlatforms(currentActor), [currentActor])
+  const routeContext = useMemo(() => findRouteContext(location.pathname), [location.pathname])
 
-  // Optional: Identify active feature if path matches deeper? 
-  // For now, we just show the features list.
-  const active = useMemo(() => getActiveNav(location.pathname), [location.pathname])
+  const activePlatform = useMemo(() => {
+    if (routeContext.platform && (routeContext.platform.actorScope === 'both' || routeContext.platform.actorScope === currentActor)) {
+      return routeContext.platform
+    }
+    return platforms[0]
+  }, [routeContext.platform, platforms, currentActor])
 
-  useEffect(() => {
-    // Close any open platform dropdown on route change.
-    setOpenPlatformPath(null)
-  }, [location.pathname])
+  const categories = useMemo(() => {
+    if (!activePlatform) return []
+    return getCategories(activePlatform.id, currentActor)
+  }, [activePlatform, currentActor])
+
+  const activeCategory = useMemo(() => {
+    if (
+      routeContext.category &&
+      (routeContext.category.actorScope === 'both' || routeContext.category.actorScope === currentActor)
+    ) {
+      return routeContext.category
+    }
+    return categories[0]
+  }, [routeContext.category, categories, currentActor])
+
+  const features = useMemo(() => {
+    if (!activePlatform || !activeCategory) return []
+    return getFeatures(activePlatform.id, activeCategory.id, currentActor)
+  }, [activePlatform, activeCategory, currentActor])
+
+  const breadcrumbs = useMemo((): Breadcrumb[] => {
+    const items: Breadcrumb[] = [{ label: 'Home', path: '/' }]
+
+    if (activePlatform) {
+      items.push({ label: activePlatform.label, path: activePlatform.path })
+    }
+    if (activeCategory) {
+      items.push({ label: activeCategory.label, path: activeCategory.homeRoute })
+    }
+    if (routeContext.feature && activeCategory && routeContext.feature.route !== activeCategory.homeRoute) {
+      items.push({ label: routeContext.feature.label, path: routeContext.feature.route })
+    }
+
+    const pmsMatch = location.pathname.match(/^\/pms\/projects\/([^/]+)/)
+    if (pmsMatch) {
+      const projectId = pmsMatch[1]
+      items.push({
+        label: `Project ${projectId.slice(0, 6)}`,
+        path: `/pms/projects/${projectId}`,
+      })
+      const params = new URLSearchParams(location.search)
+      const tab = params.get('tab')
+      if (tab) {
+        const tabLabels: Record<string, string> = {
+          overview: 'Overview',
+          epics: 'Epics',
+          tasks: 'Tasks',
+          schedule: 'Schedule',
+          runs: 'Runs & Artifacts',
+          documents: 'Documents',
+          journal: 'Journal',
+          finance: 'Finance',
+          audit: 'Audit',
+          settings: 'Settings',
+        }
+        items.push({ label: tabLabels[tab] ?? tab, path: location.pathname + location.search })
+      }
+    }
+
+    return items
+  }, [activePlatform, activeCategory, routeContext.feature, location.pathname, location.search])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -606,9 +466,9 @@ export default function Layout({ children }: LayoutProps) {
   useEffect(() => {
     const btn = aiButtonRef.current
     if (!btn) return
-    const onClick = (e: MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
+    const onClick = (event: MouseEvent) => {
+      event.preventDefault()
+      event.stopPropagation()
       setAiPanelOpen((prev) => !prev)
     }
     btn.addEventListener('click', onClick, true)
@@ -623,40 +483,18 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [settings?.theme])
 
-  // Toggle dropdown - only one open at a time
-  const toggleDropdown = useCallback((path: string) => {
-    setOpenPlatformPath((prev) => (prev === path ? null : path))
+  const toggleDropdown = useCallback((id: string) => {
+    setOpenPlatformId((prev) => (prev === id ? null : id))
   }, [])
 
-  // Close dropdown
   const closeDropdown = useCallback(() => {
-    setOpenPlatformPath(null)
+    setOpenPlatformId(null)
   }, [])
 
-  // Close dropdown on navigation
   useEffect(() => {
-    setOpenPlatformPath(null)
+    setOpenPlatformId(null)
     setMobileMenuOpen(false)
   }, [location.pathname])
-
-  // Find active category based on current path
-  const activeCategory = useMemo(() => {
-    for (const category of navigationManifest) {
-      if (location.pathname === category.path) return category
-      const allPages = getAllPagesFromCategory(category)
-      if (allPages.some((page) => location.pathname === page.path || location.pathname.startsWith(page.path + '/'))) {
-        return category
-      }
-    }
-    return navigationManifest[0]
-  }, [location.pathname])
-
-  // Check if a category is active
-  const isCategoryActive = (category: NavCategory): boolean => {
-    if (location.pathname === category.path) return true
-    const allPages = getAllPagesFromCategory(category)
-    return allPages.some((page) => location.pathname === page.path || location.pathname.startsWith(page.path + '/'))
-  }
 
   return (
     <div className="osd-shell min-h-screen text-[color:var(--osd-text)] flex flex-col">
@@ -683,22 +521,17 @@ export default function Layout({ children }: LayoutProps) {
               </Link>
             </div>
 
-            {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-1 flex-1 justify-center">
-              {navigationManifest.map((category) => {
-                const active = isCategoryActive(category)
-                const expanded = openPlatformPath === category.path
-
+              {platforms.map((platform) => {
+                const platformCategories = getCategories(platform.id, currentActor)
                 return (
-                  <NavDropdown
-                    key={category.path}
-                    category={category}
-                    platforms={[]}
-                    active={active}
-                    expanded={expanded}
-                    onToggle={() => toggleDropdown(category.path)}
+                  <PlatformDropdown
+                    key={platform.id}
+                    platform={platform}
+                    categories={platformCategories}
+                    open={openPlatformId === platform.id}
+                    onOpen={() => toggleDropdown(platform.id)}
                     onClose={closeDropdown}
-                    location={location}
                   />
                 )
               })}
@@ -706,57 +539,75 @@ export default function Layout({ children }: LayoutProps) {
 
             <div className="flex items-center gap-2">
               <UserMenu />
-              <Link to="/settings" className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors">
+              <Link
+                to="/settings"
+                className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors"
+              >
                 <Settings className="w-5 h-5" />
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]">
-            <div className="px-4 py-4 space-y-2 max-h-[70vh] overflow-y-auto">
-              {navigationManifest.map((category) => {
-                const allPages = getAllPagesFromCategory(category)
-                return (
-                  <div key={category.path} className="space-y-1">
-                    <p className="text-xs uppercase tracking-wider text-[color:var(--osd-muted)] font-semibold px-3 py-2">
+            <div className="px-4 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+              {platforms.map((platform) => (
+                <div key={platform.id} className="space-y-1">
+                  <p className="text-xs uppercase tracking-wider text-[color:var(--osd-muted)] font-semibold px-3 py-2">
+                    {platform.label}
+                  </p>
+                  {getCategories(platform.id, currentActor).map((category) => (
+                    <Link
+                      key={category.id}
+                      to={category.homeRoute}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-[color:var(--osd-accentSoft)]"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Sparkles className="w-4 h-4" />
                       {category.label}
-                    </p>
-                    {allPages.slice(0, 5).map((page) => (
-                      <Link
-                        key={page.path}
-                        to={page.path}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-[color:var(--osd-accentSoft)]"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <page.icon className="w-4 h-4" />
-                        {page.label}
-                      </Link>
-                    ))}
-                  </div>
-                )
-              })}
+                    </Link>
+                  ))}
+                </div>
+              ))}
             </div>
           </div>
         )}
       </nav>
 
-      {/* Main Content with Left Sidebar */}
       <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-8rem)] flex-1">
+        <div className="mb-6 flex flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <nav className="flex flex-wrap items-center gap-2 text-xs text-[color:var(--osd-muted)]">
+              {breadcrumbs.map((crumb, idx) => (
+                <div key={`${crumb.path}-${idx}`} className="flex items-center gap-2">
+                  <Link to={crumb.path} className="hover:text-[color:var(--osd-text)]">
+                    {crumb.label}
+                  </Link>
+                  {idx < breadcrumbs.length - 1 && <span className="text-[color:var(--osd-border)]">/</span>}
+                </div>
+              ))}
+            </nav>
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+              <GlobalSearch />
+              <ActorSwitch compact />
+            </div>
+          </div>
+        </div>
+
         <div className="flex w-full gap-6">
-          {/* Left Sidebar Navigation - Shows features for active category */}
-          {activeCategory && getAllPagesFromCategory(activeCategory).length > 0 && (
-            <FeatureSidebar category={activeCategory} currentPath={location.pathname} />
+          {activeCategory && features.length > 0 && (
+            <FeatureSidebar
+              category={activeCategory}
+              features={features}
+              currentPath={location.pathname}
+            />
           )}
 
-          {/* Main Content Pane */}
           <div className="flex-1 min-w-0 w-full">{children ?? <Outlet />}</div>
         </div>
       </main>
 
-      {/* AI Assistant Panel */}
       <UnifiedAIPanel currentPath={location.pathname} open={aiPanelOpen} onToggle={setAiPanelOpen} />
 
       <button
@@ -771,7 +622,9 @@ export default function Layout({ children }: LayoutProps) {
         style={{ right: aiPanelOpen ? '400px' : '24px' }}
         aria-pressed={aiPanelOpen}
       >
-        <span className="font-medium text-sm whitespace-nowrap">{aiPanelOpen ? 'Hide Assistant' : 'AI Assistant'}</span>
+        <span className="font-medium text-sm whitespace-nowrap">
+          {aiPanelOpen ? 'Hide Assistant' : 'AI Assistant'}
+        </span>
       </button>
     </div>
   )

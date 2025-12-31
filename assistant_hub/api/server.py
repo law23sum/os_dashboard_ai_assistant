@@ -73,6 +73,7 @@ from backend_api.routers import (
     neural_architecture as neural_architecture_router,
     office as office_router,
     personas as personas_router,
+    pms as pms_router,
     projects as projects_router,
     reasoning as reasoning_router,
     runtime_diagnostics as runtime_router,
@@ -396,6 +397,7 @@ def create_app(
     # the desktop (Tkinter/PyWebView) and browser clients.
     app.include_router(api_connectors_router.router, prefix="/api-connectors", tags=["api_connectors"])
     app.include_router(ai_systems_router.router, prefix="/ai", tags=["ai_systems"])
+    app.include_router(pms_router.router, prefix="/pms", tags=["pms"])
     app.include_router(audit_router.router, prefix="/audit", tags=["audit"])
     app.include_router(autofix_router.router, prefix="/autofix", tags=["autofix"])
     app.include_router(capsules_router.router, prefix="/ai", tags=["capsules"])

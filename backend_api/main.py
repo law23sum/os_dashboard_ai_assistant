@@ -142,6 +142,8 @@ from backend_api.routers import (
     settings,
     document_operations,
     analytics,
+    cookbook_integrations,
+    cookbook_patterns,
     writer,
     research,
     api_connectors,
@@ -157,6 +159,7 @@ from backend_api.routers import (
     edge_computing,
     workflow_orchestration,
     platform,
+    pms,
     personas,
     capsules,
     autofix,
@@ -198,6 +201,16 @@ app.include_router(
     tags=["document_operations"],
 )
 app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
+app.include_router(
+    cookbook_integrations.router,
+    prefix="/api/cookbook",
+    tags=["cookbook"],
+)
+app.include_router(
+    cookbook_patterns.router,
+    prefix="/api/cookbook",
+    tags=["cookbook"],
+)
 app.include_router(writer.router, prefix="/api/writer", tags=["writer"])
 app.include_router(research.router, prefix="/api/research", tags=["research"])
 app.include_router(intelligence.router, prefix="/api/intelligence", tags=["intelligence"])
@@ -206,6 +219,7 @@ app.include_router(
     api_connectors.router, prefix="/api/api-connectors", tags=["api_connectors"]
 )
 app.include_router(ai_systems.router, prefix="/api/ai", tags=["ai_systems"])
+app.include_router(pms.router, prefix="/api/pms", tags=["pms"])
 app.include_router(capsules.router, prefix="/api/ai", tags=["capsules"])
 app.include_router(coach.router, prefix="/api/ai", tags=["coach"])
 app.include_router(terminal.router, prefix="/api/terminal", tags=["terminal"])

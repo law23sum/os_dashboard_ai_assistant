@@ -39,6 +39,26 @@ CHANGE_PERMISSION_MODES = ["auto", "ask", "ask_when_unsure"]
 CONTINUITY_MODES = ["full", "automation-off", "read-only"]
 RISK_APPETITE_MODES = ["conservative", "balanced", "progressive"]
 
+PMS_PROJECT_MODES = ["personal", "enterprise"]
+PMS_TASK_STATUSES = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "ARCHIVED"]
+PMS_TODO_STATUSES = ["TODO", "IN_PROGRESS", "DONE", "ARCHIVED"]
+PMS_RUN_STATUSES = ["queued", "running", "succeeded", "failed", "needs_review"]
+PMS_DOCUMENT_VISIBILITY = ["private", "team", "public"]
+PMS_DOCUMENT_KINDS = ["spec", "notes", "runbook", "manuscript", "draft", "journal"]
+PMS_DEFAULT_PRIORITY_TIERS = ["P0", "P1", "P2", "P3"]
+PMS_JOURNAL_SECTION_TYPES = [
+    "Comments",
+    "KnowledgeTransfer",
+    "DisputableDebate",
+    "ChallengesRisks",
+    "SolutionsMitigations",
+    "ProposalRaised",
+    "MisunderstandingClarification",
+    "TechnicalDesign",
+    "CommonDiscussions",
+    "Questions",
+    "NextSteps",
+]
 DEFAULT_FETCH_PREFERENCES = {
     "notes": True,
     "calendar": True,
@@ -206,6 +226,256 @@ class DocumentOperation:
     started_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
     completed_at: Optional[str] = None
     notes: str = ""
+
+
+@dataclass
+class Deliverable:
+    """Project deliverable entry seeded from curated roadmaps."""
+
+    id: int
+    item_number: int
+    title: str
+    layer: str = ""
+    content: str = ""
+    source: str = ""
+    created_at: str = datetime.now().isoformat(timespec="seconds")
+    user_id: str = "demo"
+
+
+@dataclass
+class PmsProject:
+    project_id: str
+    name: str
+    mode: str = "personal"
+    scope_type: str = "user"
+    scope_id: str = "demo"
+    status: str = "active"
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    config_json: str = ""
+    budget_json: str = ""
+    created_by: str = "demo"
+    is_sample: int = 0
+
+
+@dataclass
+class PmsEpic:
+    epic_id: str
+    project_id: str
+    title: str
+    description: str = ""
+    acceptance_criteria: str = ""
+    status: str = "active"
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    scope_type: str = "user"
+    scope_id: str = "demo"
+    created_by: str = "demo"
+    is_archived: int = 0
+
+
+@dataclass
+class PmsTask:
+    task_id: str
+    project_id: str
+    title: str
+    deliverable_spec: str = ""
+    acceptance_criteria: str = ""
+    priority: str = "P1"
+    category: str = "General"
+    task_type: str = "General"
+    status: str = "TODO"
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    enqueue_time: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    epic_id: Optional[str] = None
+    scope_type: str = "user"
+    scope_id: str = "demo"
+    created_by: str = "demo"
+    is_archived: int = 0
+
+
+@dataclass
+class PmsTodo:
+    todo_id: str
+    task_id: str
+    text: str
+    status: str = "TODO"
+    position: int = 0
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    scope_type: str = "user"
+    scope_id: str = "demo"
+    created_by: str = "demo"
+
+
+@dataclass
+class PmsExecutionRun:
+    run_id: str
+    project_id: str
+    input_params: str = ""
+    status: str = "queued"
+    started_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    ended_at: Optional[str] = None
+    summary: str = ""
+    created_by: str = "demo"
+    epic_id: Optional[str] = None
+    task_id: Optional[str] = None
+    todo_id: Optional[str] = None
+    scope_type: str = "user"
+    scope_id: str = "demo"
+
+
+@dataclass
+class PmsArtifact:
+    artifact_id: str
+    project_id: str
+    kind: str
+    filename: str
+    display_name: str
+    mime_type: str
+    size: int
+    sha256: str
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    storage_path: str = ""
+    run_id: Optional[str] = None
+    scope_type: str = "user"
+    scope_id: str = "demo"
+
+
+@dataclass
+class PmsDocument:
+    document_id: str
+    project_id: str
+    title: str
+    kind: str = "spec"
+    visibility: str = "private"
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    published_revision_hash: Optional[str] = None
+    latest_revision_hash: Optional[str] = None
+    epic_id: Optional[str] = None
+    task_id: Optional[str] = None
+    scope_type: str = "user"
+    scope_id: str = "demo"
+    created_by: str = "demo"
+    is_archived: int = 0
+
+
+@dataclass
+class PmsDocumentRevision:
+    revision_id: str
+    document_id: str
+    revision_hash: str
+    parent_hash: Optional[str] = None
+    author: str = "demo"
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    metadata_json: str = ""
+
+
+@dataclass
+class PmsDocumentBlob:
+    blob_hash: str
+    content: str
+    size: int
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+
+
+@dataclass
+class PmsExpenseEntry:
+    expense_id: str
+    project_id: str
+    amount: float
+    currency: str
+    category: str
+    description: str
+    occurred_at: str
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    epic_id: Optional[str] = None
+    task_id: Optional[str] = None
+    vendor: Optional[str] = None
+    created_by: str = "demo"
+    scope_type: str = "user"
+    scope_id: str = "demo"
+
+
+@dataclass
+class PmsTimeEntry:
+    time_entry_id: str
+    project_id: str
+    actor_id: str
+    role: str
+    duration_minutes: int
+    hourly_rate: float
+    occurred_at: str
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    epic_id: Optional[str] = None
+    task_id: Optional[str] = None
+    scope_type: str = "user"
+    scope_id: str = "demo"
+
+
+@dataclass
+class PmsMeetingSession:
+    meeting_id: str
+    project_id: str
+    title: str
+    started_at: str
+    ended_at: Optional[str] = None
+    participants_json: str = ""
+    language: str = "en"
+    created_by: str = "demo"
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    epic_id: Optional[str] = None
+    task_id: Optional[str] = None
+    scope_type: str = "user"
+    scope_id: str = "demo"
+    recording_status: str = "none"
+    recording_path: str = ""
+    recording_mime_type: Optional[str] = None
+    recording_size: Optional[int] = None
+    recording_sha256: Optional[str] = None
+    transcript_status: Optional[str] = None
+    journal_status: Optional[str] = None
+
+
+@dataclass
+class PmsTranscriptSegment:
+    segment_id: str
+    meeting_id: str
+    ts_start: float
+    ts_end: float
+    speaker_label: str
+    text_original: str
+    text_translated: Optional[str] = None
+    confidence: Optional[float] = None
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+
+
+@dataclass
+class PmsJournalBlock:
+    block_id: str
+    meeting_id: str
+    ts_start: float
+    ts_end: float
+    section_type: str
+    content: str
+    speaker_label: Optional[str] = None
+    references_json: str = ""
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+
+
+@dataclass
+class PmsSpeakerMapping:
+    mapping_id: str
+    meeting_id: str
+    speaker_label: str
+    participant_name: str
+    consented_by: str
+    consented_at: str
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
 
 
 @dataclass
@@ -622,6 +892,450 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
     if "user_id" not in columns:
         c.execute("ALTER TABLE project_events ADD COLUMN user_id TEXT DEFAULT 'demo'")
 
+    # ---------------------------------------------------------------------
+    # Deliverables catalog (admin-seeded)
+    # ---------------------------------------------------------------------
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS deliverables (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_number INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            layer TEXT,
+            content TEXT,
+            source TEXT,
+            created_at TEXT NOT NULL,
+            user_id TEXT DEFAULT 'demo'
+        )
+        """
+    )
+    c.execute("PRAGMA table_info(deliverables)")
+    columns = [row[1] for row in c.fetchall()]
+    if "user_id" not in columns:
+        c.execute("ALTER TABLE deliverables ADD COLUMN user_id TEXT DEFAULT 'demo'")
+    if "layer" not in columns:
+        c.execute("ALTER TABLE deliverables ADD COLUMN layer TEXT DEFAULT ''")
+    if "source" not in columns:
+        c.execute("ALTER TABLE deliverables ADD COLUMN source TEXT DEFAULT ''")
+
+    # ---------------------------------------------------------------------
+    # Project Management System (PMS) tables
+    # ---------------------------------------------------------------------
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_projects (
+            project_id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            mode TEXT NOT NULL,
+            scope_type TEXT NOT NULL,
+            scope_id TEXT NOT NULL,
+            status TEXT NOT NULL,
+            created_at TEXT,
+            updated_at TEXT,
+            config_json TEXT,
+            budget_json TEXT,
+            created_by TEXT,
+            is_sample INTEGER DEFAULT 0
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_epics (
+            epic_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            acceptance_criteria TEXT,
+            status TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            scope_type TEXT,
+            scope_id TEXT,
+            created_by TEXT,
+            is_archived INTEGER DEFAULT 0
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_tasks (
+            task_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            epic_id TEXT,
+            title TEXT NOT NULL,
+            deliverable_spec TEXT,
+            acceptance_criteria TEXT,
+            priority TEXT,
+            category TEXT,
+            task_type TEXT,
+            status TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            enqueue_time TEXT,
+            scope_type TEXT,
+            scope_id TEXT,
+            created_by TEXT,
+            is_archived INTEGER DEFAULT 0
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_todos (
+            todo_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL,
+            text TEXT NOT NULL,
+            status TEXT,
+            position INTEGER,
+            created_at TEXT,
+            updated_at TEXT,
+            scope_type TEXT,
+            scope_id TEXT,
+            created_by TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_runs (
+            run_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            epic_id TEXT,
+            task_id TEXT,
+            todo_id TEXT,
+            input_params TEXT,
+            status TEXT,
+            started_at TEXT,
+            ended_at TEXT,
+            summary TEXT,
+            created_by TEXT,
+            scope_type TEXT,
+            scope_id TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_artifacts (
+            artifact_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            run_id TEXT,
+            kind TEXT,
+            filename TEXT,
+            display_name TEXT,
+            mime_type TEXT,
+            size INTEGER,
+            sha256 TEXT,
+            created_at TEXT,
+            storage_path TEXT,
+            scope_type TEXT,
+            scope_id TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_documents (
+            document_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            epic_id TEXT,
+            task_id TEXT,
+            title TEXT,
+            kind TEXT,
+            visibility TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            published_revision_hash TEXT,
+            latest_revision_hash TEXT,
+            scope_type TEXT,
+            scope_id TEXT,
+            created_by TEXT,
+            is_archived INTEGER DEFAULT 0
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_document_blobs (
+            blob_hash TEXT PRIMARY KEY,
+            content TEXT,
+            size INTEGER,
+            created_at TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_document_revisions (
+            revision_id TEXT PRIMARY KEY,
+            document_id TEXT NOT NULL,
+            revision_hash TEXT NOT NULL,
+            parent_hash TEXT,
+            author TEXT,
+            created_at TEXT,
+            metadata_json TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_expenses (
+            expense_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            epic_id TEXT,
+            task_id TEXT,
+            amount REAL,
+            currency TEXT,
+            category TEXT,
+            vendor TEXT,
+            description TEXT,
+            occurred_at TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            created_by TEXT,
+            scope_type TEXT,
+            scope_id TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_time_entries (
+            time_entry_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            epic_id TEXT,
+            task_id TEXT,
+            actor_id TEXT,
+            role TEXT,
+            duration_minutes INTEGER,
+            hourly_rate REAL,
+            occurred_at TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            scope_type TEXT,
+            scope_id TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_meetings (
+            meeting_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            epic_id TEXT,
+            task_id TEXT,
+            title TEXT,
+            started_at TEXT,
+            ended_at TEXT,
+            participants_json TEXT,
+            language TEXT,
+            created_by TEXT,
+            created_at TEXT,
+            scope_type TEXT,
+            scope_id TEXT,
+            recording_status TEXT,
+            recording_path TEXT,
+            recording_mime_type TEXT,
+            recording_size INTEGER,
+            recording_sha256 TEXT,
+            transcript_status TEXT,
+            journal_status TEXT
+        )
+        """
+    )
+
+    c.execute("PRAGMA table_info(pms_meetings)")
+    meeting_columns = {row[1] for row in c.fetchall()}
+    for column_name, column_type in {
+        "recording_path": "TEXT",
+        "recording_mime_type": "TEXT",
+        "recording_size": "INTEGER",
+        "recording_sha256": "TEXT",
+        "transcript_status": "TEXT",
+        "journal_status": "TEXT",
+    }.items():
+        if column_name not in meeting_columns:
+            c.execute(f"ALTER TABLE pms_meetings ADD COLUMN {column_name} {column_type}")
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_transcript_segments (
+            segment_id TEXT PRIMARY KEY,
+            meeting_id TEXT NOT NULL,
+            ts_start REAL,
+            ts_end REAL,
+            speaker_label TEXT,
+            text_original TEXT,
+            text_translated TEXT,
+            confidence REAL,
+            created_at TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_journal_blocks (
+            block_id TEXT PRIMARY KEY,
+            meeting_id TEXT NOT NULL,
+            ts_start REAL,
+            ts_end REAL,
+            section_type TEXT,
+            speaker_label TEXT,
+            content TEXT,
+            references_json TEXT,
+            created_at TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_speaker_mappings (
+            mapping_id TEXT PRIMARY KEY,
+            meeting_id TEXT NOT NULL,
+            speaker_label TEXT,
+            participant_name TEXT,
+            consented_by TEXT,
+            consented_at TEXT,
+            updated_at TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_pms_projects_scope_name
+        ON pms_projects(scope_type, scope_id, name)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_projects_scope
+        ON pms_projects(scope_type, scope_id, status)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_projects_sample
+        ON pms_projects(is_sample, created_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_epics_project
+        ON pms_epics(project_id, updated_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_tasks_project
+        ON pms_tasks(project_id, status, priority)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_tasks_epic
+        ON pms_tasks(epic_id, updated_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_tasks_enqueue
+        ON pms_tasks(enqueue_time, task_id)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_todos_task
+        ON pms_todos(task_id, position)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_runs_project
+        ON pms_runs(project_id, started_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_runs_task
+        ON pms_runs(task_id, started_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_artifacts_run
+        ON pms_artifacts(run_id, created_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_documents_project
+        ON pms_documents(project_id, updated_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_pms_doc_revision_unique
+        ON pms_document_revisions(document_id, revision_hash)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_doc_revisions_doc
+        ON pms_document_revisions(document_id, created_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_expenses_project
+        ON pms_expenses(project_id, occurred_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_time_entries_project
+        ON pms_time_entries(project_id, occurred_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_meetings_project
+        ON pms_meetings(project_id, started_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_transcript_meeting
+        ON pms_transcript_segments(meeting_id, ts_start)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_journal_meeting
+        ON pms_journal_blocks(meeting_id, section_type, ts_start)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_speaker_meeting
+        ON pms_speaker_mappings(meeting_id, speaker_label)
+        """
+    )
+
     c.execute(
         """
         CREATE INDEX IF NOT EXISTS idx_document_operations_status
@@ -997,6 +1711,7 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
             CREATE INDEX IF NOT EXISTS idx_project_ledger_project_created 
             ON project_ledger(project_id, created_at DESC)
         """)
+
     conn.commit()
     _ensure_bootstrap_accounts(conn)
     return conn

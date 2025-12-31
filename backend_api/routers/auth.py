@@ -11,7 +11,9 @@ from pydantic import BaseModel, EmailStr, Field
 
 from backend_api.db import db_session
 from backend_api.deps import get_current_user
+from backend_api.auth import get_current_admin_user
 from backend_api.security import AuthUser, create_access_token, hash_password, verify_password
+from assistant_hub.demo_seed import ensure_demo_data
 
 router = APIRouter()
 
@@ -100,6 +102,12 @@ async def _ensure_demo_users() -> None:
                         """,
                         (hashed_pw, display_name, 1 if is_admin else 0, email),
                     )
+            admin_row = db.execute(
+                "SELECT id FROM users WHERE email = ?",
+                ("admin@demo.local",),
+            ).fetchone()
+            if admin_row:
+                ensure_demo_data(db, admin_user_id=str(admin_row["id"]))
     except Exception as e:
         import logging
         logging.error(f"Error ensuring demo users: {e}", exc_info=True)

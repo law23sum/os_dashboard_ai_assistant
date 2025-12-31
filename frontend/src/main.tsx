@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
+import { ActorProvider } from './contexts/ActorContext'
 import { attachRuntimeDiagnostics, recordRuntimeDiagnostic } from './utils/runtimeDiagnostics'
 import './index.css'
 
@@ -17,7 +18,9 @@ if (!rootElement) {
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <AppErrorBoundary>
-      <App />
+      <ActorProvider>
+        <App />
+      </ActorProvider>
     </AppErrorBoundary>
   </React.StrictMode>,
 )

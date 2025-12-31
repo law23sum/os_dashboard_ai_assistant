@@ -24,8 +24,45 @@ except Exception:  # pragma: no cover - fall back for older environments
                 case_sensitive = False
 from dotenv import load_dotenv
 
+
+def _iter_env_files() -> list[Path]:
+    candidates: list[Path] = []
+    explicit = (
+        os.getenv("ASSISTANT_HUB_ENV_FILE")
+        or os.getenv("OSDASH_ENV_FILE")
+        or os.getenv("ENV_FILE")
+    )
+    if explicit:
+        candidates.append(Path(explicit))
+    env_name = os.getenv("ENVIRONMENT") or os.getenv("ENV")
+    if env_name:
+        candidates.append(Path(f".env.{env_name}"))
+        candidates.append(Path(f"env.{env_name}.example"))
+    candidates.extend(
+        [
+            Path(".env"),
+            Path(".env.local"),
+            Path("env.dev.example"),
+        ]
+    )
+    seen: set[Path] = set()
+    ordered: list[Path] = []
+    for path in candidates:
+        path = path.expanduser()
+        if path in seen:
+            continue
+        seen.add(path)
+        ordered.append(path)
+    return ordered
+
+
+def _load_env_chain() -> None:
+    for path in _iter_env_files():
+        load_dotenv(path, override=False)
+
+
 # Load environment variables
-load_dotenv()
+_load_env_chain()
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
 PROJECT_ROOT = PACKAGE_ROOT.parent
