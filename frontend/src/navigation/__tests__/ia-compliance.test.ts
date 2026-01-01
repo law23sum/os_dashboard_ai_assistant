@@ -15,7 +15,7 @@ import { verifyIACompliance, assertIACompliance } from '../iaGuardrails'
 import type { Platform, Category, NavItem } from '../../data/iaManifest'
 
 describe('IA Compliance Tests', () => {
-  const allPlatforms = [...iaManifest.personal, ...iaManifest.enterprise]
+  const allPlatforms = iaManifest
 
   describe('Structure Validation', () => {
     it('should have platforms defined', () => {
@@ -166,12 +166,12 @@ describe('IA Compliance Tests', () => {
   })
 
   describe('Actor Scope Validation', () => {
+    const allowed = new Set(['personal', 'enterprise', 'both'])
+
     it('all platforms should have valid actorScope', () => {
       for (const platform of allPlatforms) {
         expect(platform.actorScope).toBeDefined()
-        expect(typeof platform.actorScope).toBe('object')
-        expect(typeof platform.actorScope.personal).toBe('boolean')
-        expect(typeof platform.actorScope.enterprise).toBe('boolean')
+        expect(allowed.has(platform.actorScope)).toBe(true)
       }
     })
 
@@ -179,9 +179,7 @@ describe('IA Compliance Tests', () => {
       for (const platform of allPlatforms) {
         for (const category of platform.categories) {
           expect(category.actorScope).toBeDefined()
-          expect(typeof category.actorScope).toBe('object')
-          expect(typeof category.actorScope.personal).toBe('boolean')
-          expect(typeof category.actorScope.enterprise).toBe('boolean')
+          expect(allowed.has(category.actorScope)).toBe(true)
         }
       }
     })
@@ -191,9 +189,7 @@ describe('IA Compliance Tests', () => {
         for (const category of platform.categories) {
           for (const feature of category.features) {
             expect(feature.actorScope).toBeDefined()
-            expect(typeof feature.actorScope).toBe('object')
-            expect(typeof feature.actorScope.personal).toBe('boolean')
-            expect(typeof feature.actorScope.enterprise).toBe('boolean')
+            expect(allowed.has(feature.actorScope)).toBe(true)
           }
         }
       }
@@ -214,4 +210,3 @@ describe('IA Compliance Tests', () => {
     })
   })
 })
-

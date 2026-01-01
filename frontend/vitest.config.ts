@@ -15,13 +15,11 @@ export default defineConfig({
       'electron/**',
       'scripts/**',
     ],
-    exclude: ['**/node_modules/**', 'dist', 'electron/**', 'scripts/**'],
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@jest/globals': 'vitest',
     },
   },
 })
-
-

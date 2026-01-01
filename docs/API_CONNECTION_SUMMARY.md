@@ -237,3 +237,4 @@ The frontend and backend are **fully connected** with:
 The system is ready for production use and can be easily extended with new features and endpoints.
 
 
+

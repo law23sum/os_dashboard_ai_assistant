@@ -19,6 +19,13 @@ vi.mock('../../lib/apiClient', () => ({
     get: vi.fn(),
   },
   apiPath: vi.fn((path: string) => `/api/${path}`),
+  setAccessToken: (token: string | null) => {
+    if (token) {
+      localStorage.setItem('access_token', token)
+    } else {
+      localStorage.removeItem('access_token')
+    }
+  },
 }))
 
 vi.mock('../../auth/AuthContext', () => ({
@@ -34,11 +41,23 @@ vi.mock('../../utils/toast', () => ({
 
 const mockNavigate = vi.fn()
 const mockLocation = { state: null, pathname: '/login', search: '', hash: '' }
+const routerFutureFlags = {
+  v7_startTransition: true,
+  v7_relativeSplatPath: true,
+}
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
+  const BrowserRouter = (props: React.ComponentProps<typeof actual.BrowserRouter>) => {
+    const { future, ...rest } = props
+    return React.createElement(actual.BrowserRouter, {
+      ...rest,
+      future: { ...routerFutureFlags, ...future },
+    })
+  }
   return {
     ...actual,
+    BrowserRouter,
     useNavigate: () => mockNavigate,
     useLocation: () => mockLocation,
   }
@@ -85,12 +104,6 @@ describe('Login Component', () => {
   it('should successfully login with valid credentials', async () => {
     const mockAccessToken = 'mock-access-token'
     const mockRefreshToken = 'mock-refresh-token'
-    const mockUser = {
-      id: 1,
-      username: 'testuser',
-      email: 'test@example.com',
-      is_admin: false,
-    }
 
     ;(apiClient.default.post as any)
       .mockResolvedValueOnce({
@@ -98,9 +111,6 @@ describe('Login Component', () => {
           access_token: mockAccessToken,
           refresh_token: mockRefreshToken,
         },
-      })
-      .mockResolvedValueOnce({
-        data: mockUser,
       })
 
     render(

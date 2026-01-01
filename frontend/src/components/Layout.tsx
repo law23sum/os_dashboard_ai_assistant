@@ -1,199 +1,52 @@
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
+  Bell,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
-  LayoutDashboard,
+  HelpCircle,
   LogOut,
   Menu,
+  PanelLeft,
   Settings,
   Shield,
   Sparkles,
-  User,
-  X
+  UserCog,
+  X,
 } from 'lucide-react'
 import { applyTheme, defaultTheme } from '../theme'
 import { useAppSettings } from '../hooks/useSettings'
 import { UnifiedAIPanel } from './UnifiedAIPanel'
-import { throttle } from '../shared/utils'
-import { navigationManifest, findCategoryByPath, getAllPagesFromCategory, type NavCategory, type NavGroup, type NavPage } from '../data/navigationManifest'
-import PlatformFeatureSidebar from './PlatformFeatureSidebar'
-import { navigationConfig, Category, Platform, FeatureOption } from '../config/navigation'
+import GlobalSearch from './GlobalSearch'
+import ActorSwitch from './ActorSwitch'
+import { useActor } from '../contexts/ActorContext'
+import { useAuth } from '../auth/AuthContext'
+import { useIARouteContext } from '../navigation/iaContext'
+import {
+  getCategories,
+  getFeatures,
+  getPlatforms,
+  legacyRedirects,
+  type Category,
+  type NavItem,
+  type Platform,
+} from '../data/iaManifest'
 
-type ActiveNav = {
-  platform: NavCategory | null
-  group: NavGroup | null
-  page: NavPage | null
-}
-
-function matchPage(currentPath: string, pagePath: string): boolean {
-  return currentPath === pagePath || currentPath.startsWith(pagePath + '/')
-}
-
-function getActiveNav(pathname: string): ActiveNav {
-  const platform =
-    navigationManifest.find((p) => pathname.startsWith(p.path)) ??
-    // Dashboard is special: root routes live under Mission Control.
-    navigationManifest.find((p) => p.path === '/dashboard') ??
-    null
-
-  if (!platform) return { platform: null, group: null, page: null }
-
-  let group: NavGroup | null = null
-  let page: NavPage | null = null
-
-  for (const g of platform.groups) {
-    const found = g.items.find((item) => matchPage(pathname, item.path))
-    if (found) {
-      group = g
-      page = found
-      break
-    }
-  }
-
-  return { platform, group, page }
+type Breadcrumb = {
+  label: string
+  path: string
 }
 
 interface LayoutProps {
   children?: ReactNode
 }
 
-interface NavDropdownProps {
-  category: NavCategory
-  platforms?: Platform[]
-  active: boolean
-  expanded: boolean
-  onToggle: () => void
-  onClose: () => void
-  location: { pathname: string }
-}
-
-function NavDropdown({ category, platforms, active, expanded, onToggle, onClose, location }: NavDropdownProps) {
-  const buttonRef = useRef<HTMLButtonElement>(null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const Icon = category.icon
-
-  // Position dropdown when expanded - simple direct style approach
-  useEffect(() => {
-    if (expanded && buttonRef.current && dropdownRef.current) {
-      const buttonRect = buttonRef.current.getBoundingClientRect()
-      const viewportWidth = window.innerWidth
-      const dropdownWidth = 288
-      const margin = 16
-      
-      let left = buttonRect.left
-      if (left + dropdownWidth > viewportWidth - margin) {
-        left = viewportWidth - dropdownWidth - margin
-      }
-      if (left < margin) left = margin
-
-      dropdownRef.current.style.top = `${buttonRect.bottom + 8}px`
-      dropdownRef.current.style.left = `${left}px`
-      dropdownRef.current.style.position = 'fixed'
-      dropdownRef.current.style.zIndex = '99999'
-      dropdownRef.current.style.visibility = 'visible'
-    }
-  }, [expanded])
-
-  // Handle clicks outside to close dropdown
-  useEffect(() => {
-    if (!expanded) return
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        buttonRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        onClose()
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [expanded, onClose])
-
-  return (
-    <>
-      <div className="relative group flex items-center">
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={onToggle}
-          className={`osd-nav-link ${active ? 'osd-nav-link--active' : ''}`}
-          aria-haspopup="menu"
-          aria-expanded={expanded}
-        >
-          <Icon className="w-5 h-5 mr-2" />
-          {category.label}
-          <ChevronDown
-            className={`w-4 h-4 ml-1 transition-transform duration-150 ${
-              expanded ? 'transform rotate-180' : ''
-            }`}
-          />
-        </button>
-      </div>
-      {expanded &&
-        createPortal(
-          <div
-            ref={dropdownRef}
-            className="osd-dropdown w-72 max-h-[70vh] overflow-y-auto"
-            style={{ position: 'fixed', zIndex: 99999 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {category.groups.map((group, groupIndex) => (
-              <div
-                key={`${category.path}-group-${groupIndex}`}
-                className="px-4 py-3 border-b border-white/5 last:border-b-0"
-              >
-                {group.label && (
-                  <div className="mb-2 space-y-1">
-                    <p className="text-[0.65rem] uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">
-                      {group.label}
-                      {group.spec && <span className="ml-1 text-[0.6rem]">· {group.spec}</span>}
-                    </p>
-                    {group.description && (
-                      <p className="text-[0.7rem] text-[color:var(--osd-muted)]">{group.description}</p>
-                    )}
-                  </div>
-                )}
-                <div className="space-y-1">
-                  {group.items.map((item) => {
-                    const ItemIcon = item.icon
-                    const itemActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/')
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        className={`osd-dropdown-link ${itemActive ? 'osd-dropdown-link--active' : ''}`}
-                        onClick={onClose}
-                      >
-                        <ItemIcon className="w-4 h-4 mr-2" />
-                        {item.label}
-                        {item.status === 'new' && (
-                          <span className="ml-auto text-[0.6rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">
-                            NEW
-                          </span>
-                        )}
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>,
-          document.body
-        )}
-    </>
-  )
-}
-
 function useDropdownPosition(
   open: boolean,
   buttonRef: React.RefObject<HTMLButtonElement>,
-  dropdownRef: React.RefObject<HTMLDivElement>
+  dropdownRef: React.RefObject<HTMLDivElement>,
 ) {
   const update = useCallback(() => {
     const button = buttonRef.current
@@ -238,23 +91,25 @@ function useDropdownPosition(
 
 function PlatformDropdown({
   platform,
+  categories,
   open,
+  isActive,
   onOpen,
   onClose,
 }: {
-  platform: NavCategory
+  platform: Platform
+  categories: Category[]
   open: boolean
+  isActive: boolean
   onOpen: () => void
   onClose: () => void
 }) {
-  const location = useLocation()
   const navigate = useNavigate()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useDropdownPosition(open, buttonRef, dropdownRef)
 
-  // Handle click outside to close dropdown
   useEffect(() => {
     if (!open) return
 
@@ -265,31 +120,19 @@ function PlatformDropdown({
       onClose()
     }
 
-    document.addEventListener('click', onDocClick, true)
-    return () => document.removeEventListener('click', onDocClick, true)
-  }, [open, onClose])
-
-  const isActive = useMemo(() => {
-    if (platform.path === '/dashboard') {
-      return (
-        location.pathname === '/' ||
-        location.pathname === '/dashboard' ||
-        location.pathname.startsWith('/tasks') ||
-        location.pathname.startsWith('/projects') ||
-        location.pathname.startsWith('/chat') ||
-        location.pathname.startsWith('/collaboration') ||
-        location.pathname.startsWith('/personalization') ||
-        location.pathname.startsWith('/search')
-      )
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      onClose()
     }
-    return location.pathname.startsWith(platform.path)
-  }, [location.pathname, platform.path])
 
-  const handleCategorySelect = (group: NavGroup) => {
-    const target = group.items[0]?.path ?? (platform.path === '/dashboard' ? '/' : platform.path)
-    onClose()
-    navigate(target)
-  }
+    document.addEventListener('click', onDocClick, true)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('click', onDocClick, true)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open, onClose])
 
   return (
     <>
@@ -299,15 +142,14 @@ function PlatformDropdown({
         className={`osd-nav-link ${isActive ? 'osd-nav-link--active' : ''}`}
         aria-haspopup="menu"
         aria-expanded={open}
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
+        onClick={(event) => {
+          event.preventDefault()
+          event.stopPropagation()
           if (open) onClose()
           else onOpen()
         }}
-        onMouseDown={(e) => e.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
       >
-        <platform.icon className="w-5 h-5 mr-2" />
         <span className="whitespace-nowrap">{platform.label}</span>
         <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -318,8 +160,8 @@ function PlatformDropdown({
               ref={dropdownRef}
               className="osd-dropdown w-80"
               style={{ position: 'fixed', zIndex: 99999, pointerEvents: 'auto' }}
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
+              onMouseDown={(event) => event.stopPropagation()}
               role="menu"
             >
               <div className="px-4 py-3 border-b border-white/5">
@@ -327,115 +169,169 @@ function PlatformDropdown({
                   Categories
                 </p>
                 <p className="mt-1 text-sm font-semibold text-[color:var(--osd-text)]">{platform.label}</p>
-                <p className="mt-1 text-xs text-[color:var(--osd-muted)]">{platform.description}</p>
               </div>
               <div className="py-2">
-                {platform.groups.map((group) => (
-                  <button
-                    key={group.label}
-                    type="button"
-                    className="w-full text-left px-4 py-2 hover:bg-[color:var(--osd-surface)] transition-colors"
-                    onClick={() => handleCategorySelect(group)}
-                  >
-                    <div className="text-sm font-medium text-[color:var(--osd-text)]">{group.label}</div>
-                    {group.description ? (
-                      <div className="text-xs text-[color:var(--osd-muted)] mt-0.5">{group.description}</div>
-                    ) : null}
-                  </button>
-                ))}
+                {categories.map((category) => {
+                  const newCount = category.features.filter((feature) => feature.isNew).length
+                  const description = `Overview and quick actions for ${category.label}.`
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      role="menuitem"
+                      className="w-full text-left px-4 py-2 hover:bg-[color:var(--osd-surface)] transition-colors"
+                      onClick={() => {
+                        onClose()
+                        navigate(category.homeRoute)
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm font-medium text-[color:var(--osd-text)]">{category.label}</div>
+                        {newCount > 0 ? (
+                          <span className="text-[0.55rem] uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-400/40 text-emerald-300">
+                            New
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="text-xs text-[color:var(--osd-muted)] mt-0.5">{description}</div>
+                      <div className="text-[0.65rem] text-[color:var(--osd-muted)] mt-1">
+                        {category.features.length} features
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
             </div>,
-            document.body
+            document.body,
           )
         : null}
     </>
   )
 }
 
-function FeatureRail({
-  platform,
-  group,
+function FeatureSidebar({
+  category,
+  features,
   currentPath,
 }: {
-  platform: NavCategory
-  group: NavGroup
+  category: Category
+  features: NavItem[]
   currentPath: string
 }) {
-  return null
-}
+  const [collapsed, setCollapsed] = useState(false)
+  const expanded = !collapsed
+  const itemRefs = useRef<Array<HTMLAnchorElement | null>>([])
 
-interface SidebarProps {
-  category: NavCategory
-  currentPath: string
-}
+  const focusItem = useCallback(
+    (index: number) => {
+      if (!features.length) return
+      const total = features.length
+      const nextIndex = (index + total) % total
+      itemRefs.current[nextIndex]?.focus()
+    },
+    [features.length],
+  )
 
-// Feature Sidebar - Shows features for the current category (distinct from dropdown categories)
-function FeatureSidebar({ category, currentPath }: SidebarProps) {
-  const allPages = getAllPagesFromCategory(category)
-  if (allPages.length === 0) return null
-
-  // Get all features/flows/simulations/etc from the category groups
-  // This is the left sidebar showing features, not categories
-  const allFeatures = category.groups.flatMap(group => group.items)
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent, index: number) => {
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault()
+          focusItem(index + 1)
+          break
+        case 'ArrowUp':
+          event.preventDefault()
+          focusItem(index - 1)
+          break
+        case 'Home':
+          event.preventDefault()
+          focusItem(0)
+          break
+        case 'End':
+          event.preventDefault()
+          focusItem(features.length - 1)
+          break
+        case 'Escape':
+          event.preventDefault()
+          setCollapsed(true)
+          break
+        default:
+          break
+      }
+    },
+    [features.length, focusItem],
+  )
 
   return (
-    <aside className="hidden lg:block w-72 shrink-0 border-r border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/20 overflow-y-auto">
-      <div className="p-4 space-y-4">
-        {/* Groups and Pages */}
-        {category.groups.map((group, groupIdx) => (
-          <div
-            key={`sidebar-group-${groupIdx}`}
-            className="bg-[color:var(--osd-surface)]/80 backdrop-blur-md rounded-xl shadow-sm border border-[color:var(--osd-border)]"
-          >
-            <div className="px-4 pt-3">
-              {group.label && (
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[color:var(--osd-muted)] mb-2">
-                  {group.label}
-                  {group.spec && <span className="ml-1 text-[0.6rem] normal-case">· {group.spec}</span>}
-                </h3>
-              )}
-              {group.description && (
-                <p className="text-[0.7rem] text-[color:var(--osd-muted)] mb-2">{group.description}</p>
-              )}
-            </div>
-            <nav className="px-2 pb-2">
-              <div className="space-y-1">
-                {group.items.map((item) => {
-                  const ItemIcon = item.icon
-                  const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/')
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`
-                        flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
-                        ${isActive
-                          ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20 shadow-sm'
-                          : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
-                        }
-                      `}
-                      aria-current={isActive ? 'page' : undefined}
-                    >
-                      <ItemIcon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[color:var(--osd-accent)]' : ''}`} />
-                      <span className="truncate flex-1">{item.label}</span>
-                      {item.status === 'new' && (
-                        <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 shrink-0">
-                          NEW
-                        </span>
-                      )}
-                    </Link>
-                  )
-                })}
-              </div>
-            </nav>
-          </div>
-        ))}
+    <aside
+      className={`hidden lg:flex flex-col shrink-0 border-r border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/20 transition-all duration-200 ${
+        expanded ? 'w-72' : 'w-16'
+      }`}
+      aria-expanded={expanded}
+    >
+      <div className="flex items-center justify-between gap-2 px-3 py-3 border-b border-[color:var(--osd-border)]">
+        <div className={`min-w-0 ${expanded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-150`}>
+          <p className="text-[0.6rem] uppercase tracking-[0.35em] text-[color:var(--osd-muted)]">Category</p>
+          <p className="text-sm font-semibold text-[color:var(--osd-text)] truncate">{category.label}</p>
+        </div>
+        <button
+          type="button"
+          className="text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)]"
+          onClick={() => setCollapsed((prev) => !prev)}
+          aria-label={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
+        >
+          {expanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        </button>
       </div>
+
+      <nav
+        className={`flex-1 overflow-y-auto ${expanded ? 'px-2 pb-3' : 'px-1 pb-2'}`}
+        role="menu"
+        aria-label={`${category.label} features`}
+      >
+        <div className="space-y-1">
+          {features.map((item, index) => {
+            const isActive = currentPath === item.route || currentPath.startsWith(item.route + '/')
+            const tooltipId = `feature-tooltip-${item.id || item.route.replace(/[^a-z0-9]/gi, '-')}`
+            return (
+              <Link
+                key={item.route}
+                to={item.route}
+                ref={(el) => {
+                  itemRefs.current[index] = el
+                }}
+                onKeyDown={(event) => handleKeyDown(event, index)}
+                className={`group relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                  isActive
+                    ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20 shadow-sm'
+                    : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
+                }`}
+                title={item.label}
+                aria-label={expanded ? undefined : item.label}
+                aria-describedby={expanded ? undefined : tooltipId}
+                aria-current={isActive ? 'page' : undefined}
+                role="menuitem"
+              >
+                <Sparkles className={`w-4 h-4 shrink-0 ${isActive ? 'text-[color:var(--osd-accent)]' : ''}`} />
+                <span className={expanded ? 'truncate' : 'sr-only'}>{item.label}</span>
+                {!expanded && (
+                  <span
+                    id={tooltipId}
+                    role="tooltip"
+                    className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded-lg border border-[color:var(--osd-border)] bg-[color:var(--osd-surface)] px-3 py-1 text-xs text-[color:var(--osd-text)] opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+                  >
+                    {item.label}
+                  </span>
+                )}
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
     </aside>
   )
 }
 
-// User menu component
 function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -450,7 +346,7 @@ function UserMenu() {
     }
   }, [])
 
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = Boolean(user?.is_admin)
   const isLoggedIn = !!localStorage.getItem('access_token')
 
   useEffect(() => {
@@ -504,9 +400,7 @@ function UserMenu() {
           </span>
         </div>
         <span className="text-sm font-medium hidden sm:block">{user?.username || 'User'}</span>
-        {isAdmin && (
-          <Shield className="w-4 h-4 text-amber-400" />
-        )}
+        {isAdmin && <Shield className="w-4 h-4 text-amber-400" />}
         <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
@@ -555,10 +449,94 @@ function UserMenu() {
   )
 }
 
+function TenantMenu() {
+  const [isOpen, setIsOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside, true)
+    return () => document.removeEventListener('click', handleClickOutside, true)
+  }, [isOpen])
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="p-2 rounded-lg text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)] transition-colors"
+        aria-label="Tenant controls"
+      >
+        <UserCog className="w-5 h-5" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-2 w-56 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-xl shadow-xl overflow-hidden z-50">
+          <div className="px-4 py-3 border-b border-[color:var(--osd-border)]">
+            <p className="text-xs uppercase tracking-wider text-[color:var(--osd-muted)]">Tenant & Admin</p>
+            <p className="text-sm font-semibold text-[color:var(--osd-text)]">Enterprise controls</p>
+          </div>
+          <div className="py-1">
+            <Link
+              to="/admin"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-[color:var(--osd-accentSoft)] transition-colors"
+            >
+              <Shield className="w-4 h-4" />
+              Admin Console
+            </Link>
+            <Link
+              to="/settings/enterprise/user-tenant"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-[color:var(--osd-accentSoft)] transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              User & Tenant Settings
+            </Link>
+            <Link
+              to="/settings/team"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-[color:var(--osd-accentSoft)] transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              Team & Members
+            </Link>
+            <Link
+              to="/settings/tenant"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-[color:var(--osd-accentSoft)] transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              Tenancy & Org Settings
+            </Link>
+            <Link
+              to="/settings/audit"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-[color:var(--osd-accentSoft)] transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              Audit Settings
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
-  const [openPlatformPath, setOpenPlatformPath] = useState<string | null>(null)
+  const { currentActor } = useActor()
+  const { state: authState } = useAuth()
+  const [openPlatformId, setOpenPlatformId] = useState<string | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const aiButtonRef = useRef<HTMLButtonElement>(null)
   const { data: settings } = useAppSettings()
 
@@ -572,27 +550,102 @@ export default function Layout({ children }: LayoutProps) {
     }
   })
 
-  // Identify current category and platform
-  // In navigation.ts:
-  // Category (Top) -> Platform (Dropdown) -> Feature (Sidebar)
-  
-  const currentCategory = useMemo(() => navigationConfig.find(cat => 
-    location.pathname.startsWith(cat.path) || 
-    cat.platforms.some(p => location.pathname.startsWith(p.path))
-  ), [location.pathname])
-  
-  const currentPlatform = useMemo(() => currentCategory?.platforms.find(p => 
-    location.pathname.startsWith(p.path)
-  ), [currentCategory, location.pathname])
+  const platforms = useMemo(() => getPlatforms(currentActor), [currentActor])
+  const homePath = useMemo(() => {
+    const mission = platforms.find((platform) => platform.id === 'mission-control')
+    return mission?.path ?? platforms[0]?.path ?? '/'
+  }, [platforms])
+  const routeContext = useIARouteContext()
+  const normalizedPath = location.pathname === '/' ? '/' : location.pathname.replace(/\/+$/, '')
+  const legacyTarget = legacyRedirects[normalizedPath]
 
-  // Optional: Identify active feature if path matches deeper? 
-  // For now, we just show the features list.
-  const active = useMemo(() => getActiveNav(location.pathname), [location.pathname])
+  if (legacyTarget && legacyTarget !== normalizedPath) {
+    return (
+      <Navigate
+        to={{ pathname: legacyTarget, search: location.search, hash: location.hash }}
+        replace
+      />
+    )
+  }
 
-  useEffect(() => {
-    // Close any open platform dropdown on route change.
-    setOpenPlatformPath(null)
-  }, [location.pathname])
+  const activePlatform = useMemo(() => {
+    if (routeContext.platform) {
+      return routeContext.platform
+    }
+    return platforms[0]
+  }, [routeContext.platform, platforms])
+
+  const categories = useMemo(() => {
+    if (!activePlatform) return []
+    return getCategories(activePlatform.id, currentActor)
+  }, [activePlatform, currentActor])
+
+  const activeCategory = useMemo(() => {
+    if (routeContext.category) {
+      return routeContext.category
+    }
+    return undefined
+  }, [routeContext.category])
+
+  const features = useMemo(() => {
+    if (!activePlatform || !activeCategory) return []
+    return getFeatures(activePlatform.id, activeCategory.id, currentActor)
+  }, [activePlatform, activeCategory, currentActor])
+
+  const isAdmin = authState.status === 'authenticated' && authState.user.is_admin
+  const showTenantMenu = isAdmin && currentActor === 'enterprise'
+  const showFeatureSidebar = Boolean(
+    routeContext.category && (routeContext.isCategoryHome || routeContext.feature),
+  )
+
+  const breadcrumbs = useMemo((): Breadcrumb[] => {
+    const items: Breadcrumb[] = [{ label: 'Home', path: homePath }]
+
+    if (routeContext.platform) {
+      items.push({ label: routeContext.platform.label, path: routeContext.platform.path })
+    }
+    if (routeContext.category) {
+      items.push({ label: routeContext.category.label, path: routeContext.category.homeRoute })
+    }
+    if (routeContext.feature) {
+      items.push({ label: routeContext.feature.label, path: routeContext.feature.route })
+    }
+
+    const pmsMatch = location.pathname.match(/^\/pms\/projects\/([^/]+)/)
+    if (pmsMatch) {
+      const projectId = pmsMatch[1]
+      items.push({
+        label: `Project ${projectId.slice(0, 6)}`,
+        path: `/pms/projects/${projectId}`,
+      })
+      const params = new URLSearchParams(location.search)
+      const tab = params.get('tab')
+      if (tab) {
+        const tabLabels: Record<string, string> = {
+          overview: 'Overview',
+          epics: 'Epics',
+          tasks: 'Tasks',
+          schedule: 'Schedule',
+          runs: 'Runs & Artifacts',
+          documents: 'Documents',
+          journal: 'Journal',
+          finance: 'Finance',
+          audit: 'Audit',
+          settings: 'Settings',
+        }
+        items.push({ label: tabLabels[tab] ?? tab, path: location.pathname + location.search })
+      }
+    }
+
+    return items
+  }, [
+    homePath,
+    routeContext.platform,
+    routeContext.category,
+    routeContext.feature,
+    location.pathname,
+    location.search,
+  ])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -606,9 +659,9 @@ export default function Layout({ children }: LayoutProps) {
   useEffect(() => {
     const btn = aiButtonRef.current
     if (!btn) return
-    const onClick = (e: MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
+    const onClick = (event: MouseEvent) => {
+      event.preventDefault()
+      event.stopPropagation()
       setAiPanelOpen((prev) => !prev)
     }
     btn.addEventListener('click', onClick, true)
@@ -623,56 +676,45 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [settings?.theme])
 
-  // Toggle dropdown - only one open at a time
-  const toggleDropdown = useCallback((path: string) => {
-    setOpenPlatformPath((prev) => (prev === path ? null : path))
+  const toggleDropdown = useCallback((id: string) => {
+    setOpenPlatformId((prev) => (prev === id ? null : id))
   }, [])
 
-  // Close dropdown
   const closeDropdown = useCallback(() => {
-    setOpenPlatformPath(null)
+    setOpenPlatformId(null)
   }, [])
 
-  // Close dropdown on navigation
   useEffect(() => {
-    setOpenPlatformPath(null)
+    setOpenPlatformId(null)
     setMobileMenuOpen(false)
+    setMobileSidebarOpen(false)
   }, [location.pathname])
-
-  // Find active category based on current path
-  const activeCategory = useMemo(() => {
-    for (const category of navigationManifest) {
-      if (location.pathname === category.path) return category
-      const allPages = getAllPagesFromCategory(category)
-      if (allPages.some((page) => location.pathname === page.path || location.pathname.startsWith(page.path + '/'))) {
-        return category
-      }
-    }
-    return navigationManifest[0]
-  }, [location.pathname])
-
-  // Check if a category is active
-  const isCategoryActive = (category: NavCategory): boolean => {
-    if (location.pathname === category.path) return true
-    const allPages = getAllPagesFromCategory(category)
-    return allPages.some((page) => location.pathname === page.path || location.pathname.startsWith(page.path + '/'))
-  }
 
   return (
     <div className="osd-shell min-h-screen text-[color:var(--osd-text)] flex flex-col">
       <nav className="osd-nav border-b border-[color:var(--osd-border)] sticky top-0 z-50 bg-[color:var(--osd-background)]/80 backdrop-blur-md">
         <div className="w-full px-2 sm:px-4 lg:px-6">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center gap-4">
+          <div className="flex h-16 items-center gap-3">
+            <div className="flex items-center gap-3">
               <button
                 className="lg:hidden p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)]"
                 onClick={() => setMobileMenuOpen((v) => !v)}
-                aria-label="Toggle menu"
+                aria-label="Toggle platform menu"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
 
-              <Link to="/" className="flex items-center gap-3">
+              {showFeatureSidebar && (
+                <button
+                  className="lg:hidden p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)]"
+                  onClick={() => setMobileSidebarOpen((v) => !v)}
+                  aria-label="Toggle feature drawer"
+                >
+                  <PanelLeft className="w-5 h-5" />
+                </button>
+              )}
+
+                  <Link to={homePath} className="flex items-center gap-3">
                 <div className="osd-logo w-8 h-8 bg-gradient-to-br from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] rounded-lg shadow-lg" />
                 <div className="hidden sm:block">
                   <p className="text-[0.6rem] uppercase tracking-[0.2em] text-[color:var(--osd-muted)] leading-none mb-1">
@@ -681,82 +723,165 @@ export default function Layout({ children }: LayoutProps) {
                   <h1 className="text-sm font-semibold tracking-wide">OS Dashboard · AI Assistant</h1>
                 </div>
               </Link>
+
+              <div className="flex">
+                <ActorSwitch compact />
+              </div>
+
+              <div className="hidden lg:flex items-center space-x-1">
+                {platforms.map((platform) => {
+                  const platformCategories = getCategories(platform.id, currentActor)
+                  return (
+                    <PlatformDropdown
+                      key={platform.id}
+                      platform={platform}
+                      categories={platformCategories}
+                      open={openPlatformId === platform.id}
+                      isActive={routeContext.platform?.id === platform.id}
+                      onOpen={() => toggleDropdown(platform.id)}
+                      onClose={closeDropdown}
+                    />
+                  )
+                })}
+              </div>
             </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-1 flex-1 justify-center">
-              {navigationManifest.map((category) => {
-                const active = isCategoryActive(category)
-                const expanded = openPlatformPath === category.path
-
-                return (
-                  <NavDropdown
-                    key={category.path}
-                    category={category}
-                    platforms={[]}
-                    active={active}
-                    expanded={expanded}
-                    onToggle={() => toggleDropdown(category.path)}
-                    onClose={closeDropdown}
-                    location={location}
-                  />
-                )
-              })}
+            <div className="hidden lg:flex flex-1 justify-center px-4">
+              <GlobalSearch />
             </div>
 
-            <div className="flex items-center gap-2">
-              <UserMenu />
-              <Link to="/settings" className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors">
-                <Settings className="w-5 h-5" />
+            <div className="flex items-center gap-2 ml-auto">
+              <Link
+                to="/activity"
+                className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors"
+                aria-label="Notifications and activity"
+              >
+                <Bell className="w-5 h-5" />
               </Link>
+              <Link
+                to="/docs"
+                className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors"
+                aria-label="Help and documentation"
+              >
+                <HelpCircle className="w-5 h-5" />
+              </Link>
+              {showTenantMenu ? <TenantMenu /> : null}
+              <UserMenu />
             </div>
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        <div className="lg:hidden pb-3 px-2 sm:px-4">
+          <div className="flex justify-center">
+            <GlobalSearch />
+          </div>
+        </div>
+
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]">
-            <div className="px-4 py-4 space-y-2 max-h-[70vh] overflow-y-auto">
-              {navigationManifest.map((category) => {
-                const allPages = getAllPagesFromCategory(category)
-                return (
-                  <div key={category.path} className="space-y-1">
-                    <p className="text-xs uppercase tracking-wider text-[color:var(--osd-muted)] font-semibold px-3 py-2">
+            <div className="px-4 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div className="flex items-center justify-between">
+                <ActorSwitch />
+              </div>
+              {platforms.map((platform) => (
+                <div key={platform.id} className="space-y-1">
+                  <p className="text-xs uppercase tracking-wider text-[color:var(--osd-muted)] font-semibold px-3 py-2">
+                    {platform.label}
+                  </p>
+                  {getCategories(platform.id, currentActor).map((category) => (
+                    <Link
+                      key={category.id}
+                      to={category.homeRoute}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-[color:var(--osd-accentSoft)]"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Sparkles className="w-4 h-4" />
                       {category.label}
-                    </p>
-                    {allPages.slice(0, 5).map((page) => (
-                      <Link
-                        key={page.path}
-                        to={page.path}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-[color:var(--osd-accentSoft)]"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <page.icon className="w-4 h-4" />
-                        {page.label}
-                      </Link>
-                    ))}
-                  </div>
-                )
-              })}
+                    </Link>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {mobileSidebarOpen && showFeatureSidebar && activeCategory && (
+          <div className="lg:hidden fixed inset-0 z-[9998]">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setMobileSidebarOpen(false)}
+              aria-label="Close feature drawer"
+            />
+            <div className="absolute left-0 top-0 h-full w-72 bg-[color:var(--osd-surface)] border-r border-[color:var(--osd-border)] shadow-xl">
+              <div className="flex items-center justify-between px-4 py-4 border-b border-[color:var(--osd-border)]">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-[color:var(--osd-muted)]">Category</p>
+                  <p className="text-sm font-semibold text-[color:var(--osd-text)]">{activeCategory.label}</p>
+                </div>
+                <button
+                  type="button"
+                  className="text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)]"
+                  onClick={() => setMobileSidebarOpen(false)}
+                  aria-label="Close drawer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <nav className="px-3 py-3 space-y-1 overflow-y-auto h-[calc(100%-4.5rem)]">
+                {features.map((item) => {
+                  const isActive = location.pathname === item.route || location.pathname.startsWith(item.route + '/')
+                  return (
+                    <Link
+                      key={item.route}
+                      to={item.route}
+                      onClick={() => setMobileSidebarOpen(false)}
+                      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20'
+                          : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
+                      }`}
+                    >
+                      <Sparkles className={`w-4 h-4 shrink-0 ${isActive ? 'text-[color:var(--osd-accent)]' : ''}`} />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  )
+                })}
+              </nav>
             </div>
           </div>
         )}
       </nav>
 
-      {/* Main Content with Left Sidebar */}
       <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-8rem)] flex-1">
+        <div className="mb-6 flex flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <nav className="flex flex-wrap items-center gap-2 text-xs text-[color:var(--osd-muted)]">
+              {breadcrumbs.map((crumb, idx) => (
+                <div key={`${crumb.path}-${idx}`} className="flex items-center gap-2">
+                  <Link to={crumb.path} className="hover:text-[color:var(--osd-text)]">
+                    {crumb.label}
+                  </Link>
+                  {idx < breadcrumbs.length - 1 && <span className="text-[color:var(--osd-border)]">/</span>}
+                </div>
+              ))}
+            </nav>
+          </div>
+        </div>
+
         <div className="flex w-full gap-6">
-          {/* Left Sidebar Navigation - Shows features for active category */}
-          {activeCategory && getAllPagesFromCategory(activeCategory).length > 0 && (
-            <FeatureSidebar category={activeCategory} currentPath={location.pathname} />
+          {showFeatureSidebar && activeCategory && features.length > 0 && (
+            <FeatureSidebar
+              category={activeCategory}
+              features={features}
+              currentPath={location.pathname}
+            />
           )}
 
-          {/* Main Content Pane */}
           <div className="flex-1 min-w-0 w-full">{children ?? <Outlet />}</div>
         </div>
       </main>
 
-      {/* AI Assistant Panel */}
       <UnifiedAIPanel currentPath={location.pathname} open={aiPanelOpen} onToggle={setAiPanelOpen} />
 
       <button
@@ -771,7 +896,9 @@ export default function Layout({ children }: LayoutProps) {
         style={{ right: aiPanelOpen ? '400px' : '24px' }}
         aria-pressed={aiPanelOpen}
       >
-        <span className="font-medium text-sm whitespace-nowrap">{aiPanelOpen ? 'Hide Assistant' : 'AI Assistant'}</span>
+        <span className="font-medium text-sm whitespace-nowrap">
+          {aiPanelOpen ? 'Hide Assistant' : 'AI Assistant'}
+        </span>
       </button>
     </div>
   )

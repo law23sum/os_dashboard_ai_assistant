@@ -1,7 +1,8 @@
 fastapi==0.109.2
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-python-multipart==0.0.6
+starlette==0.36.3
+uvicorn[standard]==0.40.0
+pydantic==2.12.5
+python-multipart==0.0.21
 websockets==12.0
-
-uvicorn[standard]
+openai>=2.9.0
+openai-agents==0.6.4
