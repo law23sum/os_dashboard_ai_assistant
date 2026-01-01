@@ -246,4 +246,220 @@ export const API = {
     cancel: (id: string) =>
       request(`/intents/${encodeURIComponent(id)}/cancel`, { method: "POST" }),
   },
+
+  // =========================================================================
+  // WORKSPACE & HEALTH MONITORING
+  // =========================================================================
+  workspace: {
+    health: () => request("/workspace/health"),
+    projects: () => request("/workspace/projects"),
+    todos: () => request("/workspace/todos"),
+    metrics: () => request("/workspace/metrics"),
+    scan: (params?: { root?: string; max_depth?: number }) =>
+      request("/workspace/scan", {
+        method: "POST",
+        body: JSON.stringify(params || {}),
+      }),
+    autofix: (name: string) =>
+      request(`/workspace/autofix/${encodeURIComponent(name)}`, {
+        method: "POST",
+      }),
+    continuation: () => request("/workspace/continuation"),
+    continue: () =>
+      request("/workspace/continue", {
+        method: "POST",
+      }),
+    checks: (params?: {
+      root?: string;
+      max_depth?: number;
+      categories?: string[];
+      autofix?: boolean;
+      dry_run?: boolean;
+    }) =>
+      request("/workspace/checks", {
+        method: "POST",
+        body: JSON.stringify(params || {}),
+      }),
+    doctor: (params?: { root?: string }) => {
+      const query = params?.root ? `?root=${encodeURIComponent(params.root)}` : "";
+      return request(`/workspace/doctor${query}`);
+    },
+  },
+
+  // =========================================================================
+  // ORCHESTRATOR
+  // Note: orchestrator router prefix is /api/orchestrator, but request() adds /api base
+  // so we use /orchestrator which becomes /api/orchestrator
+  // =========================================================================
+  orchestrator: {
+    status: () => request("/orchestrator/status"),
+    projects: () => request("/orchestrator/projects"),
+  },
+
+  // =========================================================================
+  // DATA MANAGEMENT
+  // =========================================================================
+  data: {
+    stats: () => request("/data/stats"),
+    backup: () =>
+      request("/data/backup", {
+        method: "POST",
+      }),
+    restore: (filename: string) =>
+      request("/data/restore", {
+        method: "POST",
+        body: JSON.stringify({ filename }),
+      }),
+    backups: () => request("/data/backups"),
+    downloadBackup: (filename: string) =>
+      request(`/data/download-backup/${encodeURIComponent(filename)}`),
+    exportJson: (params?: Record<string, unknown>) =>
+      request("/data/export-json", {
+        method: "POST",
+        body: JSON.stringify(params || {}),
+      }),
+    importJson: (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return request("/data/import-json", {
+        method: "POST",
+        body: formData,
+      });
+    },
+  },
+
+  // =========================================================================
+  // NETWORK MONITORING
+  // =========================================================================
+  network: {
+    status: (refresh?: boolean) => {
+      const query = refresh ? "?refresh=true" : "";
+      return request(`/network/status${query}`);
+    },
+  },
+
+  // =========================================================================
+  // EDGE COMPUTING
+  // =========================================================================
+  edge: {
+    status: () => request("/edge-computing/status"),
+    deploy: (payload: Record<string, unknown>) =>
+      request("/edge-computing/deploy", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+  },
+
+  // =========================================================================
+  // WORKFLOWS
+  // =========================================================================
+  workflows: {
+    list: () => request("/workflows"),
+    get: (id: string) => request(`/workflows/${encodeURIComponent(id)}`),
+    create: (payload: Record<string, unknown>) =>
+      request("/workflows", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    update: (id: string, payload: Record<string, unknown>) =>
+      request(`/workflows/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }),
+    delete: (id: string) =>
+      request(`/workflows/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }),
+    execute: (id: string, params?: Record<string, unknown>) =>
+      request(`/workflows/${encodeURIComponent(id)}/execute`, {
+        method: "POST",
+        body: JSON.stringify(params || {}),
+      }),
+  },
+
+  // =========================================================================
+  // TERMINAL
+  // =========================================================================
+  terminal: {
+    commands: () => request("/terminal/commands"),
+    execute: (payload: { command: string; cwd?: string; timeout?: number }) =>
+      request("/terminal", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+  },
+
+  // =========================================================================
+  // RUNTIME DIAGNOSTICS
+  // =========================================================================
+  runtime: {
+    harnessReport: () => request("/runtime/harness-report"),
+    diagnostics: () => request("/runtime/diagnostics"),
+  },
+
+  // =========================================================================
+  // TESTING & VALIDATION
+  // =========================================================================
+  testing: {
+    restoreTesting: (params: Record<string, unknown>) =>
+      request("/data/restore-testing", {
+        method: "POST",
+        body: JSON.stringify(params),
+      }),
+    loadTesting: (params: Record<string, unknown>) =>
+      request("/operations/load-testing", {
+        method: "POST",
+        body: JSON.stringify(params),
+      }),
+    sandboxTestbed: (params: Record<string, unknown>) =>
+      request("/ai/drivers/sandbox", {
+        method: "POST",
+        body: JSON.stringify(params),
+      }),
+    backtesting: (params: Record<string, unknown>) =>
+      request("/observability/backtesting", {
+        method: "POST",
+        body: JSON.stringify(params),
+      }),
+  },
+
+  // =========================================================================
+  // VECTOR STORES
+  // =========================================================================
+  vectorStores: {
+    list: () => request("/knowledge/vector-stores"),
+    get: (id: string) => request(`/knowledge/vector-stores/${encodeURIComponent(id)}`),
+    create: (payload: Record<string, unknown>) =>
+      request("/knowledge/vector-stores", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    update: (id: string, payload: Record<string, unknown>) =>
+      request(`/knowledge/vector-stores/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }),
+    delete: (id: string) =>
+      request(`/knowledge/vector-stores/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }),
+    search: (id: string, query: string, limit?: number) => {
+      const params = new URLSearchParams({ q: query });
+      if (limit) params.append("limit", String(limit));
+      return request(`/knowledge/vector-stores/${encodeURIComponent(id)}/search?${params}`);
+    },
+  },
+
+  // =========================================================================
+  // SETTINGS
+  // =========================================================================
+  settings: {
+    get: () => request("/settings"),
+    update: (payload: Record<string, unknown>) =>
+      request("/settings", {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }),
+    storage: () => request("/settings/storage"),
+  },
 };

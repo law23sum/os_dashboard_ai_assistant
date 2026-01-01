@@ -127,3 +127,4 @@ class ProcessError(OSDashBaseException):
     """Raised when subprocess operations fail."""
     pass
 
+

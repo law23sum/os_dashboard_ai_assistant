@@ -801,6 +801,107 @@ def generate_ai_reply(
         return _offline_reply(fallback_source or "(empty prompt)", exc), str(exc), None
 
 
+def parse_prompt_aliases(raw_prompt: str) -> Tuple[str, Dict[str, Any]]:
+    """
+    Parse prompt aliases and special syntax to extract overrides.
+    Supports syntax like:
+    - @persona:Name
+    - @provider:provider_name
+    - @provider_group:group_name
+    - @collab:true
+    - @synth:provider_name
+    
+    Returns (cleaned_message, overrides_dict)
+    """
+    import re
+    
+    overrides: Dict[str, Any] = {}
+    cleaned = raw_prompt
+    
+    # Match patterns like @key:value or @key:value
+    patterns = [
+        (r'@persona:(\w+)', 'persona'),
+        (r'@provider:(\w+)', 'provider'),
+        (r'@provider_group:(\w+)', 'provider_group'),
+        (r'@collab:(true|false|yes|no|1|0)', 'collab'),
+        (r'@synth:(\w+)', 'collab_synth_provider'),
+    ]
+    
+    for pattern, key in patterns:
+        matches = re.finditer(pattern, cleaned, re.IGNORECASE)
+        for match in matches:
+            value = match.group(1)
+            if key == 'collab':
+                # Normalize boolean values
+                overrides[key] = value.lower() in ('true', 'yes', '1')
+            else:
+                overrides[key] = value
+            # Remove the matched pattern from cleaned message
+            cleaned = cleaned.replace(match.group(0), '').strip()
+    
+    # Clean up extra whitespace
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    
+    return cleaned, overrides
+
+
+def generate_group_ai_reply(
+    history: List[ChatMessage],
+    persona: str,
+    prompt: Optional[str] = None,
+    *,
+    provider_group: Optional[str] = None,
+    model_provider: str = "openai",
+    system_prompt: Optional[str] = None,
+    enable_shell: bool = True,
+    **kwargs,
+) -> Tuple[str, Optional[str], Optional[List[Dict]]]:
+    """
+    Generate AI reply using a group of providers.
+    For now, this delegates to generate_ai_reply with the specified provider.
+    Future enhancement: could query multiple providers and combine results.
+    """
+    return generate_ai_reply(
+        history=history,
+        persona=persona,
+        prompt=prompt,
+        system_prompt=system_prompt,
+        model_provider=model_provider,
+        enable_shell=enable_shell,
+        **kwargs,
+    )
+
+
+def generate_collab_ai_reply(
+    history: List[ChatMessage],
+    persona: str,
+    prompt: Optional[str] = None,
+    *,
+    provider_group: Optional[str] = None,
+    model_provider: str = "openai",
+    synth_provider: Optional[str] = None,
+    system_prompt: Optional[str] = None,
+    enable_shell: bool = True,
+    **kwargs,
+) -> Tuple[str, Optional[str], Optional[List[Dict]]]:
+    """
+    Generate AI reply using collaborative AI with synthesis.
+    For now, this delegates to generate_ai_reply with the specified provider.
+    Future enhancement: could query multiple providers and use synth_provider to synthesize results.
+    """
+    # If synth_provider is specified, we could use it to synthesize responses
+    # For now, just use the model_provider
+    return generate_ai_reply(
+        history=history,
+        persona=persona,
+        prompt=prompt,
+        system_prompt=system_prompt,
+        model_provider=model_provider,
+        enable_shell=enable_shell,
+        **kwargs,
+    )
+
+
 def execute_tool_call(tool_call, cwd: Optional[str] = None) -> Dict:
     """Execute a tool call (shell command or file operation) and return the result."""
     import json

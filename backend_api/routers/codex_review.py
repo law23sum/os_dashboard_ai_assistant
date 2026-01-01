@@ -11,8 +11,14 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from assistant_core import codex_review
 from assistant_core.db import init_db, load_openai_api_key
+
+# Try to import codex_review, but make it optional
+try:
+    import importlib
+    codex_review = importlib.import_module("assistant_core.codex_review")
+except (ImportError, ModuleNotFoundError):
+    codex_review = None  # type: ignore
 
 router = APIRouter()
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -38,6 +44,12 @@ class CodexReviewRequest(BaseModel):
 
 @router.post("/codex/review")
 def run_codex_review(request: CodexReviewRequest) -> Dict[str, Any]:
+    if codex_review is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Codex review module is not available. Please ensure assistant_core.codex_review is installed."
+        )
+    
     bundle = codex_review.prepare_review_bundle(
         REPO_ROOT,
         base=request.base,
