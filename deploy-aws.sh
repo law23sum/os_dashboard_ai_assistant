@@ -1,14 +1,19 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # AWS Deployment Script for OS Dashboard AI Assistant
-# Usage: ./deploy-aws.sh [environment] [action]
+# Usage: ./deploy-aws.sh [environment] [action] [image-uri]
 # Example: ./deploy-aws.sh prod deploy
+# Example: ./deploy-aws.sh alpha deploy 123456789012.dkr.ecr.us-east-1.amazonaws.com/os-dashboard:v1.0.0-alpha.1
 
 ENVIRONMENT=${1:-dev}
 ACTION=${2:-deploy}
+IMAGE_URI=${3:-}
 AWS_REGION=${AWS_REGION:-us-east-1}
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+NON_INTERACTIVE=${NON_INTERACTIVE:-${CI:-false}}
+
+# Try to get account ID, but allow script to continue if AWS CLI not configured (for CI)
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || echo "")
 
 echo "🚀 Deploying OS Dashboard AI Assistant to AWS"
 echo "Environment: $ENVIRONMENT"
@@ -37,15 +42,32 @@ print_error() {
 
 # Check AWS CLI configuration
 check_aws_config() {
-    if ! aws sts get-caller-identity >/dev/null 2>&1; then
-        print_error "AWS CLI not configured. Please run 'aws configure'"
-        exit 1
+    if [ "$NON_INTERACTIVE" != "true" ] && [ "$NON_INTERACTIVE" != "1" ]; then
+        if ! aws sts get-caller-identity >/dev/null 2>&1; then
+            print_error "AWS CLI not configured. Please run 'aws configure'"
+            exit 1
+        fi
+        print_status "AWS CLI configured ✓"
+    elif [ -z "$ACCOUNT_ID" ]; then
+        print_warning "AWS CLI not configured (non-interactive mode). Some operations may fail."
+    else
+        print_status "AWS CLI configured ✓ (non-interactive mode)"
     fi
-    print_status "AWS CLI configured ✓"
 }
 
 # Build Docker image
 build_image() {
+    # If IMAGE_URI is provided, skip build (image already built and pushed)
+    if [ -n "$IMAGE_URI" ]; then
+        print_status "Skipping build (using provided image: $IMAGE_URI)"
+        return 0
+    fi
+
+    if [ -z "$ACCOUNT_ID" ]; then
+        print_error "Cannot build image: AWS account ID not available"
+        exit 1
+    fi
+
     print_status "Building Docker image..."
     docker build -t os-dashboard:$ENVIRONMENT .
 
@@ -59,6 +81,7 @@ build_image() {
     docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/os-dashboard:$ENVIRONMENT
     docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/os-dashboard:latest
 
+    IMAGE_URI="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/os-dashboard:$ENVIRONMENT"
     print_status "Docker image built and pushed ✓"
 }
 
@@ -98,16 +121,40 @@ deploy_infrastructure() {
 register_task_definition() {
     print_status "Registering ECS task definition..."
 
+    if [ -z "$ACCOUNT_ID" ]; then
+        print_error "Cannot register task definition: AWS account ID not available"
+        exit 1
+    fi
+
+    # Determine image URI to use
+    local TASK_IMAGE_URI="$IMAGE_URI"
+    if [ -z "$TASK_IMAGE_URI" ]; then
+        TASK_IMAGE_URI="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/os-dashboard:$ENVIRONMENT"
+    fi
+
+    print_status "Using image: $TASK_IMAGE_URI"
+
     # Replace placeholders in task definition
-    sed -e "s/ACCOUNT_ID/$ACCOUNT_ID/g" \
-        -e "s/REGION/$AWS_REGION/g" \
+    sed -e "s|ACCOUNT_ID|$ACCOUNT_ID|g" \
+        -e "s|REGION|$AWS_REGION|g" \
+        -e "s|ENVIRONMENT|$ENVIRONMENT|g" \
         ecs-task-definition.json > ecs-task-definition-deploy.json
+
+    # Replace image URI using jq if available, otherwise use sed
+    if command -v jq >/dev/null 2>&1; then
+        jq --arg img "$TASK_IMAGE_URI" '.containerDefinitions[0].image = $img' ecs-task-definition-deploy.json > ecs-task-definition-deploy.tmp.json
+        mv ecs-task-definition-deploy.tmp.json ecs-task-definition-deploy.json
+    else
+        # Fallback: use sed with a pattern that matches the image field
+        sed -i.bak "s|\"image\": \"[^\"]*\"|\"image\": \"$TASK_IMAGE_URI\"|g" ecs-task-definition-deploy.json
+        rm -f ecs-task-definition-deploy.json.bak
+    fi
 
     aws ecs register-task-definition \
         --cli-input-json file://ecs-task-definition-deploy.json \
         --region $AWS_REGION
 
-    rm ecs-task-definition-deploy.json
+    rm -f ecs-task-definition-deploy.json
 
     print_status "Task definition registered ✓"
 }
@@ -206,6 +253,11 @@ get_status() {
 main() {
     check_aws_config
 
+    # Update ACCOUNT_ID if it wasn't set initially but AWS is now available
+    if [ -z "$ACCOUNT_ID" ] && [ "$NON_INTERACTIVE" != "true" ] && [ "$NON_INTERACTIVE" != "1" ]; then
+        ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || echo "")
+    fi
+
     case $ACTION in
         "build")
             build_image
@@ -240,6 +292,9 @@ main() {
     esac
 
     print_status "Operation completed successfully! 🎉"
+    if [ -n "$IMAGE_URI" ]; then
+        print_status "Deployed image: $IMAGE_URI"
+    fi
 }
 
 main "$@"

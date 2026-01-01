@@ -620,6 +620,8 @@ pyinstaller packaging/start_ui.spec
 # See: ecs-task-definition.json, ecs-task-definition-gpu.json
 ```
 
+For CI/CD and environment deployment details, see [`docs/ENVIRONMENTS.md`](./docs/ENVIRONMENTS.md).
+
 ### Docker Deployment
 
 ```bash
