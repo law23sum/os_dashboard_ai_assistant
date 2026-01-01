@@ -8,17 +8,22 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import React from 'react'
 import Signup from '../Signup'
-import * as apiClient from '../../lib/apiClient'
+import * as authApi from '../../api/auth'
 import { useAuth } from '../../auth/AuthContext'
 import { toast } from '../../utils/toast'
 
 // Mock dependencies
+vi.mock('../../api/auth', () => ({
+  signup: vi.fn(),
+}))
+
 vi.mock('../../lib/apiClient', () => ({
   default: {
     post: vi.fn(),
     get: vi.fn(),
   },
   apiPath: vi.fn((path: string) => `/api/${path}`),
+  setAccessToken: vi.fn(),
 }))
 
 vi.mock('../../auth/AuthContext', () => ({
@@ -97,45 +102,37 @@ describe('Signup Component', () => {
 
     const passwordInput = screen.getByLabelText(/^password/i)
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+    const usernameInput = screen.getByLabelText(/username/i)
+    const emailInput = screen.getByLabelText(/email/i)
     const submitButton = screen.getByRole('button', { name: /create account/i })
 
+    fireEvent.change(usernameInput, { target: { value: 'testuser' } })
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
     fireEvent.change(passwordInput, { target: { value: 'short' } })
     fireEvent.change(confirmPasswordInput, { target: { value: 'short' } })
     fireEvent.click(submitButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/password must be at least 8 characters/i)).toBeInTheDocument()
-      expect(toast.error).toHaveBeenCalledWith('Password must be at least 8 characters')
+      expect(screen.getByText(/password must be at least 6 characters/i)).toBeInTheDocument()
+      expect(toast.error).toHaveBeenCalledWith('Password must be at least 6 characters')
     })
   })
 
   it('should successfully signup and auto-login with valid data', async () => {
     const mockAccessToken = 'mock-access-token'
-    const mockRefreshToken = 'mock-refresh-token'
     const mockUser = {
-      id: 1,
-      username: 'newuser',
+      id: '1',
       email: 'newuser@example.com',
-      full_name: 'New User',
+      display_name: 'New User',
       is_admin: false,
+      environment: 'demo',
     }
 
     // Mock signup response
-    ;(apiClient.default.post as any)
-      .mockResolvedValueOnce({
-        data: { id: 1, username: 'newuser', email: 'newuser@example.com' },
-      })
-      // Mock login response
-      .mockResolvedValueOnce({
-        data: {
-          access_token: mockAccessToken,
-          refresh_token: mockRefreshToken,
-        },
-      })
-
-    // Mock user info response
-    ;(apiClient.default.get as any).mockResolvedValueOnce({
-      data: mockUser,
+    ;(authApi.signup as any).mockResolvedValueOnce({
+      access_token: mockAccessToken,
+      token_type: 'bearer',
+      user: mockUser,
     })
 
     render(
@@ -159,33 +156,18 @@ describe('Signup Component', () => {
     fireEvent.click(submitButton)
 
     await waitFor(() => {
-      expect(apiClient.default.post).toHaveBeenCalledWith(
-        '/api/auth/signup',
-        {
-          username: 'newuser',
-          email: 'newuser@example.com',
-          password: 'password123',
-          full_name: 'New User',
-        }
-      )
-    })
-
-    await waitFor(() => {
-      expect(apiClient.default.post).toHaveBeenCalledWith(
-        '/api/auth/login',
-        {
-          username: 'newuser',
-          password: 'password123',
-        }
+      expect(authApi.signup).toHaveBeenCalledWith(
+        'newuser@example.com',
+        'password123',
+        'New User', // fullName is used as display_name
+        'demo'
       )
     })
 
     await waitFor(() => {
       expect(localStorage.getItem('access_token')).toBe(mockAccessToken)
-      expect(localStorage.getItem('refresh_token')).toBe(mockRefreshToken)
-      expect(mockRefresh).toHaveBeenCalled()
       expect(toast.success).toHaveBeenCalledWith('Account created successfully!')
-      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true })
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true })
     })
   })
 
@@ -196,7 +178,7 @@ describe('Signup Component', () => {
       request: {},
     }
 
-    ;(apiClient.default.post as any).mockRejectedValue(networkError)
+    ;(authApi.signup as any).mockRejectedValue(networkError)
 
     render(
       <BrowserRouter>
@@ -232,7 +214,7 @@ describe('Signup Component', () => {
       },
     }
 
-    ;(apiClient.default.post as any).mockRejectedValue(duplicateError)
+    ;(authApi.signup as any).mockRejectedValue(duplicateError)
 
     render(
       <BrowserRouter>
@@ -271,7 +253,7 @@ describe('Signup Component', () => {
       },
     }
 
-    ;(apiClient.default.post as any).mockRejectedValue(validationError)
+    ;(authApi.signup as any).mockRejectedValue(validationError)
 
     render(
       <BrowserRouter>
@@ -309,8 +291,12 @@ describe('Signup Component', () => {
   })
 
   it('should show loading state during signup', async () => {
-    ;(apiClient.default.post as any).mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve({ data: {} }), 100))
+    ;(authApi.signup as any).mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve({ 
+        access_token: 'token',
+        token_type: 'bearer',
+        user: { id: '1', email: 'test@example.com', display_name: 'Test', is_admin: false, environment: 'demo' }
+      }), 100))
     )
 
     render(
@@ -340,18 +326,18 @@ describe('Signup Component', () => {
   it('should allow optional full name field', async () => {
     const mockAccessToken = 'mock-access-token'
     const mockUser = {
-      id: 1,
-      username: 'newuser',
+      id: '1',
       email: 'newuser@example.com',
+      display_name: 'newuser', // When fullName is empty, username is used
       is_admin: false,
+      environment: 'demo',
     }
 
-    ;(apiClient.default.post as any)
-      .mockResolvedValueOnce({ data: { id: 1 } })
-      .mockResolvedValueOnce({
-        data: { access_token: mockAccessToken },
-      })
-    ;(apiClient.default.get as any).mockResolvedValueOnce({ data: mockUser })
+    ;(authApi.signup as any).mockResolvedValueOnce({
+      access_token: mockAccessToken,
+      token_type: 'bearer',
+      user: mockUser,
+    })
 
     render(
       <BrowserRouter>
@@ -373,14 +359,11 @@ describe('Signup Component', () => {
     fireEvent.click(submitButton)
 
     await waitFor(() => {
-      expect(apiClient.default.post).toHaveBeenCalledWith(
-        '/api/auth/signup',
-        expect.objectContaining({
-          username: 'newuser',
-          email: 'newuser@example.com',
-          password: 'password123',
-          full_name: null,
-        })
+      expect(authApi.signup).toHaveBeenCalledWith(
+        'newuser@example.com',
+        'password123',
+        'newuser', // When fullName is empty, username is used as display_name
+        'demo'
       )
     })
   })

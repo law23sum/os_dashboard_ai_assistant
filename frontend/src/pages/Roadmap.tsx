@@ -1,22 +1,18 @@
 import { CategoryHomeTemplate } from '../components/templates/CategoryHomeTemplate'
 import { useIARouteContext } from '../navigation/iaContext'
 
-/**
- * Roadmap - Category Home Page
- * Route: /roadmap
- */
-export default function Roadmap() {{
+export default function Roadmap() {
   const routeContext = useIARouteContext()
-  const features = routeContext.category?.features || []
-  
+  const features = routeContext.category?.features ?? []
+
   return (
     <CategoryHomeTemplate
       title="Roadmap"
-      description="Category home dashboard for Roadmap"
-      features={features.map((f) => ({{
-        title: f.label,
-        path: f.route
-      }}))}
+      description="Portfolio planning, strategy alignment, and sequencing."
+      features={features.map((feature) => ({
+        title: feature.label,
+        path: feature.route,
+      }))}
     />
   )
-}}
+}

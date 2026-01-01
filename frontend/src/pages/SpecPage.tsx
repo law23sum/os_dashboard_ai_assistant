@@ -2,27 +2,14 @@ import { useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Code, FileText, Settings2, SlidersHorizontal } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
-import { navigationManifest, type NavCategory, type NavGroup, type NavPage } from '../data/navigationManifest'
-
-function matchPage(currentPath: string, pagePath: string): boolean {
-  return currentPath === pagePath || currentPath.startsWith(pagePath + '/')
-}
-
-function findInManifest(pathname: string): { platform: NavCategory | null; group: NavGroup | null; page: NavPage | null } {
-  // Best-effort lookup
-  for (const platform of navigationManifest) {
-    for (const group of platform.groups) {
-      for (const page of group.items) {
-        if (matchPage(pathname, page.path)) return { platform, group, page }
-      }
-    }
-  }
-  return { platform: null, group: null, page: null }
-}
+import { findRouteContext } from '../data/iaManifest'
 
 export default function SpecPage() {
   const location = useLocation()
-  const { platform, group, page } = useMemo(() => findInManifest(location.pathname), [location.pathname])
+  const { platform, category, feature } = useMemo(
+    () => findRouteContext(location.pathname),
+    [location.pathname]
+  )
 
   const [config, setConfig] = useState({
     environment: 'prod',
@@ -32,12 +19,11 @@ export default function SpecPage() {
     filters: '',
   })
 
-  const title = page?.label ?? 'Workspace'
+  const title = feature?.label || category?.label || 'Workspace'
   const description =
-    page?.description ||
-    group?.description ||
-    platform?.description ||
-    'Spec-driven workspace surface with configurable inputs and displays.'
+    category?.label
+      ? `Spec-driven workspace surface for ${category.label}.`
+      : 'Spec-driven workspace surface with configurable inputs and displays.'
 
   return (
     <div className="space-y-6">
@@ -45,8 +31,7 @@ export default function SpecPage() {
         eyebrow={platform ? platform.label : 'Platform'}
         title={title}
         description={description}
-        icon={page?.icon ?? FileText}
-        badge={page?.spec ?? undefined}
+        icon={FileText}
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -62,7 +47,7 @@ export default function SpecPage() {
             </div>
             <div className="rounded-xl border border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/40 p-4">
               <p className="text-xs uppercase tracking-wider text-[color:var(--osd-muted)]">Backend (planned/linked)</p>
-              <p className="mt-1 font-mono text-sm">{page?.backend ?? '—'}</p>
+              <p className="mt-1 font-mono text-sm">{feature?.route ?? '—'}</p>
             </div>
           </div>
 
@@ -196,8 +181,8 @@ export default function SpecPage() {
 {JSON.stringify(
   {
     route: location.pathname,
-    spec: page?.spec ?? null,
-    backend: page?.backend ?? null,
+    spec: null,
+    backend: feature?.route ?? null,
     environment: config.environment,
     mode: config.mode,
     scope: config.dataScope,

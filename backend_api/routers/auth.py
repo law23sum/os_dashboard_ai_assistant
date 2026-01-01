@@ -11,7 +11,9 @@ from pydantic import BaseModel, EmailStr, Field
 
 from backend_api.db import db_session
 from backend_api.deps import get_current_user
+from backend_api.auth import get_current_admin_user
 from backend_api.security import AuthUser, create_access_token, hash_password, verify_password
+from assistant_hub.demo_seed import ensure_demo_data
 
 router = APIRouter()
 
@@ -22,6 +24,8 @@ class AuthUserResponse(BaseModel):
     display_name: str
     is_admin: bool
     environment: str
+    tenant_id: Optional[str] = None
+    workspace_id: Optional[str] = None
 
 
 class TokenResponse(BaseModel):
@@ -60,6 +64,8 @@ def _row_to_user(row) -> AuthUser:
         is_admin=bool(row["is_admin"] or 0),
         environment=str(row["environment"] or "demo"),
         disabled=bool(row["disabled"] or 0),
+        tenant_id=str(row["tenant_id"]) if "tenant_id" in row.keys() else None,
+        workspace_id=str(row["workspace_id"]) if "workspace_id" in row.keys() else None,
     )
 
 
@@ -85,8 +91,20 @@ async def _ensure_demo_users() -> None:
                     user_id = str(uuid4())
                     db.execute(
                         """
-                        INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
-                        VALUES (?, ?, ?, ?, ?, 'demo', 0, ?, NULL)
+                        INSERT INTO users (
+                            id,
+                            email,
+                            display_name,
+                            password_hash,
+                            is_admin,
+                            environment,
+                            disabled,
+                            created_at,
+                            last_login,
+                            tenant_id,
+                            workspace_id
+                        )
+                        VALUES (?, ?, ?, ?, ?, 'demo', 0, ?, NULL, 'default-tenant', 'default-workspace')
                         """,
                         (user_id, email, display_name, hashed_pw, 1 if is_admin else 0, now),
                     )
@@ -100,6 +118,12 @@ async def _ensure_demo_users() -> None:
                         """,
                         (hashed_pw, display_name, 1 if is_admin else 0, email),
                     )
+            admin_row = db.execute(
+                "SELECT id FROM users WHERE email = ?",
+                ("admin@demo.local",),
+            ).fetchone()
+            if admin_row:
+                ensure_demo_data(db, admin_user_id=str(admin_row["id"]))
     except Exception as e:
         import logging
         logging.error(f"Error ensuring demo users: {e}", exc_info=True)
@@ -125,8 +149,20 @@ async def signup(payload: SignupRequest, request: Request) -> TokenResponse:
             user_id = str(uuid4())
             db.execute(
                 """
-                INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
-                VALUES (?, ?, ?, ?, 0, ?, 0, ?, NULL)
+                INSERT INTO users (
+                    id,
+                    email,
+                    display_name,
+                    password_hash,
+                    is_admin,
+                    environment,
+                    disabled,
+                    created_at,
+                    last_login,
+                    tenant_id,
+                    workspace_id
+                )
+                VALUES (?, ?, ?, ?, 0, ?, 0, ?, NULL, 'default-tenant', 'default-workspace')
                 """,
                 (user_id, email, payload.display_name or "", hash_password(payload.password), payload.environment, now),
             )
@@ -146,6 +182,8 @@ async def signup(payload: SignupRequest, request: Request) -> TokenResponse:
                 display_name=user.display_name,
                 is_admin=user.is_admin,
                 environment=user.environment,
+                tenant_id=user.tenant_id,
+                workspace_id=user.workspace_id,
             ),
         )
     except HTTPException:
@@ -258,6 +296,8 @@ async def login(payload: LoginRequest, request: Request) -> TokenResponse:
                 display_name=user.display_name,
                 is_admin=user.is_admin,
                 environment=user.environment,
+                tenant_id=user.tenant_id,
+                workspace_id=user.workspace_id,
             ),
         )
     except HTTPException:
@@ -276,4 +316,6 @@ async def me(user: AuthUser = Depends(get_current_user)) -> AuthUserResponse:
         display_name=user.display_name,
         is_admin=user.is_admin,
         environment=user.environment,
+        tenant_id=user.tenant_id,
+        workspace_id=user.workspace_id,
     )

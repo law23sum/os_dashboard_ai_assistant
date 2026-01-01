@@ -42,6 +42,8 @@ class AuthUser:
     is_admin: bool
     environment: str
     disabled: bool
+    tenant_id: Optional[str] = None
+    workspace_id: Optional[str] = None
 
 
 def create_access_token(*, user: AuthUser, expires_in: Optional[timedelta] = None) -> str:

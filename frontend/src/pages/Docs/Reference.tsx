@@ -1,22 +1,18 @@
-import { CategoryHomeTemplate } from '../components/templates/CategoryHomeTemplate'
-import { useIARouteContext } from '../navigation/iaContext'
+import { CategoryHomeTemplate } from '../../components/templates/CategoryHomeTemplate'
+import { useIARouteContext } from '../../navigation/iaContext'
 
-/**
- * Docs Reference - Category Home Page
- * Route: /docs/reference
- */
-export default function DocsReference() {{
+export default function DocsReference() {
   const routeContext = useIARouteContext()
-  const features = routeContext.category?.features || []
-  
+  const features = routeContext.category?.features ?? []
+
   return (
     <CategoryHomeTemplate
       title="Docs Reference"
-      description="Category home dashboard for Docs Reference"
-      features={features.map((f) => ({{
-        title: f.label,
-        path: f.route
-      }}))}
+      description="Reference artifacts, schemas, and UI building blocks."
+      features={features.map((feature) => ({
+        title: feature.label,
+        path: feature.route,
+      }))}
     />
   )
-}}
+}

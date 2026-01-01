@@ -1,22 +1,18 @@
 import { CategoryHomeTemplate } from '../components/templates/CategoryHomeTemplate'
 import { useIARouteContext } from '../navigation/iaContext'
 
-/**
- * Operations - Category Home Page
- * Route: /operations
- */
-export default function Operations() {{
+export default function Operations() {
   const routeContext = useIARouteContext()
-  const features = routeContext.category?.features || []
-  
+  const features = routeContext.category?.features ?? []
+
   return (
     <CategoryHomeTemplate
       title="Operations"
-      description="Category home dashboard for Operations"
-      features={features.map((f) => ({{
-        title: f.label,
-        path: f.route
-      }}))}
+      description="Runbooks, reliability controls, and execution tooling."
+      features={features.map((feature) => ({
+        title: feature.label,
+        path: feature.route,
+      }))}
     />
   )
-}}
+}
