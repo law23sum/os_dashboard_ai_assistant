@@ -55,6 +55,133 @@ interface MarketplaceData {
   featured: string[]
 }
 
+// Demo data generator - always available as fallback
+const getDemoData = (): MarketplaceData => {
+  const demoCapsules: Capsule[] = [
+    {
+      id: 'shell-capsule',
+      name: 'Shell Capsule',
+      description: 'Execute Unix driver actions with ledger logging and Evidence Packs.',
+      version: '2.1.0',
+      author: 'OS Dashboard Team',
+      category: 'system',
+      tags: ['unix', 'shell', 'automation'],
+      drivers: ['drv-unix', 'drv-os'],
+      downloads: 4521,
+      rating: 4.8,
+      status: 'installed',
+      verified: true,
+      marketplace_sku: 'CAP-SHELL',
+      created_at: '2024-06-15T00:00:00Z',
+      updated_at: '2025-12-01T00:00:00Z',
+    },
+    {
+      id: 'git-maintenance',
+      name: 'Git Maintenance Capsule',
+      description: 'Run Git hygiene operations, dependency scans, and Evidence Pack exports.',
+      version: '1.5.0',
+      author: 'OS Dashboard Team',
+      category: 'code',
+      tags: ['git', 'version-control', 'hygiene'],
+      drivers: ['drv-software', 'drv-govern'],
+      downloads: 3892,
+      rating: 4.7,
+      status: 'installed',
+      verified: true,
+      marketplace_sku: 'CAP-GIT',
+      created_at: '2024-08-20T00:00:00Z',
+      updated_at: '2025-11-15T00:00:00Z',
+    },
+    {
+      id: 'document-blueprint',
+      name: 'Document Blueprint Capsule',
+      description: 'Generate meeting notes and project briefs via Software drivers.',
+      version: '3.0.0',
+      author: 'OS Dashboard Team',
+      category: 'documents',
+      tags: ['documents', 'automation', 'word'],
+      drivers: ['drv-software', 'drv-os'],
+      downloads: 2156,
+      rating: 4.6,
+      status: 'available',
+      verified: true,
+      marketplace_sku: 'CAP-DOC',
+      created_at: '2024-09-10T00:00:00Z',
+      updated_at: '2025-12-05T00:00:00Z',
+    },
+    {
+      id: 'sim-lab',
+      name: 'Simulation Lab Capsule',
+      description: 'Run research simulations and capture CIR outputs.',
+      version: '1.2.0',
+      author: 'Research Team',
+      category: 'research',
+      tags: ['simulation', 'research', 'analytics'],
+      drivers: ['drv-research', 'drv-data'],
+      downloads: 1847,
+      rating: 4.5,
+      status: 'available',
+      verified: true,
+      marketplace_sku: 'CAP-SIM',
+      created_at: '2024-10-01T00:00:00Z',
+      updated_at: '2025-11-28T00:00:00Z',
+    },
+    {
+      id: 'env-daemon',
+      name: 'EnvDaemon',
+      description: 'Monitor package manifests, repair drift, and issue ledger notices.',
+      version: '2.0.0',
+      author: 'Platform Team',
+      category: 'automation',
+      tags: ['environment', 'monitoring', 'drift'],
+      drivers: ['drv-package', 'drv-govern'],
+      downloads: 2341,
+      rating: 4.9,
+      status: 'update_available',
+      verified: true,
+      marketplace_sku: 'CAP-ENV',
+      created_at: '2024-07-01T00:00:00Z',
+      updated_at: '2025-12-10T00:00:00Z',
+    }
+  ]
+
+  const demoBlueprints: Blueprint[] = [
+    {
+      id: 'founder-blueprint',
+      name: 'Founder Blueprint',
+      domain: 'startup',
+      description: 'Capsule pack for founders: doc automation, git hygiene, finance ledgers.',
+      capsules: ['git-maintenance', 'document-blueprint', 'env-daemon'],
+      default_drivers: ['drv-os', 'drv-software', 'drv-package'],
+      policy_tier: 'internal',
+      marketplace_sku: 'BP-FOUNDER',
+      downloads: 1523,
+      rating: 4.7,
+    },
+    {
+      id: 'lab-blueprint',
+      name: 'Research Lab Blueprint',
+      domain: 'research',
+      description: 'Simulation + documentation + ledger pack for labs and auditors.',
+      capsules: ['sim-lab', 'document-blueprint'],
+      default_drivers: ['drv-research', 'drv-data', 'drv-govern'],
+      policy_tier: 'regulated',
+      marketplace_sku: 'BP-LAB',
+      downloads: 892,
+      rating: 4.6,
+    }
+  ]
+
+  const categories = [...new Set(demoCapsules.map((c) => c.category))]
+
+  return {
+    capsules: demoCapsules,
+    blueprints: demoBlueprints,
+    categories,
+    featured: ['shell-capsule', 'git-maintenance', 'env-daemon'],
+  }
+}
+
 const fetchMarketplaceData = async (): Promise<MarketplaceData> => {
   try {
     const response = await apiClient.get(apiPath('ai/capsules'))
@@ -91,124 +218,18 @@ const fetchMarketplaceData = async (): Promise<MarketplaceData> => {
       rating: b.rating || 4.3 + Math.random() * 0.7,
     }))
 
-    // Demo data for marketplace feel
+    // Use demo data if API returned empty results
+    if (capsules.length === 0 && blueprints.length === 0) {
+      return getDemoData()
+    }
+
+    // Fill in demo data if some arrays are empty
     if (capsules.length === 0) {
-      capsules.push(
-        {
-          id: 'shell-capsule',
-          name: 'Shell Capsule',
-          description: 'Execute Unix driver actions with ledger logging and Evidence Packs.',
-          version: '2.1.0',
-          author: 'OS Dashboard Team',
-          category: 'system',
-          tags: ['unix', 'shell', 'automation'],
-          drivers: ['drv-unix', 'drv-os'],
-          downloads: 4521,
-          rating: 4.8,
-          status: 'installed',
-          verified: true,
-          marketplace_sku: 'CAP-SHELL',
-          created_at: '2024-06-15T00:00:00Z',
-          updated_at: '2025-12-01T00:00:00Z',
-        },
-        {
-          id: 'git-maintenance',
-          name: 'Git Maintenance Capsule',
-          description: 'Run Git hygiene operations, dependency scans, and Evidence Pack exports.',
-          version: '1.5.0',
-          author: 'OS Dashboard Team',
-          category: 'code',
-          tags: ['git', 'version-control', 'hygiene'],
-          drivers: ['drv-software', 'drv-govern'],
-          downloads: 3892,
-          rating: 4.7,
-          status: 'installed',
-          verified: true,
-          marketplace_sku: 'CAP-GIT',
-          created_at: '2024-08-20T00:00:00Z',
-          updated_at: '2025-11-15T00:00:00Z',
-        },
-        {
-          id: 'document-blueprint',
-          name: 'Document Blueprint Capsule',
-          description: 'Generate meeting notes and project briefs via Software drivers.',
-          version: '3.0.0',
-          author: 'OS Dashboard Team',
-          category: 'documents',
-          tags: ['documents', 'automation', 'word'],
-          drivers: ['drv-software', 'drv-os'],
-          downloads: 2156,
-          rating: 4.6,
-          status: 'available',
-          verified: true,
-          marketplace_sku: 'CAP-DOC',
-          created_at: '2024-09-10T00:00:00Z',
-          updated_at: '2025-12-05T00:00:00Z',
-        },
-        {
-          id: 'sim-lab',
-          name: 'Simulation Lab Capsule',
-          description: 'Run research simulations and capture CIR outputs.',
-          version: '1.2.0',
-          author: 'Research Team',
-          category: 'research',
-          tags: ['simulation', 'research', 'analytics'],
-          drivers: ['drv-research', 'drv-data'],
-          downloads: 1847,
-          rating: 4.5,
-          status: 'available',
-          verified: true,
-          marketplace_sku: 'CAP-SIM',
-          created_at: '2024-10-01T00:00:00Z',
-          updated_at: '2025-11-28T00:00:00Z',
-        },
-        {
-          id: 'env-daemon',
-          name: 'EnvDaemon',
-          description: 'Monitor package manifests, repair drift, and issue ledger notices.',
-          version: '2.0.0',
-          author: 'Platform Team',
-          category: 'automation',
-          tags: ['environment', 'monitoring', 'drift'],
-          drivers: ['drv-package', 'drv-govern'],
-          downloads: 2341,
-          rating: 4.9,
-          status: 'update_available',
-          verified: true,
-          marketplace_sku: 'CAP-ENV',
-          created_at: '2024-07-01T00:00:00Z',
-          updated_at: '2025-12-10T00:00:00Z',
-        }
-      )
+      capsules.push(...getDemoData().capsules)
     }
 
     if (blueprints.length === 0) {
-      blueprints.push(
-        {
-          id: 'founder-blueprint',
-          name: 'Founder Blueprint',
-          domain: 'startup',
-          description: 'Capsule pack for founders: doc automation, git hygiene, finance ledgers.',
-          capsules: ['git-maintenance', 'document-blueprint', 'env-daemon'],
-          default_drivers: ['drv-os', 'drv-software', 'drv-package'],
-          policy_tier: 'internal',
-          marketplace_sku: 'BP-FOUNDER',
-          downloads: 1523,
-          rating: 4.7,
-        },
-        {
-          id: 'lab-blueprint',
-          name: 'Research Lab Blueprint',
-          domain: 'research',
-          description: 'Simulation + documentation + ledger pack for labs and auditors.',
-          capsules: ['sim-lab', 'document-blueprint'],
-          default_drivers: ['drv-research', 'drv-data', 'drv-govern'],
-          policy_tier: 'regulated',
-          marketplace_sku: 'BP-LAB',
-          downloads: 892,
-          rating: 4.6,
-        }
-      )
+      blueprints.push(...getDemoData().blueprints)
     }
 
     const categories = [...new Set(capsules.map((c) => c.category))]
@@ -220,7 +241,8 @@ const fetchMarketplaceData = async (): Promise<MarketplaceData> => {
       featured: ['shell-capsule', 'git-maintenance', 'env-daemon'],
     }
   } catch {
-    return { capsules: [], blueprints: [], categories: [], featured: [] }
+    // On API error, return demo data so the page is never blank
+    return getDemoData()
   }
 }
 
@@ -621,8 +643,3 @@ export default function CapsuleMarketplace() {
     </div>
   )
 }
-
-
-
-
-

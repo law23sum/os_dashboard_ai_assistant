@@ -1,113 +1,62 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { useLocation } from 'react-router-dom'
+import PageHeader from '../components/PageHeader'
+import { useNavigation } from '../../navigation/context'
 
 /**
- * Record Auditor - Category Home
- * 
- * Platform: Workspaces (Enterprise Extensions)
- * Path: /workspaces/auditor
+ * Workspaces Auditor Page
+ * Route: /workspaces/auditor
  */
-export default function RecordAuditorHome() {
+export default function WorkspacesAuditor() {
+  const location = useLocation()
+  const { activeNav } = useNavigation()
+  
+  const pageTitle = activeNav.feature?.title || activeNav.category?.title || 'Record Auditor'
+  
   return (
     <div className="page-container">
-      {/* Header */}
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Record Auditor</h1>
-          <nav className="breadcrumb">
-            <span>Workspaces (Enterprise Extensions)</span>
-            <span className="breadcrumb-separator">/</span>
-            <span>Record Auditor</span>
-          </nav>
-        </div>
-      </div>
-
-      {/* Overview */}
-      <div className="section">
-        <h2>Overview</h2>
-        <p className="text-muted">
-          Welcome to Record Auditor. This workspace provides comprehensive tools and features
-          for managing record auditor operations.
-        </p>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="section">
-        <h2>Quick Actions</h2>
-        <div className="quick-actions-grid">
-          <button className="quick-action-card">
-            <span className="action-icon">+</span>
-            <span className="action-label">Create New</span>
-          </button>
-          <button className="quick-action-card">
-            <span className="action-icon">▶</span>
-            <span className="action-label">Run</span>
-          </button>
-          <button className="quick-action-card">
-            <span className="action-icon">↓</span>
-            <span className="action-label">Import</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Quick Links to Top Features */}
-      <div className="section">
-        <h2>Top Features</h2>
-        <div className="feature-links-grid">
+      <PageHeader 
+        title={pageTitle}
+        breadcrumbs={activeNav.breadcrumbs}
+      />
+      
+      <div className="page-content">
+        <div className="spec-page-layout">
+          <section className="spec-section">
+            <h2>Parameters</h2>
+            <div className="spec-content">
+              <p>Configure auditor parameters and settings.</p>
+            </div>
+          </section>
           
-          <Link to="/workspaces/auditor/evidence" className="feature-link-card">
-            <h3>Evidence Trails</h3>
-            
-          </Link>
-          <Link to="/workspaces/auditor/controls" className="feature-link-card">
-            <h3>Controls Mapping</h3>
-            <span className="badge badge-new">NEW</span>
-          </Link>
-          <Link to="/workspaces/auditor/requests" className="feature-link-card">
-            <h3>Evidence Requests</h3>
-            <span className="badge badge-new">NEW</span>
-          </Link>
-          <Link to="/workspaces/auditor/reports" className="feature-link-card">
-            <h3>Audit Reports</h3>
-            <span className="badge badge-new">NEW</span>
-          </Link>
-          <Link to="/workspaces/auditor/logbook" className="feature-link-card">
-            <h3>Immutable Logbook Viewer</h3>
-            <span className="badge badge-new">NEW</span>
-          </Link>
-          <Link to="/workspaces/auditor/regulator" className="feature-link-card">
-            <h3>Regulator Views</h3>
-            
-          </Link>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="section">
-        <h2>Recent Activity</h2>
-        <div className="activity-list">
-          <p className="text-muted">No recent activity</p>
-        </div>
-      </div>
-
-      {/* Getting Started */}
-      <div className="section">
-        <h2>Getting Started</h2>
-        <div className="checklist">
-          <div className="checklist-item">
-            <input type="checkbox" id="step1" />
-            <label htmlFor="step1">Complete initial setup</label>
-          </div>
-          <div className="checklist-item">
-            <input type="checkbox" id="step2" />
-            <label htmlFor="step2">Configure preferences</label>
-          </div>
-          <div className="checklist-item">
-            <input type="checkbox" id="step3" />
-            <label htmlFor="step3">Explore key features</label>
-          </div>
+          <section className="spec-section">
+            <h2>Configuration</h2>
+            <div className="spec-content">
+              <p>Set up auditor configuration options.</p>
+            </div>
+          </section>
+          
+          <section className="spec-section">
+            <h2>Environment</h2>
+            <div className="spec-content">
+              <p>Configure auditor environment settings.</p>
+            </div>
+          </section>
+          
+          <section className="spec-section">
+            <h2>Execute</h2>
+            <div className="spec-content">
+              <button className="btn btn-primary">Execute</button>
+            </div>
+          </section>
+          
+          <section className="spec-section">
+            <h2>Results</h2>
+            <div className="spec-content">
+              <p>Auditor results will appear here.</p>
+            </div>
+          </section>
         </div>
       </div>
     </div>
-  );
+  )
 }
