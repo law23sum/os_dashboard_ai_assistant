@@ -1,15 +1,19 @@
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
+  Bell,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  HelpCircle,
   LogOut,
   Menu,
-  Pin,
-  PinOff,
+  PanelLeft,
   Settings,
   Shield,
   Sparkles,
+  UserCog,
   X,
 } from 'lucide-react'
 import { applyTheme, defaultTheme } from '../theme'
@@ -18,11 +22,13 @@ import { UnifiedAIPanel } from './UnifiedAIPanel'
 import GlobalSearch from './GlobalSearch'
 import ActorSwitch from './ActorSwitch'
 import { useActor } from '../contexts/ActorContext'
+import { useAuth } from '../auth/AuthContext'
+import { useIARouteContext } from '../navigation/iaContext'
 import {
-  findRouteContext,
   getCategories,
   getFeatures,
   getPlatforms,
+  legacyRedirects,
   type Category,
   type NavItem,
   type Platform,
@@ -87,26 +93,22 @@ function PlatformDropdown({
   platform,
   categories,
   open,
+  isActive,
   onOpen,
   onClose,
 }: {
   platform: Platform
   categories: Category[]
   open: boolean
+  isActive: boolean
   onOpen: () => void
   onClose: () => void
 }) {
-  const location = useLocation()
   const navigate = useNavigate()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useDropdownPosition(open, buttonRef, dropdownRef)
-
-  const isActive = useMemo(() => {
-    if (location.pathname === '/' && platform.path === '/') return true
-    return location.pathname.startsWith(platform.path)
-  }, [location.pathname, platform.path])
 
   useEffect(() => {
     if (!open) return
@@ -118,8 +120,18 @@ function PlatformDropdown({
       onClose()
     }
 
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      onClose()
+    }
+
     document.addEventListener('click', onDocClick, true)
-    return () => document.removeEventListener('click', onDocClick, true)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('click', onDocClick, true)
+      document.removeEventListener('keydown', onKeyDown)
+    }
   }, [open, onClose])
 
   return (
@@ -159,22 +171,35 @@ function PlatformDropdown({
                 <p className="mt-1 text-sm font-semibold text-[color:var(--osd-text)]">{platform.label}</p>
               </div>
               <div className="py-2">
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    type="button"
-                    className="w-full text-left px-4 py-2 hover:bg-[color:var(--osd-surface)] transition-colors"
-                    onClick={() => {
-                      onClose()
-                      navigate(category.homeRoute)
-                    }}
-                  >
-                    <div className="text-sm font-medium text-[color:var(--osd-text)]">{category.label}</div>
-                    <div className="text-xs text-[color:var(--osd-muted)] mt-0.5">
-                      {category.features.length} features
-                    </div>
-                  </button>
-                ))}
+                {categories.map((category) => {
+                  const newCount = category.features.filter((feature) => feature.isNew).length
+                  const description = `Overview and quick actions for ${category.label}.`
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      role="menuitem"
+                      className="w-full text-left px-4 py-2 hover:bg-[color:var(--osd-surface)] transition-colors"
+                      onClick={() => {
+                        onClose()
+                        navigate(category.homeRoute)
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm font-medium text-[color:var(--osd-text)]">{category.label}</div>
+                        {newCount > 0 ? (
+                          <span className="text-[0.55rem] uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-400/40 text-emerald-300">
+                            New
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="text-xs text-[color:var(--osd-muted)] mt-0.5">{description}</div>
+                      <div className="text-[0.65rem] text-[color:var(--osd-muted)] mt-1">
+                        {category.features.length} features
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
             </div>,
             document.body,
@@ -193,17 +218,56 @@ function FeatureSidebar({
   features: NavItem[]
   currentPath: string
 }) {
-  const [pinned, setPinned] = useState(false)
-  const [hovered, setHovered] = useState(false)
-  const expanded = pinned || hovered
+  const [collapsed, setCollapsed] = useState(false)
+  const expanded = !collapsed
+  const itemRefs = useRef<Array<HTMLAnchorElement | null>>([])
+
+  const focusItem = useCallback(
+    (index: number) => {
+      if (!features.length) return
+      const total = features.length
+      const nextIndex = (index + total) % total
+      itemRefs.current[nextIndex]?.focus()
+    },
+    [features.length],
+  )
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent, index: number) => {
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault()
+          focusItem(index + 1)
+          break
+        case 'ArrowUp':
+          event.preventDefault()
+          focusItem(index - 1)
+          break
+        case 'Home':
+          event.preventDefault()
+          focusItem(0)
+          break
+        case 'End':
+          event.preventDefault()
+          focusItem(features.length - 1)
+          break
+        case 'Escape':
+          event.preventDefault()
+          setCollapsed(true)
+          break
+        default:
+          break
+      }
+    },
+    [features.length, focusItem],
+  )
 
   return (
     <aside
       className={`hidden lg:flex flex-col shrink-0 border-r border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]/20 transition-all duration-200 ${
-        expanded ? 'w-72' : 'w-14'
+        expanded ? 'w-72' : 'w-16'
       }`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      aria-expanded={expanded}
     >
       <div className="flex items-center justify-between gap-2 px-3 py-3 border-b border-[color:var(--osd-border)]">
         <div className={`min-w-0 ${expanded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-150`}>
@@ -213,31 +277,52 @@ function FeatureSidebar({
         <button
           type="button"
           className="text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)]"
-          onClick={() => setPinned((prev) => !prev)}
-          aria-label={pinned ? 'Unpin sidebar' : 'Pin sidebar'}
+          onClick={() => setCollapsed((prev) => !prev)}
+          aria-label={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
         >
-          {pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+          {expanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
       </div>
 
-      <nav className={`flex-1 overflow-y-auto ${expanded ? 'px-2 pb-3' : 'px-1 pb-2'}`}>
+      <nav
+        className={`flex-1 overflow-y-auto ${expanded ? 'px-2 pb-3' : 'px-1 pb-2'}`}
+        role="menu"
+        aria-label={`${category.label} features`}
+      >
         <div className="space-y-1">
-          {features.map((item) => {
+          {features.map((item, index) => {
             const isActive = currentPath === item.route || currentPath.startsWith(item.route + '/')
+            const tooltipId = `feature-tooltip-${item.id || item.route.replace(/[^a-z0-9]/gi, '-')}`
             return (
               <Link
                 key={item.route}
                 to={item.route}
-                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                ref={(el) => {
+                  itemRefs.current[index] = el
+                }}
+                onKeyDown={(event) => handleKeyDown(event, index)}
+                className={`group relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
                   isActive
                     ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20 shadow-sm'
                     : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
                 }`}
                 title={item.label}
+                aria-label={expanded ? undefined : item.label}
+                aria-describedby={expanded ? undefined : tooltipId}
                 aria-current={isActive ? 'page' : undefined}
+                role="menuitem"
               >
                 <Sparkles className={`w-4 h-4 shrink-0 ${isActive ? 'text-[color:var(--osd-accent)]' : ''}`} />
                 <span className={expanded ? 'truncate' : 'sr-only'}>{item.label}</span>
+                {!expanded && (
+                  <span
+                    id={tooltipId}
+                    role="tooltip"
+                    className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded-lg border border-[color:var(--osd-border)] bg-[color:var(--osd-surface)] px-3 py-1 text-xs text-[color:var(--osd-text)] opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+                  >
+                    {item.label}
+                  </span>
+                )}
               </Link>
             )
           })}
@@ -261,7 +346,7 @@ function UserMenu() {
     }
   }, [])
 
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = Boolean(user?.is_admin)
   const isLoggedIn = !!localStorage.getItem('access_token')
 
   useEffect(() => {
@@ -364,11 +449,94 @@ function UserMenu() {
   )
 }
 
+function TenantMenu() {
+  const [isOpen, setIsOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside, true)
+    return () => document.removeEventListener('click', handleClickOutside, true)
+  }, [isOpen])
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="p-2 rounded-lg text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)] transition-colors"
+        aria-label="Tenant controls"
+      >
+        <UserCog className="w-5 h-5" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-2 w-56 bg-[color:var(--osd-surface)] border border-[color:var(--osd-border)] rounded-xl shadow-xl overflow-hidden z-50">
+          <div className="px-4 py-3 border-b border-[color:var(--osd-border)]">
+            <p className="text-xs uppercase tracking-wider text-[color:var(--osd-muted)]">Tenant & Admin</p>
+            <p className="text-sm font-semibold text-[color:var(--osd-text)]">Enterprise controls</p>
+          </div>
+          <div className="py-1">
+            <Link
+              to="/admin"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-[color:var(--osd-accentSoft)] transition-colors"
+            >
+              <Shield className="w-4 h-4" />
+              Admin Console
+            </Link>
+            <Link
+              to="/settings/enterprise/user-tenant"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-[color:var(--osd-accentSoft)] transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              User & Tenant Settings
+            </Link>
+            <Link
+              to="/settings/team"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-[color:var(--osd-accentSoft)] transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              Team & Members
+            </Link>
+            <Link
+              to="/settings/tenant"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-[color:var(--osd-accentSoft)] transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              Tenancy & Org Settings
+            </Link>
+            <Link
+              to="/settings/audit"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-[color:var(--osd-accentSoft)] transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              Audit Settings
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const { currentActor } = useActor()
+  const { state: authState } = useAuth()
   const [openPlatformId, setOpenPlatformId] = useState<string | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const aiButtonRef = useRef<HTMLButtonElement>(null)
   const { data: settings } = useAppSettings()
 
@@ -383,14 +551,29 @@ export default function Layout({ children }: LayoutProps) {
   })
 
   const platforms = useMemo(() => getPlatforms(currentActor), [currentActor])
-  const routeContext = useMemo(() => findRouteContext(location.pathname), [location.pathname])
+  const homePath = useMemo(() => {
+    const mission = platforms.find((platform) => platform.id === 'mission-control')
+    return mission?.path ?? platforms[0]?.path ?? '/'
+  }, [platforms])
+  const routeContext = useIARouteContext()
+  const normalizedPath = location.pathname === '/' ? '/' : location.pathname.replace(/\/+$/, '')
+  const legacyTarget = legacyRedirects[normalizedPath]
+
+  if (legacyTarget && legacyTarget !== normalizedPath) {
+    return (
+      <Navigate
+        to={{ pathname: legacyTarget, search: location.search, hash: location.hash }}
+        replace
+      />
+    )
+  }
 
   const activePlatform = useMemo(() => {
-    if (routeContext.platform && (routeContext.platform.actorScope === 'both' || routeContext.platform.actorScope === currentActor)) {
+    if (routeContext.platform) {
       return routeContext.platform
     }
     return platforms[0]
-  }, [routeContext.platform, platforms, currentActor])
+  }, [routeContext.platform, platforms])
 
   const categories = useMemo(() => {
     if (!activePlatform) return []
@@ -398,30 +581,33 @@ export default function Layout({ children }: LayoutProps) {
   }, [activePlatform, currentActor])
 
   const activeCategory = useMemo(() => {
-    if (
-      routeContext.category &&
-      (routeContext.category.actorScope === 'both' || routeContext.category.actorScope === currentActor)
-    ) {
+    if (routeContext.category) {
       return routeContext.category
     }
-    return categories[0]
-  }, [routeContext.category, categories, currentActor])
+    return undefined
+  }, [routeContext.category])
 
   const features = useMemo(() => {
     if (!activePlatform || !activeCategory) return []
     return getFeatures(activePlatform.id, activeCategory.id, currentActor)
   }, [activePlatform, activeCategory, currentActor])
 
-  const breadcrumbs = useMemo((): Breadcrumb[] => {
-    const items: Breadcrumb[] = [{ label: 'Home', path: '/' }]
+  const isAdmin = authState.status === 'authenticated' && authState.user.is_admin
+  const showTenantMenu = isAdmin && currentActor === 'enterprise'
+  const showFeatureSidebar = Boolean(
+    routeContext.category && (routeContext.isCategoryHome || routeContext.feature),
+  )
 
-    if (activePlatform) {
-      items.push({ label: activePlatform.label, path: activePlatform.path })
+  const breadcrumbs = useMemo((): Breadcrumb[] => {
+    const items: Breadcrumb[] = [{ label: 'Home', path: homePath }]
+
+    if (routeContext.platform) {
+      items.push({ label: routeContext.platform.label, path: routeContext.platform.path })
     }
-    if (activeCategory) {
-      items.push({ label: activeCategory.label, path: activeCategory.homeRoute })
+    if (routeContext.category) {
+      items.push({ label: routeContext.category.label, path: routeContext.category.homeRoute })
     }
-    if (routeContext.feature && activeCategory && routeContext.feature.route !== activeCategory.homeRoute) {
+    if (routeContext.feature) {
       items.push({ label: routeContext.feature.label, path: routeContext.feature.route })
     }
 
@@ -452,7 +638,14 @@ export default function Layout({ children }: LayoutProps) {
     }
 
     return items
-  }, [activePlatform, activeCategory, routeContext.feature, location.pathname, location.search])
+  }, [
+    homePath,
+    routeContext.platform,
+    routeContext.category,
+    routeContext.feature,
+    location.pathname,
+    location.search,
+  ])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -494,23 +687,34 @@ export default function Layout({ children }: LayoutProps) {
   useEffect(() => {
     setOpenPlatformId(null)
     setMobileMenuOpen(false)
+    setMobileSidebarOpen(false)
   }, [location.pathname])
 
   return (
     <div className="osd-shell min-h-screen text-[color:var(--osd-text)] flex flex-col">
       <nav className="osd-nav border-b border-[color:var(--osd-border)] sticky top-0 z-50 bg-[color:var(--osd-background)]/80 backdrop-blur-md">
         <div className="w-full px-2 sm:px-4 lg:px-6">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center gap-4">
+          <div className="flex h-16 items-center gap-3">
+            <div className="flex items-center gap-3">
               <button
                 className="lg:hidden p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)]"
                 onClick={() => setMobileMenuOpen((v) => !v)}
-                aria-label="Toggle menu"
+                aria-label="Toggle platform menu"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
 
-              <Link to="/" className="flex items-center gap-3">
+              {showFeatureSidebar && (
+                <button
+                  className="lg:hidden p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)]"
+                  onClick={() => setMobileSidebarOpen((v) => !v)}
+                  aria-label="Toggle feature drawer"
+                >
+                  <PanelLeft className="w-5 h-5" />
+                </button>
+              )}
+
+                  <Link to={homePath} className="flex items-center gap-3">
                 <div className="osd-logo w-8 h-8 bg-gradient-to-br from-[color:var(--osd-accent)] to-[color:var(--osd-accentPurple)] rounded-lg shadow-lg" />
                 <div className="hidden sm:block">
                   <p className="text-[0.6rem] uppercase tracking-[0.2em] text-[color:var(--osd-muted)] leading-none mb-1">
@@ -519,39 +723,66 @@ export default function Layout({ children }: LayoutProps) {
                   <h1 className="text-sm font-semibold tracking-wide">OS Dashboard · AI Assistant</h1>
                 </div>
               </Link>
+
+              <div className="flex">
+                <ActorSwitch compact />
+              </div>
+
+              <div className="hidden lg:flex items-center space-x-1">
+                {platforms.map((platform) => {
+                  const platformCategories = getCategories(platform.id, currentActor)
+                  return (
+                    <PlatformDropdown
+                      key={platform.id}
+                      platform={platform}
+                      categories={platformCategories}
+                      open={openPlatformId === platform.id}
+                      isActive={routeContext.platform?.id === platform.id}
+                      onOpen={() => toggleDropdown(platform.id)}
+                      onClose={closeDropdown}
+                    />
+                  )
+                })}
+              </div>
             </div>
 
-            <div className="hidden lg:flex items-center space-x-1 flex-1 justify-center">
-              {platforms.map((platform) => {
-                const platformCategories = getCategories(platform.id, currentActor)
-                return (
-                  <PlatformDropdown
-                    key={platform.id}
-                    platform={platform}
-                    categories={platformCategories}
-                    open={openPlatformId === platform.id}
-                    onOpen={() => toggleDropdown(platform.id)}
-                    onClose={closeDropdown}
-                  />
-                )
-              })}
+            <div className="hidden lg:flex flex-1 justify-center px-4">
+              <GlobalSearch />
             </div>
 
-            <div className="flex items-center gap-2">
-              <UserMenu />
+            <div className="flex items-center gap-2 ml-auto">
               <Link
-                to="/settings"
+                to="/activity"
                 className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors"
+                aria-label="Notifications and activity"
               >
-                <Settings className="w-5 h-5" />
+                <Bell className="w-5 h-5" />
               </Link>
+              <Link
+                to="/docs"
+                className="p-2 text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] transition-colors"
+                aria-label="Help and documentation"
+              >
+                <HelpCircle className="w-5 h-5" />
+              </Link>
+              {showTenantMenu ? <TenantMenu /> : null}
+              <UserMenu />
             </div>
+          </div>
+        </div>
+
+        <div className="lg:hidden pb-3 px-2 sm:px-4">
+          <div className="flex justify-center">
+            <GlobalSearch />
           </div>
         </div>
 
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-[color:var(--osd-border)] bg-[color:var(--osd-surface)]">
             <div className="px-4 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div className="flex items-center justify-between">
+                <ActorSwitch />
+              </div>
               {platforms.map((platform) => (
                 <div key={platform.id} className="space-y-1">
                   <p className="text-xs uppercase tracking-wider text-[color:var(--osd-muted)] font-semibold px-3 py-2">
@@ -573,6 +804,53 @@ export default function Layout({ children }: LayoutProps) {
             </div>
           </div>
         )}
+
+        {mobileSidebarOpen && showFeatureSidebar && activeCategory && (
+          <div className="lg:hidden fixed inset-0 z-[9998]">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setMobileSidebarOpen(false)}
+              aria-label="Close feature drawer"
+            />
+            <div className="absolute left-0 top-0 h-full w-72 bg-[color:var(--osd-surface)] border-r border-[color:var(--osd-border)] shadow-xl">
+              <div className="flex items-center justify-between px-4 py-4 border-b border-[color:var(--osd-border)]">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-[color:var(--osd-muted)]">Category</p>
+                  <p className="text-sm font-semibold text-[color:var(--osd-text)]">{activeCategory.label}</p>
+                </div>
+                <button
+                  type="button"
+                  className="text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)]"
+                  onClick={() => setMobileSidebarOpen(false)}
+                  aria-label="Close drawer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <nav className="px-3 py-3 space-y-1 overflow-y-auto h-[calc(100%-4.5rem)]">
+                {features.map((item) => {
+                  const isActive = location.pathname === item.route || location.pathname.startsWith(item.route + '/')
+                  return (
+                    <Link
+                      key={item.route}
+                      to={item.route}
+                      onClick={() => setMobileSidebarOpen(false)}
+                      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-[color:var(--osd-accentSoft)] text-[color:var(--osd-text)] border border-[color:var(--osd-accent)]/20'
+                          : 'text-[color:var(--osd-muted)] hover:text-[color:var(--osd-text)] hover:bg-[color:var(--osd-surface)]'
+                      }`}
+                    >
+                      <Sparkles className={`w-4 h-4 shrink-0 ${isActive ? 'text-[color:var(--osd-accent)]' : ''}`} />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  )
+                })}
+              </nav>
+            </div>
+          </div>
+        )}
       </nav>
 
       <main className="glass-content page-container w-full py-6 sm:py-8 px-3 sm:px-5 lg:px-8 min-h-[calc(100vh-8rem)] flex-1">
@@ -588,15 +866,11 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
               ))}
             </nav>
-            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-              <GlobalSearch />
-              <ActorSwitch compact />
-            </div>
           </div>
         </div>
 
         <div className="flex w-full gap-6">
-          {activeCategory && features.length > 0 && (
+          {showFeatureSidebar && activeCategory && features.length > 0 && (
             <FeatureSidebar
               category={activeCategory}
               features={features}

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Filter, Plus, Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import PageHeader from '../../components/PageHeader'
+import PageHeader from '@/components/PageHeader'
 import { pmsApi } from '../../api/pms'
 import { useActor } from '../../contexts/ActorContext'
 import { formatDate } from './pmsUtils'
@@ -35,7 +35,7 @@ export default function PmsProjects() {
     mutationFn: () =>
       pmsApi.createProject(currentActor, {
         name: projectName,
-        config: { template_pack: templatePack },
+        template_pack: templatePack,
       }),
     onSuccess: () => {
       setProjectName('')
@@ -151,7 +151,14 @@ export default function PmsProjects() {
         {filteredProjects.map((project) => (
           <div key={project.project_id} className="glass-card p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold">{project.name}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-semibold">{project.name}</h3>
+                {project.is_sample && (
+                  <span className="text-[0.55rem] uppercase tracking-wider text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded-full">
+                    Sample
+                  </span>
+                )}
+              </div>
               <span className="text-xs uppercase tracking-wider text-[color:var(--osd-muted)]">
                 {project.mode}
               </span>

@@ -174,6 +174,7 @@ def _seed_admin_pms_samples(conn: Connection, admin_user_id: str) -> None:
             status="active",
             config={"priority_tiers": ["P0", "P1", "P2", "P3"]},
             created_by=admin_user_id,
+            is_sample=1,
         )
         first_task_id: Optional[str] = None
         for epic in epics:
@@ -245,13 +246,14 @@ def _seed_admin_pms_samples(conn: Connection, admin_user_id: str) -> None:
                 task_id=first_task_id,
                 user_id=admin_user_id,
             )
-            revision_hash = pms_store.add_document_revision(
+            revision = pms_store.add_document_revision(
                 conn,
                 document_id=document["document_id"],
                 content="PMS deliverables seed document.",
                 author=admin_user_id,
                 metadata={"seeded": True},
             )
+            revision_hash = revision["revision_hash"] if isinstance(revision, dict) else revision
             pms_store.publish_document_revision(
                 conn,
                 document_id=document["document_id"],
@@ -334,6 +336,7 @@ def _seed_admin_pms_samples(conn: Connection, admin_user_id: str) -> None:
                 status="active",
                 config={"priority_tiers": ["P0", "P1", "P2", "P3"]},
                 created_by=admin_user_id,
+                is_sample=1,
             )
             for name in names:
                 epic_row = pms_store.create_epic(

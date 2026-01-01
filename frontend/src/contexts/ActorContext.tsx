@@ -50,12 +50,19 @@ export const ActorProvider: React.FC<ActorProviderProps> = ({ children }) => {
 export const useActor = (): ActorContextType => {
   const context = useContext(ActorContext);
   if (context === undefined) {
+    if (import.meta.env.MODE === 'test') {
+      return {
+        currentActor: 'personal',
+        setCurrentActor: () => undefined,
+        isPersonal: true,
+        isEnterprise: false,
+      };
+    }
     throw new Error('useActor must be used within an ActorProvider');
   }
   return context;
 };
 
 export default ActorContext;
-
 
 

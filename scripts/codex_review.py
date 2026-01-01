@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
+import sqlite3
 import sys
 import tempfile
 from contextlib import closing
@@ -16,16 +18,30 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from assistant_core import codex_review
-from assistant_core.db import init_db, load_openai_api_key
+from assistant_hub.config import DB_PATH
+from assistant_hub_gui.assistant_hub.db import load_openai_api_key
+
+CODEX_REVIEW_PATH = REPO_ROOT / "assistant_core" / "codex_review.py"
+_spec = importlib.util.spec_from_file_location("assistant_core.codex_review", CODEX_REVIEW_PATH)
+if _spec is None or _spec.loader is None:
+    raise ImportError(f"Unable to load codex_review from {CODEX_REVIEW_PATH}")
+codex_review = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(codex_review)
 
 
 def _load_api_key_from_db() -> Optional[str]:
-    try:
-        with closing(init_db()) as conn:
-            return load_openai_api_key(conn)
-    except Exception:
+    db_path = Path(DB_PATH)
+    if not db_path.exists():
         return None
+    try:
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    except sqlite3.Error:
+        return None
+    with closing(conn):
+        try:
+            return load_openai_api_key(conn)
+        except Exception:
+            return None
 
 
 def _resolve_output_dir(path_str: Optional[str]) -> Path:

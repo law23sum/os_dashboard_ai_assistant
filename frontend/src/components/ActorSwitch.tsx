@@ -14,14 +14,14 @@ const options: Array<{
 }> = [
   {
     id: 'personal',
-    label: 'Personal',
-    description: 'Private memory space',
+    label: 'Personal Workstation',
+    description: 'Personal workstation edition',
     Icon: User,
   },
   {
     id: 'enterprise',
-    label: 'Enterprise',
-    description: 'Shared workspace scope',
+    label: 'Enterprise Control Plane',
+    description: 'Enterprise control plane edition',
     Icon: Building2,
   },
 ]
@@ -35,7 +35,7 @@ export default function ActorSwitch({ compact = false }: ActorSwitchProps) {
         compact ? 'text-xs' : 'text-sm'
       }`}
       role="tablist"
-      aria-label="Scope selector"
+      aria-label="Edition selector"
     >
       {options.map(({ id, label, description, Icon }) => {
         const active = currentActor === id
@@ -54,7 +54,7 @@ export default function ActorSwitch({ compact = false }: ActorSwitchProps) {
             title={description}
           >
             <Icon className="w-4 h-4" />
-            <span className="font-medium">{label}</span>
+            <span className={`font-medium ${compact ? 'hidden sm:inline' : ''}`}>{label}</span>
           </button>
         )
       })}

@@ -22,7 +22,13 @@ from starlette.types import ASGIApp, Scope, Receive, Send
 from ai_os.app.system_monitor import get_system_stats
 from assistant_core.cognitive_framework import CognitiveFrameworkManager, DaemonStatus
 
-from ..ai import DEFAULT_SYSTEM_PROMPT, generate_ai_reply
+from assistant_core.ai import (
+    DEFAULT_SYSTEM_PROMPT,
+    generate_ai_reply,
+    generate_collab_ai_reply,
+    generate_group_ai_reply,
+    parse_prompt_aliases,
+)
 from ..db import (
     CHAT_ROLES,
     ChatMessage,
@@ -64,6 +70,7 @@ from backend_api.routers import (
     autofix as autofix_router,
     capsules as capsules_router,
     coach as coach_router,
+    codex_review as codex_review_router,
     computer_vision as computer_vision_router,
     edge_computing as edge_router,
     git as git_router,
@@ -195,6 +202,10 @@ class ChatPayload(BaseModel):
     message: str
     persona: Optional[str] = None
     system_prompt: Optional[str] = DEFAULT_SYSTEM_PROMPT
+    provider: Optional[str] = None
+    provider_group: Optional[str] = None
+    collab: Optional[bool] = False
+    collab_synth_provider: Optional[str] = None
 
 
 class ChatMessageRequest(BaseModel):
@@ -340,8 +351,11 @@ def create_app(
             "http://127.0.0.1:5173",
             "http://localhost:5174",
             "http://127.0.0.1:5174",
+            "http://localhost:5176",
+            "http://127.0.0.1:5176",
             "http://0.0.0.0:5173",
             "http://0.0.0.0:5174",
+            "http://0.0.0.0:5176",
             # Electron file:// origin
             "null",
         ],
@@ -402,6 +416,7 @@ def create_app(
     app.include_router(autofix_router.router, prefix="/autofix", tags=["autofix"])
     app.include_router(capsules_router.router, prefix="/ai", tags=["capsules"])
     app.include_router(coach_router.router, prefix="/ai", tags=["coach"])
+    app.include_router(codex_review_router.router, prefix="/codex", tags=["codex"])
     app.include_router(computer_vision_router.router, prefix="/computer-vision", tags=["computer_vision"])
     app.include_router(edge_router.router, prefix="/edge-computing", tags=["edge_computing"])
     app.include_router(git_router.router, tags=["git"])
@@ -1106,16 +1121,51 @@ def create_app(
             history_state = load_state(conn)
             history = history_state.chat_messages
 
-        user_message = ChatMessage(id=0, persona=persona, role="user", content=payload.message)
+        raw_message = payload.message
+        cleaned_message, overrides = parse_prompt_aliases(raw_message)
+        if overrides:
+            if overrides.get("persona") and not payload.persona:
+                persona = overrides["persona"]
+
+        message = cleaned_message or raw_message
+        user_message = ChatMessage(id=0, persona=persona, role="user", content=message)
         history.append(user_message)
 
-        reply, error, _ = generate_ai_reply(
-            history,
-            persona=persona,
-            prompt=payload.message,
-            system_prompt=payload.system_prompt or DEFAULT_SYSTEM_PROMPT,
-            enable_shell=False,
-        )
+        provider = (payload.provider or overrides.get("provider") or "openai").strip().lower()
+        provider_group = payload.provider_group or overrides.get("provider_group")
+        collab = bool(payload.collab or overrides.get("collab"))
+        collab_synth = payload.collab_synth_provider or overrides.get("collab_synth_provider")
+
+        if collab:
+            reply, error, _ = generate_collab_ai_reply(
+                history,
+                persona=persona,
+                prompt=message,
+                provider_group=provider_group,
+                model_provider=provider,
+                synth_provider=collab_synth,
+                system_prompt=payload.system_prompt or DEFAULT_SYSTEM_PROMPT,
+                enable_shell=False,
+            )
+        elif provider_group:
+            reply, error, _ = generate_group_ai_reply(
+                history,
+                persona=persona,
+                prompt=message,
+                provider_group=provider_group,
+                model_provider=provider,
+                system_prompt=payload.system_prompt or DEFAULT_SYSTEM_PROMPT,
+                enable_shell=False,
+            )
+        else:
+            reply, error, _ = generate_ai_reply(
+                history,
+                persona=persona,
+                prompt=message,
+                system_prompt=payload.system_prompt or DEFAULT_SYSTEM_PROMPT,
+                enable_shell=False,
+                model_provider=provider,
+            )
         if error:
             raise HTTPException(status_code=500, detail=error)
 

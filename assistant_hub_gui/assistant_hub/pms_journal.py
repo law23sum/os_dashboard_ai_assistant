@@ -41,7 +41,7 @@ def _infer_section(text: str) -> str:
     return "Comments"
 
 
-def generate_journal_blocks(meeting_id: str, segments: List[dict]) -> List[dict]:
+def generate_journal_blocks(segments: List[dict]) -> List[dict]:
     blocks: List[dict] = []
     now = datetime.now(timezone.utc).isoformat()
     for segment in segments:
@@ -49,7 +49,7 @@ def generate_journal_blocks(meeting_id: str, segments: List[dict]) -> List[dict]
         section = _infer_section(text)
         blocks.append(
             {
-                "meeting_id": meeting_id,
+                "meeting_id": segment.get("meeting_id"),
                 "ts_start": segment.get("ts_start", 0),
                 "ts_end": segment.get("ts_end", 0),
                 "section_type": section,

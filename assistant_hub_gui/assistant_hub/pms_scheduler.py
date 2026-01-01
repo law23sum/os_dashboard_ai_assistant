@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Mapping, Optional, Protocol, Tuple
 
+from .pms_models import PMS_DEFAULT_PRIORITY_TIERS
+
 
 @dataclass
 class LaneQueue:
@@ -56,7 +58,7 @@ def lane_key(category: str, task_type: str) -> str:
     return f"{category}::{task_type}"
 
 
-def build_scheduler_index(
+def _build_scheduler_index_internal(
     project_id: str,
     tasks_by_id: Mapping[str, dict],
     priority_tiers: List[str],
@@ -137,3 +139,77 @@ def peek_next_task_ids(
             break
         results.append(chosen_lane.task_ids.pop(0))
     return results
+
+
+def build_scheduler_index(
+    project_id: str,
+    tasks_by_id: Mapping[str, dict],
+    priority_tiers: Optional[List[str]] = None,
+) -> SchedulerIndex:
+    """Build a scheduler index from a canonical tasks-by-id map."""
+    tiers = list(priority_tiers or PMS_DEFAULT_PRIORITY_TIERS)
+    return _build_scheduler_index_internal(project_id, tasks_by_id, tiers)
+
+
+def build_scheduler_index_from_tasks(
+    tasks: List[dict],
+    priority_tiers: Optional[List[str]] = None,
+    *,
+    include_blocked: bool = False,
+) -> SchedulerIndex:
+    """Build a scheduler index from a list of task dicts."""
+    filtered_tasks = [
+        task for task in tasks if include_blocked or task.get("status") != "BLOCKED"
+    ]
+    if not filtered_tasks:
+        return SchedulerIndex(project_id="", tiers=[])
+    tasks_by_id = {
+        task.get("task_id"): task for task in filtered_tasks if task.get("task_id")
+    }
+    project_id = filtered_tasks[0].get("project_id", "")
+    return build_scheduler_index(project_id, tasks_by_id, priority_tiers)
+
+
+def next_task(
+    tasks: List[dict],
+    priority_tiers: Optional[List[str]] = None,
+    *,
+    include_blocked: bool = False,
+) -> Optional[dict]:
+    """Return the next task based on priority tiers and enqueue time."""
+    filtered_tasks = [
+        task for task in tasks if include_blocked or task.get("status") != "BLOCKED"
+    ]
+    if not filtered_tasks:
+        return None
+    tasks_by_id = {
+        task.get("task_id"): task for task in filtered_tasks if task.get("task_id")
+    }
+    index = build_scheduler_index(
+        filtered_tasks[0].get("project_id", ""), tasks_by_id, priority_tiers
+    )
+    next_id = select_next_task_id(index, tasks_by_id)
+    return tasks_by_id.get(next_id) if next_id else None
+
+
+def peek_next_tasks(
+    tasks: List[dict],
+    count: int,
+    priority_tiers: Optional[List[str]] = None,
+    *,
+    include_blocked: bool = False,
+) -> List[dict]:
+    """Return the next N tasks without mutating input."""
+    filtered_tasks = [
+        task for task in tasks if include_blocked or task.get("status") != "BLOCKED"
+    ]
+    if not filtered_tasks:
+        return []
+    tasks_by_id = {
+        task.get("task_id"): task for task in filtered_tasks if task.get("task_id")
+    }
+    index = build_scheduler_index(
+        filtered_tasks[0].get("project_id", ""), tasks_by_id, priority_tiers
+    )
+    ids = peek_next_task_ids(index, tasks_by_id, count)
+    return [tasks_by_id[task_id] for task_id in ids if task_id in tasks_by_id]

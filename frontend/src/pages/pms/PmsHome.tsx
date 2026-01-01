@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowRight, ListChecks, Play, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import PageHeader from '../../components/PageHeader'
+import PageHeader from '@/components/PageHeader'
 import { useActor } from '../../contexts/ActorContext'
 import { pmsApi } from '../../api/pms'
-import type { PmsTask } from '../../types/pms'
+import type { PmsTask } from '@/types/pms'
 import { formatDate, formatCurrency } from './pmsUtils'
 
 export default function PmsHome() {
@@ -319,7 +319,9 @@ export default function PmsHome() {
         <section className="glass-card p-5 space-y-3">
           <h2 className="text-sm font-semibold text-[color:var(--osd-text)]">Cost Snapshot</h2>
           <div className="text-xs text-[color:var(--osd-muted)]">This month</div>
-          <div className="text-lg font-semibold">{formatCurrency(costRollup?.combined_total ?? 0)}</div>
+          <div className="text-lg font-semibold">
+            {formatCurrency(costRollup?.combined_total ?? costRollup?.total ?? 0)}
+          </div>
           <div className="text-xs text-[color:var(--osd-muted)]">
             Labor {formatCurrency(costRollup?.labor_total ?? 0)} · Expenses {formatCurrency(costRollup?.expense_total ?? 0)}
           </div>

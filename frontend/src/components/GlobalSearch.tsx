@@ -21,7 +21,7 @@ export default function GlobalSearch() {
     staleTime: 20 * 1000,
   })
 
-  const results = data?.results ?? data ?? []
+  const results = data?.results ?? []
 
   useEffect(() => {
     const onClick = (event: MouseEvent) => {

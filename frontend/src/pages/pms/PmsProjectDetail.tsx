@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Settings, Shield } from 'lucide-react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import PageHeader from '../../components/PageHeader'
+import PageHeader from '@/components/PageHeader'
 import { pmsApi } from '../../api/pms'
 import { useActor } from '../../contexts/ActorContext'
-import type { PmsTask, PmsTodo } from '../../types/pms'
+import type { PmsTask, PmsTodo } from '@/types/pms'
 import { formatCurrency, formatDate, formatDateTime, shortId } from './pmsUtils'
 
 const tabs = [
@@ -203,6 +203,22 @@ export default function PmsProjectDetail() {
               <Settings className="w-4 h-4" />
               Settings
             </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setSearchParams({ tab: 'epics' })}
+            >
+              <Plus className="w-4 h-4" />
+              New Epic
+            </button>
+            <a
+              className="btn btn-secondary"
+              href={pmsApi.evidencePackUrl(projectId, currentActor)}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Export Evidence
+            </a>
             <button type="button" className="btn btn-primary" onClick={() => setSearchParams({ tab: 'tasks' })}>
               <Plus className="w-4 h-4" />
               New Task
@@ -246,7 +262,7 @@ export default function PmsProjectDetail() {
             <div className="glass-card p-4">
               <p className="text-xs uppercase tracking-wider text-[color:var(--osd-muted)]">Total spend</p>
               <p className="text-2xl font-semibold">
-                {formatCurrency(costRollup?.combined_total ?? 0)}
+                {formatCurrency(costRollup?.combined_total ?? costRollup?.total ?? 0)}
               </p>
             </div>
           </div>

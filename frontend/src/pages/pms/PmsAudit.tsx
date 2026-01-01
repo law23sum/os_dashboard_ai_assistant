@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Filter } from 'lucide-react'
-import PageHeader from '../../components/PageHeader'
+import PageHeader from '@/components/PageHeader'
 import { pmsApi } from '../../api/pms'
 import { useActor } from '../../contexts/ActorContext'
 import { formatDateTime } from './pmsUtils'

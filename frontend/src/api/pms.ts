@@ -3,12 +3,15 @@ import type {
   PmsAuditEvent,
   PmsCostRollup,
   PmsDocument,
+  PmsDocumentDetail,
   PmsDocumentRevision,
   PmsEpic,
   PmsExecutionRun,
   PmsExpenseEntry,
   PmsJournalBlock,
   PmsMeetingSession,
+  PmsProjectCreate,
+  PmsProjectUpdate,
   PmsProject,
   PmsSchedulerIndex,
   PmsSearchResponse,
@@ -43,7 +46,7 @@ export const pmsApi = {
     })
     return data
   },
-  createProject: async (scope: ActorType, payload: Partial<PmsProject>) => {
+  createProject: async (scope: ActorType, payload: PmsProjectCreate) => {
     const { data } = await apiClient.post<PmsProject>(apiPath('pms/projects'), payload, {
       params: withScope(scope),
     })
@@ -55,7 +58,7 @@ export const pmsApi = {
     })
     return data
   },
-  updateProject: async (projectId: string, payload: Partial<PmsProject>, scope?: ActorType) => {
+  updateProject: async (projectId: string, payload: PmsProjectUpdate, scope?: ActorType) => {
     const { data } = await apiClient.put<PmsProject>(apiPath(`pms/projects/${projectId}`), payload, {
       params: withScope(scope),
     })
@@ -253,7 +256,7 @@ export const pmsApi = {
     return data
   },
   getDocument: async (documentId: string, view: 'published' | 'latest' | 'history' = 'published', scope?: ActorType) => {
-    const { data } = await apiClient.get(apiPath(`pms/documents/${documentId}`), {
+    const { data } = await apiClient.get<PmsDocumentDetail>(apiPath(`pms/documents/${documentId}`), {
       params: { ...withScope(scope), view },
     })
     return data
@@ -302,6 +305,12 @@ export const pmsApi = {
     })
     return data
   },
+  attachMeetingAudio: async (meetingId: string, payload: Record<string, unknown>, scope?: ActorType) => {
+    const { data } = await apiClient.post<PmsMeetingSession>(apiPath(`pms/meetings/${meetingId}/audio`), payload, {
+      params: withScope(scope),
+    })
+    return data
+  },
   exportMeetingPacketUrl: (meetingId: string, scope?: ActorType) => {
     const query = scopeQuery(scope)
     const suffix = query ? `?${query}` : ''
@@ -346,6 +355,11 @@ export const pmsApi = {
       params: { ...withScope(scope), project_id: projectId },
     })
     return data
+  },
+  evidencePackUrl: (projectId: string, scope?: ActorType) => {
+    const query = scopeQuery(scope)
+    const suffix = query ? `?${query}` : ''
+    return apiPath(`pms/projects/${projectId}/evidence-pack${suffix}`)
   },
 
   // Search

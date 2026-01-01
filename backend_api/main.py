@@ -8,9 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse
+import json
 import sys
 import os
 import time
+import traceback
+import asyncio
 from uuid import uuid4
 from pathlib import Path
 from typing import Optional
@@ -62,13 +66,21 @@ app.add_middleware(
         "http://localhost:3000", "http://127.0.0.1:3000", 
         "http://localhost:5173", "http://127.0.0.1:5173",
         "http://localhost:5174", "http://127.0.0.1:5174",
+        "http://localhost:5175", "http://127.0.0.1:5175",
+        "http://localhost:5176", "http://127.0.0.1:5176",
         "http://0.0.0.0:5173", "http://0.0.0.0:5174",
+        "http://0.0.0.0:5175",
+        "http://0.0.0.0:5176",
         # Electron file:// origin is often serialized as `null`
         "null",
         "https://localhost:3000", "https://127.0.0.1:3000",
         "https://localhost:5173", "https://127.0.0.1:5173",
         "https://localhost:5174", "https://127.0.0.1:5174",
+        "https://localhost:5175", "https://127.0.0.1:5175",
+        "https://localhost:5176", "https://127.0.0.1:5176",
         "https://0.0.0.0:5173", "https://0.0.0.0:5174",
+        "https://0.0.0.0:5175",
+        "https://0.0.0.0:5176",
         "https://0.0.0.0:8000", "https://localhost:8000", "https://127.0.0.1:8000"
     ],
     # Allow any localhost/loopback port and private network IPs for dev/preview builds.
@@ -88,17 +100,60 @@ try:
     from backend_api.deps import get_optional_user  # type: ignore
     from backend_api.routers.logs import record_event  # type: ignore
     from backend_api.db import db_session  # type: ignore
+    from backend_api.ai_updates import ErrorSignal, queue_ai_update  # type: ignore
 
     @app.middleware("http")
     async def _trace_requests(request: Request, call_next):
         started = time.time()
         request_id = request.headers.get("x-correlation-id") or request.headers.get("x-request-id") or uuid4().hex
+        request.state.correlation_id = request_id
         user = None
         try:
             user = get_optional_user(request)  # type: ignore[arg-type]
         except Exception:
             user = None
-        response = await call_next(request)
+        try:
+            response = await call_next(request)
+        except Exception as exc:
+            duration_ms = int((time.time() - started) * 1000)
+            try:
+                with db_session() as db:
+                    record_event(
+                        db=db,
+                        source="http",
+                        level="error",
+                        message=f"{request.method} {request.url.path} -> 500 ({duration_ms}ms)",
+                        user_id=getattr(user, "id", None),
+                        metadata={
+                            "request_id": request_id,
+                            "method": request.method,
+                            "path": request.url.path,
+                            "status_code": 500,
+                            "duration_ms": duration_ms,
+                            "error": str(exc),
+                        },
+                    )
+            except Exception:
+                pass
+            try:
+                stack = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+                payload = ErrorSignal(
+                    origin="backend",
+                    source=request.url.path,
+                    message=str(exc),
+                    stack=stack,
+                    severity="error",
+                    metadata={
+                        "request_id": request_id,
+                        "method": request.method,
+                        "path": request.url.path,
+                    },
+                )
+                asyncio.create_task(asyncio.to_thread(queue_ai_update, payload))
+            except Exception:
+                pass
+            raise
+
         duration_ms = int((time.time() - started) * 1000)
         response.headers["x-correlation-id"] = request_id
         try:
@@ -124,10 +179,55 @@ except Exception:
     # If imports fail during early bootstrap, skip tracing.
     pass
 
+try:
+    from backend_api.domain.classification import sanitize_payload  # type: ignore
+except Exception:  # pragma: no cover - fallback if domain layer missing
+    def sanitize_payload(payload, user=None):
+        return payload
+
+
+@app.middleware("http")
+async def _sanitize_sensitive_fields(request: Request, call_next):
+    response = await call_next(request)
+    if getattr(response, "media_type", None) != "application/json":
+        return response
+    body = getattr(response, "body", None)
+    if not body:
+        return response
+    try:
+        data = json.loads(body)
+    except Exception:
+        return response
+    try:
+        from backend_api.deps import get_optional_user  # type: ignore
+        from backend_api.dal.context import get_data_context  # type: ignore
+        user = get_optional_user(request)
+        ctx = get_data_context(request, user)
+    except Exception:
+        user = None
+        ctx = None
+    sanitized = sanitize_payload(data, user=user, ctx=ctx)
+    return JSONResponse(content=sanitized, status_code=response.status_code, headers=dict(response.headers))
+
+
+@app.exception_handler(Exception)
+async def _unhandled_exception_handler(request: Request, exc: Exception):
+    request_id = getattr(request.state, "correlation_id", None)
+    headers = {"x-correlation-id": request_id} if request_id else None
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Internal server error",
+            "request_id": request_id,
+        },
+        headers=headers,
+    )
+
 # API Routes
 from backend_api.routers import (
     auth,
     admin,
+    agent_journal,
     logs,
     files,
     tasks,
@@ -138,16 +238,23 @@ from backend_api.routers import (
     documents,
     templates,
     integrations,
+    exports,
+    policy,
     office,
     settings,
     document_operations,
     analytics,
     cookbook_integrations,
     cookbook_patterns,
+    codex_review,
     writer,
     research,
+    constants,
+    knowledge,
+    matlab,
     api_connectors,
     ai_systems,
+    math_sim,
     terminal,
     intelligence,
     reasoning,
@@ -188,6 +295,7 @@ app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 # Auth router is registered below at /api/auth
 app.include_router(admin.router, prefix="/api", tags=["admin"])
+app.include_router(agent_journal.router, prefix="/api", tags=["agent_journal"])
 app.include_router(logs.router, prefix="/api", tags=["logs"])
 app.include_router(files.router, prefix="/api", tags=["files"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
@@ -195,6 +303,8 @@ app.include_router(documents.router, prefix="/api/documents", tags=["documents"]
 app.include_router(templates.router, prefix="/api/templates", tags=["templates"])
 app.include_router(integrations.router, prefix="/api/integrations", tags=["integrations"])
 app.include_router(settings.router, prefix="/api/settings", tags=["settings"])
+app.include_router(policy.router, prefix="/api/policy", tags=["policy"])
+app.include_router(exports.router, prefix="/api/exports", tags=["exports"])
 app.include_router(
     document_operations.router,
     prefix="/api/operations",
@@ -211,13 +321,18 @@ app.include_router(
     prefix="/api/cookbook",
     tags=["cookbook"],
 )
+app.include_router(codex_review.router, prefix="/api", tags=["codex"])
 app.include_router(writer.router, prefix="/api/writer", tags=["writer"])
 app.include_router(research.router, prefix="/api/research", tags=["research"])
+app.include_router(constants.router, prefix="/api/constants", tags=["constants"])
+app.include_router(matlab.router, prefix="/api/matlab", tags=["matlab"])
+app.include_router(knowledge.router, prefix="/api/knowledge", tags=["knowledge"])
 app.include_router(intelligence.router, prefix="/api/intelligence", tags=["intelligence"])
 app.include_router(reasoning.router, prefix="/api/reasoning", tags=["reasoning"])
 app.include_router(
     api_connectors.router, prefix="/api/api-connectors", tags=["api_connectors"]
 )
+app.include_router(math_sim.router, prefix="/api/math-sim", tags=["math_sim"])
 app.include_router(ai_systems.router, prefix="/api/ai", tags=["ai_systems"])
 app.include_router(pms.router, prefix="/api/pms", tags=["pms"])
 app.include_router(capsules.router, prefix="/api/ai", tags=["capsules"])

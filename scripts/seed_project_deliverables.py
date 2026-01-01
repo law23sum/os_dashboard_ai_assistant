@@ -46,7 +46,7 @@ def extract_pdf_text(pdf_path: Path) -> str:
 def find_layers(text: str) -> List[Tuple[int, str]]:
     return [
         (match.start(), match.group(0).strip())
-        for match in re.finditer(r"^LAYER\\s+\\d+[^\\n]*", text, re.MULTILINE)
+        for match in re.finditer(r"^LAYER\s+\d+[^\n]*", text, re.MULTILINE)
     ]
 
 
@@ -65,7 +65,7 @@ def parse_deliverables(text: str) -> List[Dict[str, str]]:
     normalized = re.sub(r" +", " ", normalized)
     layers = find_layers(normalized)
 
-    pattern = re.compile(r"(\\d{1,2})\\.\\s+(.+?)\\s*(?:\\n\\s*)?Reason\\b", re.MULTILINE)
+    pattern = re.compile(r"(\d{1,2})\.\s+(.+?)\s*(?:\n\s*)?Reason\b", re.MULTILINE)
     matches = list(pattern.finditer(normalized))
     items: List[Dict[str, str]] = []
 

@@ -8,8 +8,25 @@ import { describe, it, expect } from '@jest/globals'
 import { render, screen } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import React from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 describe('Page: Admin', () => {
+  const renderWithProviders = (PageComponent: React.ComponentType) => {
+    const client = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    })
+
+    return render(
+      <QueryClientProvider client={client}>
+        <BrowserRouter>
+          <PageComponent />
+        </BrowserRouter>
+      </QueryClientProvider>
+    )
+  }
+
   it('should render without crashing', async () => {
     try {
       // Dynamic import to handle missing components gracefully
@@ -21,11 +38,7 @@ describe('Page: Admin', () => {
         return
       }
 
-      const { container } = render(
-        <BrowserRouter>
-          <PageComponent />
-        </BrowserRouter>
-      )
+      const { container } = renderWithProviders(PageComponent)
 
       expect(container).toBeTruthy()
     } catch (error: any) {
@@ -45,11 +58,7 @@ describe('Page: Admin', () => {
         return
       }
 
-      const { container } = render(
-        <BrowserRouter>
-          <PageComponent />
-        </BrowserRouter>
-      )
+      const { container } = renderWithProviders(PageComponent)
 
       // Basic accessibility check
       expect(container.querySelector('main, [role="main"], article, div')).toBeTruthy()

@@ -1,10 +1,10 @@
 export type PmsMode = 'personal' | 'enterprise'
 export type PmsTaskStatus = 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE' | 'ARCHIVED'
 export type PmsEpicStatus = 'PLANNED' | 'ACTIVE' | 'ON_HOLD' | 'DONE' | 'ARCHIVED'
-export type PmsTodoStatus = 'PENDING' | 'DONE'
-export type PmsRunStatus = 'queued' | 'running' | 'succeeded' | 'failed'
+export type PmsTodoStatus = 'TODO' | 'DONE'
+export type PmsRunStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'needs_review'
 export type PmsDocumentKind = 'spec' | 'notes' | 'runbook' | 'manuscript' | 'draft' | 'journal'
-export type PmsVisibility = 'private' | 'shared' | 'public'
+export type PmsVisibility = 'private' | 'team' | 'enterprise' | 'public'
 export type PmsJournalSectionType =
   | 'Comments'
   | 'KnowledgeTransfer'
@@ -26,6 +26,28 @@ export interface PmsProject {
   created_at: string
   updated_at: string
   config?: Record<string, unknown>
+  budget?: {
+    amount: number
+    currency: string
+  } | null
+  is_sample?: boolean
+}
+
+export interface PmsProjectCreate {
+  name: string
+  status?: string
+  config?: Record<string, unknown>
+  budget_amount?: number
+  budget_currency?: string
+  template_pack?: string
+}
+
+export interface PmsProjectUpdate {
+  name?: string
+  status?: string
+  config?: Record<string, unknown>
+  budget_amount?: number
+  budget_currency?: string
   budget?: {
     amount: number
     currency: string
@@ -139,6 +161,17 @@ export interface PmsDocumentRevision {
   content?: string
 }
 
+export interface PmsDocumentDetail {
+  document: PmsDocument
+  revision?: {
+    revision_hash: string
+    document_id: string
+    created_at: string
+    content?: string | null
+  } | null
+  history?: PmsDocumentRevision[]
+}
+
 export interface PmsMeetingSession {
   meeting_id: string
   project_id: string
@@ -211,6 +244,7 @@ export interface PmsCostRollup {
   expense_total: number
   labor_total: number
   combined_total: number
+  total?: number
   by_epic?: Record<string, number>
   by_task?: Record<string, number>
   currency?: string
