@@ -1,14 +1,22 @@
 {
-  "timestamp": "2025-12-29 12:20:00",
+  "timestamp": "2026-01-01 14:00:00",
   "root": "/Users/chrisdixon/Projects",
-  "total_projects": 25,
+  "total_projects": 27,
   "projects": {
     "os_dashboard_ai_assistant": {
       "path": "/Users/chrisdixon/Projects/os_dashboard_ai_assistant",
       "status": "stopped",
-      "branch": "ai+os+app+exec+binaries",
+      "branch": "next_phase",
       "has_ai_autofix": true,
       "has_tests": true,
+      "todo_count": 0
+    },
+    "mathematician-physicist-theoritical-engineer_research-simulations-experiments-calculations": {
+      "path": "/Users/chrisdixon/Projects/temp/mathematician-physicist-theoritical-engineer_research-simulations-experiments-calculations",
+      "status": "discovered",
+      "branch": "develop",
+      "has_ai_autofix": false,
+      "has_tests": false,
       "todo_count": 0
     },
     "portfolio_strategist": {
@@ -25,6 +33,14 @@
       "branch": "master",
       "has_ai_autofix": false,
       "has_tests": false,
+      "todo_count": 0
+    },
+    "jetson-ai-lab": {
+      "path": "/Users/chrisdixon/Projects/nvidia_jetson_nano/jetson-ai-lab",
+      "status": "discovered",
+      "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": true,
       "todo_count": 0
     },
     "light": {
