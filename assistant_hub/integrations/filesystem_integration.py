@@ -1,5 +1,7 @@
 """Filesystem integration wrapper for GUI."""
 
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from typing import Dict, List, Any
@@ -156,8 +158,58 @@ class FilesystemIntegration(BaseIntegration):
         if not target.exists() or not target.is_file():
             raise FileNotFoundError(f"File not found: {path}")
 
-        with target.open("r", errors="ignore") as handle:
-            content = handle.read(max_chars)
+        intent_event = None
+        correlation_id = None
+        try:
+            from assistant_hub.audit.sdk import get_default_emitter, new_correlation_id
+
+            emitter = get_default_emitter(agent_id="os_dashboard")
+            correlation_id = new_correlation_id()
+            intent_event = emitter.emit_intent(
+                event_type="READ_OPERATION",
+                message="Read file",
+                payload={"path": str(target), "max_chars": max_chars},
+                correlation_id=correlation_id,
+            )
+        except Exception:
+            intent_event = None
+
+        try:
+            with target.open("r", errors="ignore") as handle:
+                content = handle.read(max_chars)
+        except Exception as exc:
+            if intent_event:
+                try:
+                    emitter.emit_outcome(
+                        event_type="READ_OPERATION",
+                        message="Read file failed",
+                        payload={"path": str(target), "error": str(exc), "success": False},
+                        correlation_id=correlation_id,
+                        causation_id=intent_event.event_id,
+                    )
+                except Exception:
+                    pass
+            raise
+
+        if intent_event:
+            try:
+                from hashlib import sha256
+
+                content_hash = sha256(content.encode("utf-8")).hexdigest() if content else None
+                emitter.emit_outcome(
+                    event_type="READ_OPERATION",
+                    message="Read file outcome",
+                    payload={
+                        "path": str(target),
+                        "bytes": len(content.encode("utf-8")) if content else 0,
+                        "content_hash": content_hash,
+                        "success": True,
+                    },
+                    correlation_id=correlation_id,
+                    causation_id=intent_event.event_id,
+                )
+            except Exception:
+                pass
 
         return {"path": str(target), "preview": content}
 

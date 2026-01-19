@@ -88,10 +88,24 @@ def _iter_dotenv_candidates(root: Path) -> List[Path]:
     """
     candidates: List[Path] = []
     # Common convention order: local overrides first, then base.
-    for name in (".env.local", ".env", ".env.development", ".env.dev", ".env.production", ".env.prod"):
+    for name in ("env.new", ".env.local", ".env", ".env.development", ".env.dev", ".env.production", ".env.prod"):
         candidates.append(root / name)
     return candidates
 
+
+# Available models per provider (from env.new or defaults)
+AVAILABLE_MODELS = {
+    "openai": ["gpt-5.1", "gpt-5-mini", "o3-deep-research", "gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"],
+    "anthropic": ["claude-4.5-opus", "claude-4.5-sonnet", "claude-4.5-haiku", "claude-3-5-sonnet-20241022", "claude-3-opus-20240229"],
+    "google": ["gemini-3-pro", "gemini-3-flash", "gemini-1.5-pro-latest", "gemini-2.5-flash"],
+    "grok": ["grok-4", "grok-4-fast", "grok-beta"],
+    "deepseek": ["deepseek-v3.2", "deepseek-r1", "deepseek-chat"],
+    "groq": ["llama-4-scout", "qwen3-32b", "llama-3.3-70b-versatile", "mixtral-8x7b-32768"],
+    "cohere": ["command-r+", "command-r7b", "command-a", "command-r-plus"],
+    "mistral": ["mistral-large-latest", "mistral-medium", "mistral-small"],
+    "perplexity": ["sonar", "llama-3.1-sonar-large-128k-online"],
+    "together": ["meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"],
+}
 
 def load_dotenv(path: Path | str = ".env") -> None:
     """Lightweight .env loader to avoid external dependency."""
@@ -107,6 +121,22 @@ def load_dotenv(path: Path | str = ".env") -> None:
         # Remove quotes if present
         value = value.strip().strip('"').strip("'")
         os.environ.setdefault(key.strip(), value)
+        
+        # Also load model lists if present
+        if key == "OPENAI_MODELS" and value:
+            AVAILABLE_MODELS["openai"] = [m.strip() for m in value.split(",") if m.strip()]
+        elif key == "ANTHROPIC_MODELS" and value:
+            AVAILABLE_MODELS["anthropic"] = [m.strip() for m in value.split(",") if m.strip()]
+        elif key == "GOOGLE_MODELS" and value:
+            AVAILABLE_MODELS["google"] = [m.strip() for m in value.split(",") if m.strip()]
+        elif key == "XAI_MODELS" and value:
+            AVAILABLE_MODELS["grok"] = [m.strip() for m in value.split(",") if m.strip()]
+        elif key == "DEEPSEEK_MODELS" and value:
+            AVAILABLE_MODELS["deepseek"] = [m.strip() for m in value.split(",") if m.strip()]
+        elif key == "GROQ_MODELS" and value:
+            AVAILABLE_MODELS["groq"] = [m.strip() for m in value.split(",") if m.strip()]
+        elif key == "COHERE_MODELS" and value:
+            AVAILABLE_MODELS["cohere"] = [m.strip() for m in value.split(",") if m.strip()]
 
 
 def load_from_shell_config() -> None:
@@ -1004,7 +1034,9 @@ def print_provider_selection() -> Optional[str]:
         provider = provider_class()
         status = "✓" if provider.is_available() else "✗ (API key not set)"
         name = PROVIDER_DISPLAY_NAMES.get(key, key)
-        print(f"  {i}) {name:25s} {status}")
+        models = AVAILABLE_MODELS.get(key, [])
+        model_info = f" [{models[0]}]" if models and provider.is_available() else ""
+        print(f"  {i}) {name:25s} {status}{model_info}")
         if provider.is_available():
             available_providers.append((i, key, name))
     
@@ -1066,6 +1098,66 @@ def print_provider_selection() -> Optional[str]:
             return None
 
 
+def print_models_for_provider(provider_key: str) -> None:
+    """Print available models for a provider."""
+    models = AVAILABLE_MODELS.get(provider_key, [])
+    if not models:
+        print(f"\n⚠️  No models configured for {provider_key}")
+        return
+    
+    print(f"\nAvailable models for {PROVIDER_DISPLAY_NAMES.get(provider_key, provider_key)}:")
+    print("-" * 70)
+    for i, model in enumerate(models, 1):
+        print(f"  {i}) {model}")
+    print("-" * 70)
+
+
+def select_model(provider_key: str, current_model: str) -> Optional[str]:
+    """Interactive model selection for a provider."""
+    models = AVAILABLE_MODELS.get(provider_key, [])
+    if not models:
+        print(f"\n⚠️  No models configured for {provider_key}")
+        return None
+    
+    print(f"\nCurrent model: {current_model}")
+    print_models_for_provider(provider_key)
+    
+    while True:
+        try:
+            choice = input(f"\nSelect model (1-{len(models)}) or name [current]: ").strip()
+            if not choice:
+                return current_model
+            
+            if choice.isdigit():
+                idx = int(choice) - 1
+                if 0 <= idx < len(models):
+                    return models[idx]
+            
+            # Try name match
+            for model in models:
+                if choice.lower() in model.lower() or model.lower() in choice.lower():
+                    return model
+            
+            print(f"Invalid selection. Please choose 1-{len(models)} or a model name.")
+        except (EOFError, KeyboardInterrupt):
+            return current_model
+
+
+def print_all_models() -> None:
+    """Print all available models for all providers."""
+    print("\n" + "=" * 70)
+    print("  Available Models by Provider")
+    print("=" * 70)
+    
+    for provider_key in sorted(PROVIDERS.keys()):
+        models = AVAILABLE_MODELS.get(provider_key, [])
+        if models:
+            provider_name = PROVIDER_DISPLAY_NAMES.get(provider_key, provider_key)
+            print(f"\n{provider_name}:")
+            for model in models:
+                print(f"  • {model}")
+
+
 def print_help():
     """Print help message."""
     print("\nCommands:")
@@ -1074,7 +1166,10 @@ def print_help():
     print("  /clear, /c      - Clear conversation history")
     print("  /exit, /quit    - Exit the chat")
     print("  /model          - Show current model")
+    print("  /models         - List all available models")
+    print("  /setmodel       - Change model for current provider")
     print("  /providers      - List available providers")
+    print("  /compare        - Compare responses from multiple models")
     print()
 
 
@@ -1295,6 +1390,70 @@ def main():
                     elif cmd == "/model":
                         print(f"\nProvider: {provider_name}")
                         print(f"Model: {model_name}")
+                        print_models_for_provider(selected_key)
+                        continue
+                    
+                    elif cmd == "/models":
+                        print_all_models()
+                        continue
+                    
+                    elif cmd == "/setmodel":
+                        new_model = select_model(selected_key, model_name)
+                        if new_model and new_model != model_name:
+                            model_name = new_model
+                            print(f"\n✓ Model changed to: {model_name}")
+                        continue
+                    
+                    elif cmd == "/compare":
+                        print("\n🔍 Model Comparison Mode")
+                        print("Enter your prompt, then select models to compare:")
+                        compare_prompt = input("\nYour prompt: ").strip()
+                        if not compare_prompt:
+                            print("No prompt entered.")
+                            continue
+                        
+                        print("\nSelect models to compare (comma-separated numbers or names):")
+                        print_models_for_provider(selected_key)
+                        model_choices = input("Models: ").strip()
+                        
+                        if not model_choices:
+                            continue
+                        
+                        # Parse model selections
+                        models_to_compare = []
+                        models = AVAILABLE_MODELS.get(selected_key, [])
+                        for choice in model_choices.split(","):
+                            choice = choice.strip()
+                            if choice.isdigit():
+                                idx = int(choice) - 1
+                                if 0 <= idx < len(models):
+                                    models_to_compare.append(models[idx])
+                            else:
+                                for model in models:
+                                    if choice.lower() in model.lower():
+                                        models_to_compare.append(model)
+                                        break
+                        
+                        if not models_to_compare:
+                            print("No valid models selected.")
+                            continue
+                        
+                        # Compare responses
+                        print(f"\n{'='*70}")
+                        print(f"Comparing {len(models_to_compare)} model(s) with prompt:")
+                        print(f"'{compare_prompt}'")
+                        print(f"{'='*70}\n")
+                        
+                        compare_messages = [{"role": "user", "content": compare_prompt}]
+                        for model in models_to_compare:
+                            print(f"\n[{model}]")
+                            print("-" * 70)
+                            try:
+                                response = provider.chat(compare_messages, model=model)
+                                print(response)
+                            except Exception as e:
+                                print(f"❌ Error: {e}")
+                            print()
                         continue
                     
                     elif cmd == "/providers":

@@ -2,7 +2,7 @@
 AI Agents Router - Backend API for AIC, Aria, Sora, and Cursor AI
 
 This router provides REST API endpoints for interacting with the multi-agent AI system.
-Integrates with agents_ai.py and provides optimized configurations based on OpenAI cookbook best practices.
+Integrates with agents_ai.py and provides optimized configurations based on OpenAI agent tool patterns.
 """
 
 from fastapi import APIRouter, HTTPException, Depends, Query
@@ -19,13 +19,22 @@ sys.path.insert(0, str(project_root))
 
 router = APIRouter()
 
-# Import agent system
-try:
-    from agents_ai import setup_agents, Agent, route_prompt_to_agent, AgentSystem
-    AGENTS_AVAILABLE = True
-except ImportError as e:
-    AGENTS_AVAILABLE = False
-    print(f"⚠️  Warning: agents_ai not available: {e}")
+def _load_agents_module():
+    try:
+        import agents_ai
+        return agents_ai, None
+    except Exception as exc:
+        return None, exc
+
+
+def _require_agents_module():
+    module, error = _load_agents_module()
+    if error:
+        raise HTTPException(
+            status_code=503,
+            detail=f"AI agents system not available: {error}",
+        )
+    return module
 
 
 class AgentMessageRequest(BaseModel):
@@ -71,11 +80,12 @@ class AgentCollaborationResponse(BaseModel):
 @router.get("/agents", response_model=AgentListResponse)
 async def list_agents():
     """List all available AI agents"""
-    if not AGENTS_AVAILABLE:
+    module, error = _load_agents_module()
+    if error:
         return AgentListResponse(agents=[], available=False)
     
     try:
-        agents = setup_agents()
+        agents = module.setup_agents()
         agent_list = []
         for name, agent in agents.items():
             agent_list.append({
@@ -104,11 +114,10 @@ async def send_message_to_agent(
     - **temperature**: Optional temperature override
     - **max_tokens**: Optional max tokens override
     """
-    if not AGENTS_AVAILABLE:
-        raise HTTPException(status_code=503, detail="AI agents system not available")
+    module = _require_agents_module()
     
     try:
-        agents = setup_agents()
+        agents = module.setup_agents()
         agent_name_upper = agent_name.upper()
         
         if agent_name_upper not in agents:
@@ -152,12 +161,11 @@ async def route_prompt(request: AgentMessageRequest):
     Route a prompt to the appropriate agent(s) based on content analysis.
     Returns list of agent names in priority order.
     """
-    if not AGENTS_AVAILABLE:
-        raise HTTPException(status_code=503, detail="AI agents system not available")
+    module = _require_agents_module()
     
     try:
-        agents = setup_agents()
-        routed_agents = route_prompt_to_agent(request.message, agents)
+        agents = module.setup_agents()
+        routed_agents = module.route_prompt_to_agent(request.message, agents)
         return routed_agents
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error routing prompt: {str(e)}")
@@ -169,11 +177,10 @@ async def collaborate_agents(request: AgentCollaborationRequest):
     Have multiple agents collaborate on a task.
     Each agent analyzes from their perspective and agents can communicate.
     """
-    if not AGENTS_AVAILABLE:
-        raise HTTPException(status_code=503, detail="AI agents system not available")
+    module = _require_agents_module()
     
     try:
-        system = AgentSystem()
+        system = module.AgentSystem()
         
         # If specific agents requested, filter
         if request.agents:
@@ -199,11 +206,10 @@ async def collaborate_agents(request: AgentCollaborationRequest):
 @router.get("/agents/{agent_name}/config")
 async def get_agent_config(agent_name: str):
     """Get configuration for a specific agent (model, temperature, max_tokens)"""
-    if not AGENTS_AVAILABLE:
-        raise HTTPException(status_code=503, detail="AI agents system not available")
+    module = _require_agents_module()
     
     try:
-        agents = setup_agents()
+        agents = module.setup_agents()
         agent_name_upper = agent_name.upper()
         
         if agent_name_upper not in agents:
@@ -235,13 +241,11 @@ async def analyze_codebase_collaborative():
     Have all agents collaboratively analyze the codebase.
     Each agent provides insights from their specialized perspective.
     """
-    if not AGENTS_AVAILABLE:
-        raise HTTPException(status_code=503, detail="AI agents system not available")
+    module = _require_agents_module()
     
     try:
-        system = AgentSystem()
+        system = module.AgentSystem()
         analyses = await system.analyze_codebase_collaborative()
         return analyses
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error analyzing codebase: {str(e)}")
-

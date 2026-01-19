@@ -205,6 +205,27 @@ export interface ConnectorActivity {
   details?: string
 }
 
+export interface ApiSessionCostItem {
+  provider: string
+  provider_label: string
+  version: string
+  cost_per_session_usd: number
+  credits_remaining: number
+  remaining_minutes: number
+  seeded_at: string
+  updated_at: string
+}
+
+export interface ApiSessionCostResponse {
+  items: ApiSessionCostItem[]
+  providers: string[]
+  credits_remaining: number
+  credits_status: string
+  generated_at: string
+  report_path?: string | null
+  error?: string | null
+}
+
 export interface ConnectorOverview {
   summary: ConnectorSummary
   connectors: ConnectorStatus[]
@@ -869,6 +890,13 @@ export interface SecurityReport {
   recent_scans: Record<string, any>[]
   top_threats: { type: string; count: number }[]
   recommendations: string[]
+  risk_matrix?: {
+    risk: string
+    likelihood: string
+    impact: string
+    rating: string
+    priority: number
+  }[]
   generated_at: string
 }
 

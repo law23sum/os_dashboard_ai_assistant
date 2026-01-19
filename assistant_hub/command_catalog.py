@@ -13,7 +13,7 @@ SPEC_SHEET_COMMANDS: List[Dict[str, str]] = [
     {
         "label": "Clone repository",
         "command": "git clone https://github.com/yourusername/os-dashboard-ai-assistant.git",
-        "description": "Clone the OS Dashboard AI Assistant repo from GitHub.",
+        "description": "Clone the AI OS repo from GitHub.",
     },
     {
         "label": "Setup script",

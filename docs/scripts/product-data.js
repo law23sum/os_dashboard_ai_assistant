@@ -33,9 +33,35 @@
 
     window.osProductData = [
         {
-            id: '10.1',
-            name: 'Master Stack & Project Management Engine',
+            id: '10.0',
+            name: 'AI OS',
             category: 'Core',
+            artifact_type: 'Product',
+            tier: 'Product',
+            capability_layer: 'Core',
+            lifetimeValue: [950, 2500],
+            purpose: 'Product umbrella that packages the AI OS platform, orchestrator, and workspaces into sellable editions.',
+            features: [
+                'Editions map policy profiles, driver packs, and governance baselines.',
+                'Bundles combine capsule templates, workflow packs, and vertical workspaces.',
+                'Capability ladder enables progressive disclosure from Core to Advanced and beyond.'
+            ],
+            audiences: ['Executives', 'Platform owners', 'Enterprise operators'],
+            editions: ['Starter', 'Growth', 'Enterprise', 'Sovereign'],
+            bundles: [
+                'AI OS Core Pack',
+                'AI OS Advanced Research & Twin Pack',
+                'AI OS Project Intelligence Bundle',
+                'AI OS Dev Productivity Bundle'
+            ]
+        },
+        {
+            id: '10.1',
+            name: 'Master Stack & Intelligence Project Management Engine',
+            category: 'Core',
+            artifact_type: 'Engine',
+            tier: 'Module',
+            capability_layer: 'Core',
             lifetimeValue: [45, 160],
             purpose: 'Anchor workspace that combines planning, files, environment control, and workflow capsules.',
             features: [
@@ -49,6 +75,9 @@
             id: '10.2',
             name: 'Code Merge Advisor',
             category: 'Core',
+            artifact_type: 'Capability',
+            tier: 'Module',
+            capability_layer: 'Core',
             lifetimeValue: [110, 380],
             purpose: 'Reduces merge risk with AI-reviewed, environment-aware change control.',
             features: [
@@ -62,6 +91,9 @@
             id: '10.3',
             name: 'Commit → Task Generator',
             category: 'Core',
+            artifact_type: 'Capability',
+            tier: 'Module',
+            capability_layer: 'Core',
             lifetimeValue: [30, 100],
             purpose: 'Turns code diffs into structured backlog items tied to environment drift.',
             features: [
@@ -75,6 +107,9 @@
             id: '10.4',
             name: 'Research Orchestrator & Simulation Hub (Advanced I)',
             category: 'Advanced',
+            artifact_type: 'Capability',
+            tier: 'Module',
+            capability_layer: 'Advanced',
             lifetimeValue: [30, 130],
             purpose: 'Accelerates scientific and quantitative research through orchestrated experiments.',
             features: [
@@ -88,6 +123,9 @@
             id: '10.5',
             name: 'Writer Workstation & Narrative Guidance Engine',
             category: 'Core',
+            artifact_type: 'Capability',
+            tier: 'Module',
+            capability_layer: 'Core',
             lifetimeValue: [18, 80],
             purpose: 'Creator OS blending continuity-aware drafting with production automation.',
             features: [
@@ -101,6 +139,9 @@
             id: '10.6',
             name: 'Archive / Continuity / Resonance Engine',
             category: 'Core',
+            artifact_type: 'Capability',
+            tier: 'Module',
+            capability_layer: 'Core',
             lifetimeValue: [160, 500],
             purpose: 'Long-term organizational memory that tracks knowledge plus environment history.',
             features: [
@@ -114,6 +155,9 @@
             id: '10.7',
             name: 'Cybersecurity Guardian',
             category: 'Core',
+            artifact_type: 'Capability',
+            tier: 'Module',
+            capability_layer: 'Core',
             lifetimeValue: [35, 150],
             purpose: 'Security companion enforcing guardrails across developers, endpoints, and agents.',
             features: [
@@ -127,6 +171,9 @@
             id: '10.8',
             name: 'Business Accounting & Financing Console',
             category: 'Core',
+            artifact_type: 'Capability',
+            tier: 'Module',
+            capability_layer: 'Core',
             lifetimeValue: [45, 190],
             purpose: 'Finance OS bridging productivity tools with accounting automation.',
             features: [
@@ -140,6 +187,9 @@
             id: '10.9',
             name: 'Record Auditor & Logbook',
             category: 'Core',
+            artifact_type: 'Capability',
+            tier: 'Module',
+            capability_layer: 'Core',
             lifetimeValue: [35, 130],
             purpose: 'End-to-end provenance stack logging intents, actions, and environment changes.',
             features: [
@@ -153,6 +203,9 @@
             id: '10.10',
             name: 'Executable Capsules & Marketplace',
             category: 'Core',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Core',
             lifetimeValue: [230, 750],
             purpose: 'Marketplace for executable workflows bound to drivers and environments.',
             features: [
@@ -166,6 +219,9 @@
             id: '10.11',
             name: 'Policy & Governance Engine',
             category: 'Core',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Core',
             lifetimeValue: [160, 450],
             purpose: 'Central enforcement plane governing models, drivers, packages, and Capsules.',
             features: [
@@ -179,6 +235,9 @@
             id: '10.12',
             name: 'AI Billing & Usage Fabric',
             category: 'Core',
+            artifact_type: 'Capability',
+            tier: 'Platform',
+            capability_layer: 'Core',
             lifetimeValue: [30, 140],
             purpose: 'Metering and chargeback layer for multi-model, multi-driver automation.',
             features: [
@@ -190,8 +249,11 @@
         },
         {
             id: '10.13',
-            name: 'Overall OS Dashboard AI Assistant Platform',
+            name: 'AI OS Platform',
             category: 'Core',
+            artifact_type: 'Platform',
+            tier: 'Platform',
+            capability_layer: 'Core',
             lifetimeValue: [950, 2500],
             purpose: 'Fully integrated stack combining drivers, environments, workflows, and marketplace.',
             features: [
@@ -203,8 +265,11 @@
         },
         {
             id: '10.14',
-            name: 'Advanced Research, Simulation & Digital Twin Platform (Advanced II)',
+            name: 'AI OS Research, Simulation & Digital Twin Platform Envelope',
             category: 'Advanced',
+            artifact_type: 'Platform',
+            tier: 'Platform',
+            capability_layer: 'Advanced',
             lifetimeValue: [40, 160],
             purpose: 'Extends research orchestrator into full digital twin management for physical systems.',
             features: [
@@ -218,6 +283,9 @@
             id: '10.15',
             name: 'Autonomous Research Conductor (ARC)',
             category: 'Super',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Super',
             lifetimeValue: [60, 220],
             purpose: 'Long-horizon planner coordinating experiments, teams, and compute budgets.',
             features: [
@@ -231,6 +299,9 @@
             id: '10.16',
             name: 'Symbolic–Numeric Theory Discovery Engine',
             category: 'Super',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Super',
             lifetimeValue: [40, 180],
             purpose: 'Discovers candidate equations and laws by blending symbolic reasoning and simulation.',
             features: [
@@ -244,6 +315,9 @@
             id: '10.17',
             name: 'Self-Evolving Capsule Ecosystem',
             category: 'Super',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Super',
             lifetimeValue: [80, 260],
             purpose: 'Lets Capsule marketplace learn from usage and auto-improve under governance.',
             features: [
@@ -257,6 +331,9 @@
             id: '10.18',
             name: 'Enterprise & Civilization Knowledge Market',
             category: 'Super',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Super',
             lifetimeValue: [120, 400],
             purpose: 'Cross-organization exchange of Capsules, blueprints, and encoded IP.',
             features: [
@@ -270,6 +347,9 @@
             id: '10.19',
             name: 'Agentic Enterprise Twin',
             category: 'Super',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Super',
             lifetimeValue: [70, 230],
             purpose: 'Live twin of an organization’s structure, Capsule graph, and KPIs.',
             features: [
@@ -283,6 +363,9 @@
             id: '10.20',
             name: 'Global Policy & Regulation Fabric',
             category: 'Super',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Super',
             lifetimeValue: [90, 300],
             purpose: 'Executable regulation capsules shared across jurisdictions and orgs.',
             features: [
@@ -296,6 +379,9 @@
             id: '10.21',
             name: 'Temporal Reasoning & Time-Cascade Engine',
             category: 'Super',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Super',
             lifetimeValue: [40, 150],
             purpose: 'Models how policies and Capsules propagate over time with branching futures.',
             features: [
@@ -309,6 +395,9 @@
             id: '10.22',
             name: 'Cross-Domain Knowledge & Law Synthesizer',
             category: 'Super',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Super',
             lifetimeValue: [50, 180],
             purpose: 'Finds reusable abstractions and Capsule templates across industries.',
             features: [
@@ -322,6 +411,9 @@
             id: '10.23',
             name: 'Inter-OS Knowledge Network',
             category: 'Super',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Super',
             lifetimeValue: [35, 140],
             purpose: 'Shares anonymized patterns and Capsule templates between installations.',
             features: [
@@ -335,6 +427,9 @@
             id: '10.24',
             name: 'Autonomous Knowledge Steward (AIC Super Mode)',
             category: 'Super',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Super',
             lifetimeValue: [30, 110],
             purpose: 'Always-on curator that prevents semantic drift and redundancy.',
             features: [
@@ -348,8 +443,11 @@
             id: '10.25',
             name: 'HyperMesh',
             category: 'Hyper',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Hyper',
             lifetimeValue: [120, 380],
-            purpose: 'Execution mesh linking multiple OS Dashboard installations under shared policy.',
+            purpose: 'Execution mesh linking multiple AI OS installations under shared policy.',
             features: [
                 'Allows workflows to span suppliers, partners, and regulators.',
                 'Manages trust and compliance across organizations.',
@@ -361,6 +459,9 @@
             id: '10.26',
             name: 'HyperFoundry',
             category: 'Hyper',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Hyper',
             lifetimeValue: [60, 220],
             purpose: 'Autonomous venture ideation layer fueled by Capsule market signals.',
             features: [
@@ -374,6 +475,9 @@
             id: '10.27',
             name: 'HyperLab',
             category: 'Hyper',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Hyper',
             lifetimeValue: [50, 180],
             purpose: 'Cross-organization research grid with pooled data, compute, and Capsules.',
             features: [
@@ -387,6 +491,9 @@
             id: '10.28',
             name: 'HyperRegent',
             category: 'Hyper',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Hyper',
             lifetimeValue: [70, 240],
             purpose: 'Regulators run Capsules directly on logs, twins, and workflows for oversight.',
             features: [
@@ -400,6 +507,9 @@
             id: '10.29',
             name: 'HyperSymphony',
             category: 'Hyper',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Hyper',
             lifetimeValue: [60, 210],
             purpose: 'Coordinates cross-org workflows with shared revenue alignment.',
             features: [
@@ -413,6 +523,9 @@
             id: '10.30',
             name: 'HyperDaemon',
             category: 'Hyper',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Hyper',
             lifetimeValue: [80, 260],
             purpose: 'Systemic risk sentinel monitoring Capsule networks and markets.',
             features: [
@@ -426,6 +539,9 @@
             id: '10.31',
             name: 'HyperContinuity',
             category: 'Hyper',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Hyper',
             lifetimeValue: [40, 150],
             purpose: 'Maintains portable identity and canon across careers and organizations.',
             features: [
@@ -439,6 +555,9 @@
             id: '10.32',
             name: 'HyperGenesis',
             category: 'Hyper',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Hyper',
             lifetimeValue: [50, 190],
             purpose: 'High-fidelity world simulation and staged rollout engine.',
             features: [
@@ -452,6 +571,9 @@
             id: '10.33',
             name: 'Cognitive Twin Fabric',
             category: 'Ultra',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Ultra',
             lifetimeValue: [60, 210],
             purpose: 'Dynamic twins for people and teams capturing capabilities and history.',
             features: [
@@ -465,6 +587,9 @@
             id: '10.34',
             name: 'Strategy Garden & Capsule Fund',
             category: 'Ultra',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Ultra',
             lifetimeValue: [40, 160],
             purpose: 'Executable portfolio of strategic bets tied to Capsule graphs.',
             features: [
@@ -478,6 +603,9 @@
             id: '10.35',
             name: 'Reality Twin Mesh',
             category: 'Ultra',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Ultra',
             lifetimeValue: [70, 230],
             purpose: 'Mesh of digital twins for products, infrastructure, and org structures.',
             features: [
@@ -491,6 +619,9 @@
             id: '10.36',
             name: 'Temporal Backtesting Engine',
             category: 'Ultra',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Ultra',
             lifetimeValue: [40, 150],
             purpose: 'Replays historical decisions with alternate Capsule graphs and staffing.',
             features: [
@@ -504,6 +635,9 @@
             id: '10.37',
             name: 'Law-of-the-OS & AI Court',
             category: 'Ultra',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Ultra',
             lifetimeValue: [50, 180],
             purpose: 'Internal legal system handling disputes between agents, Capsules, and policies.',
             features: [
@@ -517,6 +651,9 @@
             id: '10.38',
             name: 'Inter-OS Federation',
             category: 'Ultra',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Ultra',
             lifetimeValue: [60, 210],
             purpose: 'Federation logic for standards, shared Capsules, and trust across OS networks.',
             features: [
@@ -530,6 +667,9 @@
             id: '10.39',
             name: 'Meta-Design Studio',
             category: 'Ultra',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Ultra',
             lifetimeValue: [45, 160],
             purpose: 'Self-improving OS that redesigns Capsules, UX, and policies based on telemetry.',
             features: [
@@ -543,6 +683,9 @@
             id: '10.40',
             name: 'Cognitive Economy Engine',
             category: 'Ultra',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Ultra',
             lifetimeValue: [70, 240],
             purpose: 'Allocator deciding which human, agent, or Capsule should execute work.',
             features: [
@@ -556,6 +699,9 @@
             id: '10.41',
             name: 'Multi-Reality Storyboard',
             category: 'Ultra',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Ultra',
             lifetimeValue: [40, 150],
             purpose: 'Visual sandbox of branching futures and Capsule graphs.',
             features: [
@@ -569,6 +715,9 @@
             id: '10.42',
             name: 'Alignment Monitor',
             category: 'Ultra',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Ultra',
             lifetimeValue: [50, 170],
             purpose: 'Continuous watchdog verifying automation behavior matches declared goals.',
             features: [
@@ -582,6 +731,9 @@
             id: '10.43',
             name: 'Ontological Compiler',
             category: 'Supreme',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Supreme',
             lifetimeValue: [60, 220],
             purpose: 'Compiles organizational worldviews into formal ontologies for all Capsules.',
             features: [
@@ -595,6 +747,9 @@
             id: '10.44',
             name: 'Canon of Truth Engine',
             category: 'Supreme',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Supreme',
             lifetimeValue: [80, 260],
             purpose: 'Tracks claims, models, and evidence to maintain a living canon of truth.',
             features: [
@@ -608,6 +763,9 @@
             id: '10.45',
             name: 'Reality Contract Layer',
             category: 'Supreme',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Supreme',
             lifetimeValue: [50, 180],
             purpose: 'Binds Capsules to explicit reality conditions and rollback clauses.',
             features: [
@@ -621,6 +779,9 @@
             id: '10.46',
             name: 'Human–System Co-Evolution Orchestrator',
             category: 'Supreme',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Supreme',
             lifetimeValue: [40, 150],
             purpose: 'Plans how humans and automated systems evolve together over decades.',
             features: [
@@ -634,6 +795,9 @@
             id: '10.47',
             name: 'Successor Architect & Legacy Seeder',
             category: 'Supreme',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Supreme',
             lifetimeValue: [30, 120],
             purpose: 'Encodes institutional and personal legacy into Capsules for future generations.',
             features: [
@@ -647,6 +811,9 @@
             id: '10.48',
             name: 'Unified Law of Work & Meaning Engine',
             category: 'Supreme',
+            artifact_type: 'Capability',
+            tier: 'System',
+            capability_layer: 'Supreme',
             lifetimeValue: [80, 280],
             purpose: 'Defines meta-objectives describing what “good” and “aligned” mean for the ecosystem.',
             features: [

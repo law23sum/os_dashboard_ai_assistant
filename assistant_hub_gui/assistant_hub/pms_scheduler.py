@@ -1,4 +1,4 @@
-"""Scheduler utilities for PMS tasks."""
+"""Scheduler utilities for IPM tasks."""
 
 from __future__ import annotations
 

@@ -49,7 +49,7 @@ class UnifiedTerminalShell(cmd.Cmd):
     
     intro = """
 ╔═══════════════════════════════════════════════════════════════╗
-║     OS Dashboard AI Assistant - Unified Terminal Shell        ║
+║     AI OS - Unified Terminal Shell        ║
 ║     Seamless Interface for All Git Projects                   ║
 ╚═══════════════════════════════════════════════════════════════╝
 
@@ -296,7 +296,7 @@ Available Commands:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Unified Terminal Shell for OS Dashboard AI Assistant",
+        description="Unified Terminal Shell for AI OS",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(

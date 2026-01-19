@@ -1,0 +1,49 @@
+{
+  "laws_version": "1.0.0",
+  "laws": [
+    {
+      "id": "LAW-001",
+      "name": "Platform placement",
+      "rule": "Platforms only appear as top dropdown tab titles; never in left sidebar."
+    },
+    {
+      "id": "LAW-002",
+      "name": "Category placement",
+      "rule": "Categories only appear as dropdown list items under a Platform; never as top tabs or sidebar items."
+    },
+    {
+      "id": "LAW-003",
+      "name": "Feature placement",
+      "rule": "Features only appear in left sidebar within a Category page; never in platform dropdown."
+    },
+    {
+      "id": "LAW-004",
+      "name": "No empty pages",
+      "rule": "Every feature route must render Parameters -> Execute -> Results and at least one widget + one display."
+    },
+    {
+      "id": "LAW-005",
+      "name": "Shared feature duplication rules",
+      "rule": "If a feature appears in multiple categories, it MUST set shared_feature_key and all duplicates MUST share the same route and page_contract_ref."
+    },
+    {
+      "id": "LAW-006",
+      "name": "Authoritative platform order",
+      "rule": "Platforms must appear in this exact order: Core, Common, Audit Official Records, Automation, Settings, Admin, Workstation, Systems, Simulations, Research, Encyclopedia, Libraries, Knowledge."
+    }
+  ],
+  "ci_checks": [
+    {
+      "id": "CI-ROUTES-COVERED",
+      "check": "Every route in router must exist in gui_nav.latest.json"
+    },
+    {
+      "id": "CI-NAV-ROUTES-REAL",
+      "check": "Every gui_nav feature route must have a corresponding page/component file and must not render a template/blank page."
+    },
+    {
+      "id": "CI-SHARED-FEATURE-INTEGRITY",
+      "check": "shared_feature_key duplicates must match route + page_contract_ref."
+    }
+  ]
+}

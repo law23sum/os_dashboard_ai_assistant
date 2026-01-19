@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: osdash-config
+  labels:
+    app: osdash
+    component: config
+
+data:
+  ENVIRONMENT: "base"
+  LOG_LEVEL: "INFO"
+  OBJECT_STORE_PROVIDER: "local"
+  OBJECT_STORE_PATH: "/app/data/artifacts"
+  OBJECT_STORE_BUCKET: "osd-artifacts"
+  ASSISTANT_HUB_DATA_DIR: "/app/data"
+  ASSISTANT_HUB_DB: "/app/data/assistant_hub.db"

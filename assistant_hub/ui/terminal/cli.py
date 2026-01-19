@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import List
 
-from ...db import init_db as db_init_db
+from ...db import CHAT_PERSONAS, init_db as db_init_db
 from .commands import (
     handle_onenote_command,
     handle_excel_command,
@@ -33,7 +33,7 @@ def create_cli_parser() -> argparse.ArgumentParser:
     """Create the main CLI argument parser."""
     parser = argparse.ArgumentParser(
         prog="osdash",
-        description="OS Dashboard AI Assistant - Command Line Interface",
+        description="AI OS Console - Command Line Interface",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -172,6 +172,64 @@ def create_cli_parser() -> argparse.ArgumentParser:
         "--tag", help="Filter by tag (onenote, excel, word, etc.)"
     )
 
+    # Audit command
+    audit_parser = subparsers.add_parser("audit", help="Audit ledger utilities")
+    audit_sub = audit_parser.add_subparsers(dest="subcommand")
+    emit_parser = audit_sub.add_parser("emit", help="Emit a dev audit event")
+    emit_parser.add_argument("--event-type", required=True, help="Event type to emit")
+    emit_parser.add_argument("--message", required=True, help="Event message")
+    emit_parser.add_argument("--payload", help="JSON payload string")
+
+    verify_parser = audit_sub.add_parser("verify-ledger", help="Verify ledger hash chain")
+    verify_parser.add_argument("--from-seq", type=int, help="Start sequence")
+    verify_parser.add_argument("--to-seq", type=int, help="End sequence")
+
+    audit_sub.add_parser("rotate", help="Rotate archives now")
+    audit_sub.add_parser("list-archives", help="List archive records")
+
+    verify_archive = audit_sub.add_parser("verify-archive", help="Verify an archive bundle")
+    verify_archive.add_argument("path", help="Path to encrypted archive")
+
+    restore_archive = audit_sub.add_parser("restore-archive", help="Restore an archive bundle")
+    restore_archive.add_argument("path", help="Path to encrypted archive")
+    restore_archive.add_argument("output_dir", help="Directory for extracted files")
+
+    # Chat command - interactive AI chat
+    chat_parser = subparsers.add_parser("chat", help="Interactive chat with AI agents")
+    chat_parser.add_argument(
+        "--agent",
+        choices=CHAT_PERSONAS,
+        help="AI agent to use (default: interactive selection)",
+    )
+    chat_parser.add_argument(
+        "--clear-history",
+        action="store_true",
+        help="Start with empty conversation history",
+    )
+    chat_parser.add_argument(
+        "--clear-on-switch",
+        action="store_true",
+        help="Clear history when switching agents",
+    )
+    chat_parser.add_argument(
+        "--enable-shell",
+        action="store_true",
+        default=True,
+        help="Allow AI to execute shell commands (default: True)",
+    )
+    chat_parser.add_argument(
+        "--no-shell",
+        dest="enable_shell",
+        action="store_false",
+        help="Disable shell command execution",
+    )
+    chat_parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Show verbose error messages",
+    )
+
     return parser
 
 
@@ -270,6 +328,14 @@ def main() -> int:
             return handle_word_command(args, conn)
         elif args.command == "history":
             return handle_history_command(args, conn)
+        elif args.command == "audit":
+            from .commands.audit import handle_audit_command
+
+            return handle_audit_command(args)
+        elif args.command == "chat":
+            from ui.terminal.commands.chat import handle_chat_command
+
+            return handle_chat_command(args)
         else:
             print(f"Unknown command: {args.command}")
             return 1

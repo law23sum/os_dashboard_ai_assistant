@@ -1,7 +1,28 @@
 """Data Aggregator - Processes and normalizes data from various sources."""
 
-from typing import Dict, List, Any, Optional
+from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
+from typing import Dict, List, Any, Optional
+
+
+# Compatibility types for modules that import CIR structures from this module.
+class DocumentType(Enum):
+    DOCUMENT = "document"
+    REPORT = "report"
+
+
+class SourceType(Enum):
+    LOCAL = "local"
+    REMOTE = "remote"
+
+
+@dataclass
+class CIRDocument:
+    id: str = ""
+    content: str = ""
+    doc_type: DocumentType = DocumentType.DOCUMENT
+    source: SourceType = SourceType.LOCAL
 
 
 class DataAggregator:

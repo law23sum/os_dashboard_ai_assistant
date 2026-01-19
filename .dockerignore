@@ -1,87 +1,44 @@
-# Version control
 .git
 .gitignore
-
-# Python
-__pycache__/
+.worktrees
+.github
+reference
+.storybook
+.vscode
+.idea
+.DS_Store
+*.pdf
+*.zip
+*.gz
+*.tgz
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+.pytest_cache
+.mypy_cache
+.venv
+venv
+__pycache__
 *.pyc
 *.pyo
-*.pyd
-.Python
-env
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
 *.log
-.pytest_cache/
-
-# Virtual environments
 .env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Project specific
-logs/
-data/
-file_cache/
-*.db
-*.sqlite
-*.sqlite3
-
-# Documentation builds
-docs/_build/
-
-# Temporary files
-*.tmp
-*.temp
-
-# Development files
-.env.local
-.env.development
-.env.test
-
-# Build artifacts
-build/
-dist/
-*.egg-info/
-
-# Node modules (if any)
-node_modules/
-
-# Coverage reports
-htmlcov/
-.coverage
-coverage.xml
-
-# Test files
-.coverage.*
-.tox/
-.cache/
+.env.*
+node_modules
+**/node_modules
+dist
+build
+frontend
+frontend/dist
+frontend/build
+documentation
+docs
+CyberChef_v10.19.4
+htmlcov
+logs
+data
+tmp
+backend_api/tmp
+assistant_hub_gui/assistant_hub/assistant_hub.db
+assistant_hub/assistant_hub.db

@@ -201,7 +201,7 @@ def test_full_application_startup():
     from backend_api.main import app
     
     assert app is not None
-    assert "OS Dashboard AI Assistant" in app.title
+    assert "AI OS" in app.title
 
 
 def test_database_module_loads():

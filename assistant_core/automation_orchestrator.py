@@ -2,7 +2,7 @@
 """
 Intelligent Automation and Workflow Orchestration System
 
-Integrated with OS Dashboard AI Assistant for comprehensive workflow automation.
+Integrated with AI OS for comprehensive workflow automation.
 Combines AI agents, task management, document processing, and scheduling into orchestrated workflows.
 """
 
@@ -31,6 +31,7 @@ try:
     from assistant_hub_gui.assistant_hub.db import (
         Task,
         db_insert_task,
+        PERSONAL_AI_PERSONAS,
         PERSONAS,
         PRIORITY_OPTIONS,
         STATUS_OPTIONS,
@@ -39,7 +40,8 @@ except ImportError:
     # Fallback for when GUI not available
     Task = None
     db_insert_task = None
-    PERSONAS = ["Chris", "AIC", "Aria", "Sora"]
+    PERSONAL_AI_PERSONAS = ["AIC", "Aria", "Sora", "Gabriela"]
+    PERSONAS = ["Chris", "AIC", "Aria", "Sora", "Gabriela"]
     PRIORITY_OPTIONS = ["LOW", "MEDIUM", "HIGH", "CRITICAL", "URGENT"]
     STATUS_OPTIONS = ["TODO", "IN_PROGRESS", "DONE", "CANCELLED"]
 # Optional imports - gracefully handle missing dependencies
@@ -109,8 +111,8 @@ class ActionType(Enum):
     SYSTEM_COMMAND = "system_command"
     AI_ANALYSIS = "ai_analysis"
     WORKFLOW_TRIGGER = "workflow_trigger"
-    AGENT_INTERACTION = "agent_interaction"  # OS Dashboard specific
-    DOCUMENT_PROCESSING = "document_processing"  # OS Dashboard specific
+    AGENT_INTERACTION = "agent_interaction"  # AI OS specific
+    DOCUMENT_PROCESSING = "document_processing"  # AI OS specific
 
 
 class Priority(Enum):
@@ -210,7 +212,7 @@ class AutomationRule:
 
 class AutomationOrchestrator:
     """
-    Intelligent automation and workflow orchestration system integrated with OS Dashboard AI Assistant.
+    Intelligent automation and workflow orchestration system integrated with AI OS.
     Provides comprehensive workflow automation combining AI agents, task management, and document processing.
     """
 
@@ -240,7 +242,7 @@ class AutomationOrchestrator:
 
         # Configuration
         self.config = {
-            "max_concurrent_executions": 10,  # Lower for OS Dashboard
+            "max_concurrent_executions": 10,  # Lower for AI OS
             "default_timeout": 1800,  # 30 minutes
             "retry_max_attempts": 3,
             "retry_delay_seconds": 30,
@@ -254,8 +256,8 @@ class AutomationOrchestrator:
         self.event_queue = asyncio.Queue()
         self.event_handlers: Dict[str, List[Callable]] = defaultdict(list)
 
-        # OS Dashboard specific integrations
-        self.ai_agents_available = ["Aria", "AIC", "Sora"]
+        # AI OS specific integrations
+        self.ai_agents_available = list(PERSONAL_AI_PERSONAS)
         self.task_creation_available = True
         self.document_processing_available = True
         self.failure_registry.register_recovery_plan(
@@ -617,7 +619,7 @@ class AutomationOrchestrator:
             self._record_action_failure(action, execution, str(e))
             raise
 
-    # Action Handlers - Extended for OS Dashboard Integration
+    # Action Handlers - Extended for AI OS Integration
 
     async def _setup_action_handlers(self):
         """Setup action handlers"""
@@ -632,14 +634,14 @@ class AutomationOrchestrator:
             ActionType.SYSTEM_COMMAND: self._handle_system_command,
             ActionType.AI_ANALYSIS: self._handle_ai_analysis,
             ActionType.WORKFLOW_TRIGGER: self._handle_workflow_trigger,
-            ActionType.AGENT_INTERACTION: self._handle_agent_interaction,  # OS Dashboard specific
-            ActionType.DOCUMENT_PROCESSING: self._handle_document_processing,  # OS Dashboard specific
+            ActionType.AGENT_INTERACTION: self._handle_agent_interaction,  # AI OS specific
+            ActionType.DOCUMENT_PROCESSING: self._handle_document_processing,  # AI OS specific
         }
 
     async def _handle_agent_interaction(
         self, action: WorkflowAction, execution: WorkflowExecution
     ) -> Dict[str, Any]:
-        """Handle AI agent interaction - OS Dashboard specific"""
+        """Handle AI agent interaction - AI OS specific"""
         try:
             params = action.parameters
             agent_name = params["agent"]  # Aria, AIC, or Sora
@@ -713,7 +715,7 @@ class AutomationOrchestrator:
     async def _handle_document_processing(
         self, action: WorkflowAction, execution: WorkflowExecution
     ) -> Dict[str, Any]:
-        """Handle document processing - OS Dashboard specific"""
+        """Handle document processing - AI OS specific"""
         try:
             params = action.parameters
             operation = params["operation"]  # analyze, summarize, extract_tasks, etc.
@@ -779,7 +781,7 @@ class AutomationOrchestrator:
     async def _handle_task_creation(
         self, action: WorkflowAction, execution: WorkflowExecution
     ) -> Dict[str, Any]:
-        """Handle task creation - Enhanced for OS Dashboard"""
+        """Handle task creation - Enhanced for AI OS"""
         try:
             params = action.parameters
 
@@ -1202,7 +1204,7 @@ class AutomationOrchestrator:
     # Sample Workflows
 
     async def create_sample_workflows(self):
-        """Create sample workflows demonstrating OS Dashboard integration"""
+        """Create sample workflows demonstrating AI OS integration"""
         try:
             # Sample 1: Daily AI-Powered Task Review
             daily_review_workflow = {

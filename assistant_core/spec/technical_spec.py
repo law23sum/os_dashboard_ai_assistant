@@ -1,4 +1,4 @@
-"""Canonical technical specification data for OS Dashboard AI Assistant."""
+"""Canonical technical specification data for AI OS."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field

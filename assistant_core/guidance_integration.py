@@ -20,14 +20,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Try to import Guidance
+GUIDANCE_IMPORT_ERROR: Optional[str] = None
 try:
     import guidance
     # Guidance uses different import patterns depending on version
     # We'll use the programmatic API which is more stable
     GUIDANCE_AVAILABLE = True
-except ImportError:
+except Exception as e:
     GUIDANCE_AVAILABLE = False
-    logger.warning("Guidance not installed. Install with: pip install guidance")
+    GUIDANCE_IMPORT_ERROR = str(e)
+    logger.debug("Guidance integration unavailable: %s", e)
 
 
 class GuidancePromptEngine:
@@ -246,7 +248,7 @@ def create_guidance_engine(
     Returns None if Guidance is not available (graceful degradation).
     """
     if not GUIDANCE_AVAILABLE:
-        logger.warning("Guidance not available. Returning None.")
+        logger.debug("Guidance not available. Returning None.")
         return None
 
     try:
@@ -254,4 +256,3 @@ def create_guidance_engine(
     except Exception as e:
         logger.error(f"Failed to create Guidance engine: {e}")
         return None
-

@@ -1,11 +1,11 @@
-"""Core dataclasses and enums for the Project Management System (PMS)."""
+"""Core dataclasses and enums for Intelligence Project Management (IPM)."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-PMS_PROJECT_MODES = ("personal", "enterprise")
+PMS_PROJECT_MODES = ("personal", "business", "enterprise")
 PMS_TASK_STATUSES = ("TODO", "IN_PROGRESS", "BLOCKED", "DONE", "ARCHIVED")
 PMS_TODO_STATUSES = ("TODO", "DONE")
 PMS_RUN_STATUSES = ("queued", "running", "succeeded", "failed", "needs_review")

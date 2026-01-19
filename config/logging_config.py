@@ -1,5 +1,5 @@
 """
-Logging configuration for OS Dashboard AI Assistant
+Logging configuration for AI OS
 """
 
 import logging

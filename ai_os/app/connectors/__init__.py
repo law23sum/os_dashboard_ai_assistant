@@ -1,4 +1,4 @@
-"""Connectors for the AI OS Dashboard skeleton."""
+"""Connectors for the AI OS Console skeleton."""
 from ai_os.app.connectors.base import Connector, ResourceRef, StorageBackedConnector
 from ai_os.app.connectors.notes import NotesConnector
 from ai_os.app.connectors.word import WordConnector

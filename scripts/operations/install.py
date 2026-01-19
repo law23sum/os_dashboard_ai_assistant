@@ -1,5 +1,5 @@
 """
-Installation operations for OS Dashboard AI Assistant
+Installation operations for AI OS
 """
 
 import sys

@@ -26,7 +26,7 @@ except ModuleNotFoundError:  # pragma: no cover
 
 try:
     import pandas as pd  # type: ignore
-except ModuleNotFoundError:  # pragma: no cover
+except Exception:  # pragma: no cover
     pd = None  # type: ignore
 
 try:  # Optional dependency

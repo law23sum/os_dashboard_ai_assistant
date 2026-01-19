@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OS Dashboard AI Assistant - Subscriptions</title>
+    <title>AI OS - Subscriptions</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header class="site-header">
         <div class="container header-content">
-            <a href="home.html" class="logo">OS Dashboard AI</a>
+            <a href="home.html" class="logo">AI OS</a>
             <nav class="main-nav" aria-label="Primary">
                 <ul class="nav-links">
                     <li><a href="home.html">Home</a></li>
@@ -132,7 +132,8 @@
                         <tr>
                             <th>ID</th>
                             <th>Product</th>
-                            <th>Category</th>
+                            <th>Capability layer</th>
+                            <th>Tier</th>
                             <th>Customer Monthly</th>
                             <th>Customer Bi-Annual</th>
                             <th>Customer Annual</th>
@@ -149,7 +150,7 @@
     </main>
 
     <footer class="footer">
-        <p>© 2024 OS Dashboard AI Assistant.</p>
+        <p>© 2024 AI OS.</p>
     </footer>
 
     <script src="scripts/product-data.js"></script>
@@ -174,7 +175,8 @@
                 row.innerHTML = `
                     <td>${product.id}</td>
                     <td>${product.name}</td>
-                    <td>${product.category}</td>
+                    <td>${product.capability_layer || product.category}</td>
+                    <td>${product.tier}</td>
                     ${formatCell(customerPricing)}
                     ${formatCell(enterprisePricing)}
                 `;

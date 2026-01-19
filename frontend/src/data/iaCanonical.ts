@@ -23,7 +23,16 @@ console.log('[iaCanonical] legacyManifest type:', typeof legacyManifest)
 console.log('[iaCanonical] legacyManifest is array:', Array.isArray(legacyManifest))
 console.log('[iaCanonical] legacyManifest length:', legacyManifest?.length ?? 'undefined')
 
-export type ActorScope = 'personal' | 'enterprise'
+export type ActorScope = 'personal' | 'business' | 'enterprise'
+type ItemScope = ActorScope | 'both' | undefined
+
+const allowsActorScope = (itemScope: ItemScope, actorScope: ActorScope) => {
+  if (!itemScope) return true
+  if (itemScope === 'both' || itemScope === actorScope) return true
+  if (actorScope === 'enterprise' && (itemScope === 'personal' || itemScope === 'business')) return true
+  if (actorScope === 'business' && itemScope === 'personal') return true
+  return false
+}
 
 export interface CanonicalIAFeature extends Omit<IAFeature, 'route'> {
   /** Canonical route: /{platform}/{category}/{feature} */
@@ -106,14 +115,14 @@ console.log('[iaCanonical] Final canonicalIaManifest length:', canonicalIaManife
 export { canonicalIaManifest }
 
 export function getPlatforms(actorScope: ActorScope): CanonicalIAPlatform[] {
-  return canonicalIaManifest.filter((p) => p.actorScope === 'both' || p.actorScope === actorScope)
+  return canonicalIaManifest.filter((p) => allowsActorScope(p.actorScope, actorScope))
 }
 
 export function getCategories(platformId: string, actorScope: ActorScope): CanonicalIACategory[] {
   const platform = canonicalIaManifest.find((p) => p.id === platformId)
   if (!platform) return []
-  if (platform.actorScope !== 'both' && platform.actorScope !== actorScope) return []
-  return platform.categories.filter((c) => c.actorScope === 'both' || c.actorScope === actorScope)
+  if (!allowsActorScope(platform.actorScope, actorScope)) return []
+  return platform.categories.filter((c) => allowsActorScope(c.actorScope, actorScope))
 }
 
 export function getFeatures(platformId: string, categoryId: string, actorScope: ActorScope): CanonicalIAFeature[] {
@@ -121,8 +130,8 @@ export function getFeatures(platformId: string, categoryId: string, actorScope: 
   if (!platform) return []
   const category = platform.categories.find((c) => c.id === categoryId)
   if (!category) return []
-  if (category.actorScope !== 'both' && category.actorScope !== actorScope) return []
-  return category.features.filter((f) => f.actorScope === 'both' || f.actorScope === actorScope)
+  if (!allowsActorScope(category.actorScope, actorScope)) return []
+  return category.features.filter((f) => allowsActorScope(f.actorScope, actorScope))
 }
 
 export function findCanonicalRouteContext(pathname: string): {
@@ -192,5 +201,4 @@ export function buildLegacyRedirectMap(): Map<string, string> {
 
   return redirects
 }
-
 

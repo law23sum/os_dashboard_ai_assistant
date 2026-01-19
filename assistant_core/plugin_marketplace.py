@@ -2,7 +2,7 @@
 
 Marketplace and Plugin Architecture
 
-Enables third-party developers to create and distribute plugins for the OS Dashboard AI Assistant
+Enables third-party developers to create and distribute plugins for the AI OS
 
 """
 

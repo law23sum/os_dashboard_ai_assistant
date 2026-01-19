@@ -1,4 +1,4 @@
-"""Utility modules for OS Dashboard AI Assistant.
+"""Utility modules for AI OS.
 
 This package provides common utilities including:
 - Exception hierarchy

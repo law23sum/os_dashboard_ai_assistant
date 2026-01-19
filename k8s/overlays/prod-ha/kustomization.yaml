@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../prod
+  - hpa.yaml
+  - pdb.yaml
+
+patches:
+  - path: replicas.yaml
+  - path: backend-strategy.yaml
+  - path: backend-database-env.yaml

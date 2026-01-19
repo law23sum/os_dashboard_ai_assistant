@@ -63,7 +63,7 @@ jobs:
       run: |
         brew install create-dmg
         create-dmg \
-          --volname "OS Dashboard AI Assistant" \
+          --volname "AI OS" \
           --window-pos 200 120 \
           --window-size 800 400 \
           --icon-size 100 \
@@ -136,7 +136,7 @@ jobs:
         # Create desktop file
         cat > AppDir/usr/share/applications/os-dashboard.desktop << EOF
 [Desktop Entry]
-Name=OS Dashboard AI Assistant
+Name=AI OS
 Exec=OS_Dashboard_AI_Assistant
 Icon=os-dashboard
 Type=Application

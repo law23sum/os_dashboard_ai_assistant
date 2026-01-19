@@ -16,7 +16,15 @@ from collections import defaultdict, Counter
 from decimal import Decimal, ROUND_HALF_UP
 import calendar
 
-from assistant_core.data_aggregator import CIRDocument, DocumentType, SourceType
+try:
+    from api_connectors.universal_connector import CIRDocument, DocumentType, SourceType
+except ImportError:
+    from dataclasses import dataclass
+    from enum import Enum
+    class DocumentType(Enum): DOCUMENT = "document"
+    class SourceType(Enum): LOCAL = "local"
+    @dataclass
+    class CIRDocument: id: str = ""; content: str = ""
 
 
 class BillingPlan(Enum):

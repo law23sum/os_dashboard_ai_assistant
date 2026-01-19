@@ -1,6 +1,6 @@
 """
 Main Dashboard Interface
-Central control panel for the OS Dashboard AI Assistant Platform
+Central control panel for the AI OS Console
 """
 
 import os
@@ -63,7 +63,7 @@ from ..spec import spec_summary
 class DashboardConfig:
     """Configuration for the dashboard"""
 
-    title: str = "OS Dashboard AI Assistant Platform"
+    title: str = "AI OS Console"
     theme: str = "default"
     auto_save: bool = True
     log_level: str = "INFO"
@@ -1375,7 +1375,7 @@ System-Level Operations Control
 def main():
     """Main entry point for the dashboard"""
     config = DashboardConfig(
-        title="OS Dashboard AI Assistant Platform v1.0",
+        title="AI OS Console v1.0",
         theme="default",
         auto_save=True,
         log_level="INFO",

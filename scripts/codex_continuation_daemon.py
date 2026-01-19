@@ -169,7 +169,7 @@ python scripts/workspace_auto_guard.py --root . --execute
     def to_compact_prompt(self) -> str:
         """Generate a compact prompt suitable for API calls."""
         lines = [
-            "Continue work on OS Dashboard AI Assistant project.",
+            "Continue work on AI OS project.",
             "",
             "Priority items:",
         ]
@@ -406,7 +406,7 @@ class ContinuationDaemon:
         try:
             # Create a shell script to run
             script_content = f"""#!/bin/bash
-echo "=== OS Dashboard Continuation Session ==="
+echo "=== AI OS Continuation Session ==="
 echo "Triggered: $(date)"
 echo ""
 cd "{self.workspace}"

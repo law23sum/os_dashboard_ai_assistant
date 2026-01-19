@@ -1,4 +1,4 @@
-# OS Dashboard AI Assistant Dockerfile
+# AI OS Dockerfile
 FROM python:3.11-slim
 
 # Set build arguments
@@ -7,9 +7,9 @@ ARG VERSION=1.0.0
 ARG VCS_REF
 
 # Add metadata labels
-LABEL maintainer="OS Dashboard Team" \
+LABEL maintainer="AI OS Team" \
       org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.name="OS Dashboard AI Assistant" \
+      org.label-schema.name="AI OS" \
       org.label-schema.description="AI-powered desktop application for task management and document processing" \
       org.label-schema.version=$VERSION \
       org.label-schema.vcs-ref=$VCS_REF \

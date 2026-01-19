@@ -1,4 +1,4 @@
-"""API connectors for the OS Dashboard AI Assistant."""
+"""API connectors for the AI OS."""
 
 from typing import Any, Dict, Optional
 import logging

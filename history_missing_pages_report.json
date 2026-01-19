@@ -1,0 +1,1165 @@
+{
+  "missing_total": 542,
+  "likely_renamed_by_filename": 349,
+  "unique_missing": 193,
+  "unique_missing_report": [
+    {
+      "path": "frontend/src/pages/APIReference.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/AccessReviews.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/AdvancedHorizons.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/AirgappedDeployment.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/AlertRules.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/AlignmentMonitor.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/AnomalyDetection.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/AuditReadinessDashboard.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/AuditReports.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/AuditSettings.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/Authentication.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/AutomatedRollbacks.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/BackwardCompatibilityCommitments.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/BillingOptimizer.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/BinaryArtifacts.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/BlueGreenCanary.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/BudgetPlanner.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CICDIntegration.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CIRStore.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CameraStreamIntegrations.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CapabilityMatrix.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CapabilityRegistry.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CapsuleBuilder.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CapsuleManifests.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CapsuleRuntimeSettings.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CapsuleStore.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ChangeManagement.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ChaosEngineering.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ChargebackShowbackReports.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CloudProviders.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CodeHostsCICD.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CodeMergeAdvisor.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CodeReviewQueue.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CompatibilityMatrix.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ComputeClusterManagement.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ConfigurationManagement.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ConnectorHealth.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ConnectorsOverview.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ConsistencyModels.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ControlFrameworkMapping.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ControlsMapping.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ConversationLibrary.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CoreOSEngines.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CostGuardrails.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/CredentialVault.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DLPRules.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DRDrillPlanner.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DRDrills.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DashboardBuilder.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DataClassification.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DataLossProtection.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DataMasking.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DataQualityChecks.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DataResidency.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DataSchemas.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DatasetRegistry.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DecisionLog.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DependencyUpdates.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DeploymentGuides.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DetectionMechanisms.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DeterminismChecks.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DeveloperTools.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DeviceRegistry.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DriftDetection.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DriftMonitoring.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DriverAnalytics.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DriverManifests.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DriverPacks.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/DriverSDK.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/EmbeddingsManagement.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/EnforcementPointsMap.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/EnterpriseAppStore.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/EvidenceBuilder.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/EvidencePackTemplates.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/EvidencePacks.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/EvidenceQueries.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/EvidenceRequestWorkflow.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/EvidenceRequests.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/EvidenceTrails.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ExperimentTracking.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ExportforAuditors.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ExtensibilityPoints.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/FailoverControls.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/FailureModes.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ForecastingLab.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/GovernanceGates.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/GraphIndex.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/HPCIntegration.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/HealthChecks.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/HyperNetwork.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ImmutableLogbookViewer.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/IncidentCommander.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/IncidentResponse.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/IncidentTimeline.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/IndexManagement.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/IndicesOverview.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/IngestionPipelines.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/IntegrationGuides.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/IntegrityProtections.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/KPIDashboard.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/KnownGaps.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/KubernetesDeployment.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/LogExplorer.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/LogbookTimeline.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/LogsStore.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/MaintenanceWindows.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/MetaEnvelope.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/MetricExplorer.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/MetricsStore.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/MigrationContinued.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/MigrationGuides.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ModelRegistry.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ModelRouterPolicy.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ModelValidation.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/NetworkTopology.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/NotebookLabNotes.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/NotificationChannels.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ObservabilityStoresOverview.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/OpenQuestions.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/OriginalityCheck.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/PackBuilder.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/PhasedDelivery.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/PlanesOverview.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/PolicyExamples.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/PreferenceProfiles.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ProductivitySuites.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ProjectSettings.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ProjectTemplates.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/PromptInstructionLibrary.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/PromptMacroLibrary.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ProviderRateCards.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/PublishingFlow.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/QueryConsole.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/RBACABAC.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/RecoveryStrategies.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/RegulatorViews.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/RelevanceTuning.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ReliabilityPatterns.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/RemediationTracker.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ReplayEngine.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ReportGenerator.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ReproducibilityPacks.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ResearchDataSources.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ResultsPublishing.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/RetentionPolicies.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/RetentionPolicyBuilder.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/RiskAssessments.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/RiskRegister.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/RiskScoring.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/RollbackStrategy.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/RunbookLibrary.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/RuntimePermissions.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/SCIMProvisioning.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/SLOBurnRates.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/SSOSAMLOIDCSettings.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ScenarioLibrary.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ScenarioRunner.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/SecurityMonitoring.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/SemanticVectorSearch.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ServiceDependencies.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/SessionManagement.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/SharedSpacesChannels.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/SnapshotManager.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/SpecVersioning.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/StorageTopology.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/SuperCapabilities.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/SystemDependencyGraph.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/TaskAnalytics.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/TechnicalSpecSheet.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/TerminologyGlossary.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/TheoreticalReasoningFramework.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ThreatDetection.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/ThreatIntelFeeds.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/TraceExplorer.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/TracesStore.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/TrainingPipelines.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/TwinGovernance.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/TwinTemplates.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/UIComponentLibrary.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/UltraScale.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/UnifiedResearchLab.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/UpgradeChannels.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/UsageFabric.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/UserProfile.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/VendorInventory.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/VisionPipelines.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/VulnerabilityManagement.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/VulnerabilityScanIntegrations.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/WorkflowObservability.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/concepts/ConceptStudio.tsx",
+      "last_commit": "",
+      "last_commit_date": "",
+      "last_subject": ""
+    },
+    {
+      "path": "frontend/src/pages/pms/pmsUtils.ts",
+      "last_commit": "17c8374d201b5f2487c0741535d993de1b36f353",
+      "last_commit_date": "2025-12-31T07:53:49-05:00",
+      "last_subject": "chore: pre-merge snapshot"
+    },
+    {
+      "path": "frontend/src/pages/types.ts",
+      "last_commit": "79e6d2907049c5c73a8d7067931b3b290b32983c",
+      "last_commit_date": "2025-12-29T12:22:11-05:00",
+      "last_subject": "sturdy"
+    },
+    {
+      "path": "frontend/src/pages/utils/toast.ts",
+      "last_commit": "79e6d2907049c5c73a8d7067931b3b290b32983c",
+      "last_commit_date": "2025-12-29T12:22:11-05:00",
+      "last_subject": "sturdy"
+    }
+  ]
+}

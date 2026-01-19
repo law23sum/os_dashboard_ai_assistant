@@ -11,7 +11,7 @@ packages = ["assistant_hub"]
 [project]
 name = "os-dashboard-ai-assistant"
 version = "0.1.0"
-description = "Personal + Enterprise OS Dashboard AI Assistant (Excel, OneNote, Word, Git, GPT)"
+description = "Personal + Enterprise AI OS (Excel, OneNote, Word, Git, GPT)"
 requires-python = ">=3.9"
 dependencies = [
     "psutil",

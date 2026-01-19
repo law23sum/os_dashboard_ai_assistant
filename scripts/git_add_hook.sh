@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Source this script from ~/.bashrc or ~/.bash_profile to wrap `git add`.
 # The wrapper calls the stage reasoner (and auto-commit helper on `git add .`)
-# whenever you're working inside the OS Dashboard repo.
+# whenever you're working inside the AI OS repo.
 
 if [[ -n "${_OS_DASHBOARD_GIT_HOOK:-}" ]]; then
     return

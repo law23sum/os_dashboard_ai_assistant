@@ -1,0 +1,31 @@
+{
+  "DataScope": [
+    "universal",
+    "common",
+    "personal",
+    "sensitive"
+  ],
+  "AccessScope": [
+    "user",
+    "workspace",
+    "tenant",
+    "global",
+    "regulator_readonly",
+    "system"
+  ],
+  "ComputeClass": [
+    "fast",
+    "standard",
+    "heavy"
+  ],
+  "PolicySimulationStatus": [
+    "queued",
+    "running",
+    "succeeded",
+    "failed"
+  ],
+  "PolicyDecision": [
+    "pass",
+    "fail"
+  ]
+}

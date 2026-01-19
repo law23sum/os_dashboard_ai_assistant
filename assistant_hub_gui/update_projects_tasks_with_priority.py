@@ -16,11 +16,11 @@ from assistant_hub.db import (
 )
 from datetime import datetime
 
-# Projects extracted from the PDF with OS Dashboard AI Assistant at the top
+# Projects extracted from the PDF with AI OS at the top
 PROJECTS_DATA = [
-    # SPECIAL PRIORITY: OS Dashboard AI Assistant (Priority Order #1)
+    # SPECIAL PRIORITY: AI OS (Priority Order #1)
     {
-        "name": "OS Dashboard AI Assistant",
+        "name": "AI OS",
         "description": "Core AI assistant system for operating system dashboard management, task coordination, and intelligent automation. This is the foundational platform that enables all other projects.\n\nNext Tasks:\n- Implement core daemon architecture\n- Set up task prioritization system\n- Develop project management integration\n- Create user interface for system monitoring\n- Implement AI-driven task suggestions\n- Set up external service integrations\n\nKey Features:\n- Real-time system monitoring\n- Intelligent task prioritization\n- Project dependency management\n- AI-powered automation\n- External service integration (Gmail, Calendar, OneNote, etc.)",
         "priority": "CRITICAL",
         "status": "active",
@@ -560,7 +560,7 @@ def main():
     add_all_tasks()
 
     print("\nDatabase update complete!")
-    print("OS Dashboard AI Assistant is set as Priority Order #1")
+    print("AI OS is set as Priority Order #1")
     print("Priority ordering: Lower number = Higher priority")
 
 

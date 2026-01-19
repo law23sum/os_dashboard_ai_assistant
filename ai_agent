@@ -31,7 +31,13 @@ sys.path.insert(0, str(project_root))
 
 # Import agent system
 try:
-    from agents_ai import setup_agents, Agent, route_prompt_to_agent
+    from agents_ai import (
+        setup_agents,
+        Agent,
+        route_prompt_to_agent,
+        INTERACTION_STYLES,
+        normalize_interaction_style,
+    )
     AGENTS_AVAILABLE = True
 except ImportError as e:
     print(f"WARN: Error importing agents_ai: {e}")
@@ -95,13 +101,33 @@ def list_agents():
     print("\n" + "=" * 70 + "\n")
 
 
-def interactive_mode():
+def select_interaction_style(current=None):
+    """Prompt for an interaction style selection."""
+    if not INTERACTION_STYLES:
+        return None
+    print("\nInteraction styles:")
+    for key, desc in INTERACTION_STYLES.items():
+        marker = "*" if current == key else " "
+        print(f"  {marker} {key:11s} - {desc}")
+    choice = input("\nSelect style (blank to clear): ").strip()
+    if not choice:
+        return None
+    normalized = normalize_interaction_style(choice)
+    if not normalized:
+        valid = ", ".join(sorted(INTERACTION_STYLES.keys()))
+        print(f"Invalid style. Choose one of: {valid}")
+        return current
+    return normalized
+
+
+def interactive_mode(interaction_style=None):
     """Interactive agent selection mode"""
     if not AGENTS_AVAILABLE:
         print("ERROR: Agents not available. Please check agents_ai.py")
         return
     
     agents = setup_agents()
+    current_style = normalize_interaction_style(interaction_style)
     
     print("\n" + "=" * 70)
     print("  AI Agent Interactive Mode")
@@ -154,6 +180,13 @@ def interactive_mode():
             message = input(f"\n[{agent_name}] Enter your message (or 'back' to return): ").strip()
             if message.lower() in ["back", "exit", "quit"]:
                 continue
+            if message.lower().startswith("/style"):
+                current_style = select_interaction_style(current_style)
+                if current_style:
+                    print(f"✓ Interaction style set to {current_style}")
+                else:
+                    print("✓ Interaction style cleared")
+                continue
             
             if not message:
                 continue
@@ -167,7 +200,7 @@ def interactive_mode():
                     if not routed_agent:
                         continue
                     print(f"\n[{routed_name}] Thinking...")
-                    response = routed_agent.chat(message)
+                    response = routed_agent.chat(message, interaction_style=current_style)
                     print(f"\n[{routed_name}]: {response}\n")
             elif agent_name == "Cursor":
                 print(f"\n[{agent_name}] Processing...")
@@ -175,7 +208,7 @@ def interactive_mode():
                 print(f"\n[{agent_name}]: {response}\n")
             else:
                 print(f"\n[{agent_name}] Thinking...")
-                response = agent.chat(message)
+                response = agent.chat(message, interaction_style=current_style)
                 print(f"\n[{agent_name}]: {response}\n")
                 
         except KeyboardInterrupt:
@@ -227,6 +260,13 @@ Examples:
         help="Start in interactive mode"
     )
     
+    parser.add_argument(
+        "--style",
+        "--interaction",
+        dest="interaction_style",
+        help="Interaction style (discussion, debate, informative, persuasive)",
+    )
+    
     args = parser.parse_args()
     
     # List agents
@@ -236,7 +276,7 @@ Examples:
     
     # Interactive mode (default if no args)
     if not args.agent or args.interactive:
-        interactive_mode()
+        interactive_mode(args.interaction_style)
         return
     
     # Direct agent call
@@ -273,7 +313,7 @@ Examples:
             if not agent:
                 continue
             print(f"[{routed_name}] Thinking...")
-            response = agent.chat(args.message)
+            response = agent.chat(args.message, interaction_style=args.interaction_style)
             print(f"\n[{routed_name}]: {response}\n")
     else:
         if not AGENTS_AVAILABLE:
@@ -288,7 +328,7 @@ Examples:
             sys.exit(1)
         
         print(f"[{agent_name}] Thinking...")
-        response = agent.chat(args.message)
+        response = agent.chat(args.message, interaction_style=args.interaction_style)
         print(f"\n[{agent_name}]: {response}\n")
 
 

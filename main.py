@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Main entry point for OS Dashboard AI Assistant."""
+"""Main entry point for AI OS."""
 
 import sys
 import os
@@ -10,7 +10,7 @@ if _current_dir not in sys.path:
     sys.path.insert(0, _current_dir)
 
 async def main_async():
-    """Initialize the OS Dashboard AI Assistant asynchronously."""
+    """Initialize AI OS asynchronously."""
     try:
         from assistant_core.ai import AIAssistant
         from assistant_core.core.state import ApplicationState
@@ -25,7 +25,7 @@ async def main_async():
         # Initialize AI assistant
         ai_assistant = AIAssistant(app_state)
 
-        print("✅ OS Dashboard AI Assistant initialized successfully!")
+        print("✅ AI OS initialized successfully!")
         print(f"Active persona: {app_state.get_active_persona()}")
 
         # Try to initialize plugin marketplace and security framework (optional)

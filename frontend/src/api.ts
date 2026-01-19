@@ -1,3 +1,5 @@
+import { getCohort, getFeatureFlagsHeader, getReleaseChannel } from './utils/featureFlags'
+
 const resolveApiBase = (): string => {
   // Prefer runtime/base-tag aware paths when available (desktop builds).
   if (typeof document !== 'undefined') {
@@ -10,9 +12,18 @@ const resolveApiBase = (): string => {
 async function request<T = any>(path: string, options?: RequestInit): Promise<T> {
   // Compute per-call so Electron/runtime-injected base URLs are honored.
   const API_BASE = resolveApiBase()
+  const cohort = getCohort()
+  const releaseChannel = getReleaseChannel()
+  const flagsHeader = getFeatureFlagsHeader()
   const res = await fetch(`${API_BASE}${path.startsWith("/") ? path : `/${path}`}`, {
-    headers: { "Content-Type": "application/json" },
     ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(cohort && { "X-OSD-Cohort": cohort }),
+      ...(releaseChannel && { "X-OSD-Release": releaseChannel }),
+      ...(flagsHeader && { "X-OSD-Flags": flagsHeader }),
+      ...(options?.headers || {}),
+    },
   });
 
   const requestId = res.headers.get("x-correlation-id") || res.headers.get("x-request-id") || undefined;
@@ -47,6 +58,27 @@ export const API = {
   // Operations & audit
   operations: () => request("/operations?limit=50"),
   audit: (id: string) => request(`/audit/${encodeURIComponent(id)}`),
+  auditPackExport: (payload: {
+    start_date?: string
+    end_date?: string
+    tenant_id?: string
+    include_archive?: boolean
+  }) =>
+    request("/audit/pack/export", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  auditBreachState: () => request("/audit/breach/state"),
+  auditBreachTransition: (payload: {
+    state: string
+    trigger: string
+    evidence_refs?: string[]
+    notes?: string
+  }) =>
+    request("/audit/breach/transition", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   
   // Search & AI
   search: (query: string) => request(`/search?q=${encodeURIComponent(query)}`),

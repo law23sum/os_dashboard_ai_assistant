@@ -1,5 +1,5 @@
 """
-Enhanced Agent Service - Incorporating OpenAI Cookbook Best Practices
+Enhanced Agent Service - Incorporating OpenAI agent tool patterns
 
 This service layer provides:
 - Tool management and registration
@@ -56,7 +56,7 @@ class ToolDefinition:
 
 class AgentToolManager:
     """
-    Manages tools for agents - inspired by OpenAI cookbook patterns
+    Manages tools for agents - inspired by OpenAI agent tool patterns
     """
     
     def __init__(self):
@@ -164,7 +164,7 @@ class AgentToolManager:
 class AgentOrchestrator:
     """
     Orchestrates multiple agents with role-based routing and priority
-    Incorporates best practices from OpenAI cookbook multi-agent patterns
+    Incorporates best practices from OpenAI multi-agent patterns
     """
     
     def __init__(self):
@@ -291,4 +291,3 @@ def get_orchestrator() -> AgentOrchestrator:
     if _orchestrator is None:
         _orchestrator = AgentOrchestrator()
     return _orchestrator
-

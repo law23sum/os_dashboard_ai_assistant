@@ -4,13 +4,14 @@
 from __future__ import annotations
 
 import argparse
+import json
 import shlex
 import subprocess
 import sys
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from pathlib import Path
-from typing import Iterable, List, Optional, Sequence
+from typing import Iterable, List, Optional, Sequence, Dict, Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_AUTOFIX_REL = Path("scripts") / "ai_auto_fix.py"
@@ -27,6 +28,8 @@ SKIP_DIRS = {
 }
 LOG_DIR = REPO_ROOT / "logs" / "workspace_shell"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
+TELEMETRY_DIR = REPO_ROOT / "logs" / "workspace_shell"
+TELEMETRY_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @dataclass
@@ -35,6 +38,28 @@ class ProjectProfile:
     root: Path
     ai_autofix: Optional[Path]
     test_commands: List[List[str]] = field(default_factory=list)
+
+@dataclass
+class CommandResult:
+    profile_name: str
+    command: List[str]
+    exit_code: int
+    timestamp: str
+    attempt: int
+    autofix_invoked: bool = False
+    autofix_exit_code: Optional[int] = None
+
+@dataclass
+class TelemetrySnapshot:
+    timestamp: str
+    total_profiles: int
+    profiles_run: int
+    total_commands: int
+    successful_commands: int
+    failed_commands: int
+    autofix_attempts: int
+    latest_failure_timestamp: Optional[str] = None
+    results: List[Dict[str, Any]] = field(default_factory=list)
 
 
 def _timestamp() -> str:
@@ -185,35 +210,119 @@ def _prompt_selection(profiles: List[ProjectProfile]) -> List[ProjectProfile]:
         print("No valid selections. Try again.")
 
 
+def _export_telemetry_json(snapshot: TelemetrySnapshot, output_path: Path) -> None:
+    """Export structured JSON telemetry for observability collectors."""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", encoding="utf-8") as f:
+        json.dump(asdict(snapshot), f, indent=2, default=str)
+    print(f"[telemetry] Exported JSON snapshot to {output_path}")
+
+
 def _run_profiles(
     targets: List[ProjectProfile],
     attempts: int,
     autofix_enabled: bool,
     extra_autofix_args: Sequence[str],
-) -> None:
+    export_json: bool = False,
+) -> TelemetrySnapshot:
+    snapshot = TelemetrySnapshot(
+        timestamp=_timestamp(),
+        total_profiles=len(targets),
+        profiles_run=0,
+        total_commands=0,
+        successful_commands=0,
+        failed_commands=0,
+        autofix_attempts=0,
+    )
+    
     for profile in targets:
         log_path = LOG_DIR / f"{profile.name}.log"
+        snapshot.profiles_run += 1
+        
         if not profile.test_commands:
             print(f"[shell] ℹ️  {profile.name}: no tests detected. Triggering auto-fix daemon only.")
-            _invoke_autofix(
-                profile,
-                [sys.executable, "-c", "import sys; sys.exit(0)"],
-                log_path,
-                extra_autofix_args,
-            )
+            autofix_exit = None
+            try:
+                _invoke_autofix(
+                    profile,
+                    [sys.executable, "-c", "import sys; sys.exit(0)"],
+                    log_path,
+                    extra_autofix_args,
+                )
+                autofix_exit = 0
+            except Exception as e:
+                print(f"[shell] ⚠️  Auto-fix error: {e}")
+                autofix_exit = 1
+            
+            if export_json:
+                result = CommandResult(
+                    profile_name=profile.name,
+                    command=["daemon-only"],
+                    exit_code=0,
+                    timestamp=_timestamp(),
+                    attempt=1,
+                    autofix_invoked=True,
+                    autofix_exit_code=autofix_exit,
+                )
+                snapshot.results.append(asdict(result))
+                if autofix_exit is not None:
+                    snapshot.autofix_attempts += 1
             continue
+            
         for command in profile.test_commands:
+            snapshot.total_commands += 1
             attempt = 0
+            command_succeeded = False
+            
             while attempt < max(1, attempts):
                 attempt += 1
                 print(f"[shell] {profile.name}: attempt {attempt}/{attempts} for {shlex.join(command)}")
-                result = _run_command(command, profile.root, log_path)
-                if result == 0:
+                result_code = _run_command(command, profile.root, log_path)
+                
+                if result_code == 0:
+                    command_succeeded = True
+                    snapshot.successful_commands += 1
+                    if export_json:
+                        result = CommandResult(
+                            profile_name=profile.name,
+                            command=command,
+                            exit_code=0,
+                            timestamp=_timestamp(),
+                            attempt=attempt,
+                            autofix_invoked=False,
+                        )
+                        snapshot.results.append(asdict(result))
                     break
+                    
                 if autofix_enabled:
-                    _invoke_autofix(profile, command, log_path, extra_autofix_args)
+                    autofix_exit = None
+                    try:
+                        _invoke_autofix(profile, command, log_path, extra_autofix_args)
+                        autofix_exit = 0
+                        snapshot.autofix_attempts += 1
+                    except Exception as e:
+                        print(f"[shell] ⚠️  Auto-fix error: {e}")
+                        autofix_exit = 1
+                        snapshot.autofix_attempts += 1
+                    
+                    if export_json:
+                        result = CommandResult(
+                            profile_name=profile.name,
+                            command=command,
+                            exit_code=result_code,
+                            timestamp=_timestamp(),
+                            attempt=attempt,
+                            autofix_invoked=True,
+                            autofix_exit_code=autofix_exit,
+                        )
+                        snapshot.results.append(asdict(result))
             else:
-                print(f"[shell] ⚠️  {profile.name}: exhausted attempts for {shlex.join(command)}")
+                if not command_succeeded:
+                    snapshot.failed_commands += 1
+                    snapshot.latest_failure_timestamp = _timestamp()
+                    print(f"[shell] ⚠️  {profile.name}: exhausted attempts for {shlex.join(command)}")
+    
+    return snapshot
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -271,6 +380,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         action="store_true",
         help="Run in batch mode (same as --run-all) and exit.",
     )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Export structured JSON telemetry alongside log files for observability collectors.",
+    )
     return parser.parse_args(argv)
 
 
@@ -292,12 +406,23 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if not selected:
         print("[shell] Nothing selected. Exiting.")
         return 0
-    _run_profiles(
+    
+    snapshot = _run_profiles(
         selected,
         attempts=max(1, args.attempts),
         autofix_enabled=not args.no_autofix,
         extra_autofix_args=list(args.autofix_arg),
+        export_json=args.json,
     )
+    
+    if args.json:
+        telemetry_path = TELEMETRY_DIR / f"telemetry_{int(time.time())}.json"
+        _export_telemetry_json(snapshot, telemetry_path)
+        # Also write latest snapshot
+        latest_path = TELEMETRY_DIR / "telemetry_latest.json"
+        _export_telemetry_json(snapshot, latest_path)
+        print(f"\n[telemetry] Summary: {snapshot.successful_commands} successful, {snapshot.failed_commands} failed, {snapshot.autofix_attempts} autofix attempts")
+    
     return 0
 
 

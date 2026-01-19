@@ -2,8 +2,8 @@
   "name": "os-dashboard-frontend",
   "private": true,
   "version": "0.1.0",
-  "description": "Unified Tkinter-inspired React + Electron interface for the OS Dashboard AI Assistant.",
-  "author": "OS Dashboard Engineering",
+  "description": "Unified Tkinter-inspired React + Electron interface for the AI OS.",
+  "author": "AI OS Engineering",
   "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
@@ -36,6 +36,8 @@
     "build:desktop:mac": "vite build && electron-builder -c electron-builder.yml --mac",
     "build:all": "npm run build:web && npm run build:desktop:linux && npm run build:desktop:windows && npm run build:desktop:mac",
     "preview": "vite preview",
+    "lint": "tsc --noEmit",
+    "lint:check": "tsc --noEmit --pretty",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
@@ -49,7 +51,8 @@
     "lucide-react": "^0.365.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.1"
+    "react-router-dom": "^6.22.1",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",

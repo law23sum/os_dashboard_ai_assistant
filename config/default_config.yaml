@@ -1,8 +1,8 @@
-# OS Dashboard AI Assistant Platform - Default Configuration
+# AI OS Platform - Default Configuration
 
 # Dashboard Settings
 dashboard:
-  title: "OS Dashboard AI Assistant Platform"
+  title: "AI OS Platform"
   theme: "professional"
   auto_save: true
   log_level: "INFO"
@@ -20,7 +20,7 @@ data_collection:
   cache_ttl: 3600
   retry_attempts: 3
   retry_delay: 2.0
-  user_agent: "OS-Dashboard-AI-Assistant/1.0"
+  user_agent: "AI-OS/1.0"
   
   # Default headers for web requests
   default_headers:
@@ -315,3 +315,22 @@ plugins:
     - name: "enterprise_connectors"
       enabled: false
       version: "1.0.0"
+
+# Security Defense Orchestration
+security_defense:
+  auto_response_enabled: true
+  active_enforcement: false
+  auto_response_min_severity: "high"
+  scan_interval_seconds: 120
+  allowed_networks:
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
+    - "192.168.0.0/16"
+    - "127.0.0.0/8"
+  allowed_ports: []
+  sensitive_ports: [22, 23, 3389, 5900, 445, 3306, 5432, 6379]
+  blocked_ips: []
+  burst_threshold: 20
+  max_connections: 500
+  max_scans: 200
+  max_findings: 1000

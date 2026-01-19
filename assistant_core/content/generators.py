@@ -3,9 +3,14 @@ Professional-Grade Content Generation System
 Interactive HTML presentations, Excel dashboards, Word documents, and web applications
 """
 
+from __future__ import annotations
+
 import os
 import json
-import pandas as pd
+try:
+    import pandas as pd
+except Exception:  # pragma: no cover
+    pd = None  # type: ignore
 from typing import Dict, List, Any, Optional, Union
 from dataclasses import dataclass, field
 from jinja2 import Environment, FileSystemLoader, Template
@@ -16,6 +21,14 @@ import tempfile
 import logging
 from datetime import datetime
 import uuid
+
+
+def _require_pandas() -> None:
+    if pd is None:  # pragma: no cover - optional dependency
+        raise ModuleNotFoundError(
+            "pandas is required for Excel dashboard generation. "
+            "Install optional dependencies with `python3 -m pip install -r requirements.txt`."
+        )
 
 
 @dataclass
@@ -580,6 +593,7 @@ class ExcelDashboardGenerator(BaseContentGenerator):
         self, name: str, data: pd.DataFrame, chart_configs: List[Dict] = None
     ) -> str:
         """Add worksheet with data and optional charts"""
+        _require_pandas()
         worksheet_id = self.generate_id()
 
         self.workbook_data[name] = {

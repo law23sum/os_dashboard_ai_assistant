@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# AWS Deployment Script for OS Dashboard AI Assistant
+# AWS Deployment Script for AI OS
 # Usage: ./deploy-aws.sh [environment] [action] [image-uri]
 # Example: ./deploy-aws.sh prod deploy
 # Example: ./deploy-aws.sh alpha deploy 123456789012.dkr.ecr.us-east-1.amazonaws.com/os-dashboard:v1.0.0-alpha.1
@@ -15,7 +15,7 @@ NON_INTERACTIVE=${NON_INTERACTIVE:-${CI:-false}}
 # Try to get account ID, but allow script to continue if AWS CLI not configured (for CI)
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || echo "")
 
-echo "🚀 Deploying OS Dashboard AI Assistant to AWS"
+echo "🚀 Deploying AI OS to AWS"
 echo "Environment: $ENVIRONMENT"
 echo "Action: $ACTION"
 echo "Region: $AWS_REGION"

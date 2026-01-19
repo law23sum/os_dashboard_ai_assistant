@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Single entry point for launching the OS Dashboard UI (React web or desktop)."""
+"""Single entry point for launching the AI OS Console (React web or desktop)."""
 
 from __future__ import annotations
 
@@ -335,7 +335,7 @@ def _prompt_mode() -> str:
         return DEFAULT_MODE
 
     print("\n" + "=" * 70)
-    print("  🚀 OS Dashboard AI Assistant — Unified Launcher")
+    print("  🚀 AI OS — Unified Launcher")
     print("=" * 70)
     print("\n📋 Available Launch Modes:\n")
     max_choice = len(MODE_DEFINITIONS)

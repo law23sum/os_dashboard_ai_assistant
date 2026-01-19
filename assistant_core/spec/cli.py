@@ -1,4 +1,4 @@
-"""Command-line utility to inspect the OS Dashboard canonical specification."""
+"""Command-line utility to inspect the AI OS canonical specification."""
 from __future__ import annotations
 
 import argparse
@@ -9,7 +9,7 @@ from . import spec_summary, architecture_summary, planes_summary
 
 
 def main(argv: Any = None) -> int:
-    parser = argparse.ArgumentParser(description="OS Dashboard Spec Explorer")
+    parser = argparse.ArgumentParser(description="AI OS Spec Explorer")
     parser.add_argument(
         "section",
         nargs="?",

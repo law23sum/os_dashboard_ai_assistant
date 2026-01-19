@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Unified Launcher - Single Entry Point for OS Dashboard AI Assistant
+Unified Launcher - Single Entry Point for AI OS
 
 This script provides a unified interface to launch all components of the
-OS Dashboard AI Assistant system, including:
+AI OS system, including:
 - Backend API server
 - Frontend dev server
 - Project orchestrator
@@ -110,7 +110,7 @@ def launch_autofix() -> subprocess.Popen:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Unified Launcher for OS Dashboard AI Assistant",
+        description="Unified Launcher for AI OS",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(

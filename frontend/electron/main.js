@@ -253,8 +253,8 @@ function createMenu() {
           click: () => {
             dialog.showMessageBox(mainWindow, {
               type: 'info',
-              title: 'About OS Dashboard AI Assistant',
-              message: 'OS Dashboard AI Assistant',
+              title: 'About AI OS',
+              message: 'AI OS',
               detail: 'Version 0.1.0\nA unified dashboard for AI-powered task and project management.',
             });
           },

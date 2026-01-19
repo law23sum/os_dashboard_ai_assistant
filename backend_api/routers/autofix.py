@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 import random
 import uuid
-from typing import Dict, List, Literal, Optional
+from typing import Dict, List, Literal, Optional, Union
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -45,7 +45,7 @@ class AutoFixReport(BaseModel):
     summary: str
 
 
-_AUTOFIX_STATUS: Dict[str, Optional[str | bool]] = {
+_AUTOFIX_STATUS: Dict[str, Optional[Union[str, bool]]] = {
     "enabled": True,
     "last_scan": (datetime.utcnow() - timedelta(minutes=45)).isoformat() + "Z",
 }
@@ -124,7 +124,7 @@ _seed_demo_issues()
 
 
 @router.get("/status")
-async def autofix_status() -> Dict[str, Optional[str | bool]]:
+async def autofix_status() -> Dict[str, Optional[Union[str, bool]]]:
     """Return Auto-Fix status block."""
 
     return _AUTOFIX_STATUS

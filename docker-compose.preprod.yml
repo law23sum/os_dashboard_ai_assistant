@@ -1,0 +1,122 @@
+version: '3.8'
+
+# Pre-Production Environment Docker Compose
+# Usage:
+#   docker compose -f docker-compose.preprod.yml up -d
+#   docker compose -f docker-compose.preprod.yml down -v
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      target: production
+    container_name: osdash-backend-preprod
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - ENVIRONMENT=preprod
+      - DEBUG=false
+      - DATABASE_URL=postgresql://preprod_user:preprod_password@postgres:5432/osdash_preprod
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - env.preprod.example
+    command: uvicorn assistant_hub.api.server:create_app --factory --host 0.0.0.0 --port 8000 --workers 4
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - osdash-preprod-network
+    restart: unless-stopped
+    stop_grace_period: 10s
+
+  # Frontend (Production Build)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: osdash-frontend-preprod
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/dist:/app/dist
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    command: npm run preview -- --host 0.0.0.0 --port 5173
+    depends_on:
+      - backend
+    networks:
+      - osdash-preprod-network
+    restart: unless-stopped
+    stop_grace_period: 10s
+
+  # PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: osdash-postgres-preprod
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=preprod_user
+      - POSTGRES_PASSWORD=preprod_password
+      - POSTGRES_DB=osdash_preprod
+    volumes:
+      - postgres-preprod-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U preprod_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - osdash-preprod-network
+    restart: unless-stopped
+    stop_grace_period: 10s
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: osdash-redis-preprod
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass preprod-redis-password
+    volumes:
+      - redis-preprod-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - osdash-preprod-network
+    restart: unless-stopped
+    stop_grace_period: 10s
+
+networks:
+  osdash-preprod-network:
+    driver: bridge
+
+volumes:
+  postgres-preprod-data:
+    driver: local
+  redis-preprod-data:
+    driver: local
+
+
+
+
+
+
+

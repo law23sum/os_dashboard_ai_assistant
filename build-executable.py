@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Build executable for OS Dashboard AI Assistant using PyInstaller
+Build executable for AI OS using PyInstaller
 """
 
 import os
@@ -29,7 +29,7 @@ def run_command(cmd, cwd=None):
 
 def build_executable():
     """Build executable using PyInstaller"""
-    print("🔨 Building OS Dashboard AI Assistant executable...")
+    print("🔨 Building AI OS executable...")
 
     # Ensure we're in the project root
     project_root = Path(__file__).parent
@@ -201,7 +201,7 @@ exe = EXE(
 
         # Create a simple installer script
         installer_script = f'''#!/bin/bash
-echo "Installing OS Dashboard AI Assistant..."
+echo "Installing AI OS..."
 
 # Create installation directory
 INSTALL_DIR="$HOME/Applications/OS_Dashboard_AI_Assistant"
@@ -214,7 +214,7 @@ cp -r "{exe_dir}"/* "$INSTALL_DIR/"
 DESKTOP_FILE="$HOME/.local/share/applications/os-dashboard.desktop"
 cat > "$DESKTOP_FILE" << EOF
 [Desktop Entry]
-Name=OS Dashboard AI Assistant
+Name=AI OS
 Exec=$INSTALL_DIR/OS_Dashboard_AI_Assistant
 Icon=$INSTALL_DIR/icon.png
 Type=Application
@@ -227,7 +227,7 @@ chmod +x "$INSTALL_DIR/OS_Dashboard_AI_Assistant"
 echo "✅ Installation complete!"
 echo "You can now run the application from:"
 echo "  $INSTALL_DIR/OS_Dashboard_AI_Assistant"
-echo "Or find it in your applications menu as 'OS Dashboard AI Assistant'"
+echo "Or find it in your applications menu as 'AI OS'"
 '''
 
         installer_path = project_root / "install.sh"

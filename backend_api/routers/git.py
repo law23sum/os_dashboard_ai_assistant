@@ -2,21 +2,17 @@
 
 from __future__ import annotations
 
-import sqlite3
 import subprocess
 from pathlib import Path
 from typing import List
 
 from fastapi import APIRouter
 from pydantic import BaseModel
+from backend_api.db import db_session
 
 router = APIRouter()
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DB_CANDIDATES: List[Path] = [
-    REPO_ROOT / "assistant_hub.db",
-    REPO_ROOT / "assistant_hub_gui" / "assistant_hub.db",
-]
 
 
 class ChangeLogResponse(BaseModel):
@@ -48,27 +44,23 @@ def _fetch_agent_activity(limit: int = 10) -> str:
         ORDER BY datetime(created_at) DESC
         LIMIT ?
     """
-    for db_path in DB_CANDIDATES:
-        if not db_path.exists():
-            continue
-        try:
-            with sqlite3.connect(db_path) as conn:
-                conn.row_factory = sqlite3.Row
-                rows = conn.execute(query, (limit,)).fetchall()
-        except sqlite3.Error:
-            continue
-        if not rows:
-            continue
-        lines = []
-        for row in rows:
-            timestamp = row["created_at"] or ""
-            agent = row["agent"] or "agent"
-            action = row["action_type"] or "activity"
-            summary = row["output_summary"] or ""
-            snippet = summary.splitlines()[0] if summary else ""
-            lines.append(f"[{timestamp}] {agent}: {action} {snippet}".strip())
-        if lines:
-            return "\n".join(lines)
+    try:
+        with db_session() as conn:
+            rows = conn.execute(query, (limit,)).fetchall()
+    except Exception:
+        rows = []
+    if not rows:
+        return "No recent agent commands yet."
+    lines = []
+    for row in rows:
+        timestamp = row["created_at"] or ""
+        agent = row["agent"] or "agent"
+        action = row["action_type"] or "activity"
+        summary = row["output_summary"] or ""
+        snippet = summary.splitlines()[0] if summary else ""
+        lines.append(f"[{timestamp}] {agent}: {action} {snippet}".strip())
+    if lines:
+        return "\n".join(lines)
     return "No recent agent commands yet."
 
 

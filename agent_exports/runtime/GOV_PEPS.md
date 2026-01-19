@@ -1,0 +1,99 @@
+# Policy Enforcement Points (PEP/PDP)
+
+Note: V9 spec file not found in repo; evidence is based on keyword scan only.
+
+- Technical Spec Sheet (Version 6 Latest Version).txt: 619, 685, 696
+- TechnicalSpec.txt: 610, 675, 686, 922, 1577, 1675, 1811, 1927, 2060, 2237...
+- Technical_Spec_Sheet_v6.txt: 619, 685, 696, 944, 1609, 1709, 1847, 1964, 2099, 2279...
+- assistant_core/driver_registry.py: 66
+- assistant_core/security/governance_engine.py: 490, 560
+- assistant_core/spec/architecture.py: 97
+- assistant_core/spec/failure_modes.py: 173
+- assistant_core/spec/technical_spec.py: 95
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/cli/cmdoptions.py: 334, 749, 785
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/cache.py: 198, 213
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/install.py: 350, 359
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/distributions/sdist.py: 19, 28, 69
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/index/package_finder.py: 125, 128, 130, 420, 489
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/metadata/base.py: 199
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/models/direct_url.py: 1, 180
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/models/link.py: 54, 56, 62
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/models/selection_prefs.py: 30
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/models/target_python.py: 90
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/models/wheel.py: 58, 76, 90
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/operations/freeze.py: 259
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/operations/install/wheel.py: 211, 734
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/pyproject.py: 39, 50, 67, 76, 83, 91, 97, 119, 126, 129...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/req/constructors.py: 248, 264
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/req/req_install.py: 130, 176, 178, 188, 191, 469, 472, 522
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/legacy/resolver.py: 261
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/resolvelib/candidates.py: 281
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/resolvelib/factory.py: 237, 242, 279
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/resolvelib/provider.py: 153
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/resolvelib/requirements.py: 59, 91
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/compatibility_tags.py: 1, 54, 57, 63, 65
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/misc.py: 275, 277
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/virtualenv.py: 18, 47, 59, 70, 103, 104
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/wheel_builder.py: 195, 221, 249, 253
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/compat.py: 391
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/database.py: 6, 86, 257, 476, 585, 691
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/locators.py: 107, 1056
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/markers.py: 8, 11, 12
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/metadata.py: 50, 200, 361, 510, 551, 729, 780
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/util.py: 43, 233, 297, 1762, 1763
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/version.py: 7, 270
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/wheel.py: 51, 142, 479, 890
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/_manylinux.py: 230, 258, 260, 262
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/_musllinux.py: 1
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/markers.py: 38, 96, 97, 98, 99, 100, 102
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/requirements.py: 29
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/specifiers.py: 35, 325
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/tags.py: 129
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/utils.py: 17, 28, 33, 98, 128
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/version.py: 46, 56, 198, 201
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pep517/__init__.py: 1
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pep517/build.py: 1
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pep517/check.py: 1
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pep517/envbuild.py: 131, 153
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pep517/meta.py: 1
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pep517/wrappers.py: 103, 107, 109
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pkg_resources/__init__.py: 14, 123, 347, 1356, 1370, 1384, 1960, 2176, 2659, 2669...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/six.py: 865, 979, 980, 982
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/contrib/securetransport.py: 15, 901
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/packages/six.py: 938, 1056, 1057, 1059
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/__init__.py: 13, 108, 332, 1343, 1357, 1371, 1955, 2170, 2192, 2657...
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/_vendor/packaging/markers.py: 36, 101, 102, 103, 104, 105, 107
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/_vendor/packaging/requirements.py: 24
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/_vendor/packaging/specifiers.py: 36, 341
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/_vendor/packaging/tags.py: 168, 419, 659, 663, 666
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/_vendor/packaging/utils.py: 21
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/_vendor/packaging/version.py: 53, 63, 208, 211
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/extern/__init__.py: 7
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/__init__.py: 124
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/build_ext.py: 695, 696
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/register.py: 240
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/upload.py: 128
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/dist.py: 1034, 1056, 1103, 1149, 1221
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/log.py: 1, 3
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/more_itertools/more.py: 438
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/packaging/markers.py: 36, 101, 102, 103, 104, 105, 107
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/packaging/requirements.py: 24
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/packaging/specifiers.py: 36, 341
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/packaging/tags.py: 168, 419, 659, 663, 666
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/packaging/utils.py: 21
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/packaging/version.py: 53, 63, 208, 211
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/build_meta.py: 1, 8, 14, 16, 82, 185, 235, 261
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/config.py: 591
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/dist.py: 134, 198, 203, 207, 504
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/extern/__init__.py: 7
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/installer.py: 70
+- docs/UNIFIED_EVENT_JOURNAL.md: 15
+- docs/adr/0002-unified-event-journal.md: 27
+- documentation/ENGINEERING_COMPLEXITY_ANALYSIS.md: 21
+- documentation/IMPLEMENTATION_ROADMAP.md: 62
+- documentation/OS_DASHBOARD_CANON_SYSTEM_SPEC.md: 122
+- documentation/reference/os-dashboard-ai-assistant-platform/README.md: 439
+- spec_extracted.txt: 619, 685, 696
+- spec_full.txt: 619, 685, 696, 944, 1609, 1709, 1847, 1964, 2099, 2279...
+- tech_spec_v6.txt: 619, 685, 696, 944
+- technical_spec_v6.txt: 610, 675, 686, 922

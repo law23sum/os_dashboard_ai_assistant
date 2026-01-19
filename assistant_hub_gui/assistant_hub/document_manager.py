@@ -18,6 +18,7 @@ from .db import (
     db_upsert_project,
     db_get_document_samples,
     Project,
+    insert_and_fetch_id,
 )
 from .logging_config import get_logger
 from .versioning import enqueue_commit
@@ -436,12 +437,14 @@ def _create_document_version(
 
     # Insert version record
     created_at = datetime.now().isoformat(timespec="seconds")
-    c.execute(
-        """
+    insert_sql = """
         INSERT INTO document_versions 
         (note_link_id, version_number, file_path, file_size, checksum, created_at, created_by, description)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """,
+    """
+    version_id = insert_and_fetch_id(
+        conn,
+        insert_sql,
         (
             note_link_id,
             version_number,
@@ -455,7 +458,7 @@ def _create_document_version(
     )
 
     conn.commit()
-    return c.lastrowid
+    return version_id
 
 
 def get_document_versions(conn: sqlite3.Connection, note_link_id: int) -> List[Dict]:

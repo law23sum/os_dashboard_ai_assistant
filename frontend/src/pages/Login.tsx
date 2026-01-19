@@ -1,4 +1,4 @@
-import { useState, FormEvent, useMemo, useEffect } from 'react'
+import { useState, FormEvent, useMemo } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AlertCircle, LogIn, Lock, Shield, User } from 'lucide-react'
 import { login } from '../api/auth'
@@ -22,26 +22,8 @@ export default function Login() {
     return !!localStorage.getItem('access_token')
   }, [])
 
-  // Use useEffect for navigation to prevent rapid history API calls during render
-  useEffect(() => {
-    if (alreadyAuthed) {
-      // Use requestAnimationFrame to defer navigation until after render
-      const rafId = requestAnimationFrame(() => {
-        navigate(state.from || '/', { replace: true })
-      })
-      return () => cancelAnimationFrame(rafId)
-    }
-  }, [alreadyAuthed, navigate, state.from])
-
   if (alreadyAuthed) {
-    // Return loading state while redirecting to prevent render issues
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-200">
-        <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4">
-          Redirecting...
-        </div>
-      </div>
-    )
+    return <Navigate to={state.from || '/'} replace />
   }
 
   const from = state.from || '/'

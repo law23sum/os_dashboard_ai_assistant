@@ -1,0 +1,29 @@
+# Navigation + Routing Sources
+
+- `frontend/src/App.tsx`: Top-level routing (public/protected + dynamic routes).
+- `frontend/src/navigation/NavRouteRenderer.tsx`: IA route resolution + lazy loading + template fallbacks.
+- `frontend/src/navigation/routeComponentMap.ts`: Canonical route → component map for IA rendering.
+- `frontend/src/navigation/iaContext.tsx`: Route → platform/category/feature context.
+- `frontend/src/navigation/iaGuardrails.ts`: IA route validation/duplicate checks.
+- `frontend/src/navigation/context.tsx`: Breadcrumb + active nav derivation.
+- `frontend/src/components/Layout.tsx`: Platform tabs, category dropdowns, feature sidebar, legacy redirects.
+- `frontend/src/components/PlatformFeatureSidebar.tsx`: Feature sidebar rendering.
+- `frontend/src/components/NavigationTree.tsx`: Tree-network nav UI (uses navigationStructure).
+- `frontend/src/components/TreeNetworkNavigation.tsx`: Tree-network nav UI (uses navigationStructure).
+- `frontend/src/data/gui_nav.latest.json`: Edition-scoped nav source of truth (frontend data).
+- `frontend/public/gui_nav.latest.json`: Public nav JSON used by UI builds.
+- `documentation/gui_nav_structure/gui_nav.latest.json`: Documentation nav reference.
+- `frontend/src/data/iaManifest.from_json.json`: Generated IA manifest + legacy redirects (JSON).
+- `frontend/src/data/iaManifest.from_json.ts`: Generated IA manifest + legacy redirects (TS).
+- `frontend/src/data/iaManifest.ts`: Canonical manifest re-export.
+- `frontend/src/data/navigationStructure.ts`: Tree-network nav data.
+- `frontend/src/lib/navigationStructure.ts`: Helpers for navigationStructure.
+- `frontend/src/data/platformFeatures.ts`: Sidebar feature list by route prefix.
+- `frontend/src/components/templates/FeaturePageTemplate.tsx`: Feature page template fallback.
+- `frontend/src/components/templates/CategoryHomeTemplate.tsx`: Category home template fallback.
+- `frontend/src/components/templates/PlatformLandingTemplate.tsx`: Platform landing template fallback.
+- `frontend/src/pages/RouteScaffold.tsx`: Generic route scaffold.
+- `frontend/src/config/navigation.ts`: Legacy nav config (unused).
+- `frontend/src/data/navigationManifest.ts`: Spec-driven nav manifest (unused).
+- `frontend/src/data/iaCanonical.ts`: Legacy canonical routing helper (unused).
+- `frontend/src/components/LegacyRedirector.tsx`: Legacy redirect helper (unused).

@@ -1,5 +1,5 @@
 """
-Weather Integration Plugin for OS Dashboard AI Assistant
+Weather Integration Plugin for AI OS
 
 Provides weather data integration using OpenWeatherMap API.
 """
@@ -74,7 +74,7 @@ class WeatherIntegrationPlugin(IntegrationPlugin):
             "description": "Provides weather data from OpenWeatherMap API",
             "capabilities": ["current_weather", "weather_forecast"],
             "config_required": ["api_key"],
-            "author": "OS Dashboard Team"
+            "author": "AI OS Team"
         }
 
     async def connect(self) -> bool:

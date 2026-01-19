@@ -158,7 +158,7 @@ class PartnerProfile:
 
 
 class PartnerManagementSystem:
-    """Comprehensive partner management system integrated into OS Dashboard"""
+    """Comprehensive partner management system integrated into AI OS"""
 
     def __init__(self):
         self.logger = setup_logger("PartnerManagement")
@@ -1163,7 +1163,7 @@ class PartnerMetricsCollector:
         self.logger.info("Metrics Collector shutdown")
 
 
-# Integration helpers for OS Dashboard AI Assistant
+# Integration helpers for AI OS
 async def initialize_partner_system() -> Optional[PartnerManagementSystem]:
     """Initialize partner management system if dependencies are available"""
     try:
@@ -1179,7 +1179,7 @@ async def initialize_partner_system() -> Optional[PartnerManagementSystem]:
         return None
 
 
-# Example usage integrated with OS Dashboard
+# Example usage integrated with AI OS
 async def demo_partner_management():
     """Demo function for partner management integration"""
     partner_system = await initialize_partner_system()

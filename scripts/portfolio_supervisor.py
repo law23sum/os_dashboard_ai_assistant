@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Portfolio supervisor that applies the OS Dashboard AI autotest loop to every git repo it can find."""
+"""Portfolio supervisor that applies the AI OS autotest loop to every git repo it can find."""
 
 from __future__ import annotations
 
@@ -110,7 +110,7 @@ def summarize(results: List[Tuple[Path, str, int]]) -> int:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Traverse coding projects, detect git repos, and run the OS Dashboard autotest pipeline for each.",
+        description="Traverse coding projects, detect git repos, and run the AI OS autotest pipeline for each.",
     )
     parser.add_argument(
         "--roots",

@@ -1,4 +1,4 @@
-"""OpenAI/ChatGPT API Client for OS Dashboard AI Assistant"""
+"""OpenAI/ChatGPT API Client for AI OS"""
 
 import asyncio
 import os

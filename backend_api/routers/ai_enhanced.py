@@ -9,7 +9,8 @@ import os
 import json
 from datetime import datetime
 
-from backend_api.auth import User, get_current_active_user
+from backend_api.deps import get_current_user
+from backend_api.security import AuthUser
 from backend_api.routers.logs import log_event
 
 router = APIRouter()
@@ -18,7 +19,7 @@ router = APIRouter()
 @router.post("/ai/analyze-directory")
 async def analyze_directory(
     request_data: dict,
-    current_user: User = Depends(get_current_active_user)
+    current_user: AuthUser = Depends(get_current_user)
 ):
     """
     Analyze a directory and provide AI-powered insights.
@@ -83,7 +84,7 @@ async def analyze_directory(
         action="analyze_directory",
         resource=directory_path,
         user_id=current_user.id,
-        username=current_user.username
+        username=current_user.email or current_user.display_name
     )
     
     return analysis
@@ -92,7 +93,7 @@ async def analyze_directory(
 @router.post("/ai/analyze-file")
 async def analyze_file(
     request_data: dict,
-    current_user: User = Depends(get_current_active_user)
+    current_user: AuthUser = Depends(get_current_user)
 ):
     """
     Analyze a specific file and provide AI-powered insights.
@@ -152,7 +153,7 @@ async def analyze_file(
         action="analyze_file",
         resource=file_path,
         user_id=current_user.id,
-        username=current_user.username
+        username=current_user.email or current_user.display_name
     )
     
     return analysis
@@ -161,7 +162,7 @@ async def analyze_file(
 @router.post("/ai/suggest-actions")
 async def suggest_actions(
     request_data: dict,
-    current_user: User = Depends(get_current_active_user)
+    current_user: AuthUser = Depends(get_current_user)
 ):
     """
     Get AI-suggested actions based on uploaded file or directory context.

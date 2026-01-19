@@ -1,6 +1,6 @@
 # UX/UI Improvement Guide
 
-This document outlines comprehensive UX/UI improvements applied across the OS Dashboard AI Assistant application.
+This document outlines comprehensive UX/UI improvements applied across the AI OS application.
 
 ## Design Principles
 

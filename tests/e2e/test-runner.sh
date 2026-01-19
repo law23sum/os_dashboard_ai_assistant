@@ -1,6 +1,6 @@
 #!/bin/bash
 # End-to-End Test Runner
-# Supports multiple environments: local/dev, alpha/beta, prod/release
+# Supports multiple environments: local/dev/preview/staging, alpha/beta, prod/release
 
 set -e
 
@@ -8,7 +8,7 @@ ENVIRONMENT="${1:-local}"
 TEST_TYPE="${2:-all}"
 
 echo "=========================================="
-echo "OS Dashboard E2E Test Suite"
+echo "AI OS E2E Test Suite"
 echo "=========================================="
 echo "Environment: $ENVIRONMENT"
 echo "Test Type: $TEST_TYPE"
@@ -16,12 +16,12 @@ echo ""
 
 # Validate environment
 case "$ENVIRONMENT" in
-  local|dev|alpha|beta|prod|release)
+  local|dev|preview|staging|alpha|beta|prod|release)
     echo "✓ Environment validated: $ENVIRONMENT"
     ;;
   *)
     echo "✗ Invalid environment: $ENVIRONMENT"
-    echo "Available: local, dev, alpha, beta, prod, release"
+    echo "Available: local, dev, preview, staging, alpha, beta, prod, release"
     exit 1
     ;;
 esac

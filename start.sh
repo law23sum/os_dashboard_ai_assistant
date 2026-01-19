@@ -1,10 +1,10 @@
 #!/bin/bash
-# Simple startup script for OS Dashboard AI Assistant
+# Simple startup script for AI OS
 
 set -e
 
 echo "=================================="
-echo "OS Dashboard AI Assistant Launcher"
+echo "AI OS Launcher"
 echo "=================================="
 echo ""
 

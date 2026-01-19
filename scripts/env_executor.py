@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Interactive environment executor for OS Dashboard."""
+"""Interactive environment executor for AI OS."""
 
 from __future__ import annotations
 
@@ -90,7 +90,7 @@ def maybe_copy_env(env_name: str, template: Path) -> None:
 
 
 def main() -> int:
-    print("=== OS Dashboard Environment Executor ===")
+    print("=== AI OS Environment Executor ===")
     env_choice = ask_choice(
         "Select environment", ["dev", "alpha", "beta", "pre-prod", "prod"], default="dev"
     )

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build script for all platforms (Linux, Windows, macOS)
-# OS Dashboard AI Assistant - Unified Build System
+# AI OS - Unified Build System
 
 set -e
 
@@ -200,7 +200,7 @@ generate_manifest() {
     local manifest_file="$BUILD_DIR/releases/BUILD_MANIFEST_$TIMESTAMP.txt"
     
     cat > "$manifest_file" << EOF
-OS Dashboard AI Assistant - Build Manifest
+AI OS - Build Manifest
 ==========================================
 Build Date: $(date)
 Build ID: $TIMESTAMP
@@ -224,7 +224,7 @@ EOF
 main() {
     echo ""
     echo "╔════════════════════════════════════════════════════════════╗"
-    echo "║   OS Dashboard AI Assistant - Multi-Platform Build        ║"
+    echo "║   AI OS - Multi-Platform Build        ║"
     echo "╚════════════════════════════════════════════════════════════╝"
     echo ""
     

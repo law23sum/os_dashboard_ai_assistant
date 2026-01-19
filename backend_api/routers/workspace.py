@@ -20,7 +20,7 @@ class WorkspaceCheckRequest(BaseModel):
 
 
 @router.get("/workspace/scan")
-async def workspace_scan(root: str | None = Query(None), max_depth: int = Query(2)) -> dict:
+async def workspace_scan(root: Optional[str] = Query(None), max_depth: int = Query(2)) -> dict:
     """Discover git repos and return inferred command profiles."""
 
     base = Path(root) if root else harness.REPO_ROOT
@@ -28,7 +28,7 @@ async def workspace_scan(root: str | None = Query(None), max_depth: int = Query(
 
 
 @router.get("/workspace/doctor")
-async def workspace_doctor(root: str | None = Query(None)) -> dict:
+async def workspace_doctor(root: Optional[str] = Query(None)) -> dict:
     """Lightweight environment diagnostics for the workspace."""
 
     base = Path(root) if root else harness.REPO_ROOT

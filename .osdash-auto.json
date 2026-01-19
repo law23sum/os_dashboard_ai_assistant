@@ -16,5 +16,5 @@
     "type_check": "python -m mypy backend_api assistant_core",
     "format": "python -m ruff format ."
   },
-  "notes": "OS Dashboard AI Assistant - Primary project manifest. This file configures how the unified orchestrator and auto-fix systems interact with this project."
+  "notes": "AI OS - Primary project manifest. This file configures how the unified orchestrator and auto-fix systems interact with this project."
 }

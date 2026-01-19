@@ -1,0 +1,786 @@
+# Spec-to-Code Traceability
+
+Note: V9 spec file not found in repo; traceability is based on keyword scan only.
+
+- AGENTS.md: 7
+- Agent.registry.yaml: 25, 30, 53, 59, 76, 92, 112
+- BRANCH_MERGE_COMPLETE_SUMMARY.md: 50
+- COMPLETE_RESTORATION_PLAN.md: 15
+- EXECUTION_PIPELINE.md: 98, 138, 193
+- FINAL_RESTORATION_STATUS.md: 74
+- FIXES_APPLIED.txt: 30
+- FRONTEND_UPDATE_SUMMARY.md: 70
+- GUI_NAVIGATION_FIXED.md: 82
+- IA_RELATIONSHIPS_CORRECTED.md: 5
+- IA_RELATIONSHIP_CLARIFICATION.md: 5, 47, 52
+- IA_STRUCTURE_CLARIFICATION.md: 1, 88, 106
+- MERGE_AND_CLEANUP_COMPLETE.md: 28, 78
+- MERGE_AND_PATH_RESOLUTION_SUMMARY.md: 172, 177
+- MERGE_COMPLETE.md: 79
+- MERGE_COMPLETE_FINAL.md: 5, 28, 43
+- MERGE_COMPLETE_NAVIGATION_STRUCTURE.md: 115, 120, 128, 164
+- MERGE_STRATEGY_SUMMARY.md: 33
+- NAVIGATION_FRONTEND_INTEGRATION.md: 19
+- NAVIGATION_RELATIONSHIPS_CLARIFIED.md: 34
+- NAVIGATION_RESTORATION_STATUS.md: 42, 48
+- OS DashboardAIAssistantTOC.txt: 2, 53, 201, 264, 271, 306, 362, 368, 456, 459...
+- PAGE_CREATION_PROGRESS.md: 4, 11, 24, 25, 33
+- PAGE_RESTORATION_COMPLETE_SUMMARY.md: 55
+- PAGE_RESTORATION_FINAL_SUMMARY.md: 23
+- PAGE_RESTORATION_IA_COMPLETE.md: 24, 114, 153
+- PAGE_RESTORATION_IA_STATUS.md: 35, 43
+- QUICK_REFERENCE.md: 5, 17, 19, 120
+- README.md: 53, 132, 133, 509, 601, 610, 649, 712, 729, 793...
+- RESTORATION_COMPLETE_SUMMARY.md: 28
+- RESTORATION_PROGRESS_SUMMARY.md: 83
+- REUSABLE_CODE_PATTERNS.md: 5, 104, 136, 178, 213, 274, 291, 336, 419, 446...
+- SCRIPTS_READY_FOR_USE.md: 105
+- STRATEGIC_MERGE_SUMMARY.md: 87
+- Technical Spec Sheet (Version 6 Latest Version).txt: 1, 7, 55, 231, 292, 304, 311, 344, 408, 414...
+- TechnicalSpec.txt: 1, 6, 54, 227, 288, 299, 306, 339, 402, 408...
+- Technical_Spec_Sheet_v6.txt: 1, 7, 55, 231, 292, 304, 311, 344, 408, 414...
+- VERIFICATION_COMPLETE.md: 10, 75
+- agents_ai.py: 5, 27, 31, 213, 268, 328, 413, 414, 418, 436...
+- ai_os/app/ai_proxy.py: 14, 28, 29, 37, 50, 55, 72, 77, 82
+- ai_os/app/domain/__init__.py: 5
+- ai_os/app/governance/audit.py: 14
+- ai_os/app/main.py: 36, 152, 895
+- ai_os/app/planes/__init__.py: 4
+- ai_os/app/system_monitor.py: 3, 22, 32, 43, 50
+- api_connectors/base.py: 96, 189, 226
+- api_connectors/google_client.py: 118, 121
+- api_connectors/integrations/image_integration.py: 78, 113, 136, 142, 143, 145, 147, 149, 154, 428...
+- api_connectors/integrations/office_integration.py: 181
+- api_connectors/integrations/pdf_integration.py: 351
+- api_connectors/pdf.py: 116
+- api_connectors/universal_connector.py: 54, 56, 145, 279, 329, 378, 416, 662, 1065, 1087...
+- assistant_core/advanced_ai_engine.py: 1248, 1249, 1313, 1318, 1320
+- assistant_core/agent_service.py: 132, 261, 267
+- assistant_core/ai.py: 319, 668, 785, 790, 874, 929, 957, 960, 1048
+- assistant_core/ai_discussion.py: 559
+- assistant_core/ai_layer/agents/data_science_agent.py: 412, 623
+- assistant_core/ai_layer/prompts.py: 32
+- assistant_core/ai_services_api.py: 28, 718, 1170, 1171
+- assistant_core/ai_task_creation.py: 117
+- assistant_core/analytics.py: 70
+- assistant_core/audit_system.py: 1192, 1355, 1385
+- assistant_core/automation_orchestrator.py: 27, 114, 115, 259, 637, 638, 644, 718, 1573, 1574
+- assistant_core/capsule_registry.py: 22, 23, 38, 55, 56, 62, 73, 84, 95, 106...
+- assistant_core/cir/schema.py: 341, 410, 497, 564, 624, 658
+- assistant_core/cognitive_framework.py: 3, 21, 110, 118, 653, 654
+- assistant_core/collaboration_intelligence.py: 524
+- assistant_core/computer_vision_ai.py: 366, 373, 588, 867, 893, 1078, 1092
+- assistant_core/content/generators.py: 30, 552
+- assistant_core/conversation_helpers.py: 173
+- assistant_core/core/scheduler.py: 66
+- assistant_core/daemon/automators.py: 85
+- assistant_core/daemon/workflow_orchestration.py: 385
+- assistant_core/dashboard/main_interface.py: 59, 1015, 1223, 1269, 1288, 1309, 1310, 1311, 1312, 1313...
+- assistant_core/developer_portal.py: 399, 400, 402, 430, 431, 434, 444, 449, 451, 454...
+- assistant_core/document_manager.py: 36, 343, 399, 431
+- assistant_core/domain/models.py: 1, 388
+- assistant_core/driver_architecture.py: 5, 12, 63, 76, 168
+- assistant_core/driver_orchestrator_architecture.py: 13, 102, 237, 307, 451, 482, 565
+- assistant_core/driver_registry.py: 19, 20, 41, 44, 50, 75, 100, 120, 140, 165...
+- assistant_core/drivers/builtin.py: 38
+- assistant_core/edge_computing_ai.py: 205
+- assistant_core/failure_registry.py: 1, 11, 61, 97
+- assistant_core/file_tools.py: 13, 21, 700, 701, 779, 848
+- assistant_core/guidance_integration.py: 201, 206, 225
+- assistant_core/hyperdaemon/risk_monitor.py: 9
+- assistant_core/integration_foundations.py: 103, 706, 708, 868
+- assistant_core/integrations/__init__.py: 7, 26
+- assistant_core/integrations/advanced_systems.py: 48, 68, 245, 371, 377, 378, 382, 412, 798, 801...
+- assistant_core/integrations/onedrive_project.py: 36
+- assistant_core/intelligence/data_collector.py: 43, 52, 61
+- assistant_core/intelligence/office_ai_service.py: 92, 128, 158, 195, 267
+- assistant_core/intelligence/quality_assurance.py: 2, 136, 140, 184, 848
+- assistant_core/intelligent_monitoring.py: 343, 498
+- assistant_core/operations/concurrent_manager.py: 145, 392
+- assistant_core/partner_analytics.py: 1090
+- assistant_core/partner_management.py: 980, 981
+- assistant_core/plugin_marketplace.py: 14, 430, 431, 432, 436, 438
+- assistant_core/predictive_analytics.py: 361, 587, 945
+- assistant_core/search_engine.py: 87, 839
+- assistant_core/security/auth_manager.py: 282, 402, 437, 441, 445, 447, 678, 695
+- assistant_core/security/encryption_service.py: 814
+- assistant_core/security/governance_engine.py: 29, 211, 290, 323, 346, 379, 430, 439, 449, 463...
+- assistant_core/security_framework.py: 486
+- assistant_core/spec/__init__.py: 1, 3, 8, 9, 10
+- assistant_core/spec/architecture.py: 57, 78
+- assistant_core/spec/cli.py: 1, 8, 12, 30
+- assistant_core/spec/technical_spec.py: 1, 51, 60, 73, 163, 166, 167, 168, 169, 170...
+- assistant_core/spec_registry.py: 1, 18, 23, 34, 41, 42, 44, 45, 46, 50...
+- assistant_core/system/operations.py: 632, 713, 872
+- assistant_core/task_automation.py: 8, 43, 133, 134
+- assistant_core/tooling_patterns.py: 13, 269, 270, 275
+- assistant_core/workspaces.py: 449, 764
+- assistant_hub/ai.py: 45, 429, 614
+- assistant_hub/ai_layer/prompts.py: 4, 32, 35
+- assistant_hub/ai_task_creation.py: 117
+- assistant_hub/analytics.py: 70
+- assistant_hub/api/server.py: 101, 347, 633, 634, 635, 636, 638, 640
+- assistant_hub/command_catalog.py: 12, 25, 26, 41, 71, 101, 126, 161, 283
+- assistant_hub/core/scheduler.py: 66
+- assistant_hub/daemon/automators.py: 85
+- assistant_hub/dashboard_workspace.py: 95
+- assistant_hub/demo_seed.py: 56, 87, 195, 209, 356
+- assistant_hub/document_manager.py: 38, 345, 403, 435
+- assistant_hub/document_templates.py: 170, 171
+- assistant_hub/export_import.py: 151, 200
+- assistant_hub/file_task_extraction.py: 154, 203
+- assistant_hub/gui.py: 491, 525, 1569, 2902
+- assistant_hub/integrations/adobe_client.py: 271, 369
+- assistant_hub/integrations/api.py: 88, 104, 185
+- assistant_hub/integrations/base.py: 137
+- assistant_hub/integrations/excel/local_client.py: 20
+- assistant_hub/integrations/excel/service.py: 22
+- assistant_hub/integrations/filesystem_integration.py: 116
+- assistant_hub/integrations/msgraph/client.py: 340
+- assistant_hub/integrations/onenote/client.py: 11
+- assistant_hub/integrations/sample_data_preview.py: 30
+- assistant_hub/projects_workspace.py: 49
+- assistant_hub/research_workspace.py: 6
+- assistant_hub/sync_scheduler.py: 99
+- assistant_hub/task_automation.py: 42
+- assistant_hub/task_templates.py: 103
+- assistant_hub/tasks_workspace.py: 71
+- assistant_hub/ui/terminal/harness.py: 126, 127
+- assistant_hub/ui/terminal/workspace.py: 77, 119, 127
+- assistant_hub/versioning/git_manager.py: 93, 142
+- assistant_hub/writer_workspace.py: 29, 174
+- assistant_hub_gui/add_projects_from_pdf.py: 22, 59
+- assistant_hub_gui/add_tasks_from_pdf.py: 36, 255, 550
+- assistant_hub_gui/assistant_hub/ai.py: 115, 541, 740
+- assistant_hub_gui/assistant_hub/ai_layer/prompts.py: 4, 36, 42
+- assistant_hub_gui/assistant_hub/ai_task_creation.py: 117
+- assistant_hub_gui/assistant_hub/analytics.py: 70
+- assistant_hub_gui/assistant_hub/backend_registry.py: 8, 26, 43, 44, 88, 89, 91
+- assistant_hub_gui/assistant_hub/code_analysis.py: 90, 106, 132, 238
+- assistant_hub_gui/assistant_hub/comments.py: 73, 129, 165, 195
+- assistant_hub_gui/assistant_hub/core/scheduler.py: 66
+- assistant_hub_gui/assistant_hub/daemon/automators.py: 75
+- assistant_hub_gui/assistant_hub/daemon/cognitive_daemon.py: 91
+- assistant_hub_gui/assistant_hub/db.py: 87, 143, 170, 222, 236, 250, 268, 283, 295, 296...
+- assistant_hub_gui/assistant_hub/db_fixed.py: 73, 99, 145, 159, 173, 188, 472, 630, 688, 833...
+- assistant_hub_gui/assistant_hub/document_manager.py: 41, 439, 497, 529
+- assistant_hub_gui/assistant_hub/document_templates.py: 165, 166, 243, 256, 295, 438, 461, 482, 682, 683...
+- assistant_hub_gui/assistant_hub/export_import.py: 151, 200
+- assistant_hub_gui/assistant_hub/file_task_extraction.py: 154, 203
+- assistant_hub_gui/assistant_hub/gui.py: 122, 258, 449, 452, 453, 755, 756, 823, 825, 857...
+- assistant_hub_gui/assistant_hub/integrations/adobe_client.py: 271, 369
+- assistant_hub_gui/assistant_hub/integrations/api.py: 88, 104, 185
+- assistant_hub_gui/assistant_hub/integrations/base.py: 137
+- assistant_hub_gui/assistant_hub/integrations/excel/local_client.py: 20
+- assistant_hub_gui/assistant_hub/integrations/excel/service.py: 22
+- assistant_hub_gui/assistant_hub/integrations/filesystem_integration.py: 116
+- assistant_hub_gui/assistant_hub/integrations/msgraph/client.py: 350
+- assistant_hub_gui/assistant_hub/integrations/onenote/client.py: 11
+- assistant_hub_gui/assistant_hub/integrations/sample_data_preview.py: 30
+- assistant_hub_gui/assistant_hub/knowledge_graph.py: 56
+- assistant_hub_gui/assistant_hub/pms_journal.py: 27
+- assistant_hub_gui/assistant_hub/pms_models.py: 12, 64
+- assistant_hub_gui/assistant_hub/pms_store.py: 19, 80, 654, 668, 678, 743, 755
+- assistant_hub_gui/assistant_hub/project_insights.py: 12, 148
+- assistant_hub_gui/assistant_hub/spec_registry.py: 1, 14, 15, 31, 32, 36, 37, 39, 40, 48...
+- assistant_hub_gui/assistant_hub/sync_scheduler.py: 162
+- assistant_hub_gui/assistant_hub/task_automation.py: 42
+- assistant_hub_gui/assistant_hub/task_templates.py: 101
+- assistant_hub_gui/assistant_hub/versioning/git_manager.py: 93, 142
+- assistant_hub_gui/autofix_monitor.py: 30
+- assistant_hub_gui/backups/export_20260105_032638.json: 6014, 6026, 6042, 6070, 6098, 6126, 6154, 6182, 6210, 6238...
+- assistant_hub_gui/backups/export_20260105_032722.json: 6269, 6281, 6297, 6325, 6353, 6381, 6409, 6437, 6465, 6493...
+- assistant_hub_gui/backups/export_20260105_053748.json: 81, 93, 109, 137, 165
+- assistant_hub_gui/backups/export_20260105_074039.json: 431
+- assistant_hub_gui/backups/export_20260105_082325.json: 635
+- assistant_hub_gui/backups/export_20260105_082451.json: 815
+- assistant_hub_gui/backups/export_20260105_084040.json: 995
+- assistant_hub_gui/backups/export_20260105_112456.json: 1175
+- assistant_hub_gui/backups/export_20260105_113236.json: 1355
+- assistant_hub_gui/documents/Samples/Risk Assessment Outline.json: 6
+- assistant_hub_gui/extract_tasks_from_projects.py: 103, 139, 220, 238, 239, 244, 276, 277, 303, 436...
+- assistant_hub_gui/main.py: 49
+- assistant_hub_gui/samples/sample_document.txt: 23, 58, 89
+- assistant_hub_gui/security_status_cli.py: 27, 70
+- assistant_hub_gui/update_projects_tasks_with_priority.py: 21, 39, 82, 526
+- assistant_hub_gui/webview_app.py: 120, 261
+- backend_api/.venv/lib/python3.9/site-packages/_distutils_hack/__init__.py: 73, 77, 81, 87, 93, 95, 103
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/build_env.py: 17, 51, 163, 166, 167, 183, 188, 191, 199, 210...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/cli/autocompletion.py: 39, 42, 69
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/cli/cmdoptions.py: 107, 121, 227, 260, 404, 408, 412, 528, 593, 610...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/cli/parser.py: 206, 231, 242
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/cli/req_command.py: 32, 337, 345, 347, 349, 361, 371, 380, 383, 384...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/__init__.py: 16, 36, 60, 64, 68
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/cache.py: 17, 170, 198
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/check.py: 46
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/configuration.py: 28
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/debug.py: 45, 93, 148
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/download.py: 21, 26, 27, 31, 32, 39, 78, 104, 131
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/freeze.py: 16, 28, 32, 75
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/hash.py: 19
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/index.py: 24, 104
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/install.py: 65, 70, 71, 75, 76, 82, 136, 150, 152, 286...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/uninstall.py: 11, 34, 39, 43, 68, 71, 72
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/commands/wheel.py: 23, 29, 37, 38, 61, 117, 145
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/configuration.py: 37, 39, 143, 235, 266
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/distributions/__init__.py: 11
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/distributions/base.py: 13, 18, 19
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/distributions/sdist.py: 57, 62, 65, 66, 69, 72, 76, 84, 90, 93
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/exceptions.py: 67, 81, 82, 254, 263, 272, 273, 274, 294, 295...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/index/package_finder.py: 12, 71, 242, 245, 247, 250, 381, 389, 390, 396...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/index/sources.py: 31, 40, 189
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/locations/__init__.py: 222, 230, 236, 243, 269, 277
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/locations/_distutils.py: 75, 158, 162, 167, 168
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/locations/_sysconfig.py: 33, 47, 61, 158, 174
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/metadata/__init__.py: 27, 39
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/metadata/base.py: 16, 170
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/metadata/pkg_resources.py: 15, 144
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/models/direct_url.py: 180
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/models/link.py: 54, 62, 231
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/models/search_scope.py: 118
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/models/target_python.py: 96
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/network/auth.py: 98, 115, 152
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/network/lazy_wheel.py: 91, 123
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/network/session.py: 1, 320
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/network/utils.py: 62
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/operations/check.py: 7, 49, 87, 101
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/operations/freeze.py: 16, 64, 137, 138, 145, 254
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/operations/install/legacy.py: 127
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/operations/install/wheel.py: 285, 289, 296, 298, 365, 432, 437, 439, 445, 447...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/operations/prepare.py: 90, 109, 111, 117, 118, 123, 157, 169, 203, 356...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/pyproject.py: 6, 40, 49, 51, 84, 109, 122, 132, 168, 171...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/req/__init__.py: 7, 9, 12, 13, 27, 28, 30, 36, 51
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/req/constructors.py: 17, 18, 19, 39, 66, 73, 125, 132, 135, 140...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/req/req_file.py: 2, 14, 28, 48, 60, 116, 123, 125, 130, 133...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/req/req_install.py: 14, 15, 169, 182, 185, 186, 239, 247, 248, 256...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/req/req_set.py: 15, 18, 21, 24, 27, 28, 31, 34, 35, 42...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/req/req_uninstall.py: 76, 465
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/base.py: 4, 12, 16
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/legacy/resolver.py: 5, 6, 8, 22, 40, 74, 102, 147, 158, 170...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/resolvelib/base.py: 3, 24, 26, 32, 37, 40, 48, 53, 62
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/resolvelib/candidates.py: 5, 242, 243, 247, 252, 395, 404, 414, 423, 492...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/resolvelib/factory.py: 21, 22, 23, 62, 65, 83, 84, 106, 224, 243...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/resolvelib/provider.py: 43, 45, 46, 83, 87, 88, 89, 90, 97, 98...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/resolvelib/reporter.py: 20, 25
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/resolvelib/requirements.py: 1, 42, 44, 59, 68, 69, 91, 92, 93, 99...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/resolution/resolvelib/resolver.py: 15, 74, 75, 95, 105, 181, 182, 186, 188, 208...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/self_outdated_check.py: 85
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/compatibility_tags.py: 121, 126, 128, 130
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/deprecation.py: 36
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/direct_url_helpers.py: 52
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/filesystem.py: 31, 47, 63
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/hashes.py: 50
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/logging.py: 224
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/misc.py: 93
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/packaging.py: 7, 19, 27, 32, 35
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/temp_dir.py: 127
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/unpacking.py: 203, 216
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/virtualenv.py: 47, 59
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/vcs/git.py: 265, 277, 501
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/vcs/subversion.py: 206
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/vcs/versioncontrol.py: 113, 155, 715
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/wheel_builder.py: 1, 54, 84, 123, 311, 323, 329, 334, 359
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/__init__.py: 74
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/appdirs.py: 6, 14, 50, 78, 171, 196, 265, 326, 351, 352...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/cachecontrol/caches/file_cache.py: 21
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/cachecontrol/serialize.py: 108
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/chardet/__init__.py: 70
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/chardet/cli/chardetect.py: 57
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/chardet/codingstatemachine.py: 45
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/chardet/hebrewprober.py: 45, 51, 84, 86
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/chardet/universaldetector.py: 259
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/colorama/ansitowin32.py: 32
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/_backport/shutil.py: 41, 50, 52, 102, 104, 230, 551
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/_backport/sysconfig.py: 260, 604, 605, 622, 677
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/_backport/tarfile.py: 94, 95, 97, 1915, 1935, 2041, 2129, 2168, 2243, 2332
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/compat.py: 172, 391, 396, 811
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/database.py: 83, 256, 303, 380, 382, 384, 389, 393, 397, 401...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/index.py: 40, 155, 176, 179, 218, 250, 327, 351, 382, 390...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/locators.py: 106, 331, 605, 676, 685, 902, 932, 1020, 1073, 1158...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/manifest.py: 262, 283, 363, 376, 377, 383, 385
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/markers.py: 52
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/metadata.py: 187, 361, 569, 575, 729, 780, 827, 865, 1037, 1039...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/scripts.py: 29, 72, 105, 188, 395, 399, 400, 407, 409, 414...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/util.py: 200, 233, 516, 562, 711, 712, 715, 716, 717, 727...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/version.py: 102
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distlib/wheel.py: 339, 433, 471, 472, 669, 860, 1004
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/distro.py: 12, 179, 220, 372, 573, 574, 603, 612, 822, 926...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/html5lib/__init__.py: 2
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/html5lib/_ihatexml.py: 171, 173
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/html5lib/_inputstream.py: 167, 397
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/html5lib/_utils.py: 45
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/html5lib/constants.py: 342, 384, 478, 486, 487
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/html5lib/filters/sanitizer.py: 458, 792, 794
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/html5lib/html5parser.py: 15, 268, 296, 338, 942, 1074, 1468, 1472, 1596, 1699...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/html5lib/serializer.py: 13, 14, 15, 76, 144, 314, 315, 320
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/html5lib/treebuilders/base.py: 220, 340, 360, 396
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/html5lib/treebuilders/etree.py: 121
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/html5lib/treebuilders/etree_lxml.py: 4
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/html5lib/treewalkers/base.py: 23
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/idna/core.py: 18
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/msgpack/fallback.py: 159, 184, 189, 767, 786
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/_manylinux.py: 168
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/_musllinux.py: 26, 90
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/markers.py: 23, 191, 192, 195
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/requirements.py: 24, 56, 57, 62, 63, 64, 66, 67, 76, 90...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/specifiers.py: 33, 35, 39, 43, 44, 50, 56, 63, 71, 78...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/tags.py: 186, 189, 284, 351
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pep517/build.py: 42
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pep517/colorlog.py: 16
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pep517/envbuild.py: 138, 160
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pep517/in_process/_in_process.py: 6, 228
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pep517/wrappers.py: 81, 107, 160, 164, 213, 217, 266, 270
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pkg_resources/__init__.py: 41, 83, 84, 122, 226, 293, 388, 428, 459, 463...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/progress/__init__.py: 10
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/progress/bar.py: 12
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/progress/counter.py: 12
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/progress/spinner.py: 12
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/pyparsing.py: 352, 410, 421, 703, 760, 771, 1292, 1964, 2532, 2568...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/requests/adapters.py: 80, 219
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/requests/compat.py: 38
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/requests/cookies.py: 166, 167, 176, 302, 442, 469, 470, 472
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/requests/models.py: 179, 210, 552, 641, 755
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/requests/sessions.py: 125, 126, 316, 639
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/requests/utils.py: 96, 150
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/resolvelib/__init__.py: 8, 21
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/resolvelib/providers.py: 7, 8, 23, 31, 33, 54, 59, 61, 67, 68...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/resolvelib/reporters.py: 30
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/resolvelib/resolvers.py: 21, 23, 27, 56, 58, 71, 75, 149, 173, 213...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/six.py: 75, 77, 194, 196, 223, 236, 237, 322, 981, 982
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/tenacity/__init__.py: 16, 27, 156
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/tenacity/_asyncio.py: 15
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/tenacity/_utils.py: 14
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/tenacity/after.py: 14
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/tenacity/before.py: 14
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/tenacity/before_sleep.py: 14
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/tenacity/nap.py: 15
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/tenacity/retry.py: 14
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/tenacity/stop.py: 14
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/tenacity/tornadoweb.py: 12
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/tenacity/wait.py: 14
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/tomli/_parser.py: 79, 674
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/_collections.py: 9, 193
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/connection.py: 21, 85, 519
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/connectionpool.py: 76, 341, 466, 536, 564, 593, 655, 1036, 1060
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/contrib/_securetransport/bindings.py: 458
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/contrib/_securetransport/low_level.py: 162
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/contrib/appengine.py: 31, 38
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/contrib/pyopenssl.py: 67, 69, 403, 410, 488
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/contrib/securetransport.py: 81, 83, 411, 600, 767, 774, 843
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/contrib/socks.py: 53
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/exceptions.py: 182, 204
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/filepost.py: 71
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/packages/six.py: 75, 77, 190, 192, 219, 233, 234, 334, 1058, 1059
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/packages/ssl_match_hostname/_implementation.py: 144
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/poolmanager.py: 236, 509
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/request.py: 18, 65, 151
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/response.py: 338, 487, 522, 731, 779
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/util/connection.py: 12, 23, 30, 111, 116
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/util/response.py: 105
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/util/retry.py: 201, 202, 239, 281, 300, 362, 403, 409, 453, 465...
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/util/ssl_.py: 62, 133, 218, 278, 283, 328
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/util/timeout.py: 6, 11, 48, 49, 80, 89, 125
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/util/wait.py: 73, 92, 137
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/webencodings/__init__.py: 8, 42, 64, 65
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/webencodings/mklabels.py: 59
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/__init__.py: 38, 77, 78, 107, 211, 278, 373, 413, 444, 448...
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/_vendor/appdirs.py: 6, 14, 46, 74, 167, 192, 258, 315, 340, 341...
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/_vendor/packaging/markers.py: 17, 197, 198, 201
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/_vendor/packaging/requirements.py: 16, 51, 52, 57, 58, 59, 61, 62, 71, 85...
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/_vendor/packaging/specifiers.py: 34, 36, 40, 45, 46, 53, 60, 68, 77, 85...
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/_vendor/packaging/tags.py: 226, 229, 331, 394
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/_vendor/pyparsing.py: 250, 513, 567, 577, 1048, 1663, 2140, 2176, 2400, 2441...
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/extern/__init__.py: 51, 52, 57, 58, 60
+- backend_api/.venv/lib/python3.9/site-packages/setuptools-58.0.4.dist-info/entry_points.txt: 30, 34, 35, 39, 50
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/__init__.py: 57, 58, 151
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/_msvccompiler.py: 92, 99, 117, 124, 130, 221, 222, 224, 369, 371
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/archive_util.py: 210
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/bcppcompiler.py: 61, 268, 314
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/ccompiler.py: 124, 261, 364, 412, 429, 604, 642, 645, 648, 669...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/cmd.py: 91, 342, 351, 359, 363, 375
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/bdist_msi.py: 98, 163, 211, 214, 564, 634
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/bdist_rpm.py: 23, 26, 28, 32, 33, 34, 42, 43, 95, 97...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/bdist_wininst.py: 29, 52, 106, 156, 159, 308, 320, 324
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/build.py: 26, 38, 46, 84, 90, 99, 114
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/build_clib.py: 42
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/build_ext.py: 87, 152, 245
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/build_py.py: 78, 86, 87, 127, 233, 286
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/build_scripts.py: 24
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/config.py: 4, 27, 29
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/install.py: 96, 104, 170, 349, 424, 452
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/command/sdist.py: 57, 102, 393
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/core.py: 77, 86
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/cygwinccompiler.py: 24, 39, 227, 233, 296
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/dep_util.py: 55
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/dist.py: 48, 53, 55, 196, 198, 244, 461, 973
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/extension.py: 32, 53, 56, 62, 80
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/file_util.py: 141, 165, 230
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/filelist.py: 186, 207, 300, 301, 307, 309, 351
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/msvc9compiler.py: 365, 368, 371, 499, 501
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/msvccompiler.py: 387, 389
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/spawn.py: 4, 19
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/sysconfig.py: 1, 89, 92, 93, 94, 98, 101, 111, 131, 135...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/unixccompiler.py: 7, 8, 9, 33, 225, 276, 277, 285
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/util.py: 22, 35, 148, 347
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/version.py: 254, 261
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_distutils/versionpredicate.py: 162
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_imp.py: 10, 20, 22, 24, 31, 32, 34, 35, 39, 40...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/more_itertools/more.py: 410, 523, 538, 872, 1031, 1037, 1076, 1173, 1217, 1252...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/more_itertools/recipes.py: 82, 235, 498
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/packaging/markers.py: 17, 197, 198, 201
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/packaging/requirements.py: 16, 51, 52, 57, 58, 59, 61, 62, 71, 85...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/packaging/specifiers.py: 34, 36, 40, 45, 46, 53, 60, 68, 77, 85...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/packaging/tags.py: 226, 229, 331, 394
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/pyparsing.py: 250, 513, 567, 577, 1048, 1663, 2140, 2176, 2400, 2441...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/build_meta.py: 5, 40, 48, 51, 52, 53, 57, 58, 60, 128...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/alias.py: 37
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/bdist_egg.py: 50, 51, 52, 384, 391
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/bdist_rpm.py: 19, 20, 21, 29, 31
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/build_clib.py: 14, 19, 46
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/build_ext.py: 264, 266, 267
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/build_py.py: 21, 24, 196, 198, 199, 204, 205, 208, 222
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/develop.py: 128
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/dist_info.py: 3
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/easy_install.py: 135, 186, 266, 348, 352, 365, 407, 408, 493, 611...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/egg_info.py: 26, 63, 156, 208, 212, 237, 613, 652, 661, 664...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/install.py: 2, 44, 63, 87, 89
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/install_egg_info.py: 54
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/install_lib.py: 28, 29
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/install_scripts.py: 51
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/rotate.py: 30, 34
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/sdist.py: 161
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/setopt.py: 109, 139, 141
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/command/test.py: 81, 99, 190, 247
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/config.py: 17, 26, 27, 362, 363, 404, 413, 638
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/depends.py: 50
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/dist.py: 46, 203, 274, 282, 299, 300, 302, 308, 313, 314...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/extern/__init__.py: 51, 52, 57, 58, 60
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/glob.py: 21, 35, 158
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/installer.py: 38
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/monkey.py: 11, 26, 33, 99, 130
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/msvc.py: 213, 221, 226, 227, 229, 260, 268, 276, 296, 305...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/namespaces.py: 51, 52
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/package_index.py: 54, 56, 59, 539, 540, 542, 543, 549, 550, 552...
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/py34compat.py: 10, 12, 13
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/wheel.py: 17, 163
+- backend_api/main.py: 29, 325, 391, 480, 481, 482, 483, 484, 486, 488
+- backend_api/routers/admin.py: 8, 275
+- backend_api/routers/ai_agents.py: 43, 54, 69, 109, 148, 178, 185, 190, 208, 242
+- backend_api/routers/ai_enhanced.py: 99, 324, 326, 340
+- backend_api/routers/ai_systems.py: 499, 599, 625
+- backend_api/routers/audit.py: 113, 322, 345
+- backend_api/routers/auth.py: 120, 187, 346
+- backend_api/routers/autofix.py: 1
+- backend_api/routers/capsules.py: 1, 17, 37, 221
+- backend_api/routers/chat.py: 153, 235, 302
+- backend_api/routers/coach.py: 1, 24, 49, 78, 80, 107, 136, 165, 194, 202...
+- backend_api/routers/data_management.py: 206
+- backend_api/routers/document_viewer.py: 245, 307
+- backend_api/routers/documents.py: 61, 340
+- backend_api/routers/files.py: 70, 100
+- backend_api/routers/integrations.py: 147
+- backend_api/routers/intelligence.py: 103, 302
+- backend_api/routers/intents.py: 1
+- backend_api/routers/network_monitoring.py: 657
+- backend_api/routers/orchestrator.py: 69
+- backend_api/routers/platform.py: 34, 42, 67, 97, 236, 290, 291
+- backend_api/routers/pms.py: 129, 140, 419
+- backend_api/routers/project_orchestrator.py: 115, 146, 186
+- backend_api/routers/projects.py: 171, 189, 372, 378, 384, 636, 724, 730, 783, 906
+- backend_api/routers/security_threat.py: 207
+- backend_api/routers/templates.py: 80, 102
+- backend_api/routers/unified_logging.py: 210
+- backend_api/routers/vector_stores.py: 35
+- backend_api/routers/workflow_orchestration.py: 231
+- backend_api/routers/workspace_health.py: 4, 230, 364, 419
+- backend_api/routers/writer.py: 93
+- branch_content_analysis.json: 22, 51, 80, 109, 138, 167, 196, 225, 254, 283
+- build-executable.py: 49, 50, 58, 187, 188, 192
+- colorlog.py: 40
+- comprehensive_page_inventory.json: 306, 307, 314, 315
+- config/config.py: 117, 118
+- config/default_config.yaml: 134
+- config/samples/sample_document.txt: 23, 58, 89
+- coverage.json: 1
+- cursor_ai.py: 408, 419
+- cursor_chat.py: 26, 27, 28
+- dashboard.js: 423
+- docs/AGENT_RESOURCE_CONTROLS.md: 1
+- docs/ASSISTANTS_API_DEPRECATION_STATUS.md: 75
+- docs/ASSISTANTS_FUNCTION_CALLING_CAPABILITIES.md: 633
+- docs/BACKEND_FRONTEND_INTEGRATION.md: 132
+- docs/CODE_INTERPRETER_CAPABILITIES.md: 114
+- docs/DEEP_RESEARCH.md: 15
+- docs/ENVIRONMENTS.md: 29, 184, 211, 278, 306, 361, 418, 428
+- docs/FILE_SEARCH_CAPABILITIES_SUMMARY.md: 200, 215, 216, 330
+- docs/FILE_SEARCH_ENHANCEMENTS.md: 14, 271, 277, 282, 285, 297, 302, 303, 308, 317...
+- docs/FUTURE_VERSION_1000_BLUEPRINT.md: 5, 22
+- docs/GPT5.2_FEATURES.md: 11, 12, 22, 24
+- docs/MEMORY_RESOURCE_MANAGER.md: 3
+- docs/RAG_PROMPT_TOOLING.md: 33, 36
+- docs/RAG_PROMPT_TOOLING_COMPLETE.md: 36, 100, 149
+- docs/RAG_PROMPT_TOOLING_QUICK_START.md: 8
+- docs/READY_FOR_USE.md: 141
+- docs/RESPONSES.md: 165, 192
+- docs/RETRIEVAL_API.md: 6, 92, 173, 175, 272
+- docs/UNIFIED_EVENT_JOURNAL.md: 109
+- docs/UNIFIED_PROJECT_SYSTEM.md: 75, 176, 203, 264, 266, 277
+- docs/WEBHOOKS.md: 3, 209
+- docs/WEB_SEARCH.md: 3, 93
+- docs/adr/0002-postgres-migration.md: 16
+- docs/frontend_migration_plan.md: 100
+- docs/gpt-5.1-codex-max-prompting-guide.md: 18, 32, 40, 85, 130
+- docs/gpt-5.2-prompting-guide.md: 7, 27, 30, 39, 76, 109, 164, 167, 172, 181...
+- docs/integration/legacy_recovery_plan.json: 161, 163, 164, 165, 2087, 2089, 2090, 2091, 5077, 5078...
+- docs/migration_continued.md: 78, 81, 152, 154, 156, 157, 160, 162, 167, 170...
+- docs/pms.md: 21, 95, 98, 112
+- docs/scripts/product-data.js: 120, 562
+- docs/tk_to_react_mapping.md: 15, 52
+- docs/ui_deployment.md: 8
+- docs/web_surface_spec_alignment.md: 1, 4, 5, 10, 12, 13, 14, 15, 16, 17...
+- documentation/ADVICE_FROM_CHIEF_FELLOW.md: 5, 9, 13
+- documentation/AI_FEATURES_IMPLEMENTATION.md: 236, 293
+- documentation/AI_OFFICE_AGENT_REALTIME.md: 547
+- documentation/AI_SCRIPTS_README.md: 70, 73, 107, 110
+- documentation/AI_SYSTEMS_README.md: 35, 111, 213, 216, 224, 228, 244, 324, 325, 407...
+- documentation/API_KEYS_ACCESS_GUIDE.md: 210, 223, 227
+- documentation/API_KEYS_GUIDE.md: 462
+- documentation/ARCHITECTURE_BLUEPRINT.md: 7, 19, 39
+- documentation/ARCHITECTURE_DECISIONS.md: 12
+- documentation/ARCHITECTURE_IMPLEMENTATION.md: 95
+- documentation/AUTOMATION_ORCHESTRATION_INTEGRATION.md: 33, 49, 301
+- documentation/BLUEPRINT_V+1000.md: 38
+- documentation/CANONICAL_INTERNAL_REPRESENTATION.md: 233, 363, 377, 385, 429, 467, 512, 610
+- documentation/COGNITIVE_DAEMON_SYSTEM.md: 48, 138, 198, 209, 210, 229
+- documentation/CONVERSATION_AI_INTEGRATION.md: 25, 57
+- documentation/DAEMON_FRAMEWORK_ARCHITECTURE.md: 3, 279, 571, 955, 969, 1075, 1092, 1096, 1145
+- documentation/DEAD_CODE_LINKAGE.md: 13
+- documentation/DEPLOYMENT.md: 62, 317, 331
+- documentation/DOCUMENT_TEMPLATES_AND_AUTOMATION.md: 17
+- documentation/DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md: 43
+- documentation/DOCUMENT_UPLOAD_DESIGN.md: 112
+- documentation/ENGINEERING_COMPLEXITY_ANALYSIS.md: 13, 18, 23, 30, 35, 40, 47, 52, 60, 74
+- documentation/FEATURES_CHANGELOG.md: 7
+- documentation/FEATURE_OPPORTUNITIES.md: 90
+- documentation/FEATURE_ROADMAP_LOG.md: 28
+- documentation/FILE_TASK_EXTRACTION_FEATURE.md: 5
+- documentation/FUTURE_FEATURE_PORTFOLIO.md: 17
+- documentation/GLOBAL_IMPACT_WHITE_PAPER.md: 16, 26
+- documentation/IMPLEMENTATION_ROADMAP.md: 3, 26, 70, 85
+- documentation/IMPLEMENTATION_SUMMARY.md: 69, 126, 173, 202, 245, 269, 415, 471, 496, 525...
+- documentation/LOW_HANGING_FRUIT_FEATURES.md: 116, 129
+- documentation/MASTER_ORCHESTRATOR_GUIDE.md: 132, 313, 322, 347, 450, 563, 650, 834
+- documentation/MIGRATION_CONTINUED.md: 78, 81, 152, 154, 156, 157, 160, 162, 167, 170...
+- documentation/NEW_FEATURES_ADDED.md: 253
+- documentation/OSD_ARCHITECTURE_BLUEPRINT.md: 71
+- documentation/OS_DASHBOARD_CANON_SYSTEM_SPEC.md: 1, 10, 60, 80, 213, 223, 225, 231, 264
+- documentation/OS_DASHBOARD_ENTERPRISE.md: 11, 16, 55, 58, 146, 153, 192, 219
+- documentation/README.md: 1, 3, 8, 24, 32, 34
+- documentation/SYSTEM_ARCHITECTURE_BLUEPRINT.md: 19, 30, 38, 53, 66
+- documentation/TECHNICAL_ANALYSIS_REPORT.md: 439, 453, 676, 887, 1015
+- documentation/TECH_SPEC_TO_NAV_MAPPING.md: 1, 4, 26, 29, 43, 58, 65, 69, 89, 92...
+- documentation/VISION.md: 12, 24
+- documentation/VISION_IMPLEMENTATION.md: 50, 265, 266, 330
+- documentation/WEB_MIGRATION_PLAN.md: 64, 85
+- documentation/WEB_PAGE_SPEC_AUDIT.md: 1, 3, 14, 25, 28
+- documentation/api_research.md: 198, 219, 223
+- documentation/architecture_overview.md: 28, 40
+- documentation/assistant_hub_gui/samples/README.md: 26, 30, 44, 48, 57, 77, 90, 96
+- documentation/assistant_hub_gui/samples/excel_workbook_specification.md: 1, 4, 89, 97, 103, 129, 134, 140, 145, 146...
+- documentation/assistant_hub_gui/samples/index.md: 19, 37, 52, 102, 105, 115, 124, 133, 150, 153...
+- documentation/assistant_hub_gui/samples/pdf_document_specification.md: 1, 4, 64, 73, 99, 123, 185, 190
+- documentation/assistant_hub_gui/samples/powerpoint_presentation_specification.md: 1, 4, 24, 88, 127, 132, 136, 141, 171, 183...
+- documentation/assistant_hub_gui/samples/word_document_specification.md: 1, 4, 41, 79, 114, 119, 128, 163, 164, 165...
+- documentation/commands.md: 21
+- documentation/config/samples/README.md: 26, 30, 44, 48, 57, 77, 90, 96
+- documentation/config/samples/excel_workbook_specification.md: 1, 4, 89, 97, 103, 129, 134, 140, 145, 146...
+- documentation/config/samples/index.md: 19, 37, 52, 102, 105, 115, 124, 133, 150, 153...
+- documentation/config/samples/pdf_document_specification.md: 1, 4, 64, 73, 99, 123, 185, 190
+- documentation/config/samples/powerpoint_presentation_specification.md: 1, 4, 24, 88, 127, 132, 136, 141, 171, 183...
+- documentation/config/samples/word_document_specification.md: 1, 4, 41, 79, 114, 119, 128, 163, 164, 165...
+- documentation/consolidated_md/ARCHITECTURE_NETWORK_MAP.md: 4, 6, 22, 29, 40, 49, 58, 66
+- documentation/consolidated_md/IMPLEMENTATION_GAPS_AND_FIXES.md: 4, 77, 137
+- documentation/consolidated_md/README.md: 1, 3, 5, 10, 22, 28, 30
+- documentation/consolidated_md/technical_spec_v6_alignment.md: 1, 4, 6, 10, 22, 23, 27, 28
+- documentation/decisions.md: 8, 9, 11
+- documentation/docs/frontend_migration_plan.md: 100
+- documentation/docs/tk_to_react_mapping.md: 15, 52
+- documentation/docs/ui_deployment.md: 8
+- documentation/frontend/DEPLOYMENT.md: 73, 199, 252
+- documentation/frontend/DEPLOYMENT_GUIDE.md: 54, 160
+- documentation/frontend/MIGRATION_STATUS.md: 128
+- documentation/frontend/QUICK_START.md: 24
+- documentation/frontend/README.md: 58
+- documentation/gui_nav_structure/gui_nav.latest.json: 259, 261, 262, 1731, 1732, 2006, 2008, 2009, 2500, 2502...
+- documentation/guides/AGENTS_AI_GUIDE.md: 5, 9, 12, 32, 55, 132, 141, 167, 210, 250...
+- documentation/guides/BUG_FIXES_AND_OPTIMIZATIONS.md: 100
+- documentation/handoff/ARCHITECTURE_BLUEPRINT.md: 7, 19, 39
+- documentation/handoff/ARCHITECTURE_OVERVIEW.md: 14, 33
+- documentation/handoff/BLUEPRINT_V+1000.md: 44
+- documentation/handoff/DECISIONS.md: 8, 9
+- documentation/handoff/FEATURES_CHANGELOG.md: 7
+- documentation/handoff/FEATURE_ROADMAP_LOG.md: 28
+- documentation/handoff/SPEC_ALIGNMENT.md: 1, 5, 10, 12, 13, 14, 15, 16, 17, 18...
+- documentation/handoff/SYSTEM_ARCHITECTURE_BLUEPRINT.md: 19, 30, 38, 53, 66
+- documentation/handoff/TODO.md: 22
+- documentation/os_dashboard_ai_assistant_toc.md: 3, 11, 26, 44, 52, 199, 209, 210, 227, 229...
+- documentation/os_dashboard_ai_assistant_toc_mapping.md: 1, 3, 7, 17, 20, 24, 25, 27, 38, 39
+- documentation/reference/os-dashboard-ai-assistant-advanced (1)/ADVANCED_FEATURES.md: 170, 227, 300, 313
+- documentation/reference/os-dashboard-ai-assistant-advanced (1)/README.md: 44, 84, 296, 321
+- documentation/reference/os-dashboard-ai-assistant-platform/CHANGELOG.md: 28
+- documentation/reference/os-dashboard-ai-assistant-platform/INSTALL.md: 29
+- documentation/reference/os-dashboard-ai-assistant-platform/README.md: 32, 64, 218, 358
+- documentation/reference/os-dashboard-ai-assistant-platform/todo.md: 7
+- documentation/reference/os-dashboard-ai-assistant/README.md: 59, 99, 311, 336
+- documentation/risks.md: 8
+- documentation/root/ARCHITECTURE_NETWORK_MAP.md: 4, 6, 22, 29, 40, 49, 58, 66
+- documentation/root/COMPLETE_MIGRATION_GUIDE.md: 113, 189, 273, 275, 288
+- documentation/root/DEPLOYMENT.md: 13, 26, 142, 148, 230, 270
+- documentation/root/HYBRID_ARCHITECTURE.md: 44, 68, 70, 71, 120, 125, 130, 135, 149
+- documentation/root/IMPLEMENTATION_GAPS_AND_FIXES.md: 4, 77, 137
+- documentation/root/LAUNCHER_GUIDE.md: 24
+- documentation/root/MIGRATION_COMPLETE.md: 58
+- documentation/root/MIGRATION_COMPLETE_FINAL.md: 49, 162
+- documentation/root/MIGRATION_CONTINUED.md: 173, 186
+- documentation/root/MIGRATION_FINAL_SUMMARY.md: 130
+- documentation/root/MIGRATION_GUIDE.md: 123, 141, 143
+- documentation/root/MIGRATION_PROGRESS.md: 73, 107, 108, 119, 143
+- documentation/root/MIGRATION_README.md: 48, 69, 145
+- documentation/root/MIGRATION_STATUS.md: 57, 122
+- documentation/root/MIGRATION_SUMMARY.md: 76, 118
+- documentation/root/QUICK_REFERENCE.md: 124, 126, 185
+- documentation/root/QUICK_START.md: 24, 194
+- documentation/root/README.md: 90, 96
+- documentation/root/THEME_GUIDE.md: 133, 244, 257
+- documentation/spec_alignment.md: 1, 5, 13, 23, 24
+- documentation/todo.md: 12
+- documentation/workflows/README.md: 22, 32
+- duplicate_pages_analysis.json: 1601, 1602, 1604, 1619, 1620, 1622
+- edge_computing_distributed_ai.py: 180, 208, 640, 664, 704, 822, 826, 828, 838, 840...
+- frontend/src/api.ts: 174, 177, 179, 182, 203, 206
+- frontend/src/components/AIGuideSidebar.tsx: 112, 137, 214, 257, 285
+- frontend/src/components/NavigationTree.tsx: 8, 155, 157, 187, 188
+- frontend/src/components/TreeNetworkNavigation.tsx: 51, 159, 161, 211, 213
+- frontend/src/components/UnifiedAIPanel.tsx: 115, 140, 217, 260, 288
+- frontend/src/components/WorkspaceHealthDashboard.tsx: 4
+- frontend/src/components/__tests__/DropdownPerformance.test.tsx: 13, 179
+- frontend/src/components/__tests__/README.md: 14
+- frontend/src/config/navigation.ts: 44
+- frontend/src/data/aiGuidance.ts: 19, 41, 55, 65, 79, 89, 91, 103, 113, 126...
+- frontend/src/data/aiGuides.ts: 39, 52, 85, 95, 126, 155, 183, 211, 239, 269...
+- frontend/src/data/docManifest.ts: 2, 195, 205, 348, 350, 409, 410, 411, 413, 414...
+- frontend/src/data/gui_nav.latest.json: 259, 261, 262, 1731, 1732, 2006, 2008, 2009, 2500, 2502...
+- frontend/src/data/iaManifest.complete.json: 3208, 3209, 3215, 3225, 3234, 3244, 3254, 3264, 3276, 3285...
+- frontend/src/data/iaManifest.complete.ts: 2975, 2976, 2982, 2994, 3003, 3012, 3021, 3030, 3041, 3050...
+- frontend/src/data/iaManifest.from_json.json: 554, 555, 556, 563, 564, 565, 566, 5740, 5741, 5742...
+- frontend/src/data/iaManifest.from_json.ts: 591, 592, 593, 600, 601, 602, 603, 5777, 5778, 5779...
+- frontend/src/data/legacyMaps.ts: 87, 110, 111, 112
+- frontend/src/data/navigationManifest.ts: 2, 3, 7, 70, 78, 87, 97, 102, 105, 106...
+- frontend/src/data/navigationStructure.ts: 11, 83, 93, 102, 107, 114, 115, 122, 123, 131...
+- frontend/src/data/platformFeatures.ts: 21
+- frontend/src/data/specRequirements.ts: 1, 3, 7, 8, 13, 27, 31, 33, 40, 42...
+- frontend/src/hooks/useCapsules.ts: 6, 27, 44, 60, 68
+- frontend/src/navigation/routeComponentMap.ts: 142, 251, 256, 396
+- frontend/src/pages/AIOps.tsx: 228, 279, 280, 478, 636
+- frontend/src/pages/AdvancedSystems.tsx: 86, 87, 89
+- frontend/src/pages/Audit.tsx: 308, 374, 389
+- frontend/src/pages/AutoFix.tsx: 668
+- frontend/src/pages/Docs&SpecHome.tsx: 3, 6, 7, 8, 10, 17
+- frontend/src/pages/Docs.tsx: 38, 39, 193, 359
+- frontend/src/pages/Docs/GettingStarted.tsx: 8, 19, 75, 76
+- frontend/src/pages/Docs/ReleaseNotes.tsx: 8, 19, 79, 80
+- frontend/src/pages/Docs/SpecSheet.tsx: 6, 8, 9, 11, 17, 19, 21, 30, 31
+- frontend/src/pages/DocsSpecHome.tsx: 4, 5, 7
+- frontend/src/pages/Future.tsx: 11
+- frontend/src/pages/GettingStarted.tsx: 8
+- frontend/src/pages/Observability.tsx: 108, 662
+- frontend/src/pages/Observability/RecordAuditor/Timeline.tsx: 308, 374, 389
+- frontend/src/pages/OfficeRealtime.tsx: 492
+- frontend/src/pages/Projects.tsx: 484, 1067, 1122, 1341, 1425, 1433, 1471, 1589, 1713, 1860...
+- frontend/src/pages/ReleaseNotes.tsx: 8
+- frontend/src/pages/Roadmap/FutureCapabilities.tsx: 63, 64
+- frontend/src/pages/Roadmap/Spec.tsx: 4, 5, 7, 10, 11
+- frontend/src/pages/Settings.tsx: 179
+- frontend/src/pages/SpecPage.tsx: 7, 25, 26, 56, 184
+- frontend/src/pages/SpecSheet.tsx: 4, 6, 8, 21, 30, 39, 63, 65, 74, 83...
+- frontend/src/pages/Tools.tsx: 37, 51, 505, 507
+- frontend/src/pages/VisionDeck.tsx: 17
+- frontend/src/pages/WorkspaceHealth.tsx: 172
+- frontend/src/pages/Workspaces/Auditor/Controls.tsx: 13, 14, 15, 16, 17, 18
+- frontend/src/pages/Workspaces/Auditor/Evidence.tsx: 12, 13, 14, 15, 16, 17
+- frontend/src/pages/Workspaces/Auditor/Logbook.tsx: 12, 13, 14, 15, 16, 17
+- frontend/src/pages/Workspaces/Auditor/Regulator.tsx: 12, 13, 14, 15, 16, 17
+- frontend/src/pages/Workspaces/Auditor/Reports.tsx: 12, 13, 14, 15, 16, 17
+- frontend/src/pages/Workspaces/Auditor/Requests.tsx: 12, 13, 14, 15, 16, 17
+- frontend/src/pages/Workspaces/Sre/Health.tsx: 172
+- frontend/src/pages/__tests__/Docs&SpecHome.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/Docs/Specsheet.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/Docs/TechnicalSpecSheet.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/DocsSpec-sheet.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/DocsSpecHome.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/DocsSpecSheet.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/PlatformDocsSpec.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/Roadmap/Spec.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/Roadmap/SpecMaintenance.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/RoadmapSpec.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/SpecPage.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/SpecSheet.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/SpecVersioning.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/TechnicalSpecSheet.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/concepts/ConceptStudio.tsx: 92, 350, 371, 698, 699, 700, 701, 702, 703, 704...
+- frontend/src/pages/knowledge/KnowledgeFeature.tsx: 5, 8
+- frontend/src/pages/pms/PmsDocuments.tsx: 57
+- frontend/src/test/e2e/dashboard.test.tsx: 9
+- frontend/src/test/e2e/navigation.test.tsx: 8
+- frontend/src/test/e2e/projects.test.tsx: 10
+- frontend/src/test/e2e/tasks.test.tsx: 10
+- frontend/src/theme/colors.ts: 40, 60
+- frontend/src/types/index.ts: 103, 129, 251, 266, 357, 506, 532, 1070, 1152, 1162...
+- frontend/src/types/pms.ts: 6, 88
+- get_azure_credentials.py: 91, 97, 137
+- history_missing_pages.txt: 127, 364, 379
+- history_missing_pages_fs.txt: 147, 377, 390
+- history_missing_pages_renamed.json: 194, 195
+- history_missing_pages_report.json: 985, 1015
+- history_missing_pages_unique.txt: 164, 169
+- ia_relationship_analysis.json: 41, 96, 227, 230, 233, 236, 239, 242, 361, 943...
+- merged_navigation.json: 1510, 1538, 1539, 2681, 2683, 2684, 2688, 2689
+- neural_architecture_search.py: 239, 241, 271, 643, 655, 659, 669, 671, 673, 675...
+- openai-assistants-quickstart-ANALYSIS.md: 5, 24, 66, 108, 153, 202, 257, 277, 297, 317...
+- orchestrator/monitor_manager.py: 136
+- os_dashboard_ai_assistant.py: 337, 609
+- os_dashboard_orchestrator.py: 135, 553
+- package-lock.json: 102, 609, 619, 834, 955, 1095, 1185, 1990, 3268, 3931
+- page_inventory.json: 485, 486, 737, 738
+- page_merge_execution_report.json: 145
+- page_merge_plan.json: 995, 997
+- pages_backup.txt: 40, 41
+- pages_increments.txt: 40, 41
+- pages_stable.txt: 40, 41
+- path_mapping.json: 475, 476, 477, 478, 479, 480, 481, 482, 483, 876...
+- plugin_manager.py: 179
+- qodana.yaml: 7, 11, 13, 15, 17, 19, 28
+- requests.py: 12, 35, 40, 41, 43
+- requirements.txt: 45
+- route_inventory_codex.json: 1028, 1029, 1035, 1041, 1047, 1053, 1055, 1056, 1062, 1068...
+- route_inventory_complete.json: 854, 855, 861, 866, 871, 878, 884, 889, 894
+- route_inventory_comprehensive.json: 1651, 1652, 1659, 1660, 1661, 4485, 4486, 4493, 4494, 4495
+- route_inventory_ia.json: 1018, 1019, 1020, 2762, 2763, 2764
+- route_matrix_complete.json: 4281, 4282, 4300, 4301, 4319, 4320, 4338, 4339, 4353, 4354...
+- sdlc_automation.py: 156, 216, 217, 218
+- sitecustomize.py: 9, 30
+- spec.txt: 1, 7, 55, 231, 292, 304, 311, 344, 408, 414...
+- spec_extracted.txt: 1, 7, 55, 231, 292, 304, 311, 344, 408, 414...
+- spec_full.txt: 1, 7, 55, 231, 292, 304, 311, 344, 408, 414...
+- start_ui.py: 122, 169
+- tech_spec_v6.txt: 1, 7, 55, 231, 292, 304, 311, 344, 408, 414...
+- technical_spec_v6.txt: 1, 6, 54, 227, 288, 299, 306, 339, 402, 408...
+- test_ai_services.py: 107
+- test_conversation_integration.py: 120
+- test_developer_portal.py: 37, 38, 39
+- test_developer_portal_api.py: 77, 78, 79, 81, 82, 83, 84, 85, 87
+- test_developer_portal_simple.py: 41, 42, 43
+- tools/bootstrap.py: 85, 86
+- utils/auth_helpers.py: 65
+- utils/logger.py: 165
+- workflows/urgent_task_workflow.json: 38

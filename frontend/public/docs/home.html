@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OS Dashboard AI Assistant - Home</title>
+    <title>AI OS - Home</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header class="site-header">
         <div class="container header-content">
-            <a href="home.html" class="logo">OS Dashboard AI</a>
+            <a href="home.html" class="logo">AI OS</a>
             <nav class="main-nav" aria-label="Primary">
                 <ul class="nav-links">
                     <li><a href="home.html" class="active">Home</a></li>
@@ -25,7 +25,7 @@
     <main class="container">
         <section class="hero">
             <span class="badge">Technical Spec Sheet · Version 6</span>
-            <h1>Personalize the OS Dashboard AI Assistant for every product.</h1>
+            <h1>Personalize the AI OS for every product.</h1>
             <p>The canonical Technical Spec Sheet defines each 10.x engine, so this page lets you explore a single product at a time—purpose, functions, examples, free trials, and subscription pricing without digging through long lists.</p>
             <div class="hero-actions">
                 <a href="subscription.html" class="btn btn-primary">Start a subscription</a>
@@ -48,7 +48,10 @@
             <article class="spotlight-card" aria-live="polite">
                 <div class="spotlight-meta">
                     <div>
-                        <span class="pill" id="spotlight-category">Core</span>
+                        <div>
+                            <span class="pill" id="spotlight-category">Core</span>
+                            <span class="pill" id="spotlight-tier">Capability</span>
+                        </div>
                         <h3 id="spotlight-title">Product title</h3>
                         <p id="spotlight-purpose">Purpose details appear here once you select a capability.</p>
                     </div>
@@ -98,7 +101,7 @@
         </section>
 
         <section class="section section-muted dream-reality">
-            <h2>OS Dashboard AI Assistant · Dream & Reality</h2>
+            <h2>AI OS · Dream & Reality</h2>
             <div class="dream-reality-grid">
                 <div class="card dream">
                     <span class="badge">Dream · Spec vision</span>
@@ -123,7 +126,7 @@
     </main>
 
     <footer class="footer">
-        <p>© 2024 OS Dashboard AI Assistant.</p>
+        <p>© 2024 AI OS.</p>
     </footer>
 
     <script src="scripts/product-data.js"></script>
@@ -210,27 +213,29 @@
             const render = (productId) => {
                 const product = lookup[productId] || sortedProducts[0];
                 if (!product) return;
-                document.getElementById('spotlight-category').textContent = product.category;
+                const layer = product.capability_layer || product.category;
+                document.getElementById('spotlight-category').textContent = layer;
+                document.getElementById('spotlight-tier').textContent = product.tier;
                 document.getElementById('spotlight-title').textContent = `${product.id} · ${product.name}`;
                 document.getElementById('spotlight-purpose').textContent = product.purpose;
                 document.getElementById('spotlight-ltv').textContent = `$${product.lifetimeValue[0]}B – $${product.lifetimeValue[1]}B`;
                 document.getElementById('spotlight-audiences').textContent = product.audiences.join(', ');
 
                 const audience = product.audiences[0] || 'cross-functional';
-                const template = exampleTemplates[product.category] || exampleTemplates.Core;
+                const template = exampleTemplates[layer] || exampleTemplates.Core;
                 const exampleText = template
                     .replace('{product}', product.name)
                     .replace('{audience}', audience)
                     .replace('{purpose}', formatLower(product.purpose));
                 document.getElementById('spotlight-example').textContent = exampleText;
 
-                const sampleTemplate = sampleTemplates[product.category] || sampleTemplates.Core;
+                const sampleTemplate = sampleTemplates[layer] || sampleTemplates.Core;
                 const sampleText = sampleTemplate
                     .replace('{feature}', formatLower(product.features[0] || product.purpose));
                 document.getElementById('spotlight-sample').textContent = sampleText;
 
                 const functionLines = [
-                    `${product.name} orchestrates the ${product.category.toLowerCase()} track for ${product.audiences.join(', ')}.`,
+                    `${product.name} orchestrates the ${layer.toLowerCase()} track for ${product.audiences.join(', ')}.`,
                     ...product.features.slice(0, 2).map(feature => `It ${formatLower(feature)}.`)
                 ];
                 updateList(
@@ -239,10 +244,10 @@
                     'Refer to the Technical Spec Sheet for function details.'
                 );
 
-                const specSection = featureAnchor[product.category] || '§4';
+                const specSection = featureAnchor[layer] || '§4';
                 const featureLines = [
                     ...product.features,
-                    `Category: ${product.category} track (${specSection}, Technical Spec Sheet v6).`,
+                    `Category: ${layer} track (${specSection}, Technical Spec Sheet v6).`,
                     `Ideal audiences: ${product.audiences.join(', ')}.`,
                     `Lifetime value corridor: $${product.lifetimeValue[0]}B – $${product.lifetimeValue[1]}B fueling the subscription guidance.`
                 ];

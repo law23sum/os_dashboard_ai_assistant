@@ -1,0 +1,26 @@
+[Unit]
+Description=AI OS Agent (%i)
+After=network.target
+
+[Service]
+Type=simple
+User=osdash-agent
+WorkingDirectory=/opt/os_dashboard_ai_assistant
+Environment=OSDASH_AGENT_ID=%i
+Environment=OSDASH_RUNTIME_SCOPE=host
+Environment=OSDASH_EVENT_HUB_DB=/var/lib/osdash/event_hub/event_hub.db
+ExecStart=/usr/bin/python3 /opt/os_dashboard_ai_assistant/unified_launcher.py --agent-id %i
+Restart=always
+RestartSec=5
+
+# Resource controls (adjust per host)
+CPUWeight=200
+MemoryHigh=3G
+MemoryMax=4G
+IOWeight=200
+
+# Optional limits
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

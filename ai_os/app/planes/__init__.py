@@ -1,4 +1,4 @@
-"""Planes architecture (data, control, governance) for OS Dashboard AI Assistant.
+"""Planes architecture (data, control, governance) for AI OS.
 
 This package provides lightweight primitives that correspond to the
 canonical planes described in the technical specification. They are

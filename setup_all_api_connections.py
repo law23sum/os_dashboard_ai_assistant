@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup all third-party API connections for OS Dashboard AI Assistant.
+Setup all third-party API connections for AI OS.
 
 This script initializes connections for:
 - OpenAI/ChatGPT
@@ -37,7 +37,7 @@ class APIConnectionManager:
 
     async def initialize_all_connections(self) -> Dict[str, Any]:
         """Initialize all third-party API connections."""
-        print("🚀 Initializing OS Dashboard AI Assistant API Connections")
+        print("🚀 Initializing AI OS API Connections")
         print("=" * 60)
 
         initialization_results = {}

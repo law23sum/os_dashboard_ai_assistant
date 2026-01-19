@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, ConfigDict, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from backend_api.db import db_session  # pylint: disable=wrong-import-position
 
@@ -28,7 +28,8 @@ class MonitoringRequest(IntelligenceBase):
     monitoring_window: int = Field(ge=1, le=24 * 14)
     alert_thresholds: Dict[str, float]
 
-    @validator("system_metrics", pre=True)
+    @field_validator("system_metrics", mode="before")
+    @classmethod
     def _parse_metrics(cls, value):
         if isinstance(value, str):
             try:
@@ -37,7 +38,8 @@ class MonitoringRequest(IntelligenceBase):
                 raise ValueError(f"Invalid JSON for system_metrics: {exc}") from exc
         return value
 
-    @validator("alert_thresholds", pre=True)
+    @field_validator("alert_thresholds", mode="before")
+    @classmethod
     def _parse_thresholds(cls, value):
         if isinstance(value, str):
             try:
@@ -171,7 +173,8 @@ class MLOpsRequest(IntelligenceBase):
     dataset_path: Optional[str] = ""
     hyperparameters: Dict[str, Any]
 
-    @validator("hyperparameters", pre=True)
+    @field_validator("hyperparameters", mode="before")
+    @classmethod
     def _parse_hparams(cls, value):
         if isinstance(value, str):
             try:

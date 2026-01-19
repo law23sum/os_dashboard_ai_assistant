@@ -11,7 +11,7 @@ update_file() {
         return
     fi
     echo "" >>"$file"
-    echo "# Auto-loaded OS Dashboard git-add hook" >>"$file"
+    echo "# Auto-loaded AI OS git-add hook" >>"$file"
     echo "$source_line" >>"$file"
     echo "[git-hook] Added hook reference to $file"
 }

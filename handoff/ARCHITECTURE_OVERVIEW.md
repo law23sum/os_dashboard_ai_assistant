@@ -1,4 +1,4 @@
-# OS Dashboard AI Assistant – Architecture Overview
+# AI OS – Architecture Overview
 
 Updated: 2025-12-17
 

@@ -1,0 +1,93 @@
+[
+  {
+    "label": "Core",
+    "id": "core",
+    "path": "/dashboard",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "label": "Common",
+    "id": "common",
+    "path": "/mission",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "label": "Audit Official Records",
+    "id": "audit-official-records",
+    "path": "/governance",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "label": "Automation",
+    "id": "automation",
+    "path": "/ai",
+    "order": 4,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "label": "Settings",
+    "id": "settings",
+    "path": "/settings",
+    "order": 5,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "label": "Admin",
+    "id": "admin",
+    "path": "/admin",
+    "order": 6,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "label": "Workstation",
+    "id": "workstation",
+    "path": "/workspaces",
+    "order": 7,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "label": "Systems",
+    "id": "systems",
+    "path": "/drivers",
+    "order": 8,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "label": "Simulations",
+    "id": "simulations",
+    "path": "/simulations",
+    "order": 9,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "label": "Research",
+    "id": "research",
+    "path": "/roadmap",
+    "order": 10,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "label": "Encyclopedia",
+    "id": "encyclopedia",
+    "path": "/vision",
+    "order": 11,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "label": "Libraries",
+    "id": "libraries",
+    "path": "/docs",
+    "order": 12,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "label": "Knowledge",
+    "id": "knowledge",
+    "path": "/data",
+    "order": 13,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  }
+]

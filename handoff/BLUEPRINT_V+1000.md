@@ -1,4 +1,4 @@
-# OS Dashboard AI Assistant — Blueprint V+1000
+# AI OS — Blueprint V+1000
 
 Updated: 2025-12-17
 

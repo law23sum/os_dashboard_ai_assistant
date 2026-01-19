@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OS Dashboard AI Assistant - Master Orchestrator
+AI OS Orchestrator - Master Orchestrator
 Sir Chief Fellow Director Principal Software Solutions Systems Engineer Architect
 
 This is the unified master control system that:
@@ -160,6 +160,7 @@ class MasterOrchestrator:
                 continue
         
         self.log(f"✅ Discovered {len(projects)} projects")
+        self.projects = {project.name: project for project in projects}
         return projects
     
     def _analyze_project(self, path: Path) -> ProjectInfo:
@@ -237,21 +238,26 @@ class MasterOrchestrator:
                 
                 for line_num, line in enumerate(lines, 1):
                     line = line.strip()
+                    lower_line = line.lower()
                     
                     # Match TODO patterns
-                    if any(marker in line.lower() for marker in ["- [ ]", "todo:", "fixme:", "hack:"]):
+                    if (
+                        "- [ ]" in lower_line
+                        or "- [x]" in lower_line
+                        or any(marker in lower_line for marker in ["todo:", "fixme:", "hack:"])
+                    ):
                         priority = "normal"
                         
                         # Determine priority
-                        if any(word in line.lower() for word in ["critical", "urgent", "asap"]):
+                        if any(word in lower_line for word in ["critical", "urgent", "asap"]):
                             priority = "critical"
-                        elif any(word in line.lower() for word in ["important", "high"]):
+                        elif any(word in lower_line for word in ["important", "high"]):
                             priority = "high"
-                        elif any(word in line.lower() for word in ["low", "someday", "maybe"]):
+                        elif any(word in lower_line for word in ["low", "someday", "maybe"]):
                             priority = "low"
                         
                         # Check if completed
-                        completed = "- [x]" in line.lower() or "✓" in line or "✅" in line
+                        completed = "- [x]" in lower_line or "✓" in line or "✅" in line
                         
                         todo = TodoItem(
                             project=project.name,
@@ -500,7 +506,7 @@ class MasterOrchestrator:
     def start(self):
         """Start the master orchestrator."""
         self.log("=" * 80)
-        self.log("🚀 OS Dashboard AI Assistant - Master Orchestrator Starting...")
+        self.log("🚀 AI OS Orchestrator - Master Orchestrator Starting...")
         self.log("=" * 80)
         
         self.running = True
@@ -593,7 +599,7 @@ class MasterOrchestrator:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="OS Dashboard AI Assistant - Master Orchestrator",
+        description="AI OS Orchestrator - Master Orchestrator",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

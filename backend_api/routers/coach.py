@@ -61,7 +61,7 @@ _COACH_LIBRARY: Dict[str, Dict[str, object]] = {
             {
                 "label": "Summarize current runbook",
                 "description": "Produce a one-liner status for stakeholders.",
-                "prompt": "Summarize the current OS Dashboard runbook with major risks.",
+                "prompt": "Summarize the current AI OS runbook with major risks.",
             },
             {
                 "label": "Highlight stuck tasks",

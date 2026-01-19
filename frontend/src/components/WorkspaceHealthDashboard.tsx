@@ -512,7 +512,7 @@ export const WorkspaceHealthDashboard: React.FC = () => {
           <ProjectList projects={health.projects} onTriggerAutofix={handleAutofix} />
         )}
 
-        {/* TODOs */}
+        {/* Tasks */}
         <TodoList todos={todos} />
       </div>
     </div>

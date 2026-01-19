@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 echo "=============================================="
-echo "OS Dashboard AI Assistant - Full Test Suite"
+echo "AI OS - Full Test Suite"
 echo "=============================================="
 echo "Project Root: $PROJECT_ROOT"
 echo "Date: $(date)"

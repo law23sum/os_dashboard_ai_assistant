@@ -1,0 +1,3020 @@
+[
+  {
+    "from": "/projects",
+    "to": "/dashboard/flight-deck/projects",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/tasks",
+    "to": "/dashboard/flight-deck/tasks",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/projects/templates",
+    "to": "/dashboard/core-flight-deck/templates",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/projects/members",
+    "to": "/dashboard/core-flight-deck/members",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/projects/settings",
+    "to": "/dashboard/core-flight-deck/settings",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/tasks/board",
+    "to": "/dashboard/core-flight-deck/board",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/tasks/automation",
+    "to": "/dashboard/core-flight-deck/automation",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/tasks/analytics",
+    "to": "/dashboard/core-flight-deck/analytics",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/activity",
+    "to": "/dashboard/core-flight-deck/activity",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/notifications",
+    "to": "/dashboard/core-flight-deck/notifications",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/inbox",
+    "to": "/dashboard/core-flight-deck/inbox",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/timeline",
+    "to": "/dashboard/core-flight-deck/timeline",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/chat",
+    "to": "/dashboard/engagement/chat",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/collaboration",
+    "to": "/dashboard/engagement/collaboration",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/personalization",
+    "to": "/dashboard/engagement/personalization",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/search",
+    "to": "/dashboard/engagement/search",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/chat/library",
+    "to": "/dashboard/engagement-persona-surfaces/library",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/search/saved",
+    "to": "/dashboard/engagement-persona-surfaces/saved",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/collaboration/channels",
+    "to": "/dashboard/engagement-persona-surfaces/channels",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/collaboration/presence",
+    "to": "/dashboard/engagement-persona-surfaces/presence",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/personalization/macros",
+    "to": "/dashboard/engagement-persona-surfaces/macros",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/personalization/profiles",
+    "to": "/dashboard/engagement-persona-surfaces/profiles",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/work/tools",
+    "to": "/workspaces/dev/tools",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/research",
+    "to": "/workspaces/research",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/work/templates",
+    "to": "/workspaces/writer/templates",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/work/writer",
+    "to": "/workspaces/writer",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai/security",
+    "to": "/workspaces/cyber",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data",
+    "to": "/data/core-data-stores/data",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/integrations",
+    "to": "/drivers/driver-registry-management/drivers",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/integrations/connectors",
+    "to": "/drivers/connectors-integrations/connectors",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/integrations/credentials",
+    "to": "/drivers/connectors-integrations/credentials",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/integrations/api-connectors",
+    "to": "/drivers/connectors-integrations/api-connectors",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/integrations/mcp-gateway",
+    "to": "/drivers/connectors-integrations/mcp-gateway",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/integrations/office",
+    "to": "/drivers/connectors-integrations/office",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/integrations/webhooks",
+    "to": "/drivers/connectors-integrations/webhooks",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/integrations/mappings",
+    "to": "/drivers/connectors-integrations/mappings",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/integrations/health",
+    "to": "/drivers/connectors-integrations/health",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/integrations/rate-limits",
+    "to": "/drivers/connectors-integrations/rate-limits",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs",
+    "to": "/docs/documentation-hub/docs",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/settings",
+    "to": "/settings/user-tenant-settings/settings",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-architecture/planes-architecture/cross-plane-flows",
+    "to": "/mission-architecture/planes-architecture/cross-plane-flows",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-architecture/architecture-principles/driver-aware-orchestrator",
+    "to": "/mission-architecture/architecture-principles/driver-aware-orchestrator",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-architecture/mission-identity/identity-roles",
+    "to": "/mission-architecture/mission-identity/identity-roles",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-architecture/mission-identity/mission-scope",
+    "to": "/mission-architecture/mission-identity/mission-scope",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/workspaces/dev-devops/ci-cd",
+    "to": "/workspaces/dev-devops/ci-cd",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/workspaces/dev-devops/commit-tasks",
+    "to": "/workspaces/dev-devops/commit-tasks",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/workspaces/dev-devops/merge-advisor",
+    "to": "/workspaces/dev-devops/merge-advisor",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/workspaces/research-simulation/digital-twins",
+    "to": "/workspaces/research-simulation/digital-twins",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/billing",
+    "to": "/governance/billing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/audit",
+    "to": "/observability/audit",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/audit/builder",
+    "to": "/observability/record-auditor-logbook/builder",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability",
+    "to": "/observability/telemetry-metrics/observability",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/monitoring",
+    "to": "/observability/monitoring",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/analytics",
+    "to": "/observability/analytics",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-evidence/telemetry-metrics/slis-slos",
+    "to": "/observability-evidence/telemetry-metrics/slis-slos",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-infrastructure/deployment-models/deployment-modes",
+    "to": "/operations-infrastructure/deployment-models/deployment-modes",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-infrastructure/deployment-models/hybrid-edge",
+    "to": "/operations-infrastructure/deployment-models/hybrid-edge",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/systems/network",
+    "to": "/operations/infrastructure-topology/network",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/future/core_os",
+    "to": "/vision/core-os",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/future/core_os/matrix",
+    "to": "/vision/core-os-engines/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/future/super",
+    "to": "/vision/super",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/future/super/matrix",
+    "to": "/vision/super-capabilities/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/future/supreme",
+    "to": "/vision/supreme",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/future/supreme/matrix",
+    "to": "/vision/supreme/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/future/ascend",
+    "to": "/vision/ascend",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/future/ascend/matrix",
+    "to": "/vision/ascend/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/future/advanced/matrix",
+    "to": "/vision/advanced-horizons/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/future/meta",
+    "to": "/vision/meta",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/future/meta/matrix",
+    "to": "/vision/meta-envelope/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/future/hyper/matrix",
+    "to": "/vision/hyper-network/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision",
+    "to": "/vision/vision-deck-hub/vision",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/future/ultra/matrix",
+    "to": "/vision/ultra-scale/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-workflow/auto-fix-console",
+    "to": "/ai-fabric/capsules-workflow/auto-fix-console",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-workflow/capsule-marketplace",
+    "to": "/ai-fabric/capsules-workflow/capsule-marketplace",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-workflow/lineage-replay",
+    "to": "/ai-fabric/capsules-workflow/lineage-replay",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/cognitive-agents/ai-copilot",
+    "to": "/ai-fabric/cognitive-agents/ai-copilot",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/cognitive-agents/personas-agents",
+    "to": "/ai-fabric/cognitive-agents/personas-agents",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/edge-vision/computer-vision",
+    "to": "/ai-fabric/edge-vision/computer-vision",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/edge-vision/edge-computing",
+    "to": "/ai-fabric/edge-vision/edge-computing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/intent-processing/intent-processor",
+    "to": "/ai-fabric/intent-processing/intent-processor",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/mlops-neural-arch/mlops",
+    "to": "/ai-fabric/mlops-neural-arch/mlops",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/vision-deck-hub/vision-deck-hub",
+    "to": "/vision/vision-deck-hub",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/vision-deck-hub/vision",
+    "to": "/vision",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/vision-deck-hub/roadmap",
+    "to": "/vision/roadmap",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/vision-deck-hub/glossary",
+    "to": "/vision/glossary",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/core-os-engines/core-os-engines",
+    "to": "/vision/core-os-engines",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/core-os-engines/core-os",
+    "to": "/vision/core-os",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/core-os-engines/matrix",
+    "to": "/vision/core-os-engines/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/ascend/ascend",
+    "to": "/vision/ascend",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/ascend/matrix",
+    "to": "/vision/ascend/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/supreme/supreme",
+    "to": "/vision/supreme",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/supreme/matrix",
+    "to": "/vision/supreme/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/hyper-network/hyper-network",
+    "to": "/vision/hyper-network",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/hyper-network/hyper",
+    "to": "/future/hyper",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/hyper-network/matrix",
+    "to": "/vision/hyper-network/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/super-capabilities/super-capabilities",
+    "to": "/vision/super-capabilities",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/super-capabilities/super",
+    "to": "/vision/super",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/super-capabilities/matrix",
+    "to": "/vision/super-capabilities/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/meta-envelope/meta-envelope",
+    "to": "/vision/meta-envelope",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/meta-envelope/meta",
+    "to": "/vision/meta",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/meta-envelope/matrix",
+    "to": "/vision/meta-envelope/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/ultra-scale/ultra-scale",
+    "to": "/vision/ultra-scale",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/ultra-scale/ultra",
+    "to": "/future/ultra",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/ultra-scale/matrix",
+    "to": "/vision/ultra-scale/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/advanced-horizons/advanced-horizons",
+    "to": "/vision/advanced-horizons",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/advanced-horizons/advanced",
+    "to": "/future/advanced",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/vision-and-meta-stack/advanced-horizons/matrix",
+    "to": "/vision/advanced-horizons/matrix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/logging-and-tracing/logging-tracing",
+    "to": "/observability/logging-tracing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/logging-and-tracing/logging",
+    "to": "/observability/logging",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/logging-and-tracing/explorer",
+    "to": "/observability/tracing/explorer",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/logging-and-tracing/tracing",
+    "to": "/observability/tracing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/logging-and-tracing/correlation",
+    "to": "/observability/correlation",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/telemetry-and-metrics/telemetry-metrics",
+    "to": "/observability/telemetry-metrics",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/telemetry-and-metrics/observability",
+    "to": "/observability",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/telemetry-and-metrics/monitoring",
+    "to": "/observability/monitoring",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/telemetry-and-metrics/analytics",
+    "to": "/observability/analytics",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/telemetry-and-metrics/metrics",
+    "to": "/observability/metrics",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/telemetry-and-metrics/explorer",
+    "to": "/observability/metrics/explorer",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/telemetry-and-metrics/slis",
+    "to": "/observability/slis",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/telemetry-and-metrics/burn",
+    "to": "/observability/slis/burn",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/telemetry-and-metrics/anomalies",
+    "to": "/observability/anomalies",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/evidence-and-audit/evidence-audit",
+    "to": "/observability/evidence-audit",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/evidence-and-audit/audit-logs",
+    "to": "/observability/audit-logs",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/evidence-and-audit/evidence",
+    "to": "/observability/evidence",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/evidence-and-audit/query",
+    "to": "/observability/evidence/query",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/evidence-and-audit/export",
+    "to": "/observability/evidence/export",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/evidence-and-audit/retention",
+    "to": "/observability/retention",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/dashboards-and-alerting/dashboards-alerting",
+    "to": "/observability/dashboards-alerting",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/dashboards-and-alerting/dashboards",
+    "to": "/observability/dashboards",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/dashboards-and-alerting/builder",
+    "to": "/observability/dashboards/builder",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/dashboards-and-alerting/alerting",
+    "to": "/observability/alerting",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/dashboards-and-alerting/rules",
+    "to": "/observability/alerting/rules",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/dashboards-and-alerting/channels",
+    "to": "/observability/alerting/channels",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/temporal-backtesting-and-replay/temporal-backtesting-replay",
+    "to": "/observability/temporal-backtesting-replay",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/temporal-backtesting-and-replay/replay",
+    "to": "/observability/replay",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/temporal-backtesting-and-replay/scenarios",
+    "to": "/observability/replay/scenarios",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/temporal-backtesting-and-replay/determinism",
+    "to": "/observability/replay/determinism",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/temporal-backtesting-and-replay/backtesting",
+    "to": "/observability/backtesting",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/health-and-self-healing/health-self-healing",
+    "to": "/observability/health-self-healing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/health-and-self-healing/health",
+    "to": "/observability/health",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/health-and-self-healing/drift",
+    "to": "/observability/drift",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/health-and-self-healing/runbooks",
+    "to": "/observability/runbooks",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/health-and-self-healing/self-healing",
+    "to": "/observability/self-healing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/health-and-self-healing/rollbacks",
+    "to": "/observability/rollbacks",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/record-auditor-and-logbook/record-auditor-logbook",
+    "to": "/observability/record-auditor-logbook",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/record-auditor-and-logbook/record-auditor",
+    "to": "/observability/record-auditor",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/record-auditor-and-logbook/timeline",
+    "to": "/observability/record-auditor/timeline",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/record-auditor-and-logbook/audit",
+    "to": "/observability/audit",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-and-evidence/record-auditor-and-logbook/builder",
+    "to": "/observability/record-auditor-logbook/builder",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/infrastructure-and-topology/infrastructure-topology",
+    "to": "/operations/infrastructure-topology",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/infrastructure-and-topology/config",
+    "to": "/operations/config",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/infrastructure-and-topology/secrets",
+    "to": "/operations/secrets",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/infrastructure-and-topology/cluster",
+    "to": "/operations/cluster",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/infrastructure-and-topology/topology",
+    "to": "/operations/topology",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/infrastructure-and-topology/network",
+    "to": "/operations/infrastructure-topology/network",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/infrastructure-and-topology/storage",
+    "to": "/operations/storage",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/infrastructure-and-topology/queues",
+    "to": "/operations/queues",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/infrastructure-and-topology/dependencies",
+    "to": "/operations/dependencies",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/infrastructure-and-topology/multi-region",
+    "to": "/operations/multi-region",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/infrastructure-and-topology/hpc",
+    "to": "/operations/hpc",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/failure-modes-and-resilience/failure-modes-resilience",
+    "to": "/operations/failure-modes-resilience",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/failure-modes-and-resilience/failure",
+    "to": "/operations/failure",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/failure-modes-and-resilience/detection",
+    "to": "/operations/detection",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/failure-modes-and-resilience/recovery",
+    "to": "/operations/recovery",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/failure-modes-and-resilience/data-protection",
+    "to": "/operations/data-protection",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/failure-modes-and-resilience/bc-dr",
+    "to": "/operations/bc-dr",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/failure-modes-and-resilience/drills",
+    "to": "/operations/bc-dr/drills",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/failure-modes-and-resilience/security-incidents",
+    "to": "/operations/security-incidents",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/failure-modes-and-resilience/chaos",
+    "to": "/operations/chaos",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/failure-modes-and-resilience/postmortems",
+    "to": "/operations/postmortems",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/performance-and-scalability/performance-scalability",
+    "to": "/operations/performance-scalability",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/performance-and-scalability/performance",
+    "to": "/operations/performance",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/performance-and-scalability/scaling",
+    "to": "/operations/scaling",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/performance-and-scalability/capacity",
+    "to": "/operations/capacity",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/performance-and-scalability/load-testing",
+    "to": "/operations/load-testing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/performance-and-scalability/backpressure",
+    "to": "/operations/backpressure",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/performance-and-scalability/reliability",
+    "to": "/operations/reliability",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/performance-and-scalability/driver-performance",
+    "to": "/operations/driver-performance",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/performance-and-scalability/cost-performance",
+    "to": "/operations/cost-performance",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/deployment-models/deployment-models",
+    "to": "/operations/deployment-models",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/deployment-models/deployment",
+    "to": "/operations/deployment",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/deployment-models/local",
+    "to": "/operations/deployment/local",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/deployment-models/cloud",
+    "to": "/operations/deployment/cloud",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/deployment-models/hybrid",
+    "to": "/operations/deployment/hybrid",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/deployment-models/k8s",
+    "to": "/operations/deployment/k8s",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/deployment-models/airgap",
+    "to": "/operations/deployment/airgap",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/deployment-models/channels",
+    "to": "/operations/deployment/channels",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/upgrades-and-migration/upgrades-migration",
+    "to": "/operations/upgrades-migration",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/upgrades-and-migration/upgrades",
+    "to": "/operations/upgrades",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/upgrades-and-migration/releases",
+    "to": "/operations/releases",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/upgrades-and-migration/compatibility",
+    "to": "/operations/compatibility",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/upgrades-and-migration/migration",
+    "to": "/operations/migration",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/upgrades-and-migration/rollback",
+    "to": "/operations/rollback",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/operations-and-infrastructure/upgrades-and-migration/canary",
+    "to": "/operations/deployment/canary",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/workspaces-(enterprise-extensions)/record-auditor-and-logbook-workspace/record-auditor-logbook-workspace",
+    "to": "/workspaces/record-auditor-logbook-workspace",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/workspaces-(enterprise-extensions)/record-auditor-and-logbook-workspace/auditor",
+    "to": "/workspaces/auditor",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/workspaces-(enterprise-extensions)/record-auditor-and-logbook-workspace/controls",
+    "to": "/workspaces/auditor/controls",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/workspaces-(enterprise-extensions)/record-auditor-and-logbook-workspace/reports",
+    "to": "/workspaces/auditor/reports",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/workspaces-(enterprise-extensions)/record-auditor-and-logbook-workspace/logbook",
+    "to": "/workspaces/auditor/logbook",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/settings-and-admin-(enterprise-extensions)/user-and-tenant-settings/user-tenant",
+    "to": "/settings/enterprise/user-tenant",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/settings-and-admin-(enterprise-extensions)/user-and-tenant-settings/team",
+    "to": "/settings/team",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/settings-and-admin-(enterprise-extensions)/user-and-tenant-settings/tenant",
+    "to": "/settings/tenant",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/settings-and-admin-(enterprise-extensions)/user-and-tenant-settings/audit",
+    "to": "/settings/audit",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/architecture-and-principles/architecture-principles",
+    "to": "/mission/architecture-principles",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/architecture-and-principles/architecture",
+    "to": "/mission/architecture",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/architecture-and-principles/principles",
+    "to": "/mission/principles",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/architecture-and-principles/components",
+    "to": "/mission/components",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/architecture-and-principles/orchestrator",
+    "to": "/mission/orchestrator",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/architecture-and-principles/mapping",
+    "to": "/mission/mapping",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/architecture-and-principles/contracts",
+    "to": "/mission/contracts",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/architecture-and-principles/extensibility",
+    "to": "/mission/extensibility",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/architecture-and-principles/threat-model",
+    "to": "/mission/threat-model",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/architecture-and-principles/performance-targets",
+    "to": "/mission/performance-targets",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/mission-and-identity/mission-identity",
+    "to": "/mission/mission-identity",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/mission-and-identity/overview",
+    "to": "/mission/overview",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/mission-and-identity/use-cases",
+    "to": "/mission/use-cases",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/mission-and-identity/non-goals",
+    "to": "/mission/non-goals",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/mission-and-identity/glossary",
+    "to": "/mission/glossary",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/mission-and-identity/modes",
+    "to": "/mission/modes",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/mission-and-identity/reference-architectures",
+    "to": "/mission/reference-architectures",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/mission-and-identity/identity",
+    "to": "/mission/identity",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/mission-and-identity/ai-stack",
+    "to": "/mission/ai-stack",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/mission-and-identity/models",
+    "to": "/mission/models",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/mission-and-identity/daemons",
+    "to": "/mission/daemons",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/planes-architecture/planes-architecture",
+    "to": "/mission/planes-architecture",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/planes-architecture/planes",
+    "to": "/mission/planes",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/planes-architecture/data",
+    "to": "/mission/planes/data",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/planes-architecture/control",
+    "to": "/mission/planes/control",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/planes-architecture/governance",
+    "to": "/mission/planes/governance",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/planes-architecture/cross-plane",
+    "to": "/mission/planes/cross-plane",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/planes-architecture/contracts",
+    "to": "/mission/planes/contracts",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-and-architecture/planes-architecture/failure-domains",
+    "to": "/mission/planes/failure-domains",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/roadmap-and-planning/roadmap-planning",
+    "to": "/roadmap/roadmap-planning",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/roadmap-and-planning/overview",
+    "to": "/roadmap/overview",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/roadmap-and-planning/phases",
+    "to": "/roadmap/phases",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/roadmap-and-planning/milestones",
+    "to": "/roadmap/milestones",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/roadmap-and-planning/future",
+    "to": "/roadmap/future",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/spec-maintenance/spec-maintenance",
+    "to": "/roadmap/spec-maintenance",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/spec-maintenance/spec",
+    "to": "/roadmap/spec",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/spec-maintenance/deprecations",
+    "to": "/roadmap/deprecations",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/spec-maintenance/compatibility",
+    "to": "/roadmap/compatibility",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/spec-maintenance/future-capabilities",
+    "to": "/roadmap/future-capabilities",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/risks-and-decisions/risks-decisions",
+    "to": "/roadmap/risks-decisions",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/risks-and-decisions/risks",
+    "to": "/roadmap/risks",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/risks-and-decisions/decisions",
+    "to": "/roadmap/decisions",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/risks-and-decisions/gaps",
+    "to": "/roadmap/gaps",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/roadmap-and-risks/risks-and-decisions/questions",
+    "to": "/roadmap/questions",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/data-protection-and-classification/data-protection-classification",
+    "to": "/governance/data-protection-classification",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/data-protection-and-classification/data-protection",
+    "to": "/governance/data-protection",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/data-protection-and-classification/classification",
+    "to": "/governance/data-protection/classification",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/data-protection-and-classification/masking",
+    "to": "/governance/data-protection/masking",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/data-protection-and-classification/tokenization",
+    "to": "/governance/data-protection/tokenization",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/data-protection-and-classification/dlp",
+    "to": "/governance/data-protection/dlp",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/data-protection-and-classification/residency",
+    "to": "/governance/data-protection/residency",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/ai-billing-and-cost-governance/ai-billing-cost-governance",
+    "to": "/governance/ai-billing-cost-governance",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/ai-billing-and-cost-governance/billing",
+    "to": "/governance/billing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/ai-billing-and-cost-governance/usage",
+    "to": "/governance/billing/usage",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/ai-billing-and-cost-governance/budgets",
+    "to": "/governance/billing/budgets",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/ai-billing-and-cost-governance/guardrails",
+    "to": "/governance/billing/guardrails",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/ai-billing-and-cost-governance/optimizer",
+    "to": "/governance/billing/optimizer",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/ai-billing-and-cost-governance/chargeback",
+    "to": "/governance/billing/chargeback",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/ai-billing-and-cost-governance/forecasting",
+    "to": "/governance/billing/forecasting",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/ai-billing-and-cost-governance/rates",
+    "to": "/governance/billing/rates",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/ai-billing-and-cost-governance/multi-tenant",
+    "to": "/governance/billing/multi-tenant",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/security-monitoring-and-response/security-monitoring-response",
+    "to": "/governance/security-monitoring-response",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/security-monitoring-and-response/monitoring",
+    "to": "/governance/security/monitoring",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/security-monitoring-and-response/alerts",
+    "to": "/governance/security/alerts",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/security-monitoring-and-response/detection",
+    "to": "/governance/security/detection",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/security-monitoring-and-response/risk",
+    "to": "/governance/security/risk",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/security-monitoring-and-response/alignment",
+    "to": "/governance/security/alignment",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/security-monitoring-and-response/incidents",
+    "to": "/governance/security/incidents",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/security-monitoring-and-response/forensics",
+    "to": "/governance/security/forensics",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/security-monitoring-and-response/vuln",
+    "to": "/governance/security/vuln",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/identity-and-access/identity-access",
+    "to": "/governance/identity-access",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/identity-and-access/identity",
+    "to": "/governance/identity",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/identity-and-access/auth",
+    "to": "/governance/identity/auth",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/identity-and-access/sso",
+    "to": "/governance/identity/sso",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/identity-and-access/scim",
+    "to": "/governance/identity/scim",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/identity-and-access/rbac",
+    "to": "/governance/identity/rbac",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/identity-and-access/api-keys",
+    "to": "/governance/identity/api-keys",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/identity-and-access/sessions",
+    "to": "/governance/identity/sessions",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/identity-and-access/reviews",
+    "to": "/governance/identity/reviews",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/policy-and-governance-engine/policy-governance-engine",
+    "to": "/governance/policy-governance-engine",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/policy-and-governance-engine/policy",
+    "to": "/governance/policy",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/policy-and-governance-engine/library",
+    "to": "/governance/policy/library",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/policy-and-governance-engine/dsl",
+    "to": "/governance/policy/dsl",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/policy-and-governance-engine/safety",
+    "to": "/governance/policy/safety",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/policy-and-governance-engine/simulator",
+    "to": "/governance/policy/simulator",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/policy-and-governance-engine/versioning",
+    "to": "/governance/policy/versioning",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/policy-and-governance-engine/enforcement",
+    "to": "/governance/policy/enforcement",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/policy-and-governance-engine/exceptions",
+    "to": "/governance/policy/exceptions",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/compliance-and-regulator-fabric/compliance-regulator-fabric",
+    "to": "/governance/compliance-regulator-fabric",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/compliance-and-regulator-fabric/compliance",
+    "to": "/governance/compliance",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/compliance-and-regulator-fabric/controls",
+    "to": "/governance/compliance/controls",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/compliance-and-regulator-fabric/readiness",
+    "to": "/governance/compliance/readiness",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/compliance-and-regulator-fabric/regulator",
+    "to": "/governance/regulator",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/compliance-and-regulator-fabric/tenancy",
+    "to": "/governance/regulator/tenancy",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/compliance-and-regulator-fabric/evidence",
+    "to": "/governance/regulator/evidence",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/governance-and-security/compliance-and-regulator-fabric/requests",
+    "to": "/governance/regulator/requests",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-registry-and-management/driver-registry-management",
+    "to": "/drivers/driver-registry-management",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-registry-and-management/drivers",
+    "to": "/drivers/driver-registry-management/drivers",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-registry-and-management/registry",
+    "to": "/drivers/registry",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-registry-and-management/sdk",
+    "to": "/drivers/sdk",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-registry-and-management/testing",
+    "to": "/drivers/testing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-registry-and-management/permissions",
+    "to": "/drivers/permissions",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-registry-and-management/versioning",
+    "to": "/drivers/versioning",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-registry-and-management/analytics",
+    "to": "/drivers/analytics",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-registry-and-management/publishing",
+    "to": "/drivers/publishing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/connectors-integrations",
+    "to": "/drivers/connectors-integrations",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/connectors",
+    "to": "/drivers/connectors-integrations/connectors",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/credentials",
+    "to": "/drivers/connectors-integrations/credentials",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/api-connectors",
+    "to": "/drivers/connectors-integrations/api-connectors",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/productivity",
+    "to": "/drivers/integrations/productivity",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/code",
+    "to": "/drivers/integrations/code",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/cloud",
+    "to": "/drivers/integrations/cloud",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/office",
+    "to": "/drivers/connectors-integrations/office",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/finance",
+    "to": "/drivers/integrations/finance",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/research",
+    "to": "/drivers/integrations/research",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/legacy",
+    "to": "/drivers/integrations/legacy",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/webhooks",
+    "to": "/drivers/connectors-integrations/webhooks",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/mappings",
+    "to": "/drivers/connectors-integrations/mappings",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/health",
+    "to": "/drivers/connectors-integrations/health",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/connectors-and-integrations/rate-limits",
+    "to": "/drivers/connectors-integrations/rate-limits",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/risk-and-governance/risk-governance",
+    "to": "/drivers/risk-governance",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/risk-and-governance/risk",
+    "to": "/drivers/risk",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/risk-and-governance/vendors",
+    "to": "/drivers/risk/vendors",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/risk-and-governance/assessments",
+    "to": "/drivers/risk/assessments",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/risk-and-governance/remediation",
+    "to": "/drivers/risk/remediation",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/risk-and-governance/exceptions",
+    "to": "/drivers/risk/exceptions",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-packs-and-marketplace/driver-packs-marketplace",
+    "to": "/drivers/driver-packs-marketplace",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-packs-and-marketplace/marketplace",
+    "to": "/drivers/marketplace",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-packs-and-marketplace/reviews",
+    "to": "/drivers/marketplace/reviews",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-packs-and-marketplace/security-review",
+    "to": "/drivers/marketplace/security-review",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-packs-and-marketplace/packs",
+    "to": "/drivers/packs",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-packs-and-marketplace/builder",
+    "to": "/drivers/packs/builder",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-packs-and-marketplace/vertical-editions",
+    "to": "/drivers/vertical-editions",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-packs-and-marketplace/enterprise-store",
+    "to": "/drivers/enterprise-store",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/drivers-and-integrations/driver-packs-and-marketplace/licensing",
+    "to": "/drivers/licensing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/engagement-and-persona-surfaces/engagement-persona-surfaces",
+    "to": "/dashboard/engagement-persona-surfaces",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/engagement-and-persona-surfaces/chat",
+    "to": "/dashboard/engagement/chat",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/engagement-and-persona-surfaces/library",
+    "to": "/dashboard/engagement-persona-surfaces/library",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/engagement-and-persona-surfaces/search",
+    "to": "/dashboard/engagement/search",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/engagement-and-persona-surfaces/saved",
+    "to": "/dashboard/engagement-persona-surfaces/saved",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/engagement-and-persona-surfaces/collaboration",
+    "to": "/dashboard/engagement/collaboration",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/engagement-and-persona-surfaces/channels",
+    "to": "/dashboard/engagement-persona-surfaces/channels",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/engagement-and-persona-surfaces/presence",
+    "to": "/dashboard/engagement-persona-surfaces/presence",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/engagement-and-persona-surfaces/personalization",
+    "to": "/dashboard/engagement/personalization",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/engagement-and-persona-surfaces/macros",
+    "to": "/dashboard/engagement-persona-surfaces/macros",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/engagement-and-persona-surfaces/profiles",
+    "to": "/dashboard/engagement-persona-surfaces/profiles",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/core-flight-deck",
+    "to": "/dashboard/core-flight-deck",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/flight-deck",
+    "to": "/dashboard/flight-deck",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/projects",
+    "to": "/dashboard/flight-deck/projects",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/templates",
+    "to": "/dashboard/core-flight-deck/templates",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/members",
+    "to": "/dashboard/core-flight-deck/members",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/settings",
+    "to": "/dashboard/core-flight-deck/settings",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/tasks",
+    "to": "/dashboard/flight-deck/tasks",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/board",
+    "to": "/dashboard/core-flight-deck/board",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/automation",
+    "to": "/dashboard/core-flight-deck/automation",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/analytics",
+    "to": "/dashboard/core-flight-deck/analytics",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/activity",
+    "to": "/dashboard/core-flight-deck/activity",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/notifications",
+    "to": "/dashboard/core-flight-deck/notifications",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/inbox",
+    "to": "/dashboard/core-flight-deck/inbox",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/mission-control/core-flight-deck/timeline",
+    "to": "/dashboard/core-flight-deck/timeline",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/",
+    "to": "/dashboard/flight-deck",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/cognitive-agents-and-reasoning/cognitive-agents-reasoning",
+    "to": "/ai/cognitive-agents-reasoning",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/cognitive-agents-and-reasoning/copilot",
+    "to": "/ai/copilot",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/cognitive-agents-and-reasoning/prompts",
+    "to": "/ai/prompts",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/cognitive-agents-and-reasoning/project-intelligence",
+    "to": "/ai/project-intelligence",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/cognitive-agents-and-reasoning/evals",
+    "to": "/ai/evals",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/cognitive-agents-and-reasoning/routing",
+    "to": "/ai/routing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/cognitive-agents-and-reasoning/advanced",
+    "to": "/ai/advanced",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/cognitive-agents-and-reasoning/daemons",
+    "to": "/ai/daemons",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/cognitive-agents-and-reasoning/trf",
+    "to": "/ai/trf",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/cognitive-agents-and-reasoning/safety",
+    "to": "/ai/safety",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/cognitive-agents-and-reasoning/registry",
+    "to": "/ai/agents/registry",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/driver-fabric-system-execution",
+    "to": "/ai/driver-fabric-system-execution",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/os",
+    "to": "/ai/drivers/os",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/operations",
+    "to": "/ai/operations",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/drivers",
+    "to": "/ai/drivers",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/testing",
+    "to": "/ai/drivers/testing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/health",
+    "to": "/ai/drivers/health",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/permissions",
+    "to": "/ai/drivers/permissions",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/versioning",
+    "to": "/ai/drivers/versioning",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/package",
+    "to": "/ai/drivers/package",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/hardware",
+    "to": "/ai/drivers/hardware",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/software",
+    "to": "/ai/drivers/software",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/data",
+    "to": "/ai/drivers/data",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/research",
+    "to": "/ai/drivers/research",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/driver-fabric-and-system-execution/sandbox",
+    "to": "/ai/drivers/sandbox",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/edge-and-vision/edge-vision",
+    "to": "/ai/edge-vision",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/edge-and-vision/edge",
+    "to": "/ai/edge",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/edge-and-vision/devices",
+    "to": "/ai/edge/devices",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/edge-and-vision/deploy",
+    "to": "/ai/edge/deploy",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/edge-and-vision/vision",
+    "to": "/ai/vision",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/edge-and-vision/streams",
+    "to": "/ai/vision/streams",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/edge-and-vision/pipelines",
+    "to": "/ai/vision/pipelines",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/edge-and-vision/labeling",
+    "to": "/ai/vision/labeling",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/capsules-workflow-automation",
+    "to": "/ai/capsules-workflow-automation",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/workflows",
+    "to": "/ai/workflows",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/triggers",
+    "to": "/ai/workflows/triggers",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/observability",
+    "to": "/ai/workflows/observability",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/builder",
+    "to": "/ai/capsules/builder",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/templates",
+    "to": "/ai/capsules/templates",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/my-stack",
+    "to": "/ai/capsules/my-stack",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/runtime",
+    "to": "/ai/capsules/runtime",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/secrets",
+    "to": "/ai/capsules/secrets",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/capsules",
+    "to": "/ai/capsules",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/publishing",
+    "to": "/ai/capsules/publishing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/operator-studio",
+    "to": "/ai/capsules/operator-studio",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/autofix",
+    "to": "/ai/autofix",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/ledger",
+    "to": "/ai/capsules/ledger",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/capsules-and-workflow-automation/lineage",
+    "to": "/ai/capsules/lineage",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/mlops-and-neural-architecture/mlops-neural-architecture",
+    "to": "/ai/mlops-neural-architecture",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/mlops-and-neural-architecture/mlops",
+    "to": "/ai/mlops",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/mlops-and-neural-architecture/models",
+    "to": "/ai/mlops/models",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/mlops-and-neural-architecture/data",
+    "to": "/ai/mlops/data",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/mlops-and-neural-architecture/pipelines",
+    "to": "/ai/mlops/pipelines",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/mlops-and-neural-architecture/serving",
+    "to": "/ai/mlops/serving",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/mlops-and-neural-architecture/drift",
+    "to": "/ai/mlops/drift",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/mlops-and-neural-architecture/approvals",
+    "to": "/ai/mlops/approvals",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/mlops-and-neural-architecture/nas",
+    "to": "/ai/nas",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/mlops-and-neural-architecture/experiments",
+    "to": "/ai/nas/experiments",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/mlops-and-neural-architecture/simulator",
+    "to": "/ai/nas/simulator",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/intent-processing/intent-processing",
+    "to": "/ai/intent-processing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/intent-processing/intents",
+    "to": "/ai/intents",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/intent-processing/taxonomy",
+    "to": "/ai/intents/taxonomy",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/intent-processing/logs",
+    "to": "/ai/intents/logs",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/intent-processing/systems",
+    "to": "/ai/systems",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/intent-processing/graph",
+    "to": "/ai/systems/graph",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/ai-fabric/intent-processing/capabilities",
+    "to": "/ai/capabilities",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/api-reference/api-reference",
+    "to": "/docs/api-reference",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/api-reference/api",
+    "to": "/docs/api",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/api-reference/sdks",
+    "to": "/docs/api/sdks",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/api-reference/auth",
+    "to": "/docs/api/auth",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/api-reference/webhooks",
+    "to": "/docs/api/webhooks",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/reference-artifacts/reference-artifacts",
+    "to": "/docs/reference-artifacts",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/reference-artifacts/capsules",
+    "to": "/docs/reference/capsules",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/reference-artifacts/drivers",
+    "to": "/docs/reference/drivers",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/reference-artifacts/policies",
+    "to": "/docs/reference/policies",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/reference-artifacts/evidence",
+    "to": "/docs/reference/evidence",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/reference-artifacts/data",
+    "to": "/docs/reference/data",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/reference-artifacts/ui",
+    "to": "/docs/reference/ui",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/documentation-hub/documentation-hub",
+    "to": "/docs/documentation-hub",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/documentation-hub/docs",
+    "to": "/docs",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/documentation-hub/getting-started",
+    "to": "/docs/getting-started",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/documentation-hub/tutorials",
+    "to": "/docs/tutorials",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/documentation-hub/glossary",
+    "to": "/docs/glossary",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/documentation-hub/spec-sheet",
+    "to": "/docs/spec-sheet",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/documentation-hub/release-notes",
+    "to": "/docs/release-notes",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/migration-and-integration/migration-integration",
+    "to": "/docs/migration-integration",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/migration-and-integration/migration_continued.md",
+    "to": "/docs/migration_continued.md",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/migration-and-integration/migration",
+    "to": "/docs/migration",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/migration-and-integration/integrations",
+    "to": "/docs/integrations",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/docs-and-spec/migration-and-integration/deployment",
+    "to": "/docs/deployment",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/settings-and-admin/user-and-tenant-settings/user-tenant-settings",
+    "to": "/settings/user-tenant-settings",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/settings-and-admin/user-and-tenant-settings/settings",
+    "to": "/settings",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/settings-and-admin/user-and-tenant-settings/profile",
+    "to": "/settings/profile",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/settings-and-admin/user-and-tenant-settings/preferences",
+    "to": "/settings/preferences",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/settings-and-admin/user-and-tenant-settings/notifications",
+    "to": "/settings/notifications",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/settings-and-admin/user-and-tenant-settings/credentials",
+    "to": "/settings/credentials",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/settings-and-admin/user-and-tenant-settings/api-keys",
+    "to": "/settings/api-keys",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/indices-and-search/indices-search",
+    "to": "/data/indices-search",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/indices-and-search/indices",
+    "to": "/data/indices",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/indices-and-search/manage",
+    "to": "/data/indices/manage",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/indices-and-search/fulltext",
+    "to": "/data/indices/fulltext",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/indices-and-search/semantic",
+    "to": "/data/indices/semantic",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/indices-and-search/embeddings",
+    "to": "/data/indices/embeddings",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/indices-and-search/graph",
+    "to": "/data/indices/graph",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/indices-and-search/tuning",
+    "to": "/data/indices/tuning",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/indices-and-search/query",
+    "to": "/data/query",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/data-protection/data-protection",
+    "to": "/data/data-protection",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/data-protection/encryption",
+    "to": "/data/encryption",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/data-protection/rotation",
+    "to": "/data/encryption/rotation",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/data-protection/integrity",
+    "to": "/data/integrity",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/replication-and-dr/replication-dr",
+    "to": "/data/replication-dr",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/replication-and-dr/replication",
+    "to": "/data/replication",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/replication-and-dr/consistency",
+    "to": "/data/consistency",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/replication-and-dr/failover",
+    "to": "/data/dr/failover",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/replication-and-dr/drills",
+    "to": "/data/dr/drills",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/archive-and-retention/archive-retention",
+    "to": "/data/archive-retention",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/archive-and-retention/archive",
+    "to": "/data/archive",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/archive-and-retention/backup",
+    "to": "/data/backup",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/archive-and-retention/policies",
+    "to": "/data/retention/policies",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/archive-and-retention/legal-hold",
+    "to": "/data/legal-hold",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/archive-and-retention/restore-testing",
+    "to": "/data/restore-testing",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/observability-stores/observability-stores",
+    "to": "/data/observability-stores",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/observability-stores/observability",
+    "to": "/data/observability",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/observability-stores/metrics",
+    "to": "/data/metrics",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/observability-stores/logs",
+    "to": "/data/logs",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/observability-stores/traces",
+    "to": "/data/traces",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/observability-stores/tiering",
+    "to": "/data/observability/tiering",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/observability-stores/export",
+    "to": "/data/observability/export",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/core-data-stores/core-data-stores",
+    "to": "/data/core-data-stores",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/core-data-stores/data",
+    "to": "/data",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/core-data-stores/cir",
+    "to": "/data/cir",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/core-data-stores/capsules",
+    "to": "/data/capsules",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/core-data-stores/ledger",
+    "to": "/data/ledger",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/core-data-stores/artifacts",
+    "to": "/data/artifacts",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/core-data-stores/schema",
+    "to": "/data/schema",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/core-data-stores/ingestion",
+    "to": "/data/ingestion",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/core-data-stores/lineage",
+    "to": "/data/lineage",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/data-and-knowledge/core-data-stores/quality",
+    "to": "/data/quality",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  },
+  {
+    "from": "/observability-evidence/telemetry-metrics/observability",
+    "to": "/observability",
+    "defined_in": "frontend/src/data/iaManifest.from_json.json",
+    "applied_in": "frontend/src/components/Layout.tsx"
+  }
+]

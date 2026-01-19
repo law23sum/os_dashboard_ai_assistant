@@ -5,7 +5,7 @@
 
 import apiClient, { apiPath } from '../lib/apiClient'
 import { extractArray } from '../lib/responseHelpers'
-import type { Task, Project, ChatMessage, DashboardStats } from '../types'
+import type { Task, Project, ChatMessage, DashboardStats, ApiSessionCostResponse } from '../types'
 
 // ============================================================================
 // Types
@@ -24,46 +24,46 @@ export interface PaginatedResponse<T> {
   pageSize: number
 }
 
-export interface CookbookToolExample {
+export interface ToolingToolExample {
   prompt: string
   tool_name: string
 }
 
-export interface CookbookToolExamplesResponse {
+export interface ToolingToolExamplesResponse {
   tools: Record<string, unknown>[]
-  examples: CookbookToolExample[]
+  examples: ToolingToolExample[]
   openapi_hint: string
 }
 
-export interface CookbookTriageRequest {
+export interface ToolingTriageRequest {
   prompt: string
   mode?: 'auto' | 'heuristic' | 'llm'
   max_agents?: number
   model?: string
 }
 
-export interface CookbookTriageResponse {
+export interface ToolingTriageResponse {
   agents: string[]
   rationale: string
   confidence: number
   mode: string
 }
 
-export interface CookbookGuardrailsRequest {
+export interface ToolingGuardrailsRequest {
   response_text: string
   blocked_phrases?: string[]
   max_response_chars?: number
   require_safe_language?: boolean
 }
 
-export interface CookbookGuardrailsResponse {
+export interface ToolingGuardrailsResponse {
   allowed: boolean
   score: number
   violations: { rule: string; detail: string }[]
   notes: string[]
 }
 
-export interface CookbookFileSearchRequest {
+export interface ToolingFileSearchRequest {
   query: string
   vector_store_ids: string[]
   max_num_results?: number
@@ -71,11 +71,20 @@ export interface CookbookFileSearchRequest {
   model?: string
 }
 
-export interface CookbookFileSearchResponse {
+export interface ToolingFileSearchResponse {
   response: string
   results: Record<string, unknown>[]
   tool_calls: Record<string, unknown>[]
 }
+
+export type CookbookToolExample = ToolingToolExample
+export type CookbookToolExamplesResponse = ToolingToolExamplesResponse
+export type CookbookTriageRequest = ToolingTriageRequest
+export type CookbookTriageResponse = ToolingTriageResponse
+export type CookbookGuardrailsRequest = ToolingGuardrailsRequest
+export type CookbookGuardrailsResponse = ToolingGuardrailsResponse
+export type CookbookFileSearchRequest = ToolingFileSearchRequest
+export type CookbookFileSearchResponse = ToolingFileSearchResponse
 
 // ============================================================================
 // Tasks API
@@ -215,6 +224,17 @@ export const dashboardApi = {
 }
 
 // ============================================================================
+// API Session Costs
+// ============================================================================
+
+export const apiSessionCostsApi = {
+  get: async (): Promise<ApiSessionCostResponse> => {
+    const { data } = await apiClient.get<ApiSessionCostResponse>(apiPath('api-session-costs'))
+    return data
+  },
+}
+
+// ============================================================================
 // Documents API
 // ============================================================================
 
@@ -345,30 +365,32 @@ export const terminalApi = {
 }
 
 // ============================================================================
-// Cookbook Patterns API
+// Tooling Patterns API
 // ============================================================================
 
-export const cookbookApi = {
-  getToolExamples: async (): Promise<CookbookToolExamplesResponse> => {
-    const { data } = await apiClient.get(apiPath('cookbook/tool-examples'))
+export const toolingApi = {
+  getToolExamples: async (): Promise<ToolingToolExamplesResponse> => {
+    const { data } = await apiClient.get(apiPath('ai-tooling/tool-examples'))
     return data
   },
 
-  triage: async (payload: CookbookTriageRequest): Promise<CookbookTriageResponse> => {
-    const { data } = await apiClient.post(apiPath('cookbook/triage'), payload)
+  triage: async (payload: ToolingTriageRequest): Promise<ToolingTriageResponse> => {
+    const { data } = await apiClient.post(apiPath('ai-tooling/triage'), payload)
     return data
   },
 
-  guardrails: async (payload: CookbookGuardrailsRequest): Promise<CookbookGuardrailsResponse> => {
-    const { data } = await apiClient.post(apiPath('cookbook/guardrails'), payload)
+  guardrails: async (payload: ToolingGuardrailsRequest): Promise<ToolingGuardrailsResponse> => {
+    const { data } = await apiClient.post(apiPath('ai-tooling/guardrails'), payload)
     return data
   },
 
-  fileSearch: async (payload: CookbookFileSearchRequest): Promise<CookbookFileSearchResponse> => {
-    const { data } = await apiClient.post(apiPath('cookbook/file-search'), payload)
+  fileSearch: async (payload: ToolingFileSearchRequest): Promise<ToolingFileSearchResponse> => {
+    const { data } = await apiClient.post(apiPath('ai-tooling/file-search'), payload)
     return data
   },
 }
+
+export const cookbookApi = toolingApi
 
 // ============================================================================
 // AI Systems API
@@ -403,6 +425,7 @@ export const api = {
   workspace: workspaceApi,
   terminal: terminalApi,
   ai: aiSystemsApi,
+  tooling: toolingApi,
   cookbook: cookbookApi,
 }
 

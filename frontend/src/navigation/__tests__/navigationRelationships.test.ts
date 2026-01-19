@@ -66,7 +66,7 @@ describe('Navigation Relationships', () => {
             } else {
               // Within same edition, category should belong to one platform
               const existingPlatform = categoryPlatforms.get(key)
-              // Allow cross-edition (Personal vs Enterprise) but not within same edition
+              // Allow cross-edition (Personal vs Business/Team vs Enterprise) but not within same edition
               if (existingPlatform !== platform) {
                 // This is valid if it's cross-edition, but we check the key includes edition
                 // So if key matches, it's same edition - should be same platform
@@ -154,11 +154,8 @@ describe('Navigation Relationships', () => {
       if (duplicates.length > 0) {
         console.warn('Duplicate routes found:', duplicates.slice(0, 10))
       }
-      // Allow some duplicates for now (legacy routes) but log them
-      // expect(duplicates.length).toBe(0)
+      expect(duplicates.length).toBe(0)
     })
   })
 })
-
-
 

@@ -1,0 +1,43 @@
+[run]
+source = backend_api,assistant_core
+omit =
+    */tests/*
+    */test_*
+    */__pycache__/*
+    */venv/*
+    */env/*
+
+[report]
+include =
+    assistant_core/__init__.py
+    assistant_core/advanced_productivity.py
+    assistant_core/cir/__init__.py
+    assistant_core/cir/schema.py
+    assistant_core/content/__init__.py
+    assistant_core/core/__init__.py
+    assistant_core/core/state.py
+    assistant_core/data_aggregator.py
+    assistant_core/db.py
+    assistant_core/domain/__init__.py
+    assistant_core/domain/models.py
+    assistant_core/drivers/__init__.py
+    assistant_core/failure_registry.py
+    assistant_core/guardrails.py
+    assistant_core/hyperdaemon/risk_monitor.py
+    assistant_core/integrations/__init__.py
+    assistant_core/intelligence/__init__.py
+    assistant_core/prompting/gpt5_scaffold.py
+    assistant_core/spec_registry.py
+    assistant_core/system/__init__.py
+    assistant_core/terminal.py
+    backend_api/routers/office.py
+    backend_api/routers/workspace.py
+    backend_api/security.py
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod

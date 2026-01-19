@@ -1,4 +1,4 @@
-"""Desktop dashboard interface components for the OS Dashboard AI Assistant."""
+"""Desktop dashboard interface components for the AI OS."""
 
 from .main_interface import MainDashboard, DashboardConfig
 

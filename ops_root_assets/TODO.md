@@ -1,4 +1,4 @@
-# OS Dashboard AI Assistant – TODO
+# AI OS – TODO
 
 - [ ] Expand `config/repo_manifest.json` with every approved repository (include stack + owner tags).
 - [ ] Harden `scripts/codex_sentinel.py` to dispatch actual lint/test/fix commands per repo and emit structured JSON logs to this folder.

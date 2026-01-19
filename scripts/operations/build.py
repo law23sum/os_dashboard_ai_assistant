@@ -1,5 +1,5 @@
 """
-Build operations for OS Dashboard AI Assistant
+Build operations for AI OS
 """
 
 import sys

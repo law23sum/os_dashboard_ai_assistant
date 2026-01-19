@@ -1,8 +1,13 @@
 """Tasks API router."""
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Optional
-from pydantic import BaseModel
+try:
+    from pydantic import BaseModel, ConfigDict
+except ImportError:  # pragma: no cover - pydantic v1 fallback
+    from pydantic import BaseModel
+    ConfigDict = None
 import sys
+import uuid
 from pathlib import Path
 
 parent_dir = Path(__file__).parent.parent.parent
@@ -33,6 +38,41 @@ def _task_event_payload(task_dict: dict) -> dict:
         "owner": task_dict.get("owner"),
         "due_date": task_dict.get("due_date"),
     }
+
+
+def _emit_task_lifecycle(
+    *,
+    event_type: str,
+    task_dict: dict,
+    user_id: str,
+    correlation_id: str,
+    causation_id: Optional[str] = None,
+    extra: Optional[dict] = None,
+) -> None:
+    try:
+        from assistant_hub.audit.sdk import get_default_emitter
+
+        emitter = get_default_emitter(agent_id="os_dashboard")
+        payload = {
+            "task_id": task_dict.get("id"),
+            "project": task_dict.get("project"),
+            "status": task_dict.get("status"),
+            "priority": task_dict.get("priority"),
+            "owner": task_dict.get("owner"),
+            "user_id": user_id,
+        }
+        if extra:
+            payload.update(extra)
+        emitter.emit(
+            event_type=event_type,
+            message=f"Task lifecycle: {event_type}",
+            payload=payload,
+            project_ref={"project_id": task_dict.get("project")},
+            correlation_id=correlation_id,
+            causation_id=causation_id,
+        )
+    except Exception:
+        return
 
 class TaskCreate(BaseModel):
     title: str
@@ -81,8 +121,11 @@ class TaskResponse(BaseModel):
     time_logged: Optional[int]
     template_id: Optional[str]
 
-    class Config:
-        from_attributes = True
+    if ConfigDict is not None:
+        model_config = ConfigDict(from_attributes=True)
+    else:
+        class Config:
+            orm_mode = True
 
 @router.get("/", response_model=List[TaskResponse])
 async def list_tasks(
@@ -208,6 +251,38 @@ async def create_task(task: TaskCreate, user: AuthUser = Depends(get_current_use
             payload=_task_event_payload(task_dict),
             user_id=user.id,
         )
+        correlation_id = str(uuid.uuid4())
+        try:
+            from assistant_hub.audit.sdk import new_correlation_id
+
+            correlation_id = new_correlation_id()
+        except Exception:
+            pass
+        status = (task_dict.get("status") or "").upper()
+        if status == "IN_PROGRESS":
+            _emit_task_lifecycle(
+                event_type="TASK_CLAIM",
+                task_dict=task_dict,
+                user_id=user.id,
+                correlation_id=correlation_id,
+                extra={"previous_status": None},
+            )
+        elif status == "BLOCKED":
+            _emit_task_lifecycle(
+                event_type="TASK_BLOCKED",
+                task_dict=task_dict,
+                user_id=user.id,
+                correlation_id=correlation_id,
+                extra={"previous_status": None},
+            )
+        elif status == "DONE":
+            _emit_task_lifecycle(
+                event_type="TASK_COMPLETE",
+                task_dict=task_dict,
+                user_id=user.id,
+                correlation_id=correlation_id,
+                extra={"previous_status": None},
+            )
     return TaskResponse(**task_dict)
 
 @router.put("/{task_id}", response_model=TaskResponse)
@@ -228,6 +303,8 @@ async def update_task(task_id: int, task_update: TaskUpdate, user: AuthUser = De
         row = cursor.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Task not found")
+        columns = [description[0] for description in cursor.description]
+        existing = dict(zip(columns, row))
         
         # Create Task object with merged values
         db_task = Task(
@@ -264,6 +341,41 @@ async def update_task(task_id: int, task_update: TaskUpdate, user: AuthUser = De
             payload=_task_event_payload(task_dict),
             user_id=user.id,
         )
+        correlation_id = str(uuid.uuid4())
+        try:
+            from assistant_hub.audit.sdk import new_correlation_id
+
+            correlation_id = new_correlation_id()
+        except Exception:
+            pass
+        if existing.get("owner") != task_dict.get("owner"):
+            _emit_task_lifecycle(
+                event_type="TASK_HANDOFF",
+                task_dict=task_dict,
+                user_id=user.id,
+                correlation_id=correlation_id,
+                extra={
+                    "from_owner": existing.get("owner"),
+                    "to_owner": task_dict.get("owner"),
+                },
+            )
+        if existing.get("status") != task_dict.get("status"):
+            new_status = (task_dict.get("status") or "").upper()
+            event_type = None
+            if new_status == "IN_PROGRESS":
+                event_type = "TASK_CLAIM"
+            elif new_status == "BLOCKED":
+                event_type = "TASK_BLOCKED"
+            elif new_status == "DONE":
+                event_type = "TASK_COMPLETE"
+            if event_type:
+                _emit_task_lifecycle(
+                    event_type=event_type,
+                    task_dict=task_dict,
+                    user_id=user.id,
+                    correlation_id=correlation_id,
+                    extra={"previous_status": existing.get("status")},
+                )
     return TaskResponse(**task_dict)
 
 @router.delete("/{task_id}", status_code=204)

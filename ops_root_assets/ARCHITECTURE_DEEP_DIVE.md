@@ -1,4 +1,4 @@
-# OS Dashboard AI Assistant — Architecture Deep Dive
+# AI OS — Architecture Deep Dive
 
 ## TOC
 - Sessions are appended below in chronological order.
@@ -8,7 +8,7 @@
 - Generated at: `2025-12-11T22:34:59Z`
 
 ### System boundaries
-- **This repository**: OS Dashboard AI Assistant control plane + UI surfaces + automation.
+- **This repository**: AI OS control plane + UI surfaces + automation.
 - **External repositories**: referenced in place via `config/repo_manifest.json` and inspected by Sentinel (no code copying).
 
 ### High-level architecture (OS Dashboard)
@@ -42,7 +42,7 @@
 - Generated at: `2025-12-11T22:39:07Z`
 
 ### System boundaries
-- **This repository**: OS Dashboard AI Assistant control plane + UI surfaces + automation.
+- **This repository**: AI OS control plane + UI surfaces + automation.
 - **External repositories**: referenced in place via `config/repo_manifest.json` and inspected by Sentinel (no code copying).
 
 ### High-level architecture (OS Dashboard)
@@ -76,7 +76,7 @@
 - Generated at: `2025-12-11T22:41:40Z`
 
 ### System boundaries
-- **This repository**: OS Dashboard AI Assistant control plane + UI surfaces + automation.
+- **This repository**: AI OS control plane + UI surfaces + automation.
 - **External repositories**: referenced in place via `config/repo_manifest.json` and inspected by Sentinel (no code copying).
 
 ### High-level architecture (OS Dashboard)
@@ -110,7 +110,7 @@
 - Generated at: `2025-12-11T23:22:42Z`
 
 ### System boundaries
-- **This repository**: OS Dashboard AI Assistant control plane + UI surfaces + automation.
+- **This repository**: AI OS control plane + UI surfaces + automation.
 - **External repositories**: referenced in place via `config/repo_manifest.json` and inspected by Sentinel (no code copying).
 
 ### High-level architecture (OS Dashboard)
@@ -144,7 +144,7 @@
 - Generated at: `2025-12-11T23:32:19Z`
 
 ### System boundaries
-- **This repository**: OS Dashboard AI Assistant control plane + UI surfaces + automation.
+- **This repository**: AI OS control plane + UI surfaces + automation.
 - **External repositories**: referenced in place via `config/repo_manifest.json` and inspected by Sentinel (no code copying).
 
 ### High-level architecture (OS Dashboard)

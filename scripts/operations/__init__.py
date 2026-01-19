@@ -1,5 +1,5 @@
 """
-Operations module for OS Dashboard AI Assistant
+Operations module for AI OS
 Provides unified execution pipeline for install, build, test, execute, and verify operations
 """
 

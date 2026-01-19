@@ -24,6 +24,10 @@ Updated: 2025-02-17
 - Attachments/cache/integrations under `ASSISTANT_HUB_*` dirs (default under repo root).
 - Demo data seeded via `assistant_hub.demo_seed.ensure_demo_data`.
 
+## Observability & Journal
+- Unified Event Hub with a shared logging SDK and append-only journals (planned). Spec: `docs/UNIFIED_EVENT_JOURNAL.md`.
+- Per-agent local journals plus a team timeline rendered in the OS Dashboard "Journal" view.
+
 ## API Surface (selected)
 - Observability/runtime: `/runtime/diagnostics`, `/runtime/diagnostics/ping`, `/system`, `/system/memory-thread-plan`, `/planes/status`.
 - Workspace automation: `/workspace/scan`, `/workspace/checks`, `/workspace/doctor` (aggregated harness report + env checks).
@@ -41,4 +45,4 @@ Updated: 2025-02-17
 - No consolidated CI for lint/test/security across Python + frontend.
 - AuthN/AuthZ still open; APIs unauthenticated beyond CORS.
 - Persistence lacks migrations/indexes; list endpoints missing pagination.
-- Observability limited to file-based diagnostics; no metrics/traces pipeline.
+- Observability currently file-based; unified event journal planned (see `docs/UNIFIED_EVENT_JOURNAL.md`).

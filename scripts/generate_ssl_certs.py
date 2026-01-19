@@ -46,7 +46,7 @@ def generate_certificates():
                 "365",
                 "-nodes",
                 "-subj",
-                "/C=US/ST=State/L=City/O=OS Dashboard/CN=localhost",
+                "/C=US/ST=State/L=City/O=AI OS/CN=localhost",
             ],
             check=True,
             capture_output=True,
@@ -78,5 +78,4 @@ def generate_certificates():
 
 if __name__ == "__main__":
     sys.exit(generate_certificates())
-
 

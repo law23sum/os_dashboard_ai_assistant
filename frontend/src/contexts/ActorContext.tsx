@@ -6,6 +6,7 @@ interface ActorContextType {
   setCurrentActor: (actor: ActorType) => void;
   isPersonal: boolean;
   isEnterprise: boolean;
+  isBusiness: boolean;
 }
 
 const ActorContext = createContext<ActorContextType | undefined>(undefined);
@@ -20,7 +21,7 @@ export const ActorProvider: React.FC<ActorProviderProps> = ({ children }) => {
   // Load saved actor preference on mount
   useEffect(() => {
     const savedActor = localStorage.getItem('osdash-actor') as ActorType;
-    if (savedActor && (savedActor === 'personal' || savedActor === 'enterprise')) {
+    if (savedActor && (savedActor === 'personal' || savedActor === 'business' || savedActor === 'enterprise')) {
       setCurrentActor(savedActor);
     } else {
       setCurrentActor('personal');
@@ -38,6 +39,7 @@ export const ActorProvider: React.FC<ActorProviderProps> = ({ children }) => {
     setCurrentActor,
     isPersonal: currentActor === 'personal',
     isEnterprise: currentActor === 'enterprise',
+    isBusiness: currentActor === 'business',
   };
 
   return (
@@ -56,6 +58,7 @@ export const useActor = (): ActorContextType => {
         setCurrentActor: () => undefined,
         isPersonal: true,
         isEnterprise: false,
+        isBusiness: false,
       };
     }
     throw new Error('useActor must be used within an ActorProvider');
@@ -64,5 +67,3 @@ export const useActor = (): ActorContextType => {
 };
 
 export default ActorContext;
-
-

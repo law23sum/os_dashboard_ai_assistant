@@ -122,7 +122,7 @@ def scan_spec_references(project_root: Path) -> Dict[str, List[str]]:
 def generate_report(project_root: Path):
     """Generate coverage report."""
     print("=" * 80)
-    print("OS Dashboard - Technical Spec v6 Coverage Report")
+    print("AI OS - Technical Spec v6 Coverage Report")
     print("=" * 80)
     print()
     

@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers deploying the OS Dashboard AI Assistant for both web browser and desktop executables across Linux, Windows, and macOS.
+This guide covers deploying the AI OS for both web browser and desktop executables across Linux, Windows, and macOS.
 
 ## Prerequisites
 

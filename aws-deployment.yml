@@ -1,6 +1,6 @@
-# AWS CloudFormation Template for OS Dashboard AI Assistant
+# AWS CloudFormation Template for AI OS
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'OS Dashboard AI Assistant Infrastructure'
+Description: 'AI OS Infrastructure'
 
 Parameters:
   EnvironmentName:

@@ -1,0 +1,47 @@
+{
+  "moved": [
+    {
+      "edition": "Personal Workstation Edition",
+      "route": "/observability-evidence/telemetry-metrics/slis-slos",
+      "from": "Observability Evidence",
+      "to_platform": "Observability & Evidence",
+      "to_category": "Telemetry Metrics"
+    },
+    {
+      "edition": "Personal Workstation Edition",
+      "route": "/operations-infrastructure/deployment-models/deployment-modes",
+      "from": "Operations Infrastructure",
+      "to_platform": "Operations & Infrastructure",
+      "to_category": "Deployment Models"
+    },
+    {
+      "edition": "Personal Workstation Edition",
+      "route": "/operations-infrastructure/deployment-models/hybrid-edge",
+      "from": "Operations Infrastructure",
+      "to_platform": "Operations & Infrastructure",
+      "to_category": "Deployment Models"
+    },
+    {
+      "edition": "Enterprise Control Plane Add\u2011Ons",
+      "route": "/observability-evidence/telemetry-metrics/slis-slos",
+      "from": "Observability Evidence",
+      "to_platform": "Observability & Evidence",
+      "to_category": "Telemetry Metrics"
+    },
+    {
+      "edition": "Enterprise Control Plane Add\u2011Ons",
+      "route": "/operations-infrastructure/deployment-models/deployment-modes",
+      "from": "Operations Infrastructure",
+      "to_platform": "Operations & Infrastructure",
+      "to_category": "Deployment Models"
+    },
+    {
+      "edition": "Enterprise Control Plane Add\u2011Ons",
+      "route": "/operations-infrastructure/deployment-models/hybrid-edge",
+      "from": "Operations Infrastructure",
+      "to_platform": "Operations & Infrastructure",
+      "to_category": "Deployment Models"
+    }
+  ],
+  "skipped": []
+}

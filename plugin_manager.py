@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Plugin Manager CLI for OS Dashboard AI Assistant."""
+"""Plugin Manager CLI for AI OS."""
 
 import asyncio
 import sys
@@ -145,7 +145,7 @@ class PluginManager:
 def create_parser():
     """Create command-line argument parser."""
     parser = argparse.ArgumentParser(
-        description="Plugin Manager for OS Dashboard AI Assistant",
+        description="Plugin Manager for AI OS",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

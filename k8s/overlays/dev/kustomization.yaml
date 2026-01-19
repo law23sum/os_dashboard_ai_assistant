@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: osdash-dev
+
+resources:
+  - ../../base
+  - namespace.yaml
+  - ingress.yaml
+
+patches:
+  - path: replicas.yaml
+
+images:
+  - name: osdash-backend
+    newName: ghcr.io/law23sum/os_dashboard_ai_assistant/backend
+    newTag: dev
+  - name: osdash-frontend
+    newName: ghcr.io/law23sum/os_dashboard_ai_assistant/frontend
+    newTag: dev
+
+configMapGenerator:
+  - name: osdash-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=dev
+      - LOG_LEVEL=DEBUG
+
+generatorOptions:
+  disableNameSuffixHash: true

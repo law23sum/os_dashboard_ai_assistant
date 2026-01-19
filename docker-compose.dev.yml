@@ -1,5 +1,10 @@
 version: '3.8'
 
+# Development Docker Compose
+# Usage:
+#   docker compose -f docker-compose.dev.yml up -d
+#   docker compose -f docker-compose.dev.yml down -v
+
 services:
   # Backend API
   backend:
@@ -15,20 +20,22 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
     environment:
-      - ENVIRONMENT=local
+      - ENVIRONMENT=dev
       - DEBUG=true
       - DATABASE_URL=sqlite:///data/assistant_hub.db
     env_file:
-      - .env.local
-    command: uvicorn backend_api.main:app --host 0.0.0.0 --port 8000 --reload
+      - .env
+      - env.dev.example
+    command: uvicorn assistant_hub.api.server:create_app --factory --host 0.0.0.0 --port 8000 --reload
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
     networks:
       - osdash-network
+    stop_grace_period: 10s
 
   # Frontend (Vite Dev Server)
   frontend:
@@ -42,12 +49,15 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_BASE_URL=http://localhost:8000
+      - VITE_API_BASE=/api
+      - VITE_API_TARGET=http://backend:8000
     command: npm run dev -- --host 0.0.0.0
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - osdash-network
+    stop_grace_period: 10s
 
   # PostgreSQL (for alpha/production-like testing)
   postgres:
@@ -117,4 +127,6 @@ networks:
 
 volumes:
   postgres-data:
+    driver: local
   redis-data:
+    driver: local

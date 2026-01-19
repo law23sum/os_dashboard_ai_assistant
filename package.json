@@ -8,7 +8,12 @@
     "dev": "npm run --prefix frontend dev",
     "dev:web": "npm run --prefix frontend dev:web",
     "dev:desktop": "npm run --prefix frontend dev:desktop",
-    "test": "pytest tests/test_office_router.py tests/test_office_api.py tests/test_assistant_api_office.py tests/test_desktop_launcher.py"
+    "export:ui-nav": "node scripts/export_ui_nav.js",
+    "test:nav-export": "node --test nav_exports/__tests__/os_dashboard_gui_nav_routing_export.test.mjs",
+    "test:nav-ia": "node --test nav_exports/__tests__/os_dashboard_gui_nav_required_ia.test.mjs",
+    "validate:gui-nav": "node scripts/validate_gui_nav.js",
+    "check:naming-drift": "node scripts/naming_drift_check.js",
+    "test": "pytest && npm run test:nav-export && npm run test:nav-ia"
   },
   "dependencies": {
     "@amplitude/analytics-react-native": "^1.5.16",

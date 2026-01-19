@@ -7,6 +7,7 @@ This script provides a unified interface to interact with AI agents:
 - ai_agent AIC          # Call AIC directly
 - ai_agent Aria         # Call Aria directly
 - ai_agent Sora         # Call Sora directly
+- ai_agent Gabriela     # Call Gabriela directly
 - ai_agent ChatGPT      # Auto-route to AIC/Sora/Aria
 - ai_agent --list       # List available agents
 - ai_agent --help       # Show help
@@ -146,7 +147,8 @@ def main():
         print("  ai_agent AIC <message>    # Call AIC directly")
         print("  ai_agent Aria <message>   # Call Aria directly")
         print("  ai_agent Sora <message>   # Call Sora directly")
-        print("  ai_agent ChatGPT <message> # Auto-route to AIC/Aria/Sora")
+        print("  ai_agent Gabriela <message> # Call Gabriela directly")
+        print("  ai_agent ChatGPT <message> # Auto-route to AIC/Aria/Sora/Gabriela")
         print("  ai_agent --list           # List available agents")
         print("\nRequirements:")
         print("  - OpenAI API key: Set OPENAI_API_KEY environment variable")
@@ -155,6 +157,7 @@ def main():
         print("  ai_agent AIC 'optimize this code'")
         print("  ai_agent Aria 'explain the meaning of this concept'")
         print("  ai_agent Sora 'prove this mathematically'")
+        print("  ai_agent Gabriela 'draft pricing options'")
         print("  ai_agent ChatGPT 'route this query'")
         return
     

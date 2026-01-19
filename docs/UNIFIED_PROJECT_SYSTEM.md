@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Unified Project Orchestrator System provides seamless, intuitive management and monitoring for all Git projects in your workspace. It automatically discovers all Git repositories, applies OS Dashboard auto-fix scripts, monitors health, and provides unified interfaces for interacting with all projects.
+The Unified Project Orchestrator System provides seamless, intuitive management and monitoring for all Git projects in your workspace. It automatically discovers all Git repositories, applies AI OS auto-fix scripts, monitors health, and provides unified interfaces for interacting with all projects.
 
 ## Architecture
 
@@ -185,7 +185,7 @@ This will:
 
 ## Integration with Existing Scripts
 
-The Unified Project Orchestrator integrates seamlessly with existing OS Dashboard scripts:
+The Unified Project Orchestrator integrates seamlessly with existing AI OS scripts:
 
 - **`ai_auto_fix.py`**: Auto-applied to all eligible projects
 - **`project_autofix_orchestrator.py`**: Enhanced with unified discovery

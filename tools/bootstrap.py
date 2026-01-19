@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup script for OS Dashboard AI Assistant
+Setup script for AI OS
 """
 
 import os
@@ -13,7 +13,7 @@ def print_banner():
     """Print a nice banner"""
     print("""
 ╔══════════════════════════════════════════════════════════════╗
-║                 OS Dashboard AI Assistant                    ║
+║                 AI OS                    ║
 ║                                                              ║
 ║  Your intelligent operating system dashboard for task        ║
 ║  management, document processing, and workflow automation   ║
@@ -105,9 +105,9 @@ def setup_configuration():
     config_file = config_dir / "config.yaml"
     if not config_file.exists():
         basic_config = """
-# OS Dashboard AI Assistant Configuration
+# AI OS Configuration
 app:
-  name: "OS Dashboard AI Assistant"
+  name: "AI OS"
   version: "1.0.0"
   environment: "development"
 
@@ -149,7 +149,7 @@ def create_desktop_shortcut():
         desktop_file.parent.mkdir(parents=True, exist_ok=True)
 
         content = f"""[Desktop Entry]
-Name=OS Dashboard AI Assistant
+Name=AI OS
 Exec={Path.cwd() / "start_ui.py"}
 Icon={Path.cwd() / "icon.png"}
 Type=Application
@@ -192,7 +192,7 @@ def main():
     """Main setup function"""
     print_banner()
 
-    print("🔧 Starting OS Dashboard AI Assistant setup...\\n")
+    print("🔧 Starting AI OS setup...\\n")
 
     # Check Python version
     if not check_python_version():

@@ -501,7 +501,7 @@ class SelfHealingEngine:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Self-Healing Engine for OS Dashboard AI Assistant"
+        description="Self-Healing Engine for AI OS"
     )
     
     parser.add_argument(

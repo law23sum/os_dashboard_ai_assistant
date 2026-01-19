@@ -1,4 +1,4 @@
-# Code Interpreter Capabilities in OS Dashboard AI Assistant
+# Code Interpreter Capabilities in AI OS
 
 This document summarizes all code interpreter implementations and capabilities found in the codebase, based on OpenAI's Code Interpreter documentation.
 
@@ -220,7 +220,7 @@ def render_response(response) -> None:
 
 **Example from Reference Implementation:**
 ```python
-# Download files from container (from reference/openai-cookbook)
+# Download files from container (from the OpenAI reference archive)
 if container_id:
     url = f"https://api.openai.com/v1/containers/{container_id}/files"
     resp_files = requests.get(url, headers=headers)
@@ -396,7 +396,7 @@ elif entry_type == "code_interpreter_call":
 ## Documentation References
 
 - **Main Documentation**: `docs/ENHANCED_CAPABILITIES.md`
-- **OpenAI Reference**: `reference/openai-cookbook/examples/data/oai_docs/tool-code-interpreter.txt`
+- **OpenAI Reference**: `reference/openai-reference/examples/data/oai_docs/tool-code-interpreter.txt`
 - **Migration Guide**: `docs/ASSISTANTS_MIGRATION.md`
 
 ## Related Capabilities
@@ -444,5 +444,4 @@ The codebase has comprehensive, production-ready support for OpenAI's Code Inter
 - ✅ Annotation processing
 
 All implementations follow OpenAI's latest Responses API patterns and support advanced features like container reuse and memory tier selection.
-
 

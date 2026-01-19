@@ -1,0 +1,1521 @@
+# Git History Removed Code Report
+
+## Scope & Criteria
+- Scanned full git history for code deletions and large net code removals.
+- Included deletions of code files by extension and excluded logs/tmp/build outputs and binaries.
+- Large net removal threshold: 200 lines per file per commit.
+
+## High-Level Findings
+- Commits with deleted code files: 15
+- Commits with large net code removals: 36
+- Unique interesting commits (combined): 43
+
+## Spec Alignment Notes (Version 9)
+- The spec mandates a rich Presentation Layer (Web UI/Dashboards) spanning multiple workspaces and tiers.
+- Large-scale deletion of `frontend/src/pages/*` and IA/navigation files likely removed required legacy pages for many tiers.
+- Evidence/Audit/Governance surfaces and workspace views are required; missing pages in those domains are likely regressions.
+
+## All Interesting Commits (Unique)
+- 6a343e245e5cb40ddbb2f260993b80ec8ca2576a | 2025-12-07T00:30:03-05:00 | Adopt full-featured assistant hub scaffold | reasons=deleted_files | categories=assistant_hub
+- d0e1eb8f9527d0416ddbb3036af59b85860ada18 | 2025-12-07T00:30:03-05:00 | Adopt full-featured assistant hub scaffold | reasons=deleted_files | categories=assistant_hub
+- 69e39816e901b2eb2e2d798d11a7ac4e5c9c514c | 2025-12-07T00:43:41-05:00 | Replace scaffold with full assistant implementation | reasons=deleted_files | categories=assistant_hub
+- 6ce38cc26093b4fc1a8d1026c94548f0264550c1 | 2025-12-07T00:43:41-05:00 | Replace scaffold with full assistant implementation | reasons=deleted_files | categories=assistant_hub
+- 2858947a301fa958ea47c02bb22aa4147c48d429 | 2025-12-07T03:36:36-05:00 | stable | reasons=large_net_removal | categories=assistant_hub_gui
+- 6fb0574c6de31be6615c5b5354fef7b39d4174b1 | 2025-12-07T03:36:36-05:00 | stable | reasons=large_net_removal | categories=assistant_hub_gui
+- 149cd2bcba8ae900b07da3c6a92f4a4a1a7071ba | 2025-12-07T05:31:20-05:00 | finally  something worthy to version control | reasons=deleted_files,large_net_removal | categories=assistant_hub_gui
+- 2ee9b3bfc89a38208e0b2ae9003b3c4fd1b6345b | 2025-12-07T05:31:20-05:00 | finally  something worthy to version control | reasons=deleted_files,large_net_removal | categories=assistant_hub_gui
+- 037977d41caf2e01d7300fb3d9803e323f37d603 | 2025-12-07T05:42:05-05:00 | latest stable version, beta release | reasons=deleted_files,large_net_removal | categories=assistant_hub_gui,repo-root
+- 3208362e9a8bff62e6ab84662a0f382a57a54abd | 2025-12-07T05:42:05-05:00 | latest stable version, beta release | reasons=deleted_files,large_net_removal | categories=assistant_hub_gui,repo-root
+- 4194f681e185f371fedcdebf8104d14641b57be4 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts | reasons=deleted_files,large_net_removal | categories=api_connectors,assistant_core,assistant_hub_gui,other
+- 756b68e195b0dfcdf574c95bb6687a558426b741 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts | reasons=deleted_files,large_net_removal | categories=api_connectors,assistant_core,assistant_hub_gui,other
+- 5cfa0e17aae32e9fbe5eb973ed74bafe69af1551 | 2025-12-07T17:21:51-05:00 | broken for now | reasons=deleted_files | categories=repo-root
+- 9a2d9a2b4964ca819391d34725f1c60c7d6a5435 | 2025-12-07T17:21:51-05:00 | broken for now | reasons=deleted_files | categories=repo-root
+- 6274bfcdb26b3f994dc45f87dfd3de045c88cf55 | 2025-12-07T18:42:02-05:00 | Refine universal connector interface | reasons=large_net_removal | categories=api_connectors
+- 8bcbae0ec558e9d924b2d6330e9980d2d095164f | 2025-12-07T18:42:02-05:00 | Refine universal connector interface | reasons=large_net_removal | categories=api_connectors
+- 0113dc9fb85e80ef7cf6cf5412f24d349b2d2d7e | 2025-12-07T18:42:05-05:00 | Refactor CIR schema with pydantic models | reasons=large_net_removal | categories=assistant_core
+- 1f51b3350c11f04b3fd1b2bbbe73857f9f3b5b9a | 2025-12-07T18:42:05-05:00 | Refactor CIR schema with pydantic models | reasons=large_net_removal | categories=assistant_core
+- b614c3c31f60411a905b3574f6c59b5b3c9b09d4 | 2025-12-07T19:50:29-05:00 | let it go | reasons=large_net_removal | categories=assistant_core
+- e4fdcf7cc0b21e0b6f766d9022dacab2d30b30ca | 2025-12-07T19:50:29-05:00 | let it go | reasons=large_net_removal | categories=assistant_core
+- 64a58567e2eea7cd00afb76923c3a6d6a9dd7938 | 2025-12-10T10:03:34-05:00 | usable | reasons=large_net_removal | categories=repo-root
+- c5712c4068bb9aa783843df674aac1bad11c0b9d | 2025-12-10T10:03:34-05:00 | usable | reasons=large_net_removal | categories=repo-root
+- 30638226693a8baa5ff8651ce2978b6cd1f083fc | 2025-12-10T15:39:08-05:00 | Update 288 file(s) – .env.example & more | reasons=large_net_removal | categories=assistant_core
+- 73fd15e2a15b1fa184797a4b7232edb46a86fb32 | 2025-12-10T15:39:08-05:00 | Update 288 file(s) – .env.example & more | reasons=large_net_removal | categories=assistant_core
+- e912c2042532b03db2d2599a1ee4016c053133de | 2025-12-10T18:35:41-05:00 | Update 232 file(s) – .DS_Store & more | reasons=deleted_files,large_net_removal | categories=assistant_hub_gui,repo-root
+- d90a5087471870c58537a70d58228d4f768b95f8 | 2025-12-17T08:05:16-05:00 | Update 157 file(s) – ", line 1006, in _find_and_load_unlocked\n  File " & more | reasons=deleted_files,large_net_removal | categories=assistant_hub,assistant_hub_gui,frontend/components,other
+- e7011a7a6df8aaee17a090ff6dce6d67f8a199e7 | 2025-12-18T23:00:42-05:00 | update | reasons=large_net_removal | categories=frontend/components
+- 37c368e20bb737bab9d51848527e147dabc4d280 | 2025-12-19T02:17:49Z | Refactor layout and workspace navigation | reasons=large_net_removal | categories=frontend/components,other
+- bb7de03de4850a348a0655c32850fe22394b8dfa | 2025-12-19T02:31:00Z | Refactor: Implement new hybrid navigation layout | reasons=large_net_removal | categories=frontend/components
+- 3cd8a63e2ec5d18944a1c24a72f699683508acda | 2025-12-19T02:41:17Z | feat: Implement auth, admin, version control, viewer, logging, AI | reasons=large_net_removal | categories=frontend/components
+- 3a154a6e6305fe9f3a760f44b1b10d73e1ed3256 | 2025-12-19T05:58:11-05:00 | latest stable alpha version | reasons=large_net_removal | categories=backend_api
+- caeda05c83ddea88f85e10e58d8e393b4dfc45b3 | 2025-12-19T07:43:14Z | feat: Implement protected routes and admin role check | reasons=large_net_removal | categories=frontend/components
+- 2b9e5584207a7d26d5c43600d5b1210c4f4d000c | 2025-12-19T07:45:34Z | Refactor layout and navigation components | reasons=large_net_removal | categories=frontend/components
+- 127611bdbb4c1bb419f79652a511d0818d38f723 | 2025-12-19T07:52:22Z | Refactor: Update routing, layout, and admin panel | reasons=large_net_removal | categories=frontend/components
+- 728c73c26b7e03c698b2326a7f0a5fa559ad93a0 | 2025-12-19T08:13:00Z | Refactor: Improve admin and auth routes | reasons=large_net_removal | categories=backend_api,frontend/components,frontend/pages
+- d0d25e7c51c9df3af359184c19fbe6fbd00ecab6 | 2025-12-19T08:38:29Z | Refactor layout and auth pages | reasons=large_net_removal | categories=frontend/components,frontend/pages
+- 58cfc345630f68bf10909538aba48c12f87ce9df | 2025-12-19T15:19:23-05:00 | in style | reasons=large_net_removal | categories=frontend/components,frontend/pages
+- 1fcbc8a4260a493400b78f70f6b8bbe201da3f2d | 2025-12-21T12:35:16-05:00 | Merge: Restore all deleted pages and resolve conflicts | reasons=large_net_removal | categories=backend_api
+- 79e6d2907049c5c73a8d7067931b3b290b32983c | 2025-12-29T12:22:11-05:00 | sturdy | reasons=deleted_files | categories=frontend/pages
+- 754d75953b1f7cf4da047dd26820356bff57b632 | 2025-12-31T22:15:37-05:00 | page template correct but not the pages themselves | reasons=large_net_removal | categories=frontend/other,frontend/pages
+- 54d010a4494099778da58f7a8462548a867ef731 | 2026-01-01T01:52:36-05:00 | Stable but missing web pages. | reasons=large_net_removal | categories=frontend/pages
+- bd055a90860592b391b5c9d90ddd6ed9889d7b95 | 2026-01-01T04:44:14-05:00 | Update 87 file(s) – EXECUTION_PIPELINE.md & more | reasons=large_net_removal | categories=tests
+- 146c25eea146f4276c743c16452b8772228897ff | 2026-01-01T05:57:31-05:00 | latest code | reasons=large_net_removal | categories=frontend/pages
+
+## Grouped Deleted-File Commits by Area
+
+### api_connectors
+
+- Commit: 4194f681e185f371fedcdebf8104d14641b57be4 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  Deleted files:
+  - api_connectors/git_client.py
+  - api_connectors/google_client.py
+  - api_connectors/integrations/__init__.py
+  - api_connectors/integrations/api.py
+  - api_connectors/integrations/apple_calendar.py
+  - api_connectors/integrations/base.py
+  - api_connectors/integrations/excel/__init__.py
+  - api_connectors/integrations/excel/cloud_client.py
+  - api_connectors/integrations/excel/local_client.py
+  - api_connectors/integrations/excel/service.py
+  - api_connectors/integrations/excel_integration.py
+  - api_connectors/integrations/filesystem/__init__.py
+  - api_connectors/integrations/filesystem/service.py
+  - api_connectors/integrations/filesystem_integration.py
+  - api_connectors/integrations/git_integration.py
+  - api_connectors/integrations/github.py
+  - api_connectors/integrations/gmail.py
+  - api_connectors/integrations/google_calendar.py
+  - api_connectors/integrations/google_client.py
+  - api_connectors/integrations/msgraph/__init__.py
+  - api_connectors/integrations/msgraph/auth.py
+  - api_connectors/integrations/msgraph/client.py
+  - api_connectors/integrations/notes.py
+  - api_connectors/integrations/onenote/__init__.py
+  - api_connectors/integrations/onenote/client.py
+  - api_connectors/integrations/onenote/service.py
+  - api_connectors/integrations/onenote_integration.py
+  - api_connectors/integrations/pdf_integration.py
+  - api_connectors/integrations/word/__init__.py
+  - api_connectors/integrations/word/cloud_client.py
+  - api_connectors/integrations/word/local_client.py
+  - api_connectors/integrations/word/service.py
+  - api_connectors/integrations/word_integration.py
+  - api_connectors/ms_graph_client.py
+  - assistant_core/core/api_server.py
+  - assistant_hub_gui/assistant_hub/integrations/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/base.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/service.py
+  - assistant_hub_gui/assistant_hub/integrations/excel_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/service.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/git_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/github.py
+  - assistant_hub_gui/assistant_hub/integrations/gmail.py
+  - assistant_hub_gui/assistant_hub/integrations/google_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/client.py
+  - assistant_hub_gui/assistant_hub/integrations/notes.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/pdf_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/word/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/word/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/service.py
+  - assistant_hub_gui/assistant_hub/integrations/word_integration.py
+  - ui/assets/dashboard.js
+  - ui/dashboard_app.py
+
+- Commit: 756b68e195b0dfcdf574c95bb6687a558426b741 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  Deleted files:
+  - api_connectors/git_client.py
+  - api_connectors/google_client.py
+  - api_connectors/integrations/__init__.py
+  - api_connectors/integrations/api.py
+  - api_connectors/integrations/apple_calendar.py
+  - api_connectors/integrations/base.py
+  - api_connectors/integrations/excel/__init__.py
+  - api_connectors/integrations/excel/cloud_client.py
+  - api_connectors/integrations/excel/local_client.py
+  - api_connectors/integrations/excel/service.py
+  - api_connectors/integrations/excel_integration.py
+  - api_connectors/integrations/filesystem/__init__.py
+  - api_connectors/integrations/filesystem/service.py
+  - api_connectors/integrations/filesystem_integration.py
+  - api_connectors/integrations/git_integration.py
+  - api_connectors/integrations/github.py
+  - api_connectors/integrations/gmail.py
+  - api_connectors/integrations/google_calendar.py
+  - api_connectors/integrations/google_client.py
+  - api_connectors/integrations/msgraph/__init__.py
+  - api_connectors/integrations/msgraph/auth.py
+  - api_connectors/integrations/msgraph/client.py
+  - api_connectors/integrations/notes.py
+  - api_connectors/integrations/onenote/__init__.py
+  - api_connectors/integrations/onenote/client.py
+  - api_connectors/integrations/onenote/service.py
+  - api_connectors/integrations/onenote_integration.py
+  - api_connectors/integrations/pdf_integration.py
+  - api_connectors/integrations/word/__init__.py
+  - api_connectors/integrations/word/cloud_client.py
+  - api_connectors/integrations/word/local_client.py
+  - api_connectors/integrations/word/service.py
+  - api_connectors/integrations/word_integration.py
+  - api_connectors/ms_graph_client.py
+  - assistant_core/core/api_server.py
+  - assistant_hub_gui/assistant_hub/integrations/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/base.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/service.py
+  - assistant_hub_gui/assistant_hub/integrations/excel_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/service.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/git_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/github.py
+  - assistant_hub_gui/assistant_hub/integrations/gmail.py
+  - assistant_hub_gui/assistant_hub/integrations/google_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/client.py
+  - assistant_hub_gui/assistant_hub/integrations/notes.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/pdf_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/word/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/word/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/service.py
+  - assistant_hub_gui/assistant_hub/integrations/word_integration.py
+  - ui/assets/dashboard.js
+  - ui/dashboard_app.py
+
+### assistant_core
+
+- Commit: 4194f681e185f371fedcdebf8104d14641b57be4 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  Deleted files:
+  - api_connectors/git_client.py
+  - api_connectors/google_client.py
+  - api_connectors/integrations/__init__.py
+  - api_connectors/integrations/api.py
+  - api_connectors/integrations/apple_calendar.py
+  - api_connectors/integrations/base.py
+  - api_connectors/integrations/excel/__init__.py
+  - api_connectors/integrations/excel/cloud_client.py
+  - api_connectors/integrations/excel/local_client.py
+  - api_connectors/integrations/excel/service.py
+  - api_connectors/integrations/excel_integration.py
+  - api_connectors/integrations/filesystem/__init__.py
+  - api_connectors/integrations/filesystem/service.py
+  - api_connectors/integrations/filesystem_integration.py
+  - api_connectors/integrations/git_integration.py
+  - api_connectors/integrations/github.py
+  - api_connectors/integrations/gmail.py
+  - api_connectors/integrations/google_calendar.py
+  - api_connectors/integrations/google_client.py
+  - api_connectors/integrations/msgraph/__init__.py
+  - api_connectors/integrations/msgraph/auth.py
+  - api_connectors/integrations/msgraph/client.py
+  - api_connectors/integrations/notes.py
+  - api_connectors/integrations/onenote/__init__.py
+  - api_connectors/integrations/onenote/client.py
+  - api_connectors/integrations/onenote/service.py
+  - api_connectors/integrations/onenote_integration.py
+  - api_connectors/integrations/pdf_integration.py
+  - api_connectors/integrations/word/__init__.py
+  - api_connectors/integrations/word/cloud_client.py
+  - api_connectors/integrations/word/local_client.py
+  - api_connectors/integrations/word/service.py
+  - api_connectors/integrations/word_integration.py
+  - api_connectors/ms_graph_client.py
+  - assistant_core/core/api_server.py
+  - assistant_hub_gui/assistant_hub/integrations/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/base.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/service.py
+  - assistant_hub_gui/assistant_hub/integrations/excel_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/service.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/git_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/github.py
+  - assistant_hub_gui/assistant_hub/integrations/gmail.py
+  - assistant_hub_gui/assistant_hub/integrations/google_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/client.py
+  - assistant_hub_gui/assistant_hub/integrations/notes.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/pdf_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/word/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/word/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/service.py
+  - assistant_hub_gui/assistant_hub/integrations/word_integration.py
+  - ui/assets/dashboard.js
+  - ui/dashboard_app.py
+
+- Commit: 756b68e195b0dfcdf574c95bb6687a558426b741 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  Deleted files:
+  - api_connectors/git_client.py
+  - api_connectors/google_client.py
+  - api_connectors/integrations/__init__.py
+  - api_connectors/integrations/api.py
+  - api_connectors/integrations/apple_calendar.py
+  - api_connectors/integrations/base.py
+  - api_connectors/integrations/excel/__init__.py
+  - api_connectors/integrations/excel/cloud_client.py
+  - api_connectors/integrations/excel/local_client.py
+  - api_connectors/integrations/excel/service.py
+  - api_connectors/integrations/excel_integration.py
+  - api_connectors/integrations/filesystem/__init__.py
+  - api_connectors/integrations/filesystem/service.py
+  - api_connectors/integrations/filesystem_integration.py
+  - api_connectors/integrations/git_integration.py
+  - api_connectors/integrations/github.py
+  - api_connectors/integrations/gmail.py
+  - api_connectors/integrations/google_calendar.py
+  - api_connectors/integrations/google_client.py
+  - api_connectors/integrations/msgraph/__init__.py
+  - api_connectors/integrations/msgraph/auth.py
+  - api_connectors/integrations/msgraph/client.py
+  - api_connectors/integrations/notes.py
+  - api_connectors/integrations/onenote/__init__.py
+  - api_connectors/integrations/onenote/client.py
+  - api_connectors/integrations/onenote/service.py
+  - api_connectors/integrations/onenote_integration.py
+  - api_connectors/integrations/pdf_integration.py
+  - api_connectors/integrations/word/__init__.py
+  - api_connectors/integrations/word/cloud_client.py
+  - api_connectors/integrations/word/local_client.py
+  - api_connectors/integrations/word/service.py
+  - api_connectors/integrations/word_integration.py
+  - api_connectors/ms_graph_client.py
+  - assistant_core/core/api_server.py
+  - assistant_hub_gui/assistant_hub/integrations/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/base.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/service.py
+  - assistant_hub_gui/assistant_hub/integrations/excel_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/service.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/git_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/github.py
+  - assistant_hub_gui/assistant_hub/integrations/gmail.py
+  - assistant_hub_gui/assistant_hub/integrations/google_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/client.py
+  - assistant_hub_gui/assistant_hub/integrations/notes.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/pdf_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/word/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/word/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/service.py
+  - assistant_hub_gui/assistant_hub/integrations/word_integration.py
+  - ui/assets/dashboard.js
+  - ui/dashboard_app.py
+
+### assistant_hub
+
+- Commit: 6ce38cc26093b4fc1a8d1026c94548f0264550c1 | 2025-12-07T00:43:41-05:00 | Replace scaffold with full assistant implementation
+  Deleted files:
+  - assistant_hub/ai/__init__.py
+  - assistant_hub/ai/agents/__init__.py
+  - assistant_hub/ai/agents/aic.py
+  - assistant_hub/ai/agents/aria.py
+  - assistant_hub/ai/agents/sora.py
+  - assistant_hub/ai/openai_client.py
+  - assistant_hub/ai/prompts.py
+  - assistant_hub/ai/tools.py
+  - assistant_hub/ai/workflows.py
+  - assistant_hub/core/audit.py
+  - assistant_hub/core/models.py
+  - assistant_hub/core/routing/__init__.py
+  - assistant_hub/core/routing/router.py
+  - assistant_hub/core/scheduler/__init__.py
+  - assistant_hub/core/scheduler/queue.py
+  - assistant_hub/core/state/__init__.py
+  - assistant_hub/core/state/json_store.py
+  - assistant_hub/data/state.json
+  - assistant_hub/integrations/software_locator.py
+  - assistant_hub/ui/gui/__init__.py
+  - assistant_hub/ui/gui/app.py
+
+- Commit: 69e39816e901b2eb2e2d798d11a7ac4e5c9c514c | 2025-12-07T00:43:41-05:00 | Replace scaffold with full assistant implementation
+  Deleted files:
+  - assistant_hub/ai/__init__.py
+  - assistant_hub/ai/agents/__init__.py
+  - assistant_hub/ai/agents/aic.py
+  - assistant_hub/ai/agents/aria.py
+  - assistant_hub/ai/agents/sora.py
+  - assistant_hub/ai/openai_client.py
+  - assistant_hub/ai/prompts.py
+  - assistant_hub/ai/tools.py
+  - assistant_hub/ai/workflows.py
+  - assistant_hub/core/audit.py
+  - assistant_hub/core/models.py
+  - assistant_hub/core/routing/__init__.py
+  - assistant_hub/core/routing/router.py
+  - assistant_hub/core/scheduler/__init__.py
+  - assistant_hub/core/scheduler/queue.py
+  - assistant_hub/core/state/__init__.py
+  - assistant_hub/core/state/json_store.py
+  - assistant_hub/data/state.json
+  - assistant_hub/integrations/software_locator.py
+  - assistant_hub/ui/gui/__init__.py
+  - assistant_hub/ui/gui/app.py
+
+- Commit: d0e1eb8f9527d0416ddbb3036af59b85860ada18 | 2025-12-07T00:30:03-05:00 | Adopt full-featured assistant hub scaffold
+  Deleted files:
+  - assistant_hub/ai/__init__.py
+  - assistant_hub/ai/agents/__init__.py
+  - assistant_hub/ai/agents/aic.py
+  - assistant_hub/ai/agents/aria.py
+  - assistant_hub/ai/agents/sora.py
+  - assistant_hub/ai/openai_client.py
+  - assistant_hub/ai/prompts.py
+  - assistant_hub/ai/tools.py
+  - assistant_hub/ai/workflows.py
+  - assistant_hub/core/audit.py
+  - assistant_hub/core/models.py
+  - assistant_hub/core/routing/__init__.py
+  - assistant_hub/core/routing/router.py
+  - assistant_hub/core/scheduler/__init__.py
+  - assistant_hub/core/scheduler/queue.py
+  - assistant_hub/core/state/__init__.py
+  - assistant_hub/core/state/json_store.py
+  - assistant_hub/data/state.json
+  - assistant_hub/integrations/software_locator.py
+  - assistant_hub/ui/gui/__init__.py
+  - assistant_hub/ui/gui/app.py
+
+- Commit: 6a343e245e5cb40ddbb2f260993b80ec8ca2576a | 2025-12-07T00:30:03-05:00 | Adopt full-featured assistant hub scaffold
+  Deleted files:
+  - assistant_hub/ai/__init__.py
+  - assistant_hub/ai/agents/__init__.py
+  - assistant_hub/ai/agents/aic.py
+  - assistant_hub/ai/agents/aria.py
+  - assistant_hub/ai/agents/sora.py
+  - assistant_hub/ai/openai_client.py
+  - assistant_hub/ai/prompts.py
+  - assistant_hub/ai/tools.py
+  - assistant_hub/ai/workflows.py
+  - assistant_hub/core/audit.py
+  - assistant_hub/core/models.py
+  - assistant_hub/core/routing/__init__.py
+  - assistant_hub/core/routing/router.py
+  - assistant_hub/core/scheduler/__init__.py
+  - assistant_hub/core/scheduler/queue.py
+  - assistant_hub/core/state/__init__.py
+  - assistant_hub/core/state/json_store.py
+  - assistant_hub/data/state.json
+  - assistant_hub/integrations/software_locator.py
+  - assistant_hub/ui/gui/__init__.py
+  - assistant_hub/ui/gui/app.py
+
+### assistant_hub_gui
+
+- Commit: 4194f681e185f371fedcdebf8104d14641b57be4 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  Deleted files:
+  - api_connectors/git_client.py
+  - api_connectors/google_client.py
+  - api_connectors/integrations/__init__.py
+  - api_connectors/integrations/api.py
+  - api_connectors/integrations/apple_calendar.py
+  - api_connectors/integrations/base.py
+  - api_connectors/integrations/excel/__init__.py
+  - api_connectors/integrations/excel/cloud_client.py
+  - api_connectors/integrations/excel/local_client.py
+  - api_connectors/integrations/excel/service.py
+  - api_connectors/integrations/excel_integration.py
+  - api_connectors/integrations/filesystem/__init__.py
+  - api_connectors/integrations/filesystem/service.py
+  - api_connectors/integrations/filesystem_integration.py
+  - api_connectors/integrations/git_integration.py
+  - api_connectors/integrations/github.py
+  - api_connectors/integrations/gmail.py
+  - api_connectors/integrations/google_calendar.py
+  - api_connectors/integrations/google_client.py
+  - api_connectors/integrations/msgraph/__init__.py
+  - api_connectors/integrations/msgraph/auth.py
+  - api_connectors/integrations/msgraph/client.py
+  - api_connectors/integrations/notes.py
+  - api_connectors/integrations/onenote/__init__.py
+  - api_connectors/integrations/onenote/client.py
+  - api_connectors/integrations/onenote/service.py
+  - api_connectors/integrations/onenote_integration.py
+  - api_connectors/integrations/pdf_integration.py
+  - api_connectors/integrations/word/__init__.py
+  - api_connectors/integrations/word/cloud_client.py
+  - api_connectors/integrations/word/local_client.py
+  - api_connectors/integrations/word/service.py
+  - api_connectors/integrations/word_integration.py
+  - api_connectors/ms_graph_client.py
+  - assistant_core/core/api_server.py
+  - assistant_hub_gui/assistant_hub/integrations/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/base.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/service.py
+  - assistant_hub_gui/assistant_hub/integrations/excel_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/service.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/git_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/github.py
+  - assistant_hub_gui/assistant_hub/integrations/gmail.py
+  - assistant_hub_gui/assistant_hub/integrations/google_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/client.py
+  - assistant_hub_gui/assistant_hub/integrations/notes.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/pdf_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/word/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/word/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/service.py
+  - assistant_hub_gui/assistant_hub/integrations/word_integration.py
+  - ui/assets/dashboard.js
+  - ui/dashboard_app.py
+
+- Commit: 756b68e195b0dfcdf574c95bb6687a558426b741 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  Deleted files:
+  - api_connectors/git_client.py
+  - api_connectors/google_client.py
+  - api_connectors/integrations/__init__.py
+  - api_connectors/integrations/api.py
+  - api_connectors/integrations/apple_calendar.py
+  - api_connectors/integrations/base.py
+  - api_connectors/integrations/excel/__init__.py
+  - api_connectors/integrations/excel/cloud_client.py
+  - api_connectors/integrations/excel/local_client.py
+  - api_connectors/integrations/excel/service.py
+  - api_connectors/integrations/excel_integration.py
+  - api_connectors/integrations/filesystem/__init__.py
+  - api_connectors/integrations/filesystem/service.py
+  - api_connectors/integrations/filesystem_integration.py
+  - api_connectors/integrations/git_integration.py
+  - api_connectors/integrations/github.py
+  - api_connectors/integrations/gmail.py
+  - api_connectors/integrations/google_calendar.py
+  - api_connectors/integrations/google_client.py
+  - api_connectors/integrations/msgraph/__init__.py
+  - api_connectors/integrations/msgraph/auth.py
+  - api_connectors/integrations/msgraph/client.py
+  - api_connectors/integrations/notes.py
+  - api_connectors/integrations/onenote/__init__.py
+  - api_connectors/integrations/onenote/client.py
+  - api_connectors/integrations/onenote/service.py
+  - api_connectors/integrations/onenote_integration.py
+  - api_connectors/integrations/pdf_integration.py
+  - api_connectors/integrations/word/__init__.py
+  - api_connectors/integrations/word/cloud_client.py
+  - api_connectors/integrations/word/local_client.py
+  - api_connectors/integrations/word/service.py
+  - api_connectors/integrations/word_integration.py
+  - api_connectors/ms_graph_client.py
+  - assistant_core/core/api_server.py
+  - assistant_hub_gui/assistant_hub/integrations/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/base.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/service.py
+  - assistant_hub_gui/assistant_hub/integrations/excel_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/service.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/git_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/github.py
+  - assistant_hub_gui/assistant_hub/integrations/gmail.py
+  - assistant_hub_gui/assistant_hub/integrations/google_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/client.py
+  - assistant_hub_gui/assistant_hub/integrations/notes.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/pdf_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/word/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/word/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/service.py
+  - assistant_hub_gui/assistant_hub/integrations/word_integration.py
+  - ui/assets/dashboard.js
+  - ui/dashboard_app.py
+
+- Commit: 3208362e9a8bff62e6ab84662a0f382a57a54abd | 2025-12-07T05:42:05-05:00 | latest stable version, beta release
+  Deleted files:
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/oauth_delegated.py
+  - authenticate_azure_delegated.py
+
+- Commit: 037977d41caf2e01d7300fb3d9803e323f37d603 | 2025-12-07T05:42:05-05:00 | latest stable version, beta release
+  Deleted files:
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/oauth_delegated.py
+  - authenticate_azure_delegated.py
+
+- Commit: 2ee9b3bfc89a38208e0b2ae9003b3c4fd1b6345b | 2025-12-07T05:31:20-05:00 | finally  something worthy to version control
+  Deleted files:
+  - assistant_hub_gui/assistant_hub/calendar_view.py
+  - assistant_hub_gui/assistant_hub/code_analysis.py
+  - assistant_hub_gui/assistant_hub/comments.py
+  - assistant_hub_gui/assistant_hub/document_templates.py
+  - assistant_hub_gui/assistant_hub/knowledge_graph.py
+  - assistant_hub_gui/assistant_hub/project_insights.py
+
+- Commit: 149cd2bcba8ae900b07da3c6a92f4a4a1a7071ba | 2025-12-07T05:31:20-05:00 | finally  something worthy to version control
+  Deleted files:
+  - assistant_hub_gui/assistant_hub/calendar_view.py
+  - assistant_hub_gui/assistant_hub/code_analysis.py
+  - assistant_hub_gui/assistant_hub/comments.py
+  - assistant_hub_gui/assistant_hub/document_templates.py
+  - assistant_hub_gui/assistant_hub/knowledge_graph.py
+  - assistant_hub_gui/assistant_hub/project_insights.py
+
+### frontend/pages
+
+- Commit: 79e6d2907049c5c73a8d7067931b3b290b32983c | 2025-12-29T12:22:11-05:00 | sturdy
+  Deleted files:
+  - frontend/src/pages/AI+DriverStack.tsx
+  - frontend/src/pages/AIOSControl.tsx
+  - frontend/src/pages/APIKeys.tsx
+  - frontend/src/pages/APIKeysTokens.tsx
+  - frontend/src/pages/APIReference.tsx
+  - frontend/src/pages/AccessReviews.tsx
+  - frontend/src/pages/AdvancedAIEngine.tsx
+  - frontend/src/pages/AdvancedHorizons.tsx
+  - frontend/src/pages/AgentRegistryLifecycle.tsx
+  - frontend/src/pages/Aifabric/Capsulesworkflow/Autofixconsole.tsx
+  - frontend/src/pages/Aifabric/Capsulesworkflow/Capsulemarketplace.tsx
+  - frontend/src/pages/Aifabric/Capsulesworkflow/Lineagereplay.tsx
+  - frontend/src/pages/Aifabric/Cognitiveagents/Aicopilot.tsx
+  - frontend/src/pages/Aifabric/Cognitiveagents/Personasagents.tsx
+  - frontend/src/pages/Aifabric/Edgevision/Computervision.tsx
+  - frontend/src/pages/Aifabric/Edgevision/Edgecomputing.tsx
+  - frontend/src/pages/Aifabric/Intentprocessing/Intentprocessor.tsx
+  - frontend/src/pages/Aifabric/Mlopsneuralarch/Mlops.tsx
+  - frontend/src/pages/AirgappedDeployment.tsx
+  - frontend/src/pages/AlertRules.tsx
+  - frontend/src/pages/Alerting.tsx
+  - frontend/src/pages/AlertsRules.tsx
+  - frontend/src/pages/AlignmentMonitor.tsx
+  - frontend/src/pages/AnnotationLabeling.tsx
+  - frontend/src/pages/AnomalyDetection.tsx
+  - frontend/src/pages/ApprovalPublishing.tsx
+  - frontend/src/pages/ArchitecturalPrinciples.tsx
+  - frontend/src/pages/ArchitectureOverview.tsx
+  - frontend/src/pages/Archive.tsx
+  - frontend/src/pages/ArchiveWorkspace.tsx
+  - frontend/src/pages/Ascend.tsx
+  - frontend/src/pages/AuditLogs.tsx
+  - frontend/src/pages/AuditReadinessDashboard.tsx
+  - frontend/src/pages/AuditReports.tsx
+  - frontend/src/pages/AuditSettings.tsx
+  - frontend/src/pages/AuthRateLimits.tsx
+  - frontend/src/pages/Authentication.tsx
+  - frontend/src/pages/AutoFixConsole.tsx
+  - frontend/src/pages/AutoRemediation.tsx
+  - frontend/src/pages/AutomatedRollbacks.tsx
+  - frontend/src/pages/BackpressureThrottling.tsx
+  - frontend/src/pages/BackupRetention.tsx
+  - frontend/src/pages/BackwardCompatibilityCommitments.tsx
+  - frontend/src/pages/BillingOptimizer.tsx
+  - frontend/src/pages/BinaryArtifacts.tsx
+  - frontend/src/pages/BlueGreenCanary.tsx
+  - frontend/src/pages/BudgetPlanner.tsx
+  - frontend/src/pages/BudgetsQuotas.tsx
+  - frontend/src/pages/BusinessConsole.tsx
+  - frontend/src/pages/BusinessContinuityDR.tsx
+  - frontend/src/pages/CICDIntegration.tsx
+  - frontend/src/pages/CIRStore.tsx
+  - frontend/src/pages/CameraStreamIntegrations.tsx
+  - frontend/src/pages/CanonLore.tsx
+  - frontend/src/pages/CapabilityMatrix.tsx
+  - frontend/src/pages/CapabilityRegistry.tsx
+  - frontend/src/pages/CapacityCostInsights.tsx
+  - frontend/src/pages/CapacityPlanning.tsx
+  - frontend/src/pages/CapsuleBuilder.tsx
+  - frontend/src/pages/CapsuleManifests.tsx
+  - frontend/src/pages/CapsuleRuntimeSettings.tsx
+  - frontend/src/pages/CapsuleStore.tsx
+  - frontend/src/pages/CapsuleTemplates.tsx
+  - frontend/src/pages/ChangeLogsReleaseNotes.tsx
+  - frontend/src/pages/ChangeManagement.tsx
+  - frontend/src/pages/ChaosEngineering.tsx
+  - frontend/src/pages/ChargebackShowbackReports.tsx
+  - frontend/src/pages/CitationsReferences.tsx
+  - frontend/src/pages/CloudEnterprise.tsx
+  - frontend/src/pages/CloudProviders.tsx
+  - frontend/src/pages/CodeHostsCICD.tsx
+  - frontend/src/pages/CodeMergeAdvisor.tsx
+  - frontend/src/pages/CodeReviewQueue.tsx
+  - frontend/src/pages/CompatibilityMatrix.tsx
+  - frontend/src/pages/CompliancePacks.tsx
+  - frontend/src/pages/ComponentMapping.tsx
+  - frontend/src/pages/ComputeClusterManagement.tsx
+  - frontend/src/pages/ConfigurationManagement.tsx
+  - frontend/src/pages/ConnectorHealth.tsx
+  - frontend/src/pages/ConnectorsOverview.tsx
+  - frontend/src/pages/ConsistencyModels.tsx
+  - frontend/src/pages/ControlFrameworkMapping.tsx
+  - frontend/src/pages/ControlPlane.tsx
+  - frontend/src/pages/ControlsMapping.tsx
+  - frontend/src/pages/ConversationLibrary.tsx
+  - frontend/src/pages/CoreOSEngines.tsx
+  - frontend/src/pages/CorrelationContext.tsx
+  - frontend/src/pages/CostGuardrails.tsx
+  - frontend/src/pages/CostPerformanceTradeoffs.tsx
+  - frontend/src/pages/CredentialVault.tsx
+  - frontend/src/pages/CrossPlaneFlows.tsx
+  - frontend/src/pages/DLPRules.tsx
+  - frontend/src/pages/DRDrillPlanner.tsx
+  - frontend/src/pages/DRDrills.tsx
+  - frontend/src/pages/DaemonFamilies.tsx
+  - frontend/src/pages/DaemonFramework.tsx
+  - frontend/src/pages/DashboardBuilder.tsx
+  - frontend/src/pages/Dashboards.tsx
+  - frontend/src/pages/DataClassification.tsx
+  - frontend/src/pages/DataDrivers.tsx
+  - frontend/src/pages/DataFeedsSync.tsx
+  - frontend/src/pages/DataKnowledgeHome.tsx
+  - frontend/src/pages/DataLossProtection.tsx
+  - frontend/src/pages/DataMappingTransformations.tsx
+  - frontend/src/pages/DataMasking.tsx
+  - frontend/src/pages/DataModelContracts.tsx
+  - frontend/src/pages/DataPlane.tsx
+  - frontend/src/pages/DataProtection.tsx
+  - frontend/src/pages/DataQualityChecks.tsx
+  - frontend/src/pages/DataResidency.tsx
+  - frontend/src/pages/DataSchemas.tsx
+  - frontend/src/pages/DatasetFeatureStore.tsx
+  - frontend/src/pages/DatasetRegistry.tsx
+  - frontend/src/pages/DecisionLog.tsx
+  - frontend/src/pages/DependencyUpdates.tsx
+  - frontend/src/pages/DeploymentGuides.tsx
+  - frontend/src/pages/DeploymentModes.tsx
+  - frontend/src/pages/DeploymentServing.tsx
+  - frontend/src/pages/Deprecations.tsx
+  - frontend/src/pages/DetectionMechanisms.tsx
+  - frontend/src/pages/DeterminismChecks.tsx
+  - frontend/src/pages/DevWorkspace.tsx
+  - frontend/src/pages/DeveloperTools.tsx
+  - frontend/src/pages/DeviceRegistry.tsx
+  - frontend/src/pages/DigitalTwinBuilder.tsx
+  - frontend/src/pages/DistributedTracing.tsx
+  - frontend/src/pages/DocsSpecHome.tsx
+  - frontend/src/pages/DriftDetection.tsx
+  - frontend/src/pages/DriftMonitoring.tsx
+  - frontend/src/pages/DriverAnalytics.tsx
+  - frontend/src/pages/DriverAwareOrchestrator.tsx
+  - frontend/src/pages/DriverHealthTelemetry.tsx
+  - frontend/src/pages/DriverManifests.tsx
+  - frontend/src/pages/DriverPacks.tsx
+  - frontend/src/pages/DriverPerformance.tsx
+  - frontend/src/pages/DriverPermissionsSandboxing.tsx
+  - frontend/src/pages/DriverRegistry.tsx
+  - frontend/src/pages/DriverSDK.tsx
+  - frontend/src/pages/DriverVersioningDeprecation.tsx
+  - frontend/src/pages/DriversIntegrationsHome.tsx
+  - frontend/src/pages/EmbeddingsManagement.tsx
+  - frontend/src/pages/EncryptionKeys.tsx
+  - frontend/src/pages/EnforcementPointsMap.tsx
+  - frontend/src/pages/EnterpriseAppStore.tsx
+  - frontend/src/pages/EnterpriseTwin.tsx
+  - frontend/src/pages/EvaluationBenchmarks.tsx
+  - frontend/src/pages/EvidenceAccess.tsx
+  - frontend/src/pages/EvidenceBuilder.tsx
+  - frontend/src/pages/EvidencePackTemplates.tsx
+  - frontend/src/pages/EvidencePacks.tsx
+  - frontend/src/pages/EvidenceQueries.tsx
+  - frontend/src/pages/EvidenceRequestWorkflow.tsx
+  - frontend/src/pages/EvidenceRequests.tsx
+  - frontend/src/pages/EvidenceTrails.tsx
+  - frontend/src/pages/ExceptionsApprovals.tsx
+  - frontend/src/pages/ExceptionsWaivers.tsx
+  - frontend/src/pages/ExperimentConsole.tsx
+  - frontend/src/pages/ExperimentDesign.tsx
+  - frontend/src/pages/ExperimentTracking.tsx
+  - frontend/src/pages/ExportIntegrations.tsx
+  - frontend/src/pages/ExportPublishing.tsx
+  - frontend/src/pages/ExportforAuditors.tsx
+  - frontend/src/pages/ExtensibilityPoints.tsx
+  - frontend/src/pages/FailoverControls.tsx
+  - frontend/src/pages/FailureDomainsbyPlane.tsx
+  - frontend/src/pages/FailureModes.tsx
+  - frontend/src/pages/FinanceBanking.tsx
+  - frontend/src/pages/FindingsTriage.tsx
+  - frontend/src/pages/Forecasting.tsx
+  - frontend/src/pages/ForecastingLab.tsx
+  - frontend/src/pages/ForensicsEvidence.tsx
+  - frontend/src/pages/FullTextSearch.tsx
+  - frontend/src/pages/FutureCapabilities.tsx
+  - frontend/src/pages/GettingStarted.tsx
+  - frontend/src/pages/Glossary.tsx
+  - frontend/src/pages/GovernanceGates.tsx
+  - frontend/src/pages/GovernancePlane.tsx
+  - frontend/src/pages/GovernanceSecurityHome.tsx
+  - frontend/src/pages/GraphIndex.tsx
+  - frontend/src/pages/HPCIntegration.tsx
+  - frontend/src/pages/HPCOrchestrator.tsx
+  - frontend/src/pages/HardwareDrivers.tsx
+  - frontend/src/pages/HealthChecks.tsx
+  - frontend/src/pages/HealthDriftMonitors.tsx
+  - frontend/src/pages/HybridEdge.tsx
+  - frontend/src/pages/HyperNetwork.tsx
+  - frontend/src/pages/IdentityRoles.tsx
+  - frontend/src/pages/ImmutableLogbookViewer.tsx
+  - frontend/src/pages/IncidentCommander.tsx
+  - frontend/src/pages/IncidentResponse.tsx
+  - frontend/src/pages/IncidentTimeline.tsx
+  - frontend/src/pages/IndexManagement.tsx
+  - frontend/src/pages/IndicesOverview.tsx
+  - frontend/src/pages/IngestionPipelines.tsx
+  - frontend/src/pages/IntegrationGuides.tsx
+  - frontend/src/pages/Integrations/ApiConnectors.tsx
+  - frontend/src/pages/IntegrityProtections.tsx
+  - frontend/src/pages/IntentLogsReplay.tsx
+  - frontend/src/pages/IntentTaxonomyRoutingRules.tsx
+  - frontend/src/pages/KPIDashboard.tsx
+  - frontend/src/pages/KeyRotationKMSIntegrations.tsx
+  - frontend/src/pages/KnownGaps.tsx
+  - frontend/src/pages/KubernetesDeployment.tsx
+  - frontend/src/pages/LegacyMainframe.tsx
+  - frontend/src/pages/LegalHold.tsx
+  - frontend/src/pages/LicensingEntitlements.tsx
+  - frontend/src/pages/LineageReplay.tsx
+  - frontend/src/pages/LocalEnvironmentHealth.tsx
+  - frontend/src/pages/LocalMode.tsx
+  - frontend/src/pages/LogExplorer.tsx
+  - frontend/src/pages/LogbookTimeline.tsx
+  - frontend/src/pages/LoggingTracingOverview.tsx
+  - frontend/src/pages/LogsStore.tsx
+  - frontend/src/pages/LongTermBets.tsx
+  - frontend/src/pages/MaintenanceWindows.tsx
+  - frontend/src/pages/MajorComponents.tsx
+  - frontend/src/pages/Marketplace.tsx
+  - frontend/src/pages/MentionsPresence.tsx
+  - frontend/src/pages/MetaEnvelope.tsx
+  - frontend/src/pages/MetricExplorer.tsx
+  - frontend/src/pages/MetricsModel.tsx
+  - frontend/src/pages/MetricsStore.tsx
+  - frontend/src/pages/Migration.tsx
+  - frontend/src/pages/MigrationContinued.tsx
+  - frontend/src/pages/MigrationGuides.tsx
+  - frontend/src/pages/Milestones.tsx
+  - frontend/src/pages/Mission/Planes/Contracts.tsx
+  - frontend/src/pages/MissionArchitectureHome.tsx
+  - frontend/src/pages/MissionScope.tsx
+  - frontend/src/pages/Missionarchitecture/Architectureprinciples/Driverawareorchestrator.tsx
+  - frontend/src/pages/Missionarchitecture/Missionidentity/Identityroles.tsx
+  - frontend/src/pages/Missionarchitecture/Missionidentity/Missionscope.tsx
+  - frontend/src/pages/Missionarchitecture/Planesarchitecture/Crossplaneflows.tsx
+  - frontend/src/pages/Missioncontrol/Coreflightdeck/Dashboard.tsx
+  - frontend/src/pages/Missioncontrol/Coreflightdeck/Projects.tsx
+  - frontend/src/pages/Missioncontrol/Coreflightdeck/Tasks.tsx
+  - frontend/src/pages/Missioncontrol/Engagementpersona/Chat.tsx
+  - frontend/src/pages/Missioncontrol/Engagementpersona/Collaboration.tsx
+  - frontend/src/pages/Missioncontrol/Engagementpersona/Personalization.tsx
+  - frontend/src/pages/ModelPackagingDeployment.tsx
+  - frontend/src/pages/ModelProviderLayer.tsx
+  - frontend/src/pages/ModelRegistry.tsx
+  - frontend/src/pages/ModelRouterPolicy.tsx
+  - frontend/src/pages/ModelValidation.tsx
+  - frontend/src/pages/MultiRegionDR.tsx
+  - frontend/src/pages/MultiRegionReplication.tsx
+  - frontend/src/pages/MultiTenantBilling.tsx
+  - frontend/src/pages/MyStackCapsules.tsx
+  - frontend/src/pages/NASConsole.tsx
+  - frontend/src/pages/NASSimulator.tsx
+  - frontend/src/pages/NarrativeGuidance.tsx
+  - frontend/src/pages/NetworkTopology.tsx
+  - frontend/src/pages/NotebookLabNotes.tsx
+  - frontend/src/pages/NotificationChannels.tsx
+  - frontend/src/pages/OSDrivers.tsx
+  - frontend/src/pages/ObservabilityEvidenceHome.tsx
+  - frontend/src/pages/ObservabilityStoresOverview.tsx
+  - frontend/src/pages/Observabilityevidence/Telemetrymetrics/Monitoring.tsx
+  - frontend/src/pages/Observabilityevidence/Telemetrymetrics/Observability.tsx
+  - frontend/src/pages/Observabilityevidence/Telemetrymetrics/Slisslos.tsx
+  - frontend/src/pages/OpenQuestions.tsx
+  - frontend/src/pages/OperationsInfrastructureHome.tsx
+  - frontend/src/pages/Operationsinfrastructure/Deploymentmodels/Deploymentmodes.tsx
+  - frontend/src/pages/Operationsinfrastructure/Deploymentmodels/Hybridedge.tsx
+  - frontend/src/pages/OperatorStudio.tsx
+  - frontend/src/pages/OriginalityCheck.tsx
+  - frontend/src/pages/PackBuilder.tsx
+  - frontend/src/pages/PackageEnvDrivers.tsx
+  - frontend/src/pages/Performance.tsx
+  - frontend/src/pages/PerformanceTargets.tsx
+  - frontend/src/pages/PersonasAgents.tsx
+  - frontend/src/pages/PhasedDelivery.tsx
+  - frontend/src/pages/PlaneAPIsEventContracts.tsx
+  - frontend/src/pages/PlanesOverview.tsx
+  - frontend/src/pages/PlaybooksRunbooks.tsx
+  - frontend/src/pages/PolicyDSL.tsx
+  - frontend/src/pages/PolicyEngine.tsx
+  - frontend/src/pages/PolicyExamples.tsx
+  - frontend/src/pages/PolicyLibraryTemplates.tsx
+  - frontend/src/pages/PolicyVersioningApprovals.tsx
+  - frontend/src/pages/PolicyasCodeChecks.tsx
+  - frontend/src/pages/Postmortems.tsx
+  - frontend/src/pages/PreferenceProfiles.tsx
+  - frontend/src/pages/Preferences.tsx
+  - frontend/src/pages/ProductivitySuites.tsx
+  - frontend/src/pages/ProjectIntelligence.tsx
+  - frontend/src/pages/ProjectLedger.tsx
+  - frontend/src/pages/ProjectMembersRoles.tsx
+  - frontend/src/pages/ProjectSettings.tsx
+  - frontend/src/pages/ProjectTemplates.tsx
+  - frontend/src/pages/PromptInstructionLibrary.tsx
+  - frontend/src/pages/PromptMacroLibrary.tsx
+  - frontend/src/pages/ProviderRateCards.tsx
+  - frontend/src/pages/PublishingFlow.tsx
+  - frontend/src/pages/QueryConsole.tsx
+  - frontend/src/pages/QueuesSearch.tsx
+  - frontend/src/pages/RBACABAC.tsx
+  - frontend/src/pages/RateLimitsQuotas.tsx
+  - frontend/src/pages/RealityTwinMesh.tsx
+  - frontend/src/pages/RecordAuditor.tsx
+  - frontend/src/pages/RecoveryStrategies.tsx
+  - frontend/src/pages/ReferenceArchitecturesbyEdition.tsx
+  - frontend/src/pages/RegulatorFabric.tsx
+  - frontend/src/pages/RegulatorTenancy.tsx
+  - frontend/src/pages/RegulatorViews.tsx
+  - frontend/src/pages/ReleaseNotes.tsx
+  - frontend/src/pages/ReleaseNotesGenerator.tsx
+  - frontend/src/pages/RelevanceTuning.tsx
+  - frontend/src/pages/ReliabilityDashboard.tsx
+  - frontend/src/pages/ReliabilityPatterns.tsx
+  - frontend/src/pages/RemediationTracker.tsx
+  - frontend/src/pages/ReplayEngine.tsx
+  - frontend/src/pages/RepoBranchBrowser.tsx
+  - frontend/src/pages/ReportGenerator.tsx
+  - frontend/src/pages/ReproducibilityPacks.tsx
+  - frontend/src/pages/ResearchDataSources.tsx
+  - frontend/src/pages/ResearchSimulationDrivers.tsx
+  - frontend/src/pages/RestoreExport.tsx
+  - frontend/src/pages/ResultsPublishing.tsx
+  - frontend/src/pages/RetentionPolicies.tsx
+  - frontend/src/pages/RetentionPolicyBuilder.tsx
+  - frontend/src/pages/RetentionTiering.tsx
+  - frontend/src/pages/ReviewsRatings.tsx
+  - frontend/src/pages/RiskAssessments.tsx
+  - frontend/src/pages/RiskRegister.tsx
+  - frontend/src/pages/RiskScoring.tsx
+  - frontend/src/pages/RoadmapRisksHome.tsx
+  - frontend/src/pages/RollbackStrategy.tsx
+  - frontend/src/pages/RunbookLibrary.tsx
+  - frontend/src/pages/Runbooks.tsx
+  - frontend/src/pages/RuntimePermissions.tsx
+  - frontend/src/pages/SCIMProvisioning.tsx
+  - frontend/src/pages/SDKs.tsx
+  - frontend/src/pages/SLIsSLOs.tsx
+  - frontend/src/pages/SLOBurnRates.tsx
+  - frontend/src/pages/SREWorkspace.tsx
+  - frontend/src/pages/SSOSAMLOIDCSettings.tsx
+  - frontend/src/pages/SafetyAlignmentOverview.tsx
+  - frontend/src/pages/SafetyHarnesses.tsx
+  - frontend/src/pages/SandboxManagement.tsx
+  - frontend/src/pages/SavedSearchesAlerts.tsx
+  - frontend/src/pages/ScalingStrategies.tsx
+  - frontend/src/pages/ScenarioLibrary.tsx
+  - frontend/src/pages/ScenarioRunner.tsx
+  - frontend/src/pages/SchedulingTriggers.tsx
+  - frontend/src/pages/SchemaOntology.tsx
+  - frontend/src/pages/SecretsConfigurationVault.tsx
+  - frontend/src/pages/SecretsInputs.tsx
+  - frontend/src/pages/SecurityGuardian.tsx
+  - frontend/src/pages/SecurityIncidents.tsx
+  - frontend/src/pages/SecurityMonitoring.tsx
+  - frontend/src/pages/SecurityReviewPipeline.tsx
+  - frontend/src/pages/SelfHealing.tsx
+  - frontend/src/pages/SemanticVectorSearch.tsx
+  - frontend/src/pages/ServiceDependencies.tsx
+  - frontend/src/pages/SessionManagement.tsx
+  - frontend/src/pages/SettingsAdminEnterpriseExtensionsHome.tsx
+  - frontend/src/pages/SettingsAdminHome.tsx
+  - frontend/src/pages/SharedSpacesChannels.tsx
+  - frontend/src/pages/SimulationWorkbench.tsx
+  - frontend/src/pages/SnapshotManager.tsx
+  - frontend/src/pages/SoftwareSaaSDrivers.tsx
+  - frontend/src/pages/SpecVersioning.tsx
+  - frontend/src/pages/StorageTopology.tsx
+  - frontend/src/pages/StoryQAContinuity.tsx
+  - frontend/src/pages/StrategySimulation.tsx
+  - frontend/src/pages/StructuredLogging.tsx
+  - frontend/src/pages/StyleGuideManager.tsx
+  - frontend/src/pages/SuperCapabilities.tsx
+  - frontend/src/pages/Supreme.tsx
+  - frontend/src/pages/SystemBoundariesNonGoals.tsx
+  - frontend/src/pages/SystemDependencyGraph.tsx
+  - frontend/src/pages/SystemsMap.tsx
+  - frontend/src/pages/TaskAnalytics.tsx
+  - frontend/src/pages/TaskAutomationRules.tsx
+  - frontend/src/pages/TaskBoardKanban.tsx
+  - frontend/src/pages/TeamMembers.tsx
+  - frontend/src/pages/TechnicalSpecSheet.tsx
+  - frontend/src/pages/TemporalReconstruction.tsx
+  - frontend/src/pages/TenancyOrgSettings.tsx
+  - frontend/src/pages/TerminologyGlossary.tsx
+  - frontend/src/pages/TheoreticalReasoningFramework.tsx
+  - frontend/src/pages/ThirdPartyRisk.tsx
+  - frontend/src/pages/ThreatDetection.tsx
+  - frontend/src/pages/ThreatIntelFeeds.tsx
+  - frontend/src/pages/ThreatModelSummary.tsx
+  - frontend/src/pages/ThreatModeling.tsx
+  - frontend/src/pages/Tokenization.tsx
+  - frontend/src/pages/TraceExplorer.tsx
+  - frontend/src/pages/TracesStore.tsx
+  - frontend/src/pages/TrainingPipelines.tsx
+  - frontend/src/pages/Tutorials.tsx
+  - frontend/src/pages/TwinGovernance.tsx
+  - frontend/src/pages/TwinTemplates.tsx
+  - frontend/src/pages/UIComponentLibrary.tsx
+  - frontend/src/pages/UltraScale.tsx
+  - frontend/src/pages/UnifiedResearchLab.tsx
+  - frontend/src/pages/UpgradeChannels.tsx
+  - frontend/src/pages/Upgrades.tsx
+  - frontend/src/pages/UsageFabric.tsx
+  - frontend/src/pages/UseCasesMap.tsx
+  - frontend/src/pages/UserProfile.tsx
+  - frontend/src/pages/VendorInventory.tsx
+  - frontend/src/pages/VersioningChangeLog.tsx
+  - frontend/src/pages/VersioningDeprecation.tsx
+  - frontend/src/pages/VerticalEditions.tsx
+  - frontend/src/pages/VisionMeta-StackHome.tsx
+  - frontend/src/pages/VisionPipelines.tsx
+  - frontend/src/pages/VulnerabilityManagement.tsx
+  - frontend/src/pages/VulnerabilityScanIntegrations.tsx
+  - frontend/src/pages/Webhooks.tsx
+  - frontend/src/pages/WebhooksEvents.tsx
+  - frontend/src/pages/WorkflowObservability.tsx
+  - frontend/src/pages/WorkflowOrchestrator.tsx
+  - frontend/src/pages/Workspaces/Devdevops/Cicd.tsx
+  - frontend/src/pages/Workspaces/Devdevops/Committasks.tsx
+  - frontend/src/pages/Workspaces/Devdevops/Mergeadvisor.tsx
+  - frontend/src/pages/Workspaces/Finance/Reports.tsx
+  - frontend/src/pages/Workspaces/Researchsimulation/Digitaltwins.tsx
+  - frontend/src/pages/Workspaces/Sre/Incidents.tsx
+  - frontend/src/pages/Workspaces/Twins/Scenarios.tsx
+  - frontend/src/pages/WriterWorkstation.tsx
+  - frontend/src/pages/mission/Planes/Contracts.tsx
+  - frontend/src/pages/workspaces/Finance/Reports.tsx
+  - frontend/src/pages/workspaces/Sre/Incidents.tsx
+  - frontend/src/pages/workspaces/Twins/Scenarios.tsx
+
+### other
+
+- Commit: d90a5087471870c58537a70d58228d4f768b95f8 | 2025-12-17T08:05:16-05:00 | Update 157 file(s) – ", line 1006, in _find_and_load_unlocked\n  File " & more
+  Deleted files:
+  - CyberChef_v10.19.4/CyberChef_v10.19.4.html
+
+- Commit: 4194f681e185f371fedcdebf8104d14641b57be4 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  Deleted files:
+  - api_connectors/git_client.py
+  - api_connectors/google_client.py
+  - api_connectors/integrations/__init__.py
+  - api_connectors/integrations/api.py
+  - api_connectors/integrations/apple_calendar.py
+  - api_connectors/integrations/base.py
+  - api_connectors/integrations/excel/__init__.py
+  - api_connectors/integrations/excel/cloud_client.py
+  - api_connectors/integrations/excel/local_client.py
+  - api_connectors/integrations/excel/service.py
+  - api_connectors/integrations/excel_integration.py
+  - api_connectors/integrations/filesystem/__init__.py
+  - api_connectors/integrations/filesystem/service.py
+  - api_connectors/integrations/filesystem_integration.py
+  - api_connectors/integrations/git_integration.py
+  - api_connectors/integrations/github.py
+  - api_connectors/integrations/gmail.py
+  - api_connectors/integrations/google_calendar.py
+  - api_connectors/integrations/google_client.py
+  - api_connectors/integrations/msgraph/__init__.py
+  - api_connectors/integrations/msgraph/auth.py
+  - api_connectors/integrations/msgraph/client.py
+  - api_connectors/integrations/notes.py
+  - api_connectors/integrations/onenote/__init__.py
+  - api_connectors/integrations/onenote/client.py
+  - api_connectors/integrations/onenote/service.py
+  - api_connectors/integrations/onenote_integration.py
+  - api_connectors/integrations/pdf_integration.py
+  - api_connectors/integrations/word/__init__.py
+  - api_connectors/integrations/word/cloud_client.py
+  - api_connectors/integrations/word/local_client.py
+  - api_connectors/integrations/word/service.py
+  - api_connectors/integrations/word_integration.py
+  - api_connectors/ms_graph_client.py
+  - assistant_core/core/api_server.py
+  - assistant_hub_gui/assistant_hub/integrations/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/base.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/service.py
+  - assistant_hub_gui/assistant_hub/integrations/excel_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/service.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/git_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/github.py
+  - assistant_hub_gui/assistant_hub/integrations/gmail.py
+  - assistant_hub_gui/assistant_hub/integrations/google_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/client.py
+  - assistant_hub_gui/assistant_hub/integrations/notes.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/pdf_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/word/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/word/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/service.py
+  - assistant_hub_gui/assistant_hub/integrations/word_integration.py
+  - ui/assets/dashboard.js
+  - ui/dashboard_app.py
+
+- Commit: 756b68e195b0dfcdf574c95bb6687a558426b741 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  Deleted files:
+  - api_connectors/git_client.py
+  - api_connectors/google_client.py
+  - api_connectors/integrations/__init__.py
+  - api_connectors/integrations/api.py
+  - api_connectors/integrations/apple_calendar.py
+  - api_connectors/integrations/base.py
+  - api_connectors/integrations/excel/__init__.py
+  - api_connectors/integrations/excel/cloud_client.py
+  - api_connectors/integrations/excel/local_client.py
+  - api_connectors/integrations/excel/service.py
+  - api_connectors/integrations/excel_integration.py
+  - api_connectors/integrations/filesystem/__init__.py
+  - api_connectors/integrations/filesystem/service.py
+  - api_connectors/integrations/filesystem_integration.py
+  - api_connectors/integrations/git_integration.py
+  - api_connectors/integrations/github.py
+  - api_connectors/integrations/gmail.py
+  - api_connectors/integrations/google_calendar.py
+  - api_connectors/integrations/google_client.py
+  - api_connectors/integrations/msgraph/__init__.py
+  - api_connectors/integrations/msgraph/auth.py
+  - api_connectors/integrations/msgraph/client.py
+  - api_connectors/integrations/notes.py
+  - api_connectors/integrations/onenote/__init__.py
+  - api_connectors/integrations/onenote/client.py
+  - api_connectors/integrations/onenote/service.py
+  - api_connectors/integrations/onenote_integration.py
+  - api_connectors/integrations/pdf_integration.py
+  - api_connectors/integrations/word/__init__.py
+  - api_connectors/integrations/word/cloud_client.py
+  - api_connectors/integrations/word/local_client.py
+  - api_connectors/integrations/word/service.py
+  - api_connectors/integrations/word_integration.py
+  - api_connectors/ms_graph_client.py
+  - assistant_core/core/api_server.py
+  - assistant_hub_gui/assistant_hub/integrations/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/base.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/excel/service.py
+  - assistant_hub_gui/assistant_hub/integrations/excel_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem/service.py
+  - assistant_hub_gui/assistant_hub/integrations/filesystem_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/git_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/github.py
+  - assistant_hub_gui/assistant_hub/integrations/gmail.py
+  - assistant_hub_gui/assistant_hub/integrations/google_calendar.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/client.py
+  - assistant_hub_gui/assistant_hub/integrations/notes.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/client.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote/service.py
+  - assistant_hub_gui/assistant_hub/integrations/onenote_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/pdf_integration.py
+  - assistant_hub_gui/assistant_hub/integrations/word/__init__.py
+  - assistant_hub_gui/assistant_hub/integrations/word/cloud_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/local_client.py
+  - assistant_hub_gui/assistant_hub/integrations/word/service.py
+  - assistant_hub_gui/assistant_hub/integrations/word_integration.py
+  - ui/assets/dashboard.js
+  - ui/dashboard_app.py
+
+### repo-root
+
+- Commit: e912c2042532b03db2d2599a1ee4016c053133de | 2025-12-10T18:35:41-05:00 | Update 232 file(s) – .DS_Store & more
+  Deleted files:
+  - dashboard.js
+  - requests.py
+
+- Commit: 9a2d9a2b4964ca819391d34725f1c60c7d6a5435 | 2025-12-07T17:21:51-05:00 | broken for now
+  Deleted files:
+  - colorlog.py
+  - requests.py
+
+- Commit: 5cfa0e17aae32e9fbe5eb973ed74bafe69af1551 | 2025-12-07T17:21:51-05:00 | broken for now
+  Deleted files:
+  - colorlog.py
+  - requests.py
+
+- Commit: 3208362e9a8bff62e6ab84662a0f382a57a54abd | 2025-12-07T05:42:05-05:00 | latest stable version, beta release
+  Deleted files:
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/oauth_delegated.py
+  - authenticate_azure_delegated.py
+
+- Commit: 037977d41caf2e01d7300fb3d9803e323f37d603 | 2025-12-07T05:42:05-05:00 | latest stable version, beta release
+  Deleted files:
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/oauth_delegated.py
+  - authenticate_azure_delegated.py
+
+## Grouped Large Net Code Removals by Area
+
+### api_connectors
+
+- Commit: 8bcbae0ec558e9d924b2d6330e9980d2d095164f | 2025-12-07T18:42:02-05:00 | Refine universal connector interface
+  - api_connectors/universal_connector.py (added 251, deleted 1507)
+
+- Commit: 6274bfcdb26b3f994dc45f87dfd3de045c88cf55 | 2025-12-07T18:42:02-05:00 | Refine universal connector interface
+  - api_connectors/universal_connector.py (added 251, deleted 1507)
+
+- Commit: 4194f681e185f371fedcdebf8104d14641b57be4 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  - api_connectors/integrations/google_client.py (added 0, deleted 367)
+  - api_connectors/integrations/msgraph/client.py (added 0, deleted 332)
+  - assistant_hub_gui/assistant_hub/gui.py (added 662, deleted 1450)
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py (added 0, deleted 214)
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py (added 0, deleted 661)
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py (added 0, deleted 304)
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py (added 0, deleted 241)
+  - ui/assets/dashboard.js (added 0, deleted 211)
+
+- Commit: 756b68e195b0dfcdf574c95bb6687a558426b741 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  - api_connectors/integrations/google_client.py (added 0, deleted 367)
+  - api_connectors/integrations/msgraph/client.py (added 0, deleted 332)
+  - assistant_hub_gui/assistant_hub/gui.py (added 662, deleted 1450)
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py (added 0, deleted 214)
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py (added 0, deleted 661)
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py (added 0, deleted 304)
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py (added 0, deleted 241)
+  - ui/assets/dashboard.js (added 0, deleted 211)
+
+### assistant_core
+
+- Commit: 30638226693a8baa5ff8651ce2978b6cd1f083fc | 2025-12-10T15:39:08-05:00 | Update 288 file(s) – .env.example & more
+  - assistant_core/daemon/workflow_orchestration.py (added 213, deleted 753)
+
+- Commit: 73fd15e2a15b1fa184797a4b7232edb46a86fb32 | 2025-12-10T15:39:08-05:00 | Update 288 file(s) – .env.example & more
+  - assistant_core/daemon/workflow_orchestration.py (added 213, deleted 753)
+
+- Commit: e4fdcf7cc0b21e0b6f766d9022dacab2d30b30ca | 2025-12-07T19:50:29-05:00 | let it go
+  - assistant_core/security_framework.py (added 541, deleted 1167)
+
+- Commit: b614c3c31f60411a905b3574f6c59b5b3c9b09d4 | 2025-12-07T19:50:29-05:00 | let it go
+  - assistant_core/security_framework.py (added 541, deleted 1167)
+
+- Commit: 0113dc9fb85e80ef7cf6cf5412f24d349b2d2d7e | 2025-12-07T18:42:05-05:00 | Refactor CIR schema with pydantic models
+  - assistant_core/cir/schema.py (added 299, deleted 543)
+
+- Commit: 1f51b3350c11f04b3fd1b2bbbe73857f9f3b5b9a | 2025-12-07T18:42:05-05:00 | Refactor CIR schema with pydantic models
+  - assistant_core/cir/schema.py (added 299, deleted 543)
+
+### assistant_hub
+
+- Commit: d90a5087471870c58537a70d58228d4f768b95f8 | 2025-12-17T08:05:16-05:00 | Update 157 file(s) – ", line 1006, in _find_and_load_unlocked\n  File " & more
+  - assistant_hub/core/api_server.py (added 7, deleted 425)
+  - assistant_hub/db.py (added 13, deleted 1043)
+  - assistant_hub_gui/assistant_hub/core/api_server.py (added 109, deleted 625)
+  - frontend/src/components/DocumentViewer.tsx (added 49, deleted 433)
+
+### assistant_hub_gui
+
+- Commit: d90a5087471870c58537a70d58228d4f768b95f8 | 2025-12-17T08:05:16-05:00 | Update 157 file(s) – ", line 1006, in _find_and_load_unlocked\n  File " & more
+  - assistant_hub/core/api_server.py (added 7, deleted 425)
+  - assistant_hub/db.py (added 13, deleted 1043)
+  - assistant_hub_gui/assistant_hub/core/api_server.py (added 109, deleted 625)
+  - frontend/src/components/DocumentViewer.tsx (added 49, deleted 433)
+
+- Commit: e912c2042532b03db2d2599a1ee4016c053133de | 2025-12-10T18:35:41-05:00 | Update 232 file(s) – .DS_Store & more
+  - assistant_hub_gui/assistant_hub/gui.py (added 4783, deleted 30400)
+  - dashboard.js (added 0, deleted 689)
+
+- Commit: 4194f681e185f371fedcdebf8104d14641b57be4 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  - api_connectors/integrations/google_client.py (added 0, deleted 367)
+  - api_connectors/integrations/msgraph/client.py (added 0, deleted 332)
+  - assistant_hub_gui/assistant_hub/gui.py (added 662, deleted 1450)
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py (added 0, deleted 214)
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py (added 0, deleted 661)
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py (added 0, deleted 304)
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py (added 0, deleted 241)
+  - ui/assets/dashboard.js (added 0, deleted 211)
+
+- Commit: 756b68e195b0dfcdf574c95bb6687a558426b741 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  - api_connectors/integrations/google_client.py (added 0, deleted 367)
+  - api_connectors/integrations/msgraph/client.py (added 0, deleted 332)
+  - assistant_hub_gui/assistant_hub/gui.py (added 662, deleted 1450)
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py (added 0, deleted 214)
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py (added 0, deleted 661)
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py (added 0, deleted 304)
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py (added 0, deleted 241)
+  - ui/assets/dashboard.js (added 0, deleted 211)
+
+- Commit: 3208362e9a8bff62e6ab84662a0f382a57a54abd | 2025-12-07T05:42:05-05:00 | latest stable version, beta release
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/oauth_delegated.py (added 0, deleted 375)
+
+- Commit: 037977d41caf2e01d7300fb3d9803e323f37d603 | 2025-12-07T05:42:05-05:00 | latest stable version, beta release
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/oauth_delegated.py (added 0, deleted 375)
+
+- Commit: 2ee9b3bfc89a38208e0b2ae9003b3c4fd1b6345b | 2025-12-07T05:31:20-05:00 | finally  something worthy to version control
+  - assistant_hub_gui/assistant_hub/document_templates.py (added 0, deleted 317)
+  - assistant_hub_gui/assistant_hub/knowledge_graph.py (added 0, deleted 263)
+  - assistant_hub_gui/assistant_hub/project_insights.py (added 0, deleted 246)
+
+- Commit: 149cd2bcba8ae900b07da3c6a92f4a4a1a7071ba | 2025-12-07T05:31:20-05:00 | finally  something worthy to version control
+  - assistant_hub_gui/assistant_hub/document_templates.py (added 0, deleted 317)
+  - assistant_hub_gui/assistant_hub/knowledge_graph.py (added 0, deleted 263)
+  - assistant_hub_gui/assistant_hub/project_insights.py (added 0, deleted 246)
+
+- Commit: 6fb0574c6de31be6615c5b5354fef7b39d4174b1 | 2025-12-07T03:36:36-05:00 | stable
+  - assistant_hub_gui/assistant_hub/gui.py (added 6, deleted 243)
+
+- Commit: 2858947a301fa958ea47c02bb22aa4147c48d429 | 2025-12-07T03:36:36-05:00 | stable
+  - assistant_hub_gui/assistant_hub/gui.py (added 6, deleted 243)
+
+### backend_api
+
+- Commit: 1fcbc8a4260a493400b78f70f6b8bbe201da3f2d | 2025-12-21T12:35:16-05:00 | Merge: Restore all deleted pages and resolve conflicts
+  - backend_api/routers/auth.py (added 24, deleted 638)
+
+- Commit: 3a154a6e6305fe9f3a760f44b1b10d73e1ed3256 | 2025-12-19T05:58:11-05:00 | latest stable alpha version
+  - backend_api/routers/logs.py (added 0, deleted 592)
+
+- Commit: 728c73c26b7e03c698b2326a7f0a5fa559ad93a0 | 2025-12-19T08:13:00Z | Refactor: Improve admin and auth routes
+  - backend_api/routers/admin.py (added 161, deleted 872)
+  - backend_api/routers/auth.py (added 70, deleted 694)
+  - frontend/src/components/Layout.tsx (added 289, deleted 891)
+  - frontend/src/pages/Admin.tsx (added 214, deleted 627)
+
+### frontend/components
+
+- Commit: 58cfc345630f68bf10909538aba48c12f87ce9df | 2025-12-19T15:19:23-05:00 | in style
+  - frontend/src/components/DocumentViewer.tsx (added 7, deleted 486)
+  - frontend/src/components/Layout.tsx (added 123, deleted 815)
+  - frontend/src/pages/Admin.tsx (added 45, deleted 670)
+  - frontend/src/pages/Signup.tsx (added 67, deleted 308)
+
+- Commit: d0d25e7c51c9df3af359184c19fbe6fbd00ecab6 | 2025-12-19T08:38:29Z | Refactor layout and auth pages
+  - frontend/src/components/Layout.tsx (added 71, deleted 662)
+  - frontend/src/pages/Admin.tsx (added 7, deleted 279)
+
+- Commit: 728c73c26b7e03c698b2326a7f0a5fa559ad93a0 | 2025-12-19T08:13:00Z | Refactor: Improve admin and auth routes
+  - backend_api/routers/admin.py (added 161, deleted 872)
+  - backend_api/routers/auth.py (added 70, deleted 694)
+  - frontend/src/components/Layout.tsx (added 289, deleted 891)
+  - frontend/src/pages/Admin.tsx (added 214, deleted 627)
+
+- Commit: 127611bdbb4c1bb419f79652a511d0818d38f723 | 2025-12-19T07:52:22Z | Refactor: Update routing, layout, and admin panel
+  - frontend/src/components/Layout.tsx (added 283, deleted 634)
+
+- Commit: 2b9e5584207a7d26d5c43600d5b1210c4f4d000c | 2025-12-19T07:45:34Z | Refactor layout and navigation components
+  - frontend/src/components/Layout.tsx (added 65, deleted 650)
+
+- Commit: caeda05c83ddea88f85e10e58d8e393b4dfc45b3 | 2025-12-19T07:43:14Z | feat: Implement protected routes and admin role check
+  - frontend/src/components/Layout.tsx (added 154, deleted 674)
+
+- Commit: e7011a7a6df8aaee17a090ff6dce6d67f8a199e7 | 2025-12-18T23:00:42-05:00 | update
+  - frontend/src/components/Layout.tsx (added 234, deleted 448)
+
+- Commit: 3cd8a63e2ec5d18944a1c24a72f699683508acda | 2025-12-19T02:41:17Z | feat: Implement auth, admin, version control, viewer, logging, AI
+  - frontend/src/components/DocumentViewer.tsx (added 190, deleted 847)
+
+- Commit: bb7de03de4850a348a0655c32850fe22394b8dfa | 2025-12-19T02:31:00Z | Refactor: Implement new hybrid navigation layout
+  - frontend/src/components/Layout.tsx (added 214, deleted 485)
+
+- Commit: 37c368e20bb737bab9d51848527e147dabc4d280 | 2025-12-19T02:17:49Z | Refactor layout and workspace navigation
+  - frontend/src/components/Layout.tsx (added 236, deleted 482)
+  - web/writer-workspace/src/styles.css (added 45, deleted 767)
+
+- Commit: d90a5087471870c58537a70d58228d4f768b95f8 | 2025-12-17T08:05:16-05:00 | Update 157 file(s) – ", line 1006, in _find_and_load_unlocked\n  File " & more
+  - assistant_hub/core/api_server.py (added 7, deleted 425)
+  - assistant_hub/db.py (added 13, deleted 1043)
+  - assistant_hub_gui/assistant_hub/core/api_server.py (added 109, deleted 625)
+  - frontend/src/components/DocumentViewer.tsx (added 49, deleted 433)
+
+### frontend/other
+
+- Commit: 754d75953b1f7cf4da047dd26820356bff57b632 | 2025-12-31T22:15:37-05:00 | page template correct but not the pages themselves
+  - frontend/src/App.tsx (added 32, deleted 385)
+  - frontend/src/pages/Observability/Recordauditor/Timeline.tsx (added 6, deleted 393)
+  - frontend/src/pages/Operations/Bcdr/Drills.tsx (added 6, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Classification.tsx (added 6, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Dlp.tsx (added 6, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Masking.tsx (added 6, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Residency.tsx (added 6, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Tokenization.tsx (added 6, deleted 225)
+
+### frontend/pages
+
+- Commit: 146c25eea146f4276c743c16452b8772228897ff | 2026-01-01T05:57:31-05:00 | latest code
+  - frontend/src/pages/Operations/Bcdr/Drills.tsx (added 12, deleted 225)
+  - frontend/src/pages/drivers/Marketplace/Reviews.tsx (added 12, deleted 225)
+  - frontend/src/pages/drivers/Packs/Builder.tsx (added 12, deleted 225)
+  - frontend/src/pages/drivers/Risk/Assessments.tsx (added 12, deleted 225)
+  - frontend/src/pages/drivers/Risk/Exceptions.tsx (added 12, deleted 225)
+  - frontend/src/pages/drivers/Risk/Remediation.tsx (added 12, deleted 225)
+  - frontend/src/pages/drivers/Risk/Vendors.tsx (added 12, deleted 225)
+  - frontend/src/pages/drivers/os/FilesystemDriver.tsx (added 9, deleted 378)
+  - frontend/src/pages/governance/Dataprotection/Classification.tsx (added 12, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Dlp.tsx (added 12, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Masking.tsx (added 12, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Residency.tsx (added 12, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Tokenization.tsx (added 11, deleted 224)
+
+- Commit: 54d010a4494099778da58f7a8462548a867ef731 | 2026-01-01T01:52:36-05:00 | Stable but missing web pages.
+  - frontend/src/pages/Mission/Orchestrator.tsx (added 92, deleted 435)
+
+- Commit: 754d75953b1f7cf4da047dd26820356bff57b632 | 2025-12-31T22:15:37-05:00 | page template correct but not the pages themselves
+  - frontend/src/App.tsx (added 32, deleted 385)
+  - frontend/src/pages/Observability/Recordauditor/Timeline.tsx (added 6, deleted 393)
+  - frontend/src/pages/Operations/Bcdr/Drills.tsx (added 6, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Classification.tsx (added 6, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Dlp.tsx (added 6, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Masking.tsx (added 6, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Residency.tsx (added 6, deleted 225)
+  - frontend/src/pages/governance/Dataprotection/Tokenization.tsx (added 6, deleted 225)
+
+- Commit: 58cfc345630f68bf10909538aba48c12f87ce9df | 2025-12-19T15:19:23-05:00 | in style
+  - frontend/src/components/DocumentViewer.tsx (added 7, deleted 486)
+  - frontend/src/components/Layout.tsx (added 123, deleted 815)
+  - frontend/src/pages/Admin.tsx (added 45, deleted 670)
+  - frontend/src/pages/Signup.tsx (added 67, deleted 308)
+
+- Commit: d0d25e7c51c9df3af359184c19fbe6fbd00ecab6 | 2025-12-19T08:38:29Z | Refactor layout and auth pages
+  - frontend/src/components/Layout.tsx (added 71, deleted 662)
+  - frontend/src/pages/Admin.tsx (added 7, deleted 279)
+
+- Commit: 728c73c26b7e03c698b2326a7f0a5fa559ad93a0 | 2025-12-19T08:13:00Z | Refactor: Improve admin and auth routes
+  - backend_api/routers/admin.py (added 161, deleted 872)
+  - backend_api/routers/auth.py (added 70, deleted 694)
+  - frontend/src/components/Layout.tsx (added 289, deleted 891)
+  - frontend/src/pages/Admin.tsx (added 214, deleted 627)
+
+### other
+
+- Commit: 37c368e20bb737bab9d51848527e147dabc4d280 | 2025-12-19T02:17:49Z | Refactor layout and workspace navigation
+  - frontend/src/components/Layout.tsx (added 236, deleted 482)
+  - web/writer-workspace/src/styles.css (added 45, deleted 767)
+
+- Commit: 4194f681e185f371fedcdebf8104d14641b57be4 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  - api_connectors/integrations/google_client.py (added 0, deleted 367)
+  - api_connectors/integrations/msgraph/client.py (added 0, deleted 332)
+  - assistant_hub_gui/assistant_hub/gui.py (added 662, deleted 1450)
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py (added 0, deleted 214)
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py (added 0, deleted 661)
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py (added 0, deleted 304)
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py (added 0, deleted 241)
+  - ui/assets/dashboard.js (added 0, deleted 211)
+
+- Commit: 756b68e195b0dfcdf574c95bb6687a558426b741 | 2025-12-07T17:16:16-05:00 | Merge origin/develop and resolve conflicts
+  - api_connectors/integrations/google_client.py (added 0, deleted 367)
+  - api_connectors/integrations/msgraph/client.py (added 0, deleted 332)
+  - assistant_hub_gui/assistant_hub/gui.py (added 662, deleted 1450)
+  - assistant_hub_gui/assistant_hub/integrations/apple_calendar.py (added 0, deleted 214)
+  - assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py (added 0, deleted 661)
+  - assistant_hub_gui/assistant_hub/integrations/onedrive/client.py (added 0, deleted 304)
+  - assistant_hub_gui/assistant_hub/integrations/onedrive_integration.py (added 0, deleted 241)
+  - ui/assets/dashboard.js (added 0, deleted 211)
+
+### repo-root
+
+- Commit: e912c2042532b03db2d2599a1ee4016c053133de | 2025-12-10T18:35:41-05:00 | Update 232 file(s) – .DS_Store & more
+  - assistant_hub_gui/assistant_hub/gui.py (added 4783, deleted 30400)
+  - dashboard.js (added 0, deleted 689)
+
+- Commit: c5712c4068bb9aa783843df674aac1bad11c0b9d | 2025-12-10T10:03:34-05:00 | usable
+  - setup.py (added 2, deleted 241)
+
+- Commit: 64a58567e2eea7cd00afb76923c3a6d6a9dd7938 | 2025-12-10T10:03:34-05:00 | usable
+  - setup.py (added 2, deleted 241)
+
+### tests
+
+- Commit: bd055a90860592b391b5c9d90ddd6ed9889d7b95 | 2026-01-01T04:44:14-05:00 | Update 87 file(s) – EXECUTION_PIPELINE.md & more
+  - tests/test_suite_matrix.json (added 195, deleted 1539)
+
+## Candidate Merge Sequencing (Report-Only Proposal)
+- Low-risk: isolated frontend page restorations without shared navigation changes.
+- Medium-risk: IA/navigation and shared templates/layouts.
+- High-risk: backend service changes and cross-cutting refactors (assistant_core/backend_api).

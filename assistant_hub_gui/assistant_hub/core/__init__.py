@@ -1,4 +1,4 @@
-"""Core OS Dashboard components: state, routing, scheduling."""
+"""Core AI OS components: state, routing, scheduling."""
 
 from .state import load_state, save_state
 from .routing import (

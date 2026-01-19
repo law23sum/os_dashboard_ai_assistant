@@ -1,0 +1,1472 @@
+[
+  {
+    "platform_label": "Core",
+    "platform_id": "core",
+    "category_label": "Core Flight Deck",
+    "category_id": "core-core-flight-deck",
+    "homeRoute": "/dashboard/core-flight-deck",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Core",
+    "platform_id": "core",
+    "category_label": "Engagement & Persona Surfaces",
+    "category_id": "core-engagement-and-persona-surfaces",
+    "homeRoute": "/dashboard/engagement-and-persona-surfaces",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Core",
+    "platform_id": "core",
+    "category_label": "Overview",
+    "category_id": "core-overview",
+    "homeRoute": "/dashboard/overview",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Core",
+    "platform_id": "core",
+    "category_label": "Operations",
+    "category_id": "core-operations",
+    "homeRoute": "/dashboard/operations",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 4,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Cookbook Lab",
+    "category_id": "common-cookbook-lab",
+    "homeRoute": "/legacy/cookbook-lab",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Data Knowledge Home",
+    "category_id": "common-data-knowledge-home",
+    "homeRoute": "/legacy/data-knowledge-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Docs Spec Home",
+    "category_id": "common-docs-spec-home",
+    "homeRoute": "/legacy/docs-spec-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Drivers Integrations Home",
+    "category_id": "common-drivers-integrations-home",
+    "homeRoute": "/legacy/drivers-integrations-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 4,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Governance Security Home",
+    "category_id": "common-governance-security-home",
+    "homeRoute": "/legacy/governance-security-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 5,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Mission Architecture Home",
+    "category_id": "common-mission-architecture-home",
+    "homeRoute": "/legacy/mission-architecture-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 6,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Observability Evidence Home",
+    "category_id": "common-observability-evidence-home",
+    "homeRoute": "/legacy/observability-evidence-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 7,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Operations Infrastructure Home",
+    "category_id": "common-operations-infrastructure-home",
+    "homeRoute": "/legacy/operations-infrastructure-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 8,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Roadmap Risks Home",
+    "category_id": "common-roadmap-risks-home",
+    "homeRoute": "/legacy/roadmap-risks-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 9,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Settings Admin Enterprise Extensions Home",
+    "category_id": "common-settings-admin-enterprise-extensions-home",
+    "homeRoute": "/legacy/settings-admin-enterprise-extensions-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 10,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Settings Admin Home",
+    "category_id": "common-settings-admin-home",
+    "homeRoute": "/legacy/settings-admin-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 11,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Vision Meta Stack Home",
+    "category_id": "common-vision-meta-stack-home",
+    "homeRoute": "/legacy/vision-meta-stack-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 12,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Concept Studio",
+    "category_id": "common-concept-studio",
+    "homeRoute": "/legacy/concept-studio",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 13,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Planes Architecture",
+    "category_id": "common-planes-architecture",
+    "homeRoute": "/mission/planes-architecture",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 14,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Architecture Principles",
+    "category_id": "common-architecture-principles",
+    "homeRoute": "/mission/architecture-principles-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 15,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Mission Identity",
+    "category_id": "common-mission-identity",
+    "homeRoute": "/mission/mission-identity-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 16,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Telemetry Metrics",
+    "category_id": "common-telemetry-metrics",
+    "homeRoute": "/observability/telemetry-metrics-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 17,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Files & Storage",
+    "category_id": "common-files-and-storage",
+    "homeRoute": "/mission/files-and-storage",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 18,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Integrations",
+    "category_id": "common-integrations",
+    "homeRoute": "/mission/integrations",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 19,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Mission Control",
+    "category_id": "common-mission-control",
+    "homeRoute": "/mission/mission-control",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 20,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Mission & Identity",
+    "category_id": "common-mission-and-identity",
+    "homeRoute": "/mission/mission-and-identity",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 21,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Architecture & Principles",
+    "category_id": "common-architecture-and-principles",
+    "homeRoute": "/mission/architecture-and-principles",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 22,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Evidence Packs",
+    "category_id": "common-evidence-packs",
+    "homeRoute": "/observability/evidence-packs",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 23,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Metrics & Telemetry",
+    "category_id": "common-metrics-and-telemetry",
+    "homeRoute": "/observability/metrics-and-telemetry",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 24,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Health & Monitoring",
+    "category_id": "common-health-and-monitoring",
+    "homeRoute": "/observability/health-and-monitoring",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 25,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Record Auditor & Logbook",
+    "category_id": "common-record-auditor-and-logbook",
+    "homeRoute": "/observability/record-auditor-and-logbook",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 26,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Evidence & Audit",
+    "category_id": "common-evidence-and-audit",
+    "homeRoute": "/observability/evidence-and-audit",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 27,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Logging & Tracing",
+    "category_id": "common-logging-and-tracing",
+    "homeRoute": "/observability/logging-and-tracing",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 28,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Temporal Backtesting & Replay",
+    "category_id": "common-temporal-backtesting-and-replay",
+    "homeRoute": "/observability/temporal-backtesting-and-replay",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 29,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Health & Self-Healing",
+    "category_id": "common-health-and-self-healing",
+    "homeRoute": "/observability/health-and-self-healing",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 30,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Dashboards & Alerting",
+    "category_id": "common-dashboards-and-alerting",
+    "homeRoute": "/observability/dashboards-and-alerting",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 31,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Common",
+    "platform_id": "common",
+    "category_label": "Telemetry & Metrics",
+    "category_id": "common-telemetry-and-metrics",
+    "homeRoute": "/observability/telemetry-and-metrics",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 32,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Audit Official Records",
+    "platform_id": "audit-official-records",
+    "category_label": "Record Auditor & Logbook",
+    "category_id": "audit-official-records-record-auditor-and-logbook",
+    "homeRoute": "/observability/record-auditor-and-logbook",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Audit Official Records",
+    "platform_id": "audit-official-records",
+    "category_label": "Operations",
+    "category_id": "audit-official-records-operations",
+    "homeRoute": "/governance/operations",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Audit Official Records",
+    "platform_id": "audit-official-records",
+    "category_label": "Governance Center",
+    "category_id": "audit-official-records-governance-center",
+    "homeRoute": "/governance/governance-center",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Audit Official Records",
+    "platform_id": "audit-official-records",
+    "category_label": "Policy & Governance Engine",
+    "category_id": "audit-official-records-policy-and-governance-engine",
+    "homeRoute": "/governance/policy-and-governance-engine",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 4,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Audit Official Records",
+    "platform_id": "audit-official-records",
+    "category_label": "Identity & Access",
+    "category_id": "audit-official-records-identity-and-access",
+    "homeRoute": "/governance/identity-and-access",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 5,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Audit Official Records",
+    "platform_id": "audit-official-records",
+    "category_label": "Compliance Packs",
+    "category_id": "audit-official-records-compliance-packs",
+    "homeRoute": "/governance/compliance-packs",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 6,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Audit Official Records",
+    "platform_id": "audit-official-records",
+    "category_label": "Regulator Fabric",
+    "category_id": "audit-official-records-regulator-fabric",
+    "homeRoute": "/governance/regulator-fabric",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 7,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Audit Official Records",
+    "platform_id": "audit-official-records",
+    "category_label": "Security Monitoring",
+    "category_id": "audit-official-records-security-monitoring",
+    "homeRoute": "/governance/security-monitoring",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 8,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Audit Official Records",
+    "platform_id": "audit-official-records",
+    "category_label": "AI Billing & Cost Governance",
+    "category_id": "audit-official-records-ai-billing-and-cost-governance",
+    "homeRoute": "/governance/ai-billing-and-cost-governance",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 9,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Audit Official Records",
+    "platform_id": "audit-official-records",
+    "category_label": "Compliance & Regulator Fabric",
+    "category_id": "audit-official-records-compliance-and-regulator-fabric",
+    "homeRoute": "/governance/compliance-and-regulator-fabric",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 10,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Audit Official Records",
+    "platform_id": "audit-official-records",
+    "category_label": "Security Monitoring & Response",
+    "category_id": "audit-official-records-security-monitoring-and-response",
+    "homeRoute": "/governance/security-monitoring-and-response",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 11,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Audit Official Records",
+    "platform_id": "audit-official-records",
+    "category_label": "Data Protection & Classification",
+    "category_id": "audit-official-records-data-protection-and-classification",
+    "homeRoute": "/governance/data-protection-and-classification",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 12,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Audit Official Records",
+    "platform_id": "audit-official-records",
+    "category_label": "Regulator Console",
+    "category_id": "audit-official-records-regulator-console",
+    "homeRoute": "/governance/regulator-console",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 13,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Automation",
+    "platform_id": "automation",
+    "category_label": "Driver Fabric & System Execution",
+    "category_id": "automation-driver-fabric-and-system-execution",
+    "homeRoute": "/ai/driver-fabric-and-system-execution",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Automation",
+    "platform_id": "automation",
+    "category_label": "Capsules & Workflow Automation",
+    "category_id": "automation-capsules-and-workflow-automation",
+    "homeRoute": "/ai/capsules-and-workflow-automation",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Automation",
+    "platform_id": "automation",
+    "category_label": "Intent Processing",
+    "category_id": "automation-intent-processing",
+    "homeRoute": "/ai/intent-processing",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Automation",
+    "platform_id": "automation",
+    "category_label": "Edge & Vision",
+    "category_id": "automation-edge-and-vision",
+    "homeRoute": "/ai/edge-and-vision",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 4,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Automation",
+    "platform_id": "automation",
+    "category_label": "Cognitive Agents & Reasoning",
+    "category_id": "automation-cognitive-agents-and-reasoning",
+    "homeRoute": "/ai/cognitive-agents-and-reasoning",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 5,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Automation",
+    "platform_id": "automation",
+    "category_label": "MLOps & Neural Architecture",
+    "category_id": "automation-mlops-and-neural-architecture",
+    "homeRoute": "/ai/mlops-and-neural-architecture",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 6,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Automation",
+    "platform_id": "automation",
+    "category_label": "Capsules Workflow",
+    "category_id": "automation-capsules-workflow",
+    "homeRoute": "/ai/capsules-workflow",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 7,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Automation",
+    "platform_id": "automation",
+    "category_label": "Cognitive Agents",
+    "category_id": "automation-cognitive-agents",
+    "homeRoute": "/ai/cognitive-agents",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 8,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Automation",
+    "platform_id": "automation",
+    "category_label": "Edge Vision",
+    "category_id": "automation-edge-vision",
+    "homeRoute": "/ai/edge-vision-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 9,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Automation",
+    "platform_id": "automation",
+    "category_label": "Mlops Neural Arch",
+    "category_id": "automation-mlops-neural-arch",
+    "homeRoute": "/ai/mlops-neural-arch",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 10,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Automation",
+    "platform_id": "automation",
+    "category_label": "Workflows & Capsules",
+    "category_id": "automation-workflows-and-capsules",
+    "homeRoute": "/ai/workflows-and-capsules",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 11,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Automation",
+    "platform_id": "automation",
+    "category_label": "Automation Hub",
+    "category_id": "automation-automation-hub",
+    "homeRoute": "/ai/automation-hub",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 12,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Settings",
+    "platform_id": "settings",
+    "category_label": "User & Tenant Settings",
+    "category_id": "settings-user-and-tenant-settings",
+    "homeRoute": "/settings/user-and-tenant-settings",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Settings",
+    "platform_id": "settings",
+    "category_label": "Profile & Preferences",
+    "category_id": "settings-profile-and-preferences",
+    "homeRoute": "/settings/profile-and-preferences",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Settings",
+    "platform_id": "settings",
+    "category_label": "Operations",
+    "category_id": "settings-operations",
+    "homeRoute": "/settings/operations",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Admin",
+    "platform_id": "admin",
+    "category_label": "Users & Roles",
+    "category_id": "admin-users-and-roles",
+    "homeRoute": "/admin/users-and-roles",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Admin",
+    "platform_id": "admin",
+    "category_label": "Operations",
+    "category_id": "admin-operations",
+    "homeRoute": "/admin/operations",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Admin",
+    "platform_id": "admin",
+    "category_label": "Admin Console",
+    "category_id": "admin-admin-console",
+    "homeRoute": "/admin/admin-console",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Admin",
+    "platform_id": "admin",
+    "category_label": "Tenants",
+    "category_id": "admin-tenants",
+    "homeRoute": "/admin/tenants",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 4,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Admin",
+    "platform_id": "admin",
+    "category_label": "Billing & Usage",
+    "category_id": "admin-billing-and-usage",
+    "homeRoute": "/admin/billing-and-usage",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 5,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Admin",
+    "platform_id": "admin",
+    "category_label": "Approvals",
+    "category_id": "admin-approvals",
+    "homeRoute": "/admin/approvals",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 6,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Workstation",
+    "platform_id": "workstation",
+    "category_label": "Dev & DevOps Workspace",
+    "category_id": "workstation-dev-and-devops-workspace",
+    "homeRoute": "/workspaces/dev-and-devops-workspace",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Workstation",
+    "platform_id": "workstation",
+    "category_label": "Writer Workspace",
+    "category_id": "workstation-writer-workspace",
+    "homeRoute": "/workspaces/writer-workspace",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Workstation",
+    "platform_id": "workstation",
+    "category_label": "Cybersecurity Workspace",
+    "category_id": "workstation-cybersecurity-workspace",
+    "homeRoute": "/workspaces/cybersecurity-workspace",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Workstation",
+    "platform_id": "workstation",
+    "category_label": "Business & Finance Workspace",
+    "category_id": "workstation-business-and-finance-workspace",
+    "homeRoute": "/workspaces/business-and-finance-workspace",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 4,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Workstation",
+    "platform_id": "workstation",
+    "category_label": "Operator & SRE Workspace",
+    "category_id": "workstation-operator-and-sre-workspace",
+    "homeRoute": "/workspaces/operator-and-sre-workspace",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 5,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Workstation",
+    "platform_id": "workstation",
+    "category_label": "Archive & Continuity Workspace",
+    "category_id": "workstation-archive-and-continuity-workspace",
+    "homeRoute": "/workspaces/archive-and-continuity-workspace",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 6,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Workstation",
+    "platform_id": "workstation",
+    "category_label": "Master Stack & Project Management Engine",
+    "category_id": "workstation-master-stack-and-project-management-engine",
+    "homeRoute": "/workspaces/master-stack-and-project-management-engine",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 7,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Workstation",
+    "platform_id": "workstation",
+    "category_label": "Dev Devops",
+    "category_id": "workstation-dev-devops",
+    "homeRoute": "/workspaces/dev-devops",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 8,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Workstation",
+    "platform_id": "workstation",
+    "category_label": "Writer Workstation",
+    "category_id": "workstation-writer-workstation",
+    "homeRoute": "/workspaces/writer-workstation",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 9,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Workstation",
+    "platform_id": "workstation",
+    "category_label": "Dev Workstation",
+    "category_id": "workstation-dev-workstation",
+    "homeRoute": "/workspaces/dev-workstation",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 10,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Workstation",
+    "platform_id": "workstation",
+    "category_label": "Workstation Hub",
+    "category_id": "workstation-workstation-hub",
+    "homeRoute": "/workspaces/workstation-hub",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 11,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Workstation",
+    "platform_id": "workstation",
+    "category_label": "Record Auditor & Logbook Workspace",
+    "category_id": "workstation-record-auditor-and-logbook-workspace",
+    "homeRoute": "/workspaces/record-auditor-and-logbook-workspace",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 12,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Driver Registry",
+    "category_id": "systems-driver-registry",
+    "homeRoute": "/drivers/driver-registry",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Software & SaaS Drivers",
+    "category_id": "systems-software-and-saas-drivers",
+    "homeRoute": "/drivers/software-and-saas-drivers",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Marketplace",
+    "category_id": "systems-marketplace",
+    "homeRoute": "/drivers/marketplace",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Driver Registry & Management",
+    "category_id": "systems-driver-registry-and-management",
+    "homeRoute": "/drivers/driver-registry-and-management",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 4,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Driver Packs & Marketplace",
+    "category_id": "systems-driver-packs-and-marketplace",
+    "homeRoute": "/drivers/driver-packs-and-marketplace",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 5,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Risk & Governance",
+    "category_id": "systems-risk-and-governance",
+    "homeRoute": "/drivers/risk-and-governance",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 6,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Connectors & Integrations",
+    "category_id": "systems-connectors-and-integrations",
+    "homeRoute": "/drivers/connectors-and-integrations",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 7,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Deployment Models",
+    "category_id": "systems-deployment-models",
+    "homeRoute": "/operations/deployment-models",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 8,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Observability",
+    "category_id": "systems-observability",
+    "homeRoute": "/drivers/observability",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 9,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Drivers Hub",
+    "category_id": "systems-drivers-hub",
+    "homeRoute": "/drivers/drivers-hub",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 10,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Performance & Scalability",
+    "category_id": "systems-performance-and-scalability",
+    "homeRoute": "/operations/performance-and-scalability",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 11,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Upgrades & Migration",
+    "category_id": "systems-upgrades-and-migration",
+    "homeRoute": "/operations/upgrades-and-migration",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 12,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Failure Modes & Resilience",
+    "category_id": "systems-failure-modes-and-resilience",
+    "homeRoute": "/operations/failure-modes-and-resilience",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 13,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Systems",
+    "platform_id": "systems",
+    "category_label": "Infrastructure & Topology",
+    "category_id": "systems-infrastructure-and-topology",
+    "homeRoute": "/operations/infrastructure-and-topology",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 14,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Simulations",
+    "platform_id": "simulations",
+    "category_label": "Digital Twin & Enterprise Twin Workspace",
+    "category_id": "simulations-digital-twin-and-enterprise-twin-workspace",
+    "homeRoute": "/workspaces/digital-twin-and-enterprise-twin-workspace",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Simulations",
+    "platform_id": "simulations",
+    "category_label": "Simulation Hub",
+    "category_id": "simulations-simulation-hub",
+    "homeRoute": "/simulations/simulation-hub",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Simulations",
+    "platform_id": "simulations",
+    "category_label": "Simulation Home",
+    "category_id": "simulations-simulation-home",
+    "homeRoute": "/simulations/simulation-home",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Simulations",
+    "platform_id": "simulations",
+    "category_label": "Operations",
+    "category_id": "simulations-operations",
+    "homeRoute": "/simulations/operations",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 4,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Simulations",
+    "platform_id": "simulations",
+    "category_label": "Controls",
+    "category_id": "simulations-controls",
+    "homeRoute": "/simulations/controls",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 5,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Research",
+    "platform_id": "research",
+    "category_label": "Research & Simulation Workspace",
+    "category_id": "research-research-and-simulation-workspace",
+    "homeRoute": "/workspaces/research-and-simulation-workspace",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Research",
+    "platform_id": "research",
+    "category_label": "Research Simulation",
+    "category_id": "research-research-simulation",
+    "homeRoute": "/workspaces/research-simulation",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Research",
+    "platform_id": "research",
+    "category_label": "Projects & Experiments",
+    "category_id": "research-projects-and-experiments",
+    "homeRoute": "/roadmap/projects-and-experiments",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Research",
+    "platform_id": "research",
+    "category_label": "Roadmap & Future",
+    "category_id": "research-roadmap-and-future",
+    "homeRoute": "/roadmap/roadmap-and-future",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 4,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Research",
+    "platform_id": "research",
+    "category_label": "Future Capabilities",
+    "category_id": "research-future-capabilities",
+    "homeRoute": "/roadmap/future-capabilities",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 5,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Research",
+    "platform_id": "research",
+    "category_label": "Risk Register",
+    "category_id": "research-risk-register",
+    "homeRoute": "/roadmap/risk-register",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 6,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Research",
+    "platform_id": "research",
+    "category_label": "Open Questions",
+    "category_id": "research-open-questions",
+    "homeRoute": "/roadmap/open-questions",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 7,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Research",
+    "platform_id": "research",
+    "category_label": "Roadmap & Planning",
+    "category_id": "research-roadmap-and-planning",
+    "homeRoute": "/roadmap/roadmap-and-planning",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 8,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Research",
+    "platform_id": "research",
+    "category_label": "Spec Maintenance",
+    "category_id": "research-spec-maintenance",
+    "homeRoute": "/roadmap/spec-maintenance",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 9,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Research",
+    "platform_id": "research",
+    "category_label": "Risks & Decisions",
+    "category_id": "research-risks-and-decisions",
+    "homeRoute": "/roadmap/risks-and-decisions",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 10,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Topics",
+    "category_id": "encyclopedia-topics",
+    "homeRoute": "/vision/topics",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Explanations",
+    "category_id": "encyclopedia-explanations",
+    "homeRoute": "/vision/explanations",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "History",
+    "category_id": "encyclopedia-history",
+    "homeRoute": "/vision/history",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Glossary",
+    "category_id": "encyclopedia-glossary",
+    "homeRoute": "/vision/glossary",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 4,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Core OS Engines",
+    "category_id": "encyclopedia-core-os-engines",
+    "homeRoute": "/vision/core-os-engines",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 5,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Advanced Capabilities",
+    "category_id": "encyclopedia-advanced-capabilities",
+    "homeRoute": "/vision/advanced-capabilities",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 6,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Super Capabilities",
+    "category_id": "encyclopedia-super-capabilities",
+    "homeRoute": "/vision/super-capabilities",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 7,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Hyper Capabilities",
+    "category_id": "encyclopedia-hyper-capabilities",
+    "homeRoute": "/vision/hyper-capabilities",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 8,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Ultra Capabilities",
+    "category_id": "encyclopedia-ultra-capabilities",
+    "homeRoute": "/vision/ultra-capabilities",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 9,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Supreme Capabilities",
+    "category_id": "encyclopedia-supreme-capabilities",
+    "homeRoute": "/vision/supreme-capabilities",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 10,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Ascend Capabilities",
+    "category_id": "encyclopedia-ascend-capabilities",
+    "homeRoute": "/vision/ascend-capabilities",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 11,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Advanced Horizons",
+    "category_id": "encyclopedia-advanced-horizons",
+    "homeRoute": "/vision/advanced-horizons",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 12,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Meta Envelope",
+    "category_id": "encyclopedia-meta-envelope",
+    "homeRoute": "/vision/meta-envelope",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 13,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Hyper Network",
+    "category_id": "encyclopedia-hyper-network",
+    "homeRoute": "/vision/hyper-network",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 14,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Vision Deck Hub",
+    "category_id": "encyclopedia-vision-deck-hub",
+    "homeRoute": "/vision/vision-deck-hub",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 15,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Encyclopedia",
+    "platform_id": "encyclopedia",
+    "category_label": "Ultra Scale",
+    "category_id": "encyclopedia-ultra-scale",
+    "homeRoute": "/vision/ultra-scale",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 16,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Libraries",
+    "platform_id": "libraries",
+    "category_label": "Getting Started",
+    "category_id": "libraries-getting-started",
+    "homeRoute": "/docs/getting-started",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Libraries",
+    "platform_id": "libraries",
+    "category_label": "API Reference",
+    "category_id": "libraries-api-reference",
+    "homeRoute": "/docs/api-reference",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Libraries",
+    "platform_id": "libraries",
+    "category_label": "Reference Artifacts",
+    "category_id": "libraries-reference-artifacts",
+    "homeRoute": "/docs/reference-artifacts",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Libraries",
+    "platform_id": "libraries",
+    "category_label": "Documentation Hub",
+    "category_id": "libraries-documentation-hub",
+    "homeRoute": "/docs/documentation-hub",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 4,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Libraries",
+    "platform_id": "libraries",
+    "category_label": "Migration & Integration",
+    "category_id": "libraries-migration-and-integration",
+    "homeRoute": "/docs/migration-and-integration",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 5,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Libraries",
+    "platform_id": "libraries",
+    "category_label": "Capsule Library",
+    "category_id": "libraries-capsule-library",
+    "homeRoute": "/docs/capsule-library",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 6,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Libraries",
+    "platform_id": "libraries",
+    "category_label": "Operations",
+    "category_id": "libraries-operations",
+    "homeRoute": "/docs/operations",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 7,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Libraries",
+    "platform_id": "libraries",
+    "category_label": "Controls",
+    "category_id": "libraries-controls",
+    "homeRoute": "/docs/controls",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 8,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Knowledge",
+    "platform_id": "knowledge",
+    "category_label": "Observability Stores",
+    "category_id": "knowledge-observability-stores",
+    "homeRoute": "/data/observability-stores",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 1,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Knowledge",
+    "platform_id": "knowledge",
+    "category_label": "Archive & Backup",
+    "category_id": "knowledge-archive-and-backup",
+    "homeRoute": "/data/archive-and-backup",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 2,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Knowledge",
+    "platform_id": "knowledge",
+    "category_label": "Multi-Region & Replication",
+    "category_id": "knowledge-multi-region-and-replication",
+    "homeRoute": "/data/multi-region-and-replication",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 3,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Knowledge",
+    "platform_id": "knowledge",
+    "category_label": "Core Data Stores",
+    "category_id": "knowledge-core-data-stores",
+    "homeRoute": "/data/core-data-stores",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 4,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Knowledge",
+    "platform_id": "knowledge",
+    "category_label": "Data Protection",
+    "category_id": "knowledge-data-protection",
+    "homeRoute": "/data/data-protection",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 5,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Knowledge",
+    "platform_id": "knowledge",
+    "category_label": "Replication & DR",
+    "category_id": "knowledge-replication-and-dr",
+    "homeRoute": "/data/replication-and-dr",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 6,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Knowledge",
+    "platform_id": "knowledge",
+    "category_label": "Indices & Search",
+    "category_id": "knowledge-indices-and-search",
+    "homeRoute": "/data/indices-and-search",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 7,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Knowledge",
+    "platform_id": "knowledge",
+    "category_label": "Archive & Retention",
+    "category_id": "knowledge-archive-and-retention",
+    "homeRoute": "/data/archive-and-retention",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 8,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Knowledge",
+    "platform_id": "knowledge",
+    "category_label": "Perspective",
+    "category_id": "knowledge-perspective",
+    "homeRoute": "/data/perspective",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 9,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Knowledge",
+    "platform_id": "knowledge",
+    "category_label": "Insight",
+    "category_id": "knowledge-insight",
+    "homeRoute": "/data/insight",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 10,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Knowledge",
+    "platform_id": "knowledge",
+    "category_label": "Wisdom",
+    "category_id": "knowledge-wisdom",
+    "homeRoute": "/data/wisdom",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 11,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  },
+  {
+    "platform_label": "Knowledge",
+    "platform_id": "knowledge",
+    "category_label": "Experience",
+    "category_id": "knowledge-experience",
+    "homeRoute": "/data/experience",
+    "component": "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+    "order": 12,
+    "where_defined": "frontend/src/data/iaManifest.from_json.json"
+  }
+]

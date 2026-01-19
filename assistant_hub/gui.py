@@ -527,7 +527,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             "Mission & Vision Brief": DOC_ROOT / "VISION.md",
             "Driver & System Architecture": DOC_ROOT / "ARCHITECTURE_IMPLEMENTATION.md",
             "Cognitive Daemon System": DOC_ROOT / "COGNITIVE_DAEMON_SYSTEM.md",
-            "AI OS Dashboard (HTML preview)": WEB_DOCS_ROOT / "dashboard.html",
+            "AI OS Console (HTML preview)": WEB_DOCS_ROOT / "dashboard.html",
         }
         resolved: Dict[str, Any] = {}
         for label, target in links.items():

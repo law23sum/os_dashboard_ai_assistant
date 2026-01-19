@@ -2,16 +2,17 @@
 from __future__ import annotations
 
 import json
+import asyncio
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, AsyncGenerator
 
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 
 from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -164,7 +165,7 @@ TERMINAL_TEMPLATE_COMMANDS = [
 ]
 
 
-app = FastAPI(title="AI OS Dashboard Skeleton")
+app = FastAPI(title="AI OS Console Skeleton")
 if FRONTEND_DIST.exists():
     app.mount(
         "/app",
@@ -215,9 +216,9 @@ def home(request: Request):
     if _DOCS_DIR.exists():
         return RedirectResponse(url="/site/index.html")
     return HTMLResponse(
-        "<!doctype html><html><head><meta charset='utf-8'><title>OS Dashboard</title></head>"
+        "<!doctype html><html><head><meta charset='utf-8'><title>AI OS Console</title></head>"
         "<body style='font-family:system-ui;padding:24px'>"
-        "<h1>OS Dashboard AI Assistant</h1>"
+        "<h1>AI OS</h1>"
         "<p>No static site found at <code>docs/</code>.</p>"
         "<ul>"
         "<li><a href='/docs'>OpenAPI docs</a></li>"
@@ -241,11 +242,106 @@ audit = AuditLog()
 change_engine = ChangeEngine()
 observability = ObservabilityService()
 
+ledger_events: List[Dict[str, Any]] = []
+projection_store: Dict[str, Dict[str, Any]] = {}
+ledger_subscribers: List[asyncio.Queue] = []
+
+
+async def _broadcast_ledger_event(payload: Dict[str, Any]) -> None:
+    for queue in list(ledger_subscribers):
+        await queue.put(payload)
+
 
 @app.get("/health")
 def health_check():
     """Health check endpoint for load balancers and monitoring."""
-    return {"status": "healthy", "service": "os-dashboard-ai-assistant"}
+    return {"status": "healthy", "service": "ai-os"}
+
+
+@app.post("/api/ledger/events")
+async def record_ledger_event(request: Request):
+    payload = await request.json()
+    request_id = request.headers.get("x-request-id")
+    tenant_id = request.headers.get("x-tenant-id", "default-tenant")
+    workspace_id = request.headers.get("x-workspace-id", "default-workspace")
+    idempotency_key = request.headers.get("x-idempotency-key")
+
+    allowed, reason = governance_plane.check_action(
+        {
+            "type": payload.get("type"),
+            "route": payload.get("payload", {}).get("route"),
+            "tenant_id": tenant_id,
+            "workspace_id": workspace_id,
+        }
+    )
+    if not allowed:
+        raise HTTPException(status_code=403, detail=reason)
+
+    record = audit.start(
+        actor=tenant_id,
+        intent=payload.get("type", "feature_action"),
+        triggered_by="api",
+        metadata={"request_id": request_id, "workspace_id": workspace_id},
+    )
+    audit.finish(record.id)
+
+    event = {
+        "id": record.id,
+        "type": payload.get("type"),
+        "payload": payload.get("payload", {}),
+        "correlation_id": payload.get("correlationId"),
+        "timestamp": payload.get("timestamp", datetime.utcnow().isoformat()),
+        "request_id": request_id,
+        "tenant_id": tenant_id,
+        "workspace_id": workspace_id,
+        "idempotency_key": idempotency_key,
+        "decision": reason,
+    }
+    ledger_events.append(event)
+    await _broadcast_ledger_event({"type": "event_recorded", "event": event})
+    return {"event": event, "decision": reason}
+
+
+@app.post("/api/ledger/projections")
+async def record_projection_update(request: Request):
+    payload = await request.json()
+    projection_key = payload.get("projection_key")
+    if not projection_key:
+        raise HTTPException(status_code=400, detail="projection_key is required")
+    data = payload.get("data")
+    record = {
+        "projection_key": projection_key,
+        "data": data,
+        "updated_at": datetime.utcnow().isoformat(),
+    }
+    projection_store[projection_key] = record
+    await _broadcast_ledger_event(
+        {"type": "projection_updated", "projection_key": projection_key, "data": data}
+    )
+    return {"projection": record}
+
+
+@app.get("/api/ledger/projections/{projection_key:path}")
+def get_projection(projection_key: str):
+    record = projection_store.get(projection_key)
+    if not record:
+        raise HTTPException(status_code=404, detail="Projection not found")
+    return {"projection": record}
+
+
+@app.get("/api/ledger/stream")
+async def stream_ledger_events() -> StreamingResponse:
+    async def event_stream() -> AsyncGenerator[str, None]:
+        queue: asyncio.Queue = asyncio.Queue()
+        ledger_subscribers.append(queue)
+        try:
+            while True:
+                payload = await queue.get()
+                yield f"data: {json.dumps(payload)}\n\n"
+        finally:
+            ledger_subscribers.remove(queue)
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
 class SimpleDataBackend:

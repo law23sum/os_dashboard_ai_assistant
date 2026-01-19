@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Unified Launcher for OS Dashboard AI Assistant
+Unified Launcher for AI OS
 ==============================================
 
 This script provides a single entry point for:
@@ -335,7 +335,7 @@ class UnifiedLauncher:
 def main() -> int:
     """Parse arguments and run the launcher."""
     parser = argparse.ArgumentParser(
-        description="Unified launcher for OS Dashboard AI Assistant",
+        description="Unified launcher for AI OS",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )

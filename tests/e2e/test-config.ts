@@ -1,7 +1,7 @@
 /**
  * End-to-End Test Configuration
  * 
- * Environments: local/dev, alpha/beta, prod/release
+ * Environments: local/dev/preview/staging, prod/release
  * Test Types: regression, sanity, functional
  */
 
@@ -28,28 +28,40 @@ export const environments: Record<string, TestEnvironment> = {
     database: 'assistant_hub_gui/assistant_hub/assistant_hub.db',
     description: 'Development environment (interchangeable with local)',
   },
+  preview: {
+    name: 'preview',
+    apiBase: process.env.PREVIEW_API_BASE || 'https://preview.osdashboard.ai/api',
+    frontendUrl: process.env.PREVIEW_FRONTEND_URL || 'https://preview.osdashboard.ai',
+    description: 'Preview environment (per-PR or ephemeral)',
+  },
+  staging: {
+    name: 'staging',
+    apiBase: process.env.STAGING_API_BASE || 'https://staging.osdashboard.ai/api',
+    frontendUrl: process.env.STAGING_FRONTEND_URL || 'https://staging.osdashboard.ai',
+    description: 'Staging environment (release candidate)',
+  },
   alpha: {
     name: 'alpha',
-    apiBase: process.env.ALPHA_API_BASE || 'https://alpha-api.osdashboard.ai/api',
-    frontendUrl: process.env.ALPHA_FRONTEND_URL || 'https://alpha.osdashboard.ai',
-    description: 'Alpha environment (integrated testing)',
+    apiBase: process.env.ALPHA_API_BASE || 'https://staging.osdashboard.ai/api',
+    frontendUrl: process.env.ALPHA_FRONTEND_URL || 'https://staging.osdashboard.ai',
+    description: 'Legacy alpha cohort (defaults to staging host)',
   },
   beta: {
     name: 'beta',
-    apiBase: process.env.BETA_API_BASE || 'https://beta-api.osdashboard.ai/api',
-    frontendUrl: process.env.BETA_FRONTEND_URL || 'https://beta.osdashboard.ai',
-    description: 'Beta environment (integrated testing)',
+    apiBase: process.env.BETA_API_BASE || 'https://staging.osdashboard.ai/api',
+    frontendUrl: process.env.BETA_FRONTEND_URL || 'https://staging.osdashboard.ai',
+    description: 'Legacy beta cohort (defaults to staging host)',
   },
   prod: {
     name: 'prod',
-    apiBase: process.env.PROD_API_BASE || 'https://api.osdashboard.ai/api',
-    frontendUrl: process.env.PROD_FRONTEND_URL || 'https://osdashboard.ai',
+    apiBase: process.env.PROD_API_BASE || 'https://app.osdashboard.ai/api',
+    frontendUrl: process.env.PROD_FRONTEND_URL || 'https://app.osdashboard.ai',
     description: 'Production environment (real user data testing)',
   },
   release: {
     name: 'release',
-    apiBase: process.env.RELEASE_API_BASE || 'https://api.osdashboard.ai/api',
-    frontendUrl: process.env.RELEASE_FRONTEND_URL || 'https://osdashboard.ai',
+    apiBase: process.env.RELEASE_API_BASE || 'https://app.osdashboard.ai/api',
+    frontendUrl: process.env.RELEASE_FRONTEND_URL || 'https://app.osdashboard.ai',
     description: 'Release environment (real user data testing)',
   },
 }

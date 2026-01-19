@@ -1,36 +1,107 @@
 """
-Pytest configuration and fixtures for OS Dashboard tests.
+Pytest configuration and fixtures for AI OS tests.
 Provides shared fixtures for database, API client, and test data.
 """
 
 import asyncio
+from functools import wraps
+import importlib.util
+import inspect
 import os
 import sqlite3
 import tempfile
+import sys
 from pathlib import Path
 from typing import AsyncGenerator, Generator
+
+# Add parent directory to path
+parent_dir = Path(__file__).parent.parent
+if str(parent_dir) not in sys.path:
+    sys.path.insert(0, str(parent_dir))
+
+
+def _load_repo_sitecustomize() -> None:
+    sitecustomize_path = parent_dir / "sitecustomize.py"
+    if not sitecustomize_path.exists():
+        return
+    spec = importlib.util.spec_from_file_location("osdash_sitecustomize", sitecustomize_path)
+    if not spec or not spec.loader:
+        return
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+
+_load_repo_sitecustomize()
+
+def _ensure_httpx_app_param() -> None:
+    try:
+        import httpx
+    except Exception:
+        return
+
+    def _wrap_client_init(client_cls: type, sentinel: str) -> None:
+        if getattr(client_cls.__init__, sentinel, False):
+            return
+        try:
+            signature = inspect.signature(client_cls.__init__)
+        except (TypeError, ValueError):
+            return
+        if "app" in signature.parameters:
+            return
+
+        original_init = client_cls.__init__
+
+        @wraps(original_init)
+        def _init(self, *args, **kwargs):
+            app = kwargs.pop("app", None)
+            transport = kwargs.pop("transport", None)
+            if app is not None and transport is None:
+                transport = httpx.ASGITransport(app=app)
+            return original_init(self, *args, transport=transport, **kwargs)
+
+        setattr(_init, sentinel, True)
+        client_cls.__init__ = _init
+
+    _wrap_client_init(httpx.Client, "_osdash_httpx_app_patch")
+    _wrap_client_init(httpx.AsyncClient, "_osdash_httpx_app_patch")
+
+
+_ensure_httpx_app_param()
 
 import pytest
 from httpx import AsyncClient
 from fastapi.testclient import TestClient
 
-# Add parent directory to path
-import sys
-parent_dir = Path(__file__).parent.parent
-sys.path.insert(0, str(parent_dir))
+os.environ.setdefault("OSDASH_ALLOW_ANON", "1")
+
+TEST_RUNTIME_ROOT = Path(tempfile.mkdtemp(prefix="osdash-tests-"))
+TEST_LOG_DIR = TEST_RUNTIME_ROOT / "logs"
+TEST_DB_PATH = TEST_RUNTIME_ROOT / "assistant_hub.db"
+_RUNTIME_ENV = {
+    "ASSISTANT_HUB_HOME": TEST_RUNTIME_ROOT,
+    "ASSISTANT_HUB_DATA_DIR": TEST_RUNTIME_ROOT,
+    "ASSISTANT_HUB_DB": TEST_DB_PATH,
+    "ASSISTANT_HUB_ATTACHMENTS_DIR": TEST_RUNTIME_ROOT / "attachments",
+    "ASSISTANT_HUB_INTEGRATIONS_DIR": TEST_RUNTIME_ROOT / "integrations",
+    "ASSISTANT_HUB_FILE_CACHE_DIR": TEST_RUNTIME_ROOT / "file_cache",
+    "OSDASH_HOME": TEST_RUNTIME_ROOT,
+    "OSDASH_DATA_DIR": TEST_RUNTIME_ROOT,
+    "OSDASH_LOG_DIR": TEST_LOG_DIR,
+    "TEST_DB_FILE": TEST_DB_PATH,
+}
+for key, path in _RUNTIME_ENV.items():
+    os.environ.setdefault(key, str(path))
+for required in (
+    TEST_RUNTIME_ROOT,
+    TEST_LOG_DIR,
+    _RUNTIME_ENV["ASSISTANT_HUB_ATTACHMENTS_DIR"],
+    _RUNTIME_ENV["ASSISTANT_HUB_INTEGRATIONS_DIR"],
+    _RUNTIME_ENV["ASSISTANT_HUB_FILE_CACHE_DIR"],
+):
+    Path(required).mkdir(parents=True, exist_ok=True)
 
 from backend_api.main import app
 from backend_api.db import db_session
-
-
-def pytest_configure(config):
-    """Relax coverage thresholds for focused PMS-only runs."""
-    cov_fail_under = getattr(config.option, "cov_fail_under", None)
-    if not cov_fail_under:
-        return
-    args = [str(arg) for arg in getattr(config, "args", [])]
-    if args and all("test_pms_core.py" in arg for arg in args):
-        config.option.cov_fail_under = 0
 
 
 @pytest.fixture(scope="session")
@@ -115,7 +186,9 @@ def sync_client(test_db: Path) -> Generator[TestClient, None, None]:
     """Create synchronous test client."""
     # Override database path for testing
     original_db_file = os.environ.get("TEST_DB_FILE")
+    original_assistant_db = os.environ.get("ASSISTANT_HUB_DB")
     os.environ["TEST_DB_FILE"] = str(test_db)
+    os.environ["ASSISTANT_HUB_DB"] = str(test_db)
     
     with TestClient(app) as client:
         yield client
@@ -125,6 +198,10 @@ def sync_client(test_db: Path) -> Generator[TestClient, None, None]:
         os.environ["TEST_DB_FILE"] = original_db_file
     else:
         os.environ.pop("TEST_DB_FILE", None)
+    if original_assistant_db:
+        os.environ["ASSISTANT_HUB_DB"] = original_assistant_db
+    else:
+        os.environ.pop("ASSISTANT_HUB_DB", None)
 
 
 @pytest.fixture
@@ -132,7 +209,9 @@ async def async_client(test_db: Path) -> AsyncGenerator[AsyncClient, None]:
     """Create async test client."""
     # Override database path for testing
     original_db_file = os.environ.get("TEST_DB_FILE")
+    original_assistant_db = os.environ.get("ASSISTANT_HUB_DB")
     os.environ["TEST_DB_FILE"] = str(test_db)
+    os.environ["ASSISTANT_HUB_DB"] = str(test_db)
     
     async with AsyncClient(app=app, base_url="http://test") as client:
         yield client
@@ -142,6 +221,10 @@ async def async_client(test_db: Path) -> AsyncGenerator[AsyncClient, None]:
         os.environ["TEST_DB_FILE"] = original_db_file
     else:
         os.environ.pop("TEST_DB_FILE", None)
+    if original_assistant_db:
+        os.environ["ASSISTANT_HUB_DB"] = original_assistant_db
+    else:
+        os.environ.pop("ASSISTANT_HUB_DB", None)
 
 
 @pytest.fixture
@@ -249,7 +332,13 @@ def populated_db(test_db: Path, sample_projects, sample_tasks):
 
 # Markers for test organization
 def pytest_configure(config):
-    """Configure custom pytest markers."""
+    """Configure custom pytest markers and coverage relaxations."""
+    cov_fail_under = getattr(config.option, "cov_fail_under", None)
+    if cov_fail_under:
+        args = [str(arg) for arg in getattr(config, "args", [])]
+        if args and all("test_pms_core.py" in arg for arg in args):
+            config.option.cov_fail_under = 0
+
     config.addinivalue_line(
         "markers", "e2e: marks tests as end-to-end integration tests"
     )

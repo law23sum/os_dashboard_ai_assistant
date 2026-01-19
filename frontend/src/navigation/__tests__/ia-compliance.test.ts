@@ -16,6 +16,21 @@ import type { Platform, Category, NavItem } from '../../data/iaManifest'
 
 describe('IA Compliance Tests', () => {
   const allPlatforms = iaManifest
+  const requiredOrder = [
+    'Core',
+    'Common',
+    'Audit Official Records',
+    'Automation',
+    'Settings',
+    'Admin',
+    'Workstation',
+    'Systems',
+    'Simulations',
+    'Research',
+    'Encyclopedia',
+    'Libraries',
+    'Knowledge',
+  ]
 
   describe('Structure Validation', () => {
     it('should have platforms defined', () => {
@@ -48,6 +63,11 @@ describe('IA Compliance Tests', () => {
           expect(Array.isArray(category.features)).toBe(true)
         }
       }
+    })
+
+    it('platform order should match required IA order', () => {
+      const labels = allPlatforms.map((platform) => platform.label)
+      expect(labels).toEqual(requiredOrder)
     })
   })
 
@@ -87,9 +107,7 @@ describe('IA Compliance Tests', () => {
       // Check category homes are not features
       for (const platform of allPlatforms) {
         for (const category of platform.categories) {
-          // Category home can be the same as first feature (that's OK)
-          // But it should be explicitly marked as category home
-          expect(category.homeRoute).toBeDefined()
+          expect(featureRoutes.has(category.homeRoute)).toBe(false)
         }
       }
     })
@@ -119,16 +137,11 @@ describe('IA Compliance Tests', () => {
         }
       }
       
-      // Features should not be category homes (except first feature can be)
+      // Features should not be category homes
       for (const platform of allPlatforms) {
         for (const category of platform.categories) {
-          for (let i = 1; i < category.features.length; i++) {
-            const feature = category.features[i]
-            // Feature routes should not be category home routes
-            // (First feature can be, but others cannot)
-            if (i > 0) {
-              expect(categoryHomeRoutes.has(feature.route)).toBe(false)
-            }
+          for (const feature of category.features) {
+            expect(categoryHomeRoutes.has(feature.route)).toBe(false)
           }
         }
       }
@@ -166,7 +179,7 @@ describe('IA Compliance Tests', () => {
   })
 
   describe('Actor Scope Validation', () => {
-    const allowed = new Set(['personal', 'enterprise', 'both'])
+    const allowed = new Set(['personal', 'business', 'enterprise', 'both'])
 
     it('all platforms should have valid actorScope', () => {
       for (const platform of allPlatforms) {

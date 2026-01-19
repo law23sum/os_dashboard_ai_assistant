@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Build script for OS Dashboard AI Assistant
+Build script for AI OS
 Builds for web, desktop, or all platforms
 """
 
@@ -14,7 +14,7 @@ FRONTEND_DIR = REPO_ROOT / "frontend"
 
 def print_banner():
     print("=" * 60)
-    print("  OS Dashboard AI Assistant - Build Script")
+    print("  AI OS - Build Script")
     print("=" * 60)
     print()
 

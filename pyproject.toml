@@ -11,7 +11,7 @@ packages = ["assistant_hub", "ai_os"]
 [project]
 name = "osdash"
 version = "0.1.0"
-description = "OS Dashboard AI Assistant with GUI, integrations, and analytics"
+description = "AI OS with GUI, integrations, and analytics"
 requires-python = ">=3.9"
 dependencies = [
     "psutil",

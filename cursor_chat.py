@@ -53,6 +53,10 @@ def main():
         help="Clear history when switching agents",
     )
     parser.add_argument(
+        "--style",
+        help="Interaction style (discussion, debate, informative, persuasive)",
+    )
+    parser.add_argument(
         "--enable-shell",
         action="store_true",
         default=True,
@@ -76,7 +80,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
 

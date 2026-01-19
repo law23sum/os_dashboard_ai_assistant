@@ -14,7 +14,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
-from backend_api.routers.auth import get_current_admin_user, get_current_user
+from backend_api.deps import get_current_user, require_admin
+from backend_api.security import AuthUser
 from assistant_hub_gui.assistant_hub.config import DATA_DIR, ensure_data_directories
 
 router = APIRouter()
@@ -67,8 +68,9 @@ class UnifiedLogHandler(logging.Handler):
                 }
             )
             
+            payload = log_entry.model_dump() if hasattr(log_entry, "model_dump") else log_entry.dict()
             with _log_lock:
-                _log_buffer.append(log_entry.dict())
+                _log_buffer.append(payload)
         except Exception:
             pass  # Don't let logging errors break the application
 
@@ -193,7 +195,7 @@ async def get_unified_logs(
     search: Optional[str] = Query(None),
     start_time: Optional[str] = Query(None),
     end_time: Optional[str] = Query(None),
-    current_user: dict = Depends(get_current_user)
+    current_user: AuthUser = Depends(get_current_user)
 ):
     """Get unified logs from all threads, ordered by timestamp."""
     # Get from buffer
@@ -233,7 +235,7 @@ async def get_unified_logs(
 
 @router.get("/logs/stats")
 async def get_log_stats(
-    current_user: dict = Depends(get_current_admin_user)
+    current_user: AuthUser = Depends(require_admin)
 ):
     """Get logging statistics."""
     with _log_lock:
@@ -272,7 +274,7 @@ async def get_log_stats(
 
 @router.get("/logs/stream")
 async def stream_logs(
-    current_user: dict = Depends(get_current_admin_user)
+    current_user: AuthUser = Depends(require_admin)
 ):
     """Stream logs in real-time (SSE)."""
     from fastapi.responses import StreamingResponse

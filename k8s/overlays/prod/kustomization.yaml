@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: osdash-production
+
+resources:
+  - ../../base
+  - namespace.yaml
+  - ingress.yaml
+
+patches:
+  - path: image-pull-policy.yaml
+
+images:
+  - name: osdash-backend
+    newName: ghcr.io/law23sum/os_dashboard_ai_assistant/backend
+    newTag: release
+  - name: osdash-frontend
+    newName: ghcr.io/law23sum/os_dashboard_ai_assistant/frontend
+    newTag: release
+
+configMapGenerator:
+  - name: osdash-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+
+generatorOptions:
+  disableNameSuffixHash: true

@@ -1,6 +1,6 @@
 # GPT-5.2 Features Implementation
 
-This document describes the GPT-5.2 features implemented in the OS Dashboard AI Assistant.
+This document describes the GPT-5.2 features implemented in the AI OS.
 
 ## Overview
 
@@ -245,7 +245,12 @@ response2, error2, tool_calls2 = generate_ai_reply(
 
 - [GPT-5.2 Documentation](https://platform.openai.com/docs/guides/gpt-5-2)
 - [Responses API Guide](https://platform.openai.com/docs/guides/responses-api)
-- [GPT-5.2 Prompting Guide](https://cookbook.openai.com/examples/gpt-5/gpt-5-2_prompting_guide)
+- [OpenAI GPT-5.2 Prompting Guide](https://cookbook.openai.com/examples/gpt-5/gpt-5-2_prompting_guide)
+
+
+
+
+
 
 
 

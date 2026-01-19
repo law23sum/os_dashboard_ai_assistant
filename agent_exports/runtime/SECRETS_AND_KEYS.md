@@ -1,0 +1,96 @@
+# Secrets & Keys
+
+Note: Redacted output. Only file paths + key names are listed. V9 spec file not found in repo.
+
+- .orchestrator_config.example.yaml: GITHUB_TOKEN, GITLAB_TOKEN, ORCHESTRATOR_API_KEY
+- README.md: OPENAI_API_KEY
+- TechnicalSpec.txt: SECRETS_ALLOWED
+- Technical_Spec_Sheet_v6.txt: SECRETS_ALLOWED
+- agents_ai.py: CHATGPT_API_KEY, OPENAI_API_KEY, _MAX_TOKENS
+- ai_os/app/ai_proxy.py: OPENAI_API_KEY
+- assistant_core/ai.py: AI_CHAT_OPENAI_API_KEY, OPENAI_API_KEY
+- assistant_core/developer_portal.py: YOUR_API_KEY
+- assistant_core/guidance_integration.py: OPENAI_API_KEY
+- assistant_core/llamaindex_integration.py: OPENAI_API_KEY
+- assistant_core/prompttools_integration.py: OPENAI_API_KEY
+- assistant_core/security/security_monitor.py: PASSWORD_CHANGE
+- assistant_hub/ai.py: AI_CHAT_OPENAI_API_KEY, OPENAI_API_KEY
+- assistant_hub/config.py: ADOBE_CLIENT_SECRET, ADOBE_PRIVATE_KEY_FILE, CALDAV_PASSWORD, GITHUB_TOKEN, GOOGLE_TOKEN_FILE, MICROSOFT_CLIENT_SECRET, OPENAI_API_KEY
+- assistant_hub/integrations/github.py: GITHUB_TOKEN
+- assistant_hub/integrations/gmail.py: GMAIL_TOKEN
+- assistant_hub/integrations/google_calendar.py: GOOGLE_CALENDAR_TOKEN
+- assistant_hub/integrations/msgraph/auth.py: AZURE_CLIENT_SECRET
+- assistant_hub/integrations/sample_data_preview.py: ADOBE_ACCESS_TOKEN, GMAIL_TOKEN, ONENOTE_ACCESS_TOKEN
+- assistant_hub_gui/assistant_hub/ai.py: AI_CHAT_OPENAI_API_KEY, ASSISTANT_HUB_MAX_INPUT_TOKENS, MAX_INPUT_TOKENS, OPENAI_API_KEY
+- assistant_hub_gui/assistant_hub/ai_layer/openai_client.py: OPENAI_API_KEY
+- assistant_hub_gui/assistant_hub/db.py: OPENAI_API_KEY_META, OSDASH_ADMIN_PASSWORD, OSDASH_DEMO_PASSWORD
+- assistant_hub_gui/assistant_hub/gui.py: AZURE_CLIENT_SECRET, GITHUB_TOKEN
+- assistant_hub_gui/assistant_hub/integrations/github.py: GITHUB_TOKEN
+- assistant_hub_gui/assistant_hub/integrations/gmail.py: GMAIL_TOKEN
+- assistant_hub_gui/assistant_hub/integrations/google_calendar.py: GOOGLE_CALENDAR_TOKEN
+- assistant_hub_gui/assistant_hub/integrations/msgraph/auth.py: AZURE_CLIENT_SECRET
+- assistant_hub_gui/assistant_hub/integrations/sample_data_preview.py: ADOBE_ACCESS_TOKEN, GMAIL_TOKEN, ONENOTE_ACCESS_TOKEN
+- backend_api/auth.py: ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS, SECRET_KEY
+- backend_api/routers/codex_review.py: OPENAI_API_KEY
+- backend_api/routers/tooling_integrations.py: OPENAI_API_KEY
+- backend_api/routers/vector_stores.py: OPENAI_API_KEY
+- backend_api/security.py: OSDASH_JWT_SECRET
+- client_secret_788356908604-ro9n0fq4p70q569237314n12u84jnren.apps.googleusercontent.com.json: client_secret, token_uri
+- config/config.py: ADOBE_CLIENT_SECRET, ADOBE_PRIVATE_KEY_FILE, ANTHROPIC_API_KEY, CALDAV_PASSWORD, COHERE_API_KEY, DEEPSEEK_API_KEY, GITHUB_TOKEN, GOOGLE_API_KEY, GOOGLE_TOKEN_FILE, GROQ_API_KEY, MICROSOFT_CLIENT_SECRET, MISTRAL_API_KEY, OPENAI_API_KEY, PERPLEXITY_API_KEY, TOGETHER_API_KEY, XAI_API_KEY
+- config/memory_manager_config.json: max_tokens
+- coverage.json: APIKeyVault, APIKeyVault.__init__, APIKeyVault._load_master_key, APIKeyVault.fetch_key, APIKeyVault.rotate_key, APIKeyVault.rotation_interval, APIKeyVault.store_key, APIKeyVault.supports_rotation, AuthManager._create_access_token, AuthManager._create_refresh_token, AuthManager._hash_password, AuthManager._validate_password, AuthManager._verify_password, AuthManager.revoke_token, AuthManager.validate_token, AuthToken, AuthToken.to_dict, EncryptionService.decrypt_with_private_key, GitHubOAuthProvider.refresh_token, GoogleOAuthProvider.refresh_token, MicrosoftOAuthProvider.refresh_token, OAuthProvider.refresh_token, OneDriveProjectClient.ensure_token, SearchIndex._tokenize, SecureTokenStore, SecureTokenStore.__init__, SecureTokenStore._load_or_create_key, SecureTokenStore.load, SecureTokenStore.save, Token, TokenBucketLimiter, TokenBucketLimiter.__init__, TokenBucketLimiter._refill, TokenBucketLimiter.acquire, TokenData, TokenRefreshScheduler, TokenRefreshScheduler.__init__, TokenRefreshScheduler._refresh_after_delay, TokenRefreshScheduler.schedule, TokenResponse, UnifiedAuthManager._persist_token, _bearer_token, _cache_api_key, _get_api_key, _jwt_secret, assistant_core/api_keys.py, create_access_token, create_refresh_token, decode_token, get_password_hash, hash_password, verify_password
+- cursor_ai.py: ANTHROPIC_API_KEY, API_KEYS, API_KEYS_GUIDE, API_KEY_LINKS, COHERE_API_KEY, CURSOR_API_KEY, DEEPSEEK_API_KEY, GOOGLE_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY, OPENAI_API_KEY, PERPLEXITY_API_KEY, TOGETHER_API_KEY, XAI_API_KEY
+- docker-compose.alpha.yml: POSTGRES_PASSWORD
+- docker-compose.beta.yml: POSTGRES_PASSWORD
+- docker-compose.dev.yml: POSTGRES_PASSWORD
+- docker-compose.preprod.yml: POSTGRES_PASSWORD
+- docker-compose.prod.yml: POSTGRES_PASSWORD
+- docker-compose.yml: GF_SECURITY_ADMIN_PASSWORD, POSTGRES_PASSWORD
+- docs/BACKEND_FRONTEND_INTEGRATION.md: OPENAI_API_KEY
+- docs/ENVIRONMENTS.md: OPENAI_API_KEY, PREVIEW_TLS_SECRET
+- docs/FILE_SEARCH.md: OPENAI_API_KEY
+- docs/FRONTEND_BACKEND_CONNECTION.md: OPENAI_API_KEY
+- docs/FRONTEND_BACKEND_INTEGRATION.md: YOUR_TOKEN
+- docs/MEMORY_RESOURCE_MANAGER.md: OPENAI_API_KEY
+- docs/RAG_PROMPT_TOOLING.md: OPENAI_API_KEY
+- docs/RAG_PROMPT_TOOLING_COMPLETE.md: OPENAI_API_KEY
+- docs/RAG_PROMPT_TOOLING_USAGE_GUIDE.md: OPENAI_API_KEY
+- docs/RESPONSES.md: OPENAI_API_KEY
+- docs/SETUP_COMPLETE_SUMMARY.md: OPENAI_API_KEY
+- docs/WEBHOOKS.md: OPENAI_API_KEY, OPENAI_WEBHOOK_SECRET
+- docs/WEB_SEARCH.md: OPENAI_API_KEY
+- docs/deployment/kubernetes.md: OPENAI_API_KEY, POSTGRES_PASSWORD, PREVIEW_TLS_SECRET
+- documentation/AI_SCRIPTS_README.md: ANTHROPIC_API_KEY, API_KEYS_ACCESS_GUIDE, API_KEY_LINKS, GOOGLE_API_KEY, OPENAI_API_KEY
+- documentation/AI_SYSTEMS_README.md: ANTHROPIC_API_KEY, API_KEYS_GUIDE, GOOGLE_API_KEY, OPENAI_API_KEY
+- documentation/API_KEYS_ACCESS_GUIDE.md: ANTHROPIC_API_KEY, COHERE_API_KEY, CURSOR_API_KEY, DEEPSEEK_API_KEY, GOOGLE_API_KEY, MISTRAL_API_KEY, OPENAI_API_KEY, PERPLEXITY_API_KEY, TOGETHER_API_KEY, XAI_API_KEY
+- documentation/API_KEYS_GUIDE.md: ADOBE_CLIENT_SECRET, AIRTABLE_API_KEY, ANTHROPIC_API_KEY, BRAVE_API_KEY, COHERE_API_KEY, DATADOG_API_KEY, DISCORD_BOT_TOKEN, ELEVEN_LABS_API_KEY, GITHUB_TOKEN, GITLAB_TOKEN, GOOGLE_API_KEY, GOOGLE_CLIENT_SECRET, HUGGINGFACE_API_KEY, MICROSOFT_CLIENT_SECRET, MISTRAL_API_KEY, NEW_RELIC_API_KEY, NOTION_API_KEY, OPENAI_API_KEY, PERPLEXITY_API_KEY, PINECONE_API_KEY, REPLICATE_API_TOKEN, SERPAPI_KEY, SLACK_APP_TOKEN, SLACK_BOT_TOKEN, STABILITY_API_KEY, TOGETHER_API_KEY, XAI_API_KEY
+- documentation/DEPLOYMENT.md: OPENAI_API_KEY, SECRET_KEY
+- documentation/IMPLEMENTATION_SUMMARY.md: ANTHROPIC_API_KEY, API_KEYS_GUIDE, CHATGPT_API_KEY, COHERE_API_KEY, DEEPSEEK_API_KEY, GOOGLE_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY, OPENAI_API_KEY, PERPLEXITY_API_KEY, SECRET_KEY, XAI_API_KEY
+- documentation/MASTER_ORCHESTRATOR_GUIDE.md: OPENAI_API_KEY
+- documentation/TECHNICAL_ANALYSIS_REPORT.md: OPENAI_API_KEY
+- documentation/THIRD_PARTY_CREDENTIALS_SETUP.md: AZURE_CLIENT_SECRET, SECRET
+- documentation/frontend/DEPLOYMENT.md: CSC_KEY_PASSWORD
+- documentation/guides/AGENTS_AI_GUIDE.md: API_KEYS_GUIDE, OPENAI_API_KEY
+- documentation/reference/os-dashboard-ai-assistant-advanced (1)/README.md: GITHUB_TOKEN, OPENAI_API_KEY
+- documentation/reference/os-dashboard-ai-assistant-platform/README.md: YOUR_TOKEN
+- documentation/reference/os-dashboard-ai-assistant/README.md: GITHUB_TOKEN, OPENAI_API_KEY
+- documentation/root/DEPLOYMENT.md: AC_PASSWORD
+- ecs-task-definition-gpu.json: secrets
+- ecs-task-definition.json: secrets
+- fix_azure_mobile_auth.py: SECRET
+- frontend/src/data/iaManifest.from_json.json: /ai-fabric/capsules-and-workflow-automation/secrets, /governance-and-security/data-protection-and-classification/tokenization, /governance-and-security/identity-and-access/api-keys, /operations-and-infrastructure/infrastructure-and-topology/secrets, /settings-and-admin/user-and-tenant-settings/api-keys
+- frontend/src/lib/apiClient.ts: ACCESS_TOKEN_KEY
+- frontend/src/theme/tokens.json: tokens
+- get_azure_credentials.py: AZURE_CLIENT_SECRET, SECRET
+- history_missing_pages_renamed.json: frontend/src/pages/APIKeys.tsx, frontend/src/pages/APIKeysTokens.tsx, frontend/src/pages/SecretsConfigurationVault.tsx, frontend/src/pages/SecretsInputs.tsx, frontend/src/pages/Tokenization.tsx, frontend/src/pages/governance/Dataprotection/Tokenization.tsx
+- ia_relationship_analysis.json: API Keys & Tokens, Secrets, Secrets & Configuration Vault, Secrets & Inputs, Tokenization
+- os_dashboard_ai_assistant(Microsoft Graph format).json: enableAccessTokenIssuance, enableIdTokenIssuance, passwordCredentials, requestedAccessTokenVersion, secretText, tokenEncryptionKeyId
+- package-lock.json: js-tokens, node_modules/js-tokens
+- path_mapping.json: /ai/capsules/secrets, /data/protection/secrets, /governance/data-protection/tokenization, /governance/identity/api-keys, /operations/secrets, /settings/api-keys
+- route_inventory_comprehensive.json: /ai/capsules/secrets, /governance/data-protection/tokenization, /governance/identity/api-keys, /operations/secrets, /settings/api-keys
+- route_inventory_ia.json: /ai/capsules/secrets, /governance/data-protection/tokenization, /governance/identity/api-keys, /operations/secrets, /settings/api-keys
+- route_matrix_complete.json: /ai/capsules/secrets, /governance/data-protection/tokenization, /governance/identity/api-keys, /operations/secrets, /settings/api-keys
+- settings.py: MAX_TOKENS_PER_REQUEST
+- setup_third_party_credentials.py: AZURE_CLIENT_SECRET, CLIENT_SECRET, GOOGLE_CLIENT_SECRET, SECRET
+- spec_full.txt: SECRETS_ALLOWED
+- test_azure_auth.py: AZURE_CLIENT_SECRET

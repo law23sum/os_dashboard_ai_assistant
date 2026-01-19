@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.osdashboard.agent</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>/Users/Shared/os_dashboard_ai_assistant/unified_launcher.py</string>
+    <string>--agent-id</string>
+    <string>AIC</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/Shared/os_dashboard_ai_assistant</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>OSDASH_AGENT_ID</key>
+    <string>AIC</string>
+    <key>OSDASH_RUNTIME_SCOPE</key>
+    <string>host</string>
+    <key>OSDASH_EVENT_HUB_DB</key>
+    <string>/Users/Shared/os_dashboard_ai_assistant/event_hub/event_hub.db</string>
+  </dict>
+  <key>KeepAlive</key>
+  <true/>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/Users/Shared/os_dashboard_ai_assistant/logs/agent_AIC.out</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/Shared/os_dashboard_ai_assistant/logs/agent_AIC.err</string>
+</dict>
+</plist>

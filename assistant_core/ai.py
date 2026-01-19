@@ -89,6 +89,7 @@ AGENT_MODELS = {
     "Aria": "gpt-5.1-codex-max",  # Coding + content polish
     "AIC": "gpt-5.2-pro",  # Deep reasoning / agentic control
     "Chris": "gpt-5-mini",  # Cost-optimized default chat
+    "Gabriela": "gpt-5.1-codex-max",  # Commercialization via Codex
 }
 
 # Fallback models if primary model unavailable
@@ -97,19 +98,127 @@ AGENT_MODEL_FALLBACKS = {
     "Sora": "gpt-5-mini",
     "Aria": "gpt-5-mini",
     "Chris": "gpt-5-nano",
+    "Gabriela": "gpt-5-mini",
 }
 
 DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-5-mini")
 DEFAULT_SYSTEM_PROMPT = os.getenv(
     "ASSISTANT_HUB_SYSTEM_PROMPT",
-    "You are a cooperative team of AI agents (AIC, Sora, Aria) tasked with helping across execution,"
-    " proof/structure, and meaning/value. Route each request to the most appropriate agent by role"
-    " and priority (AIC, then Sora, then Aria), avoiding redundant replies. Explain your thinking"
+    "You are a cooperative team of AI agents (AIC, Sora, Aria, Gabriela) tasked with helping across execution,"
+    " proof/structure, meaning/value, and commercialization. Route each request to the most appropriate agent by role"
+    " and priority (AIC, then Sora, then Aria, then Gabriela), avoiding redundant replies. Explain your thinking"
     " clearly, cite concrete next steps, and keep answers concise and actionable. You have access"
     " to a shell terminal and can execute commands when needed. You can also read files directly"
     " using the read_file function, or use execute_command to run shell commands. Files in the"
     " current working directory (browse directory) are accessible to you.",
 )
+
+STATE_CHANGE_GUARDRAIL = (
+    "When proposing or executing changes, treat the current code snapshot as authoritative. "
+    "Explicitly list intended state changes and impacted events; avoid unintended side effects."
+)
+
+_NON_CHAT_MODEL_MARKERS = ("-instruct", "text-", "davinci", "curie", "babbage", "ada")
+_RESPONSES_ONLY_PREFIXES = ("o1", "o3")
+
+
+def _requires_responses_api(model_name: str) -> bool:
+    """Return True when the model should use the Responses API instead of chat completions."""
+    lower = model_name.lower()
+    return any(lower.startswith(prefix) for prefix in _RESPONSES_ONLY_PREFIXES) or "reasoning" in lower
+
+
+def _is_chat_endpoint_model(model_name: str) -> bool:
+    """Best-effort check for models that the chat/completions endpoint accepts."""
+    lower = model_name.lower()
+    if _requires_responses_api(model_name):
+        return False
+    return not any(marker in lower for marker in _NON_CHAT_MODEL_MARKERS)
+
+
+def _fallback_chat_model(persona: str, current_model: Optional[str]) -> str:
+    """Pick a safe chat-capable fallback model."""
+    candidates = [
+        AGENT_MODEL_FALLBACKS.get(persona),
+        os.getenv("ASSISTANT_HUB_OPENAI_LEGACY_MODEL"),
+        DEFAULT_MODEL,
+        "gpt-4o-mini",
+        "gpt-4o",
+    ]
+    for candidate in candidates:
+        if candidate and candidate != current_model and _is_chat_endpoint_model(candidate):
+            return candidate
+    return current_model or DEFAULT_MODEL
+
+
+def _should_retry_with_chat_model(error_text: str) -> bool:
+    """Detect OpenAI errors that indicate the wrong endpoint/model pairing."""
+    lowered = error_text.lower()
+    return (
+        "not a chat model" in lowered
+        or "use v1/completions" in lowered
+        or "chat/completions" in lowered
+    )
+
+INTERACTION_STYLES: Dict[str, str] = {
+    "discussion": (
+        "Collaborative and exploratory. Ask clarifying questions, surface options, and align on shared goals."
+    ),
+    "debate": (
+        "Adversarial but evidence-driven. Present claims and counterclaims, challenge assumptions, and end with the"
+        " strongest position."
+    ),
+    "informative": "Factual and neutral. Prioritize accuracy, note constraints, and avoid persuasion.",
+    "persuasive": (
+        "Recommendation-focused. Make a clear case with reasoning while remaining truthful and noting limits."
+    ),
+}
+
+INTERACTION_STYLE_ALIASES = {
+    "discuss": "discussion",
+    "collaborative": "discussion",
+    "brainstorm": "discussion",
+    "debate": "debate",
+    "argument": "debate",
+    "argumentative": "debate",
+    "informative": "informative",
+    "informational": "informative",
+    "info": "informative",
+    "persuasive": "persuasive",
+    "persuade": "persuasive",
+    "convince": "persuasive",
+}
+
+
+def normalize_interaction_style(style: Optional[str]) -> Optional[str]:
+    """Normalize interaction style input to a supported key."""
+    if not style:
+        return None
+    normalized = style.strip().lower()
+    normalized = INTERACTION_STYLE_ALIASES.get(normalized, normalized)
+    if normalized in INTERACTION_STYLES:
+        return normalized
+    return None
+
+
+def _build_interaction_style_prompt(style: Optional[str]) -> Optional[str]:
+    normalized = normalize_interaction_style(style)
+    if not normalized:
+        return None
+    return f"INTERACTION STYLE: {normalized}\n{INTERACTION_STYLES[normalized]}"
+
+
+def _apply_prompt_overrides(
+    system_prompt: Optional[str],
+    interaction_style: Optional[str],
+) -> str:
+    base = system_prompt or get_default_system_prompt()
+    if STATE_CHANGE_GUARDRAIL not in base:
+        base = f"{base}\n\n{STATE_CHANGE_GUARDRAIL}"
+    style_prompt = _build_interaction_style_prompt(interaction_style)
+    if style_prompt:
+        base = f"{base}\n\n{style_prompt}"
+    return base
 
 
 def _env_flag(name: str, default: bool = True) -> bool:
@@ -176,7 +285,12 @@ def _running_under_pytest() -> bool:
 
 
 def _get_api_key() -> str:
-    key = os.getenv("OPENAI_API_KEY") or os.getenv("AI_CHAT_OPENAI_API_KEY")
+    key = (
+        os.getenv("OPENAI_API_KEY")
+        or os.getenv("AI_CHAT_OPENAI_API_KEY")
+        or os.getenv("OPENAI_API_KEY_CODEX1")
+        or os.getenv("OPENAI_API_KEY_CODEX2o")
+    )
     if key:
         _cache_api_key(key)
         return key
@@ -306,18 +420,29 @@ def get_agent_model(persona: str) -> str:
 
 
 def get_shell_functions(cwd: str = None) -> List[Dict]:
-    """Return Responses API function tool definitions for shell + file operations."""
+    """Return OpenAI/compatible function tool definitions for shell + file operations."""
     base_dir = cwd or os.getcwd()
-    return [
-        {
+
+    def _fn(name: str, description: str, parameters: Dict) -> Dict:
+        """Normalize to the Chat Completions / Responses `tools` shape."""
+        return {
             "type": "function",
-            "name": "read_file",
-            "description": (
+            "function": {
+                "name": name,
+                "description": description,
+                "parameters": parameters,
+            },
+        }
+
+    return [
+        _fn(
+            "read_file",
+            (
                 "Read the contents of a file. Use this to read text files, code files, configuration files, etc. "
                 "from the current working directory or absolute paths. For binary files, use execute_command with "
                 "appropriate tools."
             ),
-            "parameters": {
+            {
                 "type": "object",
                 "properties": {
                     "file_path": {
@@ -336,15 +461,14 @@ def get_shell_functions(cwd: str = None) -> List[Dict]:
                 },
                 "required": ["file_path"],
             },
-        },
-        {
-            "type": "function",
-            "name": "execute_command",
-            "description": (
+        ),
+        _fn(
+            "execute_command",
+            (
                 "Execute a shell command in the terminal. Use this to run commands, check files, run scripts, etc. "
                 "Always use this when you need to interact with the file system or run programs."
             ),
-            "parameters": {
+            {
                 "type": "object",
                 "properties": {
                     "command": {
@@ -361,7 +485,7 @@ def get_shell_functions(cwd: str = None) -> List[Dict]:
                 },
                 "required": ["command"],
             },
-        },
+        ),
     ]
 
 
@@ -397,13 +521,14 @@ def _to_responses_input(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     for msg in messages or []:
         role = msg.get("role", "user")
         content = msg.get("content", "")
+        text_type = "output_text" if role in ("assistant", "tool") else "input_text"
         if isinstance(content, list):
             converted: List[Dict[str, Any]] = []
             for block in content:
                 if not isinstance(block, dict):
                     continue
                 if block.get("type") == "text":
-                    converted.append({"type": "input_text", "text": block.get("text", "")})
+                    converted.append({"type": text_type, "text": block.get("text", "")})
                 elif block.get("type") == "image_url":
                     image = block.get("image_url") or {}
                     url = image.get("url") if isinstance(image, dict) else None
@@ -411,7 +536,7 @@ def _to_responses_input(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                         converted.append({"type": "input_image", "image_url": url})
             items.append({"role": role, "content": converted})
             continue
-        items.append({"role": role, "content": [{"type": "input_text", "text": str(content)}]})
+        items.append({"role": role, "content": [{"type": text_type, "text": str(content)}]})
     return items
 
 
@@ -483,6 +608,7 @@ def generate_ai_reply(
     # GPT-5.2 features
     custom_tools: Optional[List[Dict[str, Any]]] = None,
     enable_preambles: bool = False,
+    interaction_style: Optional[str] = None,
 ) -> Tuple[str, Optional[str], Optional[List[Dict]]]:
     """
     Send the conversation to AI Provider and return (reply, error_message, tool_calls).
@@ -495,7 +621,7 @@ def generate_ai_reply(
             client = get_anthropic_client()
             # Convert history to Anthropic format
             anthropic_messages = []
-            system_msg = system_prompt or get_default_system_prompt()
+            system_msg = _apply_prompt_overrides(system_prompt, interaction_style)
             
             for msg in history:
                 role = "assistant" if msg.role == "assistant" else "user"
@@ -529,7 +655,11 @@ def generate_ai_reply(
             if not config.google_api_key:
                 raise ValueError("Google API key missing")
                 
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{config.google_model or 'gemini-1.5-pro-latest'}:generateContent?key={config.google_api_key}"
+            model_name = config.google_model or "gemini-1.5-pro"
+            url = (
+                "https://generativelanguage.googleapis.com/v1beta/models/"
+                f"{model_name}:generateContent?key={config.google_api_key}"
+            )
             
             # Simple conversion
             contents = []
@@ -543,6 +673,13 @@ def generate_ai_reply(
                 contents.append({"role": "user", "parts": [{"text": prompt}]})
                 
             response = requests.post(url, json={"contents": contents})
+            if response.status_code == 404 and config.google_model is None:
+                fallback_model = "gemini-1.5-flash"
+                fallback_url = (
+                    "https://generativelanguage.googleapis.com/v1beta/models/"
+                    f"{fallback_model}:generateContent?key={config.google_api_key}"
+                )
+                response = requests.post(fallback_url, json={"contents": contents})
             if response.status_code != 200:
                 raise Exception(f"Google API Error: {response.text}")
                 
@@ -554,7 +691,7 @@ def generate_ai_reply(
              return _offline_reply(prompt or "", e), str(e), None
 
     messages = []
-    sys_prompt = system_prompt or get_default_system_prompt()
+    sys_prompt = _apply_prompt_overrides(system_prompt, interaction_style)
     if sys_prompt:
         messages.append({"role": "system", "content": sys_prompt})
     messages.extend(build_message_payload(history, include_tool_results=True))
@@ -598,17 +735,23 @@ def generate_ai_reply(
     )
 
     # Use agent-specific model if not specified
-    if not model and model_provider == "openai":
-        model = get_agent_model(persona)
-    
-    # Set default models for other providers if not provided
-    if not model:
-        config = get_api_config()
-        if model_provider == "xai": model = config.xai_model or "grok-1"
-        elif model_provider == "deepseek": model = "deepseek-chat"
-        elif model_provider == "groq": model = config.groq_model or "llama3-70b-8192"
-        elif model_provider == "cohere": model = "command-r-plus"
+    selected_model = model
+    if not selected_model and model_provider == "openai":
+        selected_model = get_agent_model(persona)
 
+    # Set default models for other providers if not provided
+    if not selected_model:
+        config = get_api_config()
+        if model_provider == "xai":
+            selected_model = config.xai_model or "grok-1"
+        elif model_provider == "deepseek":
+            selected_model = "deepseek-chat"
+        elif model_provider == "groq":
+            selected_model = config.groq_model or "llama3-70b-8192"
+        elif model_provider == "cohere":
+            selected_model = "command-r-plus"
+
+    selected_model = selected_model or DEFAULT_MODEL
 
     # Check for Data Science Agent routing
     data_science_keywords = [
@@ -660,145 +803,140 @@ def generate_ai_reply(
             # If agent fails, fall back to regular OpenAI processing
             pass
 
-    try:
-        client = get_openai_client(model_provider)
+    attempted_model_recovery = False
+    current_model = selected_model
 
-        # Prepare tools/functions for shell execution
-        tools = []
-        # Shell tools only for OpenAI/compatible usually, unless we adapt
-        if enable_shell and model_provider in ["openai", "xai", "deepseek", "groq"]:
-            tools.extend(get_shell_functions(cwd or os.getcwd()))
-        
-        # Add custom tools if provided (GPT-5.2 feature)
-        if custom_tools:
-            tools.extend(custom_tools)
-        
-        # Add code_interpreter tool if enabled
-        if enable_code_interpreter and model_provider == "openai":
-            code_tool: Dict[str, Any] = {"type": "code_interpreter"}
-            if uploaded_file_ids:
-                code_tool["code_interpreter"] = {"file_ids": uploaded_file_ids[:20]}  # Max 20 files
-            tools.append(code_tool)
-        
-        # Add file_search tool if enabled
-        if enable_file_search and vector_store_ids and model_provider == "openai":
-            tools.append({
-                "type": "file_search",
-                "file_search": {"vector_store_ids": vector_store_ids},
-            })
-        
-        tools = tools if tools else None
+    while True:
+        try:
+            client = get_openai_client(model_provider)
 
-        # Handle file uploads if provided
-        # Note: OpenAI file API requires separate upload, then reference in messages
-        # For now, we'll include file content in the message
+            # Prepare tools/functions for shell execution
+            tools = []
+            if enable_shell and model_provider in ["openai", "xai", "deepseek", "groq"]:
+                tools.extend(get_shell_functions(cwd or os.getcwd()))
 
-        instructions, remaining = _split_system_instructions(messages)
-        # GPT-5.2 supports: none, low, medium, high, xhigh
-        effort = os.getenv("ASSISTANT_HUB_REASONING_EFFORT", "none")
-        if effort not in ("none", "low", "medium", "high", "xhigh"):
-            effort = "none"
-        verbosity = os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY", "medium")
-        if verbosity not in ("low", "medium", "high"):
-            verbosity = "medium"
-        
-        # Add preamble instruction if enabled (GPT-5.2 feature)
-        if enable_preambles and instructions:
-            instructions += "\n\nBefore you call a tool, explain why you are calling it."
-        elif enable_preambles:
-            instructions = "Before you call a tool, explain why you are calling it."
+            if custom_tools:
+                tools.extend(custom_tools)
 
-        payload: Dict[str, Any] = {
-            "model": model,
-            "messages": messages, # Standard Chat Completions API uses 'messages', not 'input' usually. Wait, existing code used Responses API?
-            # The existing code seemed to use `client.responses.create` which is likely an internal or preview API wrapper for the user.
-            # But standard OpenAI python client uses `client.chat.completions.create`.
-            # I need to check `client.responses`. 
-            # If `client.responses` exists, it's a specific wrapper. If not, I should use `chat.completions`.
-            # For other providers (DeepSeek, etc), we definitely want `chat.completions`.
-        }
-        
-        # FIX: The existing code used `client.responses.create` with `input` and `instructions`. 
-        # This looks like a specific custom wrapper or a very new/different API shape.
-        # However, for broader compatibility, I should use `chat.completions.create`.
-        # I will switch to `chat.completions.create` for non-OpenAI providers or if `responses` is missing.
-        
-        use_standard_chat = model_provider != "openai" or not hasattr(client, "responses")
-        
-        if use_standard_chat:
-             payload = {
-                "model": model,
-                "messages": messages,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-             }
-             if tools:
-                 payload["tools"] = tools
-                 payload["tool_choice"] = "auto"
-                 
-             response = client.chat.completions.create(**payload)
-             text = response.choices[0].message.content
-             tool_calls = response.choices[0].message.tool_calls
-             # Adapter for tool calls format if needed
-             if tool_calls:
-                 tool_calls = [
-                     {"id": tc.id, "name": tc.function.name, "arguments": tc.function.arguments} 
-                     for tc in tool_calls
-                 ]
-        else:
-            # Existing OpenAI Logic (Responses API?)
-            payload = {
-                "model": model,
-                "instructions": instructions,
-                "input": _to_responses_input(remaining),
-                "reasoning": {"effort": effort},
-                "text": {"verbosity": verbosity},
-                "max_output_tokens": max_tokens,
-                "store": False,
-            }
-            if effort == "none":
-                payload["temperature"] = temperature
-            if tools:
-                payload["tools"] = tools
-                # Support allowed_tools for constraining tool usage (GPT-5.2 feature)
-                allowed_tools_env = os.getenv("ASSISTANT_HUB_ALLOWED_TOOLS")
-                if allowed_tools_env:
-                    try:
-                        import json
-                        allowed_tools_list = json.loads(allowed_tools_env)
-                        if isinstance(allowed_tools_list, list):
-                            payload["tool_choice"] = {
-                                "type": "allowed_tools",
-                                "mode": os.getenv("ASSISTANT_HUB_TOOL_CHOICE_MODE", "auto"),
-                                "tools": allowed_tools_list,
-                            }
-                        else:
-                            payload["tool_choice"] = "auto"
-                    except Exception:
-                        payload["tool_choice"] = "auto"
-                else:
+            if enable_code_interpreter and model_provider == "openai":
+                code_tool: Dict[str, Any] = {"type": "code_interpreter"}
+                if uploaded_file_ids:
+                    code_tool["code_interpreter"] = {"file_ids": uploaded_file_ids[:20]}
+                tools.append(code_tool)
+
+            if enable_file_search and vector_store_ids and model_provider == "openai":
+                tools.append({
+                    "type": "file_search",
+                    "file_search": {"vector_store_ids": vector_store_ids},
+                })
+
+            tools = tools if tools else None
+
+            instructions, remaining = _split_system_instructions(messages)
+            effort = os.getenv("ASSISTANT_HUB_REASONING_EFFORT", "none")
+            if effort not in ("none", "low", "medium", "high", "xhigh"):
+                effort = "none"
+            verbosity = os.getenv("ASSISTANT_HUB_TEXT_VERBOSITY", "medium")
+            if verbosity not in ("low", "medium", "high"):
+                verbosity = "medium"
+
+            if enable_preambles and instructions:
+                instructions += "\n\nBefore you call a tool, explain why you are calling it."
+            elif enable_preambles:
+                instructions = "Before you call a tool, explain why you are calling it."
+
+            requires_responses = _requires_responses_api(current_model) if current_model else False
+            has_responses_api = hasattr(client, "responses")
+            use_standard_chat = model_provider != "openai" or not has_responses_api
+
+            if model_provider == "openai" and use_standard_chat and (requires_responses or not _is_chat_endpoint_model(current_model)):
+                if attempted_model_recovery:
+                    raise RuntimeError(
+                        f"Model '{current_model}' is not compatible with chat/completions and no Responses API is available."
+                    )
+                current_model = _fallback_chat_model(persona, current_model)
+                attempted_model_recovery = True
+                continue
+
+            if use_standard_chat:
+                payload = {
+                    "model": current_model,
+                    "messages": messages,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                }
+                if tools:
+                    payload["tools"] = tools
                     payload["tool_choice"] = "auto"
-            
-            if conversation_id:
-                payload["conversation"] = conversation_id
-                payload["store"] = True
-            elif previous_response_id:
-                payload["previous_response_id"] = previous_response_id
 
-            if hasattr(client, "responses"):
-                response = client.responses.create(**payload)
-                text = _extract_responses_output_text(response)
-                tool_calls = _extract_function_calls(response)
+                response = client.chat.completions.create(**payload)
+                text = response.choices[0].message.content
+                tool_calls = response.choices[0].message.tool_calls
+                if tool_calls:
+                    tool_calls = [
+                        {"id": tc.id, "name": tc.function.name, "arguments": tc.function.arguments}
+                        for tc in tool_calls
+                    ]
             else:
-                 # Fallback to standard chat completion if client doesn't have responses
-                if isinstance(payload.get("model"), str) and payload["model"].startswith("gpt-5"):
-                    payload = dict(payload)
-                    payload["model"] = os.getenv("ASSISTANT_HUB_OPENAI_LEGACY_MODEL", "gpt-4o-mini")
-                text, tool_calls = legacy_chat_completion(client, payload)
+                payload = {
+                    "model": current_model,
+                    "instructions": instructions,
+                    "input": _to_responses_input(remaining),
+                    "reasoning": {"effort": effort},
+                    "text": {"verbosity": verbosity},
+                    "max_output_tokens": max_tokens,
+                    "store": False,
+                }
+                if effort == "none":
+                    payload["temperature"] = temperature
+                if tools:
+                    payload["tools"] = tools
+                    allowed_tools_env = os.getenv("ASSISTANT_HUB_ALLOWED_TOOLS")
+                    if allowed_tools_env:
+                        try:
+                            import json
+                            allowed_tools_list = json.loads(allowed_tools_env)
+                            if isinstance(allowed_tools_list, list):
+                                payload["tool_choice"] = {
+                                    "type": "allowed_tools",
+                                    "mode": os.getenv("ASSISTANT_HUB_TOOL_CHOICE_MODE", "auto"),
+                                    "tools": allowed_tools_list,
+                                }
+                            else:
+                                payload["tool_choice"] = "auto"
+                        except Exception:
+                            payload["tool_choice"] = "auto"
+                    else:
+                        payload["tool_choice"] = "auto"
 
-        return text.strip(), None, tool_calls
-    except (AuthenticationError, APIError, ValueError, RuntimeError) as exc:
-        return _offline_reply(fallback_source or "(empty prompt)", exc), str(exc), None
+                if conversation_id:
+                    payload["conversation"] = conversation_id
+                    payload["store"] = True
+                elif previous_response_id:
+                    payload["previous_response_id"] = previous_response_id
+
+                if has_responses_api:
+                    response = client.responses.create(**payload)
+                    text = _extract_responses_output_text(response)
+                    tool_calls = _extract_function_calls(response)
+                else:
+                    legacy_payload = dict(payload)
+                    if isinstance(legacy_payload.get("model"), str) and legacy_payload["model"].startswith("gpt-5"):
+                        legacy_payload["model"] = os.getenv("ASSISTANT_HUB_OPENAI_LEGACY_MODEL", "gpt-4o-mini")
+                    text, tool_calls = legacy_chat_completion(client, legacy_payload)
+
+            return text.strip(), None, tool_calls
+        except (AuthenticationError, APIError, ValueError, RuntimeError) as exc:
+            error_text = str(exc)
+            if (
+                model_provider == "openai"
+                and not attempted_model_recovery
+                and _should_retry_with_chat_model(error_text)
+            ):
+                current_model = _fallback_chat_model(persona, current_model)
+                attempted_model_recovery = True
+                continue
+            return _offline_reply(fallback_source or "(empty prompt)", exc), error_text, None
 
 
 def parse_prompt_aliases(raw_prompt: str) -> Tuple[str, Dict[str, Any]]:

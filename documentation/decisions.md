@@ -8,3 +8,4 @@ Updated: 2025-02-17
 - **Spec authority**: Treated `Technical Spec Sheet (Version 6 Latest Version)` as canonical; legacy docs only for lineage. Gaps resolved by choosing simplest secure default (auth middleware, pagination, structured logging).
 - **Doc outputs**: Canonical spec/blueprint/risks/TODO/decisions stored under `OS_Dashboard_AI_Assistant/` for easy discovery; mirrors spec numbering for future automation.
 - **Security-first defaults**: Future endpoints will require bearer/API-key auth, emit correlation IDs, and enforce pagination/timeouts; SQLite retained for dev while preparing migration to Postgres.
+- **Unified event journal**: Adopt a platform-wide Event Hub with a shared logging SDK, event-first pattern, and append-only journals; spec in `docs/UNIFIED_EVENT_JOURNAL.md` and ADR in `docs/adr/0002-unified-event-journal.md`.

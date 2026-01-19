@@ -1,0 +1,477 @@
+{
+  "templates_replaced": 27,
+  "core_restored": 3,
+  "new_added": 45,
+  "pages": {
+    "aicopilot": {
+      "filename": "AICopilot.tsx",
+      "score": 338,
+      "commit": "9b4faf55"
+    },
+    "aios": {
+      "filename": "AIOS.tsx",
+      "score": 116,
+      "commit": "9b4faf55"
+    },
+    "aiops": {
+      "filename": "AIOps.tsx",
+      "score": 223,
+      "commit": "b3dfb4bc"
+    },
+    "apiconnectors": {
+      "filename": "APIConnectors.tsx",
+      "score": 112,
+      "commit": "b3dfb4bc"
+    },
+    "admin": {
+      "filename": "Admin.tsx",
+      "score": 162,
+      "commit": "3a154a6e"
+    },
+    "advancedai": {
+      "filename": "AdvancedAI.tsx",
+      "score": 93,
+      "commit": "9b4faf55"
+    },
+    "mystack": {
+      "filename": "MyStack.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "operatorstudio": {
+      "filename": "OperatorStudio.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "analytics": {
+      "filename": "Analytics.tsx",
+      "score": 73,
+      "commit": "9b4faf55"
+    },
+    "audit": {
+      "filename": "Audit.tsx",
+      "score": 154,
+      "commit": "9b4faf55"
+    },
+    "autofix": {
+      "filename": "AutoFix.tsx",
+      "score": 236,
+      "commit": "9b4faf55"
+    },
+    "billing": {
+      "filename": "Billing.tsx",
+      "score": 50,
+      "commit": "9b4faf55"
+    },
+    "capsulemarketplace": {
+      "filename": "CapsuleMarketplace.tsx",
+      "score": 158,
+      "commit": "9b4faf55"
+    },
+    "chat": {
+      "filename": "Chat.tsx",
+      "score": 144,
+      "commit": "9b4faf55"
+    },
+    "collaboration": {
+      "filename": "Collaboration.tsx",
+      "score": 89,
+      "commit": "9b4faf55"
+    },
+    "computervision": {
+      "filename": "ComputerVision.tsx",
+      "score": 126,
+      "commit": "b3dfb4bc"
+    },
+    "dashboard": {
+      "filename": "Dashboard.tsx",
+      "score": 216,
+      "commit": "9b4faf55"
+    },
+    "docs": {
+      "filename": "Docs.tsx",
+      "score": 30,
+      "commit": "9b4faf55"
+    },
+    "documentation": {
+      "filename": "Documentation.tsx",
+      "score": 21,
+      "commit": "9b4faf55"
+    },
+    "cloud": {
+      "filename": "Cloud.tsx",
+      "score": 207,
+      "commit": "9b4faf55"
+    },
+    "code": {
+      "filename": "Code.tsx",
+      "score": 207,
+      "commit": "9b4faf55"
+    },
+    "finance": {
+      "filename": "Finance.tsx",
+      "score": 207,
+      "commit": "9b4faf55"
+    },
+    "legacy": {
+      "filename": "Legacy.tsx",
+      "score": 207,
+      "commit": "9b4faf55"
+    },
+    "productivity": {
+      "filename": "Productivity.tsx",
+      "score": 207,
+      "commit": "9b4faf55"
+    },
+    "research": {
+      "filename": "Research.tsx",
+      "score": 102,
+      "commit": "9b4faf55"
+    },
+    "marketplace": {
+      "filename": "Marketplace.tsx",
+      "score": 158,
+      "commit": "9b4faf55"
+    },
+    "securityre": {
+      "filename": "SecurityReview.tsx",
+      "score": 147,
+      "commit": "9b4faf55"
+    },
+    "edgecomputing": {
+      "filename": "EdgeComputing.tsx",
+      "score": 148,
+      "commit": "9b4faf55"
+    },
+    "futuredeck": {
+      "filename": "FutureDeck.tsx",
+      "score": 10,
+      "commit": "9b4faf55"
+    },
+    "integrations": {
+      "filename": "Integrations.tsx",
+      "score": 207,
+      "commit": "9b4faf55"
+    },
+    "intentprocessor": {
+      "filename": "IntentProcessor.tsx",
+      "score": 103,
+      "commit": "9b4faf55"
+    },
+    "login": {
+      "filename": "Login.tsx",
+      "score": 104,
+      "commit": "3a154a6e"
+    },
+    "mlops": {
+      "filename": "MLOps.tsx",
+      "score": 65,
+      "commit": "9b4faf55"
+    },
+    "masterorchestrator": {
+      "filename": "MasterOrchestrator.tsx",
+      "score": 64,
+      "commit": "9b4faf55"
+    },
+    "architecture": {
+      "filename": "Architecture.tsx",
+      "score": 153,
+      "commit": "9b4faf55"
+    },
+    "orchestrator": {
+      "filename": "Orchestrator.tsx",
+      "score": 67,
+      "commit": "9b4faf55"
+    },
+    "monitoring": {
+      "filename": "Monitoring.tsx",
+      "score": 65,
+      "commit": "9b4faf55"
+    },
+    "nas": {
+      "filename": "NAS.tsx",
+      "score": 47,
+      "commit": "9b4faf55"
+    },
+    "networkmonitoring": {
+      "filename": "NetworkMonitoring.tsx",
+      "score": 269,
+      "commit": "9b4faf55"
+    },
+    "neuralarchitecturesearch": {
+      "filename": "NeuralArchitectureSearch.tsx",
+      "score": 153,
+      "commit": "9b4faf55"
+    },
+    "observability": {
+      "filename": "Observability.tsx",
+      "score": 124,
+      "commit": "9b4faf55"
+    },
+    "timeline": {
+      "filename": "Timeline.tsx",
+      "score": 154,
+      "commit": "9b4faf55"
+    },
+    "officerealtime": {
+      "filename": "OfficeRealtime.tsx",
+      "score": 132,
+      "commit": "9b4faf55"
+    },
+    "drills": {
+      "filename": "Drills.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "personalization": {
+      "filename": "Personalization.tsx",
+      "score": 62,
+      "commit": "9b4faf55"
+    },
+    "projectorchestrator": {
+      "filename": "ProjectOrchestrator.tsx",
+      "score": 177,
+      "commit": "9b4faf55"
+    },
+    "projects": {
+      "filename": "Projects.tsx",
+      "score": 486,
+      "commit": "9b4faf55"
+    },
+    "searchengine": {
+      "filename": "SearchEngine.tsx",
+      "score": 90,
+      "commit": "b3dfb4bc"
+    },
+    "security": {
+      "filename": "Security.tsx",
+      "score": 147,
+      "commit": "9b4faf55"
+    },
+    "settings": {
+      "filename": "Settings.tsx",
+      "score": 83,
+      "commit": "9b4faf55"
+    },
+    "signup": {
+      "filename": "Signup.tsx",
+      "score": 123,
+      "commit": "3a154a6e"
+    },
+    "spec": {
+      "filename": "SpecPage.tsx",
+      "score": 17,
+      "commit": "9b4faf55"
+    },
+    "specsheet": {
+      "filename": "SpecSheet.tsx",
+      "score": 21,
+      "commit": "9b4faf55"
+    },
+    "tasks": {
+      "filename": "Tasks.tsx",
+      "score": 170,
+      "commit": "9b4faf55"
+    },
+    "templates": {
+      "filename": "Templates.tsx",
+      "score": 210,
+      "commit": "9b4faf55"
+    },
+    "tools": {
+      "filename": "Tools.tsx",
+      "score": 129,
+      "commit": "9b4faf55"
+    },
+    "visiondeck": {
+      "filename": "VisionDeck.tsx",
+      "score": 26,
+      "commit": "9b4faf55"
+    },
+    "workflows": {
+      "filename": "Workflows.tsx",
+      "score": 103,
+      "commit": "9b4faf55"
+    },
+    "workspacehealth": {
+      "filename": "WorkspaceHealth.tsx",
+      "score": 97,
+      "commit": "9b4faf55"
+    },
+    "committasks": {
+      "filename": "Committasks.tsx",
+      "score": 170,
+      "commit": "9b4faf55"
+    },
+    "datasets": {
+      "filename": "Datasets.tsx",
+      "score": 102,
+      "commit": "9b4faf55"
+    },
+    "digitaltwins": {
+      "filename": "Digitaltwins.tsx",
+      "score": 102,
+      "commit": "9b4faf55"
+    },
+    "experiments": {
+      "filename": "Experiments.tsx",
+      "score": 102,
+      "commit": "9b4faf55"
+    },
+    "hpc": {
+      "filename": "Hpc.tsx",
+      "score": 102,
+      "commit": "9b4faf55"
+    },
+    "lab": {
+      "filename": "Lab.tsx",
+      "score": 89,
+      "commit": "9b4faf55"
+    },
+    "notes": {
+      "filename": "Notes.tsx",
+      "score": 102,
+      "commit": "9b4faf55"
+    },
+    "publishing": {
+      "filename": "Publishing.tsx",
+      "score": 220,
+      "commit": "9b4faf55"
+    },
+    "reproducibility": {
+      "filename": "Reproducibility.tsx",
+      "score": 102,
+      "commit": "9b4faf55"
+    },
+    "simulation": {
+      "filename": "Simulation.tsx",
+      "score": 102,
+      "commit": "9b4faf55"
+    },
+    "tracking": {
+      "filename": "Tracking.tsx",
+      "score": 102,
+      "commit": "9b4faf55"
+    },
+    "validation": {
+      "filename": "Validation.tsx",
+      "score": 102,
+      "commit": "9b4faf55"
+    },
+    "health": {
+      "filename": "Health.tsx",
+      "score": 97,
+      "commit": "9b4faf55"
+    },
+    "canon": {
+      "filename": "Canon.tsx",
+      "score": 220,
+      "commit": "9b4faf55"
+    },
+    "citations": {
+      "filename": "Citations.tsx",
+      "score": 220,
+      "commit": "9b4faf55"
+    },
+    "narrative": {
+      "filename": "Narrative.tsx",
+      "score": 220,
+      "commit": "9b4faf55"
+    },
+    "originality": {
+      "filename": "Originality.tsx",
+      "score": 220,
+      "commit": "9b4faf55"
+    },
+    "qa": {
+      "filename": "Qa.tsx",
+      "score": 220,
+      "commit": "9b4faf55"
+    },
+    "styleguide": {
+      "filename": "Styleguide.tsx",
+      "score": 220,
+      "commit": "9b4faf55"
+    },
+    "versioning": {
+      "filename": "Versioning.tsx",
+      "score": 220,
+      "commit": "9b4faf55"
+    },
+    "writer": {
+      "filename": "Writer.tsx",
+      "score": 220,
+      "commit": "9b4faf55"
+    },
+    "reviews": {
+      "filename": "Reviews.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "builder": {
+      "filename": "Builder.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "assessments": {
+      "filename": "Assessments.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "exceptions": {
+      "filename": "Exceptions.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "remediation": {
+      "filename": "Remediation.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "vendors": {
+      "filename": "Vendors.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "filesystemdriver": {
+      "filename": "FilesystemDriver.tsx",
+      "score": 93,
+      "commit": "9b4faf55"
+    },
+    "multitenant": {
+      "filename": "MultiTenant.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "classification": {
+      "filename": "Classification.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "dlp": {
+      "filename": "Dlp.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "masking": {
+      "filename": "Masking.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "residency": {
+      "filename": "Residency.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "tokenization": {
+      "filename": "Tokenization.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    },
+    "apikeys": {
+      "filename": "ApiKeys.tsx",
+      "score": 13,
+      "commit": "9b4faf55"
+    }
+  }
+}

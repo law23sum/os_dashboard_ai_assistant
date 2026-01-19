@@ -15,7 +15,15 @@ import uuid
 from collections import defaultdict, Counter
 import re
 
-from assistant_core.data_aggregator import CIRDocument, DocumentType, SourceType
+try:
+    from api_connectors.universal_connector import CIRDocument, DocumentType, SourceType
+except ImportError:
+    from dataclasses import dataclass
+    from enum import Enum
+    class DocumentType(Enum): DOCUMENT = "document"
+    class SourceType(Enum): LOCAL = "local"
+    @dataclass
+    class CIRDocument: id: str = ""; content: str = ""
 from assistant_core.failure_registry import (
     FailureLayer,
     FailurePlane,
@@ -744,6 +752,158 @@ class PolicyEngine:
         except Exception as e:
             self.logger.error(f"Encryption enforcement failed: {e}")
             return None
+
+
+async def _evaluate_policy_subset(
+    policy_engine: "PolicyEngine",
+    policy_type: PolicyType,
+    resource_type: str,
+    resource_id: str,
+    context: Dict[str, Any],
+) -> List[PolicyViolation]:
+    violations: List[PolicyViolation] = []
+    try:
+        for policy in policy_engine.policies.values():
+            if policy.status != PolicyStatus.ACTIVE:
+                continue
+            if policy.policy_type != policy_type:
+                continue
+            if await policy_engine._policy_applies_to_resource(
+                policy, resource_type, context
+            ):
+                for rule_func in policy_engine.policy_rules.get(policy.policy_id, []):
+                    try:
+                        violation = await rule_func(
+                            policy, resource_type, resource_id, context
+                        )
+                        if violation:
+                            violations.append(violation)
+                    except Exception as exc:
+                        policy_engine.logger.error(
+                            f"{policy_type.value} rule evaluation failed: {exc}"
+                        )
+        return violations
+    except Exception as exc:
+        policy_engine.logger.error(
+            f"{policy_type.value} policy evaluation failed: {exc}"
+        )
+        return []
+
+
+class AccessControlEngine:
+    """Access control policy evaluator."""
+
+    def __init__(self, policy_engine: Optional[PolicyEngine] = None):
+        self.policy_engine = policy_engine or PolicyEngine()
+        self.logger = logging.getLogger(__name__)
+
+    async def initialize(self):
+        await self.policy_engine.initialize()
+
+    async def evaluate_access(
+        self, resource_type: str, resource_id: str, context: Dict[str, Any]
+    ) -> List[PolicyViolation]:
+        return await _evaluate_policy_subset(
+            self.policy_engine,
+            PolicyType.ACCESS_CONTROL,
+            resource_type,
+            resource_id,
+            context,
+        )
+
+
+class ClassificationEngine:
+    """Data classification policy evaluator."""
+
+    def __init__(self, policy_engine: Optional[PolicyEngine] = None):
+        self.policy_engine = policy_engine or PolicyEngine()
+        self.logger = logging.getLogger(__name__)
+
+    async def initialize(self):
+        await self.policy_engine.initialize()
+
+    def list_classifications(self) -> List[DataClassification]:
+        return list(self.policy_engine.data_classifications.values())
+
+    async def evaluate_classification(
+        self, resource_type: str, resource_id: str, context: Dict[str, Any]
+    ) -> List[PolicyViolation]:
+        return await _evaluate_policy_subset(
+            self.policy_engine,
+            PolicyType.DATA_CLASSIFICATION,
+            resource_type,
+            resource_id,
+            context,
+        )
+
+
+class AuditManager:
+    """Audit trail manager."""
+
+    def __init__(self):
+        self.audit_trail: List[AuditTrail] = []
+        self.logger = logging.getLogger(__name__)
+
+    async def log_audit_event(
+        self,
+        user_id: str,
+        action: str,
+        resource_type: str,
+        resource_id: str,
+        old_values: Optional[Dict[str, Any]] = None,
+        new_values: Optional[Dict[str, Any]] = None,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+        session_id: Optional[str] = None,
+    ) -> AuditTrail:
+        try:
+            audit_entry = AuditTrail(
+                audit_id=str(uuid.uuid4()),
+                timestamp=datetime.utcnow(),
+                user_id=user_id,
+                action=action,
+                resource_type=resource_type,
+                resource_id=resource_id,
+                old_values=old_values,
+                new_values=new_values,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                session_id=session_id,
+            )
+            self.audit_trail.append(audit_entry)
+            return audit_entry
+        except Exception as exc:
+            self.logger.error(f"Audit logging failed: {exc}")
+            raise
+
+    async def get_audit_trail(
+        self,
+        user_id: Optional[str] = None,
+        action: Optional[str] = None,
+        resource_type: Optional[str] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        limit: int = 100,
+    ) -> List[AuditTrail]:
+        try:
+            entries = list(self.audit_trail)
+
+            if user_id:
+                entries = [e for e in entries if e.user_id == user_id]
+            if action:
+                entries = [e for e in entries if e.action == action]
+            if resource_type:
+                entries = [e for e in entries if e.resource_type == resource_type]
+            if start_time:
+                entries = [e for e in entries if e.timestamp >= start_time]
+            if end_time:
+                entries = [e for e in entries if e.timestamp <= end_time]
+
+            entries.sort(key=lambda x: x.timestamp, reverse=True)
+            return entries[:limit]
+        except Exception as exc:
+            self.logger.error(f"Audit trail query failed: {exc}")
+            return []
 
 
 class ComplianceMonitor:

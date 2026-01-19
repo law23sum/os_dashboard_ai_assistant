@@ -14,7 +14,11 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+try:
+    from pydantic import BaseModel, ConfigDict, Field
+except ImportError:  # pragma: no cover - pydantic v1 fallback
+    from pydantic import BaseModel, Field
+    ConfigDict = None
 
 parent_dir = Path(__file__).parent.parent.parent
 if str(parent_dir) not in sys.path:
@@ -22,6 +26,7 @@ if str(parent_dir) not in sys.path:
 
 from assistant_hub_gui.assistant_hub.db import (  # pylint: disable=wrong-import-position
     db_delete_project,
+    db_get_note_links,
     db_list_project_events,
     db_record_project_event,
     db_upsert_project,
@@ -78,8 +83,11 @@ class ProjectResponse(BaseModel):
     priority: str
     order_num: int
 
-    class Config:
-        from_attributes = True
+    if ConfigDict is not None:
+        model_config = ConfigDict(from_attributes=True)
+    else:
+        class Config:
+            orm_mode = True
 
 
 class ProjectLinkResponse(BaseModel):
@@ -664,7 +672,7 @@ async def list_project_ledger(project: Optional[str] = None, limit: int = 50, us
     try:
         safe_limit = max(1, min(limit, 500))
         with db_session() as db:
-            if project and not _project_exists(db, project):
+            if project and not _project_exists(db, project, user.id):
                 raise HTTPException(status_code=404, detail="Project not found")
             events = db_list_project_events(db, project_id=project, limit=safe_limit)
         return _serialize_events(events)
@@ -838,6 +846,7 @@ async def update_project(project_name: str, project_update: ProjectUpdate, user:
             status=update_dict.get("status", existing.get("status", "active")),
             priority=update_dict.get("priority", existing.get("priority", "MEDIUM")),
             order_num=update_dict.get("order_num", existing.get("order_num", 0)),
+            user_id=user.id,
         )
 
         db_upsert_project(db, db_project)
@@ -1028,9 +1037,11 @@ async def import_projects_bulk(request: ImportRequest):
                 if not project_name:
                     errors.append("Skipped project with empty name")
                     continue
+
+                user_id = (project_data.get("user_id") or "").strip() or "demo"
                 
                 # Check if project exists
-                existing = _project_exists(db, project_name)
+                existing = _project_exists(db, project_name, user_id)
                 
                 if existing and not request.overwrite_existing:
                     projects_skipped += 1
@@ -1043,6 +1054,7 @@ async def import_projects_bulk(request: ImportRequest):
                     status=project_data.get("status", "active"),
                     priority=project_data.get("priority", "MEDIUM"),
                     order_num=project_data.get("order_num", 0),
+                    user_id=user_id,
                 )
                 db_upsert_project(db, db_project)
                 
@@ -1120,6 +1132,7 @@ async def import_projects_bulk(request: ImportRequest):
                         "tasks_imported": len(project_data.get("tasks", [])),
                         "links_imported": len(project_data.get("links", [])),
                     },
+                    user_id=user_id,
                 )
                 
             except Exception as project_err:

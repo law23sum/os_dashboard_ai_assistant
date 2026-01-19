@@ -9,7 +9,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
-import pandas as pd
+try:
+    import pandas as pd
+except Exception:  # pragma: no cover
+    pd = None  # type: ignore
 
 from assistant_core.content.generators import (
     ContentConfig,
@@ -258,6 +261,11 @@ class OfficeAIProcessingService:
         }
 
     def _generate_excel(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        if pd is None:  # pragma: no cover - optional dependency
+            raise ModuleNotFoundError(
+                "pandas is required for Excel generation. "
+                "Install optional dependencies with `python3 -m pip install -r requirements.txt`."
+            )
         config = ContentConfig(
             title=payload.get("title", "AI Dashboard"),
             author=payload.get("author", "AI Assistant"),

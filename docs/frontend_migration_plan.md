@@ -1,6 +1,6 @@
 # Frontend Migration Plan
 
-This document captures the scope and approach for migrating the OS Dashboard AI Assistant UI from the Tkinter/ttk Python application to the existing React/TypeScript codebase in `frontend/`.
+This document captures the scope and approach for migrating the AI OS UI from the Tkinter/ttk Python application to the existing React/TypeScript codebase in `frontend/`.
 
 ## 1. Current State
 

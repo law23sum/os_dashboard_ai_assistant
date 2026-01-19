@@ -2,7 +2,7 @@
 
 Main Application Orchestrator
 
-Central coordination hub for the OS Dashboard AI Assistant
+Central coordination hub for the AI OS Orchestrator
 
 """
 
@@ -33,7 +33,7 @@ from assistant_core.search_engine import UnifiedSearchEngine, SearchQuery
 
 
 class OSDashboardConfig:
-    """Configuration management for OS Dashboard"""
+    """Configuration management for AI OS"""
 
     def __init__(self, config_path: str = "config.json"):
         self.config_path = Path(config_path)
@@ -142,7 +142,7 @@ class OSDashboardConfig:
 
 
 class OSDashboard:
-    """Main OS Dashboard AI Assistant application"""
+    """Main AI OS Orchestrator application"""
 
     def __init__(self, config_path: str = "config.json"):
         self.config = OSDashboardConfig(config_path)
@@ -186,7 +186,7 @@ class OSDashboard:
 
     async def initialize(self):
         """Initialize all components"""
-        self.logger.info("Initializing OS Dashboard AI Assistant...")
+        self.logger.info("Initializing AI OS Orchestrator...")
 
         try:
             # Initialize audit system first
@@ -215,10 +215,10 @@ class OSDashboard:
             #     )
             # )
 
-            self.logger.info("OS Dashboard AI Assistant initialized successfully")
+            self.logger.info("AI OS Orchestrator initialized successfully")
 
         except Exception as e:
-            self.logger.error(f"Failed to initialize OS Dashboard: {e}")
+            self.logger.error(f"Failed to initialize AI OS: {e}")
             raise
 
     # async def _initialize_audit_system(self):
@@ -304,14 +304,14 @@ class OSDashboard:
     #     await self.workflow_engine.start()
 
     async def start(self):
-        """Start the OS Dashboard application"""
+        """Start the AI OS application"""
         if self.is_running:
             return
 
         await self.initialize()
         self.is_running = True
 
-        self.logger.info("OS Dashboard AI Assistant is now running")
+        self.logger.info("AI OS Orchestrator is now running")
 
         # Start background tasks
         await self._start_background_tasks()
@@ -480,7 +480,7 @@ class OSDashboard:
         if not self.is_running:
             return
 
-        self.logger.info("Shutting down OS Dashboard AI Assistant...")
+        self.logger.info("Shutting down AI OS Orchestrator...")
         self.is_running = False
 
         try:
@@ -507,7 +507,7 @@ class OSDashboard:
             # Save search engine cache
             self.search_engine.embedding_engine._save_cache()
 
-            self.logger.info("OS Dashboard AI Assistant shutdown complete")
+            self.logger.info("AI OS Orchestrator shutdown complete")
 
         except Exception as e:
             self.logger.error(f"Error during shutdown: {e}")

@@ -1,4 +1,4 @@
-# OS Dashboard AI Assistant — Features Overview
+# AI OS — Features Overview
 
 ## TOC
 - Sessions are appended below in chronological order.

@@ -18,6 +18,7 @@ from pydantic import BaseModel
 
 from backend_api.db import db_session
 from assistant_hub_gui.assistant_hub.config import DATA_DIR
+from assistant_hub import db as hub_db
 
 router = APIRouter()
 
@@ -62,10 +63,19 @@ def get_database_path() -> Path:
     return Path(__file__).parent.parent.parent / "assistant_hub_gui" / "assistant_hub" / "assistant_hub.db"
 
 
+def _require_sqlite() -> None:
+    if hub_db.is_postgres_enabled():
+        raise HTTPException(
+            status_code=400,
+            detail="SQLite-only endpoint when DATABASE_URL is set. Use pg_dump/pg_restore for Postgres backups.",
+        )
+
+
 @router.get("/stats", response_model=DataStatsResponse)
 async def get_data_stats():
     """Get statistics about current data storage."""
     db_path = get_database_path()
+    sqlite_only = not hub_db.is_postgres_enabled()
     
     with db_session() as db:
         projects_count = db.execute("SELECT COUNT(*) FROM projects").fetchone()[0]
@@ -74,22 +84,25 @@ async def get_data_stats():
         # Get ledger events count
         try:
             ledger_count = db.execute("SELECT COUNT(*) FROM project_ledger").fetchone()[0]
-        except sqlite3.OperationalError:
+        except Exception:
             ledger_count = 0
         
         # Get note links count
         try:
             links_count = db.execute("SELECT COUNT(*) FROM note_links").fetchone()[0]
-        except sqlite3.OperationalError:
+        except Exception:
             links_count = 0
     
     # Get database size
-    db_size_mb = db_path.stat().st_size / (1024 * 1024) if db_path.exists() else 0
+    db_size_mb = db_path.stat().st_size / (1024 * 1024) if sqlite_only and db_path.exists() else 0
     
     # Get last backup
     backup_dir = get_backup_dir()
-    backups = sorted(backup_dir.glob("backup_*.db"), key=lambda p: p.stat().st_mtime, reverse=True)
-    last_backup = backups[0].name if backups else None
+    if sqlite_only:
+        backups = sorted(backup_dir.glob("backup_*.db"), key=lambda p: p.stat().st_mtime, reverse=True)
+        last_backup = backups[0].name if backups else None
+    else:
+        last_backup = None
     
     return DataStatsResponse(
         projects=projects_count,
@@ -104,6 +117,7 @@ async def get_data_stats():
 @router.post("/backup", response_model=BackupResponse)
 async def create_backup():
     """Create a full database backup."""
+    _require_sqlite()
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     backup_filename = f"backup_{timestamp}.db"
     
@@ -134,6 +148,7 @@ async def create_backup():
 @router.post("/restore", response_model=RestoreResponse)
 async def restore_backup(request: RestoreRequest):
     """Restore from a backup file."""
+    _require_sqlite()
     backup_path = get_backup_dir() / request.backup_file
     
     if not backup_path.exists():
@@ -170,6 +185,7 @@ async def restore_backup(request: RestoreRequest):
 @router.get("/backups")
 async def list_backups():
     """List all available backups."""
+    _require_sqlite()
     backup_dir = get_backup_dir()
     backups = []
     
@@ -188,6 +204,7 @@ async def list_backups():
 @router.get("/download-backup/{filename}")
 async def download_backup(filename: str):
     """Download a specific backup file."""
+    _require_sqlite()
     backup_path = get_backup_dir() / filename
     
     if not backup_path.exists():
@@ -245,7 +262,7 @@ async def export_to_json():
                     except json.JSONDecodeError:
                         pass
                 export_data["ledger_events"].append(event)
-        except sqlite3.OperationalError:
+        except Exception:
             pass
         
         # Export note links
@@ -254,7 +271,7 @@ async def export_to_json():
             columns = [desc[0] for desc in cursor.description]
             for row in cursor.fetchall():
                 export_data["note_links"].append(dict(zip(columns, row)))
-        except sqlite3.OperationalError:
+        except Exception:
             pass
     
     # Write to file
@@ -289,8 +306,15 @@ async def import_from_json(file: UploadFile = File(...)):
         for project in import_data.get("projects", []):
             try:
                 db.execute(
-                    """INSERT OR REPLACE INTO projects (name, description, status, priority, order_num)
-                       VALUES (?, ?, ?, ?, ?)""",
+                    """
+                    INSERT INTO projects (name, description, status, priority, order_num)
+                    VALUES (?, ?, ?, ?, ?)
+                    ON CONFLICT(name) DO UPDATE SET
+                        description = excluded.description,
+                        status = excluded.status,
+                        priority = excluded.priority,
+                        order_num = excluded.order_num
+                    """,
                     (
                         project.get("name"),
                         project.get("description"),
@@ -306,18 +330,31 @@ async def import_from_json(file: UploadFile = File(...)):
         # Import tasks
         for task in import_data.get("tasks", []):
             try:
+                notes = task.get("notes") or task.get("description") or ""
                 db.execute(
-                    """INSERT OR REPLACE INTO tasks 
-                       (id, title, description, status, priority, project, due_date, owner, created_at, updated_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    """
+                    INSERT INTO tasks
+                    (id, title, project, status, priority, due_date, notes, owner, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        title = excluded.title,
+                        project = excluded.project,
+                        status = excluded.status,
+                        priority = excluded.priority,
+                        due_date = excluded.due_date,
+                        notes = excluded.notes,
+                        owner = excluded.owner,
+                        created_at = excluded.created_at,
+                        updated_at = excluded.updated_at
+                    """,
                     (
                         task.get("id"),
                         task.get("title"),
-                        task.get("description"),
+                        task.get("project"),
                         task.get("status", "TODO"),
                         task.get("priority", "MEDIUM"),
-                        task.get("project"),
                         task.get("due_date"),
+                        notes,
                         task.get("owner"),
                         task.get("created_at"),
                         task.get("updated_at"),

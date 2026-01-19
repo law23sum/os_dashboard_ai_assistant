@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Quick launcher for OS Dashboard AI Assistant execution pipeline
+Quick launcher for AI OS execution pipeline
 This is a convenience wrapper around scripts/execute.py
 """
 

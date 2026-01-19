@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""UI entrypoint for OS Dashboard AI Assistant - DEPRECATED
+"""UI entrypoint for AI OS Console - DEPRECATED
 
 This UI has been removed. Use assistant_hub_gui/main.py for the full GUI experience.
 """

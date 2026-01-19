@@ -17,7 +17,6 @@ import tempfile
 import subprocess
 
 import requests
-import pandas as pd
 from bs4 import BeautifulSoup
 
 

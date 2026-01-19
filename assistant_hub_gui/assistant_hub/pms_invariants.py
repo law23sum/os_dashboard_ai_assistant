@@ -1,4 +1,4 @@
-"""Invariant checks for PMS canonical data + derived indices."""
+"""Invariant checks for IPM canonical data + derived indices."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ def validate_pms_invariants(
     todos: Iterable[object],
     priority_tiers: Optional[Iterable[str]] = None,
 ) -> List[str]:
-    """Validate canonical PMS invariants and return a list of errors."""
+    """Validate canonical IPM invariants and return a list of errors."""
 
     errors: List[str] = []
     epic_ids = set()

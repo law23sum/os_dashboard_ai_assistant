@@ -1,4 +1,4 @@
-"""Security, governance, and billing systems for the OS Dashboard AI Assistant."""
+"""Security, governance, and billing systems for the AI OS."""
 
 from .encryption_service import (
     EncryptionType,

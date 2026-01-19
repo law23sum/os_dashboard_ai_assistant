@@ -54,6 +54,7 @@ class ResponseCreate(BaseModel):
     tool_choice: Optional[str] = "auto"
     temperature: Optional[float] = None
     max_output_tokens: Optional[int] = None
+    interaction_style: Optional[str] = None
 
 
 @router.post("/conversations", response_model=ConversationResponse)
@@ -167,6 +168,7 @@ async def create_response(
                         enable_code_interpreter=enable_code_interpreter,
                         enable_file_search=enable_file_search,
                         conversation_id=response_data.conversation,
+                        interaction_style=response_data.interaction_style,
                     )
                     
                     # Format as SSE
@@ -221,6 +223,7 @@ async def create_response(
                 enable_code_interpreter=enable_code_interpreter,
                 enable_file_search=enable_file_search,
                 conversation_id=response_data.conversation,
+                interaction_style=response_data.interaction_style,
             )
             
             # Format response in Responses API format
@@ -277,5 +280,3 @@ async def get_conversation(
     except Exception as e:
         logger.error(f"Error getting conversation: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to get conversation: {str(e)}")
-
-

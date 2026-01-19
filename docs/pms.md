@@ -1,14 +1,19 @@
-# Project Management System (PMS)
+# Intelligence Project Management (IPM)
 
-This document summarizes the PMS core model, deterministic scheduler, scoping rules, and integrated subsystems (runs, documents, journal, finance, audit). It reflects the `/api/pms` surface used by the desktop + web UI.
+This document summarizes the IPM core model, deterministic scheduler, scoping rules, and integrated subsystems (runs, documents, journal, finance, audit). It reflects the `/api/ipm` surface used by the desktop + web UI, with `/api/pms` retained as a deprecated alias.
+
+## Deprecations
+- `/api/pms` is a deprecated alias for `/api/ipm`.
+- Deprecation headers: `Deprecation: true`, `Sunset: 2026-06-30`, `Warning: 299 - "Deprecated API: use /api/ipm"`, `Link: </api/ipm>; rel="successor-version"`.
+- Sunset target: 2026-06-30 (subject to published migration milestones).
 
 ## Canonical Truth vs Derived Indices
-- Canonical truth is `tasksById` (and `epicsById`) stored in `pms_tasks` / `pms_epics`.
+- Canonical truth is `tasksById` (and `epicsById`) stored in `pms_tasks` / `pms_epics` (legacy storage identifiers).
 - Scheduler indices are derived views rebuilt on demand; they are not persisted.
 - Determinism is anchored on `enqueue_time` (falling back to `created_at`) and stable tie-breaks.
 
 ## Core Hierarchy
-Project → Epic → Task → Todo
+Project -> Epic -> Task -> Todo
 
 ### Project
 Fields: `project_id`, `name`, `mode` (`personal|enterprise`), `scope_type`, `scope_id`, `config`, `budget`, `created_at`, `updated_at`.
@@ -24,7 +29,7 @@ Fields: `task_id`, `project_id`, `epic_id?`, `title`, `deliverable_spec`, `accep
 Fields: `todo_id`, `task_id`, `text`, `status`, `position`, timestamps.  
 Todo ordering is explicit via `position` to guarantee stable ordering after reloads.
 
-## Scheduler (What’s Next)
+## Scheduler (What's Next)
 1. Pick the highest priority tier with eligible tasks (excludes `DONE`/`ARCHIVED`; `BLOCKED` filtered by default).
 2. Within the tier, select the lane whose head task has the oldest `enqueue_time`.
 3. Tie-break by `lane_key` lexicographically, then `task_id`.
@@ -60,7 +65,7 @@ Lanes are keyed by `(category, task_type)` and are FIFO queues by default.
 ## UX Overview (Web)
 - Global shell uses a platform dropdown, category list, and left-side feature rail.
 - Project detail tabs: Overview, Epics, Tasks, Schedule, Runs, Documents, Journal, Finance, Audit, Settings.
-- “Next Task” panels read from the deterministic scheduler; “peek” is non-mutating.
+- "Next Task" panels read from the deterministic scheduler; "peek" is non-mutating.
 - Runs show artifacts with download links and lightweight previews.
 - Documents expose publish pointers, revision history, and new revision inputs.
 - Journal flow supports audio upload (with consent), transcript ingestion, and structured blocks.
@@ -83,14 +88,14 @@ Lanes are keyed by `(category, task_type)` and are FIFO queues by default.
 ## Scoping (Personal vs Enterprise)
 - Personal scope: `scope_type=user` and `scope_id=user_id`.
 - Enterprise scope: `scope_type=tenant` and `scope_id=workspace_id`.
-- `/api/pms` endpoints enforce scope via the project record.
+- `/api/ipm` endpoints enforce scope via the project record (legacy `/api/pms` is a deprecated alias).
 - Admin sample projects (from deliverables + `documents/projects`) are flagged `is_sample` and hidden from non-admins.
 
 ## API Quick Examples
 
 Create task:
 ```json
-POST /api/pms/projects/{projectId}/tasks
+POST /api/ipm/projects/{projectId}/tasks
 {
   "title": "Write spec",
   "priority": "P1",
@@ -102,12 +107,12 @@ POST /api/pms/projects/{projectId}/tasks
 
 Peek schedule:
 ```http
-GET /api/pms/projects/{projectId}/schedule/peek?count=5
+GET /api/ipm/projects/{projectId}/schedule/peek?count=5
 ```
 
 Add document revision:
 ```json
-POST /api/pms/documents/{documentId}/revisions
+POST /api/ipm/documents/{documentId}/revisions
 {
   "content": "# Draft spec\n",
   "metadata": { "author": "Aria" }
@@ -116,7 +121,7 @@ POST /api/pms/documents/{documentId}/revisions
 
 Attach meeting audio:
 ```json
-POST /api/pms/meetings/{meetingId}/audio
+POST /api/ipm/meetings/{meetingId}/audio
 {
   "filename": "sync.wav",
   "content_base64": "<base64>",

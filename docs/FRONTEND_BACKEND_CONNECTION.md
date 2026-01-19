@@ -230,7 +230,10 @@ VITE_API_TARGET=http://localhost:8000
 
 # Backend
 OPENAI_API_KEY=your_key
-DATABASE_URL=sqlite:///./app.db
+# SQLite (default)
+ASSISTANT_HUB_DB=./assistant_hub_gui/assistant_hub/assistant_hub.db
+# Postgres (optional)
+DATABASE_URL=postgresql://user:pass@localhost:5432/osdash
 ```
 
 ### Vite Proxy Configuration
@@ -430,6 +433,11 @@ import Button from '../components/ui/Button'
 - Type safety
 
 The frontend and backend are now fully connected with a robust, scalable architecture that improves both developer experience and user experience.
+
+
+
+
+
 
 
 

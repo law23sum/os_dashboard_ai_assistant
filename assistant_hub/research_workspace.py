@@ -3,7 +3,7 @@
 
 The Tkinter GUI, React client, and FastAPI layer all import this module so there is
 only one canonical definition of the Research dashboard defaults (aligns with the
-OS Dashboard canon §4.5/§4.6 requirements).
+AI OS canon §4.5/§4.6 requirements).
 """
 
 from __future__ import annotations

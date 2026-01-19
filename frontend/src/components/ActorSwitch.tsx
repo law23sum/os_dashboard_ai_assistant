@@ -1,4 +1,4 @@
-import { Building2, User } from 'lucide-react'
+import { Building2, Users, User } from 'lucide-react'
 import { useActor } from '../contexts/ActorContext'
 import type { ActorType } from '../types/actor'
 
@@ -17,6 +17,12 @@ const options: Array<{
     label: 'Personal Workstation',
     description: 'Personal workstation edition',
     Icon: User,
+  },
+  {
+    id: 'business',
+    label: 'Business/Team',
+    description: 'Business and team edition',
+    Icon: Users,
   },
   {
     id: 'enterprise',

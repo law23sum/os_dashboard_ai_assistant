@@ -38,7 +38,7 @@ class DriverSpec:
 
 
 class DriverRegistry:
-    """In-memory registry capturing drivers defined by the OS Dashboard spec."""
+    """In-memory registry capturing drivers defined by the AI OS spec."""
 
     def __init__(self) -> None:
         self._drivers: Dict[str, DriverSpec] = {}

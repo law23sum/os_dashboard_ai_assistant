@@ -18,6 +18,7 @@ from .db import (
     db_upsert_project,
     db_get_document_samples,
     Project,
+    insert_and_fetch_id,
 )
 from .versioning import enqueue_commit
 
@@ -342,12 +343,14 @@ def _create_document_version(
 
     # Insert version record
     created_at = datetime.now().isoformat(timespec="seconds")
-    c.execute(
-        """
+    insert_sql = """
         INSERT INTO document_versions 
         (note_link_id, version_number, file_path, file_size, checksum, created_at, created_by, description)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """,
+    """
+    version_id = insert_and_fetch_id(
+        conn,
+        insert_sql,
         (
             note_link_id,
             version_number,
@@ -361,7 +364,7 @@ def _create_document_version(
     )
 
     conn.commit()
-    return c.lastrowid
+    return version_id
 
 
 def get_document_versions(conn: sqlite3.Connection, note_link_id: int) -> List[Dict]:
@@ -520,6 +523,25 @@ def materialize_document_samples(
 
         payload = sample.sample_content or sample.description or sample.title
         dest_path.write_text(payload, encoding="utf-8")
+        try:
+            from assistant_hub.audit.sdk import get_default_emitter, new_correlation_id
+            from hashlib import sha256
+
+            emitter = get_default_emitter(agent_id="os_dashboard")
+            content_bytes = payload.encode("utf-8") if isinstance(payload, str) else b""
+            emitter.emit(
+                event_type="WRITE_OPERATION",
+                message="Materialized document sample",
+                payload={
+                    "path": str(dest_path),
+                    "bytes": len(content_bytes),
+                    "content_hash": sha256(content_bytes).hexdigest() if content_bytes else None,
+                    "project": project_name,
+                },
+                correlation_id=new_correlation_id(),
+            )
+        except Exception:
+            pass
         created.append(str(dest_path))
 
     return created, skipped

@@ -27,16 +27,6 @@ import traceback
 
 from assistant_core.spec_registry import get_default_registry
 from config.logging_config import setup_logger
-from .predictive_analytics import AdvancedPredictiveAnalytics
-from .computer_vision_ai import ComputerVisionMultimodalAI
-from .conversation_manager import ConversationManager
-from .automation_orchestrator import AutomationOrchestrator
-from .security_framework import AISecurityFramework
-from .edge_computing_ai import EdgeComputingDistributedAI
-from .personalization_engine import PersonalizationRecommendationEngine
-from .collaboration_intelligence import CollaborationIntelligence
-from .mlops_platform import MLOpsPlatform
-from .intelligent_monitoring import IntelligentMonitoringSystem
 
 
 class AIServiceType(Enum):
@@ -93,6 +83,12 @@ class AIServicesAPI:
         self.logger = setup_logger("AIServicesAPI")
         self.services = {}
         self._initialized = False
+        self._rag_engine = None
+        self._rag_engine_checked = False
+        self._guidance_engine = None
+        self._guidance_engine_checked = False
+        self._prompt_evaluator = None
+        self._prompt_evaluator_checked = False
 
     async def initialize(self):
         """Initialize all AI services"""
@@ -1008,6 +1004,60 @@ class AIServicesAPI:
 
         return configs.get(service_type, {})
 
+    def get_rag_engine(self):
+        """Return the LlamaIndex RAG engine if available."""
+        if self._rag_engine_checked:
+            return self._rag_engine
+        self._rag_engine_checked = True
+        try:
+            from assistant_core.llamaindex_integration import (
+                LLAMAINDEX_AVAILABLE,
+                create_rag_engine,
+            )
+            if not LLAMAINDEX_AVAILABLE:
+                return None
+            self._rag_engine = create_rag_engine()
+        except Exception as e:
+            self.logger.debug("RAG tooling engine unavailable: %s", e)
+            self._rag_engine = None
+        return self._rag_engine
+
+    def get_guidance_engine(self):
+        """Return the Guidance prompt engine if available."""
+        if self._guidance_engine_checked:
+            return self._guidance_engine
+        self._guidance_engine_checked = True
+        try:
+            from assistant_core.guidance_integration import (
+                GUIDANCE_AVAILABLE,
+                create_guidance_engine,
+            )
+            if not GUIDANCE_AVAILABLE:
+                return None
+            self._guidance_engine = create_guidance_engine()
+        except Exception as e:
+            self.logger.debug("Prompt templating engine unavailable: %s", e)
+            self._guidance_engine = None
+        return self._guidance_engine
+
+    def get_prompt_evaluator(self):
+        """Return the Prompttools evaluator if available."""
+        if self._prompt_evaluator_checked:
+            return self._prompt_evaluator
+        self._prompt_evaluator_checked = True
+        try:
+            from assistant_core.prompttools_integration import (
+                PROMPTTOOLS_AVAILABLE,
+                create_prompt_evaluator,
+            )
+            if not PROMPTTOOLS_AVAILABLE:
+                return None
+            self._prompt_evaluator = create_prompt_evaluator()
+        except Exception as e:
+            self.logger.debug("Prompt evaluation engine unavailable: %s", e)
+            self._prompt_evaluator = None
+        return self._prompt_evaluator
+
 
 # Global AI Services API instance
 ai_services_api = AIServicesAPI()
@@ -1068,6 +1118,53 @@ def get_service_configurations() -> Dict[str, Any]:
 def get_service_availability() -> Dict[str, bool]:
     """Get availability status of all services"""
     return ai_services_api.get_available_services()
+
+
+def get_tooling_integrations_status() -> Dict[str, Any]:
+    """Get availability status for RAG + prompt tooling integrations."""
+    status: Dict[str, Any] = {
+        "llamaindex": False,
+        "guidance": False,
+        "prompttools": False,
+    }
+    errors: Dict[str, str] = {}
+
+    try:
+        from assistant_core.llamaindex_integration import (
+            LLAMAINDEX_AVAILABLE,
+            LLAMAINDEX_IMPORT_ERROR,
+        )
+        status["llamaindex"] = bool(LLAMAINDEX_AVAILABLE)
+        if LLAMAINDEX_IMPORT_ERROR:
+            errors["llamaindex"] = LLAMAINDEX_IMPORT_ERROR
+    except Exception as e:
+        errors["llamaindex"] = str(e)
+
+    try:
+        from assistant_core.guidance_integration import (
+            GUIDANCE_AVAILABLE,
+            GUIDANCE_IMPORT_ERROR,
+        )
+        status["guidance"] = bool(GUIDANCE_AVAILABLE)
+        if GUIDANCE_IMPORT_ERROR:
+            errors["guidance"] = GUIDANCE_IMPORT_ERROR
+    except Exception as e:
+        errors["guidance"] = str(e)
+
+    try:
+        from assistant_core.prompttools_integration import (
+            PROMPTTOOLS_AVAILABLE,
+            PROMPTTOOLS_IMPORT_ERROR,
+        )
+        status["prompttools"] = bool(PROMPTTOOLS_AVAILABLE)
+        if PROMPTTOOLS_IMPORT_ERROR:
+            errors["prompttools"] = PROMPTTOOLS_IMPORT_ERROR
+    except Exception as e:
+        errors["prompttools"] = str(e)
+
+    if errors:
+        status["errors"] = errors
+    return status
 
 
 _spec_registry = get_default_registry()

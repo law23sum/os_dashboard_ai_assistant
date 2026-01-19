@@ -1,25 +1,43 @@
-import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import Layout from '../Layout'
+import { getCategories, getPlatforms, legacyRedirects } from '../../data/iaManifest'
 
-// Mock UnifiedAIPanel to simplify tests
 vi.mock('../UnifiedAIPanel', () => ({
   UnifiedAIPanel: () => <div data-testid="ai-panel">AI Panel</div>,
 }))
 
-// Mock useAppSettings hook
+vi.mock('../GlobalSearch', () => ({
+  default: () => <div data-testid="global-search" />,
+}))
+
 vi.mock('../../hooks/useSettings', () => ({
   useAppSettings: () => ({
     data: { theme: 'default' },
   }),
 }))
 
-// Helper to get the first nav dropdown button
+vi.mock('../../auth/AuthContext', () => ({
+  useAuth: () => ({
+    state: {
+      status: 'authenticated',
+      user: {
+        id: 'demo',
+        email: 'demo@osdash.local',
+        display_name: 'Demo User',
+        is_admin: false,
+        environment: 'test',
+      },
+    },
+    refresh: vi.fn(),
+    logout: vi.fn(),
+  }),
+}))
+
 const getNavDropdownButton = () => {
-  // Get all buttons and find the first one that looks like a nav dropdown
   const buttons = screen.getAllByRole('button')
-  const navButtons = buttons.filter(btn => btn.classList.contains('osd-nav-link'))
+  const navButtons = buttons.filter((btn) => btn.classList.contains('osd-nav-link'))
   return navButtons.length > 0 ? navButtons[0] : buttons[0]
 }
 
@@ -28,122 +46,104 @@ function LocationEcho() {
   return <div data-testid="location">{location.pathname}</div>
 }
 
-describe('Layout NavDropdown Performance', () => {
+const renderLayoutAt = (path = '/') => {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<LocationEcho />} />
+          <Route path="/tasks" element={<LocationEcho />} />
+          <Route path="/chat" element={<LocationEcho />} />
+          <Route path="*" element={<LocationEcho />} />
+        </Route>
+      </Routes>
+    </MemoryRouter>
+  )
+}
+
+describe('Layout navigation hierarchy', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    global.requestAnimationFrame = vi.fn((cb) => setTimeout(cb, 16))
-    global.cancelAnimationFrame = vi.fn()
+    globalThis.requestAnimationFrame = vi.fn((cb) => setTimeout(cb, 16)) as unknown as typeof requestAnimationFrame
+    globalThis.cancelAnimationFrame = vi.fn()
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
     cleanup()
   })
-})
 
-describe('Layout navigation hierarchy', () => {
-  const renderLayoutAt = (path = '/') => {
-    return render(
-      <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<LocationEcho />} />
-            <Route path="/tasks" element={<LocationEcho />} />
-            <Route path="/chat" element={<LocationEcho />} />
-            <Route path="*" element={<LocationEcho />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    )
-  }
+  it('should render layout with navigation', () => {
+    renderLayoutAt('/')
 
-  it('should render layout with navigation', async () => {
-    renderLayout()
-    
-    // Check that layout rendered with content
-    expect(screen.getByText('Test Content')).toBeInTheDocument()
-    
-    // Check for navigation elements
-    expect(screen.getByText('OS Dashboard · AI Assistant')).toBeInTheDocument()
+    const platforms = getPlatforms('personal')
+    const mission = platforms.find((platform) => platform.id === 'mission-control')
+    const homePath = mission?.path ?? platforms[0]?.path ?? '/'
+    const expectedPath = legacyRedirects['/'] ?? homePath
+
+    expect(screen.getByText('AI OS Console')).toBeInTheDocument()
+    expect(screen.getByTestId('location').textContent).toBe(expectedPath)
   })
 
   it('should open dropdown when nav button clicked', async () => {
-    renderLayout()
-    
-    const navButton = getNavDropdownButton()
-    if (navButton) {
-      fireEvent.click(navButton)
+    renderLayoutAt('/')
 
-      // Dropdown should be visible (portaled to document.body)
-      await waitFor(() => {
-        const dropdown = document.body.querySelector('.osd-dropdown')
-        expect(dropdown).toBeInTheDocument()
-      }, { timeout: 500 })
-    }
-  })
-
-  it('should close dropdown when clicked again', async () => {
-    renderLayout()
-    
     const navButton = getNavDropdownButton()
-    if (!navButton) return
-    
-    // Open dropdown
     fireEvent.click(navButton)
+
     await waitFor(() => {
       const dropdown = document.body.querySelector('.osd-dropdown')
       expect(dropdown).toBeInTheDocument()
-    }, { timeout: 500 })
+    })
+  })
 
-    // Close dropdown
+  it('should close dropdown when clicked again', async () => {
+    renderLayoutAt('/')
+
+    const navButton = getNavDropdownButton()
     fireEvent.click(navButton)
+
     await waitFor(() => {
-      const dropdown = document.body.querySelector('.osd-dropdown')
-      expect(dropdown).not.toBeInTheDocument()
-    }, { timeout: 500 })
+      expect(document.body.querySelector('.osd-dropdown')).toBeInTheDocument()
+    })
+
+    fireEvent.click(navButton)
+
+    await waitFor(() => {
+      expect(document.body.querySelector('.osd-dropdown')).not.toBeInTheDocument()
+    })
   })
 
   it('should cleanup on unmount', () => {
     const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener')
 
-    const { unmount } = renderLayout()
-    
+    const { unmount } = renderLayoutAt('/')
+
     const navButton = getNavDropdownButton()
-    if (navButton) {
-      fireEvent.click(navButton)
-    }
+    fireEvent.click(navButton)
 
     unmount()
 
-    // Verify cleanup happened
     expect(removeEventListenerSpy).toHaveBeenCalled()
     removeEventListenerSpy.mockRestore()
   })
 
   it('should close dropdown when clicking a link', async () => {
-    renderLayout()
-    
+    renderLayoutAt('/')
+
     const navButton = getNavDropdownButton()
-    if (!navButton) return
-    
-    // Open dropdown
     fireEvent.click(navButton)
+
     await waitFor(() => {
-      const dropdown = document.body.querySelector('.osd-dropdown')
-      expect(dropdown).toBeInTheDocument()
-    }, { timeout: 500 })
+      expect(document.body.querySelector('.osd-dropdown')).toBeInTheDocument()
+    })
 
-    // Click a link inside dropdown
-    const dropdown = document.body.querySelector('.osd-dropdown')
-    const link = dropdown?.querySelector('a')
-    if (link) {
-      fireEvent.click(link)
-    }
+    const menuItems = screen.getAllByRole('menuitem')
+    fireEvent.click(menuItems[0])
 
-    // Dropdown should close after clicking link
     await waitFor(() => {
       expect(document.body.querySelector('.osd-dropdown')).not.toBeInTheDocument()
-    }, { timeout: 500 })
+    })
   })
 
   it('should position dropdown correctly', async () => {
@@ -160,72 +160,57 @@ describe('Layout navigation hierarchy', () => {
       toJSON: vi.fn(),
     } as DOMRect)
 
-    renderLayout()
-    
+    renderLayoutAt('/')
+
     const navButton = getNavDropdownButton()
-    if (navButton) {
-      fireEvent.click(navButton)
+    fireEvent.click(navButton)
 
-      await waitFor(() => {
-        const dropdown = document.body.querySelector('.osd-dropdown') as HTMLElement
-        expect(dropdown).toBeInTheDocument()
-      }, { timeout: 500 })
+    await waitFor(() => {
+      expect(document.body.querySelector('.osd-dropdown')).toBeInTheDocument()
+    })
 
-      expect(getBoundingClientRectSpy).toHaveBeenCalled()
-    }
-
+    expect(getBoundingClientRectSpy).toHaveBeenCalled()
     getBoundingClientRectSpy.mockRestore()
-  it('opens and closes a platform dropdown (not sticky)', async () => {
-    renderLayoutAt('/tasks')
-
-    const button = screen.getAllByRole('button', { name: 'Mission Control' })[0]
-    fireEvent.click(button)
-
-    await waitFor(() => {
-      expect(document.body.querySelector('.osd-dropdown')).toBeTruthy()
-    })
-
-    // Click again to close
-    fireEvent.click(button)
-    await waitFor(() => {
-      expect(document.body.querySelector('.osd-dropdown')).toBeFalsy()
-    })
   })
 
   it('closes on Escape', async () => {
     renderLayoutAt('/')
 
-    const button = screen.getAllByRole('button', { name: 'Mission Control' })[0]
-    fireEvent.click(button)
+    const navButton = getNavDropdownButton()
+    fireEvent.click(navButton)
 
     await waitFor(() => {
-      expect(document.body.querySelector('.osd-dropdown')).toBeTruthy()
+      expect(document.body.querySelector('.osd-dropdown')).toBeInTheDocument()
     })
 
     fireEvent.keyDown(document, { key: 'Escape' })
 
     await waitFor(() => {
-      expect(document.body.querySelector('.osd-dropdown')).toBeFalsy()
+      expect(document.body.querySelector('.osd-dropdown')).not.toBeInTheDocument()
     })
   })
 
   it('navigates when selecting a dropdown category and closes', async () => {
     renderLayoutAt('/')
 
-    const button = screen.getAllByRole('button', { name: 'Mission Control' })[0]
-    fireEvent.click(button)
+    const navButton = getNavDropdownButton()
+    fireEvent.click(navButton)
 
     await waitFor(() => {
-      expect(document.body.querySelector('.osd-dropdown')).toBeTruthy()
+      expect(document.body.querySelector('.osd-dropdown')).toBeInTheDocument()
     })
 
-    // Select a category (group) whose first page is /chat
-    fireEvent.click(screen.getByText('Engagement & Persona Surfaces'))
+    const platforms = getPlatforms('personal')
+    const mission = platforms.find((platform) => platform.id === 'mission-control') ?? platforms[0]
+    const categories = getCategories(mission.id, 'personal')
+    const targetCategory = categories.find((category) => category.label === 'Engagement & Persona Surfaces')
+
+    expect(targetCategory).toBeTruthy()
+    fireEvent.click(screen.getByText(targetCategory?.label ?? 'Engagement & Persona Surfaces'))
 
     await waitFor(() => {
-      expect(document.body.querySelector('.osd-dropdown')).toBeFalsy()
-      expect(screen.getByTestId('location').textContent).toBe('/chat')
+      expect(document.body.querySelector('.osd-dropdown')).not.toBeInTheDocument()
+      expect(screen.getByTestId('location').textContent).toBe(targetCategory?.homeRoute)
     })
   })
-})
 })

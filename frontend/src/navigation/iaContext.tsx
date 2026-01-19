@@ -7,9 +7,13 @@ export interface IARouteContextValue {
   category?: IACategory
   feature?: IAFeature
   isCategoryHome: boolean
+  isPlatformLanding?: boolean
 }
 
-const IARouteContext = createContext<IARouteContextValue>({ isCategoryHome: false })
+const IARouteContext = createContext<IARouteContextValue>({
+  isCategoryHome: false,
+  isPlatformLanding: false,
+})
 
 interface IANavigationProviderProps {
   children: ReactNode
@@ -32,4 +36,3 @@ export function IANavigationProvider({ children }: IANavigationProviderProps) {
 export function useIARouteContext(): IARouteContextValue {
   return useContext(IARouteContext)
 }
-

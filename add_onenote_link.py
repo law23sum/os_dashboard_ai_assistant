@@ -15,7 +15,7 @@ from assistant_core.dashboard_engine import DashboardEngine
 def add_onenote_link():
     """Add the OneNote link provided by the user."""
     onenote_url = "https://1drv.ms/f/c/1A669C62CAEE5CBC/AiNO-BB0GnZOm1LO1cVGZkI?e=BnWbjs"
-    link_name = "OS Dashboard OneNote"
+    link_name = "AI OS OneNote"
 
     dashboard_engine = DashboardEngine()
 

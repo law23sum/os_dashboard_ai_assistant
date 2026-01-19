@@ -1,4 +1,4 @@
-"""Centralized exception hierarchy for OS Dashboard AI Assistant.
+"""Centralized exception hierarchy for AI OS.
 
 This module provides a comprehensive exception hierarchy that improves
 error handling, debugging, and user experience throughout the application.
@@ -10,7 +10,7 @@ from typing import Any, Optional
 
 
 class OSDashBaseException(Exception):
-    """Base exception for all OS Dashboard exceptions.
+    """Base exception for all AI OS exceptions.
     
     Provides consistent error handling with context and error codes.
     """
@@ -126,5 +126,4 @@ class FileSystemError(OSDashBaseException):
 class ProcessError(OSDashBaseException):
     """Raised when subprocess operations fail."""
     pass
-
 

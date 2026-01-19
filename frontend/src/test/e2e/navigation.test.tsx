@@ -70,7 +70,7 @@ describe('Navigation Layout E2E Tests', () => {
       })
     })
 
-    it('should display OS Dashboard branding', async () => {
+    it('should display AI OS branding', async () => {
       renderWithProviders(
         <Layout>
           <div>Test Content</div>

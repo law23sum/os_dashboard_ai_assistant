@@ -28,7 +28,7 @@ This document has been processed by our comprehensive AI governance framework:
 EXECUTIVE SUMMARY
 ===============================================================================
 This sample document demonstrates the AI governance capabilities integrated
-throughout the OS Dashboard AI Assistant framework. Every edit, every change,
+throughout the AI OS framework. Every edit, every change,
 and every decision is tracked with complete accountability.
 
 ===============================================================================

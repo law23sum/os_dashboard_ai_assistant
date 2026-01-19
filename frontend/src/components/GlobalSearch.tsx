@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Search, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useActor } from '../contexts/ActorContext'
-import { pmsApi } from '../api/pms'
+import { ipmApi } from '../api/ipm'
 
 const MIN_QUERY = 2
 
@@ -16,7 +16,7 @@ export default function GlobalSearch() {
 
   const { data, isFetching } = useQuery({
     queryKey: ['pms-search', currentActor, query],
-    queryFn: () => pmsApi.search({ query, scope: currentActor }),
+    queryFn: () => ipmApi.search({ query, scope: currentActor }),
     enabled: query.trim().length >= MIN_QUERY,
     staleTime: 20 * 1000,
   })

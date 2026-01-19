@@ -228,7 +228,7 @@ def _build_codex_prompt(
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run checks and trigger OS Dashboard auto-fix across any repo.")
+    parser = argparse.ArgumentParser(description="Run checks and trigger AI OS auto-fix across any repo.")
     parser.add_argument("--repo", type=Path, default=Path.cwd(), help="Repo path (defaults to CWD).")
     parser.add_argument("--categories", default="lint,test", help="Comma-separated categories to run.")
     parser.add_argument("--timeout", type=int, default=300, help="Per-command timeout seconds.")
@@ -301,4 +301,3 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

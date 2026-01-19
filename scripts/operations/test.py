@@ -1,5 +1,5 @@
 """
-Test operations for OS Dashboard AI Assistant
+Test operations for AI OS
 """
 
 import sys

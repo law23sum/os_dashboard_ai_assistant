@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""OS Dashboard Unified Launcher - Master entry point for all system modes.
+"""AI OS Unified Launcher - Master entry point for all system modes.
 
 This launcher provides a unified interface for starting and managing
-the OS Dashboard AI Assistant in various modes:
+the AI OS in various modes:
 
 1. **Development Mode**: Backend + Frontend dev servers with hot reload
 2. **Desktop Mode**: Electron desktop application
@@ -13,7 +13,7 @@ the OS Dashboard AI Assistant in various modes:
 
 Per Technical Spec V6:
 - Section 0.3: Deployment Modes Overview
-- Section 1.7: OS Dashboard AI Assistant - Driver-Aware Orchestrator
+- Section 1.7: AI OS - Driver-Aware Orchestrator
 - Section 7.10: Operator & SRE Workspace
 
 Examples:
@@ -79,7 +79,7 @@ class LaunchMode:
 
 
 class OSDashLauncher:
-    """Unified launcher for OS Dashboard AI Assistant."""
+    """Unified launcher for AI OS."""
     
     BANNER = """
 ╔═══════════════════════════════════════════════════════════════════╗
@@ -452,7 +452,7 @@ class OSDashLauncher:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="OS Dashboard Unified Launcher",
+        description="AI OS Unified Launcher",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Modes:

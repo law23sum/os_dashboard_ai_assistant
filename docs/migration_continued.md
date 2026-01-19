@@ -167,7 +167,7 @@ frontend/
    - Automate generating ledger-backed evidence packs (Spec §8.17 / §11.6) that bundle artifacts for regulators, then preview them in the React panel before producing PDF/ZIP outputs.
 
 2. **Project Intelligence Documentation & Migration Guide**
-   - Document how the React/Tk surfaces reuse the canonical spec, including sample flows from `OS DashboardAIAssistantTOC.txt` and the Technical Spec PDF, so new contributors can trace features back to requirements.
+   - Document how the React/Tk surfaces reuse the canonical spec, including sample flows from `OS DashboardAIAssistantTOC.txt` (legacy file name) and the Technical Spec PDF, so new contributors can trace features back to requirements.
 
 3. **Cross-Platform Verification**
    - Continue exercising the integration flow across Linux, Windows, and macOS builds, ensuring the shared code path (React + FastAPI) behaves identically whether surfaced via Electron or a browser tab.
@@ -214,4 +214,3 @@ npm run build:desktop:mac
 - All HTML pages from `docs/` are preserved and accessible via React routes
 - Shared utilities eliminate code duplication between desktop and web
 - Electron and browser builds use the same React bundle for feature parity
-

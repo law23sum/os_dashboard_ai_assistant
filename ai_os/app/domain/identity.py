@@ -25,7 +25,7 @@ class Tenant:
 
 @dataclass
 class User:
-    """End user of the OS Dashboard AI Assistant."""
+    """End user of the AI OS."""
 
     id: str
     email: str

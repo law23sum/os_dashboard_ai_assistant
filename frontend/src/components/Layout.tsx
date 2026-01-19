@@ -21,6 +21,7 @@ import { useAppSettings } from '../hooks/useSettings'
 import { UnifiedAIPanel } from './UnifiedAIPanel'
 import GlobalSearch from './GlobalSearch'
 import ActorSwitch from './ActorSwitch'
+import { AutomationBanner } from './AutomationBanner'
 import { useActor } from '../contexts/ActorContext'
 import { useAuth } from '../auth/AuthContext'
 import { useIARouteContext } from '../navigation/iaContext'
@@ -559,15 +560,6 @@ export default function Layout({ children }: LayoutProps) {
   const normalizedPath = location.pathname === '/' ? '/' : location.pathname.replace(/\/+$/, '')
   const legacyTarget = legacyRedirects[normalizedPath]
 
-  if (legacyTarget && legacyTarget !== normalizedPath) {
-    return (
-      <Navigate
-        to={{ pathname: legacyTarget, search: location.search, hash: location.hash }}
-        replace
-      />
-    )
-  }
-
   const activePlatform = useMemo(() => {
     if (routeContext.platform) {
       return routeContext.platform
@@ -611,12 +603,12 @@ export default function Layout({ children }: LayoutProps) {
       items.push({ label: routeContext.feature.label, path: routeContext.feature.route })
     }
 
-    const pmsMatch = location.pathname.match(/^\/pms\/projects\/([^/]+)/)
-    if (pmsMatch) {
-      const projectId = pmsMatch[1]
+    const ipmMatch = location.pathname.match(/^\/ipm\/projects\/([^/]+)/)
+    if (ipmMatch) {
+      const projectId = ipmMatch[1]
       items.push({
         label: `Project ${projectId.slice(0, 6)}`,
-        path: `/pms/projects/${projectId}`,
+        path: `/ipm/projects/${projectId}`,
       })
       const params = new URLSearchParams(location.search)
       const tab = params.get('tab')
@@ -690,8 +682,27 @@ export default function Layout({ children }: LayoutProps) {
     setMobileSidebarOpen(false)
   }, [location.pathname])
 
+  if (legacyTarget && legacyTarget !== normalizedPath) {
+    return (
+      <Navigate
+        to={{ pathname: legacyTarget, search: location.search, hash: location.hash }}
+        replace
+      />
+    )
+  }
+
+  if (normalizedPath === '/' && !routeContext.feature && homePath !== '/') {
+    return (
+      <Navigate
+        to={{ pathname: homePath, search: location.search, hash: location.hash }}
+        replace
+      />
+    )
+  }
+
   return (
     <div className="osd-shell min-h-screen text-[color:var(--osd-text)] flex flex-col">
+      <AutomationBanner />
       <nav className="osd-nav border-b border-[color:var(--osd-border)] sticky top-0 z-50 bg-[color:var(--osd-background)]/80 backdrop-blur-md">
         <div className="w-full px-2 sm:px-4 lg:px-6">
           <div className="flex h-16 items-center gap-3">
@@ -720,7 +731,7 @@ export default function Layout({ children }: LayoutProps) {
                   <p className="text-[0.6rem] uppercase tracking-[0.2em] text-[color:var(--osd-muted)] leading-none mb-1">
                     Canonical Control Room
                   </p>
-                  <h1 className="text-sm font-semibold tracking-wide">OS Dashboard · AI Assistant</h1>
+                  <h1 className="text-sm font-semibold tracking-wide">AI OS Console</h1>
                 </div>
               </Link>
 

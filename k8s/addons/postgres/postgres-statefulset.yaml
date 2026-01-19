@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: osdash-postgres
+  labels:
+    app: osdash
+    component: postgres
+spec:
+  serviceName: osdash-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: osdash
+      component: postgres
+  template:
+    metadata:
+      labels:
+        app: osdash
+        component: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+              name: postgres
+          envFrom:
+            - secretRef:
+                name: osdash-postgres
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi

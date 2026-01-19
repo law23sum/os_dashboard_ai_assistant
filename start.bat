@@ -1,8 +1,8 @@
 @echo off
-REM Simple startup script for OS Dashboard AI Assistant (Windows)
+REM Simple startup script for AI OS (Windows)
 
 echo ==================================
-echo OS Dashboard AI Assistant Launcher
+echo AI OS Launcher
 echo ==================================
 echo.
 

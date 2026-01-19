@@ -2,13 +2,25 @@
 
 from __future__ import annotations
 
-import pandas as pd
 from typing import Dict, List
+
+try:
+    import pandas as pd
+except Exception:  # pragma: no cover
+    pd = None  # type: ignore
 
 from ...ai_layer.tools import excel_generate_pandas_code
 from ...versioning import enqueue_commit, enqueue_git_commit
 from .cloud_client import ExcelCloudClient, CloudExcelClient
 from .local_client import load_sheet, save_sheet, LocalWorkbook
+
+
+def _require_pandas() -> None:
+    if pd is None:  # pragma: no cover - optional dependency
+        raise ModuleNotFoundError(
+            "pandas is required for Excel integrations. "
+            "Install optional dependencies with `python3 -m pip install -r requirements.txt`."
+        )
 
 
 class ExcelService:
@@ -20,6 +32,7 @@ class ExcelService:
     def summarize_sheet(
         self, workbook_path: str, sheet_name: str, instruction: str, actor: str = "AIC"
     ) -> List[str]:
+        _require_pandas()
         df = load_sheet(workbook_path, sheet_name)
         code = excel_generate_pandas_code(
             df.head(20).to_markdown(index=False), instruction

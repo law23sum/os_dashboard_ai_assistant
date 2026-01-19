@@ -1,6 +1,10 @@
 """Document operations (AI governance) API router."""
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+try:
+    from pydantic import BaseModel, ConfigDict
+except ImportError:  # pragma: no cover - pydantic v1 fallback
+    from pydantic import BaseModel
+    ConfigDict = None
 from typing import List, Optional, Dict
 from pathlib import Path
 import sys
@@ -60,8 +64,11 @@ class DocumentOperationResponse(BaseModel):
     completed_at: Optional[str]
     notes: str
 
-    class Config:
-        from_attributes = True
+    if ConfigDict is not None:
+        model_config = ConfigDict(from_attributes=True)
+    else:
+        class Config:
+            orm_mode = True
 
 
 class DocumentOperationSummary(BaseModel):

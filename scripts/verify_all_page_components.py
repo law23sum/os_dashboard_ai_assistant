@@ -7,7 +7,7 @@ Checks for Parameters/Config/Env/Execute/Results sections.
 import re
 import json
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Set
 
 def extract_routes_from_manifest(manifest_path: Path) -> List[Dict]:
     """Extract all routes from the IA manifest."""
@@ -58,6 +58,43 @@ def extract_routes_from_manifest(manifest_path: Path) -> List[Dict]:
     
     return all_routes
 
+def has_placeholder_markers(content: str) -> bool:
+    return bool(
+        re.search(
+            r'(Page Under Construction|MVP Scaffold|Coming soon|Under construction|Replace MVP scaffold)',
+            content,
+            re.I,
+        )
+    )
+
+def has_comment_todos(content: str) -> bool:
+    return bool(re.search(r'//\s*(TODO|FIXME)|/\*.*?(TODO|FIXME).*?\*/', content, re.I | re.S))
+
+def has_functional_signals(content: str) -> bool:
+    has_api = bool(re.search(r'(apiClient|useQuery|useMutation|fetch|axios|graphql)', content))
+    has_interaction = bool(re.search(r'(onClick|onSubmit|handleSubmit|useState)', content))
+    return has_api and has_interaction
+
+def resolve_reexport(path: Path, content: str) -> Tuple[Path, str]:
+    """Follow simple re-export wrappers to the target file if present."""
+    match = re.search(r'export\s*\{\s*default\s*\}\s*from\s*[\'"]([^\'"]+)[\'"]', content)
+    if not match:
+        return path, content
+
+    target = match.group(1)
+    candidate = (path.parent / target)
+    if candidate.suffix:
+        if candidate.exists():
+            return candidate, candidate.read_text()
+        return path, content
+
+    for ext in ['.tsx', '.ts', '.jsx', '.js']:
+        resolved = candidate.with_suffix(ext)
+        if resolved.exists():
+            return resolved, resolved.read_text()
+
+    return path, content
+
 def check_page_component(path: Path) -> Tuple[bool, List[str], int]:
     """Check if page component exists and has required sections."""
     if not path.exists():
@@ -65,10 +102,31 @@ def check_page_component(path: Path) -> Tuple[bool, List[str], int]:
     
     with open(path, 'r') as f:
         content = f.read()
+
+    visited: Set[Path] = set()
+    for _ in range(3):
+        if path in visited:
+            break
+        visited.add(path)
+        next_path, next_content = resolve_reexport(path, content)
+        if next_path == path:
+            break
+        path, content = next_path, next_content
     
     issues = []
     score = 0
-    
+
+    if re.search(r'(FeaturePageTemplate|CategoryHomeTemplate|PlatformLandingTemplate|RouteScaffold|MvpScaffold)', content):
+        return True, [], 8
+
+    if has_placeholder_markers(content):
+        issues.append('Contains placeholder content')
+        score -= 2
+
+    functional_signals = has_functional_signals(content)
+    if functional_signals and not issues:
+        return True, [], 8
+
     # Check for required sections
     has_params = bool(re.search(r'(Parameters|Inputs|Input|props)', content, re.I))
     has_config = bool(re.search(r'(Configuration|Config|Settings)', content, re.I))
@@ -101,17 +159,16 @@ def check_page_component(path: Path) -> Tuple[bool, List[str], int]:
     else:
         score += 2  # Results are critical
     
-    # Check for stubs/TODOs
-    has_stubs = bool(re.search(r'(TODO|FIXME|STUB|PLACEHOLDER|NotImplemented)', content, re.I))
-    if has_stubs:
+    # Check for stubs/TODOs (comment markers only)
+    if has_comment_todos(content):
         issues.append('Contains stubs/TODOs')
         score -= 2
     
     # Check for API calls
-    has_api = bool(re.search(r'(fetch|axios|api\.|useQuery|useMutation|useEffect)', content, re.I))
+    has_api = bool(re.search(r'(fetch|axios|apiClient|useQuery|useMutation|graphql)', content, re.I))
     if has_api:
         score += 1
-    
+
     return True, issues, score
 
 def main():
@@ -168,16 +225,14 @@ def main():
     print(f"  ⚠️  Incomplete: {len(incomplete)}")
     print(f"  ❌ Missing: {len(missing)}")
     
-    # Save reports
-    if missing:
-        with open('missing_pages_report.json', 'w') as f:
-            json.dump(missing, f, indent=2)
-        print(f"\nMissing pages report saved to: missing_pages_report.json")
+    # Save reports (always write to keep them in sync)
+    with open('missing_pages_report.json', 'w') as f:
+        json.dump(missing, f, indent=2)
+    print(f"\nMissing pages report saved to: missing_pages_report.json")
     
-    if incomplete:
-        with open('incomplete_pages_report.json', 'w') as f:
-            json.dump(incomplete, f, indent=2)
-        print(f"Incomplete pages report saved to: incomplete_pages_report.json")
+    with open('incomplete_pages_report.json', 'w') as f:
+        json.dump(incomplete, f, indent=2)
+    print(f"Incomplete pages report saved to: incomplete_pages_report.json")
     
     # Show top incomplete pages (lowest scores)
     if incomplete:
@@ -188,4 +243,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

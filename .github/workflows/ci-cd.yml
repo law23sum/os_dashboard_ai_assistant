@@ -3,6 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [main, develop]
+    tags: ['v*']
   pull_request:
     branches: [main, develop]
 
@@ -15,10 +16,18 @@ env:
 jobs:
   # Backend Tests
   backend-test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ['3.10', '3.11']
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.11']
+        include:
+          - os: ubuntu-latest
+            python-version: '3.10'
+    env:
+      ASSISTANT_HUB_DATA_DIR: /tmp/osdash-data
+      ASSISTANT_HUB_DB: /tmp/osdash-data/assistant_hub.db
     
     steps:
     - uses: actions/checkout@v3
@@ -27,14 +36,7 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-    
-    - name: Cache Python dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        cache: 'pip'
     
     - name: Install dependencies
       run: |
@@ -43,19 +45,32 @@ jobs:
         pip install pytest pytest-asyncio pytest-cov black flake8 mypy
     
     - name: Run linters
+      if: matrix.os == 'ubuntu-latest'
       run: |
         black --check .
         flake8 backend_api assistant_core --max-line-length=120
     
     - name: Run type checking
+      if: matrix.os == 'ubuntu-latest'
       run: |
         mypy backend_api --ignore-missing-imports
-    
-    - name: Run tests
+
+    - name: Run import/smoke sanity check
       run: |
-        pytest tests/ -v --cov=backend_api --cov-report=xml --cov-report=html
+        python -c "import importlib; mods=['backend_api','assistant_core','assistant_hub']; [importlib.import_module(m) for m in mods]; print('OK: core imports successful')"
+    
+    - name: Run tests (coverage)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        pytest tests/ -v -m "not regression" --cov=backend_api --cov-report=xml --cov-report=html --cov-fail-under=60
+
+    - name: Run tests (no coverage)
+      if: matrix.os != 'ubuntu-latest'
+      run: |
+        pytest tests/ -v -m "not regression"
     
     - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest'
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
@@ -104,27 +119,9 @@ jobs:
   integration-test:
     runs-on: ubuntu-latest
     needs: [backend-test, frontend-test]
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: osdash_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      
-      redis:
-        image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    env:
+      ASSISTANT_HUB_DATA_DIR: /tmp/osdash-data
+      ASSISTANT_HUB_DB: /tmp/osdash-data/assistant_hub.db
     
     steps:
     - uses: actions/checkout@v3
@@ -140,11 +137,251 @@ jobs:
         pip install pytest pytest-asyncio httpx
     
     - name: Run integration tests
-      env:
-        DATABASE_URL: postgresql://test:test@localhost:5432/osdash_test
-        REDIS_URL: redis://localhost:6379/0
       run: |
-        pytest tests/e2e/ -v -m e2e
+        pytest tests/e2e/ -v -m regression
+
+  compose-integration-smoke:
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Start services with docker compose
+      run: |
+        docker compose up -d --profile default
+
+    - name: Wait for API to be ready
+      run: |
+        timeout=120
+        elapsed=0
+        while [ $elapsed -lt $timeout ]; do
+          if curl -f http://localhost:8000/health >/dev/null 2>&1 || curl -f http://localhost:8000/api/health >/dev/null 2>&1; then
+            echo "OK: API is healthy"
+            exit 0
+          fi
+          echo "Waiting for API... (${elapsed}s/${timeout}s)"
+          sleep 5
+          elapsed=$((elapsed + 5))
+        done
+        echo "ERROR: API did not become healthy within ${timeout}s"
+        docker compose logs app
+        exit 1
+
+    - name: Health check
+      run: |
+        response=$(curl -sf http://localhost:8000/health || curl -sf http://localhost:8000/api/health || echo "FAILED")
+        if [ "$response" = "FAILED" ]; then
+          echo "ERROR: health check failed"
+          docker compose logs app
+          exit 1
+        fi
+        echo "OK: health check passed"
+        echo "Response: $response"
+
+    - name: Stop services
+      if: always()
+      run: |
+        docker compose down -v
+
+  debian-parity-smoke:
+    runs-on: ubuntu-latest
+    needs: [backend-test]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Debian container smoke test
+      run: |
+        docker run --rm \
+          -v "$PWD:/workspace" \
+          -w /workspace \
+          -e ASSISTANT_HUB_DATA_DIR=/tmp/osdash-data \
+          -e ASSISTANT_HUB_DB=/tmp/osdash-data/assistant_hub.db \
+          debian:stable-slim \
+          bash -c "
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq python3 python3-pip python3-venv curl >/dev/null
+          python3 -m venv /tmp/venv
+          source /tmp/venv/bin/activate
+          pip install --upgrade pip --quiet
+          pip install -r requirements.txt --quiet
+          python3 -c '
+          import sys
+          try:
+              import backend_api
+              import assistant_core
+              print(\"OK: Debian imports successful\")
+          except ImportError as e:
+              print(f\"ERROR: import error: {e}\")
+              sys.exit(1)
+          '
+          echo 'OK: Debian parity smoke test passed'
+          "
+
+  # Preview Environments (per PR)
+  docker-build-preview:
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test, integration-test, compose-integration-smoke, debian-parity-smoke]
+    if: github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+
+    outputs:
+      backend_digest: ${{ steps.build-backend.outputs.digest }}
+      frontend_digest: ${{ steps.build-frontend.outputs.digest }}
+      backend_image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/backend
+      frontend_image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/frontend
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.DOCKER_REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push Backend image (preview)
+      id: build-backend
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: ./Dockerfile.backend
+        target: production
+        push: true
+        tags: |
+          ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/backend:pr-${{ github.event.pull_request.number }}
+          ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/backend:pr-${{ github.event.pull_request.number }}-${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Build and push Frontend image (preview)
+      id: build-frontend
+      uses: docker/build-push-action@v4
+      with:
+        context: ./frontend
+        file: ./frontend/Dockerfile
+        push: true
+        tags: |
+          ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:pr-${{ github.event.pull_request.number }}
+          ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:pr-${{ github.event.pull_request.number }}-${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy-preview:
+    runs-on: ubuntu-latest
+    needs: [docker-build-preview]
+    if: github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    environment:
+      name: preview
+    concurrency:
+      group: preview-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+
+    env:
+      PREVIEW_HOST_SUFFIX: ${{ secrets.PREVIEW_HOST_SUFFIX }}
+      PREVIEW_TLS_SECRET: ${{ secrets.PREVIEW_TLS_SECRET }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      K8S_OVERLAY_PREVIEW: ${{ vars.K8S_OVERLAY_PREVIEW || 'k8s/overlays/preview' }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure kubectl
+      uses: azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+    - name: Deploy to Kubernetes (preview)
+      run: |
+        PR_NAMESPACE="osdash-pr-${{ github.event.pull_request.number }}"
+        kubectl create namespace "${PR_NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+        kubectl label namespace "${PR_NAMESPACE}" environment=preview pull_request="${{ github.event.pull_request.number }}" --overwrite
+        kubectl apply -k "${K8S_OVERLAY_PREVIEW}" -n "${PR_NAMESPACE}"
+        if [ -n "${OPENAI_API_KEY}" ] || [ -n "${SENTRY_DSN}" ]; then
+          kubectl -n "${PR_NAMESPACE}" create secret generic osdash-secrets \
+            --from-literal=OPENAI_API_KEY="${OPENAI_API_KEY}" \
+            --from-literal=SENTRY_DSN="${SENTRY_DSN}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+        else
+          echo "Skipping osdash-secrets (no GitHub secrets provided)."
+        fi
+        kubectl -n "${PR_NAMESPACE}" set image deployment/osdash-backend backend=${{ needs.docker-build-preview.outputs.backend_image }}@${{ needs.docker-build-preview.outputs.backend_digest }}
+        kubectl -n "${PR_NAMESPACE}" set image deployment/osdash-frontend frontend=${{ needs.docker-build-preview.outputs.frontend_image }}@${{ needs.docker-build-preview.outputs.frontend_digest }}
+        kubectl rollout status deployment/osdash-backend -n "${PR_NAMESPACE}"
+        kubectl rollout status deployment/osdash-frontend -n "${PR_NAMESPACE}"
+
+    - name: Create preview ingress (optional)
+      if: env.PREVIEW_HOST_SUFFIX != ''
+      run: |
+        PR_NAMESPACE="osdash-pr-${{ github.event.pull_request.number }}"
+        PREVIEW_HOST="pr-${{ github.event.pull_request.number }}.${PREVIEW_HOST_SUFFIX}"
+        if [ -n "$PREVIEW_TLS_SECRET" ]; then
+          TLS_BLOCK="  tls:\n    - hosts:\n        - ${PREVIEW_HOST}\n      secretName: ${PREVIEW_TLS_SECRET}\n"
+        else
+          TLS_BLOCK=""
+        fi
+        cat > /tmp/preview-ingress.yaml <<EOF
+        apiVersion: networking.k8s.io/v1
+        kind: Ingress
+        metadata:
+          name: osdash-preview-ingress
+          annotations:
+            kubernetes.io/ingress.class: nginx
+            nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        spec:
+        ${TLS_BLOCK}  rules:
+          - host: ${PREVIEW_HOST}
+            http:
+              paths:
+                - path: /api
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: osdash-backend
+                      port:
+                        number: 80
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: osdash-frontend
+                      port:
+                        number: 80
+        EOF
+        kubectl apply -n "${PR_NAMESPACE}" -f /tmp/preview-ingress.yaml
+
+    - name: Smoke test (preview)
+      run: |
+        PR_NAMESPACE="osdash-pr-${{ github.event.pull_request.number }}"
+        kubectl -n "${PR_NAMESPACE}" run smoke-preview --image=curlimages/curl:8.6.0 --restart=Never --rm -i -- \
+          sh -c "curl -fsS http://osdash-backend/api/health && curl -fsS http://osdash-frontend/healthz"
+
+  cleanup-preview:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    steps:
+    - name: Configure kubectl
+      uses: azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+    - name: Delete preview namespace
+      run: |
+        kubectl delete namespace "osdash-pr-${{ github.event.pull_request.number }}" --ignore-not-found
 
   # Security Scanning
   security-scan:
@@ -168,90 +405,208 @@ jobs:
   # Build and Push Docker Images
   docker-build:
     runs-on: ubuntu-latest
-    needs: [backend-test, frontend-test, integration-test]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+    needs: [backend-test, frontend-test, integration-test, compose-integration-smoke, debian-parity-smoke]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags/v'))
+
+    outputs:
+      backend_digest: ${{ steps.build-backend.outputs.digest }}
+      frontend_digest: ${{ steps.build-frontend.outputs.digest }}
+      backend_image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/backend
+      frontend_image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/frontend
+      image_tag: ${{ steps.vars.outputs.image_tag }}
+
     permissions:
       contents: read
       packages: write
-    
+
     steps:
     - uses: actions/checkout@v3
-    
+
+    - name: Set build variables
+      id: vars
+      run: |
+        if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          echo "image_tag=staging" >> "$GITHUB_OUTPUT"
+        elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+          echo "image_tag=dev" >> "$GITHUB_OUTPUT"
+        else
+          echo "image_tag=release" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Log in to Container Registry
       uses: docker/login-action@v2
       with:
         registry: ${{ env.DOCKER_REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Extract metadata for Backend
-      id: meta-backend
-      uses: docker/metadata-action@v4
-      with:
-        images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/backend
-        tags: |
-          type=ref,event=branch
-          type=sha
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-    
+
     - name: Build and push Backend image
+      id: build-backend
       uses: docker/build-push-action@v4
       with:
         context: .
         file: ./Dockerfile.backend
         target: production
         push: true
-        tags: ${{ steps.meta-backend.outputs.tags }}
-        labels: ${{ steps.meta-backend.outputs.labels }}
+        tags: |
+          ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ steps.vars.outputs.image_tag }}
+          ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
-    
-    - name: Extract metadata for Frontend
-      id: meta-frontend
-      uses: docker/metadata-action@v4
-      with:
-        images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/frontend
-        tags: |
-          type=ref,event=branch
-          type=sha
-          type=semver,pattern={{version}}
-    
+
     - name: Build and push Frontend image
+      id: build-frontend
       uses: docker/build-push-action@v4
       with:
         context: ./frontend
         file: ./frontend/Dockerfile
         push: true
-        tags: ${{ steps.meta-frontend.outputs.tags }}
-        labels: ${{ steps.meta-frontend.outputs.labels }}
+        tags: |
+          ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ steps.vars.outputs.image_tag }}
+          ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
-  # Deploy to Production
-  deploy-production:
+  # Deploy to Dev
+  deploy-dev:
     runs-on: ubuntu-latest
     needs: [docker-build]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/develop'
     environment:
-      name: production
-      url: https://app.osdashboard.ai
-    
+      name: dev
+      url: https://dev.osdashboard.ai
+    concurrency:
+      group: deploy-dev
+      cancel-in-progress: true
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      K8S_OVERLAY_DEV: ${{ vars.K8S_OVERLAY_DEV || 'k8s/overlays/dev' }}
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Configure kubectl
       uses: azure/k8s-set-context@v3
       with:
         method: kubeconfig
         kubeconfig: ${{ secrets.KUBE_CONFIG }}
-    
-    - name: Deploy to Kubernetes
+
+    - name: Deploy to Kubernetes (dev)
       run: |
-        kubectl apply -f k8s/
+        kubectl apply -k "${K8S_OVERLAY_DEV}"
+        if [ -n "${OPENAI_API_KEY}" ] || [ -n "${SENTRY_DSN}" ]; then
+          kubectl -n osdash-dev create secret generic osdash-secrets \
+            --from-literal=OPENAI_API_KEY="${OPENAI_API_KEY}" \
+            --from-literal=SENTRY_DSN="${SENTRY_DSN}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+        else
+          echo "Skipping osdash-secrets (no GitHub secrets provided)."
+        fi
+        kubectl -n osdash-dev set image deployment/osdash-backend backend=${{ needs.docker-build.outputs.backend_image }}@${{ needs.docker-build.outputs.backend_digest }}
+        kubectl -n osdash-dev set image deployment/osdash-frontend frontend=${{ needs.docker-build.outputs.frontend_image }}@${{ needs.docker-build.outputs.frontend_digest }}
+        kubectl rollout status deployment/osdash-backend -n osdash-dev
+        kubectl rollout status deployment/osdash-frontend -n osdash-dev
+
+    - name: Smoke test (dev)
+      run: |
+        kubectl -n osdash-dev run smoke-dev --image=curlimages/curl:8.6.0 --restart=Never --rm -i -- \
+          sh -c "curl -fsS http://osdash-backend/api/health && curl -fsS http://osdash-frontend/healthz"
+
+  # Deploy to Staging
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: staging
+      url: https://staging.osdashboard.ai
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: true
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      K8S_OVERLAY_STAGING: ${{ vars.K8S_OVERLAY_STAGING || 'k8s/overlays/staging' }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure kubectl
+      uses: azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+    - name: Deploy to Kubernetes (staging)
+      run: |
+        kubectl apply -k "${K8S_OVERLAY_STAGING}"
+        if [ -n "${OPENAI_API_KEY}" ] || [ -n "${SENTRY_DSN}" ]; then
+          kubectl -n osdash-staging create secret generic osdash-secrets \
+            --from-literal=OPENAI_API_KEY="${OPENAI_API_KEY}" \
+            --from-literal=SENTRY_DSN="${SENTRY_DSN}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+        else
+          echo "Skipping osdash-secrets (no GitHub secrets provided)."
+        fi
+        kubectl -n osdash-staging set image deployment/osdash-backend backend=${{ needs.docker-build.outputs.backend_image }}@${{ needs.docker-build.outputs.backend_digest }}
+        kubectl -n osdash-staging set image deployment/osdash-frontend frontend=${{ needs.docker-build.outputs.frontend_image }}@${{ needs.docker-build.outputs.frontend_digest }}
+        kubectl rollout status deployment/osdash-backend -n osdash-staging
+        kubectl rollout status deployment/osdash-frontend -n osdash-staging
+
+    - name: Smoke test (staging)
+      run: |
+        kubectl -n osdash-staging run smoke-staging --image=curlimages/curl:8.6.0 --restart=Never --rm -i -- \
+          sh -c "curl -fsS http://osdash-backend/api/health && curl -fsS http://osdash-frontend/healthz"
+
+  # Deploy to Production
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: production
+      url: https://app.osdashboard.ai
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: true
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      K8S_OVERLAY_PROD: ${{ vars.K8S_OVERLAY_PROD || 'k8s/overlays/prod' }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure kubectl
+      uses: azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+    - name: Deploy to Kubernetes (production)
+      run: |
+        kubectl apply -k "${K8S_OVERLAY_PROD}"
+        if [ -n "${OPENAI_API_KEY}" ] || [ -n "${SENTRY_DSN}" ]; then
+          kubectl -n osdash-production create secret generic osdash-secrets \
+            --from-literal=OPENAI_API_KEY="${OPENAI_API_KEY}" \
+            --from-literal=SENTRY_DSN="${SENTRY_DSN}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+        else
+          echo "Skipping osdash-secrets (no GitHub secrets provided)."
+        fi
+        kubectl -n osdash-production set image deployment/osdash-backend backend=${{ needs.docker-build.outputs.backend_image }}@${{ needs.docker-build.outputs.backend_digest }}
+        kubectl -n osdash-production set image deployment/osdash-frontend frontend=${{ needs.docker-build.outputs.frontend_image }}@${{ needs.docker-build.outputs.frontend_digest }}
         kubectl rollout status deployment/osdash-backend -n osdash-production
         kubectl rollout status deployment/osdash-frontend -n osdash-production
-    
-    - name: Verify deployment
+
+    - name: Smoke test (production)
       run: |
-        kubectl get pods -n osdash-production
-        kubectl get services -n osdash-production
+        kubectl -n osdash-production run smoke-prod --image=curlimages/curl:8.6.0 --restart=Never --rm -i -- \
+          sh -c "curl -fsS http://osdash-backend/api/health && curl -fsS http://osdash-frontend/healthz"
+
+    - name: Roll back on failure
+      if: failure()
+      run: |
+        kubectl rollout undo deployment/osdash-backend -n osdash-production || true
+        kubectl rollout undo deployment/osdash-frontend -n osdash-production || true

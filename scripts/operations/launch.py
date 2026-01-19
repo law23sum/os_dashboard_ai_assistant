@@ -1,5 +1,5 @@
 """
-Launch/Execution operations for OS Dashboard AI Assistant
+Launch/Execution operations for AI OS
 """
 
 import sys

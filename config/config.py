@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
@@ -12,6 +13,8 @@ def load_dotenv(path: Path | str = ".env", *, override: bool = False) -> None:
     env_path = Path(path)
     if not env_path.exists():
         return
+    if env_path.name == "env.new":
+        os.environ["OSDASH_ENV_NEW_LOADED"] = "1"
 
     for line in env_path.read_text().splitlines():
         line = line.strip()
@@ -41,19 +44,25 @@ def _iter_env_files() -> list[Path]:
         candidates.append(Path(f"env.{env_name}.example"))
     candidates.extend(
         [
+            Path("env.new"),
             Path(".env"),
             Path(".env.local"),
             Path("env.dev.example"),
         ]
     )
+    repo_root = Path(__file__).resolve().parent.parent
     seen: set[Path] = set()
     ordered: list[Path] = []
     for path in candidates:
         path = path.expanduser()
-        if path in seen:
-            continue
-        seen.add(path)
-        ordered.append(path)
+        if path not in seen:
+            seen.add(path)
+            ordered.append(path)
+        if not path.is_absolute():
+            repo_candidate = repo_root / path
+            if repo_candidate not in seen:
+                seen.add(repo_candidate)
+                ordered.append(repo_candidate)
     return ordered
 
 
@@ -65,6 +74,49 @@ def load_dotenv_chain() -> None:
 
 # Load environment variables
 load_dotenv_chain()
+
+
+def _hydrate_openai_key() -> None:
+    prefer_codex = os.getenv("OSDASH_ENV_NEW_LOADED") == "1"
+    current = os.getenv("OPENAI_API_KEY")
+    codex1 = os.getenv("OPENAI_API_KEY_CODEX1")
+    codex2 = os.getenv("OPENAI_API_KEY_CODEX2o")
+    if current and (current == codex1 or current == codex2):
+        return
+    if current and not prefer_codex:
+        return
+    for key in ("OPENAI_API_KEY_CODEX1", "OPENAI_API_KEY_CODEX2o"):
+        value = os.getenv(key)
+        if value:
+            os.environ["OPENAI_API_KEY"] = value
+            return
+
+
+_hydrate_openai_key()
+
+
+def _hydrate_model_defaults() -> None:
+    mapping = {
+        "OPENAI_MODEL": "OPENAI_MODELS",
+        "ANTHROPIC_MODEL": "ANTHROPIC_MODELS",
+        "GOOGLE_MODEL": "GOOGLE_MODELS",
+        "XAI_MODEL": "XAI_MODELS",
+        "GROQ_MODEL": "GROQ_MODELS",
+        "COHERE_MODEL": "COHERE_MODELS",
+        "DEEPSEEK_MODEL": "DEEPSEEK_MODELS",
+    }
+    for target, source in mapping.items():
+        if os.getenv(target):
+            continue
+        raw = os.getenv(source)
+        if not raw:
+            continue
+        first = raw.split(",", 1)[0].strip()
+        if first:
+            os.environ[target] = first
+
+
+_hydrate_model_defaults()
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
 PROJECT_ROOT = PACKAGE_ROOT.parent
@@ -87,19 +139,62 @@ def _env_int(key: str, default: int) -> int:
         return default
 
 
+def _env_bool(key: str, default: bool) -> bool:
+    value = os.getenv(key)
+    if value is None:
+        return default
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "y", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "n", "off"}:
+        return False
+    return default
+
+
 def _fetch_db_key(meta_key: str) -> Optional[str]:
     """Try to fetch a key from the database."""
-    try:
-        # Delayed import to avoid circular dependencies
-        from assistant_hub.db import init_db, get_meta
-        # Use existing DB path if possible
-        conn = init_db(DB_PATH)
-        val = get_meta(conn, meta_key)
-        conn.close()
-        return val
-    except Exception as e:
-        print(f"DB Fetch Error: {e}")
+    if os.getenv("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
         return None
+    last_error: Optional[Exception] = None
+    try:
+        # Delayed import to avoid circular dependencies and partial init states.
+        import importlib
+
+        module_names = ("assistant_hub_gui.assistant_hub.db", "assistant_hub.db")
+        for module_name in module_names:
+            try:
+                module = sys.modules.get(module_name)
+                if module is not None:
+                    spec = getattr(module, "__spec__", None)
+                    if getattr(spec, "_initializing", False):
+                        continue
+                if module is None:
+                    module = importlib.import_module(module_name)
+
+                init_db = getattr(module, "init_db", None)
+                get_meta = getattr(module, "get_meta", None)
+                if not callable(init_db) or not callable(get_meta):
+                    continue
+                # Use existing DB path if possible
+                conn = init_db(DB_PATH)
+                try:
+                    return get_meta(conn, meta_key)
+                finally:
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
+            except Exception as exc:
+                last_error = exc
+                continue
+    except Exception as exc:
+        last_error = exc
+
+    if last_error:
+        error_text = str(last_error).lower()
+        if os.getenv("ASSISTANT_HUB_CONFIG_DEBUG") and "partially initialized" not in error_text:
+            print(f"DB Fetch Error: {last_error}")
+    return None
 
 
 default_data_dir = _path_from_env("ASSISTANT_HUB_DATA_DIR", _DEFAULT_DATA_DIR)
@@ -205,7 +300,7 @@ class APISettings:
     caldav_password: Optional[str] = field(default=None)
 
     # Application Settings
-    app_name: str = field(default="OS Dashboard AI Assistant")
+    app_name: str = field(default="AI OS")
     log_level: str = field(default="INFO")
     cache_ttl: int = field(default=3600)
 
@@ -262,17 +357,24 @@ def _build_api_config() -> APISettings:
     return APISettings()
 
 
-# Global configuration instances
-api_config = _build_api_config()
+_api_config: Optional[APISettings] = None
+
+
+def _get_api_config() -> APISettings:
+    global _api_config
+    if _api_config is None:
+        _api_config = _build_api_config()
+    return _api_config
 
 
 def get_api_config() -> APISettings:
     """Get the global API configuration instance"""
-    return api_config
+    return _get_api_config()
 
 
 def validate_api_config() -> dict[str, bool]:
     """Validate that required API credentials are present"""
+    api_config = _get_api_config()
     validation_results = {
         "openai": bool(api_config.openai_api_key),
         "anthropic": bool(api_config.anthropic_api_key),
@@ -292,3 +394,95 @@ def validate_api_config() -> dict[str, bool]:
         "caldav": bool(api_config.caldav_url and api_config.caldav_username and api_config.caldav_password),
     }
     return validation_results
+
+
+@dataclass
+class AuditSettings:
+    """Configuration for audit log segmentation and retention."""
+
+    storage_path: str = field(default="audit_data")
+    segment_time_window_minutes: int = field(default=5)
+    segment_time_format: str = field(default="%Y%m%d%H%M")
+    segment_max_events: int = field(default=5000)
+    retention_hot_days: int = field(default=30)
+    retention_archive_days: int = field(default=395)
+    retention_backup_years: int = field(default=7)
+    retention_cloud_years: int = field(default=7)
+    signing_key: Optional[str] = field(default=None)
+    remote_archive_path: Optional[str] = field(default=None)
+    hardware_backup_path: Optional[str] = field(default=None)
+    cloud_backup_path: Optional[str] = field(default=None)
+    maintenance_enabled: bool = field(default=True)
+    maintenance_retention_apply: bool = field(default=False)
+    maintenance_retention_interval_hours: int = field(default=24)
+    maintenance_compact_interval_hours: int = field(default=24)
+    maintenance_parquet_enabled: bool = field(default=False)
+    maintenance_parquet_interval_hours: int = field(default=168)
+    maintenance_parquet_range_days: int = field(default=1)
+    maintenance_tenant_id: Optional[str] = field(default=None)
+
+    def __post_init__(self) -> None:
+        self.storage_path = _env("AUDIT_STORAGE_PATH", self.storage_path) or self.storage_path
+        self.segment_time_window_minutes = _env_int(
+            "AUDIT_SEGMENT_WINDOW_MINUTES", self.segment_time_window_minutes
+        )
+        self.segment_time_format = _env(
+            "AUDIT_SEGMENT_TIME_FORMAT", self.segment_time_format
+        ) or self.segment_time_format
+        self.segment_max_events = _env_int("AUDIT_SEGMENT_MAX_EVENTS", self.segment_max_events)
+        self.retention_hot_days = _env_int("AUDIT_RETENTION_HOT_DAYS", self.retention_hot_days)
+        self.retention_archive_days = _env_int(
+            "AUDIT_RETENTION_ARCHIVE_DAYS", self.retention_archive_days
+        )
+        self.retention_backup_years = _env_int(
+            "AUDIT_RETENTION_BACKUP_YEARS", self.retention_backup_years
+        )
+        self.retention_cloud_years = _env_int(
+            "AUDIT_RETENTION_CLOUD_YEARS", self.retention_cloud_years
+        )
+        self.signing_key = _env("AUDIT_SIGNING_KEY", self.signing_key)
+        self.remote_archive_path = _env("AUDIT_TIER_REMOTE_ARCHIVE", self.remote_archive_path)
+        self.hardware_backup_path = _env("AUDIT_TIER_HARDWARE_BACKUP", self.hardware_backup_path)
+        self.cloud_backup_path = _env("AUDIT_TIER_CLOUD_BACKUP", self.cloud_backup_path)
+        self.maintenance_enabled = _env_bool(
+            "AUDIT_MAINTENANCE_ENABLED", self.maintenance_enabled
+        )
+        self.maintenance_retention_apply = _env_bool(
+            "AUDIT_RETENTION_APPLY", self.maintenance_retention_apply
+        )
+        self.maintenance_retention_interval_hours = _env_int(
+            "AUDIT_RETENTION_INTERVAL_HOURS", self.maintenance_retention_interval_hours
+        )
+        self.maintenance_compact_interval_hours = _env_int(
+            "AUDIT_COMPACTION_INTERVAL_HOURS", self.maintenance_compact_interval_hours
+        )
+        self.maintenance_parquet_enabled = _env_bool(
+            "AUDIT_PARQUET_EXPORT_ENABLED", self.maintenance_parquet_enabled
+        )
+        self.maintenance_parquet_interval_hours = _env_int(
+            "AUDIT_PARQUET_EXPORT_INTERVAL_HOURS",
+            self.maintenance_parquet_interval_hours,
+        )
+        self.maintenance_parquet_range_days = _env_int(
+            "AUDIT_PARQUET_EXPORT_RANGE_DAYS",
+            self.maintenance_parquet_range_days,
+        )
+        self.maintenance_tenant_id = _env(
+            "AUDIT_MAINTENANCE_TENANT_ID", self.maintenance_tenant_id
+        )
+
+
+def _build_audit_config() -> AuditSettings:
+    ensure_data_directories()
+    return AuditSettings()
+
+
+_audit_config: Optional[AuditSettings] = None
+
+
+def get_audit_config() -> AuditSettings:
+    """Get the global audit configuration instance."""
+    global _audit_config
+    if _audit_config is None:
+        _audit_config = _build_audit_config()
+    return _audit_config

@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "version": "2026.01.05",
+    "generated_at": "2026-01-05T00:00:00Z",
+    "source_of_truth": "manual"
+  },
+  "tiers": [
+    {
+      "key": "planes",
+      "label": "Planes",
+      "description": "Data, Control, and Governance planes define execution boundaries and auditability."
+    },
+    {
+      "key": "capabilities",
+      "label": "Capabilities",
+      "description": "Cross-cutting verbs required by features and provided by services or drivers."
+    },
+    {
+      "key": "systems",
+      "label": "Systems",
+      "description": "Runtime systems that coordinate products, services, and modules."
+    },
+    {
+      "key": "engines",
+      "label": "Engines",
+      "description": "Execution engines that implement orchestration, policy, or compute workflows."
+    },
+    {
+      "key": "services",
+      "label": "Services",
+      "description": "Deployable service boundaries exposing APIs and control interfaces."
+    },
+    {
+      "key": "modules",
+      "label": "Modules",
+      "description": "Code modules and runtime packages that implement service behavior."
+    },
+    {
+      "key": "features",
+      "label": "Features",
+      "description": "End-user features surfaced in the UI and backed by contracts."
+    },
+    {
+      "key": "processes_pipelines",
+      "label": "Processes & Pipelines",
+      "description": "Operational workflows, pipelines, and runbooks executed via the control plane."
+    }
+  ],
+  "presentation_model": {
+    "description": "UI navigation is edition-scoped and follows Platforms -> Categories -> Features.",
+    "nav_registry": "contracts/gui/gui_nav.latest.json"
+  }
+}

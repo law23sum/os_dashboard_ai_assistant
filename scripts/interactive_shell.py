@@ -29,7 +29,7 @@ class ProjectShell(cmd.Cmd):
     
     intro = """
 ═══════════════════════════════════════════════════════════════════════════════
-    🚀 OS Dashboard AI Assistant - Interactive Shell
+    🚀 AI OS - Interactive Shell
 ═══════════════════════════════════════════════════════════════════════════════
 
 Welcome to the unified project management shell!

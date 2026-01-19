@@ -1,4 +1,4 @@
-"""Observability and audit primitives for OS Dashboard AI Assistant."""
+"""Observability and audit primitives for AI OS."""
 
 from .observability_service import ObservabilityService
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Security Monitor CLI for OS Dashboard AI Assistant."""
+"""Security Monitor CLI for AI OS."""
 
 import asyncio
 import sys
@@ -179,7 +179,7 @@ class SecurityMonitor:
 def create_parser():
     """Create command-line argument parser."""
     parser = argparse.ArgumentParser(
-        description="Security Monitor for OS Dashboard AI Assistant",
+        description="Security Monitor for AI OS",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

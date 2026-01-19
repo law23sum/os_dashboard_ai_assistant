@@ -1189,7 +1189,7 @@ class PartnerAnalyticsSystem:
         self.logger.info("Partner Analytics System shutdown complete")
 
 
-# Integration helpers for OS Dashboard AI Assistant
+# Integration helpers for AI OS
 async def initialize_partner_analytics() -> Optional[PartnerAnalyticsSystem]:
     """Initialize partner analytics system if dependencies are available"""
     try:
@@ -1205,7 +1205,7 @@ async def initialize_partner_analytics() -> Optional[PartnerAnalyticsSystem]:
         return None
 
 
-# Example usage integrated with OS Dashboard
+# Example usage integrated with AI OS
 async def demo_partner_analytics():
     """Demo function for partner analytics integration"""
     analytics_system = await initialize_partner_analytics()

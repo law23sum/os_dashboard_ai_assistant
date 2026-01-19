@@ -6,7 +6,10 @@ import asyncio
 from dataclasses import asdict
 from typing import Any, Dict, List
 
-import pandas as pd
+try:
+    import pandas as pd
+except Exception:  # pragma: no cover
+    pd = None  # type: ignore
 
 from assistant_core.content.generators import (
     ContentConfig,
@@ -26,6 +29,14 @@ from assistant_core.driver_orchestrator_architecture import (
     ActionDispatchDriver,
     DriverManifest,
 )
+
+
+def _require_pandas() -> None:
+    if pd is None:  # pragma: no cover - optional dependency
+        raise ModuleNotFoundError(
+            "pandas is required for Excel generation. "
+            "Install optional dependencies with `python3 -m pip install -r requirements.txt`."
+        )
 
 
 class IntelligenceDataDriver(ActionDispatchDriver):
@@ -313,6 +324,7 @@ class ContentGenerationDriver(ActionDispatchDriver):
         return {"output_path": output_path, "html": html}
 
     def _generate_excel(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        _require_pandas()
         config = ContentConfig(**params["config"])
         generator = ExcelDashboardGenerator(config)
         for worksheet in params["worksheets"]:

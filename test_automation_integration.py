@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Test script for the Automation Orchestrator integration.
-Run this to verify the intelligent automation system works with the existing OS Dashboard AI Assistant.
+Run this to verify the intelligent automation system works with the existing AI OS.
 """
 
 import asyncio

@@ -7,16 +7,29 @@ from typing import Dict, List, Optional
 
 import csv
 
-import pandas as pd
+try:
+    import pandas as pd
+except Exception:  # pragma: no cover
+    pd = None  # type: ignore
+
+
+def _require_pandas() -> None:
+    if pd is None:  # pragma: no cover - optional dependency
+        raise ModuleNotFoundError(
+            "pandas is required for Excel integrations. "
+            "Install optional dependencies with `python3 -m pip install -r requirements.txt`."
+        )
 
 
 def load_sheet(path: str, sheet_name: str) -> pd.DataFrame:
     """Load a sheet from an Excel file using pandas."""
+    _require_pandas()
     return pd.read_excel(path, sheet_name=sheet_name)
 
 
 def save_sheet(path: str, sheet_name: str, df: pd.DataFrame) -> None:
     """Save a DataFrame to an Excel file."""
+    _require_pandas()
     dest = Path(path)
     mode = "a" if dest.exists() else "w"
     with pd.ExcelWriter(

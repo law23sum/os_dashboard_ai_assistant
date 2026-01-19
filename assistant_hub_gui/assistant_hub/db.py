@@ -4,13 +4,21 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sqlite3
 import shutil
 import logging
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence
+
+try:
+    import psycopg2
+    from psycopg2.extras import DictCursor
+except Exception:  # pragma: no cover - optional dependency for SQLite-only use
+    psycopg2 = None
+    DictCursor = None
 
 from assistant_hub.config import DB_PATH, ensure_data_directories
 
@@ -23,7 +31,27 @@ DEFAULT_TENANT_NAME = "Default Tenant"
 DEFAULT_WORKSPACE_ID = "default-workspace"
 DEFAULT_WORKSPACE_NAME = "Default Workspace"
 
-PERSONAS = ["Chris", "AIC", "Aria", "Sora"]
+PERSONAL_AI_PERSONAS = ["AIC", "Aria", "Sora", "Gabriela"]
+GENERIC_AI_PERSONAS = [
+    "ChatGPT",
+    "Claude",
+    "Gemini",
+    "DeepSeek",
+    "Grok",
+    "Cohere",
+    "Groq",
+]
+PERSONAS = ["Chris"] + PERSONAL_AI_PERSONAS
+CHAT_PERSONAS = PERSONAS + GENERIC_AI_PERSONAS
+GENERIC_AI_PROVIDERS = {
+    "ChatGPT": "openai",
+    "Claude": "anthropic",
+    "Gemini": "google",
+    "DeepSeek": "deepseek",
+    "Grok": "xai",
+    "Cohere": "cohere",
+    "Groq": "groq",
+}
 PERSONA_ROLES = {
     "Chris": "Human Owner / Primary User",
     "AIC": "Sir Chief Fellow Director Principal Software Solutions Systems Engineer Architect",
@@ -36,6 +64,7 @@ PERSONA_ROLES = {
         "Sir Doctor Fellow Ontological Epistemologist Formal Logician Scientific "
         "Methodologist Semantic Taxonomist Evidence Examiner Governance Auditor Professor"
     ),
+    "Gabriela": "Fellow Commercial Strategist Product Marketer Venture-Finance Operator",
 }
 
 STATUS_OPTIONS = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE"]
@@ -50,7 +79,7 @@ CHANGE_PERMISSION_MODES = ["auto", "ask", "ask_when_unsure"]
 CONTINUITY_MODES = ["full", "automation-off", "read-only"]
 RISK_APPETITE_MODES = ["conservative", "balanced", "progressive"]
 
-PMS_PROJECT_MODES = ["personal", "enterprise"]
+PMS_PROJECT_MODES = ["personal", "business", "enterprise"]
 PMS_TASK_STATUSES = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "ARCHIVED"]
 PMS_TODO_STATUSES = ["TODO", "IN_PROGRESS", "DONE", "ARCHIVED"]
 PMS_RUN_STATUSES = ["queued", "running", "succeeded", "failed", "needs_review"]
@@ -88,7 +117,7 @@ OPERATING_ROLES = (
     "OneNote becomes the living structured memory; Word becomes the formatted deliverable "
     "engine; Excel becomes the analytical substrate; Git becomes the brain stem holding the "
     "lineage of every thought; ChatGPT becomes the reasoning center; Daemons become the "
-    "continuous active cortex; AIC/Sora/Aria become the interpretive personalities that guide "
+    "continuous active cortex; AIC/Sora/Aria/Gabriela become the interpretive personalities that guide "
     "knowledge formation"
 )
 
@@ -110,6 +139,7 @@ class Task:
     due_date: Optional[str] = ""
     notes: str = ""
     owner: str = "Chris"
+    user_id: str = "demo"
     created_at: str = datetime.now().isoformat(timespec="seconds")
     # New fields for task automation
     depends_on: Optional[int] = None  # ID of task this depends on
@@ -127,6 +157,7 @@ class Project:
     status: str = "active"
     priority: str = "MEDIUM"
     order_num: int = 0
+    user_id: str = "demo"
 
 
 @dataclass
@@ -504,6 +535,395 @@ class UserAccount:
     last_login: Optional[str] = None
 
 
+_DB_URL_ENV_KEYS = ("DATABASE_URL", "ASSISTANT_HUB_DATABASE_URL", "OSDASH_DATABASE_URL")
+_POSTGRES_FAILURE = False
+_POSTGRES_FAILURE_LOGGED = False
+
+
+def _disable_postgres(exc: Exception) -> None:
+    global _POSTGRES_FAILURE, _POSTGRES_FAILURE_LOGGED
+    _POSTGRES_FAILURE = True
+    if _POSTGRES_FAILURE_LOGGED:
+        return
+    logger.warning(
+        "PostgreSQL connection failed (%s), falling back to SQLite. "
+        "To use PostgreSQL, ensure the server is running and DATABASE_URL is correct.",
+        exc,
+    )
+    _POSTGRES_FAILURE_LOGGED = True
+
+
+def _database_url() -> Optional[str]:
+    for key in _DB_URL_ENV_KEYS:
+        value = os.getenv(key)
+        if value:
+            return value.strip()
+    return None
+
+
+def _is_postgres_url(url: str) -> bool:
+    lowered = url.strip().lower()
+    return lowered.startswith(("postgres://", "postgresql://", "postgresql+psycopg2://"))
+
+
+def database_url() -> Optional[str]:
+    if _POSTGRES_FAILURE:
+        return None
+    url = _database_url()
+    if not url:
+        return None
+    if _is_postgres_url(url):
+        return url
+    return None
+
+
+def is_postgres_enabled() -> bool:
+    return database_url() is not None
+
+
+def _require_psycopg2() -> None:
+    if psycopg2 is None or DictCursor is None:
+        raise RuntimeError("psycopg2 is required when DATABASE_URL targets Postgres")
+
+
+_INSERT_OR_IGNORE_RE = re.compile(r"^\s*INSERT\s+OR\s+IGNORE\s+", re.IGNORECASE)
+_AUTOINCREMENT_RE = re.compile(
+    r"\bINTEGER\s+PRIMARY\s+KEY\s+AUTOINCREMENT\b",
+    re.IGNORECASE,
+)
+_DATETIME_FUNC_RE = re.compile(r"\bdatetime\(([^)]+)\)", re.IGNORECASE)
+_PRAGMA_TABLE_INFO_RE = re.compile(
+    r"^PRAGMA\s+table_info\s*\(\s*(['\"]?)(?P<table>[^'\")]+)\1\s*\)",
+    re.IGNORECASE,
+)
+
+
+def _strip_semicolon(sql: str) -> str:
+    return sql.rstrip().rstrip(";")
+
+
+def _replace_qmark(sql: str) -> str:
+    out: List[str] = []
+    in_single = False
+    in_double = False
+    i = 0
+    while i < len(sql):
+        ch = sql[i]
+        if ch == "'" and not in_double:
+            out.append(ch)
+            if in_single:
+                if i + 1 < len(sql) and sql[i + 1] == "'":
+                    out.append(sql[i + 1])
+                    i += 2
+                    continue
+                in_single = False
+            else:
+                in_single = True
+            i += 1
+            continue
+        if ch == '"' and not in_single:
+            out.append(ch)
+            if in_double:
+                if i + 1 < len(sql) and sql[i + 1] == '"':
+                    out.append(sql[i + 1])
+                    i += 2
+                    continue
+                in_double = False
+            else:
+                in_double = True
+            i += 1
+            continue
+        if ch == "?" and not in_single and not in_double:
+            out.append("%s")
+        else:
+            out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+def _rewrite_insert_or_ignore(sql: str) -> str:
+    if not _INSERT_OR_IGNORE_RE.search(sql):
+        return sql
+    rewritten = _INSERT_OR_IGNORE_RE.sub("INSERT ", sql)
+    if re.search(r"\bON\s+CONFLICT\b", rewritten, re.IGNORECASE):
+        return rewritten
+    return f"{_strip_semicolon(rewritten)} ON CONFLICT DO NOTHING"
+
+
+def _rewrite_autoincrement(sql: str) -> str:
+    return _AUTOINCREMENT_RE.sub("SERIAL PRIMARY KEY", sql)
+
+
+def _rewrite_datetime(sql: str) -> str:
+    return _DATETIME_FUNC_RE.sub(r"\1", sql)
+
+
+def _extract_sqlite_master_name(sql: str) -> Optional[str]:
+    match = re.search(r"name\s*=\s*'([^']+)'", sql, re.IGNORECASE)
+    if match:
+        return match.group(1)
+    match = re.search(r'name\s*=\s*"([^"]+)"', sql, re.IGNORECASE)
+    if match:
+        return match.group(1)
+    return None
+
+
+def _translate_sqlite_master(sql: str, params: Optional[Sequence[Any]]) -> tuple[str, Optional[Sequence[Any]]]:
+    if "sqlite_master" not in sql.lower():
+        return sql, params
+    base = (
+        "SELECT table_name AS name FROM information_schema.tables "
+        "WHERE table_schema = 'public' AND table_type = 'BASE TABLE'"
+    )
+    name = _extract_sqlite_master_name(sql)
+    if name:
+        base += " AND table_name = %s"
+        params = (name,)
+    elif re.search(r"name\s*=\s*\?", sql, re.IGNORECASE):
+        base += " AND table_name = %s"
+    if "order by" in sql.lower():
+        base += " ORDER BY name"
+    return base, params
+
+
+class PostgresConnection:
+    def __init__(self, conn) -> None:
+        self._conn = conn
+        self.row_factory = None
+        self._db_kind = "postgres"
+
+    def cursor(self) -> "PostgresCursor":
+        cursor = self._conn.cursor(cursor_factory=DictCursor)
+        return PostgresCursor(cursor, self)
+
+    def execute(self, sql: str, params: Optional[Sequence[Any]] = None) -> "PostgresCursor":
+        cursor = self.cursor()
+        return cursor.execute(sql, params)
+
+    def executemany(self, sql: str, params_seq: Sequence[Sequence[Any]]) -> "PostgresCursor":
+        cursor = self.cursor()
+        return cursor.executemany(sql, params_seq)
+
+    def commit(self) -> None:
+        self._conn.commit()
+
+    def rollback(self) -> None:
+        self._conn.rollback()
+
+    def close(self) -> None:
+        self._conn.close()
+
+    def __enter__(self) -> "PostgresConnection":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        if exc:
+            self.rollback()
+        else:
+            self.commit()
+        self.close()
+
+    def _translate_statement(
+        self, sql: str, params: Optional[Sequence[Any]]
+    ) -> tuple[Optional[str], Optional[Sequence[Any]], Optional[List[Any]], Optional[List[tuple]]]:
+        stripped = _strip_semicolon(sql.strip())
+        if not stripped:
+            return stripped, params, None, None
+
+        if stripped.upper().startswith("PRAGMA"):
+            pragma_match = _PRAGMA_TABLE_INFO_RE.match(stripped)
+            if pragma_match:
+                table = pragma_match.group("table")
+                pragma_sql = """
+                    SELECT
+                        c.ordinal_position - 1 AS cid,
+                        c.column_name AS name,
+                        c.data_type AS type,
+                        CASE WHEN c.is_nullable = 'NO' THEN 1 ELSE 0 END AS notnull,
+                        c.column_default AS dflt_value,
+                        CASE WHEN tc.constraint_type = 'PRIMARY KEY' THEN 1 ELSE 0 END AS pk
+                    FROM information_schema.columns c
+                    LEFT JOIN information_schema.key_column_usage kcu
+                        ON c.table_schema = kcu.table_schema
+                       AND c.table_name = kcu.table_name
+                       AND c.column_name = kcu.column_name
+                    LEFT JOIN information_schema.table_constraints tc
+                        ON tc.table_schema = kcu.table_schema
+                       AND tc.table_name = kcu.table_name
+                       AND tc.constraint_name = kcu.constraint_name
+                       AND tc.constraint_type = 'PRIMARY KEY'
+                    WHERE c.table_schema = 'public' AND c.table_name = %s
+                    ORDER BY c.ordinal_position
+                """
+                return pragma_sql, (table,), None, None
+            if stripped.upper().startswith("PRAGMA INTEGRITY_CHECK"):
+                return None, None, [("ok",)], None
+            return None, None, [], None
+
+        rewritten, params = _translate_sqlite_master(stripped, params)
+        rewritten = _rewrite_insert_or_ignore(rewritten)
+        rewritten = _rewrite_autoincrement(rewritten)
+        rewritten = _rewrite_datetime(rewritten)
+        rewritten = _replace_qmark(rewritten)
+        return rewritten, params, None, None
+
+
+class PostgresCursor:
+    def __init__(self, cursor, connection: PostgresConnection) -> None:
+        self._cursor = cursor
+        self._connection = connection
+        self._fake_rows: Optional[List[Any]] = None
+        self._fake_index = 0
+        self._fake_description: Optional[List[tuple]] = None
+        self._lastrowid: Optional[Any] = None
+
+    @property
+    def description(self):
+        if self._fake_description is not None:
+            return self._fake_description
+        return self._cursor.description
+
+    @property
+    def rowcount(self):
+        if self._fake_rows is not None:
+            return len(self._fake_rows)
+        return self._cursor.rowcount
+
+    @property
+    def lastrowid(self):
+        return self._lastrowid
+
+    def execute(self, sql: str, params: Optional[Sequence[Any]] = None) -> "PostgresCursor":
+        self._fake_rows = None
+        self._fake_index = 0
+        self._fake_description = None
+        self._lastrowid = None
+
+        rewritten, params, fake_rows, fake_description = self._connection._translate_statement(
+            sql, params
+        )
+        if fake_rows is not None:
+            self._fake_rows = fake_rows
+            self._fake_description = fake_description
+            return self
+
+        try:
+            if params is None:
+                self._cursor.execute(rewritten)
+            else:
+                self._cursor.execute(rewritten, params)
+        except Exception as exc:
+            raise sqlite3.OperationalError(str(exc)) from exc
+        self._lastrowid = getattr(self._cursor, "lastrowid", None)
+        return self
+
+    def executemany(self, sql: str, params_seq: Sequence[Sequence[Any]]) -> "PostgresCursor":
+        self._fake_rows = None
+        self._fake_index = 0
+        self._fake_description = None
+        self._lastrowid = None
+
+        rewritten, params, fake_rows, fake_description = self._connection._translate_statement(
+            sql, None
+        )
+        if fake_rows is not None:
+            self._fake_rows = fake_rows
+            self._fake_description = fake_description
+            return self
+
+        try:
+            self._cursor.executemany(rewritten, params_seq)
+        except Exception as exc:
+            raise sqlite3.OperationalError(str(exc)) from exc
+        self._lastrowid = getattr(self._cursor, "lastrowid", None)
+        return self
+
+    def fetchone(self):
+        if self._fake_rows is not None:
+            if self._fake_index >= len(self._fake_rows):
+                return None
+            row = self._fake_rows[self._fake_index]
+            self._fake_index += 1
+            return row
+        return self._cursor.fetchone()
+
+    def fetchall(self):
+        if self._fake_rows is not None:
+            if self._fake_index == 0:
+                self._fake_index = len(self._fake_rows)
+                return list(self._fake_rows)
+            remaining = self._fake_rows[self._fake_index :]
+            self._fake_index = len(self._fake_rows)
+            return list(remaining)
+        return self._cursor.fetchall()
+
+    def fetchmany(self, size: Optional[int] = None):
+        if self._fake_rows is not None:
+            if self._fake_index >= len(self._fake_rows):
+                return []
+            if size is None:
+                size = 1
+            end = min(self._fake_index + size, len(self._fake_rows))
+            batch = self._fake_rows[self._fake_index : end]
+            self._fake_index = end
+            return list(batch)
+        if size is None:
+            return self._cursor.fetchmany()
+        return self._cursor.fetchmany(size)
+
+    def close(self) -> None:
+        self._cursor.close()
+
+
+def is_postgres_connection(conn: Any) -> bool:
+    return isinstance(conn, PostgresConnection)
+
+
+def _connect_sqlite(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
+    target = Path(db_path) if db_path else Path(DB_FILE)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(target), check_same_thread=False, timeout=10.0)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def connect_db(db_path: Optional[os.PathLike | str] = None):
+    url = database_url()
+    if url:
+        try:
+            _require_psycopg2()
+        except Exception as exc:
+            _disable_postgres(exc)
+            return _connect_sqlite(db_path)
+    if url:
+        try:
+            return PostgresConnection(psycopg2.connect(url))
+        except Exception as exc:
+            _disable_postgres(exc)
+            return _connect_sqlite(db_path)
+    return _connect_sqlite(db_path)
+
+
+def _execute_insert_returning_id(
+    conn,
+    cursor,
+    sql: str,
+    params: Sequence[Any],
+) -> Any:
+    if is_postgres_connection(conn):
+        sql = f"{_strip_semicolon(sql.strip())} RETURNING id"
+        cursor.execute(sql, params)
+        row = cursor.fetchone()
+        return row[0] if row else 0
+    cursor.execute(sql, params)
+    return cursor.lastrowid
+
+
+def insert_and_fetch_id(conn, sql: str, params: Sequence[Any]) -> Any:
+    cursor = conn.cursor()
+    return _execute_insert_returning_id(conn, cursor, sql, params)
+
+
 def _check_database_integrity(conn: sqlite3.Connection) -> bool:
     """Check if database is valid by running integrity check."""
     try:
@@ -536,89 +956,82 @@ def _recover_database(db_path: Path) -> bool:
 
 
 def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
-    """Initialize the SQLite database (creating tables if needed) and return a connection."""
+    """Initialize the database schema (SQLite by default, Postgres when DATABASE_URL is set)."""
+    # Try to connect - this may fall back to SQLite if PostgreSQL is unavailable
     target = Path(db_path) if db_path else Path(DB_FILE)
-    target.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        conn = connect_db(db_path)
+    except Exception as exc:
+        logger.warning("PostgreSQL connection failed (%s), falling back to SQLite.", exc)
+        conn = None
+    if conn is None:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(str(target), check_same_thread=False)
+        conn.row_factory = sqlite3.Row
     
-    # Check for database corruption before attempting to use it
-    if target.exists():
-        try:
-            test_conn = sqlite3.connect(str(target), check_same_thread=False)
-            if not _check_database_integrity(test_conn):
-                test_conn.close()
-                logger.warning("Database integrity check failed, attempting recovery...")
+    # If we got a SQLite connection (either by design or fallback), run SQLite initialization
+    if not is_postgres_connection(conn):
+        target.parent.mkdir(parents=True, exist_ok=True)
+
+        # Check for database corruption before attempting to use it
+        if target.exists():
+            try:
+                # Use a test connection for integrity check
+                test_conn = sqlite3.connect(str(target), check_same_thread=False)
+                if not _check_database_integrity(test_conn):
+                    test_conn.close()
+                    logger.warning("Database integrity check failed, attempting recovery...")
+                    if not _recover_database(target):
+                        logger.error("Database recovery failed, creating new database")
+                        if target.exists():
+                            backup_path = target.with_suffix(".db.backup")
+                            try:
+                                shutil.move(target, backup_path)
+                                logger.info(f"Moved corrupted database to {backup_path}")
+                            except Exception as e:
+                                logger.error(f"Failed to move corrupted database: {e}")
+                                target.unlink()  # Force remove if move fails
+                            # Reconnect after recovery
+                            conn.close()
+                            conn = sqlite3.connect(str(target), check_same_thread=False)
+                            conn.row_factory = sqlite3.Row
+                else:
+                    test_conn.close()
+            except sqlite3.DatabaseError as e:
+                logger.warning(f"Database error detected: {e}, attempting recovery...")
                 if not _recover_database(target):
                     logger.error("Database recovery failed, creating new database")
                     if target.exists():
-                        backup_path = target.with_suffix('.db.backup')
+                        backup_path = target.with_suffix(".db.backup")
                         try:
                             shutil.move(target, backup_path)
                             logger.info(f"Moved corrupted database to {backup_path}")
                         except Exception as e:
                             logger.error(f"Failed to move corrupted database: {e}")
                             target.unlink()  # Force remove if move fails
-            else:
-                test_conn.close()
-        except sqlite3.DatabaseError as e:
-            logger.warning(f"Database error detected: {e}, attempting recovery...")
-            if not _recover_database(target):
-                logger.error("Database recovery failed, creating new database")
-                if target.exists():
-                    backup_path = target.with_suffix('.db.backup')
-                    try:
-                        shutil.move(target, backup_path)
-                        logger.info(f"Moved corrupted database to {backup_path}")
-                    except Exception as e:
-                        logger.error(f"Failed to move corrupted database: {e}")
-                        target.unlink()  # Force remove if move fails
-    
-    # Allow use across background worker threads (integrations, daemons, API).
-    max_retries = 2
-    conn = None
-    for attempt in range(max_retries):
-        try:
-            conn = sqlite3.connect(str(target), check_same_thread=False)
-            conn.row_factory = sqlite3.Row
-            # ========================================================================
-            # PERFORMANCE OPTIMIZATION: Configure SQLite for better performance
-            # ========================================================================
-            conn.execute("PRAGMA foreign_keys = ON")
-            conn.execute("PRAGMA busy_timeout = 5000")
-
-            # Enable WAL mode for better concurrency (multiple readers, one writer)
-            conn.execute("PRAGMA journal_mode = WAL")
-            # If we get here, connection is successful
-            break
-        except sqlite3.DatabaseError as e:
-            logger.error(f"Database error during connection (attempt {attempt + 1}/{max_retries}): {e}")
-            # Close connection if it was opened
-            if conn is not None:
-                try:
+                    # Reconnect after recovery
                     conn.close()
-                except:
-                    pass
-                conn = None
-            
-            if attempt < max_retries - 1:
-                # Recover and retry
-                if target.exists():
-                    _recover_database(target)
-                # Continue to next attempt
-            else:
-                # Last attempt failed, raise the error
-                raise
-    
-    if conn is None:
-        raise sqlite3.DatabaseError("Failed to establish database connection after recovery attempts")
+                    conn = sqlite3.connect(str(target), check_same_thread=False)
+                    conn.row_factory = sqlite3.Row
 
-    # Increase cache size for better performance (default is -2000 KB, we set to -10000 KB = 10 MB)
-    conn.execute("PRAGMA cache_size = -10000")
+        # Apply SQLite performance optimizations to the existing connection
+        # ========================================================================
+        # PERFORMANCE OPTIMIZATION: Configure SQLite for better performance
+        # ========================================================================
+        conn.execute("PRAGMA foreign_keys = ON")
+        conn.execute("PRAGMA busy_timeout = 5000")
 
-    # Use memory for temporary tables
-    conn.execute("PRAGMA temp_store = MEMORY")
+        # Enable WAL mode for better concurrency (multiple readers, one writer)
+        conn.execute("PRAGMA journal_mode = WAL")
 
-    # Optimize for write operations
-    conn.execute("PRAGMA synchronous = NORMAL")
+        # Increase cache size for better performance (default is -2000 KB, we set to -10000 KB = 10 MB)
+        conn.execute("PRAGMA cache_size = -10000")
+
+        # Use memory for temporary tables
+        conn.execute("PRAGMA temp_store = MEMORY")
+
+        # Optimize for write operations
+        conn.execute("PRAGMA synchronous = NORMAL")
 
     c = conn.cursor()
 
@@ -669,6 +1082,37 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
         c.execute("ALTER TABLE users ADD COLUMN tenant_id TEXT")
     if "workspace_id" not in columns:
         c.execute("ALTER TABLE users ADD COLUMN workspace_id TEXT")
+    if "username" not in columns:
+        c.execute("ALTER TABLE users ADD COLUMN username TEXT")
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS user_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            refresh_token TEXT UNIQUE NOT NULL,
+            expires_at TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS user_activity (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            action TEXT NOT NULL,
+            resource TEXT,
+            details TEXT,
+            ip_address TEXT,
+            user_agent TEXT,
+            timestamp TEXT,
+            created_at TEXT,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        """
+    )
 
     c.execute(
         """
@@ -774,17 +1218,6 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
     )
     c.execute(
         """
-        CREATE TABLE IF NOT EXISTS audit_logs (
-            id TEXT PRIMARY KEY,
-            actor_id TEXT,
-            action TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            metadata_json TEXT
-        )
-        """
-    )
-    c.execute(
-        """
         CREATE TABLE IF NOT EXISTS usage_records (
             id TEXT PRIMARY KEY,
             tenant_id TEXT NOT NULL,
@@ -866,13 +1299,6 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
     # ---------------------------------------------------------------------
     # Governance / classification scaffolding columns
     # ---------------------------------------------------------------------
-    _add_column("audit_logs", "tenant_id", "TEXT")
-    _add_column("audit_logs", "workspace_id", "TEXT")
-    _add_column("audit_logs", "user_id", "TEXT")
-    _add_column("audit_logs", "status", "TEXT")
-    _add_column("audit_logs", "retention_policy", "TEXT")
-    _add_column("audit_logs", "legal_hold", "INTEGER DEFAULT 0")
-    _add_column("audit_logs", "residency", "TEXT")
 
     _add_column("tasks", "tenant_id", "TEXT")
     _add_column("tasks", "workspace_id", "TEXT")
@@ -1052,30 +1478,6 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
         """
         CREATE INDEX IF NOT EXISTS idx_cir_documents_user
         ON cir_documents(user_id, datetime(created_at) DESC)
-        """
-    )
-    c.execute(
-        """
-        CREATE INDEX IF NOT EXISTS idx_audit_logs_actor
-        ON audit_logs(actor_id, datetime(created_at) DESC)
-        """
-    )
-    c.execute(
-        """
-        CREATE INDEX IF NOT EXISTS idx_audit_logs_tenant
-        ON audit_logs(tenant_id, datetime(created_at) DESC)
-        """
-    )
-    c.execute(
-        """
-        CREATE INDEX IF NOT EXISTS idx_audit_logs_workspace
-        ON audit_logs(workspace_id, datetime(created_at) DESC)
-        """
-    )
-    c.execute(
-        """
-        CREATE INDEX IF NOT EXISTS idx_audit_logs_user
-        ON audit_logs(user_id, datetime(created_at) DESC)
         """
     )
     c.execute(
@@ -1587,7 +1989,7 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
         c.execute("ALTER TABLE deliverables ADD COLUMN source TEXT DEFAULT ''")
 
     # ---------------------------------------------------------------------
-    # Project Management System (PMS) tables
+    # Intelligence Project Management (IPM) tables (legacy pms_* storage)
     # ---------------------------------------------------------------------
     c.execute(
         """
@@ -2445,6 +2847,7 @@ def _ensure_bootstrap_accounts(conn: sqlite3.Connection) -> None:
     cur = conn.cursor()
 
     def _upsert_user(*, user_id: str, email: str, password: str, is_admin: bool, environment: str) -> None:
+        username = (email.split("@", 1)[0] if email else user_id).strip().lower()
         cur.execute("SELECT id FROM users WHERE email = ?", (email,))
         row = cur.fetchone()
         if row:
@@ -2454,6 +2857,7 @@ def _ensure_bootstrap_accounts(conn: sqlite3.Connection) -> None:
             INSERT INTO users (
                 id,
                 email,
+                username,
                 display_name,
                 password_hash,
                 is_admin,
@@ -2464,11 +2868,12 @@ def _ensure_bootstrap_accounts(conn: sqlite3.Connection) -> None:
                 tenant_id,
                 workspace_id
             )
-            VALUES (?, ?, ?, ?, ?, ?, 0, ?, NULL, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, NULL, ?, ?)
             """,
             (
                 user_id,
                 email,
+                username,
                 "Admin" if is_admin else "Demo User",
                 _bcrypt_hash_password(password),
                 1 if is_admin else 0,
@@ -2596,6 +3001,7 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
                 due_date=r["due_date"] or "",
                 notes=r["notes"] or "",
                 owner=owner,
+                user_id=r["user_id"] if "user_id" in r.keys() else "demo",
                 created_at=r["created_at"] or datetime.now().isoformat(timespec="seconds"),
                 depends_on=depends_on,
                 recurrence_pattern=recurrence_pattern,
@@ -2623,6 +3029,10 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
             order_num = r["order_num"] if r["order_num"] is not None else 0
         except (KeyError, IndexError):
             order_num = 0
+        try:
+            user_id = r["user_id"] if r["user_id"] is not None else "demo"
+        except (KeyError, IndexError):
+            user_id = "demo"
 
         projects.append(
             Project(
@@ -2631,6 +3041,7 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
                 status=r["status"] or "active",
                 priority=priority,
                 order_num=order_num,
+                user_id=user_id,
             )
         )
 
@@ -2639,7 +3050,7 @@ def load_state(conn: sqlite3.Connection) -> AssistantState:
     chat_messages: List[ChatMessage] = []
     for r in chat_rows:
         persona = r["persona"] or PERSONAS[0]
-        if persona not in PERSONAS:
+        if persona not in CHAT_PERSONAS:
             persona = PERSONAS[0]
         role = (r["role"] or "user").lower()
         if role not in CHAT_ROLES:
@@ -2780,6 +3191,9 @@ def db_upsert_project(conn: sqlite3.Connection, proj: Optional[Project] = None, 
     if "order_num" not in columns:
         c.execute("ALTER TABLE projects ADD COLUMN order_num INTEGER DEFAULT 0")
         conn.commit()
+    if "user_id" not in columns:
+        c.execute("ALTER TABLE projects ADD COLUMN user_id TEXT DEFAULT 'demo'")
+        conn.commit()
 
     if proj is None:
         proj = Project(**kwargs)
@@ -2821,6 +3235,7 @@ def db_insert_task(conn: sqlite3.Connection, t: Optional[Task] = None, **kwargs)
             due_date=kwargs.get("due_date", "") or "",
             notes=kwargs.get("notes", "") or "",
             owner=kwargs.get("owner", "Chris"),
+            user_id=kwargs.get("user_id", "demo"),
             created_at=kwargs.get("created_at", datetime.now().isoformat(timespec="seconds")),
             depends_on=kwargs.get("depends_on"),
             recurrence_pattern=kwargs.get("recurrence_pattern"),
@@ -2831,13 +3246,16 @@ def db_insert_task(conn: sqlite3.Connection, t: Optional[Task] = None, **kwargs)
         )
     user_id = getattr(t, "user_id", None) or kwargs.get("user_id") or "demo"
     c = conn.cursor()
-    c.execute(
-        """
+    insert_sql = """
         INSERT INTO tasks
         (title, project, status, priority, due_date, notes, owner, created_at,
          depends_on, recurrence_pattern, recurrence_end, time_estimated, time_logged, template_id, user_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
+        """
+    new_id = _execute_insert_returning_id(
+        conn,
+        c,
+        insert_sql,
         (
             t.title,
             t.project,
@@ -2857,7 +3275,7 @@ def db_insert_task(conn: sqlite3.Connection, t: Optional[Task] = None, **kwargs)
         ),
     )
     conn.commit()
-    return c.lastrowid
+    return new_id
 
 
 def db_update_task(conn: sqlite3.Connection, t: Optional[Task] = None, task_id: Optional[int] = None, **kwargs):
@@ -2878,6 +3296,7 @@ def db_update_task(conn: sqlite3.Connection, t: Optional[Task] = None, task_id: 
             due_date=row["due_date"] or "",
             notes=row["notes"] or "",
             owner=row["owner"] or "Chris",
+            user_id=row["user_id"] if "user_id" in row.keys() else "demo",
             created_at=row["created_at"] or datetime.now().isoformat(timespec="seconds"),
             depends_on=row["depends_on"] if "depends_on" in row.keys() else None,
             recurrence_pattern=row["recurrence_pattern"] if "recurrence_pattern" in row.keys() else None,
@@ -2915,15 +3334,18 @@ def db_delete_task(conn: sqlite3.Connection, task_id: int):
 def db_insert_chat_message(conn: sqlite3.Connection, msg: ChatMessage) -> int:
     c = conn.cursor()
     created_at = msg.created_at or datetime.now().isoformat(timespec="seconds")
-    c.execute(
-        """
+    insert_sql = """
         INSERT INTO chat_messages (persona, role, kind, content, created_at)
         VALUES (?, ?, ?, ?, ?)
-        """,
+        """
+    new_id = _execute_insert_returning_id(
+        conn,
+        c,
+        insert_sql,
         (msg.persona, msg.role, msg.kind, msg.content, created_at),
     )
     conn.commit()
-    return c.lastrowid
+    return new_id
 
 
 def db_clear_chat_history(conn: sqlite3.Connection, persona: Optional[str] = None):
@@ -2973,15 +3395,13 @@ def ensure_external_source(conn: sqlite3.Connection, name: str, kind: str) -> in
     if row:
         return row["id"]
 
-    c.execute(
-        """
+    insert_sql = """
         INSERT INTO external_sources (name, kind, connected, last_sync)
         VALUES (?, ?, 1, ?)
-        """,
-        (name, kind, now),
-    )
+        """
+    new_id = _execute_insert_returning_id(conn, c, insert_sql, (name, kind, now))
     conn.commit()
-    return c.lastrowid
+    return new_id
 
 
 def record_external_item(
@@ -3085,14 +3505,17 @@ def db_record_document_operation(
 
     now = datetime.now().isoformat(timespec="seconds")
     c = conn.cursor()
-    c.execute(
-        """
+    insert_sql = """
         INSERT INTO document_operations (
             title, project_id, integration_type, external_id, operation, status, persona,
             version_tag, diff_path, external_company, started_at, completed_at, notes
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
+        """
+    new_id = _execute_insert_returning_id(
+        conn,
+        c,
+        insert_sql,
         (
             title,
             project_id,
@@ -3110,7 +3533,7 @@ def db_record_document_operation(
         ),
     )
     conn.commit()
-    return c.lastrowid
+    return new_id
 
 
 def db_update_document_operation_status(
@@ -3226,15 +3649,18 @@ def db_create_note_link(
     """Create a note link (document reference) in the database."""
     c = conn.cursor()
     created_at = datetime.now().isoformat(timespec="seconds")
-    c.execute(
-        """
+    insert_sql = """
         INSERT INTO note_links (project_id, integration_type, external_id, title, description, created_at)
         VALUES (?, ?, ?, ?, ?, ?)
-        """,
+        """
+    new_id = _execute_insert_returning_id(
+        conn,
+        c,
+        insert_sql,
         (project_id, integration_type, external_id, title, description, created_at),
     )
     conn.commit()
-    return c.lastrowid
+    return new_id
 
 
 def db_get_note_links(
@@ -3581,7 +4007,7 @@ def db_record_project_event(
         "entity_id": entity_id,
         "data": payload or {},
     }
-    payload_json = json.dumps(payload_dict, sort_keys=True)
+    payload_json = json.dumps(payload_dict, sort_keys=True, default=str)
 
     cursor.execute(
         """
@@ -3615,4 +4041,64 @@ def db_record_project_event(
         ),
     )
     conn.commit()
+    tenant_id = None
+    workspace_id = None
+    try:
+        cursor.execute(
+            "SELECT tenant_id, workspace_id FROM projects WHERE name = ?",
+            (project_id,),
+        )
+        row = cursor.fetchone()
+        if row:
+            tenant_id = row["tenant_id"] if "tenant_id" in row.keys() else None
+            workspace_id = row["workspace_id"] if "workspace_id" in row.keys() else None
+    except sqlite3.OperationalError:
+        tenant_id = None
+        workspace_id = None
+
+    _log_immutable_audit_ledger_event(
+        project_id=project_id,
+        event_type=event_type,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        payload=payload or {},
+        user_id=user_id,
+        tenant_id=tenant_id,
+        workspace_id=workspace_id,
+    )
     return hash_curr
+
+
+def _log_immutable_audit_ledger_event(
+    *,
+    project_id: str,
+    event_type: str,
+    entity_type: Optional[str],
+    entity_id: Optional[str],
+    payload: Dict[str, Any],
+    user_id: str,
+    tenant_id: Optional[str],
+    workspace_id: Optional[str],
+) -> None:
+    try:
+        from assistant_core.immutable_audit_ledger import (
+            get_immutable_audit_ledger_module,
+        )
+    except Exception:
+        logger.debug("Immutable audit ledger module unavailable", exc_info=True)
+        return
+
+    try:
+        ledger_module = get_immutable_audit_ledger_module()
+        ledger_module.record_project_event_sync(
+            project_id=project_id,
+            event_type=event_type,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            payload=payload,
+            user_id=user_id,
+            tenant_id=tenant_id,
+            workspace_id=workspace_id,
+        )
+    except Exception:
+        logger.exception("Immutable audit ledger logging failed for project event")

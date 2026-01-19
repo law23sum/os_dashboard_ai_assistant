@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Scan the workspace for Git projects and attach OS Dashboard auto-healing scripts.
+"""Scan the workspace for Git projects and attach AI OS auto-healing scripts.
 
 The Technical Spec Sheet (v6) calls for every checked out project to inherit the
 same resiliency guardrails that this repository uses.  This helper discovers all
@@ -14,7 +14,7 @@ Plan-only report (default):
 Execute the detected routines sequentially:
     python scripts/workspace_auto_guard.py --root ~/Projects --execute
 
-Force-run the existing ai_auto_fix.py in the OS Dashboard repo for everything:
+Force-run the existing ai_auto_fix.py in the AI OS repo for everything:
     python scripts/workspace_auto_guard.py --root ~/Projects \
         --fallback os_dashboard_ai_assistant/scripts/ai_auto_fix.py
 """
@@ -132,7 +132,7 @@ def detect_commands(repo: Path, fallback: Path | None) -> List[RepoCommand]:
                 name="workspace-fallback",
                 cmd=[sys.executable, str(fallback)],
                 cwd=repo,
-                description="Fallback auto-fix inherited from OS Dashboard AI Assistant",
+                description="Fallback auto-fix inherited from AI OS",
             )
         )
     return commands
@@ -179,12 +179,12 @@ def orchestrate(root: Path, max_depth: int, execute: bool, fallback: Path | None
 
 
 def main(argv: List[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Attach OS Dashboard auto-healing scripts to every Git project in a workspace.")
+    parser = argparse.ArgumentParser(description="Attach AI OS auto-healing scripts to every Git project in a workspace.")
     parser.add_argument(
         "--root",
         type=Path,
         default=REPO_ROOT,
-        help="Workspace root to scan. Defaults to the OS Dashboard repo.",
+        help="Workspace root to scan. Defaults to the AI OS repo.",
     )
     parser.add_argument(
         "--max-depth",

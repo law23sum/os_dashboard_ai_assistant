@@ -22,8 +22,30 @@ if str(parent_dir) not in sys.path:
 
 from assistant_hub_gui.assistant_hub.db import db_list_project_events, load_state
 from backend_api.db import db_session
+from assistant_core.dynamic_cybersecurity_engine import (
+    BreachState,
+    DynamicCybersecurityEngine,
+)
 
 router = APIRouter()
+_dynamic_engine: Optional[DynamicCybersecurityEngine] = None
+
+
+async def _get_dynamic_engine() -> DynamicCybersecurityEngine:
+    global _dynamic_engine
+    if _dynamic_engine is None:
+        _dynamic_engine = DynamicCybersecurityEngine()
+        await _dynamic_engine.initialize()
+    return _dynamic_engine
+
+
+def _parse_datetime(value: Optional[str]) -> Optional[datetime]:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid datetime: {value}") from exc
 
 
 def get_state():
@@ -91,6 +113,40 @@ class EvidencePackResponse(BaseModel):
     spec_refs: List[str]
     artifacts: List[EvidencePackArtifact]
     archive_b64: str
+
+
+class AuditPackRequest(BaseModel):
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    tenant_id: Optional[str] = None
+    include_archive: bool = False
+
+
+class AuditPackResponse(BaseModel):
+    reference: str
+    generated_at: str
+    pack_path: str
+    archive_b64: Optional[str] = None
+
+
+class BreachTransitionRequest(BaseModel):
+    state: str
+    trigger: str
+    evidence_refs: Optional[List[str]] = None
+    notes: Optional[str] = None
+
+
+class BreachTransitionResponse(BaseModel):
+    transition_id: Optional[str]
+    event_id: Optional[str]
+    from_state: str
+    to_state: str
+    recorded_at: str
+
+
+class BreachStateResponse(BaseModel):
+    state: str
+    transitions: int
 
 
 @router.get("/summary", response_model=AuditSummary)
@@ -289,4 +345,78 @@ async def build_evidence_pack(project: Optional[str] = None) -> EvidencePackResp
         spec_refs=["§8.17", "§11.6"],
         artifacts=artifacts,
         archive_b64=base64.b64encode(archive_bytes).decode("ascii"),
+    )
+
+
+@router.post("/pack/export", response_model=AuditPackResponse)
+async def export_audit_pack(payload: AuditPackRequest) -> AuditPackResponse:
+    """Export a verifier-friendly audit pack."""
+    start_date = _parse_datetime(payload.start_date)
+    end_date = _parse_datetime(payload.end_date)
+    if not end_date:
+        end_date = datetime.utcnow()
+    if not start_date:
+        start_date = end_date - timedelta(days=1)
+    if start_date > end_date:
+        raise HTTPException(status_code=400, detail="start_date must be <= end_date")
+
+    engine = await _get_dynamic_engine()
+    pack_path = await engine.audit_system.export_audit_pack(
+        start_date=start_date,
+        end_date=end_date,
+        tenant_id=payload.tenant_id,
+    )
+    reference = Path(pack_path).stem
+    archive_b64 = None
+    if payload.include_archive:
+        archive_b64 = base64.b64encode(Path(pack_path).read_bytes()).decode("ascii")
+
+    return AuditPackResponse(
+        reference=reference,
+        generated_at=datetime.utcnow().isoformat() + "Z",
+        pack_path=str(pack_path),
+        archive_b64=archive_b64,
+    )
+
+
+@router.get("/breach/state", response_model=BreachStateResponse)
+async def get_breach_state() -> BreachStateResponse:
+    """Return the current breach mode state."""
+    engine = await _get_dynamic_engine()
+    return BreachStateResponse(state=engine.state.value, transitions=len(engine.transitions))
+
+
+@router.post("/breach/transition", response_model=BreachTransitionResponse)
+async def transition_breach_state(
+    payload: BreachTransitionRequest,
+) -> BreachTransitionResponse:
+    """Transition the breach mode state machine."""
+    engine = await _get_dynamic_engine()
+    try:
+        target_state = BreachState(payload.state)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=f"Unknown breach state: {payload.state}") from exc
+
+    from_state = engine.state.value
+    result = await engine.transition_state(
+        to_state=target_state,
+        trigger=payload.trigger,
+        evidence_refs=payload.evidence_refs,
+        notes=payload.notes or "",
+    )
+    if not result:
+        return BreachTransitionResponse(
+            transition_id=None,
+            event_id=None,
+            from_state=from_state,
+            to_state=engine.state.value,
+            recorded_at=datetime.utcnow().isoformat() + "Z",
+        )
+
+    return BreachTransitionResponse(
+        transition_id=result.get("transition_id"),
+        event_id=result.get("event_id"),
+        from_state=result.get("from_state", from_state),
+        to_state=result.get("to_state", target_state.value),
+        recorded_at=result.get("timestamp", datetime.utcnow().isoformat() + "Z"),
     )

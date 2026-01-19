@@ -7,11 +7,21 @@ from .audit_system import (
     AuditEvent,
     AuditEventType,
     AuditLevel,
+    EventFamily,
     ComplianceFramework,
     ComplianceRule,
     ComplianceViolation,
     DataLineage,
 )
+from .audit_maintenance import AuditMaintenanceConfig, AuditMaintenanceRunner
+from .immutable_audit_ledger import (
+    ImmutableAuditLedgerModule,
+    ImmutableAuditLedgerSystem,
+    get_immutable_audit_ledger_module,
+    InvariantTrailLogger,
+    get_invariant_trail_logger,
+)
+from .dynamic_cybersecurity_engine import BreachState, DynamicCybersecurityEngine
 from .intelligence import (
     DataCollector,
     SyncDataCollector,
@@ -115,10 +125,20 @@ __all__ = [
     "AuditEvent",
     "AuditEventType",
     "AuditLevel",
+    "EventFamily",
     "ComplianceFramework",
     "ComplianceRule",
     "ComplianceViolation",
     "DataLineage",
+    "AuditMaintenanceConfig",
+    "AuditMaintenanceRunner",
+    "ImmutableAuditLedgerSystem",
+    "ImmutableAuditLedgerModule",
+    "get_immutable_audit_ledger_module",
+    "InvariantTrailLogger",
+    "get_invariant_trail_logger",
+    "BreachState",
+    "DynamicCybersecurityEngine",
     # Intelligence
     "DataCollector",
     "SyncDataCollector",

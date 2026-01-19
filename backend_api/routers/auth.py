@@ -3,19 +3,35 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+import re
 from typing import Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
+try:  # Pydantic v2
+    from pydantic import field_validator
+    _HAS_FIELD_VALIDATOR = True
+except ImportError:  # pragma: no cover - pydantic v1 fallback
+    from pydantic import validator
+    _HAS_FIELD_VALIDATOR = False
 
 from backend_api.db import db_session
 from backend_api.deps import get_current_user
-from backend_api.auth import get_current_admin_user
 from backend_api.security import AuthUser, create_access_token, hash_password, verify_password
 from assistant_hub.demo_seed import ensure_demo_data
 
 router = APIRouter()
+
+
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def _normalize_email(value: str) -> str:
+    email = (value or "").strip().lower()
+    if not _EMAIL_RE.match(email):
+        raise ValueError("Invalid email address")
+    return email
 
 
 class AuthUserResponse(BaseModel):
@@ -32,12 +48,28 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: AuthUserResponse
+    id: Optional[str] = None
+    email: Optional[str] = None
 
 
 class LoginRequest(BaseModel):
     username: Optional[str] = None
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     password: str = Field(min_length=6, max_length=256)
+
+    if _HAS_FIELD_VALIDATOR:
+        @field_validator("email")
+        @classmethod
+        def _validate_email(cls, value: Optional[str]) -> Optional[str]:
+            if value is None:
+                return value
+            return _normalize_email(value)
+    else:  # pragma: no cover - pydantic v1 fallback
+        @validator("email")
+        def _validate_email(cls, value: Optional[str]) -> Optional[str]:
+            if value is None:
+                return value
+            return _normalize_email(value)
     
     def get_identifier(self) -> str:
         """Get the identifier (username or email) for login."""
@@ -49,10 +81,22 @@ class LoginRequest(BaseModel):
 
 
 class SignupRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str = Field(min_length=6, max_length=256)
     display_name: str = Field(default="", max_length=80)
+    username: Optional[str] = None
+    full_name: Optional[str] = None
     environment: str = Field(default="demo", pattern="^(demo|prod)$")
+
+    if _HAS_FIELD_VALIDATOR:
+        @field_validator("email")
+        @classmethod
+        def _validate_email(cls, value: str) -> str:
+            return _normalize_email(value)
+    else:  # pragma: no cover - pydantic v1 fallback
+        @validator("email")
+        def _validate_email(cls, value: str) -> str:
+            return _normalize_email(value)
 
 
 def _row_to_user(row) -> AuthUser:
@@ -85,6 +129,7 @@ async def _ensure_demo_users() -> None:
             ]
             
             for email, display_name, password, is_admin in demo_users:
+                username = email.split("@", 1)[0]
                 existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
                 hashed_pw = hash_password(password)
                 if not existing:
@@ -94,6 +139,7 @@ async def _ensure_demo_users() -> None:
                         INSERT INTO users (
                             id,
                             email,
+                            username,
                             display_name,
                             password_hash,
                             is_admin,
@@ -104,19 +150,19 @@ async def _ensure_demo_users() -> None:
                             tenant_id,
                             workspace_id
                         )
-                        VALUES (?, ?, ?, ?, ?, 'demo', 0, ?, NULL, 'default-tenant', 'default-workspace')
+                        VALUES (?, ?, ?, ?, ?, ?, 'demo', 0, ?, NULL, 'default-tenant', 'default-workspace')
                         """,
-                        (user_id, email, display_name, hashed_pw, 1 if is_admin else 0, now),
+                        (user_id, email, username, display_name, hashed_pw, 1 if is_admin else 0, now),
                     )
                 else:
                     # Update password/details for existing demo users to ensure they are always valid
                     db.execute(
                         """
                         UPDATE users 
-                        SET password_hash = ?, display_name = ?, is_admin = ?, disabled = 0
+                        SET password_hash = ?, display_name = ?, username = ?, is_admin = ?, disabled = 0
                         WHERE email = ?
                         """,
-                        (hashed_pw, display_name, 1 if is_admin else 0, email),
+                        (hashed_pw, display_name, username, 1 if is_admin else 0, email),
                     )
             admin_row = db.execute(
                 "SELECT id FROM users WHERE email = ?",
@@ -137,14 +183,26 @@ async def signup(payload: SignupRequest, request: Request) -> TokenResponse:
     logger = logging.getLogger(__name__)
     
     try:
-        email = payload.email.strip().lower()
+        email = _normalize_email(payload.email)
         now = datetime.now().isoformat(timespec="seconds")
+        display_name = (payload.display_name or payload.full_name or payload.username or "").strip()
+        username = (payload.username or "").strip()
+        if not username:
+            username = email.split("@", 1)[0]
+        normalized_username = username.lower() if username else email
         
         with db_session() as db:
             existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
             if existing:
                 logger.warning(f"Signup attempt with existing email: {email}")
                 raise HTTPException(status_code=400, detail="Email already registered")
+            username_row = db.execute(
+                "SELECT id FROM users WHERE LOWER(username) = LOWER(?)",
+                (normalized_username,),
+            ).fetchone()
+            if username_row:
+                logger.warning(f"Signup attempt with existing username: {username}")
+                raise HTTPException(status_code=400, detail="Username already registered")
             
             user_id = str(uuid4())
             db.execute(
@@ -152,6 +210,7 @@ async def signup(payload: SignupRequest, request: Request) -> TokenResponse:
                 INSERT INTO users (
                     id,
                     email,
+                    username,
                     display_name,
                     password_hash,
                     is_admin,
@@ -162,9 +221,17 @@ async def signup(payload: SignupRequest, request: Request) -> TokenResponse:
                     tenant_id,
                     workspace_id
                 )
-                VALUES (?, ?, ?, ?, 0, ?, 0, ?, NULL, 'default-tenant', 'default-workspace')
+                VALUES (?, ?, ?, ?, ?, 0, ?, 0, ?, NULL, 'default-tenant', 'default-workspace')
                 """,
-                (user_id, email, payload.display_name or "", hash_password(payload.password), payload.environment, now),
+                (
+                    user_id,
+                    email,
+                    normalized_username,
+                    display_name,
+                    hash_password(payload.password),
+                    payload.environment,
+                    now,
+                ),
             )
             db.commit()
             row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
@@ -185,6 +252,8 @@ async def signup(payload: SignupRequest, request: Request) -> TokenResponse:
                 tenant_id=user.tenant_id,
                 workspace_id=user.workspace_id,
             ),
+            id=user.id,
+            email=user.email,
         )
     except HTTPException:
         raise
@@ -223,68 +292,62 @@ async def login(payload: LoginRequest, request: Request) -> TokenResponse:
             # 3. Display name match (case-insensitive)
             if "@" in identifier:
                 # Full email provided - exact match only
-                row = db.execute(
+                candidate_rows = db.execute(
                     """
-                    SELECT * FROM users 
+                    SELECT * FROM users
                     WHERE email = ? OR LOWER(email) = LOWER(?)
                     """,
-                    (identifier, identifier)
-                ).fetchone()
+                    (identifier, identifier),
+                ).fetchall()
             else:
-                # Username/prefix provided - try email prefix and display name
-                row = db.execute(
+                # Username/prefix provided - try username, email prefix, and display name
+                candidate_rows = db.execute(
                     """
-                    SELECT * FROM users 
-                    WHERE email LIKE ? 
+                    SELECT * FROM users
+                    WHERE LOWER(username) = LOWER(?)
+                       OR email LIKE ?
                        OR LOWER(display_name) = LOWER(?)
                     """,
-                    (f"{identifier}@%", identifier)
-                ).fetchone()
-            
-            if not row:
+                    (identifier, f"{identifier}@%", identifier),
+                ).fetchall()
+
+            if not candidate_rows:
                 logger.warning(f"Login attempt with unknown identifier: {identifier}")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
-            
-            found_email = row["email"]
-            found_display = row["display_name"] if "display_name" in row.keys() else "N/A"
-            logger.info(f"Found user for login: email={found_email}, display_name={found_display}")
-            
-            # SQLite Row objects use dictionary-style access with row["key"], not row.get()
-            try:
-                disabled = bool(row["disabled"] or 0)
-                if disabled:
-                    logger.warning(f"Login attempt for disabled account: {found_email}")
-                    raise HTTPException(status_code=403, detail="Account disabled")
-                
-                password_hash = row["password_hash"] or ""
-                if not password_hash:
-                    logger.error(f"User {found_email} has no password hash")
-                    raise HTTPException(status_code=401, detail="Invalid credentials")
-            except KeyError as e:
-                logger.error(f"Missing column in user row: {e}")
-                raise HTTPException(status_code=500, detail="Database schema error")
-            
-            # Use verify_password from backend_api.security
-            try:
-                password_valid = verify_password(payload.password, password_hash)
-                if not password_valid:
-                    logger.warning(f"Invalid password for user: {found_email} (identifier: {identifier})")
-                    raise HTTPException(status_code=401, detail="Invalid credentials")
-                logger.info(f"Password verified successfully for user: {found_email}")
-            except HTTPException:
-                raise
-            except Exception as e:
-                logger.error(f"Password verification error for {found_email}: {e}", exc_info=True)
+
+            selected_row = None
+            for row in candidate_rows:
+                try:
+                    password_hash = row["password_hash"] or ""
+                    if not password_hash:
+                        continue
+                    if not verify_password(payload.password, password_hash):
+                        continue
+                    if bool(row["disabled"] or 0):
+                        logger.warning(f"Login attempt for disabled account: {row['email']}")
+                        raise HTTPException(status_code=403, detail="Account disabled")
+                    selected_row = row
+                    break
+                except KeyError as exc:
+                    logger.error(f"Missing column in user row: {exc}")
+                    raise HTTPException(status_code=500, detail="Database schema error")
+
+            if selected_row is None:
+                logger.warning(f"Invalid password for identifier: {identifier}")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
-            
+
+            found_email = selected_row["email"]
+            found_display = selected_row["display_name"] if "display_name" in selected_row.keys() else "N/A"
+            logger.info(f"Found user for login: email={found_email}, display_name={found_display}")
+
             # Update last login
             db.execute(
                 "UPDATE users SET last_login = ? WHERE id = ?",
-                (datetime.now().isoformat(timespec="seconds"), row["id"]),
+                (datetime.now().isoformat(timespec="seconds"), selected_row["id"]),
             )
             # db_session context manager will commit automatically
         
-        user = _row_to_user(row)
+        user = _row_to_user(selected_row)
         token = create_access_token(user=user, expires_in=timedelta(hours=12))
         
         return TokenResponse(
@@ -299,6 +362,8 @@ async def login(payload: LoginRequest, request: Request) -> TokenResponse:
                 tenant_id=user.tenant_id,
                 workspace_id=user.workspace_id,
             ),
+            id=user.id,
+            email=user.email,
         )
     except HTTPException:
         raise

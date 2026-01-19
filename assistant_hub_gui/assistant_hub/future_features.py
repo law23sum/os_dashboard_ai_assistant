@@ -1,4 +1,4 @@
-"""Structured catalog of future feature pillars for the OS Dashboard."""
+"""Structured catalog of future feature pillars for AI OS."""
 
 from __future__ import annotations
 
@@ -107,7 +107,7 @@ FUTURE_FEATURES: List[FutureFeature] = [
     ),
     FutureFeature(
         code="10.13",
-        title="Overall OS Dashboard AI Assistant Platform",
+        title="AI OS Platform",
         tier="Core OS Engines",
         lifetime_value="$950B–$2.5T+",
         summary="Full stack (drivers + env + workflows) that orchestrates people, apps, Unix, and governance end-to-end.",
@@ -180,7 +180,7 @@ FUTURE_FEATURES: List[FutureFeature] = [
         title="Inter-OS Knowledge Network",
         tier="Super Capabilities",
         lifetime_value="$35–140B",
-        summary="An anonymized exchange of best practices between separate OS Dashboard deployments.",
+        summary="An anonymized exchange of best practices between separate AI OS deployments.",
     ),
     FutureFeature(
         code="10.24",
@@ -285,7 +285,7 @@ FUTURE_FEATURES: List[FutureFeature] = [
         title="Inter-OS Federation",
         tier="Ultra Scale",
         lifetime_value="$60–210B",
-        summary="Standards and trust fabric for multiple OS Dashboard networks to interoperate.",
+        summary="Standards and trust fabric for multiple AI OS networks to interoperate.",
     ),
     FutureFeature(
         code="10.39",

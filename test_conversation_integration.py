@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Test script for the conversation manager integration.
-Run this to verify the enhanced conversation AI system works with the existing OS Dashboard AI Assistant.
+Run this to verify the enhanced conversation AI system works with the existing AI OS.
 """
 
 import asyncio

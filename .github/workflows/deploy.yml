@@ -1,14 +1,7 @@
-name: Deploy
+name: Deploy (Legacy AWS/ECS)
 
 on:
-  push:
-    branches:
-      - develop
-    tags:
-      - 'v*.*.*-alpha.*'
-      - 'v*.*.*-beta.*'
-      - 'v*.*.*-rc.*'
-      - 'v*.*.*'
+  workflow_dispatch:
 
 env:
   PYTHON_VERSION: '3.11'
@@ -213,4 +206,3 @@ jobs:
         echo "Image Digest: ${IMAGE_DIGEST}"
         echo "Image URI: ${IMAGE_URI}"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-

@@ -309,7 +309,7 @@ print(decision)
 
 ## License
 
-Part of the OS Dashboard AI Assistant project.
+Part of the AI OS project.
 
 ## Support
 

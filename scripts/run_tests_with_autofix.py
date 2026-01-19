@@ -16,7 +16,29 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 TEST_LOG_DIR = REPO_ROOT / "logs" / "tests"
 TEST_LOG_DIR.mkdir(parents=True, exist_ok=True)
 
-PYTHON = os.environ.get("PYTHON", sys.executable)
+def _resolve_python() -> str:
+    env_python = os.environ.get("PYTHON")
+    if env_python:
+        return env_python
+    candidates: List[Path] = []
+    venv_roots = [REPO_ROOT / ".venv", REPO_ROOT / "venv"]
+    if os.name == "nt":
+        candidates.extend(root / "Scripts" / "python.exe" for root in venv_roots)
+    else:
+        for root in venv_roots:
+            candidates.extend(
+                [
+                    root / "bin" / "python",
+                    root / "bin" / "python3",
+                ]
+            )
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+    return sys.executable
+
+
+PYTHON = _resolve_python()
 
 TEST_COMMANDS: List[Dict[str, object]] = [
     {

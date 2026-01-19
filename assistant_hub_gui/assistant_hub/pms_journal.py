@@ -1,4 +1,4 @@
-"""Meeting journal helpers for PMS."""
+"""Meeting journal helpers for IPM."""
 
 from __future__ import annotations
 

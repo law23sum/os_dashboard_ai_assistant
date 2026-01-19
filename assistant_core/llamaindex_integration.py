@@ -20,6 +20,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Try to import LlamaIndex components
+LLAMAINDEX_IMPORT_ERROR: Optional[str] = None
 try:
     from llama_index.core import (
         VectorStoreIndex,
@@ -37,9 +38,10 @@ try:
     from llama_index.core.storage.index_store import SimpleIndexStore
     from llama_index.core.vector_stores import SimpleVectorStore
     LLAMAINDEX_AVAILABLE = True
-except ImportError:
+except Exception as e:
     LLAMAINDEX_AVAILABLE = False
-    logger.warning("LlamaIndex not installed. Install with: pip install llama-index")
+    LLAMAINDEX_IMPORT_ERROR = str(e)
+    logger.debug("LlamaIndex integration unavailable: %s", e)
 
 
 class LlamaIndexRAGEngine:
@@ -246,7 +248,7 @@ def create_rag_engine(
     Returns None if LlamaIndex is not available (graceful degradation).
     """
     if not LLAMAINDEX_AVAILABLE:
-        logger.warning("LlamaIndex not available. Returning None.")
+        logger.debug("LlamaIndex not available. Returning None.")
         return None
 
     try:
@@ -257,5 +259,3 @@ def create_rag_engine(
     except Exception as e:
         logger.error(f"Failed to create LlamaIndex RAG engine: {e}")
         return None
-
-

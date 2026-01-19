@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Unified execution orchestrator for OS Dashboard AI Assistant
+Unified execution orchestrator for AI OS
 Provides a single entry point for install, build, test, launch, and verify operations
 """
 
@@ -28,7 +28,7 @@ from operations import (
 def print_banner():
     """Print welcome banner"""
     print("=" * 60)
-    print("  OS Dashboard AI Assistant - Unified Execution Pipeline")
+    print("  AI OS - Unified Execution Pipeline")
     print("=" * 60)
     print()
 
@@ -36,7 +36,7 @@ def print_banner():
 def main():
     """Main entry point"""
     parser = argparse.ArgumentParser(
-        description="Unified execution pipeline for OS Dashboard AI Assistant",
+        description="Unified execution pipeline for AI OS",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

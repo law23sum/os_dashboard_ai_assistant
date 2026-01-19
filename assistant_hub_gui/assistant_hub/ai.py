@@ -125,6 +125,7 @@ AGENT_MODELS = {
     "Aria": "gpt-5.1-codex-max",
     "AIC": "gpt-5.2-pro",
     "Chris": "gpt-5-mini",
+    "Gabriela": "gpt-5.1-codex-max",
 }
 
 # Fallback models if primary model unavailable
@@ -133,14 +134,15 @@ AGENT_MODEL_FALLBACKS = {
     "Sora": "gpt-5-mini",
     "Aria": "gpt-5-mini",
     "Chris": "gpt-5-nano",
+    "Gabriela": "gpt-5-mini",
 }
 
 DEFAULT_MODEL = os.getenv("ASSISTANT_HUB_OPENAI_MODEL", "gpt-5-mini")
 DEFAULT_SYSTEM_PROMPT = os.getenv(
     "ASSISTANT_HUB_SYSTEM_PROMPT",
-    "You are a cooperative team of AI agents (AIC, Sora, Aria) tasked with helping across execution,"
-    " proof/structure, and meaning/value. Route each request to the most appropriate agent by role"
-    " and priority (AIC, then Sora, then Aria), avoiding redundant replies. Explain your thinking"
+    "You are a cooperative team of AI agents (AIC, Sora, Aria, Gabriela) tasked with helping across execution,"
+    " proof/structure, meaning/value, and commercialization. Route each request to the most appropriate agent by role"
+    " and priority (AIC, then Sora, then Aria, then Gabriela), avoiding redundant replies. Explain your thinking"
     " clearly, cite concrete next steps, and keep answers concise and actionable. You have access"
     " to a shell terminal and can execute commands when needed. Use the execute_command function to"
     " run shell commands.\n\n"
@@ -148,6 +150,71 @@ DEFAULT_SYSTEM_PROMPT = os.getenv(
     " or 'I'll proceed with modifications right now' or 'Thank you for your patience'. Just think and act directly."
     " Execute tasks immediately without meta-commentary about timing or process.",
 )
+
+STATE_CHANGE_GUARDRAIL = (
+    "When proposing or executing changes, treat the current code snapshot as authoritative. "
+    "Explicitly list intended state changes and impacted events; avoid unintended side effects."
+)
+
+INTERACTION_STYLES: Dict[str, str] = {
+    "discussion": (
+        "Collaborative and exploratory. Ask clarifying questions, surface options, and align on shared goals."
+    ),
+    "debate": (
+        "Adversarial but evidence-driven. Present claims and counterclaims, challenge assumptions, and end with the"
+        " strongest position."
+    ),
+    "informative": "Factual and neutral. Prioritize accuracy, note constraints, and avoid persuasion.",
+    "persuasive": (
+        "Recommendation-focused. Make a clear case with reasoning while remaining truthful and noting limits."
+    ),
+}
+
+INTERACTION_STYLE_ALIASES = {
+    "discuss": "discussion",
+    "collaborative": "discussion",
+    "brainstorm": "discussion",
+    "debate": "debate",
+    "argument": "debate",
+    "argumentative": "debate",
+    "informative": "informative",
+    "informational": "informative",
+    "info": "informative",
+    "persuasive": "persuasive",
+    "persuade": "persuasive",
+    "convince": "persuasive",
+}
+
+
+def normalize_interaction_style(style: Optional[str]) -> Optional[str]:
+    """Normalize interaction style input to a supported key."""
+    if not style:
+        return None
+    normalized = style.strip().lower()
+    normalized = INTERACTION_STYLE_ALIASES.get(normalized, normalized)
+    if normalized in INTERACTION_STYLES:
+        return normalized
+    return None
+
+
+def _build_interaction_style_prompt(style: Optional[str]) -> Optional[str]:
+    normalized = normalize_interaction_style(style)
+    if not normalized:
+        return None
+    return f"INTERACTION STYLE: {normalized}\n{INTERACTION_STYLES[normalized]}"
+
+
+def _apply_prompt_overrides(
+    system_prompt: Optional[str],
+    interaction_style: Optional[str],
+) -> str:
+    base = system_prompt or get_default_system_prompt()
+    if STATE_CHANGE_GUARDRAIL not in base:
+        base = f"{base}\n\n{STATE_CHANGE_GUARDRAIL}"
+    style_prompt = _build_interaction_style_prompt(interaction_style)
+    if style_prompt:
+        base = f"{base}\n\n{style_prompt}"
+    return base
 
 
 def _env_flag(name: str, default: bool = True) -> bool:
@@ -515,13 +582,14 @@ def generate_ai_reply(
     previous_response_id: Optional[str] = None,
     custom_tools: Optional[List[Dict[str, Any]]] = None,
     enable_preambles: bool = False,
+    interaction_style: Optional[str] = None,
 ) -> Tuple[str, Optional[str], Optional[List[Dict]]]:
     """
     Send the conversation to OpenAI and return (reply, error_message, tool_calls).
     Returns tool_calls if the AI wants to execute commands.
     """
     messages = []
-    sys_prompt = system_prompt or get_default_system_prompt()
+    sys_prompt = _apply_prompt_overrides(system_prompt, interaction_style)
     if sys_prompt:
         messages.append({"role": "system", "content": sys_prompt})
     messages.extend(build_message_payload(history, include_tool_results=True))

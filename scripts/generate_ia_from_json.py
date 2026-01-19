@@ -41,6 +41,7 @@ PLATFORM_DEFS: Dict[str, Tuple[str, str]] = {
     "Observability & Evidence": ("observability-evidence", "/observability"),
     "Operations & Infrastructure": ("operations-infrastructure", "/operations"),
     "Vision & Meta-Stack": ("vision-meta-stack", "/vision"),
+    "Legacy Recovery": ("legacy-recovery", "/legacy"),
 }
 
 
@@ -67,6 +68,29 @@ def normalize_path(path: str) -> str:
     return path
 
 
+def resolve_home_route(
+    base_route: str,
+    category_id: str,
+    category_routes: Dict[str, str],
+    feature_routes: Dict[str, str],
+) -> str:
+    candidate = base_route
+    suffix = 0
+    while True:
+        existing_category = category_routes.get(candidate)
+        conflict = candidate in feature_routes or (
+            existing_category is not None and existing_category != category_id
+        )
+        if not conflict:
+            break
+        suffix += 1
+        suffix_label = "home" if suffix == 1 else f"home-{suffix}"
+        candidate = normalize_path(f"{base_route}-{suffix_label}")
+    if candidate != base_route:
+        print(f"[ia] Adjusted category home route for {category_id}: {base_route} -> {candidate}")
+    return candidate
+
+
 def score_route(path: str, platform_path: str) -> int:
     score = len(path.split("/"))
     if platform_path and path.startswith(platform_path.rstrip("/") + "/"):
@@ -76,31 +100,7 @@ def score_route(path: str, platform_path: str) -> int:
     return score
 
 
-def pick_home_feature(
-    features: List[Dict],
-    category_label: str,
-    platform_path: str,
-) -> Dict | None:
-    if not features:
-        return None
-
-    label_slug = slugify(category_label)
-    for item in features:
-        if slugify(item.get("title", "")) == label_slug:
-            return item
-
-    candidates = [
-        f
-        for f in features
-        if normalize_path(f.get("path", "")).startswith(platform_path.rstrip("/") + "/")
-    ]
-    if candidates:
-        return min(candidates, key=lambda f: len(normalize_path(f.get("path", "")).split("/")))
-
-    return features[0]
-
-
-def load_path_mapping() -> Dict[str, str]:
+def load_path_mapping(canonical_routes: set[str]) -> Dict[str, str]:
     if not PATH_MAPPING.exists():
         return {}
     with PATH_MAPPING.open("r") as handle:
@@ -110,7 +110,12 @@ def load_path_mapping() -> Dict[str, str]:
         src = normalize_path(raw_src)
         dst = normalize_path(raw_dst)
         if src and dst and src != dst:
-            normalized[src] = dst
+            src_is_canonical = src in canonical_routes
+            dst_is_canonical = dst in canonical_routes
+            if src_is_canonical and not dst_is_canonical:
+                normalized[dst] = src
+            elif dst_is_canonical and not src_is_canonical:
+                normalized[src] = dst
     return normalized
 
 
@@ -196,15 +201,19 @@ def build_manifest(nav_data: Dict) -> Tuple[List[Dict], Dict[str, str]]:
                 if not raw_features:
                     continue
 
-                home_feature = pick_home_feature(raw_features, category_label, platform_path)
-                home_route = normalize_path(home_feature.get("path", "")) if home_feature else ""
+                home_route = normalize_path(f"{platform_path}/{slugify(category_label)}")
+                if not home_route or home_route == "/":
+                    home_route = normalize_path(f"/{platform_id}/{slugify(category_label)}")
 
-                if home_route:
-                    category["homeRoute"] = home_route
-                    if home_route in global_category_routes and global_category_routes[home_route] != home_route:
-                        legacy_redirects[home_route] = global_category_routes[home_route]
-                    else:
-                        global_category_routes[home_route] = home_route
+                home_route = resolve_home_route(
+                    home_route,
+                    category_id,
+                    global_category_routes,
+                    global_feature_routes,
+                )
+
+                category["homeRoute"] = home_route
+                global_category_routes[home_route] = category_id
 
                 label_groups: Dict[str, List[Dict]] = {}
                 for item in raw_features:
@@ -278,12 +287,25 @@ def main() -> None:
 
     platforms, legacy_redirects = build_manifest(nav_data)
 
-    legacy_redirects.update(load_path_mapping())
+    canonical_routes = set()
+    for platform in platforms:
+        canonical_routes.add(normalize_path(platform.get("path", "")))
+        for category in platform.get("categories", []):
+            canonical_routes.add(normalize_path(category.get("homeRoute", "")))
+            for feature in category.get("features", []):
+                canonical_routes.add(normalize_path(feature.get("route", "")))
+    canonical_routes.discard("")
+
+    for src, dst in load_path_mapping(canonical_routes).items():
+        legacy_redirects.setdefault(src, dst)
 
     total_categories = sum(len(p["categories"]) for p in platforms)
     total_features = sum(len(c["features"]) for p in platforms for c in p["categories"])
 
     output_file = REPO_ROOT / "frontend" / "src" / "data" / "iaManifest.from_json.ts"
+    output_json = REPO_ROOT / "frontend" / "src" / "data" / "iaManifest.from_json.json"
+    output_public_nav = REPO_ROOT / "frontend" / "public" / "gui_nav.latest.json"
+    output_frontend_nav = REPO_ROOT / "frontend" / "src" / "data" / "gui_nav.latest.json"
 
     ts_content = f"""/**
  * Complete IA Manifest - Generated from gui_nav.latest.json
@@ -402,8 +424,14 @@ export function findRouteContext(route: string): {{
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
     output_file.write_text(ts_content)
+    output_json.write_text(
+        json.dumps({"platforms": platforms, "legacyRedirects": legacy_redirects}, indent=2)
+    )
+    output_public_nav.write_text(json.dumps(nav_data, indent=2))
+    output_frontend_nav.write_text(json.dumps(nav_data, indent=2))
 
     print(f"Generated manifest: {output_file}")
+    print(f"Generated manifest JSON: {output_json}")
     print(f"Platforms: {len(platforms)}")
     print(f"Categories: {total_categories}")
     print(f"Features: {total_features}")

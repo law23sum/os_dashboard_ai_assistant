@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OS Dashboard AI Assistant Platform - Demo Usage Examples
+AI OS Platform - Demo Usage Examples
 Demonstrates the key capabilities of the platform using assistant_core modules.
 """
 
@@ -158,7 +158,7 @@ def demo_content_generation() -> Dict[str, str]:
     word_generator = WordDocumentGenerator(config)
     word_generator.add_heading("Executive Summary", 1)
     word_generator.add_paragraph(
-        "This demonstration showcases the capabilities of the OS Dashboard AI Assistant Platform, "
+        "This demonstration showcases the capabilities of the AI OS Platform, "
         "including enterprise-grade autonomous workflows and professional outputs."
     )
     word_generator.add_heading("Key Achievements", 2)
@@ -487,7 +487,7 @@ def demo_office_realtime_integration() -> Dict[str, Any]:
 
 def main() -> int:
     """Run all demonstration examples."""
-    print("🤖 OS Dashboard AI Assistant Platform - Demo Suite")
+    print("🤖 AI OS Platform - Demo Suite")
     print("=" * 60)
     print("Demonstrating advanced autonomous workflow capabilities...")
 
@@ -532,7 +532,7 @@ def main() -> int:
                     f"  🤖 AI job {rt['ai_ack']['job_id']} result: {rt.get('ai_result')}"
                 )
 
-        print("\n✨ The OS Dashboard AI Assistant Platform is ready for production use!")
+        print("\n✨ The AI OS Platform is ready for production use!")
         print("   Launch with: python main.py --mode dashboard")
 
     except Exception as exc:  # pragma: no cover - demo utility

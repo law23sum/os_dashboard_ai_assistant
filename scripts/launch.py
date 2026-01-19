@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Launch script for OS Dashboard AI Assistant
+Launch script for AI OS
 Prompts user to choose between web or desktop mode
 """
 
@@ -16,7 +16,7 @@ OSD_AUTOFIX = REPO_ROOT / "scripts" / "osd_autofix.py"
 
 def print_banner():
     print("=" * 60)
-    print("  OS Dashboard AI Assistant - Launch Menu")
+    print("  AI OS - Launch Menu")
     print("=" * 60)
     print()
 

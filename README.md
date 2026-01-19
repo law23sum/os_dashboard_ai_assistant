@@ -1,15 +1,15 @@
-# OS Dashboard AI Assistant
+# AI OS
 
 **Version:** 6.0 (Master Orchestrator Edition)  
 **Sir Chief Fellow Director Principal Software Solutions Systems Engineer Architect**
 
-A unified AI-powered dashboard and assistant platform with a modern React/TypeScript frontend that runs seamlessly on web browsers and native desktop applications (Linux, Windows, macOS). Features comprehensive multi-project management, automated error detection, recovery, and continuous improvement.
+AI OS (formerly OS Dashboard AI Assistant) is a unified AI-powered dashboard and assistant platform with a modern React/TypeScript frontend that runs seamlessly on web browsers and native desktop applications (Linux, Windows, macOS). Features comprehensive multi-project management, automated error detection, recovery, and continuous improvement.
 
 ---
 
 ## 🎯 Overview
 
-The OS Dashboard AI Assistant is an enterprise-grade system that combines:
+The AI OS is an enterprise-grade system that combines:
 
 - **Multi-Project Management**: Automatically discovers and monitors all git repositories
 - **AI Auto-Fix**: Intelligent error detection and automatic code repair
@@ -93,7 +93,7 @@ See [QUICKSTART.md](QUICKSTART.md) for detailed 5-minute setup guide.
 
 ### Prerequisites
 
-- **Python** 3.9+ ([Download](https://www.python.org/downloads/))
+- **Python** 3.11+ ([Download](https://www.python.org/downloads/))
 - **Node.js** 18+ ([Download](https://nodejs.org/))
 - **Git** ([Download](https://git-scm.com/downloads))
 - **npm** or **yarn** (comes with Node.js)
@@ -110,27 +110,27 @@ cd os_dashboard_ai_assistant
 #### Step 2: Install Python Dependencies
 
 ```bash
-# Check Python version first (must be 3.9 or higher)
-python --version  # or python3 --version on some systems
-# Should show: Python 3.9.x or higher
+# Check Python version first (must be 3.11 or higher)
+python3.11 --version  # or python --version if it points to 3.11+
+# Should show: Python 3.11.x
 
 # Create virtual environment (recommended)
-python -m venv venv
-# On systems where 'python' refers to Python 2, use:
-# python3 -m venv venv
+python3.11 -m venv .venv
+# If 'python' already points to 3.11, use:
+# python -m venv .venv
 
 # Activate virtual environment
 # On macOS/Linux:
-source venv/bin/activate
+source .venv/bin/activate
 # On Windows:
-venv\Scripts\activate
+.venv\Scripts\activate
 
 # Upgrade pip (recommended)
-pip install --upgrade pip
+python -m pip install --upgrade pip
 
 # Install dependencies
-pip install -r requirements.txt
-# Note: If not using a virtual environment, use: pip3 install -r requirements.txt
+python -m pip install -r requirements.txt
+# Note: If not using a virtual environment, use: python3.11 -m pip install -r requirements.txt
 ```
 
 #### Step 3: Install Frontend Dependencies
@@ -160,16 +160,16 @@ python -m uvicorn assistant_hub.api.server:create_app --factory --host 0.0.0.0 -
 
 ### Python Command Notes
 
-On some Linux distributions and macOS systems, `python` may refer to Python 2 (deprecated). Use:
-- `python3` instead of `python` if needed
-- `pip3` instead of `pip` if needed
-- Check your system: `which python python3` or `python --version`
+On some systems, `python` may refer to Python 2 or an older Python 3 (for example, Xcode's 3.9 on macOS). Use:
+- `python3.11` for venvs and installs
+- `python -m pip` from the active venv instead of `pip`
+- Check your system: `which python python3.11` and `python --version`
 
 ### Verify Installation
 
 ```bash
 # Check Python version
-python --version  # Should be 3.9 or higher
+python --version  # Should be 3.11 or higher
 
 # Check Python dependencies
 python -c "import fastapi, uvicorn; print('✓ Backend dependencies OK')"
@@ -371,7 +371,7 @@ curl -X POST http://localhost:8000/api/orchestrator/spawn-codex \
 - 🌐 **Distributed** - Multi-machine support (coming soon)
 - 📈 **Scalable** - Handles 100+ projects efficiently
 
-### Project Management System (PMS)
+### Intelligence Project Management (IPM)
 
 - ✅ **Epics & Initiatives** - Group tasks into large features
 - ✅ **Deterministic Scheduler** - "What's Next" based on priority tiers
@@ -428,7 +428,7 @@ python scripts/assistants_demo.py \
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│               OS Dashboard AI Assistant                      │
+│               AI OS                      │
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
 │  ┌──────────────────────────────────────────────────────┐  │
@@ -610,7 +610,7 @@ Desktop packaging spec (PyInstaller): `packaging/start_ui.spec`
 pyinstaller packaging/start_ui.spec
 ```
 
-### AWS Deployment
+### AWS Deployment (Legacy)
 
 ```bash
 # Deploy to AWS
@@ -621,19 +621,163 @@ pyinstaller packaging/start_ui.spec
 ```
 
 For CI/CD and environment deployment details, see [`docs/ENVIRONMENTS.md`](./docs/ENVIRONMENTS.md).
+Kubernetes is the current deployment path; AWS/ECS is legacy.
 
 ### Docker Deployment
 
+The AI OS supports Docker Compose for easy deployment across all environments. All Docker Compose files are configured to automatically clean up containers, volumes, and networks on shutdown to prevent conflicts on subsequent runs.
+
+#### Quick Start
+
 ```bash
-# Build Docker image
+# Default profile (app, postgres, redis)
+docker compose up -d
+
+# Development environment
+docker compose -f docker-compose.dev.yml up -d
+
+# Full stack with monitoring (Prometheus, Grafana, etc.)
+docker compose --profile full up -d
+
+# GUI mode (desktop application)
+docker compose --profile gui up -d
+
+# Stop and clean up (removes containers, volumes, networks)
+docker compose down -v
+```
+
+#### Environment-Specific Deployment
+
+```bash
+# Legacy alpha/beta/preprod (kept for backwards compatibility)
+docker compose -f docker-compose.alpha.yml up -d
+docker compose -f docker-compose.beta.yml up -d
+docker compose -f docker-compose.preprod.yml up -d
+docker compose -f docker-compose.preprod.yml down -v
+
+# Production environment
+docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml down -v
+```
+
+#### Docker Compose Profiles
+
+The main `docker-compose.yml` supports profiles to control which services run:
+
+- **Default profile**: Basic setup with app, PostgreSQL, and Redis
+- **`full` profile**: Complete production stack including:
+  - Main application
+  - PostgreSQL database
+  - Redis cache
+  - Celery worker and beat scheduler
+  - Elasticsearch
+  - Nginx reverse proxy
+  - Prometheus monitoring
+  - Grafana dashboards
+  - File browser
+- **`gui` profile**: Desktop GUI mode with X11 forwarding
+
+### Kubernetes Deployment
+
+Kustomize overlays are provided for dev, staging, and production:
+
+```bash
+kubectl apply -k k8s/overlays/dev
+kubectl apply -k k8s/overlays/staging
+kubectl apply -k k8s/overlays/prod
+```
+
+See `docs/deployment/kubernetes.md` for environment setup, secrets, and CI/CD flow.
+
+#### Cleanup and Troubleshooting
+
+All Docker Compose configurations are set up to automatically clean up on shutdown. The `-v` flag removes volumes, and networks are automatically removed when containers are stopped.
+
+**Recommended: Use the cleanup script for complete cleanup:**
+
+```bash
+# Complete cleanup of all Docker resources
+./docker-cleanup.sh
+```
+
+**Manual cleanup commands:**
+
+```bash
+# Stop all services and remove volumes/networks (default)
+docker compose down -v
+
+# Remove all containers, networks, and volumes (full cleanup)
+docker compose down -v --remove-orphans
+
+# Environment-specific cleanup
+docker compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.alpha.yml down -v
+docker compose -f docker-compose.beta.yml down -v
+docker compose -f docker-compose.preprod.yml down -v
+docker compose -f docker-compose.prod.yml down -v
+```
+
+**Other useful commands:**
+
+```bash
+# View running containers
+docker compose ps
+
+# View logs
+docker compose logs -f
+
+# Restart a specific service
+docker compose restart app
+
+# Rebuild and restart
+docker compose up -d --build
+```
+
+#### Environment Variables
+
+Each environment uses its corresponding `.env` file:
+- Development: `.env` or `env.dev.example`
+- Production: `env.prod.example`
+- Legacy templates: `env.alpha.example`, `env.beta.example`, `env.preprod.example`
+
+Copy the example file to `.env` and customize as needed:
+
+```bash
+# For development
+cp env.dev.example .env
+
+# For production
+cp env.prod.example .env
+```
+
+#### Building Docker Images
+
+```bash
+# Build main image
 docker build -t os-dashboard-ai-assistant .
 
-# Run container
-docker run -p 8000:8000 os-dashboard-ai-assistant
+# Build backend image
+docker build -f Dockerfile.backend -t os-dashboard-ai-assistant:backend .
 
-# GPU support
+# Build GPU-enabled image
 docker build -f Dockerfile.gpu -t os-dashboard-ai-assistant:gpu .
 ```
+
+#### Accessing Services
+
+After starting with `docker compose up -d`:
+
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8000
+- **API Docs**: http://localhost:8000/swagger
+- **PostgreSQL**: localhost:5432
+- **Redis**: localhost:6379
+
+With `--profile full`:
+- **Grafana**: http://localhost:3000 (admin/osdashboard123)
+- **Prometheus**: http://localhost:9090
+- **File Browser**: http://localhost:8080
+- **Nginx**: http://localhost:80, https://localhost:443
 
 ---
 
@@ -1010,7 +1154,7 @@ python start_ui.py --mode web
 
 ## 📜 License
 
-Copyright © 2025 OS Dashboard AI Assistant Project  
+Copyright © 2025 AI OS Project  
 All Rights Reserved
 
 See LICENSE file for details.
@@ -1056,7 +1200,7 @@ See LICENSE file for details.
 ## 🙏 Acknowledgments
 
 Built with:
-- Python 3.9+
+- Python 3.11+
 - FastAPI
 - React 18
 - TypeScript
@@ -1105,9 +1249,9 @@ open http://localhost:5173/ai/orchestrator
 
 ---
 
-## Project Management System (PMS) quick reference
+## Intelligence Project Management (IPM) quick reference
 
-The backend now exposes a deterministic scheduler and scoped project hierarchy via `/api/pms`. Canonical truth lives in the `pms_*` tables; derived scheduler indices are rebuilt on demand.
+The backend now exposes a deterministic scheduler and scoped project hierarchy via `/api/ipm` (legacy `/api/pms` remains as a deprecated alias). Canonical truth lives in the `pms_*` tables (legacy storage identifiers); derived scheduler indices are rebuilt on demand.
 
 ### Core entities
 - **Project**: `projectId`, `name`, `mode (personal|enterprise)`, `scope`, `config`, `budget`, `createdAt`, `updatedAt`
@@ -1137,9 +1281,9 @@ The backend now exposes a deterministic scheduler and scoped project hierarchy v
 4. `validate_invariants` checks missing links and duplicate todo positions.
 
 ### Scoping
-- All PMS records carry `user_id`; personal scope is enforced by filtering on the authenticated user. Enterprise/tenant scopes can be layered via the `scope` field in projects.
+- All IPM records carry `user_id`; personal scope is enforced by filtering on the authenticated user. Enterprise/tenant scopes can be layered via the `scope` field in projects.
 
-### Key endpoints (all under `/api/pms`, auth required)
+### Key endpoints (all under `/api/ipm`, auth required; legacy `/api/pms` supported)
 - `POST /projects`, `GET /projects`, `GET /projects/{id}`
 - `POST /epics`, `GET /epics`, `PATCH /epics/{id}`
 - `POST /tasks`, `GET /tasks`, `PATCH /tasks/{id}`

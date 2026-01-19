@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Starting OS Dashboard AI Assistant with all new features..."
+echo "🚀 Starting AI OS with all new features..."
 echo ""
 
 # Colors for output
@@ -61,7 +61,7 @@ echo -e "${GREEN}✅ Frontend started (PID: $FRONTEND_PID)${NC}"
 echo ""
 
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}🎉 OS Dashboard AI Assistant is running!${NC}"
+echo -e "${GREEN}🎉 AI OS is running!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo -e "${BLUE}📍 Access Points:${NC}"

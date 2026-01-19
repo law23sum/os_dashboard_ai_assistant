@@ -1,7 +1,11 @@
 """Chat API router."""
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from typing import List, Optional
-from pydantic import BaseModel
+try:
+    from pydantic import BaseModel, ConfigDict
+except ImportError:  # pragma: no cover - pydantic v1 fallback
+    from pydantic import BaseModel
+    ConfigDict = None
 import sys
 from pathlib import Path
 import json
@@ -13,6 +17,7 @@ parent_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
 from datetime import datetime
+from hashlib import sha256
 
 from assistant_hub_gui.assistant_hub.db import (
     ChatMessage,
@@ -58,6 +63,7 @@ class ChatMessageCreate(BaseModel):
     content: str
     attachments: Optional[List[str]] = None
     model_provider: Optional[str] = "openai"
+    interaction_style: Optional[str] = None
     # GPT-5.2 features
     reasoning_effort: Optional[str] = None  # none, low, medium, high, xhigh
     verbosity: Optional[str] = None  # low, medium, high
@@ -75,8 +81,11 @@ class ChatMessageResponse(BaseModel):
     content: str
     created_at: str
 
-    class Config:
-        from_attributes = True
+    if ConfigDict is not None:
+        model_config = ConfigDict(from_attributes=True)
+    else:
+        class Config:
+            orm_mode = True
 
 class ChatMessagePairResponse(BaseModel):
     """Response containing both user message and AI reply."""
@@ -142,6 +151,17 @@ async def create_chat_message(message: ChatMessageCreate, user: AuthUser = Depen
         raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of {CHAT_ROLES}")
 
     try:
+        audit_emitter = None
+        correlation_id = None
+        sent_event_id = None
+        try:
+            from assistant_hub.audit.sdk import get_default_emitter, new_correlation_id
+
+            audit_emitter = get_default_emitter(agent_id=message.persona or "os_dashboard")
+            correlation_id = new_correlation_id()
+        except Exception:
+            audit_emitter = None
+
         with db_session() as db:
             timestamp = datetime.now().isoformat(timespec="seconds")
             chat_msg = ChatMessage(
@@ -155,6 +175,25 @@ async def create_chat_message(message: ChatMessageCreate, user: AuthUser = Depen
             msg_id = db_insert_chat_message(db, chat_msg)
             # Attach user_id to the inserted row (db helper is legacy).
             db.execute("UPDATE chat_messages SET user_id = ? WHERE id = ?", (user.id, msg_id))
+            if audit_emitter:
+                try:
+                    content_bytes = message.content.encode("utf-8")
+                    sent_event = audit_emitter.emit(
+                        event_type="MESSAGE_SENT",
+                        message="User message sent",
+                        payload={
+                            "persona": message.persona,
+                            "role": message.role,
+                            "message_id": msg_id,
+                            "content_hash": sha256(content_bytes).hexdigest(),
+                            "content_bytes": len(content_bytes),
+                            "user_id": user.id,
+                        },
+                        correlation_id=correlation_id,
+                    )
+                    sent_event_id = sent_event.event_id
+                except Exception:
+                    sent_event_id = None
 
             # Build ordered history (including brand new user message) for persona
             history_cursor = db.execute(
@@ -258,6 +297,7 @@ async def create_chat_message(message: ChatMessageCreate, user: AuthUser = Depen
                         previous_response_id=message.previous_response_id,
                         custom_tools=message.custom_tools,
                         enable_preambles=message.enable_preambles or False,
+                        interaction_style=message.interaction_style,
                     )
                 finally:
                     # Restore original environment variables
@@ -296,6 +336,25 @@ async def create_chat_message(message: ChatMessageCreate, user: AuthUser = Depen
             )
             assistant_msg_id = db_insert_chat_message(db, assistant_msg)
             db.execute("UPDATE chat_messages SET user_id = ? WHERE id = ?", (user.id, assistant_msg_id))
+            if audit_emitter:
+                try:
+                    reply_bytes = reply_text.encode("utf-8")
+                    audit_emitter.emit(
+                        event_type="MESSAGE_RECEIVED",
+                        message="AI reply generated",
+                        payload={
+                            "persona": message.persona,
+                            "role": "assistant",
+                            "message_id": assistant_msg_id,
+                            "content_hash": sha256(reply_bytes).hexdigest(),
+                            "content_bytes": len(reply_bytes),
+                            "user_id": user.id,
+                        },
+                        correlation_id=correlation_id,
+                        causation_id=sent_event_id,
+                    )
+                except Exception:
+                    pass
 
             # Fetch both messages to return
             user_cursor = db.execute(

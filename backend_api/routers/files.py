@@ -29,7 +29,7 @@ def _workspace_root() -> Path:
     return REPO_ROOT
 
 
-def _resolve_within_root(path: str | None) -> Path:
+def _resolve_within_root(path: Optional[str]) -> Path:
     root = _workspace_root()
     target = Path(path or ".")
     if target.is_absolute():
@@ -113,4 +113,3 @@ async def preview_file(
             encoding="base64",
             mtime=mtime,
         )
-

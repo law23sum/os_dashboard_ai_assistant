@@ -1,6 +1,8 @@
 /**
  * Navigation Manifest - Spec-Driven Structure
  * Based on Technical Spec Sheet Version 6
+ *
+ * Legacy reference only: canonical UI nav is derived from gui_nav.latest.json.
  * 
  * Top-level categories map to major spec sections
  * Left-side pages map to subsections within each category
@@ -285,7 +287,7 @@ export const navigationManifest: NavCategory[] = [
         items: [
           { path: '/ai/copilot', icon: Bot, label: 'AI Copilot', spec: '§4.1', backend: 'routers.intelligence', status: 'existing' },
           { path: '/ai/advanced', icon: Brain, label: 'Advanced AI Engine', spec: '§4.6', backend: 'routers.intelligence', status: 'existing' },
-          { path: '/ai/cookbook', icon: Sparkles, label: 'Cookbook Lab', spec: '§4.12', backend: 'routers.cookbook_patterns', status: 'new' },
+          { path: '/ai/tooling-lab', icon: Sparkles, label: 'Tooling Lab', spec: '§4.12', backend: 'routers.tooling_patterns', status: 'new' },
           { path: '/ai/personas', icon: Users, label: 'Personas & Agents', spec: '§4.1, §0.5', backend: 'routers.personas', status: 'new' },
           { path: '/ai/daemons', icon: Bot, label: 'Daemon Framework', spec: '§4.3-4.4', backend: 'routers.ai_systems', status: 'new' },
           { path: '/ai/trf', icon: Layers, label: 'Theoretical Reasoning Framework', spec: '§4.6', backend: 'routers.reasoning', status: 'new' },
@@ -906,4 +908,3 @@ export const findPageByPath = (path: string): NavPage | undefined => {
   }
   return undefined
 }
-

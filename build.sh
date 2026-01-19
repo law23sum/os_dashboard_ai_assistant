@@ -1,6 +1,6 @@
 #!/bin/bash
 """
-Build script for OS Dashboard AI Assistant
+Build script for AI OS
 Ensures correct working directory before building
 """
 
@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Change to the script directory
 cd "$SCRIPT_DIR"
 
-echo "🔨 Building OS Dashboard AI Assistant executable..."
+echo "🔨 Building AI OS executable..."
 echo "📍 Working directory: $(pwd)"
 
 # Check if Python is available

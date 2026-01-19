@@ -20,7 +20,7 @@ export const docManifest: DocEntry[] = [
   {
     path: 'index',
     title: 'Mission Control Overview',
-    description: 'Landing page that explains the OS Dashboard operating model and Tkinter roots.',
+    description: 'Landing page that explains the AI OS operating model and Tkinter roots.',
     category: 'Core System',
     tags: ['overview', 'mission'],
     source: 'docs',
@@ -56,7 +56,7 @@ export const docManifest: DocEntry[] = [
   {
     path: 'home',
     title: 'Download Landing Page',
-    description: 'Original distribution landing page highlighting OS Dashboard builds.',
+    description: 'Original distribution landing page highlighting AI OS builds.',
     category: 'Core System',
     tags: ['download', 'landing'],
     source: 'docs',
@@ -76,7 +76,7 @@ export const docManifest: DocEntry[] = [
   {
     path: 'products',
     title: 'Products Catalog',
-    description: 'Marketing view of OS Dashboard products, bundles, and benefits.',
+    description: 'Marketing view of AI OS products, bundles, and benefits.',
     category: 'Core System',
     tags: ['catalog'],
     source: 'docs',
@@ -86,7 +86,7 @@ export const docManifest: DocEntry[] = [
   {
     path: 'subscription',
     title: 'Subscription Plans',
-    description: 'Legacy subscription overview for the classic OS Dashboard tiers.',
+    description: 'Legacy subscription overview for the classic AI OS tiers.',
     category: 'Core System',
     tags: ['billing', 'plans'],
     source: 'docs',

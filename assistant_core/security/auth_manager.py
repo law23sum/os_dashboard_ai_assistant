@@ -18,7 +18,24 @@ import uuid
 import bcrypt
 from collections import defaultdict
 
-from assistant_core.data_aggregator import CIRDocument, DocumentType, SourceType
+try:
+    from api_connectors.universal_connector import CIRDocument, DocumentType, SourceType
+except ImportError:
+    # Fallback definitions if import fails
+    from dataclasses import dataclass
+    from enum import Enum
+    class DocumentType(Enum):
+        DOCUMENT = "document"
+        REPORT = "report"
+    class SourceType(Enum):
+        LOCAL = "local"
+        REMOTE = "remote"
+    @dataclass
+    class CIRDocument:
+        id: str = ""
+        content: str = ""
+        doc_type: DocumentType = DocumentType.DOCUMENT
+        source: SourceType = SourceType.LOCAL
 
 
 class AuthProvider(Enum):

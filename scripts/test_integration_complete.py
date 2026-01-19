@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Complete Integration Test for OpenAI Cookbook Integrations
+Complete Integration Test for RAG + Prompt Tooling Integrations
 
-This script tests all aspects of the cookbook integrations:
+This script tests all aspects of the RAG + prompt tooling integrations:
 1. Module imports
 2. AI Services API integration
 3. Router availability
@@ -74,12 +74,12 @@ def test_ai_services_api():
     try:
         from assistant_core.ai_services_api import (
             ai_services_api,
-            get_cookbook_integrations_status
+            get_tooling_integrations_status
         )
         
         # Test status function
-        status = get_cookbook_integrations_status()
-        print(f"  ✅ get_cookbook_integrations_status() works")
+        status = get_tooling_integrations_status()
+        print(f"  ✅ get_tooling_integrations_status() works")
         print(f"     Status: {status}")
         
         # Test helper methods
@@ -108,14 +108,14 @@ def test_router():
     
     try:
         import importlib.util
-        router_path = project_root / "backend_api" / "routers" / "cookbook_integrations.py"
+        router_path = project_root / "backend_api" / "routers" / "tooling_integrations.py"
         
         if not router_path.exists():
             print(f"  ❌ Router file not found: {router_path}")
             return False
         
         spec = importlib.util.spec_from_file_location(
-            "cookbook_integrations",
+            "tooling_integrations",
             router_path
         )
         router_module = importlib.util.module_from_spec(spec)
@@ -147,11 +147,11 @@ def test_file_structure():
         "assistant_core/llamaindex_integration.py",
         "assistant_core/guidance_integration.py",
         "assistant_core/prompttools_integration.py",
-        "backend_api/routers/cookbook_integrations.py",
-        "scripts/verify_cookbook_integrations.py",
-        "scripts/test_cookbook_api.py",
+        "backend_api/routers/tooling_integrations.py",
+        "scripts/verify_rag_prompt_tooling.py",
+        "scripts/test_rag_prompt_tooling_api.py",
         "scripts/check_prompttools_update.py",
-        "examples/use_cookbook_integrations.py",
+        "examples/use_rag_prompt_tooling.py",
     ]
     
     all_exist = True
@@ -169,7 +169,7 @@ def test_file_structure():
 def main():
     """Run all tests"""
     print("\n" + "=" * 60)
-    print("OpenAI Cookbook Integrations - Complete Integration Test")
+    print("RAG + Prompt Tooling Integrations - Complete Integration Test")
     print("=" * 60)
     print()
     
@@ -196,7 +196,7 @@ def main():
     
     if passed == total:
         print("\n✅ All integration tests passed!")
-        print("   The cookbook integrations are fully set up and ready to use.")
+        print("   The RAG + prompt tooling integrations are fully set up and ready to use.")
         return 0
     else:
         print("\n⚠️  Some tests failed. Check errors above.")
@@ -205,4 +205,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

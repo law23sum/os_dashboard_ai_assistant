@@ -2,7 +2,7 @@
 
 Implements the driver taxonomy, OS drivers, package managers, SaaS drivers,
 execution scheduler, and driver registry as outlined in Section 5 of the Canon
-Technical Specification for the OS Dashboard AI Assistant.
+Technical Specification for the AI OS.
 """
 
 from __future__ import annotations

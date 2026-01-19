@@ -1,5 +1,8 @@
 /**
  * Tree-Network Map Topology Navigation Structure
+ *
+ * Legacy reference only: the canonical UI navigation is derived from gui_nav.latest.json.
+ * Do not use this file as a source of truth for platform/category/feature routing.
  * 
  * Tree: Top-level categories (tabs)
  * Network: Platforms/workspaces within each category (dropdowns)

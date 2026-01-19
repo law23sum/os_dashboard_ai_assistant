@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unified Project Orchestrator - Master control for all git repositories.
 
-This script implements the OS Dashboard AI Assistant's vision of a unified
+This script implements the AI OS's vision of a unified
 orchestration system that:
 1. Discovers all git repositories in the workspace
 2. Executes AI auto-fix scripts to find and resolve bugs
@@ -51,7 +51,7 @@ DEFAULT_SKIP_DIRS = {
     "coverage", ".tox", "eggs", ".eggs"
 }
 
-# TODO file patterns to search for
+# Task file patterns to search for
 TODO_FILE_PATTERNS = [
     "TODO.md", "TODO.txt", "TODOS.md", "TODO",
     "REMAINING_TODOS.md", "FUTURE_TODOS.md",

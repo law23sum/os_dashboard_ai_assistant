@@ -1,0 +1,211 @@
+# Ledger + Audit Logging
+
+Note: V9 spec file not found in repo; evidence is based on keyword scan only.
+
+- Agent.registry.yaml: 95
+- FIXES_APPLIED.txt: 60
+- OS DashboardAIAssistantTOC.txt: 43, 63, 118, 131, 191, 198, 205, 206, 207, 224...
+- QUICK_REFERENCE.md: 103
+- README.md: 382, 1275
+- REUSABLE_CODE_PATTERNS.md: 136, 146, 147, 178, 243, 627, 659
+- Technical Spec Sheet (Version 6 Latest Version).txt: 45, 64, 76, 128, 140, 151, 211, 217, 222, 228...
+- TechnicalSpec.txt: 44, 63, 74, 126, 138, 148, 208, 214, 218, 224...
+- Technical_Spec_Sheet_v6.txt: 45, 64, 76, 128, 140, 151, 211, 217, 222, 228...
+- ai_os/app/governance/audit.py: 1
+- ai_os/app/planes/data_plane.py: 4
+- assistant_core/__init__.py: 17, 18, 19, 20, 135, 136, 137
+- assistant_core/audit_system.py: 5, 1327, 1693
+- assistant_core/capsule_registry.py: 33, 65, 76, 133, 145, 178, 179
+- assistant_core/cir/schema.py: 440
+- assistant_core/domain/models.py: 286, 289, 304, 332, 333, 596
+- assistant_core/driver_orchestrator_architecture.py: 648, 675, 706, 723, 726
+- assistant_core/driver_registry.py: 135, 136, 161, 185, 218, 223, 228
+- assistant_core/dynamic_cybersecurity_engine.py: 42
+- assistant_core/immutable_audit_ledger.py: 15, 18, 19, 20, 21, 22, 29, 56, 57, 60...
+- assistant_core/invariant_trail.py: 1, 3, 4, 5, 6, 9, 10, 13, 14, 15
+- assistant_core/security/governance_engine.py: 3, 184, 452, 466, 1183, 1215, 1256, 1295, 1378, 1397...
+- assistant_core/spec/architecture.py: 69, 71, 100, 106, 118, 151
+- assistant_core/spec/failure_modes.py: 55, 177
+- assistant_core/spec/technical_spec.py: 141
+- assistant_hub/api/server.py: 892, 893, 894, 913, 914, 916, 917
+- assistant_hub/command_catalog.py: 94, 96
+- assistant_hub/document_templates.py: 155
+- assistant_hub/writer_workspace.py: 311
+- assistant_hub_gui/assistant_hub/db.py: 1126, 1345, 1346, 1347, 1430, 1431, 1436, 1437, 1442, 1443...
+- assistant_hub_gui/assistant_hub/db_fixed.py: 1263
+- assistant_hub_gui/assistant_hub/document_templates.py: 150, 226, 345, 513, 593, 663, 727, 1027, 1062, 1116...
+- assistant_hub_gui/assistant_hub/future_features.py: 78, 85, 365
+- assistant_hub_gui/assistant_hub/gui.py: 4636, 6979, 9225, 11492, 13672, 21838, 21839, 21847, 21861, 21862...
+- assistant_hub_gui/backups/export_20260105_032638.json: 108, 125, 346, 363, 601, 618, 839, 840, 1009, 1026...
+- assistant_hub_gui/backups/export_20260105_032722.json: 108, 125, 346, 363, 601, 618, 839, 840, 1009, 1026...
+- assistant_hub_gui/backups/export_20260105_053748.json: 171
+- assistant_hub_gui/backups/export_20260105_074039.json: 42, 54, 90, 102, 174, 186, 342, 343, 530
+- assistant_hub_gui/backups/export_20260105_082325.json: 42, 54, 90, 102, 174, 186, 342, 343, 486, 498...
+- assistant_hub_gui/backups/export_20260105_082451.json: 42, 54, 90, 102, 174, 186, 342, 343, 486, 498...
+- assistant_hub_gui/backups/export_20260105_084040.json: 42, 54, 90, 102, 174, 186, 342, 343, 486, 498...
+- assistant_hub_gui/backups/export_20260105_112456.json: 42, 54, 90, 102, 174, 186, 342, 343, 486, 498...
+- assistant_hub_gui/backups/export_20260105_113236.json: 42, 54, 90, 102, 174, 186, 342, 343, 486, 498...
+- assistant_hub_gui/samples/sample_data.json: 5
+- assistant_hub_gui/samples/sample_document.txt: 45, 68
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/utils/direct_url_helpers.py: 44
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/vcs/git.py: 74
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/vcs/versioncontrol.py: 116, 350, 356
+- backend_api/.venv/lib/python3.9/site-packages/pip/_internal/wheel_builder.py: 128, 133
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/__init__.py: 5
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/msgpack/ext.py: 40
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/packaging/tags.py: 46
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/resolvelib/resolvers.py: 61
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/tomli/_parser.py: 145, 152, 323, 352, 362, 461
+- backend_api/.venv/lib/python3.9/site-packages/pip/_vendor/urllib3/poolmanager.py: 266
+- backend_api/.venv/lib/python3.9/site-packages/pkg_resources/_vendor/packaging/tags.py: 64
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/ordered_set.py: 29
+- backend_api/.venv/lib/python3.9/site-packages/setuptools/_vendor/packaging/tags.py: 64
+- backend_api/routers/audit.py: 196, 287, 290, 299, 308, 314, 336, 337, 338
+- backend_api/routers/capsules.py: 87, 152, 175
+- backend_api/routers/coach.py: 53, 56, 72, 105, 109, 115, 121, 127, 130, 169...
+- backend_api/routers/data_management.py: 48, 84, 86, 88, 110, 171, 235, 252, 254, 264...
+- backend_api/routers/logs.py: 133, 142, 151, 152, 159, 160
+- backend_api/routers/office.py: 306
+- backend_api/routers/platform.py: 156
+- backend_api/routers/projects.py: 107, 153, 408, 456, 481, 483, 493, 500, 505, 520...
+- backend_api/routers/tasks.py: 32
+- config/config.py: 350
+- config/samples/sample_data.json: 5
+- config/samples/sample_document.txt: 45, 68
+- coverage.json: 1
+- dashboard.js: 648
+- docs/DEEP_RESEARCH.md: 110
+- docs/ENVIRONMENTS.md: 50, 130, 132, 370, 435
+- docs/FUTURE_VERSION_1000_BLUEPRINT.md: 13, 20, 22, 57, 58, 73
+- docs/UNIFIED_EVENT_JOURNAL.md: 6, 100, 141
+- docs/adr/0002-unified-event-journal.md: 10, 22
+- docs/integration/legacy_recovery_plan.json: 868, 2880, 2883, 4141, 4142, 4144
+- docs/migration_continued.md: 78, 80, 82, 85, 86, 161, 167
+- docs/pms.md: 58, 67, 79
+- docs/web_surface_spec_alignment.md: 18, 51, 75, 82, 83, 111, 157
+- documentation/ADMIN_CREDENTIALS.md: 45, 67
+- documentation/ADVICE_FROM_CHIEF_FELLOW.md: 13
+- documentation/AI_FEATURES_IMPLEMENTATION.md: 372
+- documentation/AI_SYSTEMS_README.md: 579
+- documentation/ARCHITECTURE_BLUEPRINT.md: 17, 18
+- documentation/ARCHITECTURE_DECISIONS.md: 9, 15
+- documentation/AUTOMATION_ORCHESTRATION_INTEGRATION.md: 267, 272
+- documentation/BLUEPRINT_V+1000.md: 34
+- documentation/CANONICAL_INTERNAL_REPRESENTATION.md: 12, 319, 610
+- documentation/COGNITIVE_DAEMON_SYSTEM.md: 11, 45, 195
+- documentation/DAEMON_FRAMEWORK_ARCHITECTURE.md: 95, 1094
+- documentation/DOCUMENT_UPLOAD_DAEMON_INTEGRATION.md: 37, 327, 416
+- documentation/ENGINEERING_COMPLEXITY_ANALYSIS.md: 22, 78
+- documentation/FEATURES_CHANGELOG.md: 3
+- documentation/FEATURE_ROADMAP_LOG.md: 17, 29
+- documentation/GLOBAL_IMPACT_WHITE_PAPER.md: 31
+- documentation/IMPLEMENTATION_ROADMAP.md: 64
+- documentation/IMPLEMENTATION_SUMMARY.md: 929, 1052, 1123, 1217, 1219, 1363, 1408, 1592, 1598, 1618...
+- documentation/MIGRATION_CONTINUED.md: 78, 80, 82, 85, 86, 161, 167
+- documentation/NEW_FEATURES_ADDED.md: 98
+- documentation/OS_DASHBOARD_CANON_SYSTEM_SPEC.md: 80, 90, 105, 121, 122, 206, 218, 235
+- documentation/OS_DASHBOARD_ENTERPRISE.md: 14, 27, 110, 167
+- documentation/QUEUE_STACK_MAP.md: 11
+- documentation/SYSTEM_ARCHITECTURE_BLUEPRINT.md: 21, 38, 39, 45
+- documentation/TECHNICAL_ANALYSIS_REPORT.md: 278, 286, 399, 400, 597
+- documentation/TECH_SPEC_TO_NAV_MAPPING.md: 76, 99, 123, 303, 334, 443, 697
+- documentation/UI_MIGRATION_STATUS.md: 13
+- documentation/VISION.md: 28
+- documentation/VISION_IMPLEMENTATION.md: 208, 331
+- documentation/WEB_PAGE_SPEC_AUDIT.md: 10, 21, 25, 36
+- documentation/architecture_overview.md: 28
+- documentation/assistant_hub_gui/samples/README.md: 10, 40, 53, 62, 82, 90
+- documentation/assistant_hub_gui/samples/excel_workbook_specification.md: 4, 35, 51, 107, 138
+- documentation/assistant_hub_gui/samples/index.md: 5, 87, 116, 146, 155, 217
+- documentation/assistant_hub_gui/samples/pdf_document_specification.md: 48, 51, 121, 166
+- documentation/assistant_hub_gui/samples/powerpoint_presentation_specification.md: 73
+- documentation/assistant_hub_gui/samples/word_document_specification.md: 38, 69
+- documentation/blueprint_v_1000.md: 7, 25, 35
+- documentation/config/samples/README.md: 10, 40, 53, 62, 82, 90
+- documentation/config/samples/excel_workbook_specification.md: 4, 35, 51, 107, 138
+- documentation/config/samples/index.md: 5, 87, 116, 146, 155, 217
+- documentation/config/samples/pdf_document_specification.md: 48, 51, 121, 166
+- documentation/config/samples/powerpoint_presentation_specification.md: 73
+- documentation/config/samples/word_document_specification.md: 38, 69
+- documentation/consolidated_md/README.md: 17, 18
+- documentation/decisions.md: 11
+- documentation/frontend/MIGRATION_STATUS.md: 34
+- documentation/gui_nav_structure/gui_nav.latest.json: 456, 457, 1853, 1854, 2299, 2948
+- documentation/handoff/ARCHITECTURE_BLUEPRINT.md: 17, 18
+- documentation/handoff/ARCHITECTURE_OVERVIEW.md: 23, 33
+- documentation/handoff/BLUEPRINT_V+1000.md: 19, 20, 21, 22, 29, 34, 54
+- documentation/handoff/FEATURES_CHANGELOG.md: 3
+- documentation/handoff/FEATURE_ROADMAP_LOG.md: 17, 29
+- documentation/handoff/PORTFOLIO_TODO.md: 13
+- documentation/handoff/REPO_TODO.md: 1
+- documentation/handoff/SPEC_ALIGNMENT.md: 14, 29
+- documentation/handoff/SYSTEM_ARCHITECTURE_BLUEPRINT.md: 21, 38, 39, 45
+- documentation/os_dashboard_ai_assistant_toc.md: 60, 90, 157
+- documentation/reference/os-dashboard-ai-assistant-advanced (1)/ADVANCED_FEATURES.md: 286
+- documentation/spec_alignment.md: 15, 20
+- duplicate_pages_analysis.json: 1052, 1053, 1055
+- frontend/src/config/navigation.ts: 240
+- frontend/src/data/aiGuidance.ts: 88, 91, 96, 99, 101, 103, 105, 237, 318, 559
+- frontend/src/data/aiGuides.ts: 51, 59, 60, 76, 82, 100, 102, 116, 199
+- frontend/src/data/futureDecks.ts: 99, 147, 148
+- frontend/src/data/gui_nav.latest.json: 456, 457, 1853, 1854, 2299, 2948
+- frontend/src/data/iaManifest.complete.json: 1292, 1293, 1553, 1554, 1555, 1556, 2414, 2415, 2416, 2417...
+- frontend/src/data/iaManifest.complete.ts: 1220, 1221, 1458, 1459, 1460, 1461, 2247, 2248, 2249, 2250...
+- frontend/src/data/iaManifest.from_json.json: 1395, 2608, 2609, 2610, 2611, 4142, 4143, 6992, 6993, 6994...
+- frontend/src/data/iaManifest.from_json.ts: 1432, 2645, 2646, 2647, 2648, 4179, 4180, 7029, 7030, 7031...
+- frontend/src/data/navigationManifest.ts: 322, 419, 424, 427, 599, 602
+- frontend/src/data/navigationStructure.ts: 226, 227, 228, 230, 234, 235, 236, 244, 252, 260...
+- frontend/src/data/platformFeatures.ts: 12, 62
+- frontend/src/data/specRequirements.ts: 35, 36, 38, 42, 45
+- frontend/src/navigation/routeComponentMap.ts: 20, 108
+- frontend/src/pages/AICopilot.tsx: 171, 587
+- frontend/src/pages/AdvancedSystems.tsx: 53
+- frontend/src/pages/Ai/Capsules/Ledger.tsx: 4, 5, 7, 10, 11
+- frontend/src/pages/Aifabric/Capsulesworkflow/Projectledger.tsx: 4, 5, 14
+- frontend/src/pages/Audit.tsx: 314, 389
+- frontend/src/pages/AutoFix.tsx: 509, 685
+- frontend/src/pages/Billing.tsx: 54, 67, 69, 87, 111
+- frontend/src/pages/CapsuleMarketplace.tsx: 64, 132, 153, 165, 491
+- frontend/src/pages/Data.tsx: 17, 18
+- frontend/src/pages/Data/Ledger.tsx: 4, 5, 7, 10, 11
+- frontend/src/pages/Drivers/Marketplace.tsx: 100, 168, 191, 203, 469
+- frontend/src/pages/Observability.tsx: 749
+- frontend/src/pages/Observability/AuditLogs.tsx: 6, 17, 21, 30, 31
+- frontend/src/pages/Observability/RecordAuditor/Timeline.tsx: 314, 389
+- frontend/src/pages/OfficeRealtime.tsx: 169
+- frontend/src/pages/Projects.tsx: 34, 72, 77, 136, 190, 200, 201, 202, 326, 351...
+- frontend/src/pages/Settings.tsx: 101, 122, 153, 169, 320, 613, 657, 754
+- frontend/src/pages/Workspaces/Auditor.tsx: 80
+- frontend/src/pages/__tests__/Ai/Capsules/Ledger.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/Ai/Capsules/ProjectLedger.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/AiCapsulesLedger.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/Aifabric/Capsulesworkflow/Projectledger.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/Data/Ledger.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/Data/ProjectLedger.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/DataLedger.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/ImmutableLogbookViewer.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/ProjectLedger.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/__tests__/workspaces/Auditor/ImmutableLogbookViewer.test.tsx: 2, 3, 4, 12, 16, 17, 20, 33, 41, 42...
+- frontend/src/pages/pms/PmsAudit.tsx: 27
+- frontend/src/test/e2e/projects.test.tsx: 93, 116, 170, 171, 413, 414, 418, 422, 426
+- frontend/src/types/index.ts: 41, 93
+- history_missing_pages.txt: 189, 288
+- history_missing_pages_fs.txt: 208, 305
+- history_missing_pages_renamed.json: 503, 504
+- history_missing_pages_report.json: 547
+- history_missing_pages_unique.txt: 91
+- ia_relationship_analysis.json: 631, 634, 707, 857, 859, 1133, 1250, 1302, 2208, 2417...
+- merged_navigation.json: 889, 890, 1309, 1310, 2267, 3001
+- openai-assistants-quickstart-ANALYSIS.md: 68, 93, 275, 277, 397, 449, 461
+- page_merge_execution_report.json: 98
+- page_merge_plan.json: 663, 665
+- path_mapping.json: 423, 589, 826, 1037, 1046
+- route_inventory_comprehensive.json: 104, 105, 106, 112, 113, 114, 1222, 1223, 1224, 1230...
+- route_inventory_ia.json: 66, 67, 68, 754, 755, 756
+- route_matrix_complete.json: 2472, 2473, 2474, 2489, 3669, 3670, 3671, 3686, 6482, 8344
+- security_monitor.py: 126, 128, 129, 131, 132, 133, 141, 210, 211
+- spec.txt: 45, 64, 76, 128, 140, 151, 211, 217, 222, 228...
+- spec_extracted.txt: 45, 64, 76, 128, 140, 151, 211, 217, 222, 228...
+- spec_full.txt: 45, 64, 76, 128, 140, 151, 211, 217, 222, 228...
+- tech_spec_v6.txt: 45, 64, 76, 128, 140, 151, 211, 217, 222, 228...
+- technical_spec_v6.txt: 44, 63, 74, 126, 138, 148, 208, 214, 218, 224...

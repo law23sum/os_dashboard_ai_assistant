@@ -1,11 +1,29 @@
 """Regression tests for the realtime Office integration API."""
+import importlib.util
 from pathlib import Path
+import os
 import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-import sitecustomize  # noqa: F401
+
+
+def _load_repo_sitecustomize() -> None:
+    sitecustomize_path = REPO_ROOT / "sitecustomize.py"
+    if not sitecustomize_path.exists():
+        return
+    spec = importlib.util.spec_from_file_location("osdash_sitecustomize", sitecustomize_path)
+    if not spec or not spec.loader:
+        return
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+
+_load_repo_sitecustomize()
+
+if __name__ == "__main__":
+    os.environ.setdefault("OSDASH_ROUTER_ALLOWLIST", "office")
 
 from fastapi.testclient import TestClient
 from backend_api.main import app

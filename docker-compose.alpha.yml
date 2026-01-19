@@ -1,0 +1,122 @@
+version: '3.8'
+
+# Alpha Environment Docker Compose
+# Usage:
+#   docker compose -f docker-compose.alpha.yml up -d
+#   docker compose -f docker-compose.alpha.yml down -v
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      target: production
+    container_name: osdash-backend-alpha
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - ENVIRONMENT=alpha
+      - DEBUG=false
+      - DATABASE_URL=postgresql://alpha_user:alpha_password@postgres:5432/osdash_alpha
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - env.alpha.example
+    command: uvicorn assistant_hub.api.server:create_app --factory --host 0.0.0.0 --port 8000 --workers 4
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - osdash-alpha-network
+    restart: unless-stopped
+    stop_grace_period: 10s
+
+  # Frontend (Production Build)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: osdash-frontend-alpha
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/dist:/app/dist
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    command: npm run preview -- --host 0.0.0.0 --port 5173
+    depends_on:
+      - backend
+    networks:
+      - osdash-alpha-network
+    restart: unless-stopped
+    stop_grace_period: 10s
+
+  # PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: osdash-postgres-alpha
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=alpha_user
+      - POSTGRES_PASSWORD=alpha_password
+      - POSTGRES_DB=osdash_alpha
+    volumes:
+      - postgres-alpha-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alpha_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - osdash-alpha-network
+    restart: unless-stopped
+    stop_grace_period: 10s
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: osdash-redis-alpha
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass alpha-redis-password
+    volumes:
+      - redis-alpha-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - osdash-alpha-network
+    restart: unless-stopped
+    stop_grace_period: 10s
+
+networks:
+  osdash-alpha-network:
+    driver: bridge
+
+volumes:
+  postgres-alpha-data:
+    driver: local
+  redis-alpha-data:
+    driver: local
+
+
+
+
+
+
+

@@ -50,7 +50,7 @@ class ProjectDiscovery:
         ".pytest_cache",
     }
     
-    # TODO file patterns to search for
+    # Task file patterns to search for
     TODO_PATTERNS = [
         "TODO.md",
         "TODOS.md",
@@ -232,5 +232,4 @@ class ProjectDiscovery:
                 todo_files.append(todo_file)
         
         return todo_files
-
 

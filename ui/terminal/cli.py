@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from assistant_hub.db import init_db as db_init_db
+from assistant_hub.db import CHAT_PERSONAS, init_db as db_init_db
 
 # Import commands lazily to avoid hard dependency requirements for unused commands
 # from .commands import ... (removed top-level import)
@@ -16,7 +16,7 @@ def create_cli_parser() -> argparse.ArgumentParser:
     """Create the main CLI argument parser."""
     parser = argparse.ArgumentParser(
         prog="osdash",
-        description="OS Dashboard AI Assistant - Command Line Interface",
+        description="AI OS Console - Command Line Interface",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -66,11 +66,44 @@ def create_cli_parser() -> argparse.ArgumentParser:
     history_parser.add_argument("--agent", help="Filter by agent")
     history_parser.add_argument("--tag", help="Filter by tag (onenote, excel, word, etc.)")
 
+    # API session costs
+    api_costs_parser = subparsers.add_parser(
+        "api-session-costs",
+        help="Show API session costs by provider and version",
+    )
+    api_costs_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output raw JSON instead of a table",
+    )
+
+    # Audit command
+    audit_parser = subparsers.add_parser("audit", help="Audit ledger utilities")
+    audit_sub = audit_parser.add_subparsers(dest="subcommand")
+    emit_parser = audit_sub.add_parser("emit", help="Emit a dev audit event")
+    emit_parser.add_argument("--event-type", required=True, help="Event type to emit")
+    emit_parser.add_argument("--message", required=True, help="Event message")
+    emit_parser.add_argument("--payload", help="JSON payload string")
+
+    verify_parser = audit_sub.add_parser("verify-ledger", help="Verify ledger hash chain")
+    verify_parser.add_argument("--from-seq", type=int, help="Start sequence")
+    verify_parser.add_argument("--to-seq", type=int, help="End sequence")
+
+    audit_sub.add_parser("rotate", help="Rotate archives now")
+    audit_sub.add_parser("list-archives", help="List archive records")
+
+    verify_archive = audit_sub.add_parser("verify-archive", help="Verify an archive bundle")
+    verify_archive.add_argument("path", help="Path to encrypted archive")
+
+    restore_archive = audit_sub.add_parser("restore-archive", help="Restore an archive bundle")
+    restore_archive.add_argument("path", help="Path to encrypted archive")
+    restore_archive.add_argument("output_dir", help="Directory for extracted files")
+
     # Chat command - interactive AI chat
     chat_parser = subparsers.add_parser("chat", help="Interactive chat with AI agents")
     chat_parser.add_argument(
         "--agent",
-        choices=["AIC", "Aria", "Sora", "Chris"],
+        choices=CHAT_PERSONAS,
         help="AI agent to use (default: interactive selection)",
     )
     chat_parser.add_argument(
@@ -99,6 +132,10 @@ def create_cli_parser() -> argparse.ArgumentParser:
         "--verbose", "-v",
         action="store_true",
         help="Show verbose error messages",
+    )
+    chat_parser.add_argument(
+        "--style",
+        help="Interaction style (discussion, debate, informative, persuasive)",
     )
 
     # Workspace orchestration commands
@@ -163,6 +200,12 @@ def main() -> int:
         elif args.command == "history":
             from .commands.history import handle_history_command
             return handle_history_command(args, conn)
+        elif args.command == "api-session-costs":
+            from .commands.api_session_costs import handle_api_session_costs_command
+            return handle_api_session_costs_command(args, conn)
+        elif args.command == "audit":
+            from .commands.audit import handle_audit_command
+            return handle_audit_command(args)
         elif args.command == "chat":
             from .commands.chat import handle_chat_command
             return handle_chat_command(args)

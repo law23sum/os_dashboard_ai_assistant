@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for OS Dashboard Backend API
+# Multi-stage Dockerfile for AI OS Backend API
 
 # Stage 1: Base
 FROM python:3.11-slim as base

@@ -147,7 +147,7 @@ def run_sanity_checks():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run E2E tests for OS Dashboard AI Assistant")
+    parser = argparse.ArgumentParser(description="Run E2E tests for AI OS")
     parser.add_argument("--smoke", action="store_true", help="Run only smoke tests")
     parser.add_argument("--regression", action="store_true", help="Run only regression tests")
     parser.add_argument("--full", action="store_true", help="Run all tests (default)")

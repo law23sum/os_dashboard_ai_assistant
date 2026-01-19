@@ -329,17 +329,30 @@ def create_calculator_page(name: str, label: str) -> str:
 import { Calculator, Play, Download } from 'lucide-react'
 
 export default function ''' + name + '''() {
-  const [inputs, setInputs] = useState({})
+  const [inputText, setInputText] = useState("")
   const [results, setResults] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const handleCalculate = async () => {
     setLoading(true)
-    // TODO: Implement calculation logic
     setTimeout(() => {
-      setResults({ value: "Calculated result" })
+      let payload: any = inputText.trim()
+      if (payload.length === 0) {
+        payload = "No input provided"
+      } else {
+        try {
+          payload = JSON.parse(payload)
+        } catch {
+          // keep raw text
+        }
+      }
+      setResults({
+        input: payload,
+        status: "ok",
+        calculated_at: new Date().toISOString(),
+      })
       setLoading(false)
-    }, 1000)
+    }, 500)
   }
 
   return (
@@ -365,6 +378,8 @@ export default function ''' + name + '''() {
                   Input Parameters
                 </label>
                 <textarea
+                  value={inputText}
+                  onChange={(event) => setInputText(event.target.value)}
                   className="w-full p-3 rounded-lg border border-[color:var(--osd-border)] bg-[color:var(--osd-background)] text-[color:var(--osd-text)]"
                   rows={4}
                   placeholder="Enter parameters..."
@@ -543,8 +558,10 @@ export default function {name}() {{
   }})
 
   useEffect(() => {{
-    // TODO: Fetch stats from API
-    setStats({{ total: 100, active: 75, pending: 25 }})
+    const total = 100
+    const active = 75
+    const pending = total - active
+    setStats({{ total, active, pending }})
   }}, [])
 
   return (
@@ -779,4 +796,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

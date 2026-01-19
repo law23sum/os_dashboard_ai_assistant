@@ -1,5 +1,5 @@
 """
-Verification operations for OS Dashboard AI Assistant
+Verification operations for AI OS
 """
 
 import sys

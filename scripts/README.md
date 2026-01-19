@@ -1,6 +1,6 @@
-# OS Dashboard AI Assistant - Scripts Directory
+# AI OS - Scripts Directory
 
-This directory contains all automation scripts for the OS Dashboard AI Assistant system.
+This directory contains all automation scripts for the AI OS system.
 
 ## 🎯 Core Scripts
 

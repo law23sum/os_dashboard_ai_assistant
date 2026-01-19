@@ -44,13 +44,16 @@ export function CategoryHomeTemplate({ title, description, features }: CategoryH
         )}
       />
 
-      <section className="glass-card p-6 space-y-3">
+      <section className="glass-card p-6 space-y-3" data-page-section="overview">
         <h2 className="text-lg font-semibold text-[color:var(--osd-text)]">Overview</h2>
         <p className="text-sm text-[color:var(--osd-muted)]">{description}</p>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">
-        <div className="glass-card p-6 space-y-3 lg:col-span-2">
+        <div
+          className="glass-card p-6 space-y-3 lg:col-span-2"
+          data-page-section="quick-links"
+        >
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[color:var(--osd-text)]">Quick Links</h2>
             <span className="text-xs text-[color:var(--osd-muted)]">Top features</span>
@@ -71,7 +74,7 @@ export function CategoryHomeTemplate({ title, description, features }: CategoryH
           </div>
         </div>
 
-        <div className="glass-card p-6 space-y-3">
+        <div className="glass-card p-6 space-y-3" data-page-section="getting-started">
           <h2 className="text-lg font-semibold text-[color:var(--osd-text)]">Getting Started</h2>
           <ul className="space-y-2 text-sm">
             {defaultChecklist.map((item) => (
@@ -92,7 +95,7 @@ export function CategoryHomeTemplate({ title, description, features }: CategoryH
         </div>
       </section>
 
-      <section className="glass-card p-6 space-y-4">
+      <section className="glass-card p-6 space-y-4" data-page-section="recent-activity">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[color:var(--osd-text)]">Recent Activity</h2>
           <button type="button" className="text-xs text-[color:var(--osd-muted)]">View all</button>

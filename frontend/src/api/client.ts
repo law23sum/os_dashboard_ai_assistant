@@ -2,13 +2,21 @@
  * API client with authentication support
  */
 
+import { getCohort, getFeatureFlagsHeader, getReleaseChannel } from '../utils/featureFlags'
+
 const API_BASE = import.meta.env.VITE_API_BASE || '/api'
 
 export function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem('access_token')
+  const cohort = getCohort()
+  const releaseChannel = getReleaseChannel()
+  const flagsHeader = getFeatureFlagsHeader()
   return {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` }),
+    ...(cohort && { 'X-OSD-Cohort': cohort }),
+    ...(releaseChannel && { 'X-OSD-Release': releaseChannel }),
+    ...(flagsHeader && { 'X-OSD-Flags': flagsHeader }),
   }
 }
 

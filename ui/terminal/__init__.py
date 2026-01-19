@@ -1,4 +1,4 @@
-"""Terminal/CLI interface for OS Dashboard."""
+"""Terminal/CLI interface for AI OS Console."""
 
 __all__ = ["main", "create_cli_parser"]
 

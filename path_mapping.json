@@ -722,7 +722,7 @@
   "/dashboard/core-flight-deck/notifications": "/mission-control/core-flight-deck/notifications",
   "/dashboard/core-flight-deck/inbox": "/mission-control/core-flight-deck/inbox",
   "/dashboard/core-flight-deck/timeline": "/mission-control/core-flight-deck/timeline",
-  "/": "/mission-control/core-flight-deck/",
+  "/": "/dashboard/flight-deck",
   "/projects": "/mission-control/core-flight-deck/projects",
   "/projects/templates": "/mission-control/core-flight-deck/templates",
   "/projects/members": "/mission-control/core-flight-deck/members",
@@ -1047,5 +1047,13 @@
   "/data/stores/capsules": "/data-and-knowledge/core-data-stores/capsules",
   "/data/stores/artifacts": "/data-and-knowledge/core-data-stores/artifacts",
   "/data/stores/knowledge-capsules": "/data-and-knowledge/core-data-stores/knowledge-capsules",
-  "/data/stores/todos": "/data-and-knowledge/core-data-stores/todos"
+  "/data/stores/todos": "/data-and-knowledge/core-data-stores/todos",
+  "/mission-control/core-flight-deck/dashboard": "/",
+  "/mission-control/core-flight-deck/projects": "/projects",
+  "/mission-control/core-flight-deck/tasks": "/tasks",
+  "/mission-control/engagement-persona/chat": "/chat",
+  "/mission-control/engagement-persona/collaboration": "/collaboration",
+  "/mission-control/engagement-persona/personalization": "/personalization",
+  "/observability-evidence/telemetry-metrics/monitoring": "/monitoring",
+  "/observability-evidence/telemetry-metrics/observability": "/observability"
 }

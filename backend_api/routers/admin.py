@@ -12,13 +12,13 @@ Goals:
 from __future__ import annotations
 
 import json
+import sqlite3
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from backend_api.auth import User, get_current_admin_user, get_user_db
 from backend_api.db import db_session
 from backend_api.deps import require_admin
 from backend_api.security import AuthUser
@@ -56,9 +56,7 @@ def _mask_value(value: Any) -> Any:
 
 
 def _connect(database: str):
-    if database == "users":
-        return get_user_db()
-    if database == "main":
+    if database in {"users", "main"}:
         return db_session()
     raise HTTPException(status_code=400, detail="Invalid database. Use 'main' or 'users'.")
 
@@ -224,20 +222,20 @@ async def admin_users(
     ]
 
 @router.get("/admin/dashboard")
-async def admin_dashboard(admin_user: User = Depends(get_current_admin_user)):
+async def admin_dashboard(admin_user: AuthUser = Depends(require_admin)):
     """
     Get comprehensive admin dashboard with system overview.
     """
     stats = {}
     
     # User statistics
-    with get_user_db() as conn:
+    with db_session() as conn:
         cur = conn.cursor()
         cur.execute("SELECT COUNT(*) FROM users")
         stats["total_users"] = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) FROM users WHERE is_active = 1")
+        cur.execute("SELECT COUNT(*) FROM users WHERE disabled = 0")
         stats["active_users"] = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) FROM users WHERE role = 'admin'")
+        cur.execute("SELECT COUNT(*) FROM users WHERE is_admin = 1")
         stats["admin_users"] = cur.fetchone()[0]
 
         # Activity table may not exist in older schemas
@@ -268,14 +266,14 @@ async def admin_dashboard(admin_user: User = Depends(get_current_admin_user)):
             "total_documents": stats.get("total_documents", 0),
         },
         "timestamp": datetime.utcnow().isoformat(),
-        "admin_user": admin_user.username,
+        "admin_user": admin_user.display_name or admin_user.email,
     }
 
 
 @router.get("/tables")
 async def list_tables(
     database: str = Query("main", description="Database to inspect: main or users"),
-    admin_user: User = Depends(get_current_admin_user),
+    _: AuthUser = Depends(require_admin),
 ):
     """List tables with column info and row counts."""
     with _connect(database) as conn:
@@ -326,7 +324,7 @@ async def table_data(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=250),
     reveal_sensitive: bool = Query(False, description="Reveal sensitive fields (admin-only, explicit)."),
-    admin_user: User = Depends(get_current_admin_user),
+    _: AuthUser = Depends(require_admin),
 ):
     """Paginated table data with optional masking."""
     if not table_name.replace("_", "").isalnum():
@@ -378,42 +376,39 @@ async def table_data(
 async def list_users(
     include_dummy: bool = Query(True),
     include_production: bool = Query(True),
-    current_user: User = Depends(get_current_admin_user)
+    _: AuthUser = Depends(require_admin),
 ):
     """List all users with filtering options."""
     with db_session() as conn:
         try:
-            query = "SELECT id, username, email, full_name, is_admin, is_active, created_at, last_login, metadata FROM users WHERE 1=1"
+            query = "SELECT id, username, email, display_name, is_admin, disabled, created_at, last_login, environment FROM users WHERE 1=1"
             params = []
             
             if not include_dummy:
-                query += " AND (metadata NOT LIKE '%\"is_dummy\": true%' AND metadata NOT LIKE '%\"is_test\": true%')"
+                query += " AND environment != 'demo'"
             
             if not include_production:
-                query += " AND (metadata LIKE '%\"is_dummy\": true%' OR metadata LIKE '%\"is_test\": true%')"
+                query += " AND environment != 'prod'"
             
             query += " ORDER BY created_at DESC"
             
             cursor = conn.execute(query, params)
             users = []
             for row in cursor.fetchall():
-                metadata = {}
-                try:
-                    metadata = json.loads(row[8] or "{}")
-                except Exception:
-                    pass
-                
+                username = row[1] or (row[2].split("@", 1)[0] if row[2] else "")
                 users.append({
                     "id": row[0],
-                    "username": row[1],
+                    "username": username,
                     "email": row[2],
                     "full_name": row[3],
+                    "display_name": row[3],
                     "is_admin": bool(row[4]),
-                    "is_active": bool(row[5]),
+                    "is_active": not bool(row[5]),
                     "created_at": row[6],
                     "last_login": row[7],
-                    "is_dummy": metadata.get("is_dummy", False),
-                    "is_test": metadata.get("is_test", False)
+                    "is_dummy": (row[8] or "") == "demo",
+                    "is_test": False,
+                    "environment": row[8] or "demo",
                 })
             
             return users
@@ -425,50 +420,57 @@ async def list_users(
 async def get_audit_logs(
     limit: int = Query(100, le=1000),
     offset: int = Query(0, ge=0),
-    user_id: Optional[int] = None,
+    user_id: Optional[str] = None,
     action: Optional[str] = None,
-    current_user: User = Depends(get_current_admin_user)
+    _: AuthUser = Depends(require_admin),
 ):
-    """Get audit logs with filtering."""
+    """Get audit events with filtering."""
     with db_session() as conn:
         try:
-            query = "SELECT * FROM audit_logs WHERE 1=1"
             params = []
-            
+            query = """
+                SELECT id, user_id, event_type, object_type, object_id, ip, user_agent, created_at, metadata_json
+                FROM audit_events
+                WHERE 1=1
+            """
             if user_id:
                 query += " AND user_id = ?"
                 params.append(user_id)
-            
             if action:
-                query += " AND action LIKE ?"
+                query += " AND event_type LIKE ?"
                 params.append(f"%{action}%")
-            
             query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
             params.extend([limit, offset])
-            
+
             cursor = conn.execute(query, params)
             logs = []
             for row in cursor.fetchall():
+                metadata = {}
+                try:
+                    metadata = json.loads(row["metadata_json"] or "{}")
+                except Exception:
+                    metadata = {}
                 logs.append({
-                    "id": row[0],
-                    "user_id": row[1],
-                    "action": row[2],
-                    "resource_type": row[3],
-                    "resource_id": row[4],
-                    "details": json.loads(row[5] or "{}"),
-                    "ip_address": row[6],
-                    "user_agent": row[7],
-                    "created_at": row[8]
+                    "id": row["id"],
+                    "user_id": row["user_id"],
+                    "action": row["event_type"],
+                    "resource_type": row["object_type"],
+                    "resource_id": row["object_id"],
+                    "ip_address": row["ip"],
+                    "user_agent": row["user_agent"],
+                    "created_at": row["created_at"],
+                    "metadata": metadata,
                 })
-            
             return {"logs": logs, "limit": limit, "offset": offset}
+        except sqlite3.OperationalError:
+            return {"logs": [], "limit": limit, "offset": offset}
         except Exception:
             return {"logs": [], "limit": limit, "offset": offset}
 
 
 @router.get("/stats", response_model=Dict[str, Any])
 async def get_detailed_stats(
-    current_user: User = Depends(get_current_admin_user)
+    _: AuthUser = Depends(require_admin),
 ):
     """Get detailed statistics for admin dashboard."""
     stats: Dict[str, Any] = {

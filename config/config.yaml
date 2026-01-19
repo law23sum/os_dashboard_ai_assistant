@@ -1,6 +1,6 @@
 # Application configuration
 app:
-  name: "OS Dashboard Assistant"
+  name: "AI OS"
   version: "1.0.0"
 
 # API rate limits and refresh intervals
@@ -24,3 +24,10 @@ database:
 # UI settings
 ui:
   theme: "dark"
+
+# Security Defense Orchestration (overrides default_config.yaml)
+security_defense:
+  auto_response_enabled: true
+  active_enforcement: false
+  auto_response_min_severity: "high"
+  scan_interval_seconds: 120

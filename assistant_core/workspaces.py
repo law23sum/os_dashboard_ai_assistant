@@ -5,13 +5,17 @@ from __future__ import annotations
 import uuid
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from assistant_core.domain.models import Task, WorkspaceType
 from assistant_core.cognitive_framework import CognitivePersona, PersonaType
 from assistant_core.driver_architecture import DriverRegistry
+from assistant_core.dynamic_cybersecurity_engine import (
+    BreachState,
+    DynamicCybersecurityEngine,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -710,16 +714,18 @@ class ArchiveEngine(BaseWorkspaceEngine):
 
 class CybersecurityEngine(BaseWorkspaceEngine):
     def __init__(self, config: Optional[WorkspaceConfiguration] = None, driver_registry: Optional[DriverRegistry] = None):
-        config = config or WorkspaceConfiguration("Cybersecurity", WorkspaceType.CYBERSECURITY)
+        config = config or WorkspaceConfiguration("Dynamic Cybersecurity Engine", WorkspaceType.CYBERSECURITY)
         super().__init__(config, driver_registry)
         self.alerts: List[Dict[str, Any]] = []
         self.threat_models: Dict[str, Any] = {}
         self.security_posture: Dict[str, Any] = {}
+        self.dynamic_engine = DynamicCybersecurityEngine()
 
     async def initialize(self, context: WorkspaceContext) -> bool:
         try:
             await self._initialize_threat_models()
             await self._baseline_security_posture()
+            await self.dynamic_engine.initialize()
             return True
         except Exception as exc:
             logger.error("Failed to initialize Cybersecurity workspace: %s", exc)
@@ -734,6 +740,70 @@ class CybersecurityEngine(BaseWorkspaceEngine):
             return await self._run_security_scan(params)
         if task.title == "update_threat_model":
             return await self._update_threat_model(params)
+        if task.title == "record_data_change":
+            return await self.dynamic_engine.record_data_change(
+                action=params.get("action", "data_change"),
+                user_id=params.get("user_id"),
+                resource_id=params.get("resource_id"),
+                details=params.get("details"),
+                tenant_id=params.get("tenant_id"),
+                workspace_id=params.get("workspace_id"),
+            )
+        if task.title == "record_action_step":
+            return await self.dynamic_engine.record_action_step(
+                action=params.get("action", "action_step"),
+                user_id=params.get("user_id"),
+                resource_id=params.get("resource_id"),
+                details=params.get("details"),
+                tenant_id=params.get("tenant_id"),
+                workspace_id=params.get("workspace_id"),
+            )
+        if task.title == "record_critical_event":
+            return await self.dynamic_engine.record_critical_event(
+                action=params.get("action", "critical_event"),
+                rule_id=params.get("rule_id", "unspecified"),
+                evidence_refs=params.get("evidence_refs", []),
+                user_id=params.get("user_id"),
+                resource_id=params.get("resource_id"),
+                details=params.get("details"),
+                tenant_id=params.get("tenant_id"),
+                workspace_id=params.get("workspace_id"),
+            )
+        if task.title == "transition_breach_state":
+            target_state = params.get("state", "elevated")
+            try:
+                to_state = BreachState(target_state)
+            except ValueError:
+                to_state = BreachState.ELEVATED
+            return await self.dynamic_engine.transition_state(
+                to_state=to_state,
+                trigger=params.get("trigger", "manual"),
+                evidence_refs=params.get("evidence_refs"),
+                notes=params.get("notes", ""),
+            )
+        if task.title == "snapshot_state":
+            return await self.dynamic_engine.record_snapshot(
+                snapshot_id=params.get("snapshot_id", str(uuid.uuid4())),
+                payload=params.get("payload", {}),
+                source=params.get("source", "workspace"),
+                segment_id=params.get("segment_id"),
+                event_hash=params.get("event_hash"),
+            )
+        if task.title == "export_audit_pack":
+            start_date = params.get("start_date")
+            end_date = params.get("end_date")
+            if isinstance(start_date, str):
+                start_date = datetime.fromisoformat(start_date)
+            if isinstance(end_date, str):
+                end_date = datetime.fromisoformat(end_date)
+            if not start_date or not end_date:
+                end_date = datetime.now(timezone.utc)
+                start_date = end_date - timedelta(days=1)
+            return await self.dynamic_engine.audit_system.export_audit_pack(
+                start_date=start_date,
+                end_date=end_date,
+                tenant_id=params.get("tenant_id"),
+            )
         logger.warning("Unknown task for Cybersecurity workspace: %s", task.title)
         return None
 
@@ -744,6 +814,8 @@ class CybersecurityEngine(BaseWorkspaceEngine):
             "alerts": len(self.alerts),
             "threat_models": len(self.threat_models),
             "risk_score": self.security_posture.get("risk_score", 0.0),
+            "breach_state": self.dynamic_engine.state.value,
+            "breach_transitions": len(self.dynamic_engine.transitions),
             "last_activity": self.last_activity.isoformat(),
         }
 

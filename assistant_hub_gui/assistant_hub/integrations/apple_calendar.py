@@ -149,7 +149,7 @@ class AppleCalendarClient:
             # Create iCalendar event
             ical_event = f"""BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//OS Dashboard AI Assistant//EN
+PRODID:-//AI OS//EN
 BEGIN:VEVENT
 UID:{event_id}
 DTSTART:{start_time.strftime('%Y%m%dT%H%M%SZ')}

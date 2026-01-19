@@ -1,1 +1,1 @@
-export type ActorType = 'personal' | 'enterprise'
+export type ActorType = 'personal' | 'business' | 'enterprise'

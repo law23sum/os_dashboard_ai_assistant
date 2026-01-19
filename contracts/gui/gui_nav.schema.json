@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:omniverse:schema:gui_nav:1.0.0",
+  "title": "AI OS Console Nav Registry (Editions -> Platforms -> Categories -> Features)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["meta", "editions"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "generated_at", "source_of_truth", "platform_order"],
+      "properties": {
+        "version": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "source_of_truth": { "type": "string", "enum": ["repo_scan", "manual", "hybrid_merge"] },
+        "platform_order": {
+          "type": "array",
+          "minItems": 13,
+          "items": {
+            "type": "string",
+            "enum": [
+              "Core",
+              "Common",
+              "Audit Official Records",
+              "Automation",
+              "Settings",
+              "Admin",
+              "Workstation",
+              "Systems",
+              "Simulations",
+              "Research",
+              "Encyclopedia",
+              "Libraries",
+              "Knowledge"
+            ]
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "editions": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/Edition" }
+    }
+  },
+  "$defs": {
+    "Edition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "label", "platforms"],
+      "properties": {
+        "key": { "type": "string", "enum": ["personal", "business_team", "enterprise"] },
+        "label": { "type": "string", "enum": ["Personal", "Business/Team", "Enterprise"] },
+        "platforms": {
+          "type": "array",
+          "minItems": 13,
+          "items": { "$ref": "#/$defs/Platform" }
+        }
+      }
+    },
+    "Platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "label", "order", "categories"],
+      "properties": {
+        "key": { "type": "string" },
+        "label": {
+          "type": "string",
+          "enum": [
+            "Core",
+            "Common",
+            "Audit Official Records",
+            "Automation",
+            "Settings",
+            "Admin",
+            "Workstation",
+            "Systems",
+            "Simulations",
+            "Research",
+            "Encyclopedia",
+            "Libraries",
+            "Knowledge"
+          ]
+        },
+        "order": { "type": "integer", "minimum": 1, "maximum": 13 },
+        "categories": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/Category" }
+        }
+      }
+    },
+    "Category": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "label", "order", "features"],
+      "properties": {
+        "key": { "type": "string" },
+        "label": { "type": "string", "minLength": 1 },
+        "order": { "type": "integer", "minimum": 0 },
+        "description": { "type": "string" },
+        "features": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/Feature" }
+        }
+      }
+    },
+    "Feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "label", "route", "nav_order", "widgets", "displays", "contracts"],
+      "properties": {
+        "key": { "type": "string" },
+        "label": { "type": "string", "minLength": 1 },
+        "route": { "type": "string", "pattern": "^/[-a-zA-Z0-9_/]*$" },
+        "nav_order": { "type": "integer", "minimum": 0 },
+        "shared_feature_key": { "type": "string" },
+        "contracts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["page_contract_ref"],
+          "properties": {
+            "page_contract_ref": { "type": "string", "minLength": 1 },
+            "emits_events": { "type": "array", "items": { "type": "string" } },
+            "subscribes_projections": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "widgets": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/Widget" }
+        },
+        "displays": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/Display" }
+        },
+        "availability": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "editions": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string", "enum": ["Personal", "Business/Team", "Enterprise"] }
+            }
+          }
+        }
+      }
+    },
+    "Widget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "form",
+            "code_editor",
+            "pipeline_designer",
+            "graph_view",
+            "timeline",
+            "log_viewer",
+            "table",
+            "kpi_cards",
+            "search_box",
+            "diff_viewer",
+            "file_uploader"
+          ]
+        },
+        "binding": { "type": "string" }
+      }
+    },
+    "Display": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "results_panel",
+            "audit_trail",
+            "evidence_links",
+            "policy_decision_panel",
+            "status_stream",
+            "projection_view"
+          ]
+        },
+        "binding": { "type": "string" }
+      }
+    }
+  }
+}

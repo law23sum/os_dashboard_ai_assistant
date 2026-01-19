@@ -4,7 +4,7 @@
 
 set -e
 
-echo "🌐 Building OS Dashboard AI Assistant for Web Deployment"
+echo "🌐 Building AI OS for Web Deployment"
 echo "=========================================================="
 
 # Check if Node.js is installed

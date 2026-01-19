@@ -20,7 +20,7 @@ Examples:
         --question "Explain linear algebra" --question "Give me a quiz" \\
         --function-demo
 
-The script intentionally mirrors the major sections of the cookbook style
+The script intentionally mirrors the major sections of the reference-guide style
 notebook the user shared (assistant creation, threads, runs, messages, tool
 calls) so it is easier to map the concepts to runnable code.
 

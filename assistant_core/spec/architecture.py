@@ -1,4 +1,4 @@
-"""Architectural layers and plane definitions aligned with the OS Dashboard TOC."""
+"""Architectural layers and plane definitions aligned with the AI OS TOC."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -61,7 +61,7 @@ ARCHITECTURE_LAYERS: List[LayerDefinition] = [
         representative_components=[
             "assistant_core/daemon",
             "assistant_core/personalization_engine.py",
-            "OS Dashboard TOC-driven persona definitions",
+            "AI OS TOC-driven persona definitions",
         ],
     ),
     LayerDefinition(

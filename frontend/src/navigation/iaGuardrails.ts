@@ -9,7 +9,15 @@ import { iaManifest } from '../data/iaManifest'
 import type { Platform, Category, NavItem } from '../data/iaManifest'
 
 export interface IAViolation {
-  type: 'duplicate_route' | 'feature_in_dropdown' | 'missing_category_home' | 'invalid_structure'
+  type:
+    | 'duplicate_route'
+    | 'duplicate_id'
+    | 'role_collision'
+    | 'feature_in_dropdown'
+    | 'missing_category_home'
+    | 'platform_order'
+    | 'placeholder_page'
+    | 'invalid_structure'
   message: string
   route?: string
   platform?: string
@@ -17,19 +25,80 @@ export interface IAViolation {
   feature?: string
 }
 
+const REQUIRED_PLATFORM_ORDER = [
+  'Core',
+  'Common',
+  'Audit Official Records',
+  'Automation',
+  'Settings',
+  'Admin',
+  'Workstation',
+  'Systems',
+  'Simulations',
+  'Research',
+  'Encyclopedia',
+  'Libraries',
+  'Knowledge',
+]
+
+const CATEGORY_TEMPLATE = 'frontend/src/components/templates/CategoryHomeTemplate.tsx'
+const PLATFORM_TEMPLATE = 'frontend/src/components/templates/PlatformLandingTemplate.tsx'
+
 /**
  * Verify IA compliance and return violations
  */
 export function verifyIACompliance(): IAViolation[] {
   const violations: IAViolation[] = []
+  const platformIds = new Set<string>()
+  const categoryIds = new Set<string>()
+  const featureIds = new Set<string>()
   const categoryHomeRoutes = new Set<string>()
   const featureRoutes = new Set<string>()
   
   const allPlatforms = iaManifest
+
+  const platformLabels = allPlatforms.map((platform) => platform.label)
+  const platformOrderMatches =
+    platformLabels.length === REQUIRED_PLATFORM_ORDER.length &&
+    platformLabels.every((label, index) => label === REQUIRED_PLATFORM_ORDER[index])
+  if (!platformOrderMatches) {
+    violations.push({
+      type: 'platform_order',
+      message: `Platform order mismatch. Expected: ${REQUIRED_PLATFORM_ORDER.join(' → ')}`,
+    })
+  }
   
   for (const platform of allPlatforms) {
+    if (platformIds.has(platform.id)) {
+      violations.push({
+        type: 'duplicate_id',
+        message: `Duplicate platform id: ${platform.id}`,
+        platform: platform.id,
+      })
+    }
+    platformIds.add(platform.id)
+
     for (const category of platform.categories) {
+      if (categoryIds.has(category.id)) {
+        violations.push({
+          type: 'duplicate_id',
+          message: `Duplicate category id: ${category.id}`,
+          platform: platform.id,
+          category: category.id,
+        })
+      }
+      categoryIds.add(category.id)
+
       // Check category home
+      if (!category.homeRoute) {
+        violations.push({
+          type: 'missing_category_home',
+          message: `Missing category home route for ${category.label}`,
+          platform: platform.id,
+          category: category.id,
+        })
+        continue
+      }
       if (categoryHomeRoutes.has(category.homeRoute)) {
         violations.push({
           type: 'duplicate_route',
@@ -39,10 +108,31 @@ export function verifyIACompliance(): IAViolation[] {
           category: category.id
         })
       }
+      if (featureRoutes.has(category.homeRoute)) {
+        violations.push({
+          type: 'role_collision',
+          message: `Route appears in both dropdown and sidebar: ${category.homeRoute}`,
+          route: category.homeRoute,
+          platform: platform.id,
+          category: category.id,
+        })
+      }
       categoryHomeRoutes.add(category.homeRoute)
       
       // Check features
       for (const feature of category.features) {
+        if (featureIds.has(feature.id)) {
+          violations.push({
+            type: 'duplicate_id',
+            message: `Duplicate feature id: ${feature.id}`,
+            route: feature.route,
+            platform: platform.id,
+            category: category.id,
+            feature: feature.id,
+          })
+        }
+        featureIds.add(feature.id)
+
         if (featureRoutes.has(feature.route)) {
           violations.push({
             type: 'duplicate_route',
@@ -56,14 +146,25 @@ export function verifyIACompliance(): IAViolation[] {
         featureRoutes.add(feature.route)
         
         // Check if feature route matches category home (violation)
-        if (feature.route === category.homeRoute && category.features.indexOf(feature) > 0) {
+        if (feature.route === category.homeRoute) {
           violations.push({
-            type: 'duplicate_route',
+            type: 'role_collision',
             message: `Feature route matches category home: ${feature.route}`,
             route: feature.route,
             platform: platform.id,
             category: category.id,
             feature: feature.id
+          })
+        }
+
+        if (feature.componentPath === CATEGORY_TEMPLATE || feature.componentPath === PLATFORM_TEMPLATE) {
+          violations.push({
+            type: 'placeholder_page',
+            message: `Feature uses category/platform template: ${feature.route}`,
+            route: feature.route,
+            platform: platform.id,
+            category: category.id,
+            feature: feature.id,
           })
         }
       }
@@ -74,12 +175,12 @@ export function verifyIACompliance(): IAViolation[] {
   const duplicates = Array.from(categoryHomeRoutes).filter(route => featureRoutes.has(route))
   for (const route of duplicates) {
     violations.push({
-      type: 'duplicate_route',
+      type: 'role_collision',
       message: `Route appears in both dropdown and sidebar: ${route}`,
       route
     })
   }
-  
+
   return violations
 }
 
@@ -160,4 +261,3 @@ export function validateNavigationStructure(): {
     violations
   }
 }
-

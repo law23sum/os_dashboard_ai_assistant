@@ -64,6 +64,7 @@ from .ai import (
     get_agent_model,
     execute_tool_call,
 )
+from assistant_core.ai import INTERACTION_STYLES, normalize_interaction_style
 from .terminal import run_bash_command
 from .sync_scheduler import create_default_scheduler
 from .integrations import (
@@ -267,6 +268,8 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.chat_sender_var = tk.StringVar(value="Chris")
         self.chat_agent_var = tk.StringVar(value=self.state_obj.active_persona)
         self.chat_model_var = tk.StringVar(value="auto")
+        default_style = normalize_interaction_style(os.getenv("ASSISTANT_HUB_INTERACTION_STYLE"))
+        self.chat_style_var = tk.StringVar(value=default_style or "default")
         self.uploaded_files = []  # Track uploaded files for current conversation
         self.active_file_path: Optional[str] = None
         self.active_file_mtime: Optional[float] = None
@@ -1626,6 +1629,15 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 width=16,
                 bootstyle="success"
             )
+            ttkb.Label(compose, text="Style:", bootstyle="secondary").grid(row=0, column=6, sticky="e", padx=4, pady=2)
+            self.style_combo = ttkb.Combobox(
+                compose,
+                textvariable=self.chat_style_var,
+                values=["default", *INTERACTION_STYLES.keys()],
+                state="readonly",
+                width=14,
+                bootstyle="info"
+            )
             ttkb.Label(compose, text="System Prompt:", bootstyle="secondary").grid(row=1, column=0, sticky="ne", padx=4, pady=2)
             ttkb.Label(compose, text="Message:", bootstyle="secondary").grid(row=2, column=0, sticky="ne", padx=4, pady=(4, 2))
         else:
@@ -1654,12 +1666,23 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                 state="readonly",
                 width=16,
             )
+            ttk.Label(compose, text="Style:").grid(row=0, column=6, sticky="e", padx=4, pady=2)
+            self.style_combo = ttk.Combobox(
+                compose,
+                textvariable=self.chat_style_var,
+                values=["default", *INTERACTION_STYLES.keys()],
+                state="readonly",
+                width=14,
+            )
             ttk.Label(compose, text="System Prompt:").grid(row=1, column=0, sticky="ne", padx=4, pady=2)
             ttk.Label(compose, text="Input:").grid(row=2, column=0, sticky="ne", padx=4, pady=(4, 2))
         sender_combo.grid(row=0, column=1, sticky="w", padx=(0, 10), pady=2)
         agent_label.grid(row=0, column=3, sticky="w", padx=(0, 4), pady=2)
         self.model_combo.grid(row=0, column=5, sticky="w", padx=(0, 4), pady=2)
+        self.style_combo.grid(row=0, column=7, sticky="w", padx=(0, 4), pady=2)
         self.model_combo.set("auto")
+        if self.chat_style_var.get() not in INTERACTION_STYLES:
+            self.style_combo.set("default")
         self.model_combo.bind("<<ComboboxSelected>>", self.on_agent_change)
         
         self.system_prompt_text = tk.Text(compose, height=3, wrap="word", font=self.text_font)
@@ -2269,6 +2292,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
             while iteration < max_iterations:
                 # Refresh messages from state for each iteration and inject live context
                 current_messages = self._append_active_file_context(self.state_obj.chat_messages.copy())
+                interaction_style = normalize_interaction_style(self.chat_style_var.get())
                 
                 reply, error, tool_calls = generate_ai_reply(
                     current_messages,
@@ -2280,6 +2304,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
                     model=model,
                     cwd=cwd,
                     enable_shell=True,
+                    interaction_style=interaction_style,
                 )
                 
                 if error:

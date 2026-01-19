@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-import random
-from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
+from assistant_core.security.defense_orchestrator import SecurityDefenseOrchestrator
+
 router = APIRouter()
+security_orchestrator = SecurityDefenseOrchestrator()
 
 
 class SecurityEvent(BaseModel):
@@ -56,187 +57,75 @@ class SecurityStatus(BaseModel):
     threat_detection_enabled: bool
 
 
-# Mock data
-THREAT_TYPES = ["Malware Detection", "Suspicious Login", "Network Anomaly", "Data Exfiltration", "Weak Password"]
-SEVERITIES = ["low", "medium", "high", "critical"]
-STATUSES = ["active", "investigating", "resolved", "false_positive"]
-
-_mock_events: List[SecurityEvent] = []
-_mock_scans: List[SecurityScan] = []
+class ScanRequest(BaseModel):
+    target: str = "system"
 
 
-def _generate_mock_event() -> SecurityEvent:
-    """Generate a mock security event."""
-    return SecurityEvent(
-        id=f"event-{random.randint(1000, 9999)}",
-        type=random.choice(THREAT_TYPES),
-        severity=random.choice(SEVERITIES),
-        description=random.choice([
-            "Suspicious login attempt detected",
-            "Unusual network traffic pattern",
-            "Weak password policy alert",
-            "System integrity check passed",
-            "Potential malware signature detected",
-            "Data access pattern anomaly",
-        ]),
-        timestamp=(datetime.utcnow() - timedelta(minutes=random.randint(1, 1440))).isoformat() + "Z",
-        source_ip=f"192.168.{random.randint(1, 255)}.{random.randint(1, 255)}",
-        status=random.choice(STATUSES),
-    )
+class ConfigureRequest(BaseModel):
+    detection_level: str = "balanced"
+    auto_response: bool = True
+    active_enforcement: bool = False
+    alert_thresholds: Dict[str, Any] = Field(default_factory=dict)
 
 
-def _generate_mock_events(count: int = 5) -> List[SecurityEvent]:
-    """Generate multiple mock security events."""
-    return [_generate_mock_event() for _ in range(count)]
+class InvestigateRequest(BaseModel):
+    event_id: str
 
 
 @router.get("/security/status", response_model=SecurityStatus)
 async def get_security_status() -> SecurityStatus:
     """Get AI security system status."""
-    if not _mock_events:
-        _mock_events.extend(_generate_mock_events(8))
-
-    # Generate current metrics
-    metrics = SecurityMetrics(
-        scans_today=random.randint(5, 25),
-        threats_blocked=random.randint(0, 8),
-        risk_score=random.choice(["Low", "Medium", "High"]),
-        false_positives=random.randint(0, 3),
-        detection_accuracy=round(random.uniform(0.85, 0.98), 2),
-    )
-
-    system_status = "🟢 System Secure" if metrics.threats_blocked < 3 else "🟡 Monitoring Active"
+    await security_orchestrator.initialize()
+    status = await security_orchestrator.get_status()
 
     return SecurityStatus(
-        system_status=system_status,
-        active_scans=len([s for s in _mock_scans if s.status == "running"]),
-        recent_events=_mock_events[-6:],  # Last 6 events
-        metrics=metrics,
-        last_scan=(datetime.utcnow() - timedelta(hours=random.randint(1, 24))).isoformat() + "Z",
-        threat_detection_enabled=True,
+        system_status=status["system_status"],
+        active_scans=status["active_scans"],
+        recent_events=[SecurityEvent(**event) for event in status["recent_events"]],
+        metrics=SecurityMetrics(**status["metrics"]),
+        last_scan=status["last_scan"],
+        threat_detection_enabled=status["threat_detection_enabled"],
     )
 
 
 @router.post("/security/scan/start")
-async def start_threat_scan(payload: Dict[str, Any]) -> Dict[str, Any]:
+async def start_threat_scan(payload: ScanRequest) -> Dict[str, Any]:
     """Start a security threat scan."""
-    scan = SecurityScan(
-        id=f"scan-{random.randint(1000, 9999)}",
-        target=payload.get("target", "system"),
-        status="running",
-        findings=0,
-        started_at=datetime.utcnow().isoformat() + "Z",
-        completed_at=None,
-    )
-    _mock_scans.insert(0, scan)
+    scan = await security_orchestrator.start_scan(payload.target)
 
     return {
         "success": True,
-        "scan_id": scan.id,
-        "message": f"Security threat scan started for {scan.target}.",
-        "estimated_completion_minutes": random.randint(5, 30),
+        "scan_id": scan.scan_id,
+        "message": f"Security threat scan completed for {scan.target}.",
+        "estimated_completion_minutes": 0,
     }
 
 
 @router.post("/security/report/view")
 async def view_security_report() -> Dict[str, Any]:
     """View security report."""
-    # Generate some mock scan results
-    completed_scans = [
-        SecurityScan(
-            id=f"scan-{i}",
-            target=f"system-{i}",
-            status="completed",
-            findings=random.randint(0, 5),
-            started_at=(datetime.utcnow() - timedelta(hours=i+1)).isoformat() + "Z",
-            completed_at=(datetime.utcnow() - timedelta(hours=i)).isoformat() + "Z",
-        )
-        for i in range(1, 6)
-    ]
-
-    # Generate mock report data
-    report = {
-        "scan_summary": {
-            "total_scans": len(completed_scans),
-            "successful_scans": len([s for s in completed_scans if s.findings == 0]),
-            "threats_found": sum(s.findings for s in completed_scans),
-            "critical_findings": random.randint(0, 2),
-        },
-        "recent_scans": completed_scans,
-        "top_threats": [
-            {"type": threat_type, "count": random.randint(1, 5)}
-            for threat_type in random.sample(THREAT_TYPES, 3)
-        ],
-        "recommendations": [
-            "Update password policies",
-            "Enable multi-factor authentication",
-            "Review network access controls",
-            "Install latest security patches",
-        ],
-        "generated_at": datetime.utcnow().isoformat() + "Z",
-    }
-
-    return report
+    await security_orchestrator.initialize()
+    return await security_orchestrator.get_report()
 
 
 @router.post("/security/configure")
-async def configure_security(payload: Dict[str, Any]) -> Dict[str, Any]:
+async def configure_security(payload: ConfigureRequest) -> Dict[str, Any]:
     """Configure security system settings."""
-    detection_level = payload.get("detection_level", "balanced")
-    auto_response = payload.get("auto_response", True)
-    alert_thresholds = payload.get("alert_thresholds", {})
-
-    return {
-        "success": True,
-        "configuration": {
-            "detection_level": detection_level,
-            "auto_response": auto_response,
-            "alert_thresholds": alert_thresholds or {
-                "low": 10,
-                "medium": 5,
-                "high": 2,
-                "critical": 1,
-            },
-        },
-        "message": f"Security system configured with {detection_level} detection level.",
-    }
+    return await security_orchestrator.configure(
+        detection_level=payload.detection_level,
+        auto_response=payload.auto_response,
+        alert_thresholds=payload.alert_thresholds,
+        active_enforcement=payload.active_enforcement,
+    )
 
 
 @router.post("/security/event/investigate")
-async def investigate_threat(event_id: str) -> Dict[str, Any]:
+async def investigate_threat(payload: InvestigateRequest) -> Dict[str, Any]:
     """Investigate a specific security event."""
-    # Find the event
-    event = next((e for e in _mock_events if e.id == event_id), None)
-    if not event:
-        return {"success": False, "message": "Event not found."}
-
-    # Generate investigation details
-    investigation = {
-        "event_id": event_id,
-        "investigation_started": datetime.utcnow().isoformat() + "Z",
-        "findings": [
-            f"Event occurred at {event.timestamp}",
-            f"Source IP: {event.source_ip}",
-            f"Event type: {event.type}",
-            "No malicious activity confirmed" if random.random() > 0.3 else "Suspicious pattern detected",
-            "Recommended action: Monitor closely" if event.severity in ["low", "medium"] else "Immediate response required",
-        ],
-        "recommended_actions": [
-            "Log analysis completed",
-            "IP address blocked" if event.severity == "critical" else "Alert sent to security team",
-            "System scan initiated" if random.random() > 0.5 else "No further action needed",
-        ],
-        "status": "completed",
-    }
-
-    return {"success": True, "investigation": investigation}
+    return await security_orchestrator.investigate_event(payload.event_id)
 
 
 @router.post("/security/status/refresh")
 async def refresh_security_status() -> SecurityStatus:
     """Refresh security system status."""
-    # Add a new random event occasionally
-    if random.random() > 0.7:
-        _mock_events.append(_generate_mock_event())
-
     return await get_security_status()

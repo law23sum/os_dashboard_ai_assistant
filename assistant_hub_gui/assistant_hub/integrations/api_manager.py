@@ -1,5 +1,5 @@
 """
-Main API Manager for OS Dashboard AI Assistant
+Main API Manager for AI OS
 Coordinates all API integrations
 """
 import asyncio
@@ -40,7 +40,7 @@ class APIManager:
 
     async def initialize(self) -> Dict[str, bool]:
         """Initialize all API clients"""
-        self.logger.info("Initializing OS Dashboard AI Assistant API Manager...")
+        self.logger.info("Initializing AI OS API Manager...")
 
         # Validate configuration
         validation_results = validate_api_config()

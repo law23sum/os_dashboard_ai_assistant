@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import List, Optional, Dict
 from dataclasses import dataclass
 
-from .db import PERSONAS
+from .db import PERSONAS, insert_and_fetch_id
 
 
 @dataclass
@@ -72,17 +72,17 @@ def add_comment(
 
     created_at = datetime.now().isoformat(timespec="seconds")
 
-    c = conn.cursor()
-    c.execute(
-        """
+    insert_sql = """
         INSERT INTO comments (entity_type, entity_id, author, content, created_at)
         VALUES (?, ?, ?, ?, ?)
-    """,
+    """
+    comment_id = insert_and_fetch_id(
+        conn,
+        insert_sql,
         (entity_type, str(entity_id), author, content, created_at),
     )
-
     conn.commit()
-    return c.lastrowid
+    return comment_id
 
 
 def get_comments(

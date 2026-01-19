@@ -66,7 +66,7 @@ export const legacyDocGroups: LegacyDocGroup[] = [
       },
       {
         label: 'Implementation roadmap',
-        description: 'Detailed sequencing plan for shipping the OS Dashboard migration.',
+        description: 'Detailed sequencing plan for shipping the AI OS migration.',
         href: '/docs/IMPLEMENTATION_ROADMAP.md',
         kind: 'Markdown',
       },
@@ -173,7 +173,7 @@ export const legacyDocGroups: LegacyDocGroup[] = [
         kind: 'Markdown',
       },
       {
-        label: 'OS Dashboard Enterprise',
+        label: 'AI OS Enterprise',
         description: 'Enterprise SKU overview referenced on sales calls.',
         href: '/docs/OS_DASHBOARD_ENTERPRISE.md',
         kind: 'Markdown',
@@ -228,7 +228,7 @@ export const legacyDocGroups: LegacyDocGroup[] = [
       },
       {
         label: 'Vision implementation',
-        description: 'Detailed implementation notes for the OS Dashboard vision.',
+        description: 'Detailed implementation notes for the AI OS vision.',
         href: '/docs/VISION_IMPLEMENTATION.md',
         kind: 'Markdown',
       },

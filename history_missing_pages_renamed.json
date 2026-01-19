@@ -1,0 +1,1186 @@
+{
+  "frontend/src/pages/AI+DriverStack.tsx": [
+    "frontend/src/pages/Missionarchitecture/Missionidentity/Aidriverstack.tsx"
+  ],
+  "frontend/src/pages/AIOSControl.tsx": [
+    "frontend/src/pages/Aifabric/Driverfabric/Aioscontrol.tsx"
+  ],
+  "frontend/src/pages/APIKeys.tsx": [
+    "frontend/src/pages/Settings/ApiKeys.tsx",
+    "frontend/src/pages/apikeys.tsx",
+    "frontend/src/pages/governance/Identity/ApiKeys.tsx"
+  ],
+  "frontend/src/pages/APIKeysTokens.tsx": [
+    "frontend/src/pages/APIKeys&Tokens.tsx",
+    "frontend/src/pages/apikeystokens.tsx"
+  ],
+  "frontend/src/pages/AdvancedAIEngine.tsx": [
+    "frontend/src/pages/Aifabric/Cognitiveagents/Advancedaiengine.tsx"
+  ],
+  "frontend/src/pages/AgentRegistryLifecycle.tsx": [
+    "frontend/src/pages/AgentRegistry&Lifecycle.tsx"
+  ],
+  "frontend/src/pages/Aifabric/Capsulesworkflow/Autofixconsole.tsx": [
+    "frontend/src/pages/Auto-FixConsole.tsx"
+  ],
+  "frontend/src/pages/Aifabric/Capsulesworkflow/Capsulemarketplace.tsx": [
+    "frontend/src/pages/CapsuleMarketplace.tsx"
+  ],
+  "frontend/src/pages/Aifabric/Capsulesworkflow/Lineagereplay.tsx": [
+    "frontend/src/pages/Lineage&Replay.tsx"
+  ],
+  "frontend/src/pages/Aifabric/Cognitiveagents/Aicopilot.tsx": [
+    "frontend/src/pages/AICopilot.tsx"
+  ],
+  "frontend/src/pages/Aifabric/Cognitiveagents/Personasagents.tsx": [
+    "frontend/src/pages/Personas&Agents.tsx"
+  ],
+  "frontend/src/pages/Aifabric/Edgevision/Computervision.tsx": [
+    "frontend/src/pages/ComputerVision.tsx"
+  ],
+  "frontend/src/pages/Aifabric/Edgevision/Edgecomputing.tsx": [
+    "frontend/src/pages/EdgeComputing.tsx"
+  ],
+  "frontend/src/pages/Aifabric/Intentprocessing/Intentprocessor.tsx": [
+    "frontend/src/pages/IntentProcessor.tsx"
+  ],
+  "frontend/src/pages/Aifabric/Mlopsneuralarch/Mlops.tsx": [
+    "frontend/src/pages/Ai/Mlops.tsx",
+    "frontend/src/pages/MLOps.tsx"
+  ],
+  "frontend/src/pages/Alerting.tsx": [
+    "frontend/src/pages/Observability/Alerting.tsx"
+  ],
+  "frontend/src/pages/AlertsRules.tsx": [
+    "frontend/src/pages/Alerts&Rules.tsx"
+  ],
+  "frontend/src/pages/AnnotationLabeling.tsx": [
+    "frontend/src/pages/Annotation&Labeling.tsx"
+  ],
+  "frontend/src/pages/ApprovalPublishing.tsx": [
+    "frontend/src/pages/Approval&Publishing.tsx"
+  ],
+  "frontend/src/pages/ArchitecturalPrinciples.tsx": [
+    "frontend/src/pages/Missionarchitecture/Architectureprinciples/Architecturalprinciples.tsx"
+  ],
+  "frontend/src/pages/ArchitectureOverview.tsx": [
+    "frontend/src/pages/Missionarchitecture/Architectureprinciples/Architectureoverview.tsx"
+  ],
+  "frontend/src/pages/Archive.tsx": [
+    "frontend/src/pages/Workspaces/Archive.tsx",
+    "frontend/src/pages/Data/Archive.tsx"
+  ],
+  "frontend/src/pages/ArchiveWorkspace.tsx": [
+    "frontend/src/pages/Workspaces/Archivecontinuity/Archiveworkspace.tsx"
+  ],
+  "frontend/src/pages/Ascend.tsx": [
+    "frontend/src/pages/Future/Ascend.tsx"
+  ],
+  "frontend/src/pages/AuditLogs.tsx": [
+    "frontend/src/pages/Observability/AuditLogs.tsx"
+  ],
+  "frontend/src/pages/AuthRateLimits.tsx": [
+    "frontend/src/pages/Auth&RateLimits.tsx"
+  ],
+  "frontend/src/pages/AutoFixConsole.tsx": [
+    "frontend/src/pages/Auto-FixConsole.tsx"
+  ],
+  "frontend/src/pages/AutoRemediation.tsx": [
+    "frontend/src/pages/Auto-Remediation.tsx",
+    "frontend/src/pages/Workspaces/Cyber/Autoremediation.tsx",
+    "frontend/src/pages/Workspaces/Cybersecurityworkspace/Autoremediation.tsx"
+  ],
+  "frontend/src/pages/BackpressureThrottling.tsx": [
+    "frontend/src/pages/Backpressure&Throttling.tsx"
+  ],
+  "frontend/src/pages/BackupRetention.tsx": [
+    "frontend/src/pages/Backup&Retention.tsx"
+  ],
+  "frontend/src/pages/BudgetsQuotas.tsx": [
+    "frontend/src/pages/Budgets&Quotas.tsx"
+  ],
+  "frontend/src/pages/BusinessConsole.tsx": [
+    "frontend/src/pages/Workspaces/Businessfinance/Businessconsole.tsx"
+  ],
+  "frontend/src/pages/BusinessContinuityDR.tsx": [
+    "frontend/src/pages/BusinessContinuity&DR.tsx"
+  ],
+  "frontend/src/pages/CanonLore.tsx": [
+    "frontend/src/pages/Workspaces/Writerworkspace/Canonlore.tsx",
+    "frontend/src/pages/Canon&Lore.tsx"
+  ],
+  "frontend/src/pages/CapacityPlanning.tsx": [
+    "frontend/src/pages/Operationsinfrastructure/Performancescalability/Capacityplanning.tsx"
+  ],
+  "frontend/src/pages/CapsuleTemplates.tsx": [
+    "frontend/src/pages/Aifabric/Capsulesworkflow/Capsuletemplates.tsx"
+  ],
+  "frontend/src/pages/ChangeLogsReleaseNotes.tsx": [
+    "frontend/src/pages/ChangeLogs&ReleaseNotes.tsx"
+  ],
+  "frontend/src/pages/CitationsReferences.tsx": [
+    "frontend/src/pages/Citations&References.tsx"
+  ],
+  "frontend/src/pages/CloudEnterprise.tsx": [
+    "frontend/src/pages/Operationsinfrastructure/Deploymentmodels/Cloudenterprise.tsx"
+  ],
+  "frontend/src/pages/CompliancePacks.tsx": [
+    "frontend/src/pages/Governancesecurity/Complianceregulator/Compliancepacks.tsx"
+  ],
+  "frontend/src/pages/ComponentMapping.tsx": [
+    "frontend/src/pages/Missionarchitecture/Architectureprinciples/Componentmapping.tsx"
+  ],
+  "frontend/src/pages/ControlPlane.tsx": [
+    "frontend/src/pages/Missionarchitecture/Planesarchitecture/Controlplane.tsx"
+  ],
+  "frontend/src/pages/CorrelationContext.tsx": [
+    "frontend/src/pages/Correlation&Context.tsx"
+  ],
+  "frontend/src/pages/CrossPlaneFlows.tsx": [
+    "frontend/src/pages/Cross-PlaneFlows.tsx"
+  ],
+  "frontend/src/pages/DaemonFamilies.tsx": [
+    "frontend/src/pages/Missionarchitecture/Missionidentity/Daemonfamilies.tsx"
+  ],
+  "frontend/src/pages/DaemonFramework.tsx": [
+    "frontend/src/pages/Aifabric/Cognitiveagents/Daemonframework.tsx"
+  ],
+  "frontend/src/pages/Dashboards.tsx": [
+    "frontend/src/pages/Observability/Dashboards.tsx"
+  ],
+  "frontend/src/pages/DataDrivers.tsx": [
+    "frontend/src/pages/Aifabric/Driverfabric/Datadrivers.tsx"
+  ],
+  "frontend/src/pages/DataFeedsSync.tsx": [
+    "frontend/src/pages/DataFeeds&Sync.tsx"
+  ],
+  "frontend/src/pages/DataKnowledgeHome.tsx": [
+    "frontend/src/pages/Data&KnowledgeHome.tsx"
+  ],
+  "frontend/src/pages/DataMappingTransformations.tsx": [
+    "frontend/src/pages/DataMapping&Transformations.tsx"
+  ],
+  "frontend/src/pages/DataModelContracts.tsx": [
+    "frontend/src/pages/DataModel&Contracts.tsx"
+  ],
+  "frontend/src/pages/DataPlane.tsx": [
+    "frontend/src/pages/Missionarchitecture/Planesarchitecture/Dataplane.tsx"
+  ],
+  "frontend/src/pages/DataProtection.tsx": [
+    "frontend/src/pages/governance/DataProtection.tsx",
+    "frontend/src/pages/Operations/DataProtection.tsx"
+  ],
+  "frontend/src/pages/DatasetFeatureStore.tsx": [
+    "frontend/src/pages/Dataset&FeatureStore.tsx"
+  ],
+  "frontend/src/pages/DeploymentModes.tsx": [
+    "frontend/src/pages/Missionarchitecture/Missionidentity/Deploymentmodes.tsx"
+  ],
+  "frontend/src/pages/DeploymentServing.tsx": [
+    "frontend/src/pages/Deployment&Serving.tsx"
+  ],
+  "frontend/src/pages/Deprecations.tsx": [
+    "frontend/src/pages/Roadmap/Deprecations.tsx"
+  ],
+  "frontend/src/pages/DevWorkspace.tsx": [
+    "frontend/src/pages/Workspaces/Devdevops/Devworkspace.tsx"
+  ],
+  "frontend/src/pages/DigitalTwinBuilder.tsx": [
+    "frontend/src/pages/Workspaces/Digitaltwinenterprise/Digitaltwinbuilder.tsx"
+  ],
+  "frontend/src/pages/DistributedTracing.tsx": [
+    "frontend/src/pages/Observabilityevidence/Loggingtracing/Distributedtracing.tsx"
+  ],
+  "frontend/src/pages/DocsSpecHome.tsx": [
+    "frontend/src/pages/Docs&SpecHome.tsx"
+  ],
+  "frontend/src/pages/DriverAwareOrchestrator.tsx": [
+    "frontend/src/pages/Driver-AwareOrchestrator.tsx"
+  ],
+  "frontend/src/pages/DriverHealthTelemetry.tsx": [
+    "frontend/src/pages/DriverHealth&Telemetry.tsx"
+  ],
+  "frontend/src/pages/DriverPerformance.tsx": [
+    "frontend/src/pages/Operationsinfrastructure/Performancescalability/Driverperformance.tsx",
+    "frontend/src/pages/Operations/DriverPerformance.tsx"
+  ],
+  "frontend/src/pages/DriverPermissionsSandboxing.tsx": [
+    "frontend/src/pages/DriverPermissions&Sandboxing.tsx"
+  ],
+  "frontend/src/pages/DriverRegistry.tsx": [
+    "frontend/src/pages/Aifabric/Driverfabric/Driverregistry.tsx"
+  ],
+  "frontend/src/pages/DriverVersioningDeprecation.tsx": [
+    "frontend/src/pages/DriverVersioning&Deprecation.tsx"
+  ],
+  "frontend/src/pages/DriversIntegrationsHome.tsx": [
+    "frontend/src/pages/Drivers&IntegrationsHome.tsx"
+  ],
+  "frontend/src/pages/EncryptionKeys.tsx": [
+    "frontend/src/pages/Encryption&Keys.tsx"
+  ],
+  "frontend/src/pages/EnterpriseTwin.tsx": [
+    "frontend/src/pages/Workspaces/Digitaltwinenterprise/Enterprisetwin.tsx"
+  ],
+  "frontend/src/pages/EvaluationBenchmarks.tsx": [
+    "frontend/src/pages/Evaluation&Benchmarks.tsx"
+  ],
+  "frontend/src/pages/EvidenceAccess.tsx": [
+    "frontend/src/pages/Governancesecurity/Complianceregulator/Evidenceaccess.tsx"
+  ],
+  "frontend/src/pages/ExceptionsApprovals.tsx": [
+    "frontend/src/pages/Exceptions&Approvals.tsx"
+  ],
+  "frontend/src/pages/ExceptionsWaivers.tsx": [
+    "frontend/src/pages/Exceptions&Waivers.tsx"
+  ],
+  "frontend/src/pages/ExperimentConsole.tsx": [
+    "frontend/src/pages/Aifabric/Mlopsneuralarch/Experimentconsole.tsx"
+  ],
+  "frontend/src/pages/ExperimentDesign.tsx": [
+    "frontend/src/pages/Workspaces/Researchsimulation/Experimentdesign.tsx"
+  ],
+  "frontend/src/pages/ExportIntegrations.tsx": [
+    "frontend/src/pages/Export&Integrations.tsx"
+  ],
+  "frontend/src/pages/ExportPublishing.tsx": [
+    "frontend/src/pages/Export&Publishing.tsx"
+  ],
+  "frontend/src/pages/FailureDomainsbyPlane.tsx": [
+    "frontend/src/pages/FailureDomainsByPlane.tsx"
+  ],
+  "frontend/src/pages/FinanceBanking.tsx": [
+    "frontend/src/pages/Finance&Banking.tsx"
+  ],
+  "frontend/src/pages/FindingsTriage.tsx": [
+    "frontend/src/pages/Findings&Triage.tsx"
+  ],
+  "frontend/src/pages/Forecasting.tsx": [
+    "frontend/src/pages/governance/Billing/Forecasting.tsx",
+    "frontend/src/pages/Workspaces/Finance/Forecasting.tsx"
+  ],
+  "frontend/src/pages/ForensicsEvidence.tsx": [
+    "frontend/src/pages/Forensics&Evidence.tsx"
+  ],
+  "frontend/src/pages/FullTextSearch.tsx": [
+    "frontend/src/pages/Full-TextSearch.tsx"
+  ],
+  "frontend/src/pages/Future/core_os/Matrix.tsx": [
+    "frontend/src/pages/Future/supreme/Matrix.tsx",
+    "frontend/src/pages/Future/ascend/Matrix.tsx",
+    "frontend/src/pages/Future/Core_os/Matrix.tsx",
+    "frontend/src/pages/Future/super/Matrix.tsx",
+    "frontend/src/pages/Future/ultra/Matrix.tsx",
+    "frontend/src/pages/Future/advanced/Matrix.tsx",
+    "frontend/src/pages/Future/meta/Matrix.tsx",
+    "frontend/src/pages/Future/hyper/Matrix.tsx"
+  ],
+  "frontend/src/pages/FutureCapabilities.tsx": [
+    "frontend/src/pages/Roadmap/FutureCapabilities.tsx"
+  ],
+  "frontend/src/pages/Glossary.tsx": [
+    "frontend/src/pages/Mission/Glossary.tsx",
+    "frontend/src/pages/Docs/Glossary.tsx",
+    "frontend/src/pages/vision/Glossary.tsx"
+  ],
+  "frontend/src/pages/GovernancePlane.tsx": [
+    "frontend/src/pages/Missionarchitecture/Planesarchitecture/Governanceplane.tsx"
+  ],
+  "frontend/src/pages/GovernanceSecurityHome.tsx": [
+    "frontend/src/pages/Governance&SecurityHome.tsx"
+  ],
+  "frontend/src/pages/HPCOrchestrator.tsx": [
+    "frontend/src/pages/Workspaces/Researchsimulation/Hpcorchestrator.tsx"
+  ],
+  "frontend/src/pages/HardwareDrivers.tsx": [
+    "frontend/src/pages/Aifabric/Driverfabric/Hardwaredrivers.tsx"
+  ],
+  "frontend/src/pages/HealthDriftMonitors.tsx": [
+    "frontend/src/pages/Health&DriftMonitors.tsx"
+  ],
+  "frontend/src/pages/HybridEdge.tsx": [
+    "frontend/src/pages/Hybrid&Edge.tsx"
+  ],
+  "frontend/src/pages/IdentityRoles.tsx": [
+    "frontend/src/pages/Identity&Roles.tsx"
+  ],
+  "frontend/src/pages/IntentLogsReplay.tsx": [
+    "frontend/src/pages/IntentLogs&Replay.tsx"
+  ],
+  "frontend/src/pages/IntentTaxonomyRoutingRules.tsx": [
+    "frontend/src/pages/IntentTaxonomy&RoutingRules.tsx"
+  ],
+  "frontend/src/pages/KeyRotationKMSIntegrations.tsx": [
+    "frontend/src/pages/KeyRotation&KMSIntegrations.tsx"
+  ],
+  "frontend/src/pages/LegacyMainframe.tsx": [
+    "frontend/src/pages/Legacy&Mainframe.tsx"
+  ],
+  "frontend/src/pages/LegalHold.tsx": [
+    "frontend/src/pages/Data/LegalHold.tsx"
+  ],
+  "frontend/src/pages/LicensingEntitlements.tsx": [
+    "frontend/src/pages/Licensing&Entitlements.tsx"
+  ],
+  "frontend/src/pages/LineageReplay.tsx": [
+    "frontend/src/pages/Lineage&Replay.tsx"
+  ],
+  "frontend/src/pages/LocalMode.tsx": [
+    "frontend/src/pages/Operationsinfrastructure/Deploymentmodels/Localmode.tsx"
+  ],
+  "frontend/src/pages/LongTermBets.tsx": [
+    "frontend/src/pages/Long-TermBets.tsx"
+  ],
+  "frontend/src/pages/MajorComponents.tsx": [
+    "frontend/src/pages/Missionarchitecture/Architectureprinciples/Majorcomponents.tsx"
+  ],
+  "frontend/src/pages/Marketplace.tsx": [
+    "frontend/src/pages/Drivers/Marketplace.tsx"
+  ],
+  "frontend/src/pages/MentionsPresence.tsx": [
+    "frontend/src/pages/Mentions&Presence.tsx"
+  ],
+  "frontend/src/pages/MetricsModel.tsx": [
+    "frontend/src/pages/Observabilityevidence/Telemetrymetrics/Metricsmodel.tsx"
+  ],
+  "frontend/src/pages/Migration.tsx": [
+    "frontend/src/pages/Operations/Migration.tsx",
+    "frontend/src/pages/Docs/Migration.tsx"
+  ],
+  "frontend/src/pages/Milestones.tsx": [
+    "frontend/src/pages/Roadmap/Milestones.tsx"
+  ],
+  "frontend/src/pages/Mission/Referencearchitectures.tsx": [
+    "frontend/src/pages/Mission/ReferenceArchitectures.tsx"
+  ],
+  "frontend/src/pages/MissionArchitectureHome.tsx": [
+    "frontend/src/pages/Mission&ArchitectureHome.tsx"
+  ],
+  "frontend/src/pages/MissionScope.tsx": [
+    "frontend/src/pages/Mission&Scope.tsx"
+  ],
+  "frontend/src/pages/Missionarchitecture/Architectureprinciples/Driverawareorchestrator.tsx": [
+    "frontend/src/pages/Driver-AwareOrchestrator.tsx"
+  ],
+  "frontend/src/pages/Missionarchitecture/Missionidentity/Identityroles.tsx": [
+    "frontend/src/pages/Identity&Roles.tsx"
+  ],
+  "frontend/src/pages/Missionarchitecture/Missionidentity/Missionscope.tsx": [
+    "frontend/src/pages/Mission&Scope.tsx"
+  ],
+  "frontend/src/pages/Missionarchitecture/Planesarchitecture/Crossplaneflows.tsx": [
+    "frontend/src/pages/Cross-PlaneFlows.tsx"
+  ],
+  "frontend/src/pages/Missioncontrol/Coreflightdeck/Dashboard.tsx": [
+    "frontend/src/pages/Dashboard.tsx"
+  ],
+  "frontend/src/pages/Missioncontrol/Coreflightdeck/Projects.tsx": [
+    "frontend/src/pages/Projects.tsx"
+  ],
+  "frontend/src/pages/Missioncontrol/Coreflightdeck/Tasks.tsx": [
+    "frontend/src/pages/Tasks.tsx"
+  ],
+  "frontend/src/pages/Missioncontrol/Engagementpersona/Chat.tsx": [
+    "frontend/src/pages/Chat.tsx"
+  ],
+  "frontend/src/pages/Missioncontrol/Engagementpersona/Collaboration.tsx": [
+    "frontend/src/pages/Collaboration.tsx"
+  ],
+  "frontend/src/pages/Missioncontrol/Engagementpersona/Personalization.tsx": [
+    "frontend/src/pages/Personalization.tsx"
+  ],
+  "frontend/src/pages/ModelPackagingDeployment.tsx": [
+    "frontend/src/pages/ModelPackaging&Deployment.tsx"
+  ],
+  "frontend/src/pages/ModelProviderLayer.tsx": [
+    "frontend/src/pages/Missionarchitecture/Missionidentity/Modelproviderlayer.tsx"
+  ],
+  "frontend/src/pages/MultiRegionDR.tsx": [
+    "frontend/src/pages/Multi-Region&DR.tsx"
+  ],
+  "frontend/src/pages/MultiRegionReplication.tsx": [
+    "frontend/src/pages/Multi-RegionReplication.tsx"
+  ],
+  "frontend/src/pages/MultiTenantBilling.tsx": [
+    "frontend/src/pages/Multi-TenantBilling.tsx"
+  ],
+  "frontend/src/pages/MyStackCapsules.tsx": [
+    "frontend/src/pages/Aifabric/Capsulesworkflow/Mystackcapsules.tsx"
+  ],
+  "frontend/src/pages/NASConsole.tsx": [
+    "frontend/src/pages/Aifabric/Mlopsneuralarch/Nasconsole.tsx"
+  ],
+  "frontend/src/pages/NASSimulator.tsx": [
+    "frontend/src/pages/Aifabric/Mlopsneuralarch/Nassimulator.tsx"
+  ],
+  "frontend/src/pages/NarrativeGuidance.tsx": [
+    "frontend/src/pages/Workspaces/Writerworkspace/Narrativeguidance.tsx"
+  ],
+  "frontend/src/pages/OSDrivers.tsx": [
+    "frontend/src/pages/Aifabric/Driverfabric/Osdrivers.tsx"
+  ],
+  "frontend/src/pages/Observability/Recordauditor/Timeline.tsx": [
+    "frontend/src/pages/Observability/RecordAuditor/Timeline.tsx",
+    "frontend/src/pages/Calendar/Timeline.tsx",
+    "frontend/src/pages/Timeline.tsx",
+    "frontend/src/pages/Observability/record-auditor/Timeline.tsx"
+  ],
+  "frontend/src/pages/ObservabilityEvidenceHome.tsx": [
+    "frontend/src/pages/Observability&EvidenceHome.tsx"
+  ],
+  "frontend/src/pages/Observabilityevidence/Telemetrymetrics/Monitoring.tsx": [
+    "frontend/src/pages/Monitoring.tsx",
+    "frontend/src/pages/governance/security/Monitoring.tsx"
+  ],
+  "frontend/src/pages/Observabilityevidence/Telemetrymetrics/Observability.tsx": [
+    "frontend/src/pages/Observability.tsx",
+    "frontend/src/pages/Data/Observability.tsx",
+    "frontend/src/pages/Ai/workflows/Observability.tsx"
+  ],
+  "frontend/src/pages/Observabilityevidence/Telemetrymetrics/Slisslos.tsx": [
+    "frontend/src/pages/SLIs&SLOs.tsx"
+  ],
+  "frontend/src/pages/Operations/Bcdr/Drills.tsx": [
+    "frontend/src/pages/Data/dr/Drills.tsx",
+    "frontend/src/pages/Operations/BcDr/Drills.tsx",
+    "frontend/src/pages/Operations/bc-dr/Drills.tsx"
+  ],
+  "frontend/src/pages/OperationsInfrastructureHome.tsx": [
+    "frontend/src/pages/Operations&InfrastructureHome.tsx"
+  ],
+  "frontend/src/pages/Operationsinfrastructure/Deploymentmodels/Deploymentmodes.tsx": [
+    "frontend/src/pages/Missionarchitecture/Missionidentity/Deploymentmodes.tsx"
+  ],
+  "frontend/src/pages/Operationsinfrastructure/Deploymentmodels/Hybridedge.tsx": [
+    "frontend/src/pages/Hybrid&Edge.tsx"
+  ],
+  "frontend/src/pages/OperatorStudio.tsx": [
+    "frontend/src/pages/Ai/Capsules/OperatorStudio.tsx",
+    "frontend/src/pages/Aifabric/Capsulesworkflow/Operatorstudio.tsx"
+  ],
+  "frontend/src/pages/PackageEnvDrivers.tsx": [
+    "frontend/src/pages/Package&EnvDrivers.tsx"
+  ],
+  "frontend/src/pages/Performance.tsx": [
+    "frontend/src/pages/Operationsinfrastructure/Performancescalability/Performance.tsx",
+    "frontend/src/pages/Operations/Performance.tsx"
+  ],
+  "frontend/src/pages/PersonasAgents.tsx": [
+    "frontend/src/pages/Personas&Agents.tsx"
+  ],
+  "frontend/src/pages/PlaneAPIsEventContracts.tsx": [
+    "frontend/src/pages/PlaneAPIs&EventContracts.tsx"
+  ],
+  "frontend/src/pages/PlaybooksRunbooks.tsx": [
+    "frontend/src/pages/Playbooks&Runbooks.tsx"
+  ],
+  "frontend/src/pages/PolicyDSL.tsx": [
+    "frontend/src/pages/Governancesecurity/Policygovernance/Policydsl.tsx"
+  ],
+  "frontend/src/pages/PolicyEngine.tsx": [
+    "frontend/src/pages/Governancesecurity/Policygovernance/Policyengine.tsx"
+  ],
+  "frontend/src/pages/PolicyLibraryTemplates.tsx": [
+    "frontend/src/pages/PolicyLibrary&Templates.tsx"
+  ],
+  "frontend/src/pages/PolicyVersioningApprovals.tsx": [
+    "frontend/src/pages/PolicyVersioning&Approvals.tsx"
+  ],
+  "frontend/src/pages/PolicyasCodeChecks.tsx": [
+    "frontend/src/pages/PolicyAsCodeChecks.tsx",
+    "frontend/src/pages/Policy-as-CodeChecks.tsx"
+  ],
+  "frontend/src/pages/Postmortems.tsx": [
+    "frontend/src/pages/Operations/Postmortems.tsx"
+  ],
+  "frontend/src/pages/Preferences.tsx": [
+    "frontend/src/pages/Settings/Preferences.tsx"
+  ],
+  "frontend/src/pages/ProjectIntelligence.tsx": [
+    "frontend/src/pages/Ai/ProjectIntelligence.tsx",
+    "frontend/src/pages/Aifabric/Cognitiveagents/Projectintelligence.tsx"
+  ],
+  "frontend/src/pages/ProjectLedger.tsx": [
+    "frontend/src/pages/Aifabric/Capsulesworkflow/Projectledger.tsx"
+  ],
+  "frontend/src/pages/ProjectMembersRoles.tsx": [
+    "frontend/src/pages/ProjectMembers&Roles.tsx"
+  ],
+  "frontend/src/pages/QueuesSearch.tsx": [
+    "frontend/src/pages/Queues&Search.tsx"
+  ],
+  "frontend/src/pages/RealityTwinMesh.tsx": [
+    "frontend/src/pages/Workspaces/Digitaltwinenterprise/Realitytwinmesh.tsx"
+  ],
+  "frontend/src/pages/RecordAuditor.tsx": [
+    "frontend/src/pages/Observability/RecordAuditor.tsx"
+  ],
+  "frontend/src/pages/ReferenceArchitecturesbyEdition.tsx": [
+    "frontend/src/pages/ReferenceArchitecturesByEdition.tsx"
+  ],
+  "frontend/src/pages/RegulatorFabric.tsx": [
+    "frontend/src/pages/Governancesecurity/Complianceregulator/Regulatorfabric.tsx"
+  ],
+  "frontend/src/pages/RegulatorTenancy.tsx": [
+    "frontend/src/pages/Governancesecurity/Complianceregulator/Regulatortenancy.tsx"
+  ],
+  "frontend/src/pages/ReliabilityDashboard.tsx": [
+    "frontend/src/pages/Workspaces/Operatorsre/Reliabilitydashboard.tsx"
+  ],
+  "frontend/src/pages/RepoBranchBrowser.tsx": [
+    "frontend/src/pages/Repo&BranchBrowser.tsx"
+  ],
+  "frontend/src/pages/ResearchSimulationDrivers.tsx": [
+    "frontend/src/pages/Research&SimulationDrivers.tsx"
+  ],
+  "frontend/src/pages/RestoreExport.tsx": [
+    "frontend/src/pages/Restore&Export.tsx"
+  ],
+  "frontend/src/pages/RetentionTiering.tsx": [
+    "frontend/src/pages/Retention&Tiering.tsx"
+  ],
+  "frontend/src/pages/ReviewsRatings.tsx": [
+    "frontend/src/pages/Reviews&Ratings.tsx"
+  ],
+  "frontend/src/pages/RoadmapRisksHome.tsx": [
+    "frontend/src/pages/Roadmap&RisksHome.tsx"
+  ],
+  "frontend/src/pages/Runbooks.tsx": [
+    "frontend/src/pages/Workspaces/Sre/Runbooks.tsx",
+    "frontend/src/pages/Observability/Runbooks.tsx"
+  ],
+  "frontend/src/pages/SDKs.tsx": [
+    "frontend/src/pages/Docs/api/Sdks.tsx"
+  ],
+  "frontend/src/pages/SLIsSLOs.tsx": [
+    "frontend/src/pages/SLIs&SLOs.tsx"
+  ],
+  "frontend/src/pages/SREWorkspace.tsx": [
+    "frontend/src/pages/Workspaces/Operatorsre/Sreworkspace.tsx"
+  ],
+  "frontend/src/pages/SafetyAlignmentOverview.tsx": [
+    "frontend/src/pages/Safety&AlignmentOverview.tsx"
+  ],
+  "frontend/src/pages/SafetyHarnesses.tsx": [
+    "frontend/src/pages/Governancesecurity/Policygovernance/Safetyharnesses.tsx"
+  ],
+  "frontend/src/pages/SandboxManagement.tsx": [
+    "frontend/src/pages/Workspaces/Operatorsre/Sandboxmanagement.tsx"
+  ],
+  "frontend/src/pages/SavedSearchesAlerts.tsx": [
+    "frontend/src/pages/SavedSearches&Alerts.tsx"
+  ],
+  "frontend/src/pages/ScalingStrategies.tsx": [
+    "frontend/src/pages/Operationsinfrastructure/Performancescalability/Scalingstrategies.tsx"
+  ],
+  "frontend/src/pages/SchedulingTriggers.tsx": [
+    "frontend/src/pages/Scheduling&Triggers.tsx"
+  ],
+  "frontend/src/pages/SchemaOntology.tsx": [
+    "frontend/src/pages/Schema&Ontology.tsx"
+  ],
+  "frontend/src/pages/SecretsConfigurationVault.tsx": [
+    "frontend/src/pages/Secrets&ConfigurationVault.tsx"
+  ],
+  "frontend/src/pages/SecretsInputs.tsx": [
+    "frontend/src/pages/Secrets&Inputs.tsx"
+  ],
+  "frontend/src/pages/SecurityGuardian.tsx": [
+    "frontend/src/pages/Workspaces/Cybersecurityworkspace/Securityguardian.tsx"
+  ],
+  "frontend/src/pages/SecurityIncidents.tsx": [
+    "frontend/src/pages/Operations/SecurityIncidents.tsx"
+  ],
+  "frontend/src/pages/SelfHealing.tsx": [
+    "frontend/src/pages/Self-Healing.tsx",
+    "frontend/src/pages/Observability/SelfHealing.tsx"
+  ],
+  "frontend/src/pages/SettingsAdminEnterpriseExtensionsHome.tsx": [
+    "frontend/src/pages/Settings&Admin(EnterpriseExtensions)Home.tsx"
+  ],
+  "frontend/src/pages/SettingsAdminHome.tsx": [
+    "frontend/src/pages/Settings&AdminHome.tsx"
+  ],
+  "frontend/src/pages/SimulationWorkbench.tsx": [
+    "frontend/src/pages/Workspaces/Researchsimulation/Simulationworkbench.tsx"
+  ],
+  "frontend/src/pages/SoftwareSaaSDrivers.tsx": [
+    "frontend/src/pages/Software&SaaSDrivers.tsx"
+  ],
+  "frontend/src/pages/StoryQAContinuity.tsx": [
+    "frontend/src/pages/StoryQA&Continuity.tsx"
+  ],
+  "frontend/src/pages/StrategySimulation.tsx": [
+    "frontend/src/pages/Workspaces/Businessfinance/Strategysimulation.tsx"
+  ],
+  "frontend/src/pages/StructuredLogging.tsx": [
+    "frontend/src/pages/Observabilityevidence/Loggingtracing/Structuredlogging.tsx"
+  ],
+  "frontend/src/pages/Supreme.tsx": [
+    "frontend/src/pages/Future/Supreme.tsx"
+  ],
+  "frontend/src/pages/SystemsMap.tsx": [
+    "frontend/src/pages/Aifabric/Intentprocessing/Systemsmap.tsx"
+  ],
+  "frontend/src/pages/TaskAutomationRules.tsx": [
+    "frontend/src/pages/TaskAutomation&Rules.tsx"
+  ],
+  "frontend/src/pages/TaskBoardKanban.tsx": [
+    "frontend/src/pages/TaskBoard(Kanban).tsx"
+  ],
+  "frontend/src/pages/TeamMembers.tsx": [
+    "frontend/src/pages/Team&Members.tsx"
+  ],
+  "frontend/src/pages/TemporalReconstruction.tsx": [
+    "frontend/src/pages/Workspaces/Archivecontinuity/Temporalreconstruction.tsx"
+  ],
+  "frontend/src/pages/TenancyOrgSettings.tsx": [
+    "frontend/src/pages/Tenancy&OrgSettings.tsx"
+  ],
+  "frontend/src/pages/ThirdPartyRisk.tsx": [
+    "frontend/src/pages/Third-PartyRisk.tsx"
+  ],
+  "frontend/src/pages/ThreatModeling.tsx": [
+    "frontend/src/pages/Workspaces/Cybersecurityworkspace/Threatmodeling.tsx",
+    "frontend/src/pages/Workspaces/Cyber/Threatmodeling.tsx"
+  ],
+  "frontend/src/pages/Tokenization.tsx": [
+    "frontend/src/pages/governance/DataProtection/Tokenization.tsx",
+    "frontend/src/pages/governance/data-protection/Tokenization.tsx"
+  ],
+  "frontend/src/pages/Tutorials.tsx": [
+    "frontend/src/pages/Docs/Tutorials.tsx"
+  ],
+  "frontend/src/pages/Upgrades.tsx": [
+    "frontend/src/pages/Operations/Upgrades.tsx"
+  ],
+  "frontend/src/pages/VersioningChangeLog.tsx": [
+    "frontend/src/pages/Versioning&ChangeLog.tsx"
+  ],
+  "frontend/src/pages/VersioningDeprecation.tsx": [
+    "frontend/src/pages/Versioning&Deprecation.tsx"
+  ],
+  "frontend/src/pages/VerticalEditions.tsx": [
+    "frontend/src/pages/Drivers/VerticalEditions.tsx"
+  ],
+  "frontend/src/pages/VisionMeta-StackHome.tsx": [
+    "frontend/src/pages/Vision&Meta-StackHome.tsx"
+  ],
+  "frontend/src/pages/Webhooks.tsx": [
+    "frontend/src/pages/Docs/api/Webhooks.tsx",
+    "frontend/src/pages/Integrations/Webhooks.tsx"
+  ],
+  "frontend/src/pages/WebhooksEvents.tsx": [
+    "frontend/src/pages/Webhooks&Events.tsx"
+  ],
+  "frontend/src/pages/WorkflowOrchestrator.tsx": [
+    "frontend/src/pages/Aifabric/Capsulesworkflow/Workfloworchestrator.tsx"
+  ],
+  "frontend/src/pages/Workspaces/Devdevops/Cicd.tsx": [
+    "frontend/src/pages/Workspaces/Dev/Cicd.tsx"
+  ],
+  "frontend/src/pages/Workspaces/Devdevops/Committasks.tsx": [
+    "frontend/src/pages/Workspaces/Dev/Committasks.tsx"
+  ],
+  "frontend/src/pages/Workspaces/Devdevops/Mergeadvisor.tsx": [
+    "frontend/src/pages/Workspaces/Dev/Mergeadvisor.tsx"
+  ],
+  "frontend/src/pages/Workspaces/Researchsimulation/Digitaltwins.tsx": [
+    "frontend/src/pages/Workspaces/Research/Digitaltwins.tsx"
+  ],
+  "frontend/src/pages/WriterWorkstation.tsx": [
+    "frontend/src/pages/Workspaces/Writerworkspace/Writerworkstation.tsx"
+  ],
+  "frontend/src/pages/drivers/Analytics.tsx": [
+    "frontend/src/pages/Drivers/Analytics.tsx",
+    "frontend/src/pages/Analytics.tsx",
+    "frontend/src/pages/tasks/Analytics.tsx",
+    "frontend/src/pages/Observabilityevidence/Telemetrymetrics/Analytics.tsx"
+  ],
+  "frontend/src/pages/drivers/Enterprisestore.tsx": [
+    "frontend/src/pages/Drivers/EnterpriseStore.tsx"
+  ],
+  "frontend/src/pages/drivers/Integrations/Cloud.tsx": [
+    "frontend/src/pages/Operations/deployment/Cloud.tsx",
+    "frontend/src/pages/Drivers/Integrations/Cloud.tsx"
+  ],
+  "frontend/src/pages/drivers/Integrations/Code.tsx": [
+    "frontend/src/pages/Drivers/Integrations/Code.tsx"
+  ],
+  "frontend/src/pages/drivers/Integrations/Finance.tsx": [
+    "frontend/src/pages/Workspaces/Finance.tsx",
+    "frontend/src/pages/Drivers/Integrations/Finance.tsx"
+  ],
+  "frontend/src/pages/drivers/Integrations/Legacy.tsx": [
+    "frontend/src/pages/Drivers/Integrations/Legacy.tsx"
+  ],
+  "frontend/src/pages/drivers/Integrations/Productivity.tsx": [
+    "frontend/src/pages/Drivers/Integrations/Productivity.tsx"
+  ],
+  "frontend/src/pages/drivers/Integrations/Research.tsx": [
+    "frontend/src/pages/Drivers/Integrations/Research.tsx",
+    "frontend/src/pages/Ai/drivers/Research.tsx",
+    "frontend/src/pages/Research.tsx"
+  ],
+  "frontend/src/pages/drivers/Licensing.tsx": [
+    "frontend/src/pages/Drivers/Licensing.tsx"
+  ],
+  "frontend/src/pages/drivers/Marketplace.tsx": [
+    "frontend/src/pages/Drivers/Marketplace.tsx"
+  ],
+  "frontend/src/pages/drivers/Marketplace/Reviews.tsx": [
+    "frontend/src/pages/Workspaces/Dev/Reviews.tsx",
+    "frontend/src/pages/Drivers/Marketplace/Reviews.tsx",
+    "frontend/src/pages/governance/Identity/Reviews.tsx"
+  ],
+  "frontend/src/pages/drivers/Marketplace/Securityreview.tsx": [
+    "frontend/src/pages/Drivers/Marketplace/SecurityReview.tsx"
+  ],
+  "frontend/src/pages/drivers/Packs.tsx": [
+    "frontend/src/pages/Drivers/Packs.tsx"
+  ],
+  "frontend/src/pages/drivers/Packs/Builder.tsx": [
+    "frontend/src/pages/audit/Builder.tsx",
+    "frontend/src/pages/Observability/dashboards/Builder.tsx",
+    "frontend/src/pages/Drivers/Packs/Builder.tsx",
+    "frontend/src/pages/Ai/Capsules/Builder.tsx"
+  ],
+  "frontend/src/pages/drivers/Permissions.tsx": [
+    "frontend/src/pages/Ai/drivers/Permissions.tsx",
+    "frontend/src/pages/Drivers/Permissions.tsx"
+  ],
+  "frontend/src/pages/drivers/Publishing.tsx": [
+    "frontend/src/pages/Workspaces/Research/Publishing.tsx",
+    "frontend/src/pages/Workspaces/Writer/Publishing.tsx",
+    "frontend/src/pages/Drivers/Publishing.tsx",
+    "frontend/src/pages/Ai/Capsules/Publishing.tsx"
+  ],
+  "frontend/src/pages/drivers/Registry.tsx": [
+    "frontend/src/pages/Ai/agents/Registry.tsx",
+    "frontend/src/pages/Drivers/Registry.tsx"
+  ],
+  "frontend/src/pages/drivers/Risk.tsx": [
+    "frontend/src/pages/Workspaces/Finance/Risk.tsx",
+    "frontend/src/pages/Drivers/Risk.tsx",
+    "frontend/src/pages/governance/security/Risk.tsx"
+  ],
+  "frontend/src/pages/drivers/Risk/Assessments.tsx": [
+    "frontend/src/pages/Drivers/Risk/Assessments.tsx"
+  ],
+  "frontend/src/pages/drivers/Risk/Exceptions.tsx": [
+    "frontend/src/pages/governance/policy/Exceptions.tsx",
+    "frontend/src/pages/Drivers/Risk/Exceptions.tsx"
+  ],
+  "frontend/src/pages/drivers/Risk/Remediation.tsx": [
+    "frontend/src/pages/Drivers/Risk/Remediation.tsx"
+  ],
+  "frontend/src/pages/drivers/Risk/Vendors.tsx": [
+    "frontend/src/pages/Drivers/Risk/Vendors.tsx"
+  ],
+  "frontend/src/pages/drivers/Sdk.tsx": [
+    "frontend/src/pages/Drivers/Sdk.tsx"
+  ],
+  "frontend/src/pages/drivers/Testing.tsx": [
+    "frontend/src/pages/Drivers/Testing.tsx",
+    "frontend/src/pages/Ai/drivers/Testing.tsx"
+  ],
+  "frontend/src/pages/drivers/Versioning.tsx": [
+    "frontend/src/pages/Drivers/Versioning.tsx",
+    "frontend/src/pages/governance/policy/Versioning.tsx",
+    "frontend/src/pages/Workspaces/Writer/Versioning.tsx",
+    "frontend/src/pages/Ai/drivers/Versioning.tsx"
+  ],
+  "frontend/src/pages/drivers/Verticaleditions.tsx": [
+    "frontend/src/pages/Drivers/VerticalEditions.tsx"
+  ],
+  "frontend/src/pages/drivers/os/FilesystemDriver.tsx": [
+    "frontend/src/pages/Drivers/os/FilesystemDriver.tsx"
+  ],
+  "frontend/src/pages/governance/Dataprotection/Classification.tsx": [
+    "frontend/src/pages/governance/DataProtection/Classification.tsx",
+    "frontend/src/pages/governance/data-protection/Classification.tsx"
+  ],
+  "frontend/src/pages/governance/Dataprotection/Dlp.tsx": [
+    "frontend/src/pages/governance/data-protection/Dlp.tsx",
+    "frontend/src/pages/governance/DataProtection/Dlp.tsx"
+  ],
+  "frontend/src/pages/governance/Dataprotection/Masking.tsx": [
+    "frontend/src/pages/governance/data-protection/Masking.tsx",
+    "frontend/src/pages/governance/DataProtection/Masking.tsx"
+  ],
+  "frontend/src/pages/governance/Dataprotection/Residency.tsx": [
+    "frontend/src/pages/governance/data-protection/Residency.tsx",
+    "frontend/src/pages/governance/DataProtection/Residency.tsx"
+  ],
+  "frontend/src/pages/governance/Dataprotection/Tokenization.tsx": [
+    "frontend/src/pages/governance/DataProtection/Tokenization.tsx",
+    "frontend/src/pages/governance/data-protection/Tokenization.tsx"
+  ],
+  "frontend/src/pages/mission/AiStack.tsx": [
+    "frontend/src/pages/Mission/Aistack.tsx"
+  ],
+  "frontend/src/pages/mission/Architecture.tsx": [
+    "frontend/src/pages/Mission/Architecture.tsx"
+  ],
+  "frontend/src/pages/mission/Components.tsx": [
+    "frontend/src/pages/Mission/Components.tsx"
+  ],
+  "frontend/src/pages/mission/Contracts.tsx": [
+    "frontend/src/pages/Mission/Contracts.tsx",
+    "frontend/src/pages/Mission/Planes/Contracts.tsx"
+  ],
+  "frontend/src/pages/mission/Daemons.tsx": [
+    "frontend/src/pages/Mission/Daemons.tsx",
+    "frontend/src/pages/Ai/Daemons.tsx"
+  ],
+  "frontend/src/pages/mission/Extensibility.tsx": [
+    "frontend/src/pages/Mission/Extensibility.tsx"
+  ],
+  "frontend/src/pages/mission/Glossary.tsx": [
+    "frontend/src/pages/Mission/Glossary.tsx",
+    "frontend/src/pages/Docs/Glossary.tsx",
+    "frontend/src/pages/vision/Glossary.tsx"
+  ],
+  "frontend/src/pages/mission/Identity.tsx": [
+    "frontend/src/pages/Mission/Identity.tsx",
+    "frontend/src/pages/governance/Identity.tsx"
+  ],
+  "frontend/src/pages/mission/Mapping.tsx": [
+    "frontend/src/pages/Mission/Mapping.tsx"
+  ],
+  "frontend/src/pages/mission/Models.tsx": [
+    "frontend/src/pages/Mission/Models.tsx",
+    "frontend/src/pages/Ai/mlops/Models.tsx"
+  ],
+  "frontend/src/pages/mission/Modes.tsx": [
+    "frontend/src/pages/Mission/Modes.tsx"
+  ],
+  "frontend/src/pages/mission/NonGoals.tsx": [
+    "frontend/src/pages/Mission/Nongoals.tsx"
+  ],
+  "frontend/src/pages/mission/Orchestrator.tsx": [
+    "frontend/src/pages/Mission/Orchestrator.tsx"
+  ],
+  "frontend/src/pages/mission/Overview.tsx": [
+    "frontend/src/pages/Roadmap/Overview.tsx",
+    "frontend/src/pages/Mission/Overview.tsx"
+  ],
+  "frontend/src/pages/mission/PerformanceTargets.tsx": [
+    "frontend/src/pages/PerformanceTargets.tsx",
+    "frontend/src/pages/Mission/Performancetargets.tsx"
+  ],
+  "frontend/src/pages/mission/Planes.tsx": [
+    "frontend/src/pages/Mission/Planes.tsx"
+  ],
+  "frontend/src/pages/mission/Planes/Contracts.tsx": [
+    "frontend/src/pages/Mission/Contracts.tsx",
+    "frontend/src/pages/Mission/Planes/Contracts.tsx"
+  ],
+  "frontend/src/pages/mission/Planes/Control.tsx": [
+    "frontend/src/pages/Mission/Planes/Control.tsx"
+  ],
+  "frontend/src/pages/mission/Planes/CrossPlane.tsx": [
+    "frontend/src/pages/Mission/Planes/Crossplane.tsx"
+  ],
+  "frontend/src/pages/mission/Planes/Data.tsx": [
+    "frontend/src/pages/Ai/mlops/Data.tsx",
+    "frontend/src/pages/Mission/Planes/Data.tsx",
+    "frontend/src/pages/Ai/drivers/Data.tsx",
+    "frontend/src/pages/Data.tsx",
+    "frontend/src/pages/Docs/reference/Data.tsx"
+  ],
+  "frontend/src/pages/mission/Planes/FailureDomains.tsx": [
+    "frontend/src/pages/Mission/Planes/Failuredomains.tsx"
+  ],
+  "frontend/src/pages/mission/Planes/Governance.tsx": [
+    "frontend/src/pages/Workspaces/Twins/Governance.tsx",
+    "frontend/src/pages/Mission/Planes/Governance.tsx",
+    "frontend/src/pages/Governance.tsx"
+  ],
+  "frontend/src/pages/mission/PlanesArchitecture.tsx": [
+    "frontend/src/pages/Missionarchitecture/Planesarchitecture.tsx"
+  ],
+  "frontend/src/pages/mission/Principles.tsx": [
+    "frontend/src/pages/Mission/Principles.tsx"
+  ],
+  "frontend/src/pages/mission/ReferenceArchitectures.tsx": [
+    "frontend/src/pages/Mission/ReferenceArchitectures.tsx"
+  ],
+  "frontend/src/pages/mission/ThreatModel.tsx": [
+    "frontend/src/pages/Mission/Threatmodel.tsx"
+  ],
+  "frontend/src/pages/mission/UseCases.tsx": [
+    "frontend/src/pages/Mission/Usecases.tsx"
+  ],
+  "frontend/src/pages/workspaces/Archive.tsx": [
+    "frontend/src/pages/Workspaces/Archive.tsx",
+    "frontend/src/pages/Data/Archive.tsx"
+  ],
+  "frontend/src/pages/workspaces/Archive/Restore.tsx": [
+    "frontend/src/pages/Workspaces/Archive/Restore.tsx"
+  ],
+  "frontend/src/pages/workspaces/Archive/Retention.tsx": [
+    "frontend/src/pages/Workspaces/Archive/Retention.tsx",
+    "frontend/src/pages/Observability/Retention.tsx"
+  ],
+  "frontend/src/pages/workspaces/Archive/Snapshots.tsx": [
+    "frontend/src/pages/Workspaces/Archive/Snapshots.tsx"
+  ],
+  "frontend/src/pages/workspaces/Archive/TimeTravel.tsx": [
+    "frontend/src/pages/Workspaces/Archive/Timetravel.tsx"
+  ],
+  "frontend/src/pages/workspaces/Auditor.tsx": [
+    "frontend/src/pages/Workspaces/Auditor.tsx"
+  ],
+  "frontend/src/pages/workspaces/Auditor/Controls.tsx": [
+    "frontend/src/pages/governance/compliance/Controls.tsx",
+    "frontend/src/pages/Workspaces/Auditor/Controls.tsx"
+  ],
+  "frontend/src/pages/workspaces/Auditor/Evidence.tsx": [
+    "frontend/src/pages/governance/regulator/Evidence.tsx",
+    "frontend/src/pages/Workspaces/Auditor/Evidence.tsx",
+    "frontend/src/pages/Observability/Evidence.tsx",
+    "frontend/src/pages/Docs/reference/Evidence.tsx"
+  ],
+  "frontend/src/pages/workspaces/Auditor/Logbook.tsx": [
+    "frontend/src/pages/Workspaces/Auditor/Logbook.tsx"
+  ],
+  "frontend/src/pages/workspaces/Auditor/Regulator.tsx": [
+    "frontend/src/pages/Workspaces/Auditor/Regulator.tsx",
+    "frontend/src/pages/governance/Regulator.tsx"
+  ],
+  "frontend/src/pages/workspaces/Auditor/Reports.tsx": [
+    "frontend/src/pages/Workspaces/Auditor/Reports.tsx",
+    "frontend/src/pages/Workspaces/Finance/Reports.tsx"
+  ],
+  "frontend/src/pages/workspaces/Auditor/Requests.tsx": [
+    "frontend/src/pages/Workspaces/Auditor/Requests.tsx",
+    "frontend/src/pages/governance/regulator/Requests.tsx"
+  ],
+  "frontend/src/pages/workspaces/Cyber/AutoRemediation.tsx": [
+    "frontend/src/pages/Auto-Remediation.tsx",
+    "frontend/src/pages/Workspaces/Cyber/Autoremediation.tsx",
+    "frontend/src/pages/Workspaces/Cybersecurityworkspace/Autoremediation.tsx"
+  ],
+  "frontend/src/pages/workspaces/Cyber/Findings.tsx": [
+    "frontend/src/pages/Workspaces/Cyber/Findings.tsx"
+  ],
+  "frontend/src/pages/workspaces/Cyber/Incidents.tsx": [
+    "frontend/src/pages/governance/security/Incidents.tsx",
+    "frontend/src/pages/Workspaces/Cyber/Incidents.tsx",
+    "frontend/src/pages/Workspaces/Sre/Incidents.tsx"
+  ],
+  "frontend/src/pages/workspaces/Cyber/Intel.tsx": [
+    "frontend/src/pages/Workspaces/Cyber/Intel.tsx"
+  ],
+  "frontend/src/pages/workspaces/Cyber/Playbooks.tsx": [
+    "frontend/src/pages/Workspaces/Cyber/Playbooks.tsx"
+  ],
+  "frontend/src/pages/workspaces/Cyber/PolicyChecks.tsx": [
+    "frontend/src/pages/Workspaces/Cyber/Policychecks.tsx"
+  ],
+  "frontend/src/pages/workspaces/Cyber/Scanners.tsx": [
+    "frontend/src/pages/Workspaces/Cyber/Scanners.tsx"
+  ],
+  "frontend/src/pages/workspaces/Cyber/ThreatModeling.tsx": [
+    "frontend/src/pages/Workspaces/Cybersecurityworkspace/Threatmodeling.tsx",
+    "frontend/src/pages/Workspaces/Cyber/Threatmodeling.tsx"
+  ],
+  "frontend/src/pages/workspaces/Dev.tsx": [
+    "frontend/src/pages/Workspaces/Dev.tsx"
+  ],
+  "frontend/src/pages/workspaces/Dev/BuildInsights.tsx": [
+    "frontend/src/pages/Workspaces/Dev/Buildinsights.tsx"
+  ],
+  "frontend/src/pages/workspaces/Dev/Cicd.tsx": [
+    "frontend/src/pages/Workspaces/Dev/Cicd.tsx"
+  ],
+  "frontend/src/pages/workspaces/Dev/CommitTasks.tsx": [
+    "frontend/src/pages/Workspaces/Dev/Committasks.tsx"
+  ],
+  "frontend/src/pages/workspaces/Dev/Deps.tsx": [
+    "frontend/src/pages/Workspaces/Dev/Deps.tsx"
+  ],
+  "frontend/src/pages/workspaces/Dev/EnvHealth.tsx": [
+    "frontend/src/pages/Workspaces/Dev/Envhealth.tsx"
+  ],
+  "frontend/src/pages/workspaces/Dev/MergeAdvisor.tsx": [
+    "frontend/src/pages/Workspaces/Dev/Mergeadvisor.tsx"
+  ],
+  "frontend/src/pages/workspaces/Dev/ReleaseNotes.tsx": [
+    "frontend/src/pages/Workspaces/Dev/Releasenotes.tsx",
+    "frontend/src/pages/ReleaseNotes.tsx",
+    "frontend/src/pages/Docs/ReleaseNotes.tsx"
+  ],
+  "frontend/src/pages/workspaces/Dev/Repos.tsx": [
+    "frontend/src/pages/Workspaces/Dev/Repos.tsx"
+  ],
+  "frontend/src/pages/workspaces/Dev/Reviews.tsx": [
+    "frontend/src/pages/Workspaces/Dev/Reviews.tsx",
+    "frontend/src/pages/Drivers/Marketplace/Reviews.tsx",
+    "frontend/src/pages/governance/Identity/Reviews.tsx"
+  ],
+  "frontend/src/pages/workspaces/Finance.tsx": [
+    "frontend/src/pages/Workspaces/Finance.tsx",
+    "frontend/src/pages/Drivers/Integrations/Finance.tsx"
+  ],
+  "frontend/src/pages/workspaces/Finance/Budgets.tsx": [
+    "frontend/src/pages/Workspaces/Finance/Budgets.tsx",
+    "frontend/src/pages/governance/Billing/Budgets.tsx"
+  ],
+  "frontend/src/pages/workspaces/Finance/Forecasting.tsx": [
+    "frontend/src/pages/governance/Billing/Forecasting.tsx",
+    "frontend/src/pages/Workspaces/Finance/Forecasting.tsx"
+  ],
+  "frontend/src/pages/workspaces/Finance/Kpis.tsx": [
+    "frontend/src/pages/Workspaces/Finance/Kpis.tsx"
+  ],
+  "frontend/src/pages/workspaces/Finance/Reports.tsx": [
+    "frontend/src/pages/Workspaces/Auditor/Reports.tsx",
+    "frontend/src/pages/Workspaces/Finance/Reports.tsx"
+  ],
+  "frontend/src/pages/workspaces/Finance/Risk.tsx": [
+    "frontend/src/pages/Workspaces/Finance/Risk.tsx",
+    "frontend/src/pages/Drivers/Risk.tsx",
+    "frontend/src/pages/governance/security/Risk.tsx"
+  ],
+  "frontend/src/pages/workspaces/Finance/Scenarios.tsx": [
+    "frontend/src/pages/Workspaces/Finance/Scenarios.tsx",
+    "frontend/src/pages/Observability/replay/Scenarios.tsx",
+    "frontend/src/pages/Workspaces/Twins/Scenarios.tsx"
+  ],
+  "frontend/src/pages/workspaces/Research/Datasets.tsx": [
+    "frontend/src/pages/Workspaces/Research/Datasets.tsx"
+  ],
+  "frontend/src/pages/workspaces/Research/DigitalTwins.tsx": [
+    "frontend/src/pages/Workspaces/Research/Digitaltwins.tsx"
+  ],
+  "frontend/src/pages/workspaces/Research/Experiments.tsx": [
+    "frontend/src/pages/Workspaces/Research/Experiments.tsx",
+    "frontend/src/pages/Ai/nas/Experiments.tsx"
+  ],
+  "frontend/src/pages/workspaces/Research/Hpc.tsx": [
+    "frontend/src/pages/Operations/Hpc.tsx",
+    "frontend/src/pages/Workspaces/Research/Hpc.tsx"
+  ],
+  "frontend/src/pages/workspaces/Research/Lab.tsx": [
+    "frontend/src/pages/Workspaces/Research/Lab.tsx"
+  ],
+  "frontend/src/pages/workspaces/Research/Notes.tsx": [
+    "frontend/src/pages/Workspaces/Research/Notes.tsx"
+  ],
+  "frontend/src/pages/workspaces/Research/Publishing.tsx": [
+    "frontend/src/pages/Workspaces/Research/Publishing.tsx",
+    "frontend/src/pages/Workspaces/Writer/Publishing.tsx",
+    "frontend/src/pages/Drivers/Publishing.tsx",
+    "frontend/src/pages/Ai/Capsules/Publishing.tsx"
+  ],
+  "frontend/src/pages/workspaces/Research/Reproducibility.tsx": [
+    "frontend/src/pages/Workspaces/Research/Reproducibility.tsx"
+  ],
+  "frontend/src/pages/workspaces/Research/Simulation.tsx": [
+    "frontend/src/pages/Workspaces/Research/Simulation.tsx"
+  ],
+  "frontend/src/pages/workspaces/Research/Tracking.tsx": [
+    "frontend/src/pages/Workspaces/Research/Tracking.tsx"
+  ],
+  "frontend/src/pages/workspaces/Research/Validation.tsx": [
+    "frontend/src/pages/Workspaces/Research/Validation.tsx"
+  ],
+  "frontend/src/pages/workspaces/Sre.tsx": [
+    "frontend/src/pages/Workspaces/Sre.tsx"
+  ],
+  "frontend/src/pages/workspaces/Sre/CapacityCost.tsx": [
+    "frontend/src/pages/Workspaces/Sre/Capacitycost.tsx"
+  ],
+  "frontend/src/pages/workspaces/Sre/Changes.tsx": [
+    "frontend/src/pages/Workspaces/Sre/Changes.tsx"
+  ],
+  "frontend/src/pages/workspaces/Sre/Health.tsx": [
+    "frontend/src/pages/Observability/Health.tsx",
+    "frontend/src/pages/Ai/drivers/Health.tsx",
+    "frontend/src/pages/Workspaces/Sre/Health.tsx",
+    "frontend/src/pages/Integrations/Health.tsx"
+  ],
+  "frontend/src/pages/workspaces/Sre/Incidents.tsx": [
+    "frontend/src/pages/governance/security/Incidents.tsx",
+    "frontend/src/pages/Workspaces/Cyber/Incidents.tsx",
+    "frontend/src/pages/Workspaces/Sre/Incidents.tsx"
+  ],
+  "frontend/src/pages/workspaces/Sre/Maintenance.tsx": [
+    "frontend/src/pages/Workspaces/Sre/Maintenance.tsx"
+  ],
+  "frontend/src/pages/workspaces/Sre/Reliability.tsx": [
+    "frontend/src/pages/Workspaces/Sre/Reliability.tsx",
+    "frontend/src/pages/Operations/Reliability.tsx"
+  ],
+  "frontend/src/pages/workspaces/Sre/Runbooks.tsx": [
+    "frontend/src/pages/Workspaces/Sre/Runbooks.tsx",
+    "frontend/src/pages/Observability/Runbooks.tsx"
+  ],
+  "frontend/src/pages/workspaces/Sre/Sandbox.tsx": [
+    "frontend/src/pages/Workspaces/Sre/Sandbox.tsx",
+    "frontend/src/pages/Ai/drivers/Sandbox.tsx"
+  ],
+  "frontend/src/pages/workspaces/Twins.tsx": [
+    "frontend/src/pages/Workspaces/Twins.tsx"
+  ],
+  "frontend/src/pages/workspaces/Twins/Enterprise.tsx": [
+    "frontend/src/pages/Cloud/Enterprise.tsx",
+    "frontend/src/pages/Workspaces/Twins/Enterprise.tsx"
+  ],
+  "frontend/src/pages/workspaces/Twins/Feeds.tsx": [
+    "frontend/src/pages/Workspaces/Twins/Feeds.tsx"
+  ],
+  "frontend/src/pages/workspaces/Twins/Governance.tsx": [
+    "frontend/src/pages/Workspaces/Twins/Governance.tsx",
+    "frontend/src/pages/Mission/Planes/Governance.tsx",
+    "frontend/src/pages/Governance.tsx"
+  ],
+  "frontend/src/pages/workspaces/Twins/RealityMesh.tsx": [
+    "frontend/src/pages/Workspaces/Twins/Realitymesh.tsx"
+  ],
+  "frontend/src/pages/workspaces/Twins/Scenarios.tsx": [
+    "frontend/src/pages/Workspaces/Finance/Scenarios.tsx",
+    "frontend/src/pages/Observability/replay/Scenarios.tsx",
+    "frontend/src/pages/Workspaces/Twins/Scenarios.tsx"
+  ],
+  "frontend/src/pages/workspaces/Twins/Templates.tsx": [
+    "frontend/src/pages/work/Templates.tsx",
+    "frontend/src/pages/Ai/Capsules/Templates.tsx",
+    "frontend/src/pages/Workspaces/Writerworkspace/Templates.tsx",
+    "frontend/src/pages/Templates.tsx",
+    "frontend/src/pages/Workspaces/Twins/Templates.tsx",
+    "frontend/src/pages/projects/Templates.tsx"
+  ],
+  "frontend/src/pages/workspaces/Writer/Canon.tsx": [
+    "frontend/src/pages/Workspaces/Writer/Canon.tsx"
+  ],
+  "frontend/src/pages/workspaces/Writer/Citations.tsx": [
+    "frontend/src/pages/Workspaces/Writer/Citations.tsx"
+  ],
+  "frontend/src/pages/workspaces/Writer/Narrative.tsx": [
+    "frontend/src/pages/Workspaces/Writer/Narrative.tsx"
+  ],
+  "frontend/src/pages/workspaces/Writer/Originality.tsx": [
+    "frontend/src/pages/Workspaces/Writer/Originality.tsx"
+  ],
+  "frontend/src/pages/workspaces/Writer/Publishing.tsx": [
+    "frontend/src/pages/Workspaces/Research/Publishing.tsx",
+    "frontend/src/pages/Workspaces/Writer/Publishing.tsx",
+    "frontend/src/pages/Drivers/Publishing.tsx",
+    "frontend/src/pages/Ai/Capsules/Publishing.tsx"
+  ],
+  "frontend/src/pages/workspaces/Writer/Qa.tsx": [
+    "frontend/src/pages/Workspaces/Writer/Qa.tsx"
+  ],
+  "frontend/src/pages/workspaces/Writer/StyleGuide.tsx": [
+    "frontend/src/pages/Workspaces/Writer/Styleguide.tsx"
+  ],
+  "frontend/src/pages/workspaces/Writer/Versioning.tsx": [
+    "frontend/src/pages/Drivers/Versioning.tsx",
+    "frontend/src/pages/governance/policy/Versioning.tsx",
+    "frontend/src/pages/Workspaces/Writer/Versioning.tsx",
+    "frontend/src/pages/Ai/drivers/Versioning.tsx"
+  ]
+}

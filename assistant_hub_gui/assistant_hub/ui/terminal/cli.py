@@ -21,7 +21,7 @@ def create_cli_parser() -> argparse.ArgumentParser:
     """Create the main CLI argument parser."""
     parser = argparse.ArgumentParser(
         prog="osdash",
-        description="OS Dashboard AI Assistant - Command Line Interface",
+        description="AI OS Console - Command Line Interface",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")

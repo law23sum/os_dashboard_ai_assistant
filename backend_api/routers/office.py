@@ -94,7 +94,7 @@ _MANIFEST_PREVIEW = """<OfficeApp xmlns=\"http://schemas.microsoft.com/office/ap
          xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
          xsi:type=\"TaskPaneApp\">
   <Id>osd-ai-office-dashboard</Id>
-  <DisplayName>OS Dashboard — AI Copilot</DisplayName>
+  <DisplayName>AI OS Console — AI Copilot</DisplayName>
   <Description>Streams live AI assistance into PowerPoint, Excel, and Word.</Description>
   <Hosts>
     <Host Name=\"Document\" />

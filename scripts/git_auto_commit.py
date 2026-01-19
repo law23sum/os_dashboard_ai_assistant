@@ -259,7 +259,7 @@ def generate_ai_summary(
         return None
 
     base_prompt = (
-        "You are OS Dashboard's commit assistant. Given the staged git diff below, "
+        "You are AI OS's commit assistant. Given the staged git diff below, "
         "produce a concise summary (1-3 sentences) describing the intent, logic changes, "
         "and reasons. Focus on user-facing impact or architectural notes."
     )
@@ -283,7 +283,7 @@ def generate_ai_summary(
         prompt=prompt,
         append_prompt=False,
         fallback_prompt=prompt,
-        system_prompt="You generate concise commit summaries for the OS Dashboard repo.",
+        system_prompt="You generate concise commit summaries for the AI OS repo.",
         enable_shell=False,
     )
     if error:

@@ -1,4 +1,4 @@
-"""Application state management for the OS Dashboard AI Assistant."""
+"""Application state management for the AI OS."""
 
 from typing import Any, Optional
 from datetime import datetime

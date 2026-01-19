@@ -6,7 +6,7 @@ set -e
 
 SCRIPT_DIR="$(dirname "$0")"
 
-echo "🚀 Building OS Dashboard AI Assistant - All Targets"
+echo "🚀 Building AI OS - All Targets"
 echo "====================================================="
 echo ""
 

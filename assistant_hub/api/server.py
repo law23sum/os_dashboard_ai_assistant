@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import sqlite3
 from contextlib import closing
 from contextvars import ContextVar
@@ -10,6 +11,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Literal, Tuple
 import time
 import uuid
+from urllib.parse import parse_qs
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,6 +33,7 @@ from assistant_core.ai import (
 )
 from ..db import (
     CHAT_ROLES,
+    CHAT_PERSONAS,
     ChatMessage,
     PERSONAS,
     Project,
@@ -41,6 +44,7 @@ from ..db import (
     db_insert_task,
     db_update_task,
     db_upsert_project,
+    connect_db,
     init_db,
     load_state,
     load_settings,
@@ -62,9 +66,12 @@ from ..sync_scheduler import create_default_scheduler
 from ..terminal import run_bash_command
 from assistant_hub.command_catalog import command_catalog
 from assistant_hub.theme import get_theme_definition, list_available_themes
+from assistant_hub.log_sink import append_jsonl
 from backend_api.routers import (
     api_connectors as api_connectors_router,
     ai_systems as ai_systems_router,
+    automation_status as automation_status_router,
+    agent_journal as agent_journal_router,
     audit as audit_router,
     auth as auth_router,
     autofix as autofix_router,
@@ -73,6 +80,7 @@ from backend_api.routers import (
     codex_review as codex_review_router,
     computer_vision as computer_vision_router,
     edge_computing as edge_router,
+    event_hub as event_hub_router,
     git as git_router,
     intelligence as intelligence_router,
     intents as intents_router,
@@ -89,6 +97,7 @@ from backend_api.routers import (
     templates as templates_router,
     workflow_orchestration as workflows_router,
     workspace as workspace_router,
+    workspace_health as workspace_health_router,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -97,6 +106,11 @@ LEGACY_UI_DIST = REPO_ROOT / "ui" / "web" / "dist"
 SPEC_SHEET_PATH = REPO_ROOT / "Technical Spec Sheet (Version 6 Latest Version).pdf"
 logger = logging.getLogger(__name__)
 request_id_ctx: ContextVar[str] = ContextVar("request_id", default="")
+SERVER_START_TIME = time.perf_counter()
+REQUEST_COUNT = 0
+ERROR_COUNT = 0
+REQUIRE_API_KEY = os.getenv("OSDASH_REQUIRE_AUTH", "false").lower() in {"1", "true", "yes"}
+API_KEY_VALUE = os.getenv("OSDASH_API_KEY") or ""
 
 
 class StripPrefixMiddleware:
@@ -176,9 +190,158 @@ class CorrelationIdMiddleware:
             request_id_ctx.reset(token)
 
 
+class RequestLoggingMiddleware:
+    """Emit structured logs for every HTTP request."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        method = scope.get("method", "")
+        path = scope.get("path", "")
+        start = time.perf_counter()
+        cid = request_id_ctx.get()
+        status_code = 500
+
+        async def send_wrapper(message: Dict[str, Any]) -> None:
+            nonlocal status_code
+            if message["type"] == "http.response.start":
+                status_code = message.get("status", status_code)
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_wrapper)
+        finally:
+            duration_ms = int((time.perf_counter() - start) * 1000)
+            _increment_counters(status_code)
+            logger.info(
+                "http_request",
+                extra={
+                    "method": method,
+                    "path": path,
+                    "status_code": status_code,
+                    "duration_ms": duration_ms,
+                    "correlation_id": cid,
+                },
+            )
+            try:
+                append_jsonl(
+                    "http_requests.jsonl",
+                    {
+                        "ts": time.time(),
+                        "method": method,
+                        "path": path,
+                        "status_code": status_code,
+                        "duration_ms": duration_ms,
+                        "correlation_id": cid,
+                    },
+                )
+            except Exception:
+                pass
+
+
+class PaginationGuardMiddleware:
+    """Enforce a max limit on list endpoints to prevent runaway queries."""
+
+    def __init__(self, app: ASGIApp, max_limit: int = 200) -> None:
+        self.app = app
+        self.max_limit = max_limit
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        raw_qs = scope.get("query_string", b"") or b""
+        params = parse_qs(raw_qs.decode())
+        if "limit" in params:
+            try:
+                limit_val = int(params["limit"][0])
+                if limit_val > self.max_limit:
+                    payload = _envelope(
+                        status="error",
+                        error={
+                            "type": "PaginationError",
+                            "code": 400,
+                            "message": f"limit exceeds max ({self.max_limit})",
+                        },
+                    )
+                    response = JSONResponse(status_code=400, content=payload)
+                    await response(scope, receive, send)
+                    return
+            except ValueError:
+                pass
+
+        await self.app(scope, receive, send)
+
+
+class ApiKeyMiddleware:
+    """Require an API key for mutating requests when enabled by env."""
+
+    def __init__(self, app: ASGIApp, header_name: str = "authorization") -> None:
+        self.app = app
+        self.header_name = header_name.lower()
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http" or not REQUIRE_API_KEY:
+            await self.app(scope, receive, send)
+            return
+        method = scope.get("method", "GET").upper()
+        if method in {"GET", "HEAD", "OPTIONS"}:
+            await self.app(scope, receive, send)
+            return
+        headers = dict(scope.get("headers") or [])
+        provided = headers.get(self.header_name.encode())
+        if not provided or provided.decode() != API_KEY_VALUE:
+            payload = _envelope(
+                status="error",
+                error={
+                    "type": "Unauthorized",
+                    "code": 401,
+                    "message": "Unauthorized",
+                },
+            )
+            response = JSONResponse(status_code=401, content=payload)
+            await response(scope, receive, send)
+            return
+        await self.app(scope, receive, send)
+
+
 def _current_correlation_id() -> str:
     cid = request_id_ctx.get()
     return cid or ""
+
+
+def _envelope(
+    *,
+    data: Any | None = None,
+    status: str = "ok",
+    error: Dict[str, Any] | None = None,
+    correlation_id: str | None = None,
+) -> Dict[str, Any]:
+    """Normalize API responses with a consistent envelope."""
+    cid = correlation_id or _current_correlation_id()
+    payload: Dict[str, Any] = {
+        "status": status,
+        "request_id": cid,
+        "correlation_id": cid,
+    }
+    if data is not None:
+        payload["data"] = data
+    if error is not None:
+        payload["error"] = error
+    return payload
+
+
+def _increment_counters(status_code: int) -> None:
+    global REQUEST_COUNT, ERROR_COUNT
+    REQUEST_COUNT += 1
+    if status_code >= 400:
+        ERROR_COUNT += 1
 
 
 class TaskPayload(BaseModel):
@@ -206,6 +369,7 @@ class ChatPayload(BaseModel):
     provider_group: Optional[str] = None
     collab: Optional[bool] = False
     collab_synth_provider: Optional[str] = None
+    interaction_style: Optional[str] = None
 
 
 class ChatMessageRequest(BaseModel):
@@ -339,7 +503,7 @@ def create_app(
     db_path: Path | None = None, frontend_dist: Path | None = None
 ) -> FastAPI:
     """Create FastAPI application."""
-    app = FastAPI(title="OS Dashboard API", version="0.2.0")
+    app = FastAPI(title="AI OS API", version="0.2.0")
     # CORS configuration - must specify origins when allow_credentials=True
     # Cannot use wildcard "*" with credentials
     app.add_middleware(
@@ -362,7 +526,7 @@ def create_app(
         # Allow any localhost/loopback and local network IPs on any port for dev
         allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$",
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        allow_methods=["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         allow_headers=["Content-Type", "Authorization", "Accept", "X-Requested-With"],
         expose_headers=["Content-Type", "X-Total-Count", "x-correlation-id"],
         max_age=3600,
@@ -373,32 +537,37 @@ def create_app(
         exclusions=("/api/docs",),
     )
     app.add_middleware(CorrelationIdMiddleware)
+    app.add_middleware(PaginationGuardMiddleware, max_limit=200)
+    app.add_middleware(RequestLoggingMiddleware)
+    app.add_middleware(ApiKeyMiddleware)
 
     @app.exception_handler(HTTPException)
     async def _http_exception_handler(request: Request, exc: HTTPException):
         cid = _current_correlation_id()
-        payload = {
-            "error": {
+        payload = _envelope(
+            status="error",
+            error={
                 "type": exc.__class__.__name__,
                 "code": exc.status_code,
                 "message": exc.detail,
             },
-            "correlation_id": cid,
-        }
+            correlation_id=cid,
+        )
         return JSONResponse(status_code=exc.status_code, content=payload)
 
     @app.exception_handler(Exception)
     async def _unhandled_exception_handler(request: Request, exc: Exception):
         cid = _current_correlation_id()
         logger.exception("Unhandled exception", extra={"correlation_id": cid})
-        payload = {
-            "error": {
+        payload = _envelope(
+            status="error",
+            error={
                 "type": exc.__class__.__name__,
                 "code": 500,
                 "message": "Internal server error",
             },
-            "correlation_id": cid,
-        }
+            correlation_id=cid,
+        )
         return JSONResponse(status_code=500, content=payload)
 
     # Surface the realtime Office router so the React frontend can read metrics
@@ -411,7 +580,10 @@ def create_app(
     # the desktop (Tkinter/PyWebView) and browser clients.
     app.include_router(api_connectors_router.router, prefix="/api-connectors", tags=["api_connectors"])
     app.include_router(ai_systems_router.router, prefix="/ai", tags=["ai_systems"])
+    app.include_router(automation_status_router.router, prefix="/automation", tags=["automation"])
     app.include_router(pms_router.router, prefix="/pms", tags=["pms"])
+    app.include_router(agent_journal_router.router, tags=["agent_journal"])
+    app.include_router(event_hub_router.router, tags=["event_hub"])
     app.include_router(audit_router.router, prefix="/audit", tags=["audit"])
     app.include_router(autofix_router.router, prefix="/autofix", tags=["autofix"])
     app.include_router(capsules_router.router, prefix="/ai", tags=["capsules"])
@@ -432,6 +604,7 @@ def create_app(
     app.include_router(templates_router.router, prefix="/templates", tags=["templates"])
     app.include_router(workflows_router.router, prefix="/workflows", tags=["workflows"])
     app.include_router(workspace_router.router, tags=["workspace"])
+    app.include_router(workspace_health_router.router, tags=["workspace_health"])
 
     docs_dir = REPO_ROOT / "docs"
     if docs_dir.exists():
@@ -450,7 +623,7 @@ def create_app(
     init_conn.close()
 
     def connect() -> sqlite3.Connection:
-        conn = sqlite3.connect(str(db_path), check_same_thread=False)
+        conn = connect_db(db_path)
         conn.row_factory = sqlite3.Row
         return conn
 
@@ -463,7 +636,7 @@ def create_app(
             logger.exception("Database readiness check failed")
             return False
 
-    scheduler_conn = sqlite3.connect(str(db_path), check_same_thread=False)
+    scheduler_conn = connect_db(db_path)
     scheduler_conn.row_factory = sqlite3.Row
     scheduler = create_default_scheduler(scheduler_conn)
     gateway = IntegrationAPIGateway(scheduler_conn, scheduler=scheduler)
@@ -472,6 +645,40 @@ def create_app(
     integrations_state = IntegrationsWorkspaceState()
     monitoring_state = MonitoringWorkspaceState()
     framework = CognitiveFrameworkManager()
+
+    @app.get("/health")
+    @app.get("/healthz")
+    async def health() -> JSONResponse:
+        db_ok = _db_ready()
+        status = "ok" if db_ok else "degraded"
+        code = 200 if db_ok else 503
+        data = {
+            "db": "ready" if db_ok else "unavailable",
+            "uptime_ms": int((time.perf_counter() - SERVER_START_TIME) * 1000),
+            "version": app.version,
+        }
+        return JSONResponse(status_code=code, content=_envelope(data=data, status=status))
+
+    @app.get("/readyz")
+    async def readyz() -> JSONResponse:
+        db_ok = _db_ready()
+        status = "ok" if db_ok else "degraded"
+        code = 200 if db_ok else 503
+        data = {
+            "db": "ready" if db_ok else "unavailable",
+            "uptime_ms": int((time.perf_counter() - SERVER_START_TIME) * 1000),
+            "version": app.version,
+        }
+        return JSONResponse(status_code=code, content=_envelope(data=data, status=status))
+
+    @app.get("/metrics")
+    async def metrics() -> JSONResponse:
+        data = {
+            "uptime_ms": int((time.perf_counter() - SERVER_START_TIME) * 1000),
+            "request_count": REQUEST_COUNT,
+            "error_count": ERROR_COUNT,
+        }
+        return JSONResponse(status_code=200, content=_envelope(data=data))
 
     if frontend_dist is None:
         if FRONTEND_DIST.exists():
@@ -813,7 +1020,7 @@ def create_app(
                 return daemon
         raise HTTPException(status_code=404, detail=f"Unknown daemon: {slug}")
 
-    @app.get("/health")
+    @app.api_route("/health", methods=["GET", "HEAD"])
     def health(request: Request):
         cid = _current_correlation_id()
         return {"status": "ok", "correlation_id": cid}
@@ -1033,7 +1240,7 @@ def create_app(
 
     @app.post("/chat", response_model=ChatMessageResponse, status_code=201)
     def create_chat_message(payload: ChatMessageRequest):
-        if payload.persona not in PERSONAS:
+        if payload.persona not in CHAT_PERSONAS:
             raise HTTPException(status_code=400, detail="Unknown persona")
         if payload.role not in CHAT_ROLES:
             raise HTTPException(status_code=400, detail="Invalid role")
@@ -1115,7 +1322,7 @@ def create_app(
     @app.post("/ai/ask")
     async def ai_console(payload: ChatPayload):
         persona = payload.persona or _load_state().active_persona
-        if persona not in PERSONAS:
+        if persona not in CHAT_PERSONAS:
             persona = PERSONAS[0]
         with closing(connect()) as conn:
             history_state = load_state(conn)
@@ -1126,6 +1333,8 @@ def create_app(
         if overrides:
             if overrides.get("persona") and not payload.persona:
                 persona = overrides["persona"]
+        if persona not in CHAT_PERSONAS:
+            persona = PERSONAS[0]
 
         message = cleaned_message or raw_message
         user_message = ChatMessage(id=0, persona=persona, role="user", content=message)
@@ -1146,6 +1355,7 @@ def create_app(
                 synth_provider=collab_synth,
                 system_prompt=payload.system_prompt or DEFAULT_SYSTEM_PROMPT,
                 enable_shell=False,
+                interaction_style=payload.interaction_style,
             )
         elif provider_group:
             reply, error, _ = generate_group_ai_reply(
@@ -1156,6 +1366,7 @@ def create_app(
                 model_provider=provider,
                 system_prompt=payload.system_prompt or DEFAULT_SYSTEM_PROMPT,
                 enable_shell=False,
+                interaction_style=payload.interaction_style,
             )
         else:
             reply, error, _ = generate_ai_reply(
@@ -1165,6 +1376,7 @@ def create_app(
                 system_prompt=payload.system_prompt or DEFAULT_SYSTEM_PROMPT,
                 enable_shell=False,
                 model_provider=provider,
+                interaction_style=payload.interaction_style,
             )
         if error:
             raise HTTPException(status_code=500, detail=error)

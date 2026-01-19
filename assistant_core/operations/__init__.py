@@ -1,4 +1,4 @@
-"""Concurrent and scheduled operations utilities for the OS Dashboard assistant."""
+"""Concurrent and scheduled operations utilities for the AI OS assistant."""
 
 from .concurrent_manager import (
     ConcurrentOperationsManager,

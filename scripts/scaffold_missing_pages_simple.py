@@ -66,33 +66,6 @@ import {{ useIARouteContext }} from '../navigation/iaContext'
 export default function {component_name}() {{
   const routeContext = useIARouteContext()
   
-  const handleExecute = async (params: Record<string, any>, config?: string, environment?: string) => {{
-    // TODO: Implement API call
-    // const response = await fetch('/api{route}', {{
-    //   method: 'POST',
-    //   body: JSON.stringify({{ params, config, environment }})
-    // }})
-    // return await response.json()
-    
-    // Placeholder
-    return {{
-      success: true,
-      results: [
-        {{ id: 1, name: 'Result 1', value: params.input1 || 'N/A', status: 'success' }},
-        {{ id: 2, name: 'Result 2', value: params.input2 || 'N/A', status: 'pending' }}
-      ]
-    }}
-  }}
-  
-  const handleSave = () => {{
-    // TODO: Implement save functionality
-    console.log('Save clicked')
-  }}
-  
-  const handleExport = (format: 'json' | 'markdown') => {{
-    // TODO: Implement export functionality
-    console.log('Export clicked:', format)
-  }}
   
   return (
     <FeaturePageTemplate
@@ -114,9 +87,6 @@ export default function {component_name}() {{
           {{'{{ id: \'optimized\', name: \'Optimized\' }}'}}
         {{']'}}}
       {{'}}'}}
-      onExecute={{{'handleExecute'}}}
-      onSave={{{'handleSave'}}}
-      onExport={{{'handleExport'}}}
     />
   )
 }}
@@ -179,4 +149,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

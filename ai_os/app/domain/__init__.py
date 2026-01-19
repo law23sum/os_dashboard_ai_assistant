@@ -1,4 +1,4 @@
-"""Core domain model for OS Dashboard AI Assistant.
+"""Core domain model for AI OS.
 
 This package provides light-weight dataclasses and type definitions for
 users, tenants, projects, tasks, and related entities described in the

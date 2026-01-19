@@ -116,6 +116,8 @@ from .ai import (
     DEFAULT_SYSTEM_PROMPT,
     get_agent_model,
     execute_tool_call,
+    INTERACTION_STYLES,
+    normalize_interaction_style,
 )
 from .terminal import run_bash_command
 from assistant_hub.command_catalog import (
@@ -838,7 +840,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         self.onedrive_project_client: Optional[OneDriveProjectClient] = None
         self.onedrive_file_id_var = tk.StringVar()
         self.onedrive_update_content_var = tk.StringVar(
-            value="Updated file content via OS Dashboard"
+            value="Updated file content via AI OS"
         )
         self.onedrive_new_filename_var = tk.StringVar(value="NewFile.txt")
         self.onedrive_upload_text = None
@@ -1791,7 +1793,7 @@ class AssistantGUI(ttkb.Window if TTKBOOTSTRAP_AVAILABLE else tk.Tk):
         left.grid(row=0, column=0, sticky="w")
         LabelCls(
             left,
-            text="OS Dashboard · Master Stack",
+            text="AI OS Console · Master Stack",
             style="Hero.TLabel",
             font=getattr(self, "hero_font", self.heading_font),
         ).grid(row=0, column=0, sticky="w")
@@ -3570,13 +3572,26 @@ Is there anything else you'd like me to help you with?
         # Input area
         input_frame = ttk.Frame(chat_frame)
         input_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0), sticky="ew")
-        input_frame.columnconfigure(0, weight=1)
+        input_frame.columnconfigure(2, weight=1)
+
+        self.ai_console_style_var = tk.StringVar(
+            value=normalize_interaction_style(os.getenv("ASSISTANT_HUB_INTERACTION_STYLE")) or "default"
+        )
+        ttk.Label(input_frame, text="Style:").grid(row=0, column=0, sticky="w", padx=(0, 6))
+        style_combo = ttk.Combobox(
+            input_frame,
+            textvariable=self.ai_console_style_var,
+            values=["default", *INTERACTION_STYLES.keys()],
+            state="readonly",
+            width=14,
+        )
+        style_combo.grid(row=0, column=1, sticky="w", padx=(0, 10))
 
         self.chat_input = ttk.Entry(input_frame, font=self.text_font)
-        self.chat_input.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        self.chat_input.grid(row=0, column=2, sticky="ew", padx=(0, 5))
         self.chat_input.insert(0, "Ask me anything...")
 
-        ttk.Button(input_frame, text="📤 Send", command=self._send_chat_message).grid(row=0, column=1)
+        ttk.Button(input_frame, text="📤 Send", command=self._send_chat_message).grid(row=0, column=3)
 
     def _show_ai_ops_view(self):
         """Show AI Operations view in the consolidated tab"""
@@ -4890,13 +4905,17 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
 
         def worker(history_snapshot: List[ChatMessage]):
             if openai_available():
+                interaction_style = None
+                if hasattr(self, "ai_console_style_var"):
+                    interaction_style = normalize_interaction_style(self.ai_console_style_var.get())
                 reply, error, _ = generate_ai_reply(
                     history_snapshot,
                     persona=persona,
                     append_prompt=False,
                     fallback_prompt=user_text,
-                    system_prompt="You are the OS Dashboard AI Console assistant. Keep answers concise and helpful.",
+                    system_prompt="You are the AI OS Console assistant. Keep answers concise and helpful.",
                     enable_shell=False,
+                    interaction_style=interaction_style,
                 )
             else:
                 reply = f"(offline) I noted: '{user_text}'. Once connectivity is restored I can take action."
@@ -18972,7 +18991,7 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
         ttk.Entry(upload_frame, textvariable=self.onedrive_new_filename_var).grid(row=0, column=1, sticky="ew", padx=(6, 0))
         ttk.Label(upload_frame, text="Content:").grid(row=1, column=0, sticky="nw", pady=(8, 0))
         self.onedrive_upload_text = tk.Text(upload_frame, height=6, wrap=tk.WORD)
-        self.onedrive_upload_text.insert(tk.END, "This is a new file uploaded via OS Dashboard.")
+        self.onedrive_upload_text.insert(tk.END, "This is a new file uploaded via AI OS.")
         self.onedrive_upload_text.grid(row=1, column=1, sticky="nsew", padx=(6, 0), pady=(8, 0))
         upload_frame.rowconfigure(1, weight=1)
 
@@ -19698,7 +19717,7 @@ and regulatory reporting. Tracks all system activities and maintains detailed au
                         get_documentation_path("ONEDRIVE_INTEGRATION.md"),
                     ),
                     (
-                        "OS Dashboard Enterprise",
+                        "AI OS Enterprise",
                         get_documentation_path("OS_DASHBOARD_ENTERPRISE.md"),
                     ),
                     (

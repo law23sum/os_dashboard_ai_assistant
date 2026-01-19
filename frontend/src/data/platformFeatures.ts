@@ -1,3 +1,7 @@
+/**
+ * Legacy reference only: primary navigation is derived from gui_nav.latest.json.
+ * Keep this file in sync only if explicitly requested.
+ */
 export type PlatformFeature = {
   /** Stable id used for keys + hashes. */
   id: string
@@ -80,4 +84,3 @@ export function getPlatformFeatures(pathname: string): PlatformFeature[] | null 
   })
   return match?.features ?? null
 }
-

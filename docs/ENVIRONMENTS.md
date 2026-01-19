@@ -2,20 +2,50 @@
 
 This document defines the deployment environments, tag patterns, secrets management, and how to run CI-equivalent checks locally.
 
+Note: Kubernetes + GitHub Actions is the current deployment path. AWS/ECS references below are legacy and can be ignored unless you still deploy to ECS.
+
 ## Environment Names
 
-The OS Dashboard AI Assistant uses four deployment environments:
+The AI OS uses four deployment environments:
 
-1. **alpha** - Development/staging environment
-2. **beta** - Pre-production testing environment
-3. **preprod** - Production-like environment for final validation
+1. **preview** - Per-PR ephemeral environment
+2. **dev** - Integration environment for `develop`
+3. **staging** - Release candidate environment for `main`
 4. **prod** - Production environment
 
 ### Environment Promotion Ladder
 
 ```
-local/dev (implicit) → alpha → beta → preprod → prod
+preview (PR) → dev → staging → prod
 ```
+
+### Promotion Timing and OS Builds
+
+- Pull requests → preview (automatic)
+- `develop` → dev (automatic)
+- `main` → staging (automatic)
+- `vX.Y.Z` tags → production deploy + desktop OS builds (Windows/macOS/Linux)
+
+OS-specific testing/builds run in CI on Windows/macOS/Linux runners; you do not need separate long-lived server environments per OS.
+
+### Preview URL Configuration
+
+To enable per-PR URLs, set these GitHub secrets:
+- `PREVIEW_HOST_SUFFIX` (e.g., `preview.osdashboard.ai`)
+- `PREVIEW_TLS_SECRET` (optional, TLS secret name in your cluster)
+
+## Feature Flags and Cohorts
+
+Feature flags and cohorts are carried on API requests for telemetry:
+
+- `X-OSD-Release`: Release channel (defaults to `stable`)
+- `X-OSD-Cohort`: Cohort identifier (e.g., `alpha`, `beta`, `internal`)
+- `X-OSD-Flags`: Comma-separated feature flags (e.g., `new-nav,fast-chat`)
+
+Frontend defaults can be set via local storage keys:
+- `osdash-release-channel`
+- `osdash-cohort`
+- `osdash-feature-flags` (JSON map of `flag -> boolean`)
 
 Environments are promoted forward using immutable Docker image artifacts. The same built image digest is deployed across environments - **we do NOT rebuild differently per environment**.
 
@@ -23,77 +53,65 @@ Environments are promoted forward using immutable Docker image artifacts. The sa
 
 ### Automatic Deployments
 
-- **`develop` branch** → Automatically deploys to `alpha`
-  - Image tag: `develop-<short-sha>`
-  - Example: `develop-a1b2c3d`
+- **Pull Requests** → Preview environment per PR
+  - Namespace: `osdash-pr-<number>`
+- **`develop` branch** → Automatically deploys to `dev`
+- **`main` branch** → Automatically deploys to `staging`
 
 ### Tag-Based Deployments
 
-Deployments are triggered by Git tags matching specific patterns:
+Deployments are triggered by Git tags matching:
 
 | Tag Pattern | Environment | Example |
 |------------|--------------|---------|
-| `vX.Y.Z-alpha.N` | `alpha` | `v1.2.3-alpha.1` |
-| `vX.Y.Z-beta.N` | `beta` | `v1.2.3-beta.2` |
-| `vX.Y.Z-rc.N` | `preprod` | `v1.2.3-rc.1` |
 | `vX.Y.Z` | `prod` | `v1.2.3` |
 
-Where:
-- `X.Y.Z` is the semantic version (e.g., `1.2.3`)
-- `N` is a build number (e.g., `1`, `2`, `3`)
-- `rc` stands for "release candidate"
-
-### Tag Examples
+### Tag Example
 
 ```bash
-# Deploy to alpha
-git tag v1.2.3-alpha.1
-git push origin v1.2.3-alpha.1
-
-# Deploy to beta
-git tag v1.2.3-beta.1
-git push origin v1.2.3-beta.1
-
-# Deploy to preprod (requires approval)
-git tag v1.2.3-rc.1
-git push origin v1.2.3-rc.1
-
-# Deploy to prod (requires approval)
+# Deploy to prod (requires approval if configured)
 git tag v1.2.3
 git push origin v1.2.3
 ```
 
+Release tags also trigger desktop OS build workflows (Windows/macOS/Linux).
+
 ## GitHub Environments and Approval Gates
 
-GitHub Environments are configured in the repository settings to enforce deployment governance:
+GitHub Environments enforce deployment governance:
 
-- **alpha** and **beta**: No approval required (automatic deployment)
-- **preprod** and **prod**: Require manual approval before deployment
+- **preview**, **dev**, **staging**: No approval required (automatic deployment)
+- **production**: Require manual approval before deployment
 
 ### Setting Up GitHub Environments
 
 1. Go to repository Settings → Environments
-2. Create environments: `alpha`, `beta`, `preprod`, `prod`
-3. For `preprod` and `prod`:
+2. Create environments: `preview`, `dev`, `staging`, `production`
+3. For `production`:
    - Enable "Required reviewers"
    - Add required reviewers (team or individuals)
    - Optionally set deployment branches/tags
 
-The deployment workflow (`.github/workflows/deploy.yml`) automatically references these environments, triggering approval workflows when needed.
+The deployment workflow (`.github/workflows/ci-cd.yml`) references these environments and triggers approvals when configured.
 
 ## Secrets Management
 
-### GitHub Secrets
+### GitHub Secrets (Kubernetes)
 
 The following secrets must be configured in GitHub repository settings:
 
-- **`AWS_ROLE_ARN`**: AWS IAM role ARN for GitHub OIDC authentication
-  - Format: `arn:aws:iam::<account-id>:role/<role-name>`
-  - Used for: ECR push, ECS deployment
+- **`KUBE_CONFIG`**: kubeconfig for the target cluster (base64 or raw content)
+- **`PREVIEW_HOST_SUFFIX`** (optional): base domain for PR preview URLs
+- **`PREVIEW_TLS_SECRET`** (optional): existing TLS secret name for preview ingress
+- **`OPENAI_API_KEY`** (optional): runtime API key, scoped per GitHub Environment
+- **`SENTRY_DSN`** (optional): runtime error reporting DSN, scoped per GitHub Environment
 
-### AWS Systems Manager (SSM) Parameter Store
+Runtime application secrets live in Kubernetes or an external secrets manager.
+Use `k8s/base/secrets.yaml` as a template; it is not applied by default.
 
-Runtime secrets are stored in AWS SSM Parameter Store per environment. The deployment script (`deploy-aws.sh`) sets up these parameters automatically.
+### Legacy: AWS Systems Manager (SSM) Parameter Store
+
+Only required if you still deploy to ECS. The deployment script (`deploy-aws.sh`) sets up these parameters automatically.
 
 #### SSM Parameter Path Convention
 
@@ -107,28 +125,50 @@ Examples:
 - `/$ENVIRONMENT/openai/key`
 - `/$ENVIRONMENT/secret/key`
 
-Where `$ENVIRONMENT` is one of: `alpha`, `beta`, `preprod`, `prod`
+Where `$ENVIRONMENT` is one of: `dev`, `staging`, `prod`
 
-#### Manual Secret Setup
+## Audit Log Configuration
+
+The canonical audit log supports segmented sealing, retention tiers, and optional manifest signing.
+Configure the following environment variables to tune segmenting, retention, and storage tiers:
+
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `AUDIT_STORAGE_PATH` | Root directory for audit data | `audit_data` |
+| `AUDIT_SEGMENT_WINDOW_MINUTES` | Segment time window (minutes) | `5` |
+| `AUDIT_SEGMENT_TIME_FORMAT` | Segment bucket format | `%Y%m%d%H%M` |
+| `AUDIT_SEGMENT_MAX_EVENTS` | Max events per segment | `5000` |
+| `AUDIT_RETENTION_HOT_DAYS` | Local hot retention (days) | `30` |
+| `AUDIT_RETENTION_ARCHIVE_DAYS` | Remote archive retention (days) | `395` |
+| `AUDIT_RETENTION_BACKUP_YEARS` | Backup hardware retention (years) | `7` |
+| `AUDIT_RETENTION_CLOUD_YEARS` | Cloud backup retention (years) | `7` |
+| `AUDIT_SIGNING_KEY` | Optional HMAC signing key for manifests | unset |
+| `AUDIT_TIER_REMOTE_ARCHIVE` | Optional path for remote archive tier | unset |
+| `AUDIT_TIER_HARDWARE_BACKUP` | Optional path for hardware backup tier | unset |
+| `AUDIT_TIER_CLOUD_BACKUP` | Optional path for cloud backup tier | unset |
+| `AUDIT_MAINTENANCE_ENABLED` | Enable scheduled audit maintenance tasks | `true` |
+| `AUDIT_RETENTION_APPLY` | Apply hot-tier retention deletions (vs plan-only) | `false` |
+| `AUDIT_RETENTION_INTERVAL_HOURS` | Retention run cadence in hours | `24` |
+| `AUDIT_COMPACTION_INTERVAL_HOURS` | Index compaction cadence in hours | `24` |
+| `AUDIT_PARQUET_EXPORT_ENABLED` | Enable parquet cold export job | `false` |
+| `AUDIT_PARQUET_EXPORT_INTERVAL_HOURS` | Parquet export cadence in hours | `168` |
+| `AUDIT_PARQUET_EXPORT_RANGE_DAYS` | Days per parquet export window | `1` |
+| `AUDIT_MAINTENANCE_TENANT_ID` | Optional tenant filter for maintenance jobs | unset |
+
+#### Manual Secret Setup (Kubernetes)
 
 Some secrets must be set manually after initial deployment:
 
 ```bash
-# Example: Set OpenAI API key for alpha environment
-aws ssm put-parameter \
-  --name "/alpha/openai/key" \
-  --value "sk-..." \
-  --type "SecureString" \
-  --region us-east-1 \
-  --overwrite
+# Example: Set OpenAI API key for dev environment
+kubectl -n osdash-dev create secret generic osdash-secrets \
+  --from-literal=OPENAI_API_KEY="sk-..." \
+  --dry-run=client -o yaml | kubectl apply -f -
 
-# Example: Set secret key for prod environment
-aws ssm put-parameter \
-  --name "/prod/secret/key" \
-  --value "your-secret-key" \
-  --type "SecureString" \
-  --region us-east-1 \
-  --overwrite
+# Example: Set Sentry DSN for prod environment
+kubectl -n osdash-production create secret generic osdash-secrets \
+  --from-literal=SENTRY_DSN="https://example@o0.ingest.sentry.io/0" \
+  --dry-run=client -o yaml | kubectl apply -f -
 ```
 
 ## Running CI-Equivalent Checks Locally
@@ -329,55 +369,63 @@ echo "✅ All local CI checks passed!"
 
 ### Immutable Artifact Promotion
 
-1. **Build once**: Docker image is built and pushed to ECR with a specific tag/digest
-2. **Promote forward**: The same image digest is deployed to subsequent environments
-3. **No rebuilds**: We do NOT rebuild the image differently per environment
+1. **Build once**: Docker images are built and pushed to GHCR with a tag + digest.
+2. **Promote forward**: The same image digest is deployed across environments.
+3. **No rebuilds**: We do NOT rebuild the image differently per environment.
 
 ### Deployment Workflow
 
-1. **CI runs** on PR/push (`.github/workflows/ci.yml`)
-   - Backend tests (Ubuntu, macOS, Windows)
-   - Frontend build
-   - Docker compose smoke test
-   - Debian parity test
+1. **CI runs** on PR/push (`.github/workflows/ci-cd.yml`)
+   - Backend tests (Ubuntu)
+   - Frontend tests + build
+   - Integration tests
 
-2. **Deploy workflow triggers** (`.github/workflows/deploy.yml`)
-   - On `develop` branch push → deploy to `alpha`
-   - On version tag push → deploy to corresponding environment
+2. **Preview workflow**
+   - PRs deploy to `osdash-pr-<number>` namespaces
 
-3. **Image build and push**
-   - Build Docker image once
-   - Push to ECR with tag and digest
-   - Store image digest for promotion
+3. **Environment promotion**
+   - `develop` → `dev`
+   - `main` → `staging`
+   - `v*` tag → `prod`
 
 4. **Deployment**
-   - Use `deploy-aws.sh` script with image URI
-   - Update ECS task definition with image
-   - Update ECS service
-   - Print deployment summary with environment and image digest
+   - Apply Kustomize overlay
+   - Pin images to the exact digest built in CI
+   - Run smoke checks
+   - Roll back on failure (prod)
+
+Overlay paths can be overridden via GitHub environment variables:
+- `K8S_OVERLAY_PREVIEW` (default `k8s/overlays/preview`)
+- `K8S_OVERLAY_DEV` (default `k8s/overlays/dev`)
+- `K8S_OVERLAY_STAGING` (default `k8s/overlays/staging`)
+- `K8S_OVERLAY_PROD` (default `k8s/overlays/prod`)
 
 ### Manual Deployment
 
-You can also deploy manually using the `deploy-aws.sh` script:
-
 ```bash
-# Deploy to alpha with a specific image
-./deploy-aws.sh alpha deploy 123456789012.dkr.ecr.us-east-1.amazonaws.com/os-dashboard:v1.2.3-alpha.1
+# Deploy to staging
+kubectl apply -k k8s/overlays/staging
 
-# Deploy to prod (will build if image not provided)
-./deploy-aws.sh prod deploy
+# Deploy to prod
+kubectl apply -k k8s/overlays/prod
+
+# Deploy to prod (HA overlay, Postgres required)
+kubectl apply -k k8s/overlays/prod-ha
 ```
 
 ## Environment Configuration Files
 
 Environment-specific configuration templates are available:
 
-- `env.alpha.example` - Alpha environment template
-- `env.beta.example` - Beta environment template
-- `env.preprod.example` - Preprod environment template
+- `env.dev.example` - Dev environment template
 - `env.prod.example` - Production environment template
+- `env.preprod.example`, `env.alpha.example`, `env.beta.example` - Legacy templates (prefer feature flag cohorts unless compliance/perf requires separate stacks)
 
 These templates define the configuration contract for each environment. Copy and customize as needed for local development or deployment.
+
+## Postgres Migration (Future HA)
+
+See `docs/deployment/postgres-migration.md` for the Postgres migration plan and HA overlay requirements.
 
 ## Phase-1 Considerations
 
@@ -400,10 +448,10 @@ Future Phase-1 enhancements may include:
 ### Deployment Failures
 
 1. **Check GitHub Actions logs** for detailed error messages
-2. **Verify AWS credentials** are configured correctly
-3. **Check ECR repository** exists and is accessible
-4. **Verify ECS cluster/service** exists for the target environment
-5. **Check SSM parameters** are set for the environment
+2. **Verify `KUBE_CONFIG`** is set in GitHub Actions secrets
+3. **Confirm namespaces exist** (`kubectl get ns`)
+4. **Check ingress/controller health** (`kubectl -n ingress-nginx get pods`)
+5. **Check runtime secrets** (`kubectl -n <env> get secret osdash-secrets -o yaml`)
 
 ### CI Failures
 
@@ -415,14 +463,13 @@ Future Phase-1 enhancements may include:
 ### Health Check Failures
 
 The health endpoint is available at:
-- `/health` (primary endpoint)
-- `/api/health` (alternative endpoint)
+- `/api/health` (primary endpoint)
+- `/health` (alternative endpoint)
 
-Both endpoints should return a JSON response with `status: "healthy"`.
+Both endpoints should return a JSON response with `status: "ok"` when healthy.
 
 ## Additional Resources
 
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [AWS ECS Deployment Guide](https://docs.aws.amazon.com/ecs/latest/developerguide/deployment.html)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
-- [AWS SSM Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html)
+- [Kubernetes Documentation](https://kubernetes.io/docs/home/)

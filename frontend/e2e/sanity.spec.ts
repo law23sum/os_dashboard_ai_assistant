@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('OS Dashboard E2E Sanity', () => {
+test.describe('AI OS Console E2E Sanity', () => {
   test.beforeEach(async ({ page }) => {
     // Assuming the app runs on localhost:5173
     await page.goto('http://localhost:5173');
   });
 
   test('should load the dashboard and show top navigation', async ({ page }) => {
-    await expect(page).toHaveTitle(/OS Dashboard/);
+    await expect(page).toHaveTitle(/AI OS/);
     await expect(page.getByText('Mission Control')).toBeVisible();
     await expect(page.getByText('Workspaces')).toBeVisible();
     await expect(page.getByText('AI Fabric')).toBeVisible();

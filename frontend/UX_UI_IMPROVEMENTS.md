@@ -1,7 +1,7 @@
 # UX/UI Improvements Summary
 
 ## Overview
-This document outlines the comprehensive UX/UI improvements made to enhance the user experience across all pages of the OS Dashboard AI Assistant application.
+This document outlines the comprehensive UX/UI improvements made to enhance the user experience across all pages of the AI OS application.
 
 ## Key Improvements
 

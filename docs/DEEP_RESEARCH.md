@@ -139,4 +139,4 @@ Function calling is not supported inside deep research flows.
 - [Model reference](https://platform.openai.com/docs/models/o3-deep-research)
 - [Web search tool](https://platform.openai.com/docs/guides/tools-web-search)
 - [Remote MCP guide](https://platform.openai.com/docs/guides/tools-remote-mcp)
-- [Cookbook deep research examples](https://cookbook.openai.com/examples/deep_research_api)
+- [OpenAI deep research examples](https://cookbook.openai.com/examples/deep_research_api)

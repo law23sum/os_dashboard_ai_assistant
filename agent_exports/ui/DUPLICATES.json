@@ -1,0 +1,5354 @@
+{
+  "by_component_path": [
+    {
+      "key": "frontend/src/components/templates/FeaturePageTemplate.tsx",
+      "occurrences": [
+        {
+          "route": "/dashboard/flight-deck/projects",
+          "label": "Projects",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/dashboard/flight-deck/tasks",
+          "label": "Tasks",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/dashboard/core-flight-deck",
+          "label": "Core Flight Deck",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/dashboard/core-flight-deck/templates",
+          "label": "Project Templates",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/dashboard/core-flight-deck/members",
+          "label": "Project Members & Roles",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/dashboard/core-flight-deck/settings",
+          "label": "Project Settings",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/dashboard/core-flight-deck/board",
+          "label": "Task Board (Kanban)",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/dashboard/core-flight-deck/automation",
+          "label": "Task Automation & Rules",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/dashboard/core-flight-deck/analytics",
+          "label": "Task Analytics",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/dashboard/core-flight-deck/activity",
+          "label": "Activity Feed",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/dashboard/core-flight-deck/notifications",
+          "label": "Notifications Center",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/dashboard/core-flight-deck/inbox",
+          "label": "Work Queue / Inbox",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/dashboard/core-flight-deck/timeline",
+          "label": "Calendar / Timeline",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/dashboard/engagement/chat",
+          "label": "Chat",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/dashboard/engagement/collaboration",
+          "label": "Collaboration",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/dashboard/engagement/personalization",
+          "label": "Personalization",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/dashboard/engagement/search",
+          "label": "Search & Discovery",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/dashboard/engagement-persona-surfaces",
+          "label": "Engagement & Persona Surfaces",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/dashboard/engagement-persona-surfaces/library",
+          "label": "Conversation Library",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/dashboard/engagement-persona-surfaces/saved",
+          "label": "Saved Searches & Alerts",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/dashboard/engagement-persona-surfaces/channels",
+          "label": "Shared Spaces / Channels",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/dashboard/engagement-persona-surfaces/presence",
+          "label": "Mentions & Presence",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/dashboard/engagement-persona-surfaces/macros",
+          "label": "Prompt / Macro Library",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/dashboard/engagement-persona-surfaces/profiles",
+          "label": "Preference Profiles",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/core/dashboard",
+          "label": "Dashboard",
+          "platform": "Core",
+          "category": "Overview"
+        },
+        {
+          "route": "/core/master-stack",
+          "label": "Master Stack",
+          "platform": "Core",
+          "category": "Overview"
+        },
+        {
+          "route": "/core/overview/overview-1",
+          "label": "Overview",
+          "platform": "Core",
+          "category": "Overview"
+        },
+        {
+          "route": "/core/overview/overview",
+          "label": "Overview",
+          "platform": "Core",
+          "category": "Overview"
+        },
+        {
+          "route": "/core/overview/runbook",
+          "label": "Runbook",
+          "platform": "Core",
+          "category": "Overview"
+        },
+        {
+          "route": "/dashboard",
+          "label": "Platform Overview",
+          "platform": "Core",
+          "category": "Overview"
+        },
+        {
+          "route": "/core/operations/overview",
+          "label": "Overview",
+          "platform": "Core",
+          "category": "Operations"
+        },
+        {
+          "route": "/core/operations/runbook",
+          "label": "Runbook",
+          "platform": "Core",
+          "category": "Operations"
+        },
+        {
+          "route": "/core/operations/evidence",
+          "label": "Evidence",
+          "platform": "Core",
+          "category": "Operations"
+        },
+        {
+          "route": "/common/cookbook-lab/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Cookbook Lab"
+        },
+        {
+          "route": "/common/cookbook-lab/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Cookbook Lab"
+        },
+        {
+          "route": "/common/cookbook-lab/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Cookbook Lab"
+        },
+        {
+          "route": "/common/cookbook-lab/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Cookbook Lab"
+        },
+        {
+          "route": "/common/data-knowledge-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Data Knowledge Home"
+        },
+        {
+          "route": "/common/data-knowledge-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Data Knowledge Home"
+        },
+        {
+          "route": "/common/data-knowledge-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Data Knowledge Home"
+        },
+        {
+          "route": "/common/data-knowledge-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Data Knowledge Home"
+        },
+        {
+          "route": "/common/docs-spec-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Docs Spec Home"
+        },
+        {
+          "route": "/common/docs-spec-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Docs Spec Home"
+        },
+        {
+          "route": "/common/docs-spec-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Docs Spec Home"
+        },
+        {
+          "route": "/common/docs-spec-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Docs Spec Home"
+        },
+        {
+          "route": "/common/drivers-integrations-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Drivers Integrations Home"
+        },
+        {
+          "route": "/common/drivers-integrations-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Drivers Integrations Home"
+        },
+        {
+          "route": "/common/drivers-integrations-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Drivers Integrations Home"
+        },
+        {
+          "route": "/common/drivers-integrations-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Drivers Integrations Home"
+        },
+        {
+          "route": "/common/governance-security-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Governance Security Home"
+        },
+        {
+          "route": "/common/governance-security-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Governance Security Home"
+        },
+        {
+          "route": "/common/governance-security-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Governance Security Home"
+        },
+        {
+          "route": "/common/governance-security-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Governance Security Home"
+        },
+        {
+          "route": "/common/mission-architecture-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Mission Architecture Home"
+        },
+        {
+          "route": "/common/mission-architecture-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Mission Architecture Home"
+        },
+        {
+          "route": "/common/mission-architecture-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Mission Architecture Home"
+        },
+        {
+          "route": "/common/mission-architecture-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Mission Architecture Home"
+        },
+        {
+          "route": "/common/observability-evidence-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Observability Evidence Home"
+        },
+        {
+          "route": "/common/observability-evidence-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Observability Evidence Home"
+        },
+        {
+          "route": "/common/observability-evidence-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Observability Evidence Home"
+        },
+        {
+          "route": "/common/observability-evidence-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Observability Evidence Home"
+        },
+        {
+          "route": "/common/operations-infrastructure-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Operations Infrastructure Home"
+        },
+        {
+          "route": "/common/operations-infrastructure-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Operations Infrastructure Home"
+        },
+        {
+          "route": "/common/operations-infrastructure-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Operations Infrastructure Home"
+        },
+        {
+          "route": "/common/operations-infrastructure-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Operations Infrastructure Home"
+        },
+        {
+          "route": "/common/roadmap-risks-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Roadmap Risks Home"
+        },
+        {
+          "route": "/common/roadmap-risks-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Roadmap Risks Home"
+        },
+        {
+          "route": "/common/roadmap-risks-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Roadmap Risks Home"
+        },
+        {
+          "route": "/common/roadmap-risks-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Roadmap Risks Home"
+        },
+        {
+          "route": "/common/settings-admin-enterprise-extensions-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Settings Admin Enterprise Extensions Home"
+        },
+        {
+          "route": "/common/settings-admin-enterprise-extensions-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Settings Admin Enterprise Extensions Home"
+        },
+        {
+          "route": "/common/settings-admin-enterprise-extensions-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Settings Admin Enterprise Extensions Home"
+        },
+        {
+          "route": "/common/settings-admin-enterprise-extensions-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Settings Admin Enterprise Extensions Home"
+        },
+        {
+          "route": "/common/settings-admin-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Settings Admin Home"
+        },
+        {
+          "route": "/common/settings-admin-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Settings Admin Home"
+        },
+        {
+          "route": "/common/settings-admin-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Settings Admin Home"
+        },
+        {
+          "route": "/common/settings-admin-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Settings Admin Home"
+        },
+        {
+          "route": "/common/vision-meta-stack-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Vision Meta Stack Home"
+        },
+        {
+          "route": "/common/vision-meta-stack-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Vision Meta Stack Home"
+        },
+        {
+          "route": "/common/vision-meta-stack-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Vision Meta Stack Home"
+        },
+        {
+          "route": "/common/vision-meta-stack-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Vision Meta Stack Home"
+        },
+        {
+          "route": "/common/concept-studio/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Concept Studio"
+        },
+        {
+          "route": "/common/concept-studio/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Concept Studio"
+        },
+        {
+          "route": "/common/concept-studio/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Concept Studio"
+        },
+        {
+          "route": "/common/concept-studio/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Concept Studio"
+        },
+        {
+          "route": "/common/planes-architecture/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Planes Architecture"
+        },
+        {
+          "route": "/mission/planes-architecture",
+          "label": "Planes Architecture",
+          "platform": "Common",
+          "category": "Planes Architecture"
+        },
+        {
+          "route": "/common/architecture-principles/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Architecture Principles"
+        },
+        {
+          "route": "/common/architecture-principles/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Architecture Principles"
+        },
+        {
+          "route": "/common/architecture-principles/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Architecture Principles"
+        },
+        {
+          "route": "/common/architecture-principles/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Architecture Principles"
+        },
+        {
+          "route": "/common/mission-identity/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Mission Identity"
+        },
+        {
+          "route": "/common/mission-identity/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Mission Identity"
+        },
+        {
+          "route": "/common/telemetry-metrics/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Telemetry Metrics"
+        },
+        {
+          "route": "/common/telemetry-metrics/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Telemetry Metrics"
+        },
+        {
+          "route": "/common/telemetry-metrics/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Telemetry Metrics"
+        },
+        {
+          "route": "/common/telemetry-metrics/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Telemetry Metrics"
+        },
+        {
+          "route": "/common/files/browser",
+          "label": "File Browser",
+          "platform": "Common",
+          "category": "Files & Storage"
+        },
+        {
+          "route": "/common/files-and-storage/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Files & Storage"
+        },
+        {
+          "route": "/common/files-and-storage/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Files & Storage"
+        },
+        {
+          "route": "/common/integrations/catalog",
+          "label": "Connector Catalog",
+          "platform": "Common",
+          "category": "Integrations"
+        },
+        {
+          "route": "/common/integrations/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Integrations"
+        },
+        {
+          "route": "/common/integrations/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Integrations"
+        },
+        {
+          "route": "/common/mission-control/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Mission Control"
+        },
+        {
+          "route": "/common/mission-control/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Mission Control"
+        },
+        {
+          "route": "/mission/mission-identity",
+          "label": "Mission & Identity",
+          "platform": "Common",
+          "category": "Mission & Identity"
+        },
+        {
+          "route": "/mission/architecture-principles",
+          "label": "Architecture & Principles",
+          "platform": "Common",
+          "category": "Architecture & Principles"
+        },
+        {
+          "route": "/common/metrics-and-telemetry/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Metrics & Telemetry"
+        },
+        {
+          "route": "/common/health-and-monitoring/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Health & Monitoring"
+        },
+        {
+          "route": "/common/health-and-monitoring/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Health & Monitoring"
+        },
+        {
+          "route": "/observability/record-auditor-logbook",
+          "label": "Record Auditor & Logbook",
+          "platform": "Common",
+          "category": "Record Auditor & Logbook"
+        },
+        {
+          "route": "/observability/audit",
+          "label": "Audit Evidence",
+          "platform": "Common",
+          "category": "Record Auditor & Logbook"
+        },
+        {
+          "route": "/observability/record-auditor-logbook/builder",
+          "label": "Evidence Builder",
+          "platform": "Common",
+          "category": "Record Auditor & Logbook"
+        },
+        {
+          "route": "/observability/evidence-audit",
+          "label": "Evidence & Audit",
+          "platform": "Common",
+          "category": "Evidence & Audit"
+        },
+        {
+          "route": "/observability/temporal-backtesting-replay",
+          "label": "Temporal Backtesting & Replay",
+          "platform": "Common",
+          "category": "Temporal Backtesting & Replay"
+        },
+        {
+          "route": "/observability/health-self-healing",
+          "label": "Health & Self-Healing",
+          "platform": "Common",
+          "category": "Health & Self-Healing"
+        },
+        {
+          "route": "/observability/dashboards-alerting",
+          "label": "Dashboards & Alerting",
+          "platform": "Common",
+          "category": "Dashboards & Alerting"
+        },
+        {
+          "route": "/observability/telemetry-metrics",
+          "label": "Telemetry & Metrics",
+          "platform": "Common",
+          "category": "Telemetry & Metrics"
+        },
+        {
+          "route": "/observability/telemetry-metrics/observability",
+          "label": "Observability Overview",
+          "platform": "Common",
+          "category": "Telemetry & Metrics"
+        },
+        {
+          "route": "/observability/monitoring",
+          "label": "Monitoring",
+          "platform": "Common",
+          "category": "Telemetry & Metrics"
+        },
+        {
+          "route": "/observability/analytics",
+          "label": "Analytics",
+          "platform": "Common",
+          "category": "Telemetry & Metrics"
+        },
+        {
+          "route": "/audit/evidence-packs",
+          "label": "Evidence Packs",
+          "platform": "Audit Official Records",
+          "category": "Record Auditor & Logbook"
+        },
+        {
+          "route": "/audit/policy-decisions",
+          "label": "Policy Decisions",
+          "platform": "Audit Official Records",
+          "category": "Record Auditor & Logbook"
+        },
+        {
+          "route": "/audit-official-records/record-auditor-and-logbook/overview",
+          "label": "Overview",
+          "platform": "Audit Official Records",
+          "category": "Record Auditor & Logbook"
+        },
+        {
+          "route": "/audit-official-records/operations/overview",
+          "label": "Overview",
+          "platform": "Audit Official Records",
+          "category": "Operations"
+        },
+        {
+          "route": "/audit-official-records/operations/runbook",
+          "label": "Runbook",
+          "platform": "Audit Official Records",
+          "category": "Operations"
+        },
+        {
+          "route": "/audit-official-records/operations/evidence",
+          "label": "Evidence",
+          "platform": "Audit Official Records",
+          "category": "Operations"
+        },
+        {
+          "route": "/audit-official-records/governance-center/overview",
+          "label": "Overview",
+          "platform": "Audit Official Records",
+          "category": "Governance Center"
+        },
+        {
+          "route": "/governance/policy-governance-engine",
+          "label": "Policy & Governance Engine",
+          "platform": "Audit Official Records",
+          "category": "Policy & Governance Engine"
+        },
+        {
+          "route": "/governance/identity-access",
+          "label": "Identity & Access",
+          "platform": "Audit Official Records",
+          "category": "Identity & Access"
+        },
+        {
+          "route": "/governance/ai-billing-cost-governance",
+          "label": "AI Billing & Cost Governance",
+          "platform": "Audit Official Records",
+          "category": "AI Billing & Cost Governance"
+        },
+        {
+          "route": "/governance/billing",
+          "label": "Billing & Usage",
+          "platform": "Audit Official Records",
+          "category": "AI Billing & Cost Governance"
+        },
+        {
+          "route": "/governance/compliance-regulator-fabric",
+          "label": "Compliance & Regulator Fabric",
+          "platform": "Audit Official Records",
+          "category": "Compliance & Regulator Fabric"
+        },
+        {
+          "route": "/audit-official-records/compliance-and-regulator-fabric/overview",
+          "label": "Overview",
+          "platform": "Audit Official Records",
+          "category": "Compliance & Regulator Fabric"
+        },
+        {
+          "route": "/audit-official-records/compliance-and-regulator-fabric/runbook",
+          "label": "Runbook",
+          "platform": "Audit Official Records",
+          "category": "Compliance & Regulator Fabric"
+        },
+        {
+          "route": "/governance/security-monitoring-response",
+          "label": "Security Monitoring & Response",
+          "platform": "Audit Official Records",
+          "category": "Security Monitoring & Response"
+        },
+        {
+          "route": "/audit-official-records/security-monitoring-and-response/overview",
+          "label": "Overview",
+          "platform": "Audit Official Records",
+          "category": "Security Monitoring & Response"
+        },
+        {
+          "route": "/audit-official-records/security-monitoring-and-response/runbook",
+          "label": "Runbook",
+          "platform": "Audit Official Records",
+          "category": "Security Monitoring & Response"
+        },
+        {
+          "route": "/governance/data-protection-classification",
+          "label": "Data Protection & Classification",
+          "platform": "Audit Official Records",
+          "category": "Data Protection & Classification"
+        },
+        {
+          "route": "/audit/regulator/console",
+          "label": "Regulator Evidence View",
+          "platform": "Audit Official Records",
+          "category": "Regulator Console"
+        },
+        {
+          "route": "/audit-official-records/regulator-console/overview",
+          "label": "Overview",
+          "platform": "Audit Official Records",
+          "category": "Regulator Console"
+        },
+        {
+          "route": "/audit-official-records/regulator-console/runbook",
+          "label": "Runbook",
+          "platform": "Audit Official Records",
+          "category": "Regulator Console"
+        },
+        {
+          "route": "/ai/driver-fabric-system-execution",
+          "label": "Driver Fabric & System Execution",
+          "platform": "Automation",
+          "category": "Driver Fabric & System Execution"
+        },
+        {
+          "route": "/ai/capsules-workflow-automation",
+          "label": "Capsules & Workflow Automation",
+          "platform": "Automation",
+          "category": "Capsules & Workflow Automation"
+        },
+        {
+          "route": "/ai/intent-processing",
+          "label": "Intent Processing",
+          "platform": "Automation",
+          "category": "Intent Processing"
+        },
+        {
+          "route": "/automation/intent-processing/overview",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Intent Processing"
+        },
+        {
+          "route": "/automation/intent-processing/runbook",
+          "label": "Runbook",
+          "platform": "Automation",
+          "category": "Intent Processing"
+        },
+        {
+          "route": "/ai/edge-vision",
+          "label": "Edge & Vision",
+          "platform": "Automation",
+          "category": "Edge & Vision"
+        },
+        {
+          "route": "/ai/cognitive-agents-reasoning",
+          "label": "Cognitive Agents & Reasoning",
+          "platform": "Automation",
+          "category": "Cognitive Agents & Reasoning"
+        },
+        {
+          "route": "/ai/mlops-neural-architecture",
+          "label": "MLOps & Neural Architecture",
+          "platform": "Automation",
+          "category": "MLOps & Neural Architecture"
+        },
+        {
+          "route": "/automation/cognitive-agents/overview",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Cognitive Agents"
+        },
+        {
+          "route": "/automation/cognitive-agents/overview-1",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Cognitive Agents"
+        },
+        {
+          "route": "/automation/edge-vision/overview",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Edge Vision"
+        },
+        {
+          "route": "/automation/edge-vision/overview-1",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Edge Vision"
+        },
+        {
+          "route": "/automation/mlops-neural-arch/overview",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Mlops Neural Arch"
+        },
+        {
+          "route": "/automation/mlops-neural-arch/overview-1",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Mlops Neural Arch"
+        },
+        {
+          "route": "/automation/mlops-neural-arch/runbook",
+          "label": "Runbook",
+          "platform": "Automation",
+          "category": "Mlops Neural Arch"
+        },
+        {
+          "route": "/automation/mlops-neural-arch/runbook-1",
+          "label": "Runbook",
+          "platform": "Automation",
+          "category": "Mlops Neural Arch"
+        },
+        {
+          "route": "/automation/workflows/builder",
+          "label": "Workflow Builder",
+          "platform": "Automation",
+          "category": "Workflows & Capsules"
+        },
+        {
+          "route": "/automation/workflows-and-capsules/overview",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Workflows & Capsules"
+        },
+        {
+          "route": "/automation/workflows-and-capsules/runbook",
+          "label": "Runbook",
+          "platform": "Automation",
+          "category": "Workflows & Capsules"
+        },
+        {
+          "route": "/automation/automation-hub/overview",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Automation Hub"
+        },
+        {
+          "route": "/settings/user-tenant-settings",
+          "label": "User & Tenant Settings",
+          "platform": "Settings",
+          "category": "User & Tenant Settings"
+        },
+        {
+          "route": "/settings/enterprise/user-tenant",
+          "label": "Enterprise User & Tenant Settings",
+          "platform": "Settings",
+          "category": "User & Tenant Settings"
+        },
+        {
+          "route": "/settings/user-tenant-settings/settings",
+          "label": "Settings",
+          "platform": "Settings",
+          "category": "User & Tenant Settings"
+        },
+        {
+          "route": "/settings/profile-and-preferences/overview",
+          "label": "Overview",
+          "platform": "Settings",
+          "category": "Profile & Preferences"
+        },
+        {
+          "route": "/settings/profile-and-preferences/runbook",
+          "label": "Runbook",
+          "platform": "Settings",
+          "category": "Profile & Preferences"
+        },
+        {
+          "route": "/settings/operations/overview",
+          "label": "Overview",
+          "platform": "Settings",
+          "category": "Operations"
+        },
+        {
+          "route": "/settings/operations/runbook",
+          "label": "Runbook",
+          "platform": "Settings",
+          "category": "Operations"
+        },
+        {
+          "route": "/settings/operations/evidence",
+          "label": "Evidence",
+          "platform": "Settings",
+          "category": "Operations"
+        },
+        {
+          "route": "/admin/access/rbac",
+          "label": "RBAC/ABAC",
+          "platform": "Admin",
+          "category": "Users & Roles"
+        },
+        {
+          "route": "/admin/users-and-roles/overview",
+          "label": "Overview",
+          "platform": "Admin",
+          "category": "Users & Roles"
+        },
+        {
+          "route": "/admin/users-and-roles/runbook",
+          "label": "Runbook",
+          "platform": "Admin",
+          "category": "Users & Roles"
+        },
+        {
+          "route": "/admin/operations/overview",
+          "label": "Overview",
+          "platform": "Admin",
+          "category": "Operations"
+        },
+        {
+          "route": "/admin/operations/runbook",
+          "label": "Runbook",
+          "platform": "Admin",
+          "category": "Operations"
+        },
+        {
+          "route": "/admin/operations/evidence",
+          "label": "Evidence",
+          "platform": "Admin",
+          "category": "Operations"
+        },
+        {
+          "route": "/admin",
+          "label": "Admin Console",
+          "platform": "Admin",
+          "category": "Admin Console"
+        },
+        {
+          "route": "/admin/admin-console/overview",
+          "label": "Overview",
+          "platform": "Admin",
+          "category": "Admin Console"
+        },
+        {
+          "route": "/admin/admin-console/runbook",
+          "label": "Runbook",
+          "platform": "Admin",
+          "category": "Admin Console"
+        },
+        {
+          "route": "/admin/tenants/registry",
+          "label": "Tenant Registry",
+          "platform": "Admin",
+          "category": "Tenants"
+        },
+        {
+          "route": "/admin/tenants/overview",
+          "label": "Overview",
+          "platform": "Admin",
+          "category": "Tenants"
+        },
+        {
+          "route": "/admin/tenants/runbook",
+          "label": "Runbook",
+          "platform": "Admin",
+          "category": "Tenants"
+        },
+        {
+          "route": "/admin/billing/usage",
+          "label": "Usage Ledger",
+          "platform": "Admin",
+          "category": "Billing & Usage"
+        },
+        {
+          "route": "/admin/billing-and-usage/overview",
+          "label": "Overview",
+          "platform": "Admin",
+          "category": "Billing & Usage"
+        },
+        {
+          "route": "/admin/billing-and-usage/runbook",
+          "label": "Runbook",
+          "platform": "Admin",
+          "category": "Billing & Usage"
+        },
+        {
+          "route": "/admin/approvals/console",
+          "label": "Approval Console",
+          "platform": "Admin",
+          "category": "Approvals"
+        },
+        {
+          "route": "/admin/approvals/overview",
+          "label": "Overview",
+          "platform": "Admin",
+          "category": "Approvals"
+        },
+        {
+          "route": "/admin/approvals/runbook",
+          "label": "Runbook",
+          "platform": "Admin",
+          "category": "Approvals"
+        },
+        {
+          "route": "/workspaces/dev/tools",
+          "label": "Developer Tools",
+          "platform": "Workstation",
+          "category": "Dev & DevOps Workspace"
+        },
+        {
+          "route": "/workspaces/dev-devops-workspace",
+          "label": "Dev & DevOps Workspace",
+          "platform": "Workstation",
+          "category": "Dev & DevOps Workspace"
+        },
+        {
+          "route": "/workspaces/writer/templates",
+          "label": "Templates",
+          "platform": "Workstation",
+          "category": "Writer Workspace"
+        },
+        {
+          "route": "/workspaces/writer",
+          "label": "Writer Workstation",
+          "platform": "Workstation",
+          "category": "Writer Workspace"
+        },
+        {
+          "route": "/workspaces/writer-workspace",
+          "label": "Writer Workspace",
+          "platform": "Workstation",
+          "category": "Writer Workspace"
+        },
+        {
+          "route": "/workspaces/cyber",
+          "label": "Security Guardian",
+          "platform": "Workstation",
+          "category": "Cybersecurity Workspace"
+        },
+        {
+          "route": "/workspaces/cybersecurity-workspace",
+          "label": "Cybersecurity Workspace",
+          "platform": "Workstation",
+          "category": "Cybersecurity Workspace"
+        },
+        {
+          "route": "/workspaces/business-finance-workspace",
+          "label": "Business & Finance Workspace",
+          "platform": "Workstation",
+          "category": "Business & Finance Workspace"
+        },
+        {
+          "route": "/workspaces/operator-sre-workspace",
+          "label": "Operator & SRE Workspace",
+          "platform": "Workstation",
+          "category": "Operator & SRE Workspace"
+        },
+        {
+          "route": "/workspaces/archive-continuity-workspace",
+          "label": "Archive & Continuity Workspace",
+          "platform": "Workstation",
+          "category": "Archive & Continuity Workspace"
+        },
+        {
+          "route": "/pms",
+          "label": "Project Management System",
+          "platform": "Workstation",
+          "category": "Master Stack & Project Management Engine"
+        },
+        {
+          "route": "/pms/projects",
+          "label": "Projects",
+          "platform": "Workstation",
+          "category": "Master Stack & Project Management Engine"
+        },
+        {
+          "route": "/pms/runs",
+          "label": "Runs",
+          "platform": "Workstation",
+          "category": "Master Stack & Project Management Engine"
+        },
+        {
+          "route": "/pms/documents",
+          "label": "Documents",
+          "platform": "Workstation",
+          "category": "Master Stack & Project Management Engine"
+        },
+        {
+          "route": "/pms/journal",
+          "label": "Journal",
+          "platform": "Workstation",
+          "category": "Master Stack & Project Management Engine"
+        },
+        {
+          "route": "/pms/finance",
+          "label": "Finance",
+          "platform": "Workstation",
+          "category": "Master Stack & Project Management Engine"
+        },
+        {
+          "route": "/pms/audit",
+          "label": "Audit",
+          "platform": "Workstation",
+          "category": "Master Stack & Project Management Engine"
+        },
+        {
+          "route": "/pms/settings",
+          "label": "Settings",
+          "platform": "Workstation",
+          "category": "Master Stack & Project Management Engine"
+        },
+        {
+          "route": "/workstation/writer/editor",
+          "label": "Draft Editor",
+          "platform": "Workstation",
+          "category": "Writer Workstation"
+        },
+        {
+          "route": "/workstation/writer-workstation/overview",
+          "label": "Overview",
+          "platform": "Workstation",
+          "category": "Writer Workstation"
+        },
+        {
+          "route": "/workstation/writer-workstation/runbook",
+          "label": "Runbook",
+          "platform": "Workstation",
+          "category": "Writer Workstation"
+        },
+        {
+          "route": "/workstation/dev/commands",
+          "label": "Commands Runner",
+          "platform": "Workstation",
+          "category": "Dev Workstation"
+        },
+        {
+          "route": "/workstation/dev-workstation/overview",
+          "label": "Overview",
+          "platform": "Workstation",
+          "category": "Dev Workstation"
+        },
+        {
+          "route": "/workstation/dev-workstation/runbook",
+          "label": "Runbook",
+          "platform": "Workstation",
+          "category": "Dev Workstation"
+        },
+        {
+          "route": "/workstation/workstation-hub/overview",
+          "label": "Overview",
+          "platform": "Workstation",
+          "category": "Workstation Hub"
+        },
+        {
+          "route": "/workstation/workstation-hub/runbook",
+          "label": "Runbook",
+          "platform": "Workstation",
+          "category": "Workstation Hub"
+        },
+        {
+          "route": "/workspaces/record-auditor-logbook-workspace",
+          "label": "Record Auditor & Logbook Workspace",
+          "platform": "Workstation",
+          "category": "Record Auditor & Logbook Workspace"
+        },
+        {
+          "route": "/systems/driver-registry/overview",
+          "label": "Overview",
+          "platform": "Systems",
+          "category": "Driver Registry"
+        },
+        {
+          "route": "/systems/driver-registry/runbook",
+          "label": "Runbook",
+          "platform": "Systems",
+          "category": "Driver Registry"
+        },
+        {
+          "route": "/drivers/driver-registry-management",
+          "label": "Driver Registry & Management",
+          "platform": "Systems",
+          "category": "Driver Registry & Management"
+        },
+        {
+          "route": "/drivers/driver-registry-management/drivers",
+          "label": "Overview",
+          "platform": "Systems",
+          "category": "Driver Registry & Management"
+        },
+        {
+          "route": "/drivers/driver-packs-marketplace",
+          "label": "Driver Packs & Marketplace",
+          "platform": "Systems",
+          "category": "Driver Packs & Marketplace"
+        },
+        {
+          "route": "/drivers/risk-governance",
+          "label": "Risk & Governance",
+          "platform": "Systems",
+          "category": "Risk & Governance"
+        },
+        {
+          "route": "/drivers/connectors-integrations",
+          "label": "Connectors & Integrations",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/drivers/connectors-integrations/connectors",
+          "label": "Connectors Overview",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/drivers/connectors-integrations/credentials",
+          "label": "Credential Vault",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/drivers/connectors-integrations/api-connectors",
+          "label": "API Connectors",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/drivers/connectors-integrations/mcp-gateway",
+          "label": "MCP Gateway",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/drivers/connectors-integrations/office",
+          "label": "Office Realtime",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/drivers/connectors-integrations/webhooks",
+          "label": "Webhooks & Events",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/drivers/connectors-integrations/mappings",
+          "label": "Data Mapping & Transformations",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/drivers/connectors-integrations/health",
+          "label": "Connector Health",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/drivers/connectors-integrations/rate-limits",
+          "label": "Rate Limits & Quotas",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/integrations/mcp-gateway",
+          "label": "MCP Gateway",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/systems/deployment-models/overview",
+          "label": "Overview",
+          "platform": "Systems",
+          "category": "Deployment Models"
+        },
+        {
+          "route": "/operations/deployment-models",
+          "label": "Deployment Models",
+          "platform": "Systems",
+          "category": "Deployment Models"
+        },
+        {
+          "route": "/systems/observability/logs-traces",
+          "label": "Logs & Traces",
+          "platform": "Systems",
+          "category": "Observability"
+        },
+        {
+          "route": "/systems/observability/overview",
+          "label": "Overview",
+          "platform": "Systems",
+          "category": "Observability"
+        },
+        {
+          "route": "/systems/observability/runbook",
+          "label": "Runbook",
+          "platform": "Systems",
+          "category": "Observability"
+        },
+        {
+          "route": "/systems/drivers-hub/overview",
+          "label": "Overview",
+          "platform": "Systems",
+          "category": "Drivers Hub"
+        },
+        {
+          "route": "/operations/performance-scalability",
+          "label": "Performance & Scalability",
+          "platform": "Systems",
+          "category": "Performance & Scalability"
+        },
+        {
+          "route": "/operations/upgrades-migration",
+          "label": "Upgrades & Migration",
+          "platform": "Systems",
+          "category": "Upgrades & Migration"
+        },
+        {
+          "route": "/operations/failure-modes-resilience",
+          "label": "Failure Modes & Resilience",
+          "platform": "Systems",
+          "category": "Failure Modes & Resilience"
+        },
+        {
+          "route": "/operations/infrastructure-topology",
+          "label": "Infrastructure & Topology",
+          "platform": "Systems",
+          "category": "Infrastructure & Topology"
+        },
+        {
+          "route": "/operations/infrastructure-topology/network",
+          "label": "Network Monitoring",
+          "platform": "Systems",
+          "category": "Infrastructure & Topology"
+        },
+        {
+          "route": "/workspaces/digital-twin-enterprise-twin-workspace",
+          "label": "Digital Twin & Enterprise Twin Workspace",
+          "platform": "Simulations",
+          "category": "Digital Twin & Enterprise Twin Workspace"
+        },
+        {
+          "route": "/simulations/hub/run",
+          "label": "Run Simulations",
+          "platform": "Simulations",
+          "category": "Simulation Hub"
+        },
+        {
+          "route": "/simulations/simulation-hub/overview",
+          "label": "Overview",
+          "platform": "Simulations",
+          "category": "Simulation Hub"
+        },
+        {
+          "route": "/simulations/simulation-hub/runbook",
+          "label": "Runbook",
+          "platform": "Simulations",
+          "category": "Simulation Hub"
+        },
+        {
+          "route": "/simulations",
+          "label": "Simulation Home",
+          "platform": "Simulations",
+          "category": "Simulation Home"
+        },
+        {
+          "route": "/simulations/simulation-home/overview",
+          "label": "Overview",
+          "platform": "Simulations",
+          "category": "Simulation Home"
+        },
+        {
+          "route": "/simulations/simulation-home/runbook",
+          "label": "Runbook",
+          "platform": "Simulations",
+          "category": "Simulation Home"
+        },
+        {
+          "route": "/simulations/operations/overview",
+          "label": "Overview",
+          "platform": "Simulations",
+          "category": "Operations"
+        },
+        {
+          "route": "/simulations/operations/runbook",
+          "label": "Runbook",
+          "platform": "Simulations",
+          "category": "Operations"
+        },
+        {
+          "route": "/simulations/operations/evidence",
+          "label": "Evidence",
+          "platform": "Simulations",
+          "category": "Operations"
+        },
+        {
+          "route": "/simulations/controls/overview",
+          "label": "Overview",
+          "platform": "Simulations",
+          "category": "Controls"
+        },
+        {
+          "route": "/simulations/controls/runbook",
+          "label": "Runbook",
+          "platform": "Simulations",
+          "category": "Controls"
+        },
+        {
+          "route": "/simulations/controls/evidence",
+          "label": "Evidence",
+          "platform": "Simulations",
+          "category": "Controls"
+        },
+        {
+          "route": "/workspaces/research",
+          "label": "Research Hub",
+          "platform": "Research",
+          "category": "Research & Simulation Workspace"
+        },
+        {
+          "route": "/workspaces/research-simulation-workspace",
+          "label": "Research & Simulation Workspace",
+          "platform": "Research",
+          "category": "Research & Simulation Workspace"
+        },
+        {
+          "route": "/research/research-simulation/overview",
+          "label": "Overview",
+          "platform": "Research",
+          "category": "Research Simulation"
+        },
+        {
+          "route": "/research/research-simulation/overview-1",
+          "label": "Overview",
+          "platform": "Research",
+          "category": "Research Simulation"
+        },
+        {
+          "route": "/research/research-simulation/runbook",
+          "label": "Runbook",
+          "platform": "Research",
+          "category": "Research Simulation"
+        },
+        {
+          "route": "/research/research-simulation/runbook-1",
+          "label": "Runbook",
+          "platform": "Research",
+          "category": "Research Simulation"
+        },
+        {
+          "route": "/research/registry",
+          "label": "Registry",
+          "platform": "Research",
+          "category": "Projects & Experiments"
+        },
+        {
+          "route": "/research/projects-and-experiments/overview",
+          "label": "Overview",
+          "platform": "Research",
+          "category": "Projects & Experiments"
+        },
+        {
+          "route": "/research/projects-and-experiments/runbook",
+          "label": "Runbook",
+          "platform": "Research",
+          "category": "Projects & Experiments"
+        },
+        {
+          "route": "/research/future-capabilities/overview",
+          "label": "Overview",
+          "platform": "Research",
+          "category": "Future Capabilities"
+        },
+        {
+          "route": "/research/future-capabilities/runbook",
+          "label": "Runbook",
+          "platform": "Research",
+          "category": "Future Capabilities"
+        },
+        {
+          "route": "/research/risk-register/overview",
+          "label": "Overview",
+          "platform": "Research",
+          "category": "Risk Register"
+        },
+        {
+          "route": "/research/risk-register/runbook",
+          "label": "Runbook",
+          "platform": "Research",
+          "category": "Risk Register"
+        },
+        {
+          "route": "/research/open-questions/overview",
+          "label": "Overview",
+          "platform": "Research",
+          "category": "Open Questions"
+        },
+        {
+          "route": "/research/open-questions/runbook",
+          "label": "Runbook",
+          "platform": "Research",
+          "category": "Open Questions"
+        },
+        {
+          "route": "/roadmap/roadmap-planning",
+          "label": "Roadmap & Planning",
+          "platform": "Research",
+          "category": "Roadmap & Planning"
+        },
+        {
+          "route": "/roadmap/spec-maintenance",
+          "label": "Spec Maintenance",
+          "platform": "Research",
+          "category": "Spec Maintenance"
+        },
+        {
+          "route": "/roadmap/risks-decisions",
+          "label": "Risks & Decisions",
+          "platform": "Research",
+          "category": "Risks & Decisions"
+        },
+        {
+          "route": "/encyclopedia/topics/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Topics"
+        },
+        {
+          "route": "/encyclopedia/topics/overview-1",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Topics"
+        },
+        {
+          "route": "/encyclopedia/topics/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Topics"
+        },
+        {
+          "route": "/encyclopedia/topics/runbook-1",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Topics"
+        },
+        {
+          "route": "/encyclopedia/explanations/explain",
+          "label": "Explain a Concept",
+          "platform": "Encyclopedia",
+          "category": "Explanations"
+        },
+        {
+          "route": "/encyclopedia/explanations/overview-1",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Explanations"
+        },
+        {
+          "route": "/encyclopedia/explanations/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Explanations"
+        },
+        {
+          "route": "/encyclopedia/explanations/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Explanations"
+        },
+        {
+          "route": "/encyclopedia/history/timeline",
+          "label": "History Timeline",
+          "platform": "Encyclopedia",
+          "category": "History"
+        },
+        {
+          "route": "/encyclopedia/history/overview-1",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "History"
+        },
+        {
+          "route": "/encyclopedia/history/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "History"
+        },
+        {
+          "route": "/encyclopedia/history/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "History"
+        },
+        {
+          "route": "/encyclopedia/glossary/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Glossary"
+        },
+        {
+          "route": "/encyclopedia/glossary/overview-1",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Glossary"
+        },
+        {
+          "route": "/encyclopedia/glossary/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Glossary"
+        },
+        {
+          "route": "/encyclopedia/glossary/runbook-1",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Glossary"
+        },
+        {
+          "route": "/encyclopedia/advanced-capabilities/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Advanced Capabilities"
+        },
+        {
+          "route": "/encyclopedia/advanced-capabilities/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Advanced Capabilities"
+        },
+        {
+          "route": "/encyclopedia/hyper-capabilities/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Hyper Capabilities"
+        },
+        {
+          "route": "/encyclopedia/hyper-capabilities/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Hyper Capabilities"
+        },
+        {
+          "route": "/encyclopedia/ultra-capabilities/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Ultra Capabilities"
+        },
+        {
+          "route": "/encyclopedia/ultra-capabilities/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Ultra Capabilities"
+        },
+        {
+          "route": "/vision/meta",
+          "label": "Meta Envelope",
+          "platform": "Encyclopedia",
+          "category": "Meta Envelope"
+        },
+        {
+          "route": "/vision/vision-deck-hub",
+          "label": "Vision Deck Hub",
+          "platform": "Encyclopedia",
+          "category": "Vision Deck Hub"
+        },
+        {
+          "route": "/libraries/getting-started/overview",
+          "label": "Overview",
+          "platform": "Libraries",
+          "category": "Getting Started"
+        },
+        {
+          "route": "/libraries/getting-started/runbook",
+          "label": "Runbook",
+          "platform": "Libraries",
+          "category": "Getting Started"
+        },
+        {
+          "route": "/docs/api-reference",
+          "label": "API Reference",
+          "platform": "Libraries",
+          "category": "API Reference"
+        },
+        {
+          "route": "/docs/reference-artifacts",
+          "label": "Reference Artifacts",
+          "platform": "Libraries",
+          "category": "Reference Artifacts"
+        },
+        {
+          "route": "/docs/documentation-hub",
+          "label": "Documentation Hub",
+          "platform": "Libraries",
+          "category": "Documentation Hub"
+        },
+        {
+          "route": "/docs/documentation-hub/docs",
+          "label": "Docs Hub",
+          "platform": "Libraries",
+          "category": "Documentation Hub"
+        },
+        {
+          "route": "/docs/documentation-hub/ssot-technical-docs",
+          "label": "SSOT Technical Docs",
+          "platform": "Libraries",
+          "category": "Documentation Hub"
+        },
+        {
+          "route": "/docs/migration-integration",
+          "label": "Migration & Integration",
+          "platform": "Libraries",
+          "category": "Migration & Integration"
+        },
+        {
+          "route": "/libraries/capsules/catalog",
+          "label": "Catalog",
+          "platform": "Libraries",
+          "category": "Capsule Library"
+        },
+        {
+          "route": "/libraries/capsule-library/overview",
+          "label": "Overview",
+          "platform": "Libraries",
+          "category": "Capsule Library"
+        },
+        {
+          "route": "/libraries/capsule-library/runbook",
+          "label": "Runbook",
+          "platform": "Libraries",
+          "category": "Capsule Library"
+        },
+        {
+          "route": "/libraries/operations/overview",
+          "label": "Overview",
+          "platform": "Libraries",
+          "category": "Operations"
+        },
+        {
+          "route": "/libraries/operations/runbook",
+          "label": "Runbook",
+          "platform": "Libraries",
+          "category": "Operations"
+        },
+        {
+          "route": "/libraries/operations/evidence",
+          "label": "Evidence",
+          "platform": "Libraries",
+          "category": "Operations"
+        },
+        {
+          "route": "/libraries/controls/overview",
+          "label": "Overview",
+          "platform": "Libraries",
+          "category": "Controls"
+        },
+        {
+          "route": "/libraries/controls/runbook",
+          "label": "Runbook",
+          "platform": "Libraries",
+          "category": "Controls"
+        },
+        {
+          "route": "/libraries/controls/evidence",
+          "label": "Evidence",
+          "platform": "Libraries",
+          "category": "Controls"
+        },
+        {
+          "route": "/data/observability-stores",
+          "label": "Observability Stores",
+          "platform": "Knowledge",
+          "category": "Observability Stores"
+        },
+        {
+          "route": "/knowledge/archive-and-backup/overview",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Archive & Backup"
+        },
+        {
+          "route": "/knowledge/archive-and-backup/runbook",
+          "label": "Runbook",
+          "platform": "Knowledge",
+          "category": "Archive & Backup"
+        },
+        {
+          "route": "/knowledge/multi-region-and-replication/overview",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Multi-Region & Replication"
+        },
+        {
+          "route": "/knowledge/multi-region-and-replication/runbook",
+          "label": "Runbook",
+          "platform": "Knowledge",
+          "category": "Multi-Region & Replication"
+        },
+        {
+          "route": "/data/core-data-stores",
+          "label": "Core Data Stores",
+          "platform": "Knowledge",
+          "category": "Core Data Stores"
+        },
+        {
+          "route": "/data/core-data-stores/data",
+          "label": "Data Overview",
+          "platform": "Knowledge",
+          "category": "Core Data Stores"
+        },
+        {
+          "route": "/data/data-protection",
+          "label": "Data Protection",
+          "platform": "Knowledge",
+          "category": "Data Protection"
+        },
+        {
+          "route": "/data/replication-dr",
+          "label": "Replication & DR",
+          "platform": "Knowledge",
+          "category": "Replication & DR"
+        },
+        {
+          "route": "/data/indices-search",
+          "label": "Indices & Search",
+          "platform": "Knowledge",
+          "category": "Indices & Search"
+        },
+        {
+          "route": "/data/archive-retention",
+          "label": "Archive & Retention",
+          "platform": "Knowledge",
+          "category": "Archive & Retention"
+        },
+        {
+          "route": "/knowledge/perspective/world-model",
+          "label": "World Model",
+          "platform": "Knowledge",
+          "category": "Perspective"
+        },
+        {
+          "route": "/knowledge/perspective/overview-1",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Perspective"
+        },
+        {
+          "route": "/knowledge/perspective/overview",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Perspective"
+        },
+        {
+          "route": "/knowledge/perspective/runbook",
+          "label": "Runbook",
+          "platform": "Knowledge",
+          "category": "Perspective"
+        },
+        {
+          "route": "/knowledge/insight/journal",
+          "label": "Insight Journal",
+          "platform": "Knowledge",
+          "category": "Insight"
+        },
+        {
+          "route": "/knowledge/insight/overview-1",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Insight"
+        },
+        {
+          "route": "/knowledge/insight/overview",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Insight"
+        },
+        {
+          "route": "/knowledge/insight/runbook",
+          "label": "Runbook",
+          "platform": "Knowledge",
+          "category": "Insight"
+        },
+        {
+          "route": "/knowledge/wisdom/principles",
+          "label": "Principles",
+          "platform": "Knowledge",
+          "category": "Wisdom"
+        },
+        {
+          "route": "/knowledge/wisdom/overview-1",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Wisdom"
+        },
+        {
+          "route": "/knowledge/wisdom/overview",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Wisdom"
+        },
+        {
+          "route": "/knowledge/wisdom/runbook",
+          "label": "Runbook",
+          "platform": "Knowledge",
+          "category": "Wisdom"
+        },
+        {
+          "route": "/knowledge/experience/log",
+          "label": "Experience Log",
+          "platform": "Knowledge",
+          "category": "Experience"
+        },
+        {
+          "route": "/knowledge/experience/overview-1",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Experience"
+        },
+        {
+          "route": "/knowledge/experience/overview",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Experience"
+        },
+        {
+          "route": "/knowledge/experience/runbook",
+          "label": "Runbook",
+          "platform": "Knowledge",
+          "category": "Experience"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "projects",
+      "recommended_canonical_route": "/admin"
+    },
+    {
+      "key": "frontend/src/pages/Vision.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/vision-deck-hub/vision",
+          "label": "Vision Deck Hub",
+          "platform": "Encyclopedia",
+          "category": "Vision Deck Hub"
+        },
+        {
+          "route": "/vision",
+          "label": "Vision Deck Hub",
+          "platform": "Encyclopedia",
+          "category": "Vision Deck Hub"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "vision-deck-hub",
+      "recommended_canonical_route": "/vision"
+    },
+    {
+      "key": "frontend/src/pages/encyclopedia/EncyclopediaFeature.tsx",
+      "occurrences": [
+        {
+          "route": "/encyclopedia/topics",
+          "label": "Topics",
+          "platform": "Encyclopedia",
+          "category": "Topics"
+        },
+        {
+          "route": "/encyclopedia/explanations",
+          "label": "Explanations",
+          "platform": "Encyclopedia",
+          "category": "Explanations"
+        },
+        {
+          "route": "/encyclopedia/history",
+          "label": "History",
+          "platform": "Encyclopedia",
+          "category": "History"
+        },
+        {
+          "route": "/encyclopedia/glossary",
+          "label": "Glossary",
+          "platform": "Encyclopedia",
+          "category": "Glossary"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "topics",
+      "recommended_canonical_route": "/encyclopedia/explanations"
+    },
+    {
+      "key": "frontend/src/pages/future/Advanced.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/advanced",
+          "label": "Advanced Horizons",
+          "platform": "Encyclopedia",
+          "category": "Advanced Capabilities"
+        },
+        {
+          "route": "/vision/advanced-horizons",
+          "label": "Advanced Horizons",
+          "platform": "Encyclopedia",
+          "category": "Advanced Horizons"
+        },
+        {
+          "route": "/future/advanced",
+          "label": "Advanced Horizons",
+          "platform": "Encyclopedia",
+          "category": "Advanced Horizons"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "advanced-horizons",
+      "recommended_canonical_route": "/future/advanced"
+    },
+    {
+      "key": "frontend/src/pages/future/Ascend.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/ascend",
+          "label": "Ascend",
+          "platform": "Encyclopedia",
+          "category": "Ascend Capabilities"
+        },
+        {
+          "route": "/future/ascend",
+          "label": "Ascend",
+          "platform": "Encyclopedia",
+          "category": "Ascend Capabilities"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "ascend",
+      "recommended_canonical_route": "/future/ascend"
+    },
+    {
+      "key": "frontend/src/pages/future/Core_os.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/core-os",
+          "label": "Core OS Engines",
+          "platform": "Encyclopedia",
+          "category": "Core OS Engines"
+        },
+        {
+          "route": "/vision/core-os-engines",
+          "label": "Core OS Engines",
+          "platform": "Encyclopedia",
+          "category": "Core OS Engines"
+        },
+        {
+          "route": "/future/core_os",
+          "label": "Core OS Engines",
+          "platform": "Encyclopedia",
+          "category": "Core OS Engines"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "core-os-engines",
+      "recommended_canonical_route": "/future/core_os"
+    },
+    {
+      "key": "frontend/src/pages/future/Hyper.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/hyper",
+          "label": "Hyper Network",
+          "platform": "Encyclopedia",
+          "category": "Hyper Capabilities"
+        },
+        {
+          "route": "/vision/hyper-network",
+          "label": "Hyper Network",
+          "platform": "Encyclopedia",
+          "category": "Hyper Network"
+        },
+        {
+          "route": "/future/hyper",
+          "label": "Hyper Network",
+          "platform": "Encyclopedia",
+          "category": "Hyper Network"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "hyper-network",
+      "recommended_canonical_route": "/future/hyper"
+    },
+    {
+      "key": "frontend/src/pages/future/Meta.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/meta-envelope",
+          "label": "Meta Envelope",
+          "platform": "Encyclopedia",
+          "category": "Meta Envelope"
+        },
+        {
+          "route": "/future/meta",
+          "label": "Meta Envelope",
+          "platform": "Encyclopedia",
+          "category": "Meta Envelope"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "meta-envelope",
+      "recommended_canonical_route": "/future/meta"
+    },
+    {
+      "key": "frontend/src/pages/future/Super.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/super",
+          "label": "Super Capabilities",
+          "platform": "Encyclopedia",
+          "category": "Super Capabilities"
+        },
+        {
+          "route": "/vision/super-capabilities",
+          "label": "Super Capabilities",
+          "platform": "Encyclopedia",
+          "category": "Super Capabilities"
+        },
+        {
+          "route": "/future/super",
+          "label": "Super Capabilities",
+          "platform": "Encyclopedia",
+          "category": "Super Capabilities"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "super-capabilities",
+      "recommended_canonical_route": "/future/super"
+    },
+    {
+      "key": "frontend/src/pages/future/Supreme.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/supreme",
+          "label": "Supreme",
+          "platform": "Encyclopedia",
+          "category": "Supreme Capabilities"
+        },
+        {
+          "route": "/future/supreme",
+          "label": "Supreme",
+          "platform": "Encyclopedia",
+          "category": "Supreme Capabilities"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "supreme",
+      "recommended_canonical_route": "/future/supreme"
+    },
+    {
+      "key": "frontend/src/pages/future/Ultra.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/ultra",
+          "label": "Ultra Scale",
+          "platform": "Encyclopedia",
+          "category": "Ultra Capabilities"
+        },
+        {
+          "route": "/vision/ultra-scale",
+          "label": "Ultra Scale",
+          "platform": "Encyclopedia",
+          "category": "Ultra Scale"
+        },
+        {
+          "route": "/future/ultra",
+          "label": "Ultra Scale",
+          "platform": "Encyclopedia",
+          "category": "Ultra Scale"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "ultra-scale",
+      "recommended_canonical_route": "/future/ultra"
+    },
+    {
+      "key": "frontend/src/pages/future/advanced/Matrix.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/advanced-horizons/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Advanced Horizons"
+        },
+        {
+          "route": "/future/advanced/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Advanced Horizons"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "capability-matrix",
+      "recommended_canonical_route": "/future/advanced/matrix"
+    },
+    {
+      "key": "frontend/src/pages/future/ascend/Matrix.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/ascend/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Ascend Capabilities"
+        },
+        {
+          "route": "/future/ascend/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Ascend Capabilities"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "capability-matrix",
+      "recommended_canonical_route": "/future/ascend/matrix"
+    },
+    {
+      "key": "frontend/src/pages/future/core_os/Matrix.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/core-os-engines/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Core OS Engines"
+        },
+        {
+          "route": "/future/core_os/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Core OS Engines"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "capability-matrix",
+      "recommended_canonical_route": "/future/core_os/matrix"
+    },
+    {
+      "key": "frontend/src/pages/future/hyper/Matrix.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/hyper-network/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Hyper Network"
+        },
+        {
+          "route": "/future/hyper/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Hyper Network"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "capability-matrix",
+      "recommended_canonical_route": "/future/hyper/matrix"
+    },
+    {
+      "key": "frontend/src/pages/future/meta/Matrix.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/meta-envelope/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Meta Envelope"
+        },
+        {
+          "route": "/future/meta/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Meta Envelope"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "capability-matrix",
+      "recommended_canonical_route": "/future/meta/matrix"
+    },
+    {
+      "key": "frontend/src/pages/future/super/Matrix.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/super-capabilities/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Super Capabilities"
+        },
+        {
+          "route": "/future/super/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Super Capabilities"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "capability-matrix",
+      "recommended_canonical_route": "/future/super/matrix"
+    },
+    {
+      "key": "frontend/src/pages/future/supreme/Matrix.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/supreme/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Supreme Capabilities"
+        },
+        {
+          "route": "/future/supreme/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Supreme Capabilities"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "capability-matrix",
+      "recommended_canonical_route": "/future/supreme/matrix"
+    },
+    {
+      "key": "frontend/src/pages/future/ultra/Matrix.tsx",
+      "occurrences": [
+        {
+          "route": "/vision/ultra-scale/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Ultra Scale"
+        },
+        {
+          "route": "/future/ultra/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Ultra Scale"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "capability-matrix",
+      "recommended_canonical_route": "/future/ultra/matrix"
+    },
+    {
+      "key": "frontend/src/pages/knowledge/KnowledgeFeature.tsx",
+      "occurrences": [
+        {
+          "route": "/knowledge/perspective",
+          "label": "Perspective",
+          "platform": "Knowledge",
+          "category": "Perspective"
+        },
+        {
+          "route": "/knowledge/insight",
+          "label": "Insight",
+          "platform": "Knowledge",
+          "category": "Insight"
+        },
+        {
+          "route": "/knowledge/wisdom",
+          "label": "Wisdom",
+          "platform": "Knowledge",
+          "category": "Wisdom"
+        },
+        {
+          "route": "/knowledge/experience",
+          "label": "Experience",
+          "platform": "Knowledge",
+          "category": "Experience"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "perspective",
+      "recommended_canonical_route": "/knowledge/experience"
+    },
+    {
+      "key": "frontend/src/pages/settings/Preferences.tsx",
+      "occurrences": [
+        {
+          "route": "/settings/preferences",
+          "label": "Preferences",
+          "platform": "Settings",
+          "category": "User & Tenant Settings"
+        },
+        {
+          "route": "/settings/preferences",
+          "label": "Preferences",
+          "platform": "Settings",
+          "category": "Profile & Preferences"
+        }
+      ],
+      "routes_identical": true,
+      "recommended_shared_feature_key": "preferences",
+      "recommended_canonical_route": "/settings/preferences"
+    }
+  ],
+  "by_label": [
+    {
+      "key": "activity-feed",
+      "occurrences": [
+        {
+          "route": "/dashboard/core-flight-deck/activity",
+          "label": "Activity Feed",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/activity",
+          "label": "Activity Feed",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "activity-feed",
+      "recommended_canonical_route": "/activity"
+    },
+    {
+      "key": "advanced-horizons",
+      "occurrences": [
+        {
+          "route": "/vision/advanced",
+          "label": "Advanced Horizons",
+          "platform": "Encyclopedia",
+          "category": "Advanced Capabilities"
+        },
+        {
+          "route": "/vision/advanced-horizons",
+          "label": "Advanced Horizons",
+          "platform": "Encyclopedia",
+          "category": "Advanced Horizons"
+        },
+        {
+          "route": "/future/advanced",
+          "label": "Advanced Horizons",
+          "platform": "Encyclopedia",
+          "category": "Advanced Horizons"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "advanced-horizons",
+      "recommended_canonical_route": "/future/advanced"
+    },
+    {
+      "key": "analytics",
+      "occurrences": [
+        {
+          "route": "/observability/analytics",
+          "label": "Analytics",
+          "platform": "Common",
+          "category": "Telemetry & Metrics"
+        },
+        {
+          "route": "/analytics",
+          "label": "Analytics",
+          "platform": "Common",
+          "category": "Telemetry & Metrics"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "analytics",
+      "recommended_canonical_route": "/analytics"
+    },
+    {
+      "key": "api-connectors",
+      "occurrences": [
+        {
+          "route": "/drivers/connectors-integrations/api-connectors",
+          "label": "API Connectors",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/integrations/api-connectors",
+          "label": "API Connectors",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "api-connectors",
+      "recommended_canonical_route": "/drivers/connectors-integrations/api-connectors"
+    },
+    {
+      "key": "api-reference",
+      "occurrences": [
+        {
+          "route": "/docs/api",
+          "label": "API Reference",
+          "platform": "Libraries",
+          "category": "API Reference"
+        },
+        {
+          "route": "/docs/api-reference",
+          "label": "API Reference",
+          "platform": "Libraries",
+          "category": "API Reference"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "api-reference",
+      "recommended_canonical_route": "/docs/api"
+    },
+    {
+      "key": "ascend",
+      "occurrences": [
+        {
+          "route": "/vision/ascend",
+          "label": "Ascend",
+          "platform": "Encyclopedia",
+          "category": "Ascend Capabilities"
+        },
+        {
+          "route": "/future/ascend",
+          "label": "Ascend",
+          "platform": "Encyclopedia",
+          "category": "Ascend Capabilities"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "ascend",
+      "recommended_canonical_route": "/future/ascend"
+    },
+    {
+      "key": "audit-evidence",
+      "occurrences": [
+        {
+          "route": "/observability/audit",
+          "label": "Audit Evidence",
+          "platform": "Common",
+          "category": "Record Auditor & Logbook"
+        },
+        {
+          "route": "/audit",
+          "label": "Audit Evidence",
+          "platform": "Common",
+          "category": "Record Auditor & Logbook"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "audit-evidence",
+      "recommended_canonical_route": "/audit"
+    },
+    {
+      "key": "billing-usage",
+      "occurrences": [
+        {
+          "route": "/governance/billing",
+          "label": "Billing & Usage",
+          "platform": "Audit Official Records",
+          "category": "AI Billing & Cost Governance"
+        },
+        {
+          "route": "/billing",
+          "label": "Billing & Usage",
+          "platform": "Audit Official Records",
+          "category": "AI Billing & Cost Governance"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "billing-usage",
+      "recommended_canonical_route": "/billing"
+    },
+    {
+      "key": "calendar-timeline",
+      "occurrences": [
+        {
+          "route": "/dashboard/core-flight-deck/timeline",
+          "label": "Calendar / Timeline",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/timeline",
+          "label": "Calendar / Timeline",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "calendar-timeline",
+      "recommended_canonical_route": "/dashboard/core-flight-deck/timeline"
+    },
+    {
+      "key": "capability-matrix",
+      "occurrences": [
+        {
+          "route": "/vision/core-os-engines/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Core OS Engines"
+        },
+        {
+          "route": "/future/core_os/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Core OS Engines"
+        },
+        {
+          "route": "/vision/super-capabilities/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Super Capabilities"
+        },
+        {
+          "route": "/future/super/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Super Capabilities"
+        },
+        {
+          "route": "/vision/supreme/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Supreme Capabilities"
+        },
+        {
+          "route": "/future/supreme/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Supreme Capabilities"
+        },
+        {
+          "route": "/vision/ascend/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Ascend Capabilities"
+        },
+        {
+          "route": "/future/ascend/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Ascend Capabilities"
+        },
+        {
+          "route": "/vision/advanced-horizons/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Advanced Horizons"
+        },
+        {
+          "route": "/future/advanced/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Advanced Horizons"
+        },
+        {
+          "route": "/vision/meta-envelope/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Meta Envelope"
+        },
+        {
+          "route": "/future/meta/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Meta Envelope"
+        },
+        {
+          "route": "/vision/hyper-network/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Hyper Network"
+        },
+        {
+          "route": "/future/hyper/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Hyper Network"
+        },
+        {
+          "route": "/vision/ultra-scale/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Ultra Scale"
+        },
+        {
+          "route": "/future/ultra/matrix",
+          "label": "Capability Matrix",
+          "platform": "Encyclopedia",
+          "category": "Ultra Scale"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "capability-matrix",
+      "recommended_canonical_route": "/future/advanced/matrix"
+    },
+    {
+      "key": "chat",
+      "occurrences": [
+        {
+          "route": "/dashboard/engagement/chat",
+          "label": "Chat",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/chat",
+          "label": "Chat",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "chat",
+      "recommended_canonical_route": "/chat"
+    },
+    {
+      "key": "collaboration",
+      "occurrences": [
+        {
+          "route": "/dashboard/engagement/collaboration",
+          "label": "Collaboration",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/collaboration",
+          "label": "Collaboration",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "collaboration",
+      "recommended_canonical_route": "/collaboration"
+    },
+    {
+      "key": "connector-health",
+      "occurrences": [
+        {
+          "route": "/drivers/connectors-integrations/health",
+          "label": "Connector Health",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/integrations/health",
+          "label": "Connector Health",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "connector-health",
+      "recommended_canonical_route": "/drivers/connectors-integrations/health"
+    },
+    {
+      "key": "connectors-overview",
+      "occurrences": [
+        {
+          "route": "/drivers/connectors-integrations/connectors",
+          "label": "Connectors Overview",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/integrations/connectors",
+          "label": "Connectors Overview",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "connectors-overview",
+      "recommended_canonical_route": "/drivers/connectors-integrations/connectors"
+    },
+    {
+      "key": "conversation-library",
+      "occurrences": [
+        {
+          "route": "/dashboard/engagement-persona-surfaces/library",
+          "label": "Conversation Library",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/chat/library",
+          "label": "Conversation Library",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "conversation-library",
+      "recommended_canonical_route": "/chat/library"
+    },
+    {
+      "key": "core-os-engines",
+      "occurrences": [
+        {
+          "route": "/vision/core-os",
+          "label": "Core OS Engines",
+          "platform": "Encyclopedia",
+          "category": "Core OS Engines"
+        },
+        {
+          "route": "/vision/core-os-engines",
+          "label": "Core OS Engines",
+          "platform": "Encyclopedia",
+          "category": "Core OS Engines"
+        },
+        {
+          "route": "/future/core_os",
+          "label": "Core OS Engines",
+          "platform": "Encyclopedia",
+          "category": "Core OS Engines"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "core-os-engines",
+      "recommended_canonical_route": "/future/core_os"
+    },
+    {
+      "key": "credential-vault",
+      "occurrences": [
+        {
+          "route": "/drivers/connectors-integrations/credentials",
+          "label": "Credential Vault",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/integrations/credentials",
+          "label": "Credential Vault",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "credential-vault",
+      "recommended_canonical_route": "/drivers/connectors-integrations/credentials"
+    },
+    {
+      "key": "dashboard",
+      "occurrences": [
+        {
+          "route": "/dashboard/flight-deck",
+          "label": "Dashboard",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/core/dashboard",
+          "label": "Dashboard",
+          "platform": "Core",
+          "category": "Overview"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "dashboard",
+      "recommended_canonical_route": "/core/dashboard"
+    },
+    {
+      "key": "data-mapping-transformations",
+      "occurrences": [
+        {
+          "route": "/drivers/connectors-integrations/mappings",
+          "label": "Data Mapping & Transformations",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/integrations/mappings",
+          "label": "Data Mapping & Transformations",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "data-mapping-transformations",
+      "recommended_canonical_route": "/drivers/connectors-integrations/mappings"
+    },
+    {
+      "key": "data-overview",
+      "occurrences": [
+        {
+          "route": "/data/core-data-stores/data",
+          "label": "Data Overview",
+          "platform": "Knowledge",
+          "category": "Core Data Stores"
+        },
+        {
+          "route": "/data",
+          "label": "Data Overview",
+          "platform": "Knowledge",
+          "category": "Core Data Stores"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "data-overview",
+      "recommended_canonical_route": "/data"
+    },
+    {
+      "key": "data-protection",
+      "occurrences": [
+        {
+          "route": "/governance/data-protection",
+          "label": "Data Protection",
+          "platform": "Audit Official Records",
+          "category": "Data Protection & Classification"
+        },
+        {
+          "route": "/data/data-protection",
+          "label": "Data Protection",
+          "platform": "Knowledge",
+          "category": "Data Protection"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "data-protection",
+      "recommended_canonical_route": "/data/data-protection"
+    },
+    {
+      "key": "deployment-modes",
+      "occurrences": [
+        {
+          "route": "/mission/modes",
+          "label": "Deployment Modes",
+          "platform": "Common",
+          "category": "Mission & Identity"
+        },
+        {
+          "route": "/operations/deployment",
+          "label": "Deployment Modes",
+          "platform": "Systems",
+          "category": "Deployment Models"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "deployment-modes",
+      "recommended_canonical_route": "/mission/modes"
+    },
+    {
+      "key": "developer-tools",
+      "occurrences": [
+        {
+          "route": "/workspaces/dev/tools",
+          "label": "Developer Tools",
+          "platform": "Workstation",
+          "category": "Dev & DevOps Workspace"
+        },
+        {
+          "route": "/work/tools",
+          "label": "Developer Tools",
+          "platform": "Workstation",
+          "category": "Dev & DevOps Workspace"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "developer-tools",
+      "recommended_canonical_route": "/work/tools"
+    },
+    {
+      "key": "digital-twin-builder",
+      "occurrences": [
+        {
+          "route": "/workspaces/twins",
+          "label": "Digital Twin Builder",
+          "platform": "Simulations",
+          "category": "Digital Twin & Enterprise Twin Workspace"
+        },
+        {
+          "route": "/workspaces/research/digital-twins",
+          "label": "Digital Twin Builder",
+          "platform": "Research",
+          "category": "Research & Simulation Workspace"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "digital-twin-builder",
+      "recommended_canonical_route": "/workspaces/research/digital-twins"
+    },
+    {
+      "key": "docs-hub",
+      "occurrences": [
+        {
+          "route": "/docs/documentation-hub/docs",
+          "label": "Docs Hub",
+          "platform": "Libraries",
+          "category": "Documentation Hub"
+        },
+        {
+          "route": "/docs",
+          "label": "Docs Hub",
+          "platform": "Libraries",
+          "category": "Documentation Hub"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "docs-hub",
+      "recommended_canonical_route": "/docs"
+    },
+    {
+      "key": "driver-registry",
+      "occurrences": [
+        {
+          "route": "/ai/drivers",
+          "label": "Driver Registry",
+          "platform": "Automation",
+          "category": "Driver Fabric & System Execution"
+        },
+        {
+          "route": "/drivers/registry",
+          "label": "Driver Registry",
+          "platform": "Systems",
+          "category": "Driver Registry"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "driver-registry",
+      "recommended_canonical_route": "/ai/drivers"
+    },
+    {
+      "key": "evidence",
+      "occurrences": [
+        {
+          "route": "/core/operations/evidence",
+          "label": "Evidence",
+          "platform": "Core",
+          "category": "Operations"
+        },
+        {
+          "route": "/audit-official-records/operations/evidence",
+          "label": "Evidence",
+          "platform": "Audit Official Records",
+          "category": "Operations"
+        },
+        {
+          "route": "/settings/operations/evidence",
+          "label": "Evidence",
+          "platform": "Settings",
+          "category": "Operations"
+        },
+        {
+          "route": "/admin/operations/evidence",
+          "label": "Evidence",
+          "platform": "Admin",
+          "category": "Operations"
+        },
+        {
+          "route": "/simulations/operations/evidence",
+          "label": "Evidence",
+          "platform": "Simulations",
+          "category": "Operations"
+        },
+        {
+          "route": "/simulations/controls/evidence",
+          "label": "Evidence",
+          "platform": "Simulations",
+          "category": "Controls"
+        },
+        {
+          "route": "/libraries/operations/evidence",
+          "label": "Evidence",
+          "platform": "Libraries",
+          "category": "Operations"
+        },
+        {
+          "route": "/libraries/controls/evidence",
+          "label": "Evidence",
+          "platform": "Libraries",
+          "category": "Controls"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "evidence",
+      "recommended_canonical_route": "/admin/operations/evidence"
+    },
+    {
+      "key": "evidence-builder",
+      "occurrences": [
+        {
+          "route": "/observability/record-auditor-logbook/builder",
+          "label": "Evidence Builder",
+          "platform": "Common",
+          "category": "Record Auditor & Logbook"
+        },
+        {
+          "route": "/audit/builder",
+          "label": "Evidence Builder",
+          "platform": "Common",
+          "category": "Record Auditor & Logbook"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "evidence-builder",
+      "recommended_canonical_route": "/audit/builder"
+    },
+    {
+      "key": "evidence-packs",
+      "occurrences": [
+        {
+          "route": "/observability/evidence",
+          "label": "Evidence Packs",
+          "platform": "Common",
+          "category": "Evidence Packs"
+        },
+        {
+          "route": "/audit/evidence-packs",
+          "label": "Evidence Packs",
+          "platform": "Audit Official Records",
+          "category": "Record Auditor & Logbook"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "evidence-packs",
+      "recommended_canonical_route": "/audit/evidence-packs"
+    },
+    {
+      "key": "glossary",
+      "occurrences": [
+        {
+          "route": "/encyclopedia/glossary",
+          "label": "Glossary",
+          "platform": "Encyclopedia",
+          "category": "Glossary"
+        },
+        {
+          "route": "/docs/glossary",
+          "label": "Glossary",
+          "platform": "Libraries",
+          "category": "Documentation Hub"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "glossary",
+      "recommended_canonical_route": "/docs/glossary"
+    },
+    {
+      "key": "hyper-network",
+      "occurrences": [
+        {
+          "route": "/vision/hyper",
+          "label": "Hyper Network",
+          "platform": "Encyclopedia",
+          "category": "Hyper Capabilities"
+        },
+        {
+          "route": "/vision/hyper-network",
+          "label": "Hyper Network",
+          "platform": "Encyclopedia",
+          "category": "Hyper Network"
+        },
+        {
+          "route": "/future/hyper",
+          "label": "Hyper Network",
+          "platform": "Encyclopedia",
+          "category": "Hyper Network"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "hyper-network",
+      "recommended_canonical_route": "/future/hyper"
+    },
+    {
+      "key": "identity-roles",
+      "occurrences": [
+        {
+          "route": "/mission/identity",
+          "label": "Identity & Roles",
+          "platform": "Common",
+          "category": "Mission & Identity"
+        },
+        {
+          "route": "/governance/identity",
+          "label": "Identity & Roles",
+          "platform": "Audit Official Records",
+          "category": "Identity & Access"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "identity-roles",
+      "recommended_canonical_route": "/governance/identity"
+    },
+    {
+      "key": "mcp-gateway",
+      "occurrences": [
+        {
+          "route": "/drivers/connectors-integrations/mcp-gateway",
+          "label": "MCP Gateway",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/integrations/mcp-gateway",
+          "label": "MCP Gateway",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "mcp-gateway",
+      "recommended_canonical_route": "/drivers/connectors-integrations/mcp-gateway"
+    },
+    {
+      "key": "mentions-presence",
+      "occurrences": [
+        {
+          "route": "/dashboard/engagement-persona-surfaces/presence",
+          "label": "Mentions & Presence",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/collaboration/presence",
+          "label": "Mentions & Presence",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "mentions-presence",
+      "recommended_canonical_route": "/collaboration/presence"
+    },
+    {
+      "key": "meta-envelope",
+      "occurrences": [
+        {
+          "route": "/vision/meta-envelope",
+          "label": "Meta Envelope",
+          "platform": "Encyclopedia",
+          "category": "Meta Envelope"
+        },
+        {
+          "route": "/vision/meta",
+          "label": "Meta Envelope",
+          "platform": "Encyclopedia",
+          "category": "Meta Envelope"
+        },
+        {
+          "route": "/future/meta",
+          "label": "Meta Envelope",
+          "platform": "Encyclopedia",
+          "category": "Meta Envelope"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "meta-envelope",
+      "recommended_canonical_route": "/future/meta"
+    },
+    {
+      "key": "mlops",
+      "occurrences": [
+        {
+          "route": "/ai/mlops",
+          "label": "MLOps",
+          "platform": "Automation",
+          "category": "MLOps & Neural Architecture"
+        },
+        {
+          "route": "/ai-fabric/mlops-neural-arch/mlops",
+          "label": "Mlops",
+          "platform": "Automation",
+          "category": "Mlops Neural Arch"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "mlops",
+      "recommended_canonical_route": "/ai-fabric/mlops-neural-arch/mlops"
+    },
+    {
+      "key": "monitoring",
+      "occurrences": [
+        {
+          "route": "/observability/monitoring",
+          "label": "Monitoring",
+          "platform": "Common",
+          "category": "Telemetry & Metrics"
+        },
+        {
+          "route": "/monitoring",
+          "label": "Monitoring",
+          "platform": "Common",
+          "category": "Telemetry & Metrics"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "monitoring",
+      "recommended_canonical_route": "/monitoring"
+    },
+    {
+      "key": "network-monitoring",
+      "occurrences": [
+        {
+          "route": "/operations/infrastructure-topology/network",
+          "label": "Network Monitoring",
+          "platform": "Systems",
+          "category": "Infrastructure & Topology"
+        },
+        {
+          "route": "/systems/network",
+          "label": "Network Monitoring",
+          "platform": "Systems",
+          "category": "Infrastructure & Topology"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "network-monitoring",
+      "recommended_canonical_route": "/operations/infrastructure-topology/network"
+    },
+    {
+      "key": "notifications-center",
+      "occurrences": [
+        {
+          "route": "/dashboard/core-flight-deck/notifications",
+          "label": "Notifications Center",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/notifications",
+          "label": "Notifications Center",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "notifications-center",
+      "recommended_canonical_route": "/dashboard/core-flight-deck/notifications"
+    },
+    {
+      "key": "observability-overview",
+      "occurrences": [
+        {
+          "route": "/observability/telemetry-metrics/observability",
+          "label": "Observability Overview",
+          "platform": "Common",
+          "category": "Telemetry & Metrics"
+        },
+        {
+          "route": "/observability",
+          "label": "Observability Overview",
+          "platform": "Common",
+          "category": "Telemetry & Metrics"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "observability-overview",
+      "recommended_canonical_route": "/observability"
+    },
+    {
+      "key": "office-realtime",
+      "occurrences": [
+        {
+          "route": "/drivers/connectors-integrations/office",
+          "label": "Office Realtime",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/integrations/office",
+          "label": "Office Realtime",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "office-realtime",
+      "recommended_canonical_route": "/drivers/connectors-integrations/office"
+    },
+    {
+      "key": "overview",
+      "occurrences": [
+        {
+          "route": "/core/overview/overview-1",
+          "label": "Overview",
+          "platform": "Core",
+          "category": "Overview"
+        },
+        {
+          "route": "/core/overview/overview",
+          "label": "Overview",
+          "platform": "Core",
+          "category": "Overview"
+        },
+        {
+          "route": "/core/operations/overview",
+          "label": "Overview",
+          "platform": "Core",
+          "category": "Operations"
+        },
+        {
+          "route": "/common/cookbook-lab/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Cookbook Lab"
+        },
+        {
+          "route": "/common/cookbook-lab/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Cookbook Lab"
+        },
+        {
+          "route": "/common/data-knowledge-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Data Knowledge Home"
+        },
+        {
+          "route": "/common/data-knowledge-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Data Knowledge Home"
+        },
+        {
+          "route": "/common/docs-spec-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Docs Spec Home"
+        },
+        {
+          "route": "/common/docs-spec-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Docs Spec Home"
+        },
+        {
+          "route": "/common/drivers-integrations-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Drivers Integrations Home"
+        },
+        {
+          "route": "/common/drivers-integrations-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Drivers Integrations Home"
+        },
+        {
+          "route": "/common/governance-security-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Governance Security Home"
+        },
+        {
+          "route": "/common/governance-security-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Governance Security Home"
+        },
+        {
+          "route": "/common/mission-architecture-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Mission Architecture Home"
+        },
+        {
+          "route": "/common/mission-architecture-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Mission Architecture Home"
+        },
+        {
+          "route": "/common/observability-evidence-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Observability Evidence Home"
+        },
+        {
+          "route": "/common/observability-evidence-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Observability Evidence Home"
+        },
+        {
+          "route": "/common/operations-infrastructure-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Operations Infrastructure Home"
+        },
+        {
+          "route": "/common/operations-infrastructure-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Operations Infrastructure Home"
+        },
+        {
+          "route": "/common/roadmap-risks-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Roadmap Risks Home"
+        },
+        {
+          "route": "/common/roadmap-risks-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Roadmap Risks Home"
+        },
+        {
+          "route": "/common/settings-admin-enterprise-extensions-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Settings Admin Enterprise Extensions Home"
+        },
+        {
+          "route": "/common/settings-admin-enterprise-extensions-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Settings Admin Enterprise Extensions Home"
+        },
+        {
+          "route": "/common/settings-admin-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Settings Admin Home"
+        },
+        {
+          "route": "/common/settings-admin-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Settings Admin Home"
+        },
+        {
+          "route": "/common/vision-meta-stack-home/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Vision Meta Stack Home"
+        },
+        {
+          "route": "/common/vision-meta-stack-home/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Vision Meta Stack Home"
+        },
+        {
+          "route": "/common/concept-studio/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Concept Studio"
+        },
+        {
+          "route": "/common/concept-studio/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Concept Studio"
+        },
+        {
+          "route": "/common/planes-architecture/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Planes Architecture"
+        },
+        {
+          "route": "/common/architecture-principles/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Architecture Principles"
+        },
+        {
+          "route": "/common/architecture-principles/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Architecture Principles"
+        },
+        {
+          "route": "/common/mission-identity/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Mission Identity"
+        },
+        {
+          "route": "/common/mission-identity/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Mission Identity"
+        },
+        {
+          "route": "/common/telemetry-metrics/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Telemetry Metrics"
+        },
+        {
+          "route": "/common/telemetry-metrics/overview-1",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Telemetry Metrics"
+        },
+        {
+          "route": "/common/files-and-storage/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Files & Storage"
+        },
+        {
+          "route": "/common/integrations/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Integrations"
+        },
+        {
+          "route": "/common/mission-control/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Mission Control"
+        },
+        {
+          "route": "/common/metrics-and-telemetry/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Metrics & Telemetry"
+        },
+        {
+          "route": "/common/health-and-monitoring/overview",
+          "label": "Overview",
+          "platform": "Common",
+          "category": "Health & Monitoring"
+        },
+        {
+          "route": "/audit-official-records/record-auditor-and-logbook/overview",
+          "label": "Overview",
+          "platform": "Audit Official Records",
+          "category": "Record Auditor & Logbook"
+        },
+        {
+          "route": "/audit-official-records/operations/overview",
+          "label": "Overview",
+          "platform": "Audit Official Records",
+          "category": "Operations"
+        },
+        {
+          "route": "/audit-official-records/governance-center/overview",
+          "label": "Overview",
+          "platform": "Audit Official Records",
+          "category": "Governance Center"
+        },
+        {
+          "route": "/audit-official-records/compliance-and-regulator-fabric/overview",
+          "label": "Overview",
+          "platform": "Audit Official Records",
+          "category": "Compliance & Regulator Fabric"
+        },
+        {
+          "route": "/audit-official-records/security-monitoring-and-response/overview",
+          "label": "Overview",
+          "platform": "Audit Official Records",
+          "category": "Security Monitoring & Response"
+        },
+        {
+          "route": "/audit-official-records/regulator-console/overview",
+          "label": "Overview",
+          "platform": "Audit Official Records",
+          "category": "Regulator Console"
+        },
+        {
+          "route": "/automation/intent-processing/overview",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Intent Processing"
+        },
+        {
+          "route": "/automation/cognitive-agents/overview",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Cognitive Agents"
+        },
+        {
+          "route": "/automation/cognitive-agents/overview-1",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Cognitive Agents"
+        },
+        {
+          "route": "/automation/edge-vision/overview",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Edge Vision"
+        },
+        {
+          "route": "/automation/edge-vision/overview-1",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Edge Vision"
+        },
+        {
+          "route": "/automation/mlops-neural-arch/overview",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Mlops Neural Arch"
+        },
+        {
+          "route": "/automation/mlops-neural-arch/overview-1",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Mlops Neural Arch"
+        },
+        {
+          "route": "/automation/workflows-and-capsules/overview",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Workflows & Capsules"
+        },
+        {
+          "route": "/automation/automation-hub/overview",
+          "label": "Overview",
+          "platform": "Automation",
+          "category": "Automation Hub"
+        },
+        {
+          "route": "/settings/profile-and-preferences/overview",
+          "label": "Overview",
+          "platform": "Settings",
+          "category": "Profile & Preferences"
+        },
+        {
+          "route": "/settings/operations/overview",
+          "label": "Overview",
+          "platform": "Settings",
+          "category": "Operations"
+        },
+        {
+          "route": "/admin/users-and-roles/overview",
+          "label": "Overview",
+          "platform": "Admin",
+          "category": "Users & Roles"
+        },
+        {
+          "route": "/admin/operations/overview",
+          "label": "Overview",
+          "platform": "Admin",
+          "category": "Operations"
+        },
+        {
+          "route": "/admin/admin-console/overview",
+          "label": "Overview",
+          "platform": "Admin",
+          "category": "Admin Console"
+        },
+        {
+          "route": "/admin/tenants/overview",
+          "label": "Overview",
+          "platform": "Admin",
+          "category": "Tenants"
+        },
+        {
+          "route": "/admin/billing-and-usage/overview",
+          "label": "Overview",
+          "platform": "Admin",
+          "category": "Billing & Usage"
+        },
+        {
+          "route": "/admin/approvals/overview",
+          "label": "Overview",
+          "platform": "Admin",
+          "category": "Approvals"
+        },
+        {
+          "route": "/workstation/writer-workstation/overview",
+          "label": "Overview",
+          "platform": "Workstation",
+          "category": "Writer Workstation"
+        },
+        {
+          "route": "/workstation/dev-workstation/overview",
+          "label": "Overview",
+          "platform": "Workstation",
+          "category": "Dev Workstation"
+        },
+        {
+          "route": "/workstation/workstation-hub/overview",
+          "label": "Overview",
+          "platform": "Workstation",
+          "category": "Workstation Hub"
+        },
+        {
+          "route": "/systems/driver-registry/overview",
+          "label": "Overview",
+          "platform": "Systems",
+          "category": "Driver Registry"
+        },
+        {
+          "route": "/drivers/driver-registry-management/drivers",
+          "label": "Overview",
+          "platform": "Systems",
+          "category": "Driver Registry & Management"
+        },
+        {
+          "route": "/integrations",
+          "label": "Overview",
+          "platform": "Systems",
+          "category": "Driver Registry & Management"
+        },
+        {
+          "route": "/systems/deployment-models/overview",
+          "label": "Overview",
+          "platform": "Systems",
+          "category": "Deployment Models"
+        },
+        {
+          "route": "/systems/observability/overview",
+          "label": "Overview",
+          "platform": "Systems",
+          "category": "Observability"
+        },
+        {
+          "route": "/systems/drivers-hub/overview",
+          "label": "Overview",
+          "platform": "Systems",
+          "category": "Drivers Hub"
+        },
+        {
+          "route": "/simulations/simulation-hub/overview",
+          "label": "Overview",
+          "platform": "Simulations",
+          "category": "Simulation Hub"
+        },
+        {
+          "route": "/simulations/simulation-home/overview",
+          "label": "Overview",
+          "platform": "Simulations",
+          "category": "Simulation Home"
+        },
+        {
+          "route": "/simulations/operations/overview",
+          "label": "Overview",
+          "platform": "Simulations",
+          "category": "Operations"
+        },
+        {
+          "route": "/simulations/controls/overview",
+          "label": "Overview",
+          "platform": "Simulations",
+          "category": "Controls"
+        },
+        {
+          "route": "/research/research-simulation/overview",
+          "label": "Overview",
+          "platform": "Research",
+          "category": "Research Simulation"
+        },
+        {
+          "route": "/research/research-simulation/overview-1",
+          "label": "Overview",
+          "platform": "Research",
+          "category": "Research Simulation"
+        },
+        {
+          "route": "/research/projects-and-experiments/overview",
+          "label": "Overview",
+          "platform": "Research",
+          "category": "Projects & Experiments"
+        },
+        {
+          "route": "/research/future-capabilities/overview",
+          "label": "Overview",
+          "platform": "Research",
+          "category": "Future Capabilities"
+        },
+        {
+          "route": "/research/risk-register/overview",
+          "label": "Overview",
+          "platform": "Research",
+          "category": "Risk Register"
+        },
+        {
+          "route": "/research/open-questions/overview",
+          "label": "Overview",
+          "platform": "Research",
+          "category": "Open Questions"
+        },
+        {
+          "route": "/encyclopedia/topics/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Topics"
+        },
+        {
+          "route": "/encyclopedia/topics/overview-1",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Topics"
+        },
+        {
+          "route": "/encyclopedia/explanations/overview-1",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Explanations"
+        },
+        {
+          "route": "/encyclopedia/explanations/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Explanations"
+        },
+        {
+          "route": "/encyclopedia/history/overview-1",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "History"
+        },
+        {
+          "route": "/encyclopedia/history/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "History"
+        },
+        {
+          "route": "/encyclopedia/glossary/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Glossary"
+        },
+        {
+          "route": "/encyclopedia/glossary/overview-1",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Glossary"
+        },
+        {
+          "route": "/encyclopedia/advanced-capabilities/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Advanced Capabilities"
+        },
+        {
+          "route": "/encyclopedia/hyper-capabilities/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Hyper Capabilities"
+        },
+        {
+          "route": "/encyclopedia/ultra-capabilities/overview",
+          "label": "Overview",
+          "platform": "Encyclopedia",
+          "category": "Ultra Capabilities"
+        },
+        {
+          "route": "/libraries/getting-started/overview",
+          "label": "Overview",
+          "platform": "Libraries",
+          "category": "Getting Started"
+        },
+        {
+          "route": "/libraries/capsule-library/overview",
+          "label": "Overview",
+          "platform": "Libraries",
+          "category": "Capsule Library"
+        },
+        {
+          "route": "/libraries/operations/overview",
+          "label": "Overview",
+          "platform": "Libraries",
+          "category": "Operations"
+        },
+        {
+          "route": "/libraries/controls/overview",
+          "label": "Overview",
+          "platform": "Libraries",
+          "category": "Controls"
+        },
+        {
+          "route": "/knowledge/archive-and-backup/overview",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Archive & Backup"
+        },
+        {
+          "route": "/knowledge/multi-region-and-replication/overview",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Multi-Region & Replication"
+        },
+        {
+          "route": "/knowledge/perspective/overview-1",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Perspective"
+        },
+        {
+          "route": "/knowledge/perspective/overview",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Perspective"
+        },
+        {
+          "route": "/knowledge/insight/overview-1",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Insight"
+        },
+        {
+          "route": "/knowledge/insight/overview",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Insight"
+        },
+        {
+          "route": "/knowledge/wisdom/overview-1",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Wisdom"
+        },
+        {
+          "route": "/knowledge/wisdom/overview",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Wisdom"
+        },
+        {
+          "route": "/knowledge/experience/overview-1",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Experience"
+        },
+        {
+          "route": "/knowledge/experience/overview",
+          "label": "Overview",
+          "platform": "Knowledge",
+          "category": "Experience"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "overview",
+      "recommended_canonical_route": "/admin/admin-console/overview"
+    },
+    {
+      "key": "personalization",
+      "occurrences": [
+        {
+          "route": "/dashboard/engagement/personalization",
+          "label": "Personalization",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/personalization",
+          "label": "Personalization",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "personalization",
+      "recommended_canonical_route": "/dashboard/engagement/personalization"
+    },
+    {
+      "key": "planes-architecture",
+      "occurrences": [
+        {
+          "route": "/legacy/planes-architecture",
+          "label": "Planes Architecture",
+          "platform": "Common",
+          "category": "Planes Architecture"
+        },
+        {
+          "route": "/mission/planes-architecture",
+          "label": "Planes Architecture",
+          "platform": "Common",
+          "category": "Planes Architecture"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "planes-architecture",
+      "recommended_canonical_route": "/legacy/planes-architecture"
+    },
+    {
+      "key": "preference-profiles",
+      "occurrences": [
+        {
+          "route": "/dashboard/engagement-persona-surfaces/profiles",
+          "label": "Preference Profiles",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/personalization/profiles",
+          "label": "Preference Profiles",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "preference-profiles",
+      "recommended_canonical_route": "/dashboard/engagement-persona-surfaces/profiles"
+    },
+    {
+      "key": "preferences",
+      "occurrences": [
+        {
+          "route": "/settings/preferences",
+          "label": "Preferences",
+          "platform": "Settings",
+          "category": "User & Tenant Settings"
+        },
+        {
+          "route": "/settings/preferences",
+          "label": "Preferences",
+          "platform": "Settings",
+          "category": "Profile & Preferences"
+        }
+      ],
+      "routes_identical": true,
+      "recommended_shared_feature_key": "preferences",
+      "recommended_canonical_route": "/settings/preferences"
+    },
+    {
+      "key": "project-ledger",
+      "occurrences": [
+        {
+          "route": "/ai/capsules/ledger",
+          "label": "Project Ledger",
+          "platform": "Automation",
+          "category": "Capsules & Workflow Automation"
+        },
+        {
+          "route": "/data/ledger",
+          "label": "Project Ledger",
+          "platform": "Knowledge",
+          "category": "Core Data Stores"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "project-ledger",
+      "recommended_canonical_route": "/ai/capsules/ledger"
+    },
+    {
+      "key": "project-members-roles",
+      "occurrences": [
+        {
+          "route": "/dashboard/core-flight-deck/members",
+          "label": "Project Members & Roles",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/projects/members",
+          "label": "Project Members & Roles",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "project-members-roles",
+      "recommended_canonical_route": "/dashboard/core-flight-deck/members"
+    },
+    {
+      "key": "project-settings",
+      "occurrences": [
+        {
+          "route": "/dashboard/core-flight-deck/settings",
+          "label": "Project Settings",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/projects/settings",
+          "label": "Project Settings",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "project-settings",
+      "recommended_canonical_route": "/dashboard/core-flight-deck/settings"
+    },
+    {
+      "key": "project-templates",
+      "occurrences": [
+        {
+          "route": "/dashboard/core-flight-deck/templates",
+          "label": "Project Templates",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/projects/templates",
+          "label": "Project Templates",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "project-templates",
+      "recommended_canonical_route": "/dashboard/core-flight-deck/templates"
+    },
+    {
+      "key": "projects",
+      "occurrences": [
+        {
+          "route": "/dashboard/flight-deck/projects",
+          "label": "Projects",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/projects",
+          "label": "Projects",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/pms/projects",
+          "label": "Projects",
+          "platform": "Workstation",
+          "category": "Master Stack & Project Management Engine"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "projects",
+      "recommended_canonical_route": "/dashboard/flight-deck/projects"
+    },
+    {
+      "key": "prompt-macro-library",
+      "occurrences": [
+        {
+          "route": "/dashboard/engagement-persona-surfaces/macros",
+          "label": "Prompt / Macro Library",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/personalization/macros",
+          "label": "Prompt / Macro Library",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "prompt-macro-library",
+      "recommended_canonical_route": "/dashboard/engagement-persona-surfaces/macros"
+    },
+    {
+      "key": "rate-limits-quotas",
+      "occurrences": [
+        {
+          "route": "/drivers/connectors-integrations/rate-limits",
+          "label": "Rate Limits & Quotas",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/integrations/rate-limits",
+          "label": "Rate Limits & Quotas",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "rate-limits-quotas",
+      "recommended_canonical_route": "/drivers/connectors-integrations/rate-limits"
+    },
+    {
+      "key": "rbac-abac",
+      "occurrences": [
+        {
+          "route": "/governance/identity/rbac",
+          "label": "RBAC/ABAC",
+          "platform": "Audit Official Records",
+          "category": "Identity & Access"
+        },
+        {
+          "route": "/admin/access/rbac",
+          "label": "RBAC/ABAC",
+          "platform": "Admin",
+          "category": "Users & Roles"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "rbac-abac",
+      "recommended_canonical_route": "/admin/access/rbac"
+    },
+    {
+      "key": "record-auditor",
+      "occurrences": [
+        {
+          "route": "/observability/record-auditor",
+          "label": "Record Auditor",
+          "platform": "Common",
+          "category": "Record Auditor & Logbook"
+        },
+        {
+          "route": "/workspaces/auditor",
+          "label": "Record Auditor",
+          "platform": "Workstation",
+          "category": "Record Auditor & Logbook Workspace"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "record-auditor",
+      "recommended_canonical_route": "/observability/record-auditor"
+    },
+    {
+      "key": "research-hub",
+      "occurrences": [
+        {
+          "route": "/workspaces/research",
+          "label": "Research Hub",
+          "platform": "Research",
+          "category": "Research & Simulation Workspace"
+        },
+        {
+          "route": "/research",
+          "label": "Research Hub",
+          "platform": "Research",
+          "category": "Research & Simulation Workspace"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "research-hub",
+      "recommended_canonical_route": "/research"
+    },
+    {
+      "key": "retention-policies",
+      "occurrences": [
+        {
+          "route": "/observability/retention",
+          "label": "Retention Policies",
+          "platform": "Common",
+          "category": "Evidence & Audit"
+        },
+        {
+          "route": "/workspaces/archive/retention",
+          "label": "Retention Policies",
+          "platform": "Workstation",
+          "category": "Archive & Continuity Workspace"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "retention-policies",
+      "recommended_canonical_route": "/observability/retention"
+    },
+    {
+      "key": "risk-register",
+      "occurrences": [
+        {
+          "route": "/workspaces/finance/risk",
+          "label": "Risk Register",
+          "platform": "Workstation",
+          "category": "Business & Finance Workspace"
+        },
+        {
+          "route": "/roadmap/risks",
+          "label": "Risk Register",
+          "platform": "Research",
+          "category": "Risk Register"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "risk-register",
+      "recommended_canonical_route": "/roadmap/risks"
+    },
+    {
+      "key": "runbook",
+      "occurrences": [
+        {
+          "route": "/core/overview/runbook",
+          "label": "Runbook",
+          "platform": "Core",
+          "category": "Overview"
+        },
+        {
+          "route": "/core/operations/runbook",
+          "label": "Runbook",
+          "platform": "Core",
+          "category": "Operations"
+        },
+        {
+          "route": "/common/cookbook-lab/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Cookbook Lab"
+        },
+        {
+          "route": "/common/cookbook-lab/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Cookbook Lab"
+        },
+        {
+          "route": "/common/data-knowledge-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Data Knowledge Home"
+        },
+        {
+          "route": "/common/data-knowledge-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Data Knowledge Home"
+        },
+        {
+          "route": "/common/docs-spec-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Docs Spec Home"
+        },
+        {
+          "route": "/common/docs-spec-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Docs Spec Home"
+        },
+        {
+          "route": "/common/drivers-integrations-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Drivers Integrations Home"
+        },
+        {
+          "route": "/common/drivers-integrations-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Drivers Integrations Home"
+        },
+        {
+          "route": "/common/governance-security-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Governance Security Home"
+        },
+        {
+          "route": "/common/governance-security-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Governance Security Home"
+        },
+        {
+          "route": "/common/mission-architecture-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Mission Architecture Home"
+        },
+        {
+          "route": "/common/mission-architecture-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Mission Architecture Home"
+        },
+        {
+          "route": "/common/observability-evidence-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Observability Evidence Home"
+        },
+        {
+          "route": "/common/observability-evidence-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Observability Evidence Home"
+        },
+        {
+          "route": "/common/operations-infrastructure-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Operations Infrastructure Home"
+        },
+        {
+          "route": "/common/operations-infrastructure-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Operations Infrastructure Home"
+        },
+        {
+          "route": "/common/roadmap-risks-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Roadmap Risks Home"
+        },
+        {
+          "route": "/common/roadmap-risks-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Roadmap Risks Home"
+        },
+        {
+          "route": "/common/settings-admin-enterprise-extensions-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Settings Admin Enterprise Extensions Home"
+        },
+        {
+          "route": "/common/settings-admin-enterprise-extensions-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Settings Admin Enterprise Extensions Home"
+        },
+        {
+          "route": "/common/settings-admin-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Settings Admin Home"
+        },
+        {
+          "route": "/common/settings-admin-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Settings Admin Home"
+        },
+        {
+          "route": "/common/vision-meta-stack-home/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Vision Meta Stack Home"
+        },
+        {
+          "route": "/common/vision-meta-stack-home/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Vision Meta Stack Home"
+        },
+        {
+          "route": "/common/concept-studio/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Concept Studio"
+        },
+        {
+          "route": "/common/concept-studio/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Concept Studio"
+        },
+        {
+          "route": "/common/architecture-principles/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Architecture Principles"
+        },
+        {
+          "route": "/common/architecture-principles/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Architecture Principles"
+        },
+        {
+          "route": "/common/telemetry-metrics/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Telemetry Metrics"
+        },
+        {
+          "route": "/common/telemetry-metrics/runbook-1",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Telemetry Metrics"
+        },
+        {
+          "route": "/common/files-and-storage/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Files & Storage"
+        },
+        {
+          "route": "/common/integrations/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Integrations"
+        },
+        {
+          "route": "/common/mission-control/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Mission Control"
+        },
+        {
+          "route": "/common/health-and-monitoring/runbook",
+          "label": "Runbook",
+          "platform": "Common",
+          "category": "Health & Monitoring"
+        },
+        {
+          "route": "/audit-official-records/operations/runbook",
+          "label": "Runbook",
+          "platform": "Audit Official Records",
+          "category": "Operations"
+        },
+        {
+          "route": "/audit-official-records/compliance-and-regulator-fabric/runbook",
+          "label": "Runbook",
+          "platform": "Audit Official Records",
+          "category": "Compliance & Regulator Fabric"
+        },
+        {
+          "route": "/audit-official-records/security-monitoring-and-response/runbook",
+          "label": "Runbook",
+          "platform": "Audit Official Records",
+          "category": "Security Monitoring & Response"
+        },
+        {
+          "route": "/audit-official-records/regulator-console/runbook",
+          "label": "Runbook",
+          "platform": "Audit Official Records",
+          "category": "Regulator Console"
+        },
+        {
+          "route": "/automation/intent-processing/runbook",
+          "label": "Runbook",
+          "platform": "Automation",
+          "category": "Intent Processing"
+        },
+        {
+          "route": "/automation/mlops-neural-arch/runbook",
+          "label": "Runbook",
+          "platform": "Automation",
+          "category": "Mlops Neural Arch"
+        },
+        {
+          "route": "/automation/mlops-neural-arch/runbook-1",
+          "label": "Runbook",
+          "platform": "Automation",
+          "category": "Mlops Neural Arch"
+        },
+        {
+          "route": "/automation/workflows-and-capsules/runbook",
+          "label": "Runbook",
+          "platform": "Automation",
+          "category": "Workflows & Capsules"
+        },
+        {
+          "route": "/settings/profile-and-preferences/runbook",
+          "label": "Runbook",
+          "platform": "Settings",
+          "category": "Profile & Preferences"
+        },
+        {
+          "route": "/settings/operations/runbook",
+          "label": "Runbook",
+          "platform": "Settings",
+          "category": "Operations"
+        },
+        {
+          "route": "/admin/users-and-roles/runbook",
+          "label": "Runbook",
+          "platform": "Admin",
+          "category": "Users & Roles"
+        },
+        {
+          "route": "/admin/operations/runbook",
+          "label": "Runbook",
+          "platform": "Admin",
+          "category": "Operations"
+        },
+        {
+          "route": "/admin/admin-console/runbook",
+          "label": "Runbook",
+          "platform": "Admin",
+          "category": "Admin Console"
+        },
+        {
+          "route": "/admin/tenants/runbook",
+          "label": "Runbook",
+          "platform": "Admin",
+          "category": "Tenants"
+        },
+        {
+          "route": "/admin/billing-and-usage/runbook",
+          "label": "Runbook",
+          "platform": "Admin",
+          "category": "Billing & Usage"
+        },
+        {
+          "route": "/admin/approvals/runbook",
+          "label": "Runbook",
+          "platform": "Admin",
+          "category": "Approvals"
+        },
+        {
+          "route": "/workstation/writer-workstation/runbook",
+          "label": "Runbook",
+          "platform": "Workstation",
+          "category": "Writer Workstation"
+        },
+        {
+          "route": "/workstation/dev-workstation/runbook",
+          "label": "Runbook",
+          "platform": "Workstation",
+          "category": "Dev Workstation"
+        },
+        {
+          "route": "/workstation/workstation-hub/runbook",
+          "label": "Runbook",
+          "platform": "Workstation",
+          "category": "Workstation Hub"
+        },
+        {
+          "route": "/systems/driver-registry/runbook",
+          "label": "Runbook",
+          "platform": "Systems",
+          "category": "Driver Registry"
+        },
+        {
+          "route": "/systems/observability/runbook",
+          "label": "Runbook",
+          "platform": "Systems",
+          "category": "Observability"
+        },
+        {
+          "route": "/simulations/simulation-hub/runbook",
+          "label": "Runbook",
+          "platform": "Simulations",
+          "category": "Simulation Hub"
+        },
+        {
+          "route": "/simulations/simulation-home/runbook",
+          "label": "Runbook",
+          "platform": "Simulations",
+          "category": "Simulation Home"
+        },
+        {
+          "route": "/simulations/operations/runbook",
+          "label": "Runbook",
+          "platform": "Simulations",
+          "category": "Operations"
+        },
+        {
+          "route": "/simulations/controls/runbook",
+          "label": "Runbook",
+          "platform": "Simulations",
+          "category": "Controls"
+        },
+        {
+          "route": "/research/research-simulation/runbook",
+          "label": "Runbook",
+          "platform": "Research",
+          "category": "Research Simulation"
+        },
+        {
+          "route": "/research/research-simulation/runbook-1",
+          "label": "Runbook",
+          "platform": "Research",
+          "category": "Research Simulation"
+        },
+        {
+          "route": "/research/projects-and-experiments/runbook",
+          "label": "Runbook",
+          "platform": "Research",
+          "category": "Projects & Experiments"
+        },
+        {
+          "route": "/research/future-capabilities/runbook",
+          "label": "Runbook",
+          "platform": "Research",
+          "category": "Future Capabilities"
+        },
+        {
+          "route": "/research/risk-register/runbook",
+          "label": "Runbook",
+          "platform": "Research",
+          "category": "Risk Register"
+        },
+        {
+          "route": "/research/open-questions/runbook",
+          "label": "Runbook",
+          "platform": "Research",
+          "category": "Open Questions"
+        },
+        {
+          "route": "/encyclopedia/topics/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Topics"
+        },
+        {
+          "route": "/encyclopedia/topics/runbook-1",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Topics"
+        },
+        {
+          "route": "/encyclopedia/explanations/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Explanations"
+        },
+        {
+          "route": "/encyclopedia/history/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "History"
+        },
+        {
+          "route": "/encyclopedia/glossary/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Glossary"
+        },
+        {
+          "route": "/encyclopedia/glossary/runbook-1",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Glossary"
+        },
+        {
+          "route": "/encyclopedia/advanced-capabilities/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Advanced Capabilities"
+        },
+        {
+          "route": "/encyclopedia/hyper-capabilities/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Hyper Capabilities"
+        },
+        {
+          "route": "/encyclopedia/ultra-capabilities/runbook",
+          "label": "Runbook",
+          "platform": "Encyclopedia",
+          "category": "Ultra Capabilities"
+        },
+        {
+          "route": "/libraries/getting-started/runbook",
+          "label": "Runbook",
+          "platform": "Libraries",
+          "category": "Getting Started"
+        },
+        {
+          "route": "/libraries/capsule-library/runbook",
+          "label": "Runbook",
+          "platform": "Libraries",
+          "category": "Capsule Library"
+        },
+        {
+          "route": "/libraries/operations/runbook",
+          "label": "Runbook",
+          "platform": "Libraries",
+          "category": "Operations"
+        },
+        {
+          "route": "/libraries/controls/runbook",
+          "label": "Runbook",
+          "platform": "Libraries",
+          "category": "Controls"
+        },
+        {
+          "route": "/knowledge/archive-and-backup/runbook",
+          "label": "Runbook",
+          "platform": "Knowledge",
+          "category": "Archive & Backup"
+        },
+        {
+          "route": "/knowledge/multi-region-and-replication/runbook",
+          "label": "Runbook",
+          "platform": "Knowledge",
+          "category": "Multi-Region & Replication"
+        },
+        {
+          "route": "/knowledge/perspective/runbook",
+          "label": "Runbook",
+          "platform": "Knowledge",
+          "category": "Perspective"
+        },
+        {
+          "route": "/knowledge/insight/runbook",
+          "label": "Runbook",
+          "platform": "Knowledge",
+          "category": "Insight"
+        },
+        {
+          "route": "/knowledge/wisdom/runbook",
+          "label": "Runbook",
+          "platform": "Knowledge",
+          "category": "Wisdom"
+        },
+        {
+          "route": "/knowledge/experience/runbook",
+          "label": "Runbook",
+          "platform": "Knowledge",
+          "category": "Experience"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "runbook",
+      "recommended_canonical_route": "/admin/admin-console/runbook"
+    },
+    {
+      "key": "saved-searches-alerts",
+      "occurrences": [
+        {
+          "route": "/dashboard/engagement-persona-surfaces/saved",
+          "label": "Saved Searches & Alerts",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/search/saved",
+          "label": "Saved Searches & Alerts",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "saved-searches-alerts",
+      "recommended_canonical_route": "/dashboard/engagement-persona-surfaces/saved"
+    },
+    {
+      "key": "search-discovery",
+      "occurrences": [
+        {
+          "route": "/dashboard/engagement/search",
+          "label": "Search & Discovery",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/search",
+          "label": "Search & Discovery",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "search-discovery",
+      "recommended_canonical_route": "/dashboard/engagement/search"
+    },
+    {
+      "key": "security-guardian",
+      "occurrences": [
+        {
+          "route": "/workspaces/cyber",
+          "label": "Security Guardian",
+          "platform": "Workstation",
+          "category": "Cybersecurity Workspace"
+        },
+        {
+          "route": "/ai/security",
+          "label": "Security Guardian",
+          "platform": "Workstation",
+          "category": "Cybersecurity Workspace"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "security-guardian",
+      "recommended_canonical_route": "/ai/security"
+    },
+    {
+      "key": "settings",
+      "occurrences": [
+        {
+          "route": "/settings/user-tenant-settings/settings",
+          "label": "Settings",
+          "platform": "Settings",
+          "category": "User & Tenant Settings"
+        },
+        {
+          "route": "/settings",
+          "label": "Settings",
+          "platform": "Settings",
+          "category": "User & Tenant Settings"
+        },
+        {
+          "route": "/pms/settings",
+          "label": "Settings",
+          "platform": "Workstation",
+          "category": "Master Stack & Project Management Engine"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "settings",
+      "recommended_canonical_route": "/pms/settings"
+    },
+    {
+      "key": "shared-spaces-channels",
+      "occurrences": [
+        {
+          "route": "/dashboard/engagement-persona-surfaces/channels",
+          "label": "Shared Spaces / Channels",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        },
+        {
+          "route": "/collaboration/channels",
+          "label": "Shared Spaces / Channels",
+          "platform": "Core",
+          "category": "Engagement & Persona Surfaces"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "shared-spaces-channels",
+      "recommended_canonical_route": "/collaboration/channels"
+    },
+    {
+      "key": "super-capabilities",
+      "occurrences": [
+        {
+          "route": "/vision/super",
+          "label": "Super Capabilities",
+          "platform": "Encyclopedia",
+          "category": "Super Capabilities"
+        },
+        {
+          "route": "/vision/super-capabilities",
+          "label": "Super Capabilities",
+          "platform": "Encyclopedia",
+          "category": "Super Capabilities"
+        },
+        {
+          "route": "/future/super",
+          "label": "Super Capabilities",
+          "platform": "Encyclopedia",
+          "category": "Super Capabilities"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "super-capabilities",
+      "recommended_canonical_route": "/future/super"
+    },
+    {
+      "key": "supreme",
+      "occurrences": [
+        {
+          "route": "/vision/supreme",
+          "label": "Supreme",
+          "platform": "Encyclopedia",
+          "category": "Supreme Capabilities"
+        },
+        {
+          "route": "/future/supreme",
+          "label": "Supreme",
+          "platform": "Encyclopedia",
+          "category": "Supreme Capabilities"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "supreme",
+      "recommended_canonical_route": "/future/supreme"
+    },
+    {
+      "key": "task-analytics",
+      "occurrences": [
+        {
+          "route": "/dashboard/core-flight-deck/analytics",
+          "label": "Task Analytics",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/tasks/analytics",
+          "label": "Task Analytics",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "task-analytics",
+      "recommended_canonical_route": "/dashboard/core-flight-deck/analytics"
+    },
+    {
+      "key": "task-automation-rules",
+      "occurrences": [
+        {
+          "route": "/dashboard/core-flight-deck/automation",
+          "label": "Task Automation & Rules",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/tasks/automation",
+          "label": "Task Automation & Rules",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "task-automation-rules",
+      "recommended_canonical_route": "/dashboard/core-flight-deck/automation"
+    },
+    {
+      "key": "task-board-kanban",
+      "occurrences": [
+        {
+          "route": "/dashboard/core-flight-deck/board",
+          "label": "Task Board (Kanban)",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/tasks/board",
+          "label": "Task Board (Kanban)",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "task-board-kanban",
+      "recommended_canonical_route": "/dashboard/core-flight-deck/board"
+    },
+    {
+      "key": "tasks",
+      "occurrences": [
+        {
+          "route": "/dashboard/flight-deck/tasks",
+          "label": "Tasks",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/tasks",
+          "label": "Tasks",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "tasks",
+      "recommended_canonical_route": "/dashboard/flight-deck/tasks"
+    },
+    {
+      "key": "templates",
+      "occurrences": [
+        {
+          "route": "/workspaces/writer/templates",
+          "label": "Templates",
+          "platform": "Workstation",
+          "category": "Writer Workspace"
+        },
+        {
+          "route": "/work/templates",
+          "label": "Templates",
+          "platform": "Workstation",
+          "category": "Writer Workspace"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "templates",
+      "recommended_canonical_route": "/work/templates"
+    },
+    {
+      "key": "ultra-scale",
+      "occurrences": [
+        {
+          "route": "/vision/ultra",
+          "label": "Ultra Scale",
+          "platform": "Encyclopedia",
+          "category": "Ultra Capabilities"
+        },
+        {
+          "route": "/vision/ultra-scale",
+          "label": "Ultra Scale",
+          "platform": "Encyclopedia",
+          "category": "Ultra Scale"
+        },
+        {
+          "route": "/future/ultra",
+          "label": "Ultra Scale",
+          "platform": "Encyclopedia",
+          "category": "Ultra Scale"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "ultra-scale",
+      "recommended_canonical_route": "/future/ultra"
+    },
+    {
+      "key": "vision-deck-hub",
+      "occurrences": [
+        {
+          "route": "/vision/vision-deck-hub",
+          "label": "Vision Deck Hub",
+          "platform": "Encyclopedia",
+          "category": "Vision Deck Hub"
+        },
+        {
+          "route": "/vision/vision-deck-hub/vision",
+          "label": "Vision Deck Hub",
+          "platform": "Encyclopedia",
+          "category": "Vision Deck Hub"
+        },
+        {
+          "route": "/vision",
+          "label": "Vision Deck Hub",
+          "platform": "Encyclopedia",
+          "category": "Vision Deck Hub"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "vision-deck-hub",
+      "recommended_canonical_route": "/vision"
+    },
+    {
+      "key": "webhooks-events",
+      "occurrences": [
+        {
+          "route": "/drivers/connectors-integrations/webhooks",
+          "label": "Webhooks & Events",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        },
+        {
+          "route": "/integrations/webhooks",
+          "label": "Webhooks & Events",
+          "platform": "Systems",
+          "category": "Connectors & Integrations"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "webhooks-events",
+      "recommended_canonical_route": "/drivers/connectors-integrations/webhooks"
+    },
+    {
+      "key": "work-queue-inbox",
+      "occurrences": [
+        {
+          "route": "/dashboard/core-flight-deck/inbox",
+          "label": "Work Queue / Inbox",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        },
+        {
+          "route": "/inbox",
+          "label": "Work Queue / Inbox",
+          "platform": "Core",
+          "category": "Core Flight Deck"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "work-queue-inbox",
+      "recommended_canonical_route": "/dashboard/core-flight-deck/inbox"
+    },
+    {
+      "key": "writer-workstation",
+      "occurrences": [
+        {
+          "route": "/workspaces/writer",
+          "label": "Writer Workstation",
+          "platform": "Workstation",
+          "category": "Writer Workspace"
+        },
+        {
+          "route": "/work/writer",
+          "label": "Writer Workstation",
+          "platform": "Workstation",
+          "category": "Writer Workspace"
+        }
+      ],
+      "routes_identical": false,
+      "recommended_shared_feature_key": "writer-workstation",
+      "recommended_canonical_route": "/work/writer"
+    }
+  ]
+}

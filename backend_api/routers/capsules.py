@@ -20,7 +20,7 @@ class Capsule(BaseModel):
     name: str
     description: str
     version: str = Field(default="1.0.0")
-    author: str = Field(default="OS Dashboard Team")
+    author: str = Field(default="AI OS Team")
     category: str = Field(default="automation")
     tags: List[str] = Field(default_factory=list)
     drivers: List[str] = Field(default_factory=list)
@@ -86,7 +86,7 @@ def _init_demo_data() -> None:
             name="Shell Capsule",
             description="Execute Unix driver actions with ledger logging and Evidence Packs.",
             version="2.1.0",
-            author="OS Dashboard Team",
+            author="AI OS Team",
             category="system",
             tags=["unix", "shell", "automation"],
             drivers=["drv-unix", "drv-os"],
@@ -103,7 +103,7 @@ def _init_demo_data() -> None:
             name="Git Maintenance Capsule",
             description="Run Git hygiene operations, dependency scans, and Evidence Pack exports.",
             version="1.5.0",
-            author="OS Dashboard Team",
+            author="AI OS Team",
             category="code",
             tags=["git", "version-control", "hygiene"],
             drivers=["drv-software", "drv-govern"],

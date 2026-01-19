@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CLI Entry Point for OS Dashboard AI Assistant
+CLI Entry Point for AI OS
 Usage:
     python3 cli.py chat
     python3 cli.py chat --agent Aria
@@ -19,6 +19,12 @@ except ImportError as e:
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+
+
+
+
 
 
 

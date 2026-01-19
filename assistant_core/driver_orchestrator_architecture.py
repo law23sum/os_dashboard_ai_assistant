@@ -1,6 +1,6 @@
 """Driver-aware orchestration architecture primitives.
 
-This module translates the high level reference design for the OS Dashboard AI Assistant
+This module translates the high level reference design for the AI OS
 into importable Python skeletons. The focus is on infrastructure-centric data structures
 and coordinator components (intent processing, driver registry, planning), enabling the
 rest of the codebase to experiment with advanced orchestration ideas without breaking

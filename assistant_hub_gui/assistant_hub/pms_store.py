@@ -1,4 +1,4 @@
-"""Data access helpers for the Project Management System (PMS)."""
+"""Data access helpers for Intelligence Project Management (IPM)."""
 
 from __future__ import annotations
 
@@ -280,7 +280,7 @@ def create_project(
 
     project_id = uuid.uuid4().hex
     now = _now()
-    if mode not in {"personal", "enterprise"}:
+    if mode not in {"personal", "business", "enterprise"}:
         mode = "personal"
     config_payload = _merge_project_config(config, template_pack)
     budget_payload = None

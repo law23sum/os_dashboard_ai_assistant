@@ -48,7 +48,7 @@ const mockTasks = [
   {
     id: 1,
     title: 'Complete API Integration',
-    project: 'OS Dashboard',
+    project: 'AI OS',
     status: 'IN_PROGRESS',
     priority: 'HIGH',
     due_date: '2025-12-31',
@@ -59,7 +59,7 @@ const mockTasks = [
   {
     id: 2,
     title: 'Write Documentation',
-    project: 'OS Dashboard',
+    project: 'AI OS',
     status: 'TODO',
     priority: 'MEDIUM',
     due_date: '2025-12-15',
@@ -81,7 +81,7 @@ const mockTasks = [
 ]
 
 const mockProjects = [
-  { name: 'OS Dashboard', description: 'Main project', status: 'active', priority: 'HIGH', order_num: 0 },
+  { name: 'AI OS', description: 'Main project', status: 'active', priority: 'HIGH', order_num: 0 },
   { name: 'Security', description: 'Security project', status: 'active', priority: 'CRITICAL', order_num: 1 },
 ]
 

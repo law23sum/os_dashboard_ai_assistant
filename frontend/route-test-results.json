@@ -1,0 +1,16 @@
+{
+  "ok": 118,
+  "fail": 2,
+  "failed": [
+    {
+      "route": "/apiconnectors",
+      "status": 404,
+      "reason": "status 404"
+    },
+    {
+      "route": "/apikeys&tokens",
+      "status": 404,
+      "reason": "status 404"
+    }
+  ]
+}

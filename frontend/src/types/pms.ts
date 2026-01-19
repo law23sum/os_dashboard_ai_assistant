@@ -1,4 +1,4 @@
-export type PmsMode = 'personal' | 'enterprise'
+export type PmsMode = 'personal' | 'business' | 'enterprise'
 export type PmsTaskStatus = 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE' | 'ARCHIVED'
 export type PmsEpicStatus = 'PLANNED' | 'ACTIVE' | 'ON_HOLD' | 'DONE' | 'ARCHIVED'
 export type PmsTodoStatus = 'TODO' | 'DONE'

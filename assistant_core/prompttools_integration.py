@@ -16,16 +16,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Try to import Prompttools
+PROMPTTOOLS_IMPORT_ERROR: Optional[str] = None
 try:
     from prompttools.experiment import OpenAIChatExperiment
     from prompttools.experiment import OpenAICompletionExperiment
     from prompttools.utils import autoeval
     PROMPTTOOLS_AVAILABLE = True
-except ImportError:
+except Exception as e:
     PROMPTTOOLS_AVAILABLE = False
-    logger.warning(
-        "Prompttools not installed. Install with: pip install prompttools"
-    )
+    PROMPTTOOLS_IMPORT_ERROR = str(e)
+    logger.debug("Prompttools integration unavailable: %s", e)
 
 
 class PromptEvaluator:
@@ -240,7 +240,7 @@ def create_prompt_evaluator(
     Returns None if Prompttools is not available (graceful degradation).
     """
     if not PROMPTTOOLS_AVAILABLE:
-        logger.warning("Prompttools not available. Returning None.")
+        logger.debug("Prompttools not available. Returning None.")
         return None
 
     try:
@@ -248,5 +248,3 @@ def create_prompt_evaluator(
     except Exception as e:
         logger.error(f"Failed to create prompt evaluator: {e}")
         return None
-
-

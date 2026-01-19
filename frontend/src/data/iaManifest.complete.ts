@@ -1,16 +1,14 @@
 /**
- * Complete IA Manifest - Generated from gui_nav.latest.json
- * Single Source of Truth for Navigation Structure
+ * Canonical IA Manifest - Single Source of Truth
+ * Auto-generated from gui_nav.latest.json
  * 
- * IA Rules:
- * - Platforms = top nav dropdown tabs
- * - Categories = dropdown items (route to category home)
- * - Features = left sidebar items (never in dropdown)
+ * Complete manifest with all 507 pages (15 platforms, 66 categories, 441 features)
+ * Generated: 2026-01-05T07:06:58.390290
  */
 
 export type ActorScope = 'personal' | 'enterprise' | 'both'
 
-export interface IAFeature {
+export interface IAFeature {{
   id: string
   label: string
   route: string
@@ -18,9 +16,10 @@ export interface IAFeature {
   bestCommit: 'stable' | 'increments' | 'backup'
   actorScope: ActorScope
   order: number
-}
+  isNew?: boolean
+}}
 
-export interface IACategory {
+export interface IACategory {{
   id: string
   label: string
   homeRoute: string
@@ -29,4846 +28,6027 @@ export interface IACategory {
   features: IAFeature[]
   actorScope: ActorScope
   order: number
-}
+}}
 
-export interface IAPlatform {
+export interface IAPlatform {{
   id: string
   label: string
   path: string
   categories: IACategory[]
   actorScope: ActorScope
   order: number
-}
+}}
 
 export const iaManifest: IAPlatform[] = [
   {
-    id: 'mission-control',
+    id: "mission-control",
     label: "Mission Control",
-    path: "/",
+    path: "/dashboard",
     actorScope: 'personal',
     order: 1,
     categories: [
       {
-        id: 'core-flight-deck',
+        id: "mission-control-core-flight-deck",
         label: "Core Flight Deck",
-        homeRoute: "/",
-        homeComponentPath: "frontend/src/pages/Dashboard.tsx",
+        homeRoute: "/dashboard/core-flight-deck",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 1,
         features: [
-          {
-            id: '',
-            label: "Dashboard",
-            route: "/",
-            componentPath: "frontend/src/pages/Dashboard.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'projects',
-            label: "Projects",
-            route: "/projects",
-            componentPath: "frontend/src/pages/Projects.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'projects-templates',
-            label: "Project Templates",
-            route: "/projects/templates",
-            componentPath: "frontend/src/pages/projects/Templates.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'projects-members',
-            label: "Project Members & Roles",
-            route: "/projects/members",
-            componentPath: "frontend/src/pages/projects/Members.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'projects-settings',
-            label: "Project Settings",
-            route: "/projects/settings",
-            componentPath: "frontend/src/pages/projects/Settings.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'tasks',
-            label: "Tasks",
-            route: "/tasks",
-            componentPath: "frontend/src/pages/Tasks.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'tasks-board',
-            label: "Task Board (Kanban)",
-            route: "/tasks/board",
-            componentPath: "frontend/src/pages/tasks/Board.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'tasks-automation',
-            label: "Task Automation & Rules",
-            route: "/tasks/automation",
-            componentPath: "frontend/src/pages/tasks/Automation.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-          {
-            id: 'tasks-analytics',
-            label: "Task Analytics",
-            route: "/tasks/analytics",
-            componentPath: "frontend/src/pages/tasks/Analytics.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 9,
-          },
-          {
-            id: 'activity',
-            label: "Activity Feed",
-            route: "/activity",
-            componentPath: "frontend/src/pages/Activity.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 10,
-          },
-          {
-            id: 'notifications',
-            label: "Notifications Center",
-            route: "/notifications",
-            componentPath: "frontend/src/pages/Notifications.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 11,
-          },
-          {
-            id: 'inbox',
-            label: "Work Queue / Inbox",
-            route: "/inbox",
-            componentPath: "frontend/src/pages/Inbox.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 12,
-          },
-          {
-            id: 'timeline',
-            label: "Calendar / Timeline",
-            route: "/timeline",
-            componentPath: "frontend/src/pages/Timeline.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 13,
-          },
-        ],
-      },
+        {
+          id: "mission-control-core-flight-deck-projects",
+          label: "Projects",
+          route: "/dashboard/flight-deck/projects",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "mission-control-core-flight-deck-tasks",
+          label: "Tasks",
+          route: "/dashboard/flight-deck/tasks",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "mission-control-core-flight-deck-dashboard",
+          label: "Dashboard",
+          route: "/dashboard/flight-deck",
+          componentPath: "frontend/src/pages/Dashboard.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "mission-control-core-flight-deck-project-templates",
+          label: "Project Templates",
+          route: "/dashboard/core-flight-deck/templates",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-core-flight-deck-project-members-and-roles",
+          label: "Project Members & Roles",
+          route: "/dashboard/core-flight-deck/members",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-core-flight-deck-project-settings",
+          label: "Project Settings",
+          route: "/dashboard/core-flight-deck/settings",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-core-flight-deck-task-board-kanban",
+          label: "Task Board (Kanban)",
+          route: "/dashboard/core-flight-deck/board",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-core-flight-deck-task-automation-and-rules",
+          label: "Task Automation & Rules",
+          route: "/dashboard/core-flight-deck/automation",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-core-flight-deck-task-analytics",
+          label: "Task Analytics",
+          route: "/dashboard/core-flight-deck/analytics",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-core-flight-deck-activity-feed",
+          label: "Activity Feed",
+          route: "/dashboard/core-flight-deck/activity",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-core-flight-deck-notifications-center",
+          label: "Notifications Center",
+          route: "/dashboard/core-flight-deck/notifications",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-core-flight-deck-work-queue-inbox",
+          label: "Work Queue / Inbox",
+          route: "/dashboard/core-flight-deck/inbox",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-core-flight-deck-calendar-timeline",
+          label: "Calendar / Timeline",
+          route: "/dashboard/core-flight-deck/timeline",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'engagement--persona-surfaces',
+        id: "mission-control-engagement-and-persona-surfaces",
         label: "Engagement & Persona Surfaces",
-        homeRoute: "/chat",
-        homeComponentPath: "frontend/src/pages/Chat.tsx",
+        homeRoute: "/dashboard/engagement-and-persona-surfaces",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 2,
         features: [
-          {
-            id: 'chat',
-            label: "Chat",
-            route: "/chat",
-            componentPath: "frontend/src/pages/Chat.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'chat-library',
-            label: "Conversation Library",
-            route: "/chat/library",
-            componentPath: "frontend/src/pages/chat/Library.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'search',
-            label: "Search & Discovery",
-            route: "/search",
-            componentPath: "frontend/src/pages/Search.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'search-saved',
-            label: "Saved Searches & Alerts",
-            route: "/search/saved",
-            componentPath: "frontend/src/pages/search/Saved.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'collaboration',
-            label: "Collaboration",
-            route: "/collaboration",
-            componentPath: "frontend/src/pages/Collaboration.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'collaboration-channels',
-            label: "Shared Spaces / Channels",
-            route: "/collaboration/channels",
-            componentPath: "frontend/src/pages/collaboration/Channels.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'collaboration-presence',
-            label: "Mentions & Presence",
-            route: "/collaboration/presence",
-            componentPath: "frontend/src/pages/collaboration/Presence.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'personalization',
-            label: "Personalization",
-            route: "/personalization",
-            componentPath: "frontend/src/pages/Personalization.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-          {
-            id: 'personalization-macros',
-            label: "Prompt / Macro Library",
-            route: "/personalization/macros",
-            componentPath: "frontend/src/pages/personalization/Macros.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 9,
-          },
-          {
-            id: 'personalization-profiles',
-            label: "Preference Profiles",
-            route: "/personalization/profiles",
-            componentPath: "frontend/src/pages/personalization/Profiles.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 10,
-          },
-        ],
-      },
-    ],
+        {
+          id: "mission-control-engagement-and-persona-surfaces-chat",
+          label: "Chat",
+          route: "/dashboard/engagement/chat",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "mission-control-engagement-and-persona-surfaces-collaboration",
+          label: "Collaboration",
+          route: "/dashboard/engagement/collaboration",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "mission-control-engagement-and-persona-surfaces-personalization",
+          label: "Personalization",
+          route: "/dashboard/engagement/personalization",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "mission-control-engagement-and-persona-surfaces-search-and-discovery",
+          label: "Search & Discovery",
+          route: "/dashboard/engagement/search",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "mission-control-engagement-and-persona-surfaces-engagement-and-persona-surfaces",
+          label: "Engagement & Persona Surfaces",
+          route: "/dashboard/engagement-persona-surfaces",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "mission-control-engagement-and-persona-surfaces-conversation-library",
+          label: "Conversation Library",
+          route: "/dashboard/engagement-persona-surfaces/library",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-engagement-and-persona-surfaces-saved-searches-and-alerts",
+          label: "Saved Searches & Alerts",
+          route: "/dashboard/engagement-persona-surfaces/saved",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-engagement-and-persona-surfaces-shared-spaces-channels",
+          label: "Shared Spaces / Channels",
+          route: "/dashboard/engagement-persona-surfaces/channels",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-engagement-and-persona-surfaces-mentions-and-presence",
+          label: "Mentions & Presence",
+          route: "/dashboard/engagement-persona-surfaces/presence",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-engagement-and-persona-surfaces-prompt-macro-library",
+          label: "Prompt / Macro Library",
+          route: "/dashboard/engagement-persona-surfaces/macros",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-control-engagement-and-persona-surfaces-preference-profiles",
+          label: "Preference Profiles",
+          route: "/dashboard/engagement-persona-surfaces/profiles",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+    ]
   },
   {
-    id: 'workspaces',
+    id: "workspaces",
     label: "Workspaces",
     path: "/workspaces",
-    actorScope: 'personal',
+    actorScope: 'both',
     order: 2,
     categories: [
       {
-        id: 'dev--devops-workspace',
+        id: "workspaces-dev-and-devops-workspace",
         label: "Dev & DevOps Workspace",
-        homeRoute: "/workspaces",
-        homeComponentPath: "frontend/src/pages/Workspaces.tsx",
+        homeRoute: "/workspaces/dev-and-devops-workspace",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 1,
         features: [
-          {
-            id: 'workspaces-dev',
-            label: "Dev Workspace",
-            route: "/workspaces/dev",
-            componentPath: "frontend/src/pages/workspaces/Dev.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'work-tools',
-            label: "Developer Tools",
-            route: "/work/tools",
-            componentPath: "frontend/src/pages/work/Tools.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'workspaces-dev-repos',
-            label: "Repo & Branch Browser",
-            route: "/workspaces/dev/repos",
-            componentPath: "frontend/src/pages/workspaces/dev/Repos.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'workspaces-dev-cicd',
-            label: "CI/CD Integration",
-            route: "/workspaces/dev/cicd",
-            componentPath: "frontend/src/pages/workspaces/dev/Cicd.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'workspaces-dev-build-insights',
-            label: "Build/Test Insights",
-            route: "/workspaces/dev/build-insights",
-            componentPath: "frontend/src/pages/workspaces/dev/BuildInsights.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'workspaces-dev-commit-tasks',
-            label: "Commit → Task Generator",
-            route: "/workspaces/dev/commit-tasks",
-            componentPath: "frontend/src/pages/workspaces/dev/CommitTasks.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'workspaces-dev-reviews',
-            label: "Code Review Queue",
-            route: "/workspaces/dev/reviews",
-            componentPath: "frontend/src/pages/workspaces/dev/Reviews.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'workspaces-dev-merge-advisor',
-            label: "Code Merge Advisor",
-            route: "/workspaces/dev/merge-advisor",
-            componentPath: "frontend/src/pages/workspaces/dev/MergeAdvisor.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-          {
-            id: 'workspaces-dev-deps',
-            label: "Dependency Updates",
-            route: "/workspaces/dev/deps",
-            componentPath: "frontend/src/pages/workspaces/dev/Deps.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 9,
-          },
-          {
-            id: 'workspaces-dev-release-notes',
-            label: "Release Notes Generator",
-            route: "/workspaces/dev/release-notes",
-            componentPath: "frontend/src/pages/workspaces/dev/ReleaseNotes.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 10,
-          },
-          {
-            id: 'workspaces-dev-env-health',
-            label: "Local Environment Health",
-            route: "/workspaces/dev/env-health",
-            componentPath: "frontend/src/pages/workspaces/dev/EnvHealth.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 11,
-          },
-        ],
-      },
+        {
+          id: "workspaces-dev-and-devops-workspace-commit-task-generator",
+          label: "Commit \u2192 Task Generator",
+          route: "/workspaces/dev/commit-tasks",
+          componentPath: "frontend/src/pages/workspaces/dev/CommitTasks.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-dev-and-devops-workspace-code-merge-advisor",
+          label: "Code Merge Advisor",
+          route: "/workspaces/dev/merge-advisor",
+          componentPath: "frontend/src/pages/workspaces/dev/MergeAdvisor.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-dev-and-devops-workspace-code-review-queue",
+          label: "Code Review Queue",
+          route: "/workspaces/dev/reviews",
+          componentPath: "frontend/src/pages/workspaces/dev/Reviews.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-dev-and-devops-workspace-ci-cd-integration",
+          label: "CI/CD Integration",
+          route: "/workspaces/dev/cicd",
+          componentPath: "frontend/src/pages/workspaces/dev/Cicd.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-dev-and-devops-workspace-developer-tools",
+          label: "Developer Tools",
+          route: "/workspaces/dev/tools",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-dev-and-devops-workspace-dev-workspace",
+          label: "Dev Workspace",
+          route: "/workspaces/dev",
+          componentPath: "frontend/src/pages/workspaces/Dev.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-dev-and-devops-workspace-repo-and-branch-browser",
+          label: "Repo & Branch Browser",
+          route: "/workspaces/dev/repos",
+          componentPath: "frontend/src/pages/workspaces/dev/Repos.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-dev-and-devops-workspace-build-test-insights",
+          label: "Build/Test Insights",
+          route: "/workspaces/dev/build-insights",
+          componentPath: "frontend/src/pages/workspaces/dev/BuildInsights.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-dev-and-devops-workspace-dependency-updates",
+          label: "Dependency Updates",
+          route: "/workspaces/dev/deps",
+          componentPath: "frontend/src/pages/workspaces/dev/Deps.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-dev-and-devops-workspace-release-notes-generator",
+          label: "Release Notes Generator",
+          route: "/workspaces/dev/release-notes",
+          componentPath: "frontend/src/pages/workspaces/dev/ReleaseNotes.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-dev-and-devops-workspace-local-environment-health",
+          label: "Local Environment Health",
+          route: "/workspaces/dev/env-health",
+          componentPath: "frontend/src/pages/workspaces/dev/EnvHealth.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-dev-and-devops-workspace-dev-and-devops-workspace",
+          label: "Dev & DevOps Workspace",
+          route: "/workspaces/dev-devops-workspace",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'research--simulation-workspace',
+        id: "workspaces-research-and-simulation-workspace",
         label: "Research & Simulation Workspace",
-        homeRoute: "/research",
-        homeComponentPath: "frontend/src/pages/Research.tsx",
+        homeRoute: "/workspaces/research-and-simulation-workspace",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 2,
         features: [
-          {
-            id: 'research',
-            label: "Research Hub",
-            route: "/research",
-            componentPath: "frontend/src/pages/Research.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'workspaces-research-lab',
-            label: "Unified Research Lab",
-            route: "/workspaces/research/lab",
-            componentPath: "frontend/src/pages/workspaces/research/Lab.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'workspaces-research-datasets',
-            label: "Dataset Registry",
-            route: "/workspaces/research/datasets",
-            componentPath: "frontend/src/pages/workspaces/research/Datasets.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'workspaces-research-notes',
-            label: "Notebook / Lab Notes",
-            route: "/workspaces/research/notes",
-            componentPath: "frontend/src/pages/workspaces/research/Notes.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'workspaces-research-experiments',
-            label: "Experiment Design",
-            route: "/workspaces/research/experiments",
-            componentPath: "frontend/src/pages/workspaces/research/Experiments.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'workspaces-research-tracking',
-            label: "Experiment Tracking",
-            route: "/workspaces/research/tracking",
-            componentPath: "frontend/src/pages/workspaces/research/Tracking.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'workspaces-research-simulation',
-            label: "Simulation Workbench",
-            route: "/workspaces/research/simulation",
-            componentPath: "frontend/src/pages/workspaces/research/Simulation.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'workspaces-research-hpc',
-            label: "HPC Orchestrator",
-            route: "/workspaces/research/hpc",
-            componentPath: "frontend/src/pages/workspaces/research/Hpc.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-          {
-            id: 'workspaces-research-validation',
-            label: "Model Validation",
-            route: "/workspaces/research/validation",
-            componentPath: "frontend/src/pages/workspaces/research/Validation.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 9,
-          },
-          {
-            id: 'workspaces-research-reproducibility',
-            label: "Reproducibility Packs",
-            route: "/workspaces/research/reproducibility",
-            componentPath: "frontend/src/pages/workspaces/research/Reproducibility.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 10,
-          },
-          {
-            id: 'workspaces-research-publishing',
-            label: "Results Publishing",
-            route: "/workspaces/research/publishing",
-            componentPath: "frontend/src/pages/workspaces/research/Publishing.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 11,
-          },
-          {
-            id: 'workspaces-research-digital-twins',
-            label: "Digital Twin Builder",
-            route: "/workspaces/research/digital-twins",
-            componentPath: "frontend/src/pages/workspaces/research/DigitalTwins.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 12,
-          },
-        ],
-      },
+        {
+          id: "workspaces-research-and-simulation-workspace-unified-research-lab",
+          label: "Unified Research Lab",
+          route: "/workspaces/research/lab",
+          componentPath: "frontend/src/pages/workspaces/research/Lab.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-research-and-simulation-workspace-experiment-design",
+          label: "Experiment Design",
+          route: "/workspaces/research/experiments",
+          componentPath: "frontend/src/pages/workspaces/research/Experiments.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-research-and-simulation-workspace-simulation-workbench",
+          label: "Simulation Workbench",
+          route: "/workspaces/research/simulation",
+          componentPath: "frontend/src/pages/workspaces/research/Simulation.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-research-and-simulation-workspace-model-validation",
+          label: "Model Validation",
+          route: "/workspaces/research/validation",
+          componentPath: "frontend/src/pages/workspaces/research/Validation.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-research-and-simulation-workspace-digital-twin-builder",
+          label: "Digital Twin Builder",
+          route: "/workspaces/research/digital-twins",
+          componentPath: "frontend/src/pages/workspaces/research/DigitalTwins.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-research-and-simulation-workspace-hpc-orchestrator",
+          label: "HPC Orchestrator",
+          route: "/workspaces/research/hpc",
+          componentPath: "frontend/src/pages/workspaces/research/Hpc.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-research-and-simulation-workspace-research-hub",
+          label: "Research Hub",
+          route: "/workspaces/research",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-research-and-simulation-workspace-dataset-registry",
+          label: "Dataset Registry",
+          route: "/workspaces/research/datasets",
+          componentPath: "frontend/src/pages/workspaces/research/Datasets.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-research-and-simulation-workspace-notebook-lab-notes",
+          label: "Notebook / Lab Notes",
+          route: "/workspaces/research/notes",
+          componentPath: "frontend/src/pages/workspaces/research/Notes.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-research-and-simulation-workspace-experiment-tracking",
+          label: "Experiment Tracking",
+          route: "/workspaces/research/tracking",
+          componentPath: "frontend/src/pages/workspaces/research/Tracking.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-research-and-simulation-workspace-reproducibility-packs",
+          label: "Reproducibility Packs",
+          route: "/workspaces/research/reproducibility",
+          componentPath: "frontend/src/pages/workspaces/research/Reproducibility.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-research-and-simulation-workspace-results-publishing",
+          label: "Results Publishing",
+          route: "/workspaces/research/publishing",
+          componentPath: "frontend/src/pages/workspaces/research/Publishing.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-research-and-simulation-workspace-research-and-simulation-workspace",
+          label: "Research & Simulation Workspace",
+          route: "/workspaces/research-simulation-workspace",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'writer-workspace',
+        id: "workspaces-writer-workspace",
         label: "Writer Workspace",
-        homeRoute: "/work",
-        homeComponentPath: "frontend/src/pages/Work.tsx",
+        homeRoute: "/workspaces/writer-workspace",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 3,
         features: [
-          {
-            id: 'work-writer',
-            label: "Writer Workstation",
-            route: "/work/writer",
-            componentPath: "frontend/src/pages/work/Writer.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'work-templates',
-            label: "Templates",
-            route: "/work/templates",
-            componentPath: "frontend/src/pages/work/Templates.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'workspaces-writer-style-guide',
-            label: "Style Guide Manager",
-            route: "/workspaces/writer/style-guide",
-            componentPath: "frontend/src/pages/workspaces/writer/StyleGuide.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'workspaces-writer-canon',
-            label: "Canon & Lore",
-            route: "/workspaces/writer/canon",
-            componentPath: "frontend/src/pages/workspaces/writer/Canon.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'workspaces-writer-narrative',
-            label: "Narrative Guidance",
-            route: "/workspaces/writer/narrative",
-            componentPath: "frontend/src/pages/workspaces/writer/Narrative.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'workspaces-writer-qa',
-            label: "Story QA & Continuity",
-            route: "/workspaces/writer/qa",
-            componentPath: "frontend/src/pages/workspaces/writer/Qa.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'workspaces-writer-versioning',
-            label: "Versioning & Change Log",
-            route: "/workspaces/writer/versioning",
-            componentPath: "frontend/src/pages/workspaces/writer/Versioning.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'workspaces-writer-citations',
-            label: "Citations & References",
-            route: "/workspaces/writer/citations",
-            componentPath: "frontend/src/pages/workspaces/writer/Citations.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-          {
-            id: 'workspaces-writer-originality',
-            label: "Originality Check",
-            route: "/workspaces/writer/originality",
-            componentPath: "frontend/src/pages/workspaces/writer/Originality.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 9,
-          },
-          {
-            id: 'workspaces-writer-publishing',
-            label: "Export & Publishing",
-            route: "/workspaces/writer/publishing",
-            componentPath: "frontend/src/pages/workspaces/writer/Publishing.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 10,
-          },
-        ],
-      },
+        {
+          id: "workspaces-writer-workspace-templates",
+          label: "Templates",
+          route: "/workspaces/writer/templates",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-writer-workspace-canon-and-lore",
+          label: "Canon & Lore",
+          route: "/workspaces/writer/canon",
+          componentPath: "frontend/src/pages/workspaces/writer/Canon.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-writer-workspace-narrative-guidance",
+          label: "Narrative Guidance",
+          route: "/workspaces/writer/narrative",
+          componentPath: "frontend/src/pages/workspaces/writer/Narrative.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-writer-workspace-story-qa-and-continuity",
+          label: "Story QA & Continuity",
+          route: "/workspaces/writer/qa",
+          componentPath: "frontend/src/pages/workspaces/writer/Qa.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-writer-workspace-export-and-publishing",
+          label: "Export & Publishing",
+          route: "/workspaces/writer/publishing",
+          componentPath: "frontend/src/pages/workspaces/writer/Publishing.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-writer-workspace-writer-workstation",
+          label: "Writer Workstation",
+          route: "/workspaces/writer",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-writer-workspace-style-guide-manager",
+          label: "Style Guide Manager",
+          route: "/workspaces/writer/style-guide",
+          componentPath: "frontend/src/pages/workspaces/writer/StyleGuide.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-writer-workspace-versioning-and-change-log",
+          label: "Versioning & Change Log",
+          route: "/workspaces/writer/versioning",
+          componentPath: "frontend/src/pages/workspaces/writer/Versioning.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-writer-workspace-citations-and-references",
+          label: "Citations & References",
+          route: "/workspaces/writer/citations",
+          componentPath: "frontend/src/pages/workspaces/writer/Citations.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-writer-workspace-originality-check",
+          label: "Originality Check",
+          route: "/workspaces/writer/originality",
+          componentPath: "frontend/src/pages/workspaces/writer/Originality.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'cybersecurity-workspace',
+        id: "workspaces-cybersecurity-workspace",
         label: "Cybersecurity Workspace",
-        homeRoute: "/ai",
-        homeComponentPath: "frontend/src/pages/Ai.tsx",
+        homeRoute: "/workspaces/cybersecurity-workspace",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 4,
         features: [
-          {
-            id: 'ai-security',
-            label: "Security Guardian",
-            route: "/ai/security",
-            componentPath: "frontend/src/pages/ai/Security.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'workspaces-cyber-findings',
-            label: "Findings & Triage",
-            route: "/workspaces/cyber/findings",
-            componentPath: "frontend/src/pages/workspaces/cyber/Findings.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'workspaces-cyber-threat-modeling',
-            label: "Threat Modeling",
-            route: "/workspaces/cyber/threat-modeling",
-            componentPath: "frontend/src/pages/workspaces/cyber/ThreatModeling.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'workspaces-cyber-policy-checks',
-            label: "Policy-as-Code Checks",
-            route: "/workspaces/cyber/policy-checks",
-            componentPath: "frontend/src/pages/workspaces/cyber/PolicyChecks.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'workspaces-cyber-scanners',
-            label: "Vulnerability Scan Integrations",
-            route: "/workspaces/cyber/scanners",
-            componentPath: "frontend/src/pages/workspaces/cyber/Scanners.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'workspaces-cyber-intel',
-            label: "Threat Intel Feeds",
-            route: "/workspaces/cyber/intel",
-            componentPath: "frontend/src/pages/workspaces/cyber/Intel.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'workspaces-cyber-playbooks',
-            label: "Playbooks & Runbooks",
-            route: "/workspaces/cyber/playbooks",
-            componentPath: "frontend/src/pages/workspaces/cyber/Playbooks.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'workspaces-cyber-incidents',
-            label: "Incident Commander",
-            route: "/workspaces/cyber/incidents",
-            componentPath: "frontend/src/pages/workspaces/cyber/Incidents.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-          {
-            id: 'workspaces-cyber-auto-remediation',
-            label: "Auto-Remediation",
-            route: "/workspaces/cyber/auto-remediation",
-            componentPath: "frontend/src/pages/workspaces/cyber/AutoRemediation.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 9,
-          },
-        ],
-      },
+        {
+          id: "workspaces-cybersecurity-workspace-threat-modeling",
+          label: "Threat Modeling",
+          route: "/workspaces/cyber/threat-modeling",
+          componentPath: "frontend/src/pages/workspaces/cyber/ThreatModeling.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-cybersecurity-workspace-findings-and-triage",
+          label: "Findings & Triage",
+          route: "/workspaces/cyber/findings",
+          componentPath: "frontend/src/pages/workspaces/cyber/Findings.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-cybersecurity-workspace-auto-remediation",
+          label: "Auto-Remediation",
+          route: "/workspaces/cyber/auto-remediation",
+          componentPath: "frontend/src/pages/workspaces/cyber/AutoRemediation.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-cybersecurity-workspace-incident-commander",
+          label: "Incident Commander",
+          route: "/workspaces/cyber/incidents",
+          componentPath: "frontend/src/pages/workspaces/cyber/Incidents.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-cybersecurity-workspace-security-guardian",
+          label: "Security Guardian",
+          route: "/workspaces/cyber",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-cybersecurity-workspace-policy-as-code-checks",
+          label: "Policy-as-Code Checks",
+          route: "/workspaces/cyber/policy-checks",
+          componentPath: "frontend/src/pages/workspaces/cyber/PolicyChecks.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-cybersecurity-workspace-vulnerability-scan-integrations",
+          label: "Vulnerability Scan Integrations",
+          route: "/workspaces/cyber/scanners",
+          componentPath: "frontend/src/pages/workspaces/cyber/Scanners.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-cybersecurity-workspace-threat-intel-feeds",
+          label: "Threat Intel Feeds",
+          route: "/workspaces/cyber/intel",
+          componentPath: "frontend/src/pages/workspaces/cyber/Intel.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-cybersecurity-workspace-playbooks-and-runbooks",
+          label: "Playbooks & Runbooks",
+          route: "/workspaces/cyber/playbooks",
+          componentPath: "frontend/src/pages/workspaces/cyber/Playbooks.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'business--finance-workspace',
+        id: "workspaces-business-and-finance-workspace",
         label: "Business & Finance Workspace",
-        homeRoute: "/workspaces",
-        homeComponentPath: "frontend/src/pages/Workspaces.tsx",
+        homeRoute: "/workspaces/business-and-finance-workspace",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 5,
         features: [
-          {
-            id: 'workspaces-finance',
-            label: "Business Console",
-            route: "/workspaces/finance",
-            componentPath: "frontend/src/pages/workspaces/Finance.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'workspaces-finance-kpis',
-            label: "KPI Dashboard",
-            route: "/workspaces/finance/kpis",
-            componentPath: "frontend/src/pages/workspaces/finance/Kpis.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'workspaces-finance-budgets',
-            label: "Budget Planner",
-            route: "/workspaces/finance/budgets",
-            componentPath: "frontend/src/pages/workspaces/finance/Budgets.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'workspaces-finance-forecasting',
-            label: "Forecasting Lab",
-            route: "/workspaces/finance/forecasting",
-            componentPath: "frontend/src/pages/workspaces/finance/Forecasting.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'workspaces-finance-scenarios',
-            label: "Strategy Simulation",
-            route: "/workspaces/finance/scenarios",
-            componentPath: "frontend/src/pages/workspaces/finance/Scenarios.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'workspaces-finance-risk',
-            label: "Risk Register",
-            route: "/workspaces/finance/risk",
-            componentPath: "frontend/src/pages/workspaces/finance/Risk.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'workspaces-finance-reports',
-            label: "Report Generator",
-            route: "/workspaces/finance/reports",
-            componentPath: "frontend/src/pages/workspaces/finance/Reports.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-        ],
-      },
+        {
+          id: "workspaces-business-and-finance-workspace-budget-planner",
+          label: "Budget Planner",
+          route: "/workspaces/finance/budgets",
+          componentPath: "frontend/src/pages/workspaces/finance/Budgets.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-business-and-finance-workspace-strategy-simulation",
+          label: "Strategy Simulation",
+          route: "/workspaces/finance/scenarios",
+          componentPath: "frontend/src/pages/workspaces/finance/Scenarios.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-business-and-finance-workspace-business-console",
+          label: "Business Console",
+          route: "/workspaces/finance",
+          componentPath: "frontend/src/pages/workspaces/Finance.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-business-and-finance-workspace-kpi-dashboard",
+          label: "KPI Dashboard",
+          route: "/workspaces/finance/kpis",
+          componentPath: "frontend/src/pages/workspaces/finance/Kpis.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-business-and-finance-workspace-forecasting-lab",
+          label: "Forecasting Lab",
+          route: "/workspaces/finance/forecasting",
+          componentPath: "frontend/src/pages/workspaces/finance/Forecasting.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-business-and-finance-workspace-risk-register",
+          label: "Risk Register",
+          route: "/workspaces/finance/risk",
+          componentPath: "frontend/src/pages/workspaces/finance/Risk.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-business-and-finance-workspace-report-generator",
+          label: "Report Generator",
+          route: "/workspaces/finance/reports",
+          componentPath: "frontend/src/pages/workspaces/finance/Reports.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-business-and-finance-workspace-business-and-finance-workspace",
+          label: "Business & Finance Workspace",
+          route: "/workspaces/business-finance-workspace",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'operator--sre-workspace',
+        id: "workspaces-operator-and-sre-workspace",
         label: "Operator & SRE Workspace",
-        homeRoute: "/workspaces",
-        homeComponentPath: "frontend/src/pages/Workspaces.tsx",
+        homeRoute: "/workspaces/operator-and-sre-workspace",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 6,
         features: [
-          {
-            id: 'workspaces-sre',
-            label: "SRE Workspace",
-            route: "/workspaces/sre",
-            componentPath: "frontend/src/pages/workspaces/Sre.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'workspaces-sre-reliability',
-            label: "Reliability Dashboard",
-            route: "/workspaces/sre/reliability",
-            componentPath: "frontend/src/pages/workspaces/sre/Reliability.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'workspaces-sre-health',
-            label: "Health & Drift Monitors",
-            route: "/workspaces/sre/health",
-            componentPath: "frontend/src/pages/workspaces/sre/Health.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'workspaces-sre-runbooks',
-            label: "Runbook Library",
-            route: "/workspaces/sre/runbooks",
-            componentPath: "frontend/src/pages/workspaces/sre/Runbooks.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'workspaces-sre-incidents',
-            label: "Incident Timeline",
-            route: "/workspaces/sre/incidents",
-            componentPath: "frontend/src/pages/workspaces/sre/Incidents.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'workspaces-sre-changes',
-            label: "Change Management",
-            route: "/workspaces/sre/changes",
-            componentPath: "frontend/src/pages/workspaces/sre/Changes.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'workspaces-sre-capacity-cost',
-            label: "Capacity & Cost Insights",
-            route: "/workspaces/sre/capacity-cost",
-            componentPath: "frontend/src/pages/workspaces/sre/CapacityCost.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'workspaces-sre-maintenance',
-            label: "Maintenance Windows",
-            route: "/workspaces/sre/maintenance",
-            componentPath: "frontend/src/pages/workspaces/sre/Maintenance.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-          {
-            id: 'workspaces-sre-sandbox',
-            label: "Sandbox Management",
-            route: "/workspaces/sre/sandbox",
-            componentPath: "frontend/src/pages/workspaces/sre/Sandbox.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 9,
-          },
-        ],
-      },
+        {
+          id: "workspaces-operator-and-sre-workspace-health-and-drift-monitors",
+          label: "Health & Drift Monitors",
+          route: "/workspaces/sre/health",
+          componentPath: "frontend/src/pages/workspaces/sre/Health.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-operator-and-sre-workspace-reliability-dashboard",
+          label: "Reliability Dashboard",
+          route: "/workspaces/sre/reliability",
+          componentPath: "frontend/src/pages/workspaces/sre/Reliability.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-operator-and-sre-workspace-runbook-library",
+          label: "Runbook Library",
+          route: "/workspaces/sre/runbooks",
+          componentPath: "frontend/src/pages/workspaces/sre/Runbooks.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-operator-and-sre-workspace-sandbox-management",
+          label: "Sandbox Management",
+          route: "/workspaces/sre/sandbox",
+          componentPath: "frontend/src/pages/workspaces/sre/Sandbox.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-operator-and-sre-workspace-incident-timeline",
+          label: "Incident Timeline",
+          route: "/workspaces/sre/incidents",
+          componentPath: "frontend/src/pages/workspaces/sre/Incidents.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-operator-and-sre-workspace-sre-workspace",
+          label: "SRE Workspace",
+          route: "/workspaces/sre",
+          componentPath: "frontend/src/pages/workspaces/Sre.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-operator-and-sre-workspace-change-management",
+          label: "Change Management",
+          route: "/workspaces/sre/changes",
+          componentPath: "frontend/src/pages/workspaces/sre/Changes.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-operator-and-sre-workspace-capacity-and-cost-insights",
+          label: "Capacity & Cost Insights",
+          route: "/workspaces/sre/capacity-cost",
+          componentPath: "frontend/src/pages/workspaces/sre/CapacityCost.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-operator-and-sre-workspace-maintenance-windows",
+          label: "Maintenance Windows",
+          route: "/workspaces/sre/maintenance",
+          componentPath: "frontend/src/pages/workspaces/sre/Maintenance.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-operator-and-sre-workspace-operator-and-sre-workspace",
+          label: "Operator & SRE Workspace",
+          route: "/workspaces/operator-sre-workspace",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'archive--continuity-workspace',
+        id: "workspaces-archive-and-continuity-workspace",
         label: "Archive & Continuity Workspace",
-        homeRoute: "/workspaces",
-        homeComponentPath: "frontend/src/pages/Workspaces.tsx",
+        homeRoute: "/workspaces/archive-and-continuity-workspace",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 7,
         features: [
-          {
-            id: 'workspaces-archive',
-            label: "Archive Workspace",
-            route: "/workspaces/archive",
-            componentPath: "frontend/src/pages/workspaces/Archive.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'workspaces-archive-snapshots',
-            label: "Snapshot Manager",
-            route: "/workspaces/archive/snapshots",
-            componentPath: "frontend/src/pages/workspaces/archive/Snapshots.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'workspaces-archive-retention',
-            label: "Retention Policies",
-            route: "/workspaces/archive/retention",
-            componentPath: "frontend/src/pages/workspaces/archive/Retention.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'workspaces-archive-time-travel',
-            label: "Temporal Reconstruction",
-            route: "/workspaces/archive/time-travel",
-            componentPath: "frontend/src/pages/workspaces/archive/TimeTravel.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'workspaces-archive-restore',
-            label: "Restore & Export",
-            route: "/workspaces/archive/restore",
-            componentPath: "frontend/src/pages/workspaces/archive/Restore.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-        ],
-      },
+        {
+          id: "workspaces-archive-and-continuity-workspace-snapshot-manager",
+          label: "Snapshot Manager",
+          route: "/workspaces/archive/snapshots",
+          componentPath: "frontend/src/pages/workspaces/archive/Snapshots.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-archive-and-continuity-workspace-restore-and-export",
+          label: "Restore & Export",
+          route: "/workspaces/archive/restore",
+          componentPath: "frontend/src/pages/workspaces/archive/Restore.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-archive-and-continuity-workspace-archive-workspace",
+          label: "Archive Workspace",
+          route: "/workspaces/archive",
+          componentPath: "frontend/src/pages/workspaces/Archive.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-archive-and-continuity-workspace-retention-policies",
+          label: "Retention Policies",
+          route: "/workspaces/archive/retention",
+          componentPath: "frontend/src/pages/workspaces/archive/Retention.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-archive-and-continuity-workspace-temporal-reconstruction",
+          label: "Temporal Reconstruction",
+          route: "/workspaces/archive/time-travel",
+          componentPath: "frontend/src/pages/workspaces/archive/TimeTravel.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-archive-and-continuity-workspace-archive-and-continuity-workspace",
+          label: "Archive & Continuity Workspace",
+          route: "/workspaces/archive-continuity-workspace",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'digital-twin--enterprise-twin-workspace',
+        id: "workspaces-digital-twin-and-enterprise-twin-workspace",
         label: "Digital Twin & Enterprise Twin Workspace",
-        homeRoute: "/workspaces",
-        homeComponentPath: "frontend/src/pages/Workspaces.tsx",
+        homeRoute: "/workspaces/digital-twin-and-enterprise-twin-workspace",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 8,
         features: [
-          {
-            id: 'workspaces-twins',
-            label: "Digital Twin Builder",
-            route: "/workspaces/twins",
-            componentPath: "frontend/src/pages/workspaces/Twins.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'workspaces-twins-templates',
-            label: "Twin Templates",
-            route: "/workspaces/twins/templates",
-            componentPath: "frontend/src/pages/workspaces/twins/Templates.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'workspaces-twins-feeds',
-            label: "Data Feeds & Sync",
-            route: "/workspaces/twins/feeds",
-            componentPath: "frontend/src/pages/workspaces/twins/Feeds.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'workspaces-twins-scenarios',
-            label: "Scenario Runner",
-            route: "/workspaces/twins/scenarios",
-            componentPath: "frontend/src/pages/workspaces/twins/Scenarios.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'workspaces-twins-reality-mesh',
-            label: "Reality Twin Mesh",
-            route: "/workspaces/twins/reality-mesh",
-            componentPath: "frontend/src/pages/workspaces/twins/RealityMesh.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'workspaces-twins-governance',
-            label: "Twin Governance",
-            route: "/workspaces/twins/governance",
-            componentPath: "frontend/src/pages/workspaces/twins/Governance.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'workspaces-twins-enterprise',
-            label: "Enterprise Twin",
-            route: "/workspaces/twins/enterprise",
-            componentPath: "frontend/src/pages/workspaces/twins/Enterprise.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-        ],
-      },
-    ],
+        {
+          id: "workspaces-digital-twin-and-enterprise-twin-workspace-enterprise-twin",
+          label: "Enterprise Twin",
+          route: "/workspaces/twins/enterprise",
+          componentPath: "frontend/src/pages/workspaces/twins/Enterprise.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-digital-twin-and-enterprise-twin-workspace-reality-twin-mesh",
+          label: "Reality Twin Mesh",
+          route: "/workspaces/twins/reality-mesh",
+          componentPath: "frontend/src/pages/workspaces/twins/RealityMesh.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-digital-twin-and-enterprise-twin-workspace-scenario-runner",
+          label: "Scenario Runner",
+          route: "/workspaces/twins/scenarios",
+          componentPath: "frontend/src/pages/workspaces/twins/Scenarios.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-digital-twin-and-enterprise-twin-workspace-twin-templates",
+          label: "Twin Templates",
+          route: "/workspaces/twins/templates",
+          componentPath: "frontend/src/pages/workspaces/twins/Templates.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-digital-twin-and-enterprise-twin-workspace-twin-governance",
+          label: "Twin Governance",
+          route: "/workspaces/twins/governance",
+          componentPath: "frontend/src/pages/workspaces/twins/Governance.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-digital-twin-and-enterprise-twin-workspace-data-feeds-and-sync",
+          label: "Data Feeds & Sync",
+          route: "/workspaces/twins/feeds",
+          componentPath: "frontend/src/pages/workspaces/twins/Feeds.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-digital-twin-and-enterprise-twin-workspace-digital-twin-builder",
+          label: "Digital Twin Builder",
+          route: "/workspaces/twins",
+          componentPath: "frontend/src/pages/workspaces/Twins.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "workspaces-digital-twin-and-enterprise-twin-workspace-digital-twin-and-enterprise-twin-workspace",
+          label: "Digital Twin & Enterprise Twin Workspace",
+          route: "/workspaces/digital-twin-enterprise-twin-workspace",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "workspaces-master-stack-and-project-management-engine",
+        label: "Master Stack & Intelligence Project Management Engine",
+        homeRoute: "/workspaces/master-stack-and-project-management-engine",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'personal',
+        order: 9,
+        features: [
+        {
+          id: "workspaces-master-stack-and-project-management-engine-project-management-system",
+          label: "Intelligence Project Management",
+          route: "/ipm",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-master-stack-and-project-management-engine-projects",
+          label: "Projects",
+          route: "/ipm/projects",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-master-stack-and-project-management-engine-runs",
+          label: "Runs",
+          route: "/ipm/runs",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-master-stack-and-project-management-engine-documents",
+          label: "Documents",
+          route: "/ipm/documents",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-master-stack-and-project-management-engine-journal",
+          label: "Journal",
+          route: "/ipm/journal",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-master-stack-and-project-management-engine-finance",
+          label: "Finance",
+          route: "/ipm/finance",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-master-stack-and-project-management-engine-audit",
+          label: "Audit",
+          route: "/ipm/audit",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-master-stack-and-project-management-engine-settings",
+          label: "Settings",
+          route: "/ipm/settings",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "workspaces-dev-devops",
+        label: "Dev Devops",
+        homeRoute: "/workspaces/dev-devops",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 10,
+        features: [
+        {
+          id: "workspaces-dev-devops-cicd",
+          label: "Cicd",
+          route: "/workspaces/dev-devops/ci-cd",
+          componentPath: "frontend/src/pages/Workspaces/Devdevops/Cicd.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-dev-devops-committasks",
+          label: "Committasks",
+          route: "/workspaces/dev-devops/commit-tasks",
+          componentPath: "frontend/src/pages/Workspaces/Devdevops/Committasks.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-dev-devops-mergeadvisor",
+          label: "Mergeadvisor",
+          route: "/workspaces/dev-devops/merge-advisor",
+          componentPath: "frontend/src/pages/Workspaces/Devdevops/Mergeadvisor.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "workspaces-research-simulation",
+        label: "Research Simulation",
+        homeRoute: "/workspaces/research-simulation",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 11,
+        features: [
+        {
+          id: "workspaces-research-simulation-digitaltwins",
+          label: "Digitaltwins",
+          route: "/workspaces/research-simulation/digital-twins",
+          componentPath: "frontend/src/pages/Workspaces/Researchsimulation/Digitaltwins.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "workspaces-record-auditor-and-logbook-workspace",
+        label: "Record Auditor & Logbook Workspace",
+        homeRoute: "/workspaces/record-auditor-and-logbook-workspace",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 12,
+        features: [
+        {
+          id: "workspaces-record-auditor-and-logbook-workspace-immutable-logbook-viewer",
+          label: "Immutable Logbook Viewer",
+          route: "/workspaces/auditor/logbook",
+          componentPath: "frontend/src/pages/workspaces/auditor/Logbook.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-record-auditor-and-logbook-workspace-evidence-trails",
+          label: "Evidence Trails",
+          route: "/workspaces/auditor/evidence",
+          componentPath: "frontend/src/pages/workspaces/auditor/Evidence.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "workspaces-record-auditor-and-logbook-workspace-regulator-views",
+          label: "Regulator Views",
+          route: "/workspaces/auditor/regulator",
+          componentPath: "frontend/src/pages/workspaces/auditor/Regulator.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "workspaces-record-auditor-and-logbook-workspace-evidence-requests",
+          label: "Evidence Requests",
+          route: "/workspaces/auditor/requests",
+          componentPath: "frontend/src/pages/workspaces/auditor/Requests.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-record-auditor-and-logbook-workspace-audit-reports",
+          label: "Audit Reports",
+          route: "/workspaces/auditor/reports",
+          componentPath: "frontend/src/pages/workspaces/auditor/Reports.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "workspaces-record-auditor-and-logbook-workspace-record-auditor",
+          label: "Record Auditor",
+          route: "/workspaces/auditor",
+          componentPath: "frontend/src/pages/workspaces/Auditor.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "workspaces-record-auditor-and-logbook-workspace-record-auditor-and-logbook-workspace",
+          label: "Record Auditor & Logbook Workspace",
+          route: "/workspaces/record-auditor-logbook-workspace",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "workspaces-record-auditor-and-logbook-workspace-controls-mapping",
+          label: "Controls Mapping",
+          route: "/workspaces/auditor/controls",
+          componentPath: "frontend/src/pages/workspaces/auditor/Controls.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
+    ]
   },
   {
-    id: 'ai-fabric',
+    id: "ai-fabric",
     label: "AI Fabric",
     path: "/ai",
-    actorScope: 'personal',
+    actorScope: 'both',
     order: 3,
     categories: [
       {
-        id: 'cognitive-agents--reasoning',
-        label: "Cognitive Agents & Reasoning",
-        homeRoute: "/ai",
-        homeComponentPath: "frontend/src/pages/Ai.tsx",
+        id: "ai-fabric-driver-fabric-and-system-execution",
+        label: "Driver Fabric & System Execution",
+        homeRoute: "/ai/driver-fabric-and-system-execution",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 1,
         features: [
-          {
-            id: 'ai-copilot',
-            label: "AI Copilot",
-            route: "/ai/copilot",
-            componentPath: "frontend/src/pages/ai/Copilot.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'ai-personas',
-            label: "Personas & Agents",
-            route: "/ai/personas",
-            componentPath: "frontend/src/pages/ai/Personas.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'ai-prompts',
-            label: "Prompt/Instruction Library",
-            route: "/ai/prompts",
-            componentPath: "frontend/src/pages/ai/Prompts.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'ai-project-intelligence',
-            label: "Project Intelligence",
-            route: "/ai/project-intelligence",
-            componentPath: "frontend/src/pages/ai/ProjectIntelligence.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'ai-evals',
-            label: "Evaluation & Benchmarks",
-            route: "/ai/evals",
-            componentPath: "frontend/src/pages/ai/Evals.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'ai-routing',
-            label: "Model Router / Policy",
-            route: "/ai/routing",
-            componentPath: "frontend/src/pages/ai/Routing.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'ai-advanced',
-            label: "Advanced AI Engine",
-            route: "/ai/advanced",
-            componentPath: "frontend/src/pages/ai/Advanced.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'ai-daemons',
-            label: "Daemon Framework",
-            route: "/ai/daemons",
-            componentPath: "frontend/src/pages/ai/Daemons.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-          {
-            id: 'ai-trf',
-            label: "Theoretical Reasoning Framework",
-            route: "/ai/trf",
-            componentPath: "frontend/src/pages/ai/Trf.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 9,
-          },
-          {
-            id: 'ai-safety',
-            label: "Safety & Alignment Overview",
-            route: "/ai/safety",
-            componentPath: "frontend/src/pages/ai/Safety.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 10,
-          },
-          {
-            id: 'ai-agents-registry',
-            label: "Agent Registry & Lifecycle",
-            route: "/ai/agents/registry",
-            componentPath: "frontend/src/pages/ai/agents/Registry.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 11,
-          },
-        ],
-      },
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-os-drivers",
+          label: "OS Drivers",
+          route: "/ai/drivers/os",
+          componentPath: "frontend/src/pages/ai/drivers/Os.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-hardware-drivers",
+          label: "Hardware Drivers",
+          route: "/ai/drivers/hardware",
+          componentPath: "frontend/src/pages/ai/drivers/Hardware.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-data-drivers",
+          label: "Data Drivers",
+          route: "/ai/drivers/data",
+          componentPath: "frontend/src/pages/ai/drivers/Data.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-sandbox-and-testbed",
+          label: "Sandbox & Testbed",
+          route: "/ai/drivers/sandbox",
+          componentPath: "frontend/src/pages/ai/drivers/Sandbox.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-driver-registry",
+          label: "Driver Registry",
+          route: "/ai/drivers",
+          componentPath: "frontend/src/pages/ai/Drivers.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-driver-test-harness",
+          label: "Driver Test Harness",
+          route: "/ai/drivers/testing",
+          componentPath: "frontend/src/pages/ai/drivers/Testing.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-driver-health-and-telemetry",
+          label: "Driver Health & Telemetry",
+          route: "/ai/drivers/health",
+          componentPath: "frontend/src/pages/ai/drivers/Health.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-driver-permissions-and-sandboxing",
+          label: "Driver Permissions & Sandboxing",
+          route: "/ai/drivers/permissions",
+          componentPath: "frontend/src/pages/ai/drivers/Permissions.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-driver-versioning-and-deprecation",
+          label: "Driver Versioning & Deprecation",
+          route: "/ai/drivers/versioning",
+          componentPath: "frontend/src/pages/ai/drivers/Versioning.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-package-and-env-drivers",
+          label: "Package & Env Drivers",
+          route: "/ai/drivers/package",
+          componentPath: "frontend/src/pages/ai/drivers/Package.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-software-and-saas-drivers",
+          label: "Software & SaaS Drivers",
+          route: "/ai/drivers/software",
+          componentPath: "frontend/src/pages/ai/drivers/Software.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-research-and-simulation-drivers",
+          label: "Research & Simulation Drivers",
+          route: "/ai/drivers/research",
+          componentPath: "frontend/src/pages/ai/drivers/Research.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-driver-fabric-and-system-execution",
+          label: "Driver Fabric & System Execution",
+          route: "/ai/driver-fabric-system-execution",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-ai-os-control",
+          label: "AI OS Control",
+          route: "/ai/os",
+          componentPath: "frontend/src/pages/ai/Os.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-driver-fabric-and-system-execution-ai-operations",
+          label: "AI Operations",
+          route: "/ai/operations",
+          componentPath: "frontend/src/pages/ai/Operations.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'driver-fabric--system-execution',
-        label: "Driver Fabric & System Execution",
-        homeRoute: "/ai",
-        homeComponentPath: "frontend/src/pages/Ai.tsx",
+        id: "ai-fabric-capsules-and-workflow-automation",
+        label: "Capsules & Workflow Automation",
+        homeRoute: "/ai/capsules-and-workflow-automation",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 2,
         features: [
-          {
-            id: 'ai-os',
-            label: "AI OS Control",
-            route: "/ai/os",
-            componentPath: "frontend/src/pages/ai/Os.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'ai-operations',
-            label: "AI Operations",
-            route: "/ai/operations",
-            componentPath: "frontend/src/pages/ai/Operations.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'ai-drivers',
-            label: "Driver Registry",
-            route: "/ai/drivers",
-            componentPath: "frontend/src/pages/ai/Drivers.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'ai-drivers-testing',
-            label: "Driver Test Harness",
-            route: "/ai/drivers/testing",
-            componentPath: "frontend/src/pages/ai/drivers/Testing.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'ai-drivers-health',
-            label: "Driver Health & Telemetry",
-            route: "/ai/drivers/health",
-            componentPath: "frontend/src/pages/ai/drivers/Health.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'ai-drivers-permissions',
-            label: "Driver Permissions & Sandboxing",
-            route: "/ai/drivers/permissions",
-            componentPath: "frontend/src/pages/ai/drivers/Permissions.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'ai-drivers-versioning',
-            label: "Driver Versioning & Deprecation",
-            route: "/ai/drivers/versioning",
-            componentPath: "frontend/src/pages/ai/drivers/Versioning.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'ai-drivers-os',
-            label: "OS Drivers",
-            route: "/ai/drivers/os",
-            componentPath: "frontend/src/pages/ai/drivers/Os.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-          {
-            id: 'ai-drivers-package',
-            label: "Package & Env Drivers",
-            route: "/ai/drivers/package",
-            componentPath: "frontend/src/pages/ai/drivers/Package.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 9,
-          },
-          {
-            id: 'ai-drivers-hardware',
-            label: "Hardware Drivers",
-            route: "/ai/drivers/hardware",
-            componentPath: "frontend/src/pages/ai/drivers/Hardware.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 10,
-          },
-          {
-            id: 'ai-drivers-software',
-            label: "Software & SaaS Drivers",
-            route: "/ai/drivers/software",
-            componentPath: "frontend/src/pages/ai/drivers/Software.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 11,
-          },
-          {
-            id: 'ai-drivers-data',
-            label: "Data Drivers",
-            route: "/ai/drivers/data",
-            componentPath: "frontend/src/pages/ai/drivers/Data.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 12,
-          },
-          {
-            id: 'ai-drivers-research',
-            label: "Research & Simulation Drivers",
-            route: "/ai/drivers/research",
-            componentPath: "frontend/src/pages/ai/drivers/Research.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 13,
-          },
-          {
-            id: 'ai-drivers-sandbox',
-            label: "Sandbox & Testbed",
-            route: "/ai/drivers/sandbox",
-            componentPath: "frontend/src/pages/ai/drivers/Sandbox.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 14,
-          },
-        ],
-      },
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-project-ledger",
+          label: "Project Ledger",
+          route: "/ai/capsules/ledger",
+          componentPath: "frontend/src/pages/ai/capsules/Ledger.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-lineage-and-replay",
+          label: "Lineage & Replay",
+          route: "/ai/capsules/lineage",
+          componentPath: "frontend/src/pages/ai/capsules/Lineage.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-operator-studio",
+          label: "Operator Studio",
+          route: "/ai/capsules/operator-studio",
+          componentPath: "frontend/src/pages/ai/capsules/OperatorStudio.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-capsule-templates",
+          label: "Capsule Templates",
+          route: "/ai/capsules/templates",
+          componentPath: "frontend/src/pages/ai/capsules/Templates.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-my-stack-capsules",
+          label: "My Stack Capsules",
+          route: "/ai/capsules/my-stack",
+          componentPath: "frontend/src/pages/ai/capsules/MyStack.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-capsule-builder",
+          label: "Capsule Builder",
+          route: "/ai/capsules/builder",
+          componentPath: "frontend/src/pages/ai/capsules/Builder.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-capsule-runtime-settings",
+          label: "Capsule Runtime Settings",
+          route: "/ai/capsules/runtime",
+          componentPath: "frontend/src/pages/ai/capsules/Runtime.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-secrets-and-inputs",
+          label: "Secrets & Inputs",
+          route: "/ai/capsules/secrets",
+          componentPath: "frontend/src/pages/ai/capsules/Secrets.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-capsule-marketplace",
+          label: "Capsule Marketplace",
+          route: "/ai/capsules",
+          componentPath: "frontend/src/pages/ai/Capsules.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-approval-and-publishing",
+          label: "Approval & Publishing",
+          route: "/ai/capsules/publishing",
+          componentPath: "frontend/src/pages/ai/capsules/Publishing.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-capsules-and-workflow-automation",
+          label: "Capsules & Workflow Automation",
+          route: "/ai/capsules-workflow-automation",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-workflow-orchestrator",
+          label: "Workflow Orchestrator",
+          route: "/ai/workflows",
+          componentPath: "frontend/src/pages/ai/Workflows.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-scheduling-and-triggers",
+          label: "Scheduling & Triggers",
+          route: "/ai/workflows/triggers",
+          componentPath: "frontend/src/pages/ai/workflows/Triggers.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-workflow-observability",
+          label: "Workflow Observability",
+          route: "/ai/workflows/observability",
+          componentPath: "frontend/src/pages/ai/workflows/Observability.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-capsules-and-workflow-automation-auto-fix-console",
+          label: "Auto-Fix Console",
+          route: "/ai/autofix",
+          componentPath: "frontend/src/pages/ai/Autofix.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'capsules--workflow-automation',
-        label: "Capsules & Workflow Automation",
-        homeRoute: "/ai",
-        homeComponentPath: "frontend/src/pages/Ai.tsx",
+        id: "ai-fabric-intent-processing",
+        label: "Intent Processing",
+        homeRoute: "/ai/intent-processing",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
-        actorScope: 'personal',
+        actorScope: 'both',
         order: 3,
         features: [
-          {
-            id: 'ai-workflows',
-            label: "Workflow Orchestrator",
-            route: "/ai/workflows",
-            componentPath: "frontend/src/pages/ai/Workflows.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'ai-workflows-triggers',
-            label: "Scheduling & Triggers",
-            route: "/ai/workflows/triggers",
-            componentPath: "frontend/src/pages/ai/workflows/Triggers.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'ai-workflows-observability',
-            label: "Workflow Observability",
-            route: "/ai/workflows/observability",
-            componentPath: "frontend/src/pages/ai/workflows/Observability.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'ai-capsules-builder',
-            label: "Capsule Builder",
-            route: "/ai/capsules/builder",
-            componentPath: "frontend/src/pages/ai/capsules/Builder.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'ai-capsules-templates',
-            label: "Capsule Templates",
-            route: "/ai/capsules/templates",
-            componentPath: "frontend/src/pages/ai/capsules/Templates.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'ai-capsules-my-stack',
-            label: "My Stack Capsules",
-            route: "/ai/capsules/my-stack",
-            componentPath: "frontend/src/pages/ai/capsules/MyStack.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'ai-capsules-runtime',
-            label: "Capsule Runtime Settings",
-            route: "/ai/capsules/runtime",
-            componentPath: "frontend/src/pages/ai/capsules/Runtime.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'ai-capsules-secrets',
-            label: "Secrets & Inputs",
-            route: "/ai/capsules/secrets",
-            componentPath: "frontend/src/pages/ai/capsules/Secrets.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-          {
-            id: 'ai-capsules',
-            label: "Capsule Marketplace",
-            route: "/ai/capsules",
-            componentPath: "frontend/src/pages/ai/Capsules.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 9,
-          },
-          {
-            id: 'ai-capsules-publishing',
-            label: "Approval & Publishing",
-            route: "/ai/capsules/publishing",
-            componentPath: "frontend/src/pages/ai/capsules/Publishing.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 10,
-          },
-          {
-            id: 'ai-capsules-operator-studio',
-            label: "Operator Studio",
-            route: "/ai/capsules/operator-studio",
-            componentPath: "frontend/src/pages/ai/capsules/OperatorStudio.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 11,
-          },
-          {
-            id: 'ai-autofix',
-            label: "Auto-Fix Console",
-            route: "/ai/autofix",
-            componentPath: "frontend/src/pages/ai/Autofix.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 12,
-          },
-          {
-            id: 'ai-capsules-ledger',
-            label: "Project Ledger",
-            route: "/ai/capsules/ledger",
-            componentPath: "frontend/src/pages/ai/capsules/Ledger.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 13,
-          },
-          {
-            id: 'ai-capsules-lineage',
-            label: "Lineage & Replay",
-            route: "/ai/capsules/lineage",
-            componentPath: "frontend/src/pages/ai/capsules/Lineage.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 14,
-          },
-        ],
-      },
+        {
+          id: "ai-fabric-intent-processing-intent-processor",
+          label: "Intent Processor",
+          route: "/ai/intents",
+          componentPath: "frontend/src/pages/ai/Intents.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-intent-processing-intent-taxonomy-and-routing-rules",
+          label: "Intent Taxonomy & Routing Rules",
+          route: "/ai/intents/taxonomy",
+          componentPath: "frontend/src/pages/ai/intents/Taxonomy.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-intent-processing-intent-logs-and-replay",
+          label: "Intent Logs & Replay",
+          route: "/ai/intents/logs",
+          componentPath: "frontend/src/pages/ai/intents/Logs.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-intent-processing-systems-map",
+          label: "Systems Map",
+          route: "/ai/systems",
+          componentPath: "frontend/src/pages/ai/Systems.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-intent-processing-system-dependency-graph",
+          label: "System Dependency Graph",
+          route: "/ai/systems/graph",
+          componentPath: "frontend/src/pages/ai/systems/Graph.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-intent-processing-capability-registry",
+          label: "Capability Registry",
+          route: "/ai/capabilities",
+          componentPath: "frontend/src/pages/ai/Capabilities.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-intent-processing-intentprocessor",
+          label: "Intentprocessor",
+          route: "/ai-fabric/intent-processing/intent-processor",
+          componentPath: "frontend/src/pages/Aifabric/Intentprocessing/Intentprocessor.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'mlops--neural-architecture',
-        label: "MLOps & Neural Architecture",
-        homeRoute: "/ai",
-        homeComponentPath: "frontend/src/pages/Ai.tsx",
+        id: "ai-fabric-edge-and-vision",
+        label: "Edge & Vision",
+        homeRoute: "/ai/edge-and-vision",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 4,
         features: [
-          {
-            id: 'ai-mlops',
-            label: "MLOps",
-            route: "/ai/mlops",
-            componentPath: "frontend/src/pages/ai/Mlops.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'ai-mlops-models',
-            label: "Model Registry",
-            route: "/ai/mlops/models",
-            componentPath: "frontend/src/pages/ai/mlops/Models.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'ai-mlops-data',
-            label: "Dataset & Feature Store",
-            route: "/ai/mlops/data",
-            componentPath: "frontend/src/pages/ai/mlops/Data.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'ai-mlops-pipelines',
-            label: "Training Pipelines",
-            route: "/ai/mlops/pipelines",
-            componentPath: "frontend/src/pages/ai/mlops/Pipelines.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'ai-mlops-serving',
-            label: "Deployment & Serving",
-            route: "/ai/mlops/serving",
-            componentPath: "frontend/src/pages/ai/mlops/Serving.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'ai-mlops-drift',
-            label: "Drift Monitoring",
-            route: "/ai/mlops/drift",
-            componentPath: "frontend/src/pages/ai/mlops/Drift.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'ai-mlops-approvals',
-            label: "Governance Gates",
-            route: "/ai/mlops/approvals",
-            componentPath: "frontend/src/pages/ai/mlops/Approvals.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'ai-nas',
-            label: "NAS Console",
-            route: "/ai/nas",
-            componentPath: "frontend/src/pages/ai/Nas.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-          {
-            id: 'ai-nas-experiments',
-            label: "Experiment Console",
-            route: "/ai/nas/experiments",
-            componentPath: "frontend/src/pages/ai/nas/Experiments.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 9,
-          },
-          {
-            id: 'ai-nas-simulator',
-            label: "NAS Simulator",
-            route: "/ai/nas/simulator",
-            componentPath: "frontend/src/pages/ai/nas/Simulator.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 10,
-          },
-        ],
-      },
+        {
+          id: "ai-fabric-edge-and-vision-edge-and-vision",
+          label: "Edge & Vision",
+          route: "/ai/edge-vision",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-edge-and-vision-edge-computing",
+          label: "Edge Computing",
+          route: "/ai/edge",
+          componentPath: "frontend/src/pages/ai/Edge.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-edge-and-vision-device-registry",
+          label: "Device Registry",
+          route: "/ai/edge/devices",
+          componentPath: "frontend/src/pages/ai/edge/Devices.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-edge-and-vision-model-packaging-and-deployment",
+          label: "Model Packaging & Deployment",
+          route: "/ai/edge/deploy",
+          componentPath: "frontend/src/pages/ai/edge/Deploy.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-edge-and-vision-computer-vision",
+          label: "Computer Vision",
+          route: "/ai/vision",
+          componentPath: "frontend/src/pages/ai/Vision.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-edge-and-vision-camera-stream-integrations",
+          label: "Camera/Stream Integrations",
+          route: "/ai/vision/streams",
+          componentPath: "frontend/src/pages/ai/vision/Streams.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-edge-and-vision-vision-pipelines",
+          label: "Vision Pipelines",
+          route: "/ai/vision/pipelines",
+          componentPath: "frontend/src/pages/ai/vision/Pipelines.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-edge-and-vision-annotation-and-labeling",
+          label: "Annotation & Labeling",
+          route: "/ai/vision/labeling",
+          componentPath: "frontend/src/pages/ai/vision/Labeling.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'edge--vision',
-        label: "Edge & Vision",
-        homeRoute: "/ai",
-        homeComponentPath: "frontend/src/pages/Ai.tsx",
+        id: "ai-fabric-cognitive-agents-and-reasoning",
+        label: "Cognitive Agents & Reasoning",
+        homeRoute: "/ai/cognitive-agents-and-reasoning",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 5,
         features: [
-          {
-            id: 'ai-edge',
-            label: "Edge Computing",
-            route: "/ai/edge",
-            componentPath: "frontend/src/pages/ai/Edge.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'ai-edge-devices',
-            label: "Device Registry",
-            route: "/ai/edge/devices",
-            componentPath: "frontend/src/pages/ai/edge/Devices.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'ai-edge-deploy',
-            label: "Model Packaging & Deployment",
-            route: "/ai/edge/deploy",
-            componentPath: "frontend/src/pages/ai/edge/Deploy.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'ai-vision',
-            label: "Computer Vision",
-            route: "/ai/vision",
-            componentPath: "frontend/src/pages/ai/Vision.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'ai-vision-streams',
-            label: "Camera/Stream Integrations",
-            route: "/ai/vision/streams",
-            componentPath: "frontend/src/pages/ai/vision/Streams.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'ai-vision-pipelines',
-            label: "Vision Pipelines",
-            route: "/ai/vision/pipelines",
-            componentPath: "frontend/src/pages/ai/vision/Pipelines.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'ai-vision-labeling',
-            label: "Annotation & Labeling",
-            route: "/ai/vision/labeling",
-            componentPath: "frontend/src/pages/ai/vision/Labeling.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-        ],
-      },
+        {
+          id: "ai-fabric-cognitive-agents-and-reasoning-cognitive-agents-and-reasoning",
+          label: "Cognitive Agents & Reasoning",
+          route: "/ai/cognitive-agents-reasoning",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-cognitive-agents-and-reasoning-ai-copilot",
+          label: "AI Copilot",
+          route: "/ai/copilot",
+          componentPath: "frontend/src/pages/ai/Copilot.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-cognitive-agents-and-reasoning-personas-and-agents",
+          label: "Personas & Agents",
+          route: "/ai/personas",
+          componentPath: "frontend/src/pages/ai/Personas.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-cognitive-agents-and-reasoning-prompt-instruction-library",
+          label: "Prompt/Instruction Library",
+          route: "/ai/prompts",
+          componentPath: "frontend/src/pages/ai/Prompts.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-cognitive-agents-and-reasoning-project-intelligence",
+          label: "Project Intelligence",
+          route: "/ai/project-intelligence",
+          componentPath: "frontend/src/pages/ai/ProjectIntelligence.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-cognitive-agents-and-reasoning-evaluation-and-benchmarks",
+          label: "Evaluation & Benchmarks",
+          route: "/ai/evals",
+          componentPath: "frontend/src/pages/ai/Evals.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-cognitive-agents-and-reasoning-model-router-policy",
+          label: "Model Router / Policy",
+          route: "/ai/routing",
+          componentPath: "frontend/src/pages/ai/Routing.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-cognitive-agents-and-reasoning-advanced-ai-engine",
+          label: "Advanced AI Engine",
+          route: "/ai/advanced",
+          componentPath: "frontend/src/pages/ai/Advanced.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-cognitive-agents-and-reasoning-daemon-framework",
+          label: "Daemon Framework",
+          route: "/ai/daemons",
+          componentPath: "frontend/src/pages/ai/Daemons.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-cognitive-agents-and-reasoning-theoretical-reasoning-framework",
+          label: "Theoretical Reasoning Framework",
+          route: "/ai/trf",
+          componentPath: "frontend/src/pages/ai/Trf.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-cognitive-agents-and-reasoning-safety-and-alignment-overview",
+          label: "Safety & Alignment Overview",
+          route: "/ai/safety",
+          componentPath: "frontend/src/pages/ai/Safety.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-cognitive-agents-and-reasoning-agent-registry-and-lifecycle",
+          label: "Agent Registry & Lifecycle",
+          route: "/ai/agents/registry",
+          componentPath: "frontend/src/pages/ai/agents/Registry.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'intent-processing',
-        label: "Intent Processing",
-        homeRoute: "/ai",
-        homeComponentPath: "frontend/src/pages/Ai.tsx",
+        id: "ai-fabric-mlops-and-neural-architecture",
+        label: "MLOps & Neural Architecture",
+        homeRoute: "/ai/mlops-and-neural-architecture",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 6,
         features: [
-          {
-            id: 'ai-intents',
-            label: "Intent Processor",
-            route: "/ai/intents",
-            componentPath: "frontend/src/pages/ai/Intents.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'ai-intents-taxonomy',
-            label: "Intent Taxonomy & Routing Rules",
-            route: "/ai/intents/taxonomy",
-            componentPath: "frontend/src/pages/ai/intents/Taxonomy.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'ai-intents-logs',
-            label: "Intent Logs & Replay",
-            route: "/ai/intents/logs",
-            componentPath: "frontend/src/pages/ai/intents/Logs.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'ai-systems',
-            label: "Systems Map",
-            route: "/ai/systems",
-            componentPath: "frontend/src/pages/ai/Systems.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'ai-systems-graph',
-            label: "System Dependency Graph",
-            route: "/ai/systems/graph",
-            componentPath: "frontend/src/pages/ai/systems/Graph.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'ai-capabilities',
-            label: "Capability Registry",
-            route: "/ai/capabilities",
-            componentPath: "frontend/src/pages/ai/Capabilities.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-        ],
-      },
-    ],
+        {
+          id: "ai-fabric-mlops-and-neural-architecture-mlops-and-neural-architecture",
+          label: "MLOps & Neural Architecture",
+          route: "/ai/mlops-neural-architecture",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-mlops-and-neural-architecture-mlops",
+          label: "MLOps",
+          route: "/ai/mlops",
+          componentPath: "frontend/src/pages/ai/Mlops.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-mlops-and-neural-architecture-model-registry",
+          label: "Model Registry",
+          route: "/ai/mlops/models",
+          componentPath: "frontend/src/pages/ai/mlops/Models.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-mlops-and-neural-architecture-dataset-and-feature-store",
+          label: "Dataset & Feature Store",
+          route: "/ai/mlops/data",
+          componentPath: "frontend/src/pages/ai/mlops/Data.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-mlops-and-neural-architecture-training-pipelines",
+          label: "Training Pipelines",
+          route: "/ai/mlops/pipelines",
+          componentPath: "frontend/src/pages/ai/mlops/Pipelines.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-mlops-and-neural-architecture-deployment-and-serving",
+          label: "Deployment & Serving",
+          route: "/ai/mlops/serving",
+          componentPath: "frontend/src/pages/ai/mlops/Serving.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-mlops-and-neural-architecture-drift-monitoring",
+          label: "Drift Monitoring",
+          route: "/ai/mlops/drift",
+          componentPath: "frontend/src/pages/ai/mlops/Drift.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-mlops-and-neural-architecture-governance-gates",
+          label: "Governance Gates",
+          route: "/ai/mlops/approvals",
+          componentPath: "frontend/src/pages/ai/mlops/Approvals.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-mlops-and-neural-architecture-nas-console",
+          label: "NAS Console",
+          route: "/ai/nas",
+          componentPath: "frontend/src/pages/ai/Nas.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-mlops-and-neural-architecture-experiment-console",
+          label: "Experiment Console",
+          route: "/ai/nas/experiments",
+          componentPath: "frontend/src/pages/ai/nas/Experiments.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "ai-fabric-mlops-and-neural-architecture-nas-simulator",
+          label: "NAS Simulator",
+          route: "/ai/nas/simulator",
+          componentPath: "frontend/src/pages/ai/nas/Simulator.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "ai-fabric-capsules-workflow",
+        label: "Capsules Workflow",
+        homeRoute: "/ai/capsules-workflow",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 7,
+        features: [
+        {
+          id: "ai-fabric-capsules-workflow-autofixconsole",
+          label: "Autofixconsole",
+          route: "/ai-fabric/capsules-workflow/auto-fix-console",
+          componentPath: "frontend/src/pages/Aifabric/Capsulesworkflow/Autofixconsole.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-capsules-workflow-capsulemarketplace",
+          label: "Capsulemarketplace",
+          route: "/ai-fabric/capsules-workflow/capsule-marketplace",
+          componentPath: "frontend/src/pages/Aifabric/Capsulesworkflow/Capsulemarketplace.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-capsules-workflow-lineagereplay",
+          label: "Lineagereplay",
+          route: "/ai-fabric/capsules-workflow/lineage-replay",
+          componentPath: "frontend/src/pages/Aifabric/Capsulesworkflow/Lineagereplay.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "ai-fabric-cognitive-agents",
+        label: "Cognitive Agents",
+        homeRoute: "/ai/cognitive-agents",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 8,
+        features: [
+        {
+          id: "ai-fabric-cognitive-agents-aicopilot",
+          label: "Aicopilot",
+          route: "/ai-fabric/cognitive-agents/ai-copilot",
+          componentPath: "frontend/src/pages/Aifabric/Cognitiveagents/Aicopilot.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-cognitive-agents-personasagents",
+          label: "Personasagents",
+          route: "/ai-fabric/cognitive-agents/personas-agents",
+          componentPath: "frontend/src/pages/Aifabric/Cognitiveagents/Personasagents.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "ai-fabric-edge-vision",
+        label: "Edge Vision",
+        homeRoute: "/ai/edge-vision-home",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 9,
+        features: [
+        {
+          id: "ai-fabric-edge-vision-computervision",
+          label: "Computervision",
+          route: "/ai-fabric/edge-vision/computer-vision",
+          componentPath: "frontend/src/pages/Aifabric/Edgevision/Computervision.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "ai-fabric-edge-vision-edgecomputing",
+          label: "Edgecomputing",
+          route: "/ai-fabric/edge-vision/edge-computing",
+          componentPath: "frontend/src/pages/Aifabric/Edgevision/Edgecomputing.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "ai-fabric-mlops-neural-arch",
+        label: "Mlops Neural Arch",
+        homeRoute: "/ai/mlops-neural-arch",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 10,
+        features: [
+        {
+          id: "ai-fabric-mlops-neural-arch-mlops",
+          label: "Mlops",
+          route: "/ai-fabric/mlops-neural-arch/mlops",
+          componentPath: "frontend/src/pages/Aifabric/Mlopsneuralarch/Mlops.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+    ]
   },
   {
-    id: 'drivers',
-    label: "Drivers & Integrations",
-    path: "/drivers",
+    id: "data-knowledge",
+    label: "Data & Knowledge",
+    path: "/data",
     actorScope: 'personal',
     order: 4,
     categories: [
       {
-        id: 'driver-registry--management',
-        label: "Driver Registry & Management",
-        homeRoute: "/integrations",
-        homeComponentPath: "frontend/src/pages/Integrations.tsx",
-        homeBestCommit: 'stable',
-        actorScope: 'personal',
-        order: 1,
-        features: [
-          {
-            id: 'integrations',
-            label: "Overview",
-            route: "/integrations",
-            componentPath: "frontend/src/pages/Integrations.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'drivers-registry',
-            label: "Driver Registry",
-            route: "/drivers/registry",
-            componentPath: "frontend/src/pages/drivers/Registry.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'drivers-sdk',
-            label: "Driver SDK",
-            route: "/drivers/sdk",
-            componentPath: "frontend/src/pages/drivers/Sdk.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'drivers-testing',
-            label: "Driver Testing & Validation",
-            route: "/drivers/testing",
-            componentPath: "frontend/src/pages/drivers/Testing.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'drivers-permissions',
-            label: "Runtime Permissions",
-            route: "/drivers/permissions",
-            componentPath: "frontend/src/pages/drivers/Permissions.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'drivers-versioning',
-            label: "Versioning & Deprecation",
-            route: "/drivers/versioning",
-            componentPath: "frontend/src/pages/drivers/Versioning.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'drivers-analytics',
-            label: "Driver Analytics",
-            route: "/drivers/analytics",
-            componentPath: "frontend/src/pages/drivers/Analytics.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'drivers-publishing',
-            label: "Publishing Flow",
-            route: "/drivers/publishing",
-            componentPath: "frontend/src/pages/drivers/Publishing.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-        ],
-      },
-      {
-        id: 'connectors--integrations',
-        label: "Connectors & Integrations",
-        homeRoute: "/integrations",
-        homeComponentPath: "frontend/src/pages/Integrations.tsx",
-        homeBestCommit: 'stable',
-        actorScope: 'personal',
-        order: 2,
-        features: [
-          {
-            id: 'integrations-connectors',
-            label: "Connectors Overview",
-            route: "/integrations/connectors",
-            componentPath: "frontend/src/pages/integrations/Connectors.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'integrations-credentials',
-            label: "Credential Vault",
-            route: "/integrations/credentials",
-            componentPath: "frontend/src/pages/integrations/Credentials.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'integrations-api-connectors',
-            label: "API Connectors",
-            route: "/integrations/api-connectors",
-            componentPath: "frontend/src/pages/integrations/ApiConnectors.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'drivers-integrations-productivity',
-            label: "Productivity Suites",
-            route: "/drivers/integrations/productivity",
-            componentPath: "frontend/src/pages/drivers/integrations/Productivity.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'drivers-integrations-code',
-            label: "Code Hosts & CI/CD",
-            route: "/drivers/integrations/code",
-            componentPath: "frontend/src/pages/drivers/integrations/Code.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'drivers-integrations-cloud',
-            label: "Cloud Providers",
-            route: "/drivers/integrations/cloud",
-            componentPath: "frontend/src/pages/drivers/integrations/Cloud.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'integrations-office',
-            label: "Office Realtime",
-            route: "/integrations/office",
-            componentPath: "frontend/src/pages/integrations/Office.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'drivers-integrations-finance',
-            label: "Finance & Banking",
-            route: "/drivers/integrations/finance",
-            componentPath: "frontend/src/pages/drivers/integrations/Finance.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-          {
-            id: 'drivers-integrations-research',
-            label: "Research Data Sources",
-            route: "/drivers/integrations/research",
-            componentPath: "frontend/src/pages/drivers/integrations/Research.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 9,
-          },
-          {
-            id: 'drivers-integrations-legacy',
-            label: "Legacy & Mainframe",
-            route: "/drivers/integrations/legacy",
-            componentPath: "frontend/src/pages/drivers/integrations/Legacy.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 10,
-          },
-          {
-            id: 'integrations-webhooks',
-            label: "Webhooks & Events",
-            route: "/integrations/webhooks",
-            componentPath: "frontend/src/pages/integrations/Webhooks.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 11,
-          },
-          {
-            id: 'integrations-mappings',
-            label: "Data Mapping & Transformations",
-            route: "/integrations/mappings",
-            componentPath: "frontend/src/pages/integrations/Mappings.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 12,
-          },
-          {
-            id: 'integrations-health',
-            label: "Connector Health",
-            route: "/integrations/health",
-            componentPath: "frontend/src/pages/integrations/Health.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 13,
-          },
-          {
-            id: 'integrations-rate-limits',
-            label: "Rate Limits & Quotas",
-            route: "/integrations/rate-limits",
-            componentPath: "frontend/src/pages/integrations/RateLimits.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 14,
-          },
-        ],
-      },
-      {
-        id: 'driver-packs--marketplace',
-        label: "Driver Packs & Marketplace",
-        homeRoute: "/drivers",
-        homeComponentPath: "frontend/src/pages/Drivers.tsx",
-        homeBestCommit: 'stable',
-        actorScope: 'personal',
-        order: 3,
-        features: [
-          {
-            id: 'drivers-marketplace',
-            label: "Marketplace",
-            route: "/drivers/marketplace",
-            componentPath: "frontend/src/pages/drivers/Marketplace.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'drivers-marketplace-reviews',
-            label: "Reviews & Ratings",
-            route: "/drivers/marketplace/reviews",
-            componentPath: "frontend/src/pages/drivers/marketplace/Reviews.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'drivers-marketplace-security-review',
-            label: "Security Review Pipeline",
-            route: "/drivers/marketplace/security-review",
-            componentPath: "frontend/src/pages/drivers/marketplace/SecurityReview.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'drivers-packs',
-            label: "Driver Packs",
-            route: "/drivers/packs",
-            componentPath: "frontend/src/pages/drivers/Packs.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'drivers-packs-builder',
-            label: "Pack Builder",
-            route: "/drivers/packs/builder",
-            componentPath: "frontend/src/pages/drivers/packs/Builder.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'drivers-vertical-editions',
-            label: "Vertical Editions",
-            route: "/drivers/vertical-editions",
-            componentPath: "frontend/src/pages/drivers/VerticalEditions.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'drivers-enterprise-store',
-            label: "Enterprise App Store",
-            route: "/drivers/enterprise-store",
-            componentPath: "frontend/src/pages/drivers/EnterpriseStore.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'drivers-licensing',
-            label: "Licensing & Entitlements",
-            route: "/drivers/licensing",
-            componentPath: "frontend/src/pages/drivers/Licensing.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-        ],
-      },
-      {
-        id: 'risk--governance',
-        label: "Risk & Governance",
-        homeRoute: "/drivers",
-        homeComponentPath: "frontend/src/pages/Drivers.tsx",
-        homeBestCommit: 'stable',
-        actorScope: 'personal',
-        order: 4,
-        features: [
-          {
-            id: 'drivers-risk',
-            label: "Third-Party Risk",
-            route: "/drivers/risk",
-            componentPath: "frontend/src/pages/drivers/Risk.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'drivers-risk-vendors',
-            label: "Vendor Inventory",
-            route: "/drivers/risk/vendors",
-            componentPath: "frontend/src/pages/drivers/risk/Vendors.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'drivers-risk-assessments',
-            label: "Risk Assessments",
-            route: "/drivers/risk/assessments",
-            componentPath: "frontend/src/pages/drivers/risk/Assessments.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'drivers-risk-remediation',
-            label: "Remediation Tracker",
-            route: "/drivers/risk/remediation",
-            componentPath: "frontend/src/pages/drivers/risk/Remediation.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'drivers-risk-exceptions',
-            label: "Exceptions & Approvals",
-            route: "/drivers/risk/exceptions",
-            componentPath: "frontend/src/pages/drivers/risk/Exceptions.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'data',
-    label: "Data & Knowledge",
-    path: "/data",
-    actorScope: 'personal',
-    order: 5,
-    categories: [
-      {
-        id: 'core-data-stores',
-        label: "Core Data Stores",
-        homeRoute: "/data",
-        homeComponentPath: "frontend/src/pages/Data.tsx",
-        homeBestCommit: 'stable',
-        actorScope: 'personal',
-        order: 1,
-        features: [
-          {
-            id: 'data',
-            label: "Data Overview",
-            route: "/data",
-            componentPath: "frontend/src/pages/Data.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'data-cir',
-            label: "CIR Store",
-            route: "/data/cir",
-            componentPath: "frontend/src/pages/data/Cir.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'data-capsules',
-            label: "Capsule Store",
-            route: "/data/capsules",
-            componentPath: "frontend/src/pages/data/Capsules.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'data-ledger',
-            label: "Project Ledger",
-            route: "/data/ledger",
-            componentPath: "frontend/src/pages/data/Ledger.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'data-artifacts',
-            label: "Binary Artifacts",
-            route: "/data/artifacts",
-            componentPath: "frontend/src/pages/data/Artifacts.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'data-schema',
-            label: "Schema & Ontology",
-            route: "/data/schema",
-            componentPath: "frontend/src/pages/data/Schema.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'data-ingestion',
-            label: "Ingestion Pipelines",
-            route: "/data/ingestion",
-            componentPath: "frontend/src/pages/data/Ingestion.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'data-lineage',
-            label: "Data Lineage",
-            route: "/data/lineage",
-            componentPath: "frontend/src/pages/data/Lineage.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-          {
-            id: 'data-quality',
-            label: "Data Quality Checks",
-            route: "/data/quality",
-            componentPath: "frontend/src/pages/data/Quality.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 9,
-          },
-        ],
-      },
-      {
-        id: 'indices--search',
-        label: "Indices & Search",
-        homeRoute: "/data",
-        homeComponentPath: "frontend/src/pages/Data.tsx",
-        homeBestCommit: 'stable',
-        actorScope: 'personal',
-        order: 2,
-        features: [
-          {
-            id: 'data-indices',
-            label: "Indices Overview",
-            route: "/data/indices",
-            componentPath: "frontend/src/pages/data/Indices.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'data-indices-manage',
-            label: "Index Management",
-            route: "/data/indices/manage",
-            componentPath: "frontend/src/pages/data/indices/Manage.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'data-indices-fulltext',
-            label: "Full-Text Search",
-            route: "/data/indices/fulltext",
-            componentPath: "frontend/src/pages/data/indices/Fulltext.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'data-indices-semantic',
-            label: "Semantic/Vector Search",
-            route: "/data/indices/semantic",
-            componentPath: "frontend/src/pages/data/indices/Semantic.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'data-indices-embeddings',
-            label: "Embeddings Management",
-            route: "/data/indices/embeddings",
-            componentPath: "frontend/src/pages/data/indices/Embeddings.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'data-indices-graph',
-            label: "Graph Index",
-            route: "/data/indices/graph",
-            componentPath: "frontend/src/pages/data/indices/Graph.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-          {
-            id: 'data-indices-tuning',
-            label: "Relevance Tuning",
-            route: "/data/indices/tuning",
-            componentPath: "frontend/src/pages/data/indices/Tuning.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 7,
-          },
-          {
-            id: 'data-query',
-            label: "Query Console",
-            route: "/data/query",
-            componentPath: "frontend/src/pages/data/Query.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 8,
-          },
-        ],
-      },
-      {
-        id: 'observability-stores',
+        id: "data-knowledge-observability-stores",
         label: "Observability Stores",
-        homeRoute: "/data",
-        homeComponentPath: "frontend/src/pages/Data.tsx",
+        homeRoute: "/data/observability-stores",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'personal',
+        order: 1,
+        features: [
+        {
+          id: "data-knowledge-observability-stores-observability-stores-overview",
+          label: "Observability Stores Overview",
+          route: "/data/observability",
+          componentPath: "frontend/src/pages/data/Observability.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "data-knowledge-observability-stores-retention-and-tiering",
+          label: "Retention & Tiering",
+          route: "/data/observability/tiering",
+          componentPath: "frontend/src/pages/data/observability/Tiering.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "data-knowledge-observability-stores-export-and-integrations",
+          label: "Export & Integrations",
+          route: "/data/observability/export",
+          componentPath: "frontend/src/pages/data/observability/Export.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "data-knowledge-observability-stores-metrics-store",
+          label: "Metrics Store",
+          route: "/data/metrics",
+          componentPath: "frontend/src/pages/data/Metrics.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-observability-stores-logs-store",
+          label: "Logs Store",
+          route: "/data/logs",
+          componentPath: "frontend/src/pages/data/Logs.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-observability-stores-traces-store",
+          label: "Traces Store",
+          route: "/data/traces",
+          componentPath: "frontend/src/pages/data/Traces.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "data-knowledge-archive-and-backup",
+        label: "Archive & Backup",
+        homeRoute: "/data/archive-and-backup",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'personal',
+        order: 2,
+        features: [
+        {
+          id: "data-knowledge-archive-and-backup-archive",
+          label: "Archive",
+          route: "/data/archive",
+          componentPath: "frontend/src/pages/data/Archive.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "data-knowledge-multi-region-and-replication",
+        label: "Multi-Region & Replication",
+        homeRoute: "/data/multi-region-and-replication",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 3,
         features: [
-          {
-            id: 'data-observability',
-            label: "Observability Stores Overview",
-            route: "/data/observability",
-            componentPath: "frontend/src/pages/data/Observability.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'data-metrics',
-            label: "Metrics Store",
-            route: "/data/metrics",
-            componentPath: "frontend/src/pages/data/Metrics.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'data-logs',
-            label: "Logs Store",
-            route: "/data/logs",
-            componentPath: "frontend/src/pages/data/Logs.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'data-traces',
-            label: "Traces Store",
-            route: "/data/traces",
-            componentPath: "frontend/src/pages/data/Traces.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'data-observability-tiering',
-            label: "Retention & Tiering",
-            route: "/data/observability/tiering",
-            componentPath: "frontend/src/pages/data/observability/Tiering.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'data-observability-export',
-            label: "Export & Integrations",
-            route: "/data/observability/export",
-            componentPath: "frontend/src/pages/data/observability/Export.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-        ],
-      },
+        {
+          id: "data-knowledge-multi-region-and-replication-multi-region-replication",
+          label: "Multi-Region Replication",
+          route: "/data/replication",
+          componentPath: "frontend/src/pages/data/Replication.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'archive--retention',
-        label: "Archive & Retention",
-        homeRoute: "/data",
-        homeComponentPath: "frontend/src/pages/Data.tsx",
+        id: "data-knowledge-core-data-stores",
+        label: "Core Data Stores",
+        homeRoute: "/data/core-data-stores",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 4,
         features: [
-          {
-            id: 'data-archive',
-            label: "Archive",
-            route: "/data/archive",
-            componentPath: "frontend/src/pages/data/Archive.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'data-backup',
-            label: "Backup & Retention",
-            route: "/data/backup",
-            componentPath: "frontend/src/pages/data/Backup.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'data-retention-policies',
-            label: "Retention Policy Builder",
-            route: "/data/retention/policies",
-            componentPath: "frontend/src/pages/data/retention/Policies.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'data-legal-hold',
-            label: "Legal Hold",
-            route: "/data/legal-hold",
-            componentPath: "frontend/src/pages/data/LegalHold.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'data-restore-testing',
-            label: "Restore Testing",
-            route: "/data/restore-testing",
-            componentPath: "frontend/src/pages/data/RestoreTesting.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-        ],
-      },
+        {
+          id: "data-knowledge-core-data-stores-data-overview",
+          label: "Data Overview",
+          route: "/data/core-data-stores/data",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "data-knowledge-core-data-stores-cir-store",
+          label: "CIR Store",
+          route: "/data/cir",
+          componentPath: "frontend/src/pages/data/Cir.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-core-data-stores-capsule-store",
+          label: "Capsule Store",
+          route: "/data/capsules",
+          componentPath: "frontend/src/pages/data/Capsules.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-core-data-stores-project-ledger",
+          label: "Project Ledger",
+          route: "/data/ledger",
+          componentPath: "frontend/src/pages/data/Ledger.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-core-data-stores-binary-artifacts",
+          label: "Binary Artifacts",
+          route: "/data/artifacts",
+          componentPath: "frontend/src/pages/data/Artifacts.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-core-data-stores-schema-and-ontology",
+          label: "Schema & Ontology",
+          route: "/data/schema",
+          componentPath: "frontend/src/pages/data/Schema.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "data-knowledge-core-data-stores-ingestion-pipelines",
+          label: "Ingestion Pipelines",
+          route: "/data/ingestion",
+          componentPath: "frontend/src/pages/data/Ingestion.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "data-knowledge-core-data-stores-data-lineage",
+          label: "Data Lineage",
+          route: "/data/lineage",
+          componentPath: "frontend/src/pages/data/Lineage.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "data-knowledge-core-data-stores-data-quality-checks",
+          label: "Data Quality Checks",
+          route: "/data/quality",
+          componentPath: "frontend/src/pages/data/Quality.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'data-protection',
+        id: "data-knowledge-data-protection",
         label: "Data Protection",
-        homeRoute: "/data",
-        homeComponentPath: "frontend/src/pages/Data.tsx",
+        homeRoute: "/data/data-protection",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 5,
         features: [
-          {
-            id: 'data-encryption',
-            label: "Encryption & Keys",
-            route: "/data/encryption",
-            componentPath: "frontend/src/pages/data/Encryption.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'data-encryption-rotation',
-            label: "Key Rotation & KMS Integrations",
-            route: "/data/encryption/rotation",
-            componentPath: "frontend/src/pages/data/encryption/Rotation.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'data-integrity',
-            label: "Integrity Protections",
-            route: "/data/integrity",
-            componentPath: "frontend/src/pages/data/Integrity.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-        ],
-      },
+        {
+          id: "data-knowledge-data-protection-encryption-and-keys",
+          label: "Encryption & Keys",
+          route: "/data/encryption",
+          componentPath: "frontend/src/pages/data/Encryption.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-data-protection-key-rotation-and-kms-integrations",
+          label: "Key Rotation & KMS Integrations",
+          route: "/data/encryption/rotation",
+          componentPath: "frontend/src/pages/data/encryption/Rotation.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "data-knowledge-data-protection-integrity-protections",
+          label: "Integrity Protections",
+          route: "/data/integrity",
+          componentPath: "frontend/src/pages/data/Integrity.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'replication--dr',
+        id: "data-knowledge-replication-and-dr",
         label: "Replication & DR",
-        homeRoute: "/data",
-        homeComponentPath: "frontend/src/pages/Data.tsx",
+        homeRoute: "/data/replication-and-dr",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 6,
         features: [
-          {
-            id: 'data-replication',
-            label: "Multi-Region Replication",
-            route: "/data/replication",
-            componentPath: "frontend/src/pages/data/Replication.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'data-consistency',
-            label: "Consistency Models",
-            route: "/data/consistency",
-            componentPath: "frontend/src/pages/data/Consistency.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'data-dr-failover',
-            label: "Failover Controls",
-            route: "/data/dr/failover",
-            componentPath: "frontend/src/pages/data/dr/Failover.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'data-dr-drills',
-            label: "DR Drill Planner",
-            route: "/data/dr/drills",
-            componentPath: "frontend/src/pages/data/dr/Drills.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-        ],
-      },
-    ],
+        {
+          id: "data-knowledge-replication-and-dr-replication-and-dr",
+          label: "Replication & DR",
+          route: "/data/replication-dr",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-replication-and-dr-consistency-models",
+          label: "Consistency Models",
+          route: "/data/consistency",
+          componentPath: "frontend/src/pages/data/Consistency.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-replication-and-dr-failover-controls",
+          label: "Failover Controls",
+          route: "/data/dr/failover",
+          componentPath: "frontend/src/pages/data/dr/Failover.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "data-knowledge-replication-and-dr-dr-drill-planner",
+          label: "DR Drill Planner",
+          route: "/data/dr/drills",
+          componentPath: "frontend/src/pages/data/dr/Drills.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "data-knowledge-indices-and-search",
+        label: "Indices & Search",
+        homeRoute: "/data/indices-and-search",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'personal',
+        order: 7,
+        features: [
+        {
+          id: "data-knowledge-indices-and-search-indices-and-search",
+          label: "Indices & Search",
+          route: "/data/indices-search",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-indices-and-search-indices-overview",
+          label: "Indices Overview",
+          route: "/data/indices",
+          componentPath: "frontend/src/pages/data/Indices.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-indices-and-search-index-management",
+          label: "Index Management",
+          route: "/data/indices/manage",
+          componentPath: "frontend/src/pages/data/indices/Manage.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "data-knowledge-indices-and-search-full-text-search",
+          label: "Full-Text Search",
+          route: "/data/indices/fulltext",
+          componentPath: "frontend/src/pages/data/indices/Fulltext.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-indices-and-search-semantic-vector-search",
+          label: "Semantic/Vector Search",
+          route: "/data/indices/semantic",
+          componentPath: "frontend/src/pages/data/indices/Semantic.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-indices-and-search-embeddings-management",
+          label: "Embeddings Management",
+          route: "/data/indices/embeddings",
+          componentPath: "frontend/src/pages/data/indices/Embeddings.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "data-knowledge-indices-and-search-graph-index",
+          label: "Graph Index",
+          route: "/data/indices/graph",
+          componentPath: "frontend/src/pages/data/indices/Graph.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-indices-and-search-relevance-tuning",
+          label: "Relevance Tuning",
+          route: "/data/indices/tuning",
+          componentPath: "frontend/src/pages/data/indices/Tuning.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "data-knowledge-indices-and-search-query-console",
+          label: "Query Console",
+          route: "/data/query",
+          componentPath: "frontend/src/pages/data/Query.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "data-knowledge-archive-and-retention",
+        label: "Archive & Retention",
+        homeRoute: "/data/archive-and-retention",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'personal',
+        order: 8,
+        features: [
+        {
+          id: "data-knowledge-archive-and-retention-archive-and-retention",
+          label: "Archive & Retention",
+          route: "/data/archive-retention",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-archive-and-retention-backup-and-retention",
+          label: "Backup & Retention",
+          route: "/data/backup",
+          componentPath: "frontend/src/pages/data/Backup.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-archive-and-retention-retention-policy-builder",
+          label: "Retention Policy Builder",
+          route: "/data/retention/policies",
+          componentPath: "frontend/src/pages/data/retention/Policies.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "data-knowledge-archive-and-retention-legal-hold",
+          label: "Legal Hold",
+          route: "/data/legal-hold",
+          componentPath: "frontend/src/pages/data/LegalHold.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "data-knowledge-archive-and-retention-restore-testing",
+          label: "Restore Testing",
+          route: "/data/restore-testing",
+          componentPath: "frontend/src/pages/data/RestoreTesting.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+    ]
   },
   {
-    id: 'docs',
+    id: "drivers-integrations",
+    label: "Drivers & Integrations",
+    path: "/drivers",
+    actorScope: 'personal',
+    order: 5,
+    categories: [
+      {
+        id: "drivers-integrations-driver-registry",
+        label: "Driver Registry",
+        homeRoute: "/drivers/driver-registry",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'personal',
+        order: 1,
+        features: [
+        {
+          id: "drivers-integrations-driver-registry-driver-registry",
+          label: "Driver Registry",
+          route: "/drivers/registry",
+          componentPath: "frontend/src/pages/drivers/Registry.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "drivers-integrations-software-and-saas-drivers",
+        label: "Software & SaaS Drivers",
+        homeRoute: "/drivers/software-and-saas-drivers",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'personal',
+        order: 2,
+        features: [
+        {
+          id: "drivers-integrations-software-and-saas-drivers-productivity-suites",
+          label: "Productivity Suites",
+          route: "/drivers/integrations/productivity",
+          componentPath: "frontend/src/pages/drivers/integrations/Productivity.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-software-and-saas-drivers-code-hosts-and-ci-cd",
+          label: "Code Hosts & CI/CD",
+          route: "/drivers/integrations/code",
+          componentPath: "frontend/src/pages/drivers/integrations/Code.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-software-and-saas-drivers-finance-and-banking",
+          label: "Finance & Banking",
+          route: "/drivers/integrations/finance",
+          componentPath: "frontend/src/pages/drivers/integrations/Finance.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-software-and-saas-drivers-research-data-sources",
+          label: "Research Data Sources",
+          route: "/drivers/integrations/research",
+          componentPath: "frontend/src/pages/drivers/integrations/Research.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-software-and-saas-drivers-legacy-and-mainframe",
+          label: "Legacy & Mainframe",
+          route: "/drivers/integrations/legacy",
+          componentPath: "frontend/src/pages/drivers/integrations/Legacy.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-software-and-saas-drivers-cloud-providers",
+          label: "Cloud Providers",
+          route: "/drivers/integrations/cloud",
+          componentPath: "frontend/src/pages/drivers/integrations/Cloud.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "drivers-integrations-marketplace",
+        label: "Marketplace",
+        homeRoute: "/drivers/marketplace",
+        homeComponentPath: "frontend/src/pages/drivers/Marketplace.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'personal',
+        order: 3,
+        features: [
+        {
+          id: "drivers-integrations-marketplace-reviews-and-ratings",
+          label: "Reviews & Ratings",
+          route: "/drivers/marketplace/reviews",
+          componentPath: "frontend/src/pages/drivers/marketplace/Reviews.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-marketplace-security-review-pipeline",
+          label: "Security Review Pipeline",
+          route: "/drivers/marketplace/security-review",
+          componentPath: "frontend/src/pages/drivers/marketplace/SecurityReview.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "drivers-integrations-driver-registry-and-management",
+        label: "Driver Registry & Management",
+        homeRoute: "/drivers/driver-registry-and-management",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'personal',
+        order: 4,
+        features: [
+        {
+          id: "drivers-integrations-driver-registry-and-management-driver-registry-and-management",
+          label: "Driver Registry & Management",
+          route: "/drivers/driver-registry-management",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-driver-registry-and-management-overview",
+          label: "Overview",
+          route: "/drivers/driver-registry-management/drivers",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-driver-registry-and-management-driver-sdk",
+          label: "Driver SDK",
+          route: "/drivers/sdk",
+          componentPath: "frontend/src/pages/drivers/Sdk.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-driver-registry-and-management-driver-testing-and-validation",
+          label: "Driver Testing & Validation",
+          route: "/drivers/testing",
+          componentPath: "frontend/src/pages/drivers/Testing.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-driver-registry-and-management-runtime-permissions",
+          label: "Runtime Permissions",
+          route: "/drivers/permissions",
+          componentPath: "frontend/src/pages/drivers/Permissions.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-driver-registry-and-management-versioning-and-deprecation",
+          label: "Versioning & Deprecation",
+          route: "/drivers/versioning",
+          componentPath: "frontend/src/pages/drivers/Versioning.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-driver-registry-and-management-driver-analytics",
+          label: "Driver Analytics",
+          route: "/drivers/analytics",
+          componentPath: "frontend/src/pages/drivers/Analytics.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-driver-registry-and-management-publishing-flow",
+          label: "Publishing Flow",
+          route: "/drivers/publishing",
+          componentPath: "frontend/src/pages/drivers/Publishing.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "drivers-integrations-driver-packs-and-marketplace",
+        label: "Driver Packs & Marketplace",
+        homeRoute: "/drivers/driver-packs-and-marketplace",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'personal',
+        order: 5,
+        features: [
+        {
+          id: "drivers-integrations-driver-packs-and-marketplace-driver-packs-and-marketplace",
+          label: "Driver Packs & Marketplace",
+          route: "/drivers/driver-packs-marketplace",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-driver-packs-and-marketplace-driver-packs",
+          label: "Driver Packs",
+          route: "/drivers/packs",
+          componentPath: "frontend/src/pages/drivers/Packs.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-driver-packs-and-marketplace-pack-builder",
+          label: "Pack Builder",
+          route: "/drivers/packs/builder",
+          componentPath: "frontend/src/pages/drivers/packs/Builder.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-driver-packs-and-marketplace-vertical-editions",
+          label: "Vertical Editions",
+          route: "/drivers/vertical-editions",
+          componentPath: "frontend/src/pages/drivers/VerticalEditions.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-driver-packs-and-marketplace-enterprise-app-store",
+          label: "Enterprise App Store",
+          route: "/drivers/enterprise-store",
+          componentPath: "frontend/src/pages/drivers/EnterpriseStore.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-driver-packs-and-marketplace-licensing-and-entitlements",
+          label: "Licensing & Entitlements",
+          route: "/drivers/licensing",
+          componentPath: "frontend/src/pages/drivers/Licensing.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "drivers-integrations-risk-and-governance",
+        label: "Risk & Governance",
+        homeRoute: "/drivers/risk-and-governance",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'personal',
+        order: 6,
+        features: [
+        {
+          id: "drivers-integrations-risk-and-governance-risk-and-governance",
+          label: "Risk & Governance",
+          route: "/drivers/risk-governance",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-risk-and-governance-third-party-risk",
+          label: "Third-Party Risk",
+          route: "/drivers/risk",
+          componentPath: "frontend/src/pages/drivers/Risk.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-risk-and-governance-vendor-inventory",
+          label: "Vendor Inventory",
+          route: "/drivers/risk/vendors",
+          componentPath: "frontend/src/pages/drivers/risk/Vendors.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-risk-and-governance-risk-assessments",
+          label: "Risk Assessments",
+          route: "/drivers/risk/assessments",
+          componentPath: "frontend/src/pages/drivers/risk/Assessments.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-risk-and-governance-remediation-tracker",
+          label: "Remediation Tracker",
+          route: "/drivers/risk/remediation",
+          componentPath: "frontend/src/pages/drivers/risk/Remediation.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-risk-and-governance-exceptions-and-approvals",
+          label: "Exceptions & Approvals",
+          route: "/drivers/risk/exceptions",
+          componentPath: "frontend/src/pages/drivers/risk/Exceptions.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "drivers-integrations-connectors-and-integrations",
+        label: "Connectors & Integrations",
+        homeRoute: "/drivers/connectors-and-integrations",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'personal',
+        order: 7,
+        features: [
+        {
+          id: "drivers-integrations-connectors-and-integrations-connectors-and-integrations",
+          label: "Connectors & Integrations",
+          route: "/drivers/connectors-integrations",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-connectors-and-integrations-connectors-overview",
+          label: "Connectors Overview",
+          route: "/drivers/connectors-integrations/connectors",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-connectors-and-integrations-credential-vault",
+          label: "Credential Vault",
+          route: "/drivers/connectors-integrations/credentials",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-connectors-and-integrations-api-connectors",
+          label: "API Connectors",
+          route: "/drivers/connectors-integrations/api-connectors",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-connectors-and-integrations-mcp-gateway",
+          label: "MCP Gateway",
+          route: "/drivers/connectors-integrations/mcp-gateway",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-connectors-and-integrations-office-realtime",
+          label: "Office Realtime",
+          route: "/drivers/connectors-integrations/office",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "drivers-integrations-connectors-and-integrations-webhooks-and-events",
+          label: "Webhooks & Events",
+          route: "/drivers/connectors-integrations/webhooks",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-connectors-and-integrations-data-mapping-and-transformations",
+          label: "Data Mapping & Transformations",
+          route: "/drivers/connectors-integrations/mappings",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-connectors-and-integrations-connector-health",
+          label: "Connector Health",
+          route: "/drivers/connectors-integrations/health",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "drivers-integrations-connectors-and-integrations-rate-limits-and-quotas",
+          label: "Rate Limits & Quotas",
+          route: "/drivers/connectors-integrations/rate-limits",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+    ]
+  },
+  {
+    id: "docs-spec",
     label: "Docs & Spec",
     path: "/docs",
     actorScope: 'personal',
     order: 6,
     categories: [
       {
-        id: 'documentation-hub',
-        label: "Documentation Hub",
-        homeRoute: "/docs",
-        homeComponentPath: "frontend/src/pages/Docs.tsx",
+        id: "docs-spec-getting-started",
+        label: "Getting Started",
+        homeRoute: "/docs/getting-started",
+        homeComponentPath: "frontend/src/pages/docs/GettingStarted.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 1,
         features: [
-          {
-            id: 'docs',
-            label: "Docs Hub",
-            route: "/docs",
-            componentPath: "frontend/src/pages/Docs.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'docs-getting-started',
-            label: "Getting Started",
-            route: "/docs/getting-started",
-            componentPath: "frontend/src/pages/docs/GettingStarted.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'docs-tutorials',
-            label: "Tutorials",
-            route: "/docs/tutorials",
-            componentPath: "frontend/src/pages/docs/Tutorials.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'docs-glossary',
-            label: "Glossary",
-            route: "/docs/glossary",
-            componentPath: "frontend/src/pages/docs/Glossary.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'docs-spec-sheet',
-            label: "Technical Spec Sheet",
-            route: "/docs/spec-sheet",
-            componentPath: "frontend/src/pages/docs/SpecSheet.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'docs-release-notes',
-            label: "Release Notes",
-            route: "/docs/release-notes",
-            componentPath: "frontend/src/pages/docs/ReleaseNotes.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-        ],
-      },
+
+        ]
+      }
       {
-        id: 'reference-artifacts',
-        label: "Reference Artifacts",
-        homeRoute: "/docs/reference",
-        homeComponentPath: "frontend/src/pages/docs/Reference.tsx",
+        id: "docs-spec-api-reference",
+        label: "API Reference",
+        homeRoute: "/docs/api-reference",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 2,
         features: [
-          {
-            id: 'docs-reference-capsules',
-            label: "Capsule Manifests",
-            route: "/docs/reference/capsules",
-            componentPath: "frontend/src/pages/docs/reference/Capsules.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'docs-reference-drivers',
-            label: "Driver Manifests",
-            route: "/docs/reference/drivers",
-            componentPath: "frontend/src/pages/docs/reference/Drivers.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'docs-reference-policies',
-            label: "Policy Examples",
-            route: "/docs/reference/policies",
-            componentPath: "frontend/src/pages/docs/reference/Policies.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'docs-reference-evidence',
-            label: "Evidence Pack Templates",
-            route: "/docs/reference/evidence",
-            componentPath: "frontend/src/pages/docs/reference/Evidence.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'docs-reference-data',
-            label: "Data Schemas",
-            route: "/docs/reference/data",
-            componentPath: "frontend/src/pages/docs/reference/Data.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'docs-reference-ui',
-            label: "UI Component Library",
-            route: "/docs/reference/ui",
-            componentPath: "frontend/src/pages/docs/reference/Ui.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-        ],
-      },
+        {
+          id: "docs-spec-api-reference-api-reference",
+          label: "API Reference",
+          route: "/docs/api",
+          componentPath: "frontend/src/pages/docs/Api.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "docs-spec-api-reference-sdks",
+          label: "SDKs",
+          route: "/docs/api/sdks",
+          componentPath: "frontend/src/pages/docs/api/Sdks.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "docs-spec-api-reference-auth-and-rate-limits",
+          label: "Auth & Rate Limits",
+          route: "/docs/api/auth",
+          componentPath: "frontend/src/pages/docs/api/Auth.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "docs-spec-api-reference-webhooks",
+          label: "Webhooks",
+          route: "/docs/api/webhooks",
+          componentPath: "frontend/src/pages/docs/api/Webhooks.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'api-reference',
-        label: "API Reference",
-        homeRoute: "/docs",
-        homeComponentPath: "frontend/src/pages/Docs.tsx",
+        id: "docs-spec-reference-artifacts",
+        label: "Reference Artifacts",
+        homeRoute: "/docs/reference-artifacts",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 3,
         features: [
-          {
-            id: 'docs-api',
-            label: "API Reference",
-            route: "/docs/api",
-            componentPath: "frontend/src/pages/docs/Api.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'docs-api-sdks',
-            label: "SDKs",
-            route: "/docs/api/sdks",
-            componentPath: "frontend/src/pages/docs/api/Sdks.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'docs-api-auth',
-            label: "Auth & Rate Limits",
-            route: "/docs/api/auth",
-            componentPath: "frontend/src/pages/docs/api/Auth.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'docs-api-webhooks',
-            label: "Webhooks",
-            route: "/docs/api/webhooks",
-            componentPath: "frontend/src/pages/docs/api/Webhooks.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-        ],
-      },
+        {
+          id: "docs-spec-reference-artifacts-capsule-manifests",
+          label: "Capsule Manifests",
+          route: "/docs/reference/capsules",
+          componentPath: "frontend/src/pages/docs/reference/Capsules.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "docs-spec-reference-artifacts-driver-manifests",
+          label: "Driver Manifests",
+          route: "/docs/reference/drivers",
+          componentPath: "frontend/src/pages/docs/reference/Drivers.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "docs-spec-reference-artifacts-policy-examples",
+          label: "Policy Examples",
+          route: "/docs/reference/policies",
+          componentPath: "frontend/src/pages/docs/reference/Policies.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "docs-spec-reference-artifacts-evidence-pack-templates",
+          label: "Evidence Pack Templates",
+          route: "/docs/reference/evidence",
+          componentPath: "frontend/src/pages/docs/reference/Evidence.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "docs-spec-reference-artifacts-data-schemas",
+          label: "Data Schemas",
+          route: "/docs/reference/data",
+          componentPath: "frontend/src/pages/docs/reference/Data.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "docs-spec-reference-artifacts-ui-component-library",
+          label: "UI Component Library",
+          route: "/docs/reference/ui",
+          componentPath: "frontend/src/pages/docs/reference/Ui.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'migration--integration',
-        label: "Migration & Integration",
-        homeRoute: "/docs",
-        homeComponentPath: "frontend/src/pages/Docs.tsx",
+        id: "docs-spec-documentation-hub",
+        label: "Documentation Hub",
+        homeRoute: "/docs/documentation-hub",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'personal',
         order: 4,
         features: [
-          {
-            id: 'docs-migration_continued.md',
-            label: "Migration Continued",
-            route: "/docs/migration_continued.md",
-            componentPath: "frontend/src/pages/docs/Migration_continued.md.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'docs-migration',
-            label: "Migration Guides",
-            route: "/docs/migration",
-            componentPath: "frontend/src/pages/docs/Migration.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'docs-integrations',
-            label: "Integration Guides",
-            route: "/docs/integrations",
-            componentPath: "frontend/src/pages/docs/Integrations.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'docs-deployment',
-            label: "Deployment Guides",
-            route: "/docs/deployment",
-            componentPath: "frontend/src/pages/docs/Deployment.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-        ],
-      },
-    ],
+        {
+          id: "docs-spec-documentation-hub-docs-hub",
+          label: "Docs Hub",
+          route: "/docs/documentation-hub/docs",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "docs-spec-documentation-hub-tutorials",
+          label: "Tutorials",
+          route: "/docs/tutorials",
+          componentPath: "frontend/src/pages/docs/Tutorials.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "docs-spec-documentation-hub-glossary",
+          label: "Glossary",
+          route: "/docs/glossary",
+          componentPath: "frontend/src/pages/docs/Glossary.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "docs-spec-documentation-hub-technical-spec-sheet",
+          label: "Technical Spec Sheet",
+          route: "/docs/spec-sheet",
+          componentPath: "frontend/src/pages/docs/SpecSheet.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "docs-spec-documentation-hub-ssot-technical-docs",
+          label: "SSOT Technical Docs",
+          route: "/docs/documentation-hub/ssot-technical-docs",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "docs-spec-documentation-hub-release-notes",
+          label: "Release Notes",
+          route: "/docs/release-notes",
+          componentPath: "frontend/src/pages/docs/ReleaseNotes.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "docs-spec-migration-and-integration",
+        label: "Migration & Integration",
+        homeRoute: "/docs/migration-and-integration",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'personal',
+        order: 5,
+        features: [
+        {
+          id: "docs-spec-migration-and-integration-migration-and-integration",
+          label: "Migration & Integration",
+          route: "/docs/migration-integration",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "docs-spec-migration-and-integration-migration-continued",
+          label: "Migration Continued",
+          route: "/docs/migration_continued.md",
+          componentPath: "frontend/src/pages/docs/Migration_continued.md.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "docs-spec-migration-and-integration-migration-guides",
+          label: "Migration Guides",
+          route: "/docs/migration",
+          componentPath: "frontend/src/pages/docs/Migration.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "docs-spec-migration-and-integration-integration-guides",
+          label: "Integration Guides",
+          route: "/docs/integrations",
+          componentPath: "frontend/src/pages/docs/Integrations.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "docs-spec-migration-and-integration-deployment-guides",
+          label: "Deployment Guides",
+          route: "/docs/deployment",
+          componentPath: "frontend/src/pages/docs/Deployment.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
+    ]
   },
   {
-    id: 'settings',
+    id: "settings-admin",
     label: "Settings & Admin",
     path: "/settings",
-    actorScope: 'personal',
+    actorScope: 'both',
     order: 7,
     categories: [
       {
-        id: 'user--tenant-settings',
+        id: "settings-admin-user-and-tenant-settings",
         label: "User & Tenant Settings",
-        homeRoute: "/settings",
-        homeComponentPath: "frontend/src/pages/Settings.tsx",
+        homeRoute: "/settings/user-and-tenant-settings",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
-        actorScope: 'personal',
+        actorScope: 'both',
         order: 1,
         features: [
-          {
-            id: 'settings',
-            label: "Settings",
-            route: "/settings",
-            componentPath: "frontend/src/pages/Settings.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 1,
-          },
-          {
-            id: 'settings-profile',
-            label: "User Profile",
-            route: "/settings/profile",
-            componentPath: "frontend/src/pages/settings/Profile.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 2,
-          },
-          {
-            id: 'settings-preferences',
-            label: "Preferences",
-            route: "/settings/preferences",
-            componentPath: "frontend/src/pages/settings/Preferences.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 3,
-          },
-          {
-            id: 'settings-notifications',
-            label: "Notifications",
-            route: "/settings/notifications",
-            componentPath: "frontend/src/pages/settings/Notifications.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 4,
-          },
-          {
-            id: 'settings-credentials',
-            label: "Integrations Credentials",
-            route: "/settings/credentials",
-            componentPath: "frontend/src/pages/settings/Credentials.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 5,
-          },
-          {
-            id: 'settings-api-keys',
-            label: "API Keys",
-            route: "/settings/api-keys",
-            componentPath: "frontend/src/pages/settings/ApiKeys.tsx",
-            bestCommit: 'stable',
-            actorScope: 'personal',
-            order: 6,
-          },
-        ],
-      },
-    ],
+        {
+          id: "settings-admin-user-and-tenant-settings-user-and-tenant-settings",
+          label: "User & Tenant Settings",
+          route: "/settings/user-tenant-settings",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "settings-admin-user-and-tenant-settings-settings",
+          label: "Settings",
+          route: "/settings/user-tenant-settings/settings",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1
+        }
+        {
+          id: "settings-admin-user-and-tenant-settings-user-profile",
+          label: "User Profile",
+          route: "/settings/profile",
+          componentPath: "frontend/src/pages/settings/Profile.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "settings-admin-user-and-tenant-settings-preferences",
+          label: "Preferences",
+          route: "/settings/preferences",
+          componentPath: "frontend/src/pages/settings/Preferences.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "settings-admin-user-and-tenant-settings-notifications",
+          label: "Notifications",
+          route: "/settings/notifications",
+          componentPath: "frontend/src/pages/settings/Notifications.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "settings-admin-user-and-tenant-settings-integrations-credentials",
+          label: "Integrations Credentials",
+          route: "/settings/credentials",
+          componentPath: "frontend/src/pages/settings/Credentials.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "settings-admin-user-and-tenant-settings-api-keys",
+          label: "API Keys",
+          route: "/settings/api-keys",
+          componentPath: "frontend/src/pages/settings/ApiKeys.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "settings-admin-user-and-tenant-settings-enterprise-user-and-tenant-settings",
+          label: "Enterprise User & Tenant Settings",
+          route: "/settings/enterprise/user-tenant",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 8
+        }
+        {
+          id: "settings-admin-user-and-tenant-settings-team-and-members",
+          label: "Team & Members",
+          route: "/settings/team",
+          componentPath: "frontend/src/pages/settings/Team.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 8, isNew: true
+        }
+        {
+          id: "settings-admin-user-and-tenant-settings-tenancy-and-org-settings",
+          label: "Tenancy & Org Settings",
+          route: "/settings/tenant",
+          componentPath: "frontend/src/pages/settings/Tenant.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 8, isNew: true
+        }
+        {
+          id: "settings-admin-user-and-tenant-settings-audit-settings",
+          label: "Audit Settings",
+          route: "/settings/audit",
+          componentPath: "frontend/src/pages/settings/Audit.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 8, isNew: true
+        }
+        ]
+      }
+    ]
   },
   {
-    id: 'mission--architecture',
-    label: "Mission & Architecture",
-    path: "/mission--architecture",
-    actorScope: 'enterprise',
+    id: "legacy-recovery",
+    label: "Legacy Recovery",
+    path: "/legacy",
+    actorScope: 'both',
     order: 8,
     categories: [
       {
-        id: 'mission--identity',
-        label: "Mission & Identity",
-        homeRoute: "/mission",
-        homeComponentPath: "frontend/src/pages/Mission.tsx",
+        id: "legacy-recovery-cookbook-lab",
+        label: "Cookbook Lab",
+        homeRoute: "/legacy/cookbook-lab",
+        homeComponentPath: "frontend/src/pages/CookbookLab.tsx",
         homeBestCommit: 'stable',
-        actorScope: 'enterprise',
+        actorScope: 'both',
         order: 1,
         features: [
-          {
-            id: 'mission-overview',
-            label: "Mission & Scope",
-            route: "/mission/overview",
-            componentPath: "frontend/src/pages/mission/Overview.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'mission-use-cases',
-            label: "Use Cases Map",
-            route: "/mission/use-cases",
-            componentPath: "frontend/src/pages/mission/UseCases.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'mission-non-goals',
-            label: "System Boundaries & Non-Goals",
-            route: "/mission/non-goals",
-            componentPath: "frontend/src/pages/mission/NonGoals.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'mission-glossary',
-            label: "Terminology Glossary",
-            route: "/mission/glossary",
-            componentPath: "frontend/src/pages/mission/Glossary.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'mission-modes',
-            label: "Deployment Modes",
-            route: "/mission/modes",
-            componentPath: "frontend/src/pages/mission/Modes.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'mission-reference-architectures',
-            label: "Reference Architectures by Edition",
-            route: "/mission/reference-architectures",
-            componentPath: "frontend/src/pages/mission/ReferenceArchitectures.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'mission-identity',
-            label: "Identity & Roles",
-            route: "/mission/identity",
-            componentPath: "frontend/src/pages/mission/Identity.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-          {
-            id: 'mission-ai-stack',
-            label: "AI + Driver Stack",
-            route: "/mission/ai-stack",
-            componentPath: "frontend/src/pages/mission/AiStack.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 8,
-          },
-          {
-            id: 'mission-models',
-            label: "Model Provider Layer",
-            route: "/mission/models",
-            componentPath: "frontend/src/pages/mission/Models.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 9,
-          },
-          {
-            id: 'mission-daemons',
-            label: "Daemon Families",
-            route: "/mission/daemons",
-            componentPath: "frontend/src/pages/mission/Daemons.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 10,
-          },
-        ],
-      },
+
+        ]
+      }
       {
-        id: 'architecture--principles',
-        label: "Architecture & Principles",
-        homeRoute: "/mission",
-        homeComponentPath: "frontend/src/pages/Mission.tsx",
+        id: "legacy-recovery-data-knowledge-home",
+        label: "Data Knowledge Home",
+        homeRoute: "/legacy/data-knowledge-home",
+        homeComponentPath: "frontend/src/pages/DataKnowledgeHome.tsx",
         homeBestCommit: 'stable',
-        actorScope: 'enterprise',
+        actorScope: 'both',
         order: 2,
         features: [
-          {
-            id: 'mission-architecture',
-            label: "Architecture Overview",
-            route: "/mission/architecture",
-            componentPath: "frontend/src/pages/mission/Architecture.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'mission-principles',
-            label: "Architectural Principles",
-            route: "/mission/principles",
-            componentPath: "frontend/src/pages/mission/Principles.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'mission-components',
-            label: "Major Components",
-            route: "/mission/components",
-            componentPath: "frontend/src/pages/mission/Components.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'mission-orchestrator',
-            label: "Driver-Aware Orchestrator",
-            route: "/mission/orchestrator",
-            componentPath: "frontend/src/pages/mission/Orchestrator.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'mission-mapping',
-            label: "Component Mapping",
-            route: "/mission/mapping",
-            componentPath: "frontend/src/pages/mission/Mapping.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'mission-contracts',
-            label: "Data Model & Contracts",
-            route: "/mission/contracts",
-            componentPath: "frontend/src/pages/mission/Contracts.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'mission-extensibility',
-            label: "Extensibility Points",
-            route: "/mission/extensibility",
-            componentPath: "frontend/src/pages/mission/Extensibility.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-          {
-            id: 'mission-threat-model',
-            label: "Threat Model Summary",
-            route: "/mission/threat-model",
-            componentPath: "frontend/src/pages/mission/ThreatModel.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 8,
-          },
-          {
-            id: 'mission-performance-targets',
-            label: "Performance Targets",
-            route: "/mission/performance-targets",
-            componentPath: "frontend/src/pages/mission/PerformanceTargets.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 9,
-          },
-        ],
-      },
+
+        ]
+      }
       {
-        id: 'planes-architecture',
-        label: "Planes Architecture",
-        homeRoute: "/mission",
-        homeComponentPath: "frontend/src/pages/Mission.tsx",
+        id: "legacy-recovery-docs-spec-home",
+        label: "Docs Spec Home",
+        homeRoute: "/legacy/docs-spec-home",
+        homeComponentPath: "frontend/src/pages/DocsSpecHome.tsx",
         homeBestCommit: 'stable',
-        actorScope: 'enterprise',
+        actorScope: 'both',
         order: 3,
         features: [
-          {
-            id: 'mission-planes',
-            label: "Planes Overview",
-            route: "/mission/planes",
-            componentPath: "frontend/src/pages/mission/Planes.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'mission-planes-data',
-            label: "Data Plane",
-            route: "/mission/planes/data",
-            componentPath: "frontend/src/pages/mission/planes/Data.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'mission-planes-control',
-            label: "Control Plane",
-            route: "/mission/planes/control",
-            componentPath: "frontend/src/pages/mission/planes/Control.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'mission-planes-governance',
-            label: "Governance Plane",
-            route: "/mission/planes/governance",
-            componentPath: "frontend/src/pages/mission/planes/Governance.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'mission-planes-cross-plane',
-            label: "Cross-Plane Flows",
-            route: "/mission/planes/cross-plane",
-            componentPath: "frontend/src/pages/mission/planes/CrossPlane.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'mission-planes-contracts',
-            label: "Plane APIs & Event Contracts",
-            route: "/mission/planes/contracts",
-            componentPath: "frontend/src/pages/mission/planes/Contracts.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'mission-planes-failure-domains',
-            label: "Failure Domains by Plane",
-            route: "/mission/planes/failure-domains",
-            componentPath: "frontend/src/pages/mission/planes/FailureDomains.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-        ],
-      },
-    ],
+
+        ]
+      }
+      {
+        id: "legacy-recovery-drivers-integrations-home",
+        label: "Drivers Integrations Home",
+        homeRoute: "/legacy/drivers-integrations-home",
+        homeComponentPath: "frontend/src/pages/DriversIntegrationsHome.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 4,
+        features: [
+
+        ]
+      }
+      {
+        id: "legacy-recovery-governance-security-home",
+        label: "Governance Security Home",
+        homeRoute: "/legacy/governance-security-home",
+        homeComponentPath: "frontend/src/pages/GovernanceSecurityHome.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 5,
+        features: [
+
+        ]
+      }
+      {
+        id: "legacy-recovery-mission-architecture-home",
+        label: "Mission Architecture Home",
+        homeRoute: "/legacy/mission-architecture-home",
+        homeComponentPath: "frontend/src/pages/MissionArchitectureHome.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 6,
+        features: [
+
+        ]
+      }
+      {
+        id: "legacy-recovery-observability-evidence-home",
+        label: "Observability Evidence Home",
+        homeRoute: "/legacy/observability-evidence-home",
+        homeComponentPath: "frontend/src/pages/ObservabilityEvidenceHome.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 7,
+        features: [
+
+        ]
+      }
+      {
+        id: "legacy-recovery-operations-infrastructure-home",
+        label: "Operations Infrastructure Home",
+        homeRoute: "/legacy/operations-infrastructure-home",
+        homeComponentPath: "frontend/src/pages/OperationsInfrastructureHome.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 8,
+        features: [
+
+        ]
+      }
+      {
+        id: "legacy-recovery-roadmap-risks-home",
+        label: "Roadmap Risks Home",
+        homeRoute: "/legacy/roadmap-risks-home",
+        homeComponentPath: "frontend/src/pages/RoadmapRisksHome.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 9,
+        features: [
+
+        ]
+      }
+      {
+        id: "legacy-recovery-settings-admin-enterprise-extensions-home",
+        label: "Settings Admin Enterprise Extensions Home",
+        homeRoute: "/legacy/settings-admin-enterprise-extensions-home",
+        homeComponentPath: "frontend/src/pages/SettingsAdminEnterpriseExtensionsHome.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 10,
+        features: [
+
+        ]
+      }
+      {
+        id: "legacy-recovery-settings-admin-home",
+        label: "Settings Admin Home",
+        homeRoute: "/legacy/settings-admin-home",
+        homeComponentPath: "frontend/src/pages/SettingsAdminHome.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 11,
+        features: [
+
+        ]
+      }
+      {
+        id: "legacy-recovery-vision-meta-stack-home",
+        label: "Vision Meta Stack Home",
+        homeRoute: "/legacy/vision-meta-stack-home",
+        homeComponentPath: "frontend/src/pages/VisionMeta-StackHome.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 12,
+        features: [
+
+        ]
+      }
+      {
+        id: "legacy-recovery-concept-studio",
+        label: "Concept Studio",
+        homeRoute: "/legacy/concept-studio",
+        homeComponentPath: "frontend/src/pages/concepts/ConceptStudio.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 13,
+        features: [
+
+        ]
+      }
+      {
+        id: "legacy-recovery-planes-architecture",
+        label: "Planes Architecture",
+        homeRoute: "/legacy/planes-architecture",
+        homeComponentPath: "frontend/src/pages/mission/PlanesArchitecture.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'both',
+        order: 14,
+        features: [
+
+        ]
+      }
+    ]
   },
   {
-    id: 'governance',
-    label: "Governance & Security",
-    path: "/governance",
-    actorScope: 'enterprise',
+    id: "mission-architecture",
+    label: "Mission & Architecture",
+    path: "/mission",
+    actorScope: 'both',
     order: 9,
     categories: [
       {
-        id: 'policy--governance-engine',
-        label: "Policy & Governance Engine",
-        homeRoute: "/governance",
-        homeComponentPath: "frontend/src/pages/Governance.tsx",
+        id: "mission-architecture-architecture-principles",
+        label: "Architecture Principles",
+        homeRoute: "/mission/architecture-principles-home",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
-        actorScope: 'enterprise',
+        actorScope: 'both',
         order: 1,
         features: [
-          {
-            id: 'governance-policy',
-            label: "Policy Engine",
-            route: "/governance/policy",
-            componentPath: "frontend/src/pages/governance/Policy.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'governance-policy-library',
-            label: "Policy Library & Templates",
-            route: "/governance/policy/library",
-            componentPath: "frontend/src/pages/governance/policy/Library.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'governance-policy-dsl',
-            label: "Policy DSL",
-            route: "/governance/policy/dsl",
-            componentPath: "frontend/src/pages/governance/policy/Dsl.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'governance-policy-safety',
-            label: "Safety Harnesses",
-            route: "/governance/policy/safety",
-            componentPath: "frontend/src/pages/governance/policy/Safety.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'governance-policy-simulator',
-            label: "Policy Simulator",
-            route: "/governance/policy/simulator",
-            componentPath: "frontend/src/pages/governance/policy/Simulator.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'governance-policy-versioning',
-            label: "Policy Versioning & Approvals",
-            route: "/governance/policy/versioning",
-            componentPath: "frontend/src/pages/governance/policy/Versioning.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'governance-policy-enforcement',
-            label: "Enforcement Points Map",
-            route: "/governance/policy/enforcement",
-            componentPath: "frontend/src/pages/governance/policy/Enforcement.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-          {
-            id: 'governance-policy-exceptions',
-            label: "Exceptions & Waivers",
-            route: "/governance/policy/exceptions",
-            componentPath: "frontend/src/pages/governance/policy/Exceptions.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 8,
-          },
-        ],
-      },
+        {
+          id: "mission-architecture-architecture-principles-driverawareorchestrator",
+          label: "Driverawareorchestrator",
+          route: "/mission-architecture/architecture-principles/driver-aware-orchestrator",
+          componentPath: "frontend/src/pages/Missionarchitecture/Architectureprinciples/Driverawareorchestrator.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'compliance--regulator-fabric',
-        label: "Compliance & Regulator Fabric",
-        homeRoute: "/governance",
-        homeComponentPath: "frontend/src/pages/Governance.tsx",
+        id: "mission-architecture-mission-identity",
+        label: "Mission Identity",
+        homeRoute: "/mission/mission-identity-home",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
-        actorScope: 'enterprise',
+        actorScope: 'both',
         order: 2,
         features: [
-          {
-            id: 'governance-compliance',
-            label: "Compliance Packs",
-            route: "/governance/compliance",
-            componentPath: "frontend/src/pages/governance/Compliance.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'governance-compliance-controls',
-            label: "Control Framework Mapping",
-            route: "/governance/compliance/controls",
-            componentPath: "frontend/src/pages/governance/compliance/Controls.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'governance-compliance-readiness',
-            label: "Audit Readiness Dashboard",
-            route: "/governance/compliance/readiness",
-            componentPath: "frontend/src/pages/governance/compliance/Readiness.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'governance-regulator',
-            label: "Regulator Fabric",
-            route: "/governance/regulator",
-            componentPath: "frontend/src/pages/governance/Regulator.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'governance-regulator-tenancy',
-            label: "Regulator Tenancy",
-            route: "/governance/regulator/tenancy",
-            componentPath: "frontend/src/pages/governance/regulator/Tenancy.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'governance-regulator-evidence',
-            label: "Evidence Access",
-            route: "/governance/regulator/evidence",
-            componentPath: "frontend/src/pages/governance/regulator/Evidence.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'governance-regulator-requests',
-            label: "Evidence Request Workflow",
-            route: "/governance/regulator/requests",
-            componentPath: "frontend/src/pages/governance/regulator/Requests.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-        ],
-      },
+        {
+          id: "mission-architecture-mission-identity-identityroles",
+          label: "Identityroles",
+          route: "/mission-architecture/mission-identity/identity-roles",
+          componentPath: "frontend/src/pages/Missionarchitecture/Missionidentity/Identityroles.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-architecture-mission-identity-missionscope",
+          label: "Missionscope",
+          route: "/mission-architecture/mission-identity/mission-scope",
+          componentPath: "frontend/src/pages/Missionarchitecture/Missionidentity/Missionscope.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'identity--access',
-        label: "Identity & Access",
-        homeRoute: "/governance",
-        homeComponentPath: "frontend/src/pages/Governance.tsx",
+        id: "mission-architecture-planes-architecture",
+        label: "Planes Architecture",
+        homeRoute: "/mission/planes-architecture",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
-        actorScope: 'enterprise',
+        actorScope: 'both',
         order: 3,
         features: [
-          {
-            id: 'governance-identity',
-            label: "Identity & Roles",
-            route: "/governance/identity",
-            componentPath: "frontend/src/pages/governance/Identity.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'governance-identity-auth',
-            label: "Authentication",
-            route: "/governance/identity/auth",
-            componentPath: "frontend/src/pages/governance/identity/Auth.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'governance-identity-sso',
-            label: "SSO/SAML/OIDC Settings",
-            route: "/governance/identity/sso",
-            componentPath: "frontend/src/pages/governance/identity/Sso.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'governance-identity-scim',
-            label: "SCIM Provisioning",
-            route: "/governance/identity/scim",
-            componentPath: "frontend/src/pages/governance/identity/Scim.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'governance-identity-rbac',
-            label: "RBAC/ABAC",
-            route: "/governance/identity/rbac",
-            componentPath: "frontend/src/pages/governance/identity/Rbac.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'governance-identity-api-keys',
-            label: "API Keys & Tokens",
-            route: "/governance/identity/api-keys",
-            componentPath: "frontend/src/pages/governance/identity/ApiKeys.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'governance-identity-sessions',
-            label: "Session Management",
-            route: "/governance/identity/sessions",
-            componentPath: "frontend/src/pages/governance/identity/Sessions.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-          {
-            id: 'governance-identity-reviews',
-            label: "Access Reviews",
-            route: "/governance/identity/reviews",
-            componentPath: "frontend/src/pages/governance/identity/Reviews.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 8,
-          },
-        ],
-      },
+        {
+          id: "mission-architecture-planes-architecture-crossplaneflows",
+          label: "Crossplaneflows",
+          route: "/mission-architecture/planes-architecture/cross-plane-flows",
+          componentPath: "frontend/src/pages/Missionarchitecture/Planesarchitecture/Crossplaneflows.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-architecture-planes-architecture-data-plane",
+          label: "Data Plane",
+          route: "/mission/planes/data",
+          componentPath: "frontend/src/pages/mission/planes/Data.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 2
+        }
+        {
+          id: "mission-architecture-planes-architecture-control-plane",
+          label: "Control Plane",
+          route: "/mission/planes/control",
+          componentPath: "frontend/src/pages/mission/planes/Control.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 2
+        }
+        {
+          id: "mission-architecture-planes-architecture-governance-plane",
+          label: "Governance Plane",
+          route: "/mission/planes/governance",
+          componentPath: "frontend/src/pages/mission/planes/Governance.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 2
+        }
+        {
+          id: "mission-architecture-planes-architecture-cross-plane-flows",
+          label: "Cross-Plane Flows",
+          route: "/mission/planes/cross-plane",
+          componentPath: "frontend/src/pages/mission/planes/CrossPlane.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 2
+        }
+        {
+          id: "mission-architecture-planes-architecture-failure-domains-by-plane",
+          label: "Failure Domains by Plane",
+          route: "/mission/planes/failure-domains",
+          componentPath: "frontend/src/pages/mission/planes/FailureDomains.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 2, isNew: true
+        }
+        {
+          id: "mission-architecture-planes-architecture-planes-overview",
+          label: "Planes Overview",
+          route: "/mission/planes",
+          componentPath: "frontend/src/pages/mission/Planes.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 2, isNew: true
+        }
+        {
+          id: "mission-architecture-planes-architecture-plane-apis-and-event-contracts",
+          label: "Plane APIs & Event Contracts",
+          route: "/mission/planes/contracts",
+          componentPath: "frontend/src/pages/mission/planes/Contracts.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 2, isNew: true
+        }
+        ]
+      }
       {
-        id: 'data-protection--classification',
-        label: "Data Protection & Classification",
-        homeRoute: "/governance",
-        homeComponentPath: "frontend/src/pages/Governance.tsx",
+        id: "mission-architecture-mission-and-identity",
+        label: "Mission & Identity",
+        homeRoute: "/mission/mission-and-identity",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 4,
         features: [
-          {
-            id: 'governance-data-protection',
-            label: "Data Protection",
-            route: "/governance/data-protection",
-            componentPath: "frontend/src/pages/governance/DataProtection.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'governance-data-protection-classification',
-            label: "Data Classification",
-            route: "/governance/data-protection/classification",
-            componentPath: "frontend/src/pages/governance/data-protection/Classification.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'governance-data-protection-masking',
-            label: "Data Masking",
-            route: "/governance/data-protection/masking",
-            componentPath: "frontend/src/pages/governance/data-protection/Masking.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'governance-data-protection-tokenization',
-            label: "Tokenization",
-            route: "/governance/data-protection/tokenization",
-            componentPath: "frontend/src/pages/governance/data-protection/Tokenization.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'governance-data-protection-dlp',
-            label: "DLP Rules",
-            route: "/governance/data-protection/dlp",
-            componentPath: "frontend/src/pages/governance/data-protection/Dlp.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'governance-data-protection-residency',
-            label: "Data Residency",
-            route: "/governance/data-protection/residency",
-            componentPath: "frontend/src/pages/governance/data-protection/Residency.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-        ],
-      },
+        {
+          id: "mission-architecture-mission-and-identity-identity-and-roles",
+          label: "Identity & Roles",
+          route: "/mission/identity",
+          componentPath: "frontend/src/pages/mission/Identity.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "mission-architecture-mission-and-identity-mission-and-identity",
+          label: "Mission & Identity",
+          route: "/mission/mission-identity",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "mission-architecture-mission-and-identity-mission-and-scope",
+          label: "Mission & Scope",
+          route: "/mission/overview",
+          componentPath: "frontend/src/pages/mission/Overview.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "mission-architecture-mission-and-identity-use-cases-map",
+          label: "Use Cases Map",
+          route: "/mission/use-cases",
+          componentPath: "frontend/src/pages/mission/UseCases.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-architecture-mission-and-identity-system-boundaries-and-non-goals",
+          label: "System Boundaries & Non-Goals",
+          route: "/mission/non-goals",
+          componentPath: "frontend/src/pages/mission/NonGoals.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-architecture-mission-and-identity-terminology-glossary",
+          label: "Terminology Glossary",
+          route: "/mission/glossary",
+          componentPath: "frontend/src/pages/mission/Glossary.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-architecture-mission-and-identity-deployment-modes",
+          label: "Deployment Modes",
+          route: "/mission/modes",
+          componentPath: "frontend/src/pages/mission/Modes.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "mission-architecture-mission-and-identity-reference-architectures-by-edition",
+          label: "Reference Architectures by Edition",
+          route: "/mission/reference-architectures",
+          componentPath: "frontend/src/pages/mission/ReferenceArchitectures.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-architecture-mission-and-identity-ai-driver-stack",
+          label: "AI + Driver Stack",
+          route: "/mission/ai-stack",
+          componentPath: "frontend/src/pages/mission/AiStack.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "mission-architecture-mission-and-identity-model-provider-layer",
+          label: "Model Provider Layer",
+          route: "/mission/models",
+          componentPath: "frontend/src/pages/mission/Models.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "mission-architecture-mission-and-identity-daemon-families",
+          label: "Daemon Families",
+          route: "/mission/daemons",
+          componentPath: "frontend/src/pages/mission/Daemons.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'security-monitoring--response',
-        label: "Security Monitoring & Response",
-        homeRoute: "/governance/security",
-        homeComponentPath: "frontend/src/pages/governance/Security.tsx",
+        id: "mission-architecture-architecture-and-principles",
+        label: "Architecture & Principles",
+        homeRoute: "/mission/architecture-and-principles",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 5,
         features: [
-          {
-            id: 'governance-security-monitoring',
-            label: "Security Monitoring",
-            route: "/governance/security/monitoring",
-            componentPath: "frontend/src/pages/governance/security/Monitoring.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'governance-security-alerts',
-            label: "Alerts & Rules",
-            route: "/governance/security/alerts",
-            componentPath: "frontend/src/pages/governance/security/Alerts.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'governance-security-detection',
-            label: "Threat Detection",
-            route: "/governance/security/detection",
-            componentPath: "frontend/src/pages/governance/security/Detection.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'governance-security-risk',
-            label: "Risk Scoring",
-            route: "/governance/security/risk",
-            componentPath: "frontend/src/pages/governance/security/Risk.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'governance-security-alignment',
-            label: "Alignment Monitor",
-            route: "/governance/security/alignment",
-            componentPath: "frontend/src/pages/governance/security/Alignment.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'governance-security-incidents',
-            label: "Incident Response",
-            route: "/governance/security/incidents",
-            componentPath: "frontend/src/pages/governance/security/Incidents.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'governance-security-forensics',
-            label: "Forensics & Evidence",
-            route: "/governance/security/forensics",
-            componentPath: "frontend/src/pages/governance/security/Forensics.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-          {
-            id: 'governance-security-vuln',
-            label: "Vulnerability Management",
-            route: "/governance/security/vuln",
-            componentPath: "frontend/src/pages/governance/security/Vuln.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 8,
-          },
-        ],
-      },
-      {
-        id: 'ai-billing--cost-governance',
-        label: "AI Billing & Cost Governance",
-        homeRoute: "/billing",
-        homeComponentPath: "frontend/src/pages/Billing.tsx",
-        homeBestCommit: 'stable',
-        actorScope: 'enterprise',
-        order: 6,
-        features: [
-          {
-            id: 'billing',
-            label: "Billing & Usage",
-            route: "/billing",
-            componentPath: "frontend/src/pages/Billing.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'governance-billing-usage',
-            label: "Usage Fabric",
-            route: "/governance/billing/usage",
-            componentPath: "frontend/src/pages/governance/billing/Usage.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'governance-billing-budgets',
-            label: "Budgets & Quotas",
-            route: "/governance/billing/budgets",
-            componentPath: "frontend/src/pages/governance/billing/Budgets.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'governance-billing-guardrails',
-            label: "Cost Guardrails",
-            route: "/governance/billing/guardrails",
-            componentPath: "frontend/src/pages/governance/billing/Guardrails.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'governance-billing-optimizer',
-            label: "Billing Optimizer",
-            route: "/governance/billing/optimizer",
-            componentPath: "frontend/src/pages/governance/billing/Optimizer.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'governance-billing-chargeback',
-            label: "Chargeback/Showback Reports",
-            route: "/governance/billing/chargeback",
-            componentPath: "frontend/src/pages/governance/billing/Chargeback.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'governance-billing-forecasting',
-            label: "Forecasting",
-            route: "/governance/billing/forecasting",
-            componentPath: "frontend/src/pages/governance/billing/Forecasting.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-          {
-            id: 'governance-billing-rates',
-            label: "Provider Rate Cards",
-            route: "/governance/billing/rates",
-            componentPath: "frontend/src/pages/governance/billing/Rates.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 8,
-          },
-          {
-            id: 'governance-billing-multi-tenant',
-            label: "Multi-Tenant Billing",
-            route: "/governance/billing/multi-tenant",
-            componentPath: "frontend/src/pages/governance/billing/MultiTenant.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 9,
-          },
-        ],
-      },
-    ],
+        {
+          id: "mission-architecture-architecture-and-principles-architecture-overview",
+          label: "Architecture Overview",
+          route: "/mission/architecture",
+          componentPath: "frontend/src/pages/mission/Architecture.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "mission-architecture-architecture-and-principles-architecture-and-principles",
+          label: "Architecture & Principles",
+          route: "/mission/architecture-principles",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "mission-architecture-architecture-and-principles-architectural-principles",
+          label: "Architectural Principles",
+          route: "/mission/principles",
+          componentPath: "frontend/src/pages/mission/Principles.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "mission-architecture-architecture-and-principles-major-components",
+          label: "Major Components",
+          route: "/mission/components",
+          componentPath: "frontend/src/pages/mission/Components.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "mission-architecture-architecture-and-principles-driver-aware-orchestrator",
+          label: "Driver-Aware Orchestrator",
+          route: "/mission/orchestrator",
+          componentPath: "frontend/src/pages/mission/Orchestrator.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "mission-architecture-architecture-and-principles-component-mapping",
+          label: "Component Mapping",
+          route: "/mission/mapping",
+          componentPath: "frontend/src/pages/mission/Mapping.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "mission-architecture-architecture-and-principles-data-model-and-contracts",
+          label: "Data Model & Contracts",
+          route: "/mission/contracts",
+          componentPath: "frontend/src/pages/mission/Contracts.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-architecture-architecture-and-principles-extensibility-points",
+          label: "Extensibility Points",
+          route: "/mission/extensibility",
+          componentPath: "frontend/src/pages/mission/Extensibility.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-architecture-architecture-and-principles-threat-model-summary",
+          label: "Threat Model Summary",
+          route: "/mission/threat-model",
+          componentPath: "frontend/src/pages/mission/ThreatModel.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "mission-architecture-architecture-and-principles-performance-targets",
+          label: "Performance Targets",
+          route: "/mission/performance-targets",
+          componentPath: "frontend/src/pages/mission/PerformanceTargets.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
+    ]
   },
   {
-    id: 'observability',
+    id: "observability-evidence",
     label: "Observability & Evidence",
     path: "/observability",
-    actorScope: 'enterprise',
+    actorScope: 'both',
     order: 10,
     categories: [
       {
-        id: 'telemetry--metrics',
-        label: "Telemetry & Metrics",
-        homeRoute: "/observability",
-        homeComponentPath: "frontend/src/pages/Observability.tsx",
+        id: "observability-evidence-telemetry-metrics",
+        label: "Telemetry Metrics",
+        homeRoute: "/observability/telemetry-metrics-home",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
-        actorScope: 'enterprise',
+        actorScope: 'both',
         order: 1,
         features: [
-          {
-            id: 'observability',
-            label: "Observability Overview",
-            route: "/observability",
-            componentPath: "frontend/src/pages/Observability.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'monitoring',
-            label: "Monitoring",
-            route: "/monitoring",
-            componentPath: "frontend/src/pages/Monitoring.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'analytics',
-            label: "Analytics",
-            route: "/analytics",
-            componentPath: "frontend/src/pages/Analytics.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'observability-metrics',
-            label: "Metrics Model",
-            route: "/observability/metrics",
-            componentPath: "frontend/src/pages/observability/Metrics.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'observability-metrics-explorer',
-            label: "Metric Explorer",
-            route: "/observability/metrics/explorer",
-            componentPath: "frontend/src/pages/observability/metrics/Explorer.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'observability-slis',
-            label: "SLIs & SLOs",
-            route: "/observability/slis",
-            componentPath: "frontend/src/pages/observability/Slis.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'observability-slis-burn',
-            label: "SLO Burn Rates",
-            route: "/observability/slis/burn",
-            componentPath: "frontend/src/pages/observability/slis/Burn.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-          {
-            id: 'observability-anomalies',
-            label: "Anomaly Detection",
-            route: "/observability/anomalies",
-            componentPath: "frontend/src/pages/observability/Anomalies.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 8,
-          },
-        ],
-      },
+        {
+          id: "observability-evidence-telemetry-metrics-slisslos",
+          label: "Slisslos",
+          route: "/observability-evidence/telemetry-metrics/slis-slos",
+          componentPath: "frontend/src/pages/Observabilityevidence/Telemetrymetrics/Slisslos.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'logging--tracing',
-        label: "Logging & Tracing",
-        homeRoute: "/observability",
-        homeComponentPath: "frontend/src/pages/Observability.tsx",
+        id: "observability-evidence-evidence-packs",
+        label: "Evidence Packs",
+        homeRoute: "/observability/evidence-packs",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 2,
         features: [
-          {
-            id: 'observability-logging-tracing',
-            label: "Logging & Tracing Overview",
-            route: "/observability/logging-tracing",
-            componentPath: "frontend/src/pages/observability/LoggingTracing.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'observability-logging',
-            label: "Structured Logging",
-            route: "/observability/logging",
-            componentPath: "frontend/src/pages/observability/Logging.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'observability-logging-explorer',
-            label: "Log Explorer",
-            route: "/observability/logging/explorer",
-            componentPath: "frontend/src/pages/observability/logging/Explorer.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'observability-tracing',
-            label: "Distributed Tracing",
-            route: "/observability/tracing",
-            componentPath: "frontend/src/pages/observability/Tracing.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'observability-tracing-explorer',
-            label: "Trace Explorer",
-            route: "/observability/tracing/explorer",
-            componentPath: "frontend/src/pages/observability/tracing/Explorer.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'observability-correlation',
-            label: "Correlation & Context",
-            route: "/observability/correlation",
-            componentPath: "frontend/src/pages/observability/Correlation.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-        ],
-      },
+        {
+          id: "observability-evidence-evidence-packs-export-for-auditors",
+          label: "Export for Auditors",
+          route: "/observability/evidence/export",
+          componentPath: "frontend/src/pages/observability/evidence/Export.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "observability-evidence-evidence-packs-evidence-packs",
+          label: "Evidence Packs",
+          route: "/observability/evidence",
+          componentPath: "frontend/src/pages/observability/Evidence.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-evidence-packs-evidence-queries",
+          label: "Evidence Queries",
+          route: "/observability/evidence/query",
+          componentPath: "frontend/src/pages/observability/evidence/Query.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'record-auditor--logbook',
-        label: "Record Auditor & Logbook",
-        homeRoute: "/observability",
-        homeComponentPath: "frontend/src/pages/Observability.tsx",
+        id: "observability-evidence-metrics-and-telemetry",
+        label: "Metrics & Telemetry",
+        homeRoute: "/observability/metrics-and-telemetry",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 3,
         features: [
-          {
-            id: 'observability-record-auditor',
-            label: "Record Auditor",
-            route: "/observability/record-auditor",
-            componentPath: "frontend/src/pages/observability/RecordAuditor.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'observability-record-auditor-timeline',
-            label: "Logbook Timeline",
-            route: "/observability/record-auditor/timeline",
-            componentPath: "frontend/src/pages/observability/record-auditor/Timeline.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'audit',
-            label: "Audit Evidence",
-            route: "/audit",
-            componentPath: "frontend/src/pages/Audit.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'audit-builder',
-            label: "Evidence Builder",
-            route: "/audit/builder",
-            componentPath: "frontend/src/pages/audit/Builder.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-        ],
-      },
+        {
+          id: "observability-evidence-metrics-and-telemetry-metrics-model",
+          label: "Metrics Model",
+          route: "/observability/metrics",
+          componentPath: "frontend/src/pages/observability/Metrics.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-metrics-and-telemetry-metric-explorer",
+          label: "Metric Explorer",
+          route: "/observability/metrics/explorer",
+          componentPath: "frontend/src/pages/observability/metrics/Explorer.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'evidence--audit',
-        label: "Evidence & Audit",
-        homeRoute: "/observability",
-        homeComponentPath: "frontend/src/pages/Observability.tsx",
+        id: "observability-evidence-health-and-monitoring",
+        label: "Health & Monitoring",
+        homeRoute: "/observability/health-and-monitoring",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 4,
         features: [
-          {
-            id: 'observability-audit-logs',
-            label: "Audit Logs",
-            route: "/observability/audit-logs",
-            componentPath: "frontend/src/pages/observability/AuditLogs.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'observability-evidence',
-            label: "Evidence Packs",
-            route: "/observability/evidence",
-            componentPath: "frontend/src/pages/observability/Evidence.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'observability-evidence-query',
-            label: "Evidence Queries",
-            route: "/observability/evidence/query",
-            componentPath: "frontend/src/pages/observability/evidence/Query.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'observability-evidence-export',
-            label: "Export for Auditors",
-            route: "/observability/evidence/export",
-            componentPath: "frontend/src/pages/observability/evidence/Export.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'observability-retention',
-            label: "Retention Policies",
-            route: "/observability/retention",
-            componentPath: "frontend/src/pages/observability/Retention.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-        ],
-      },
+        {
+          id: "observability-evidence-health-and-monitoring-health-checks",
+          label: "Health Checks",
+          route: "/observability/health",
+          componentPath: "frontend/src/pages/observability/Health.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'health--self-healing',
-        label: "Health & Self-Healing",
-        homeRoute: "/observability",
-        homeComponentPath: "frontend/src/pages/Observability.tsx",
+        id: "observability-evidence-record-auditor-and-logbook",
+        label: "Record Auditor & Logbook",
+        homeRoute: "/observability/record-auditor-and-logbook",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 5,
         features: [
-          {
-            id: 'observability-health',
-            label: "Health Checks",
-            route: "/observability/health",
-            componentPath: "frontend/src/pages/observability/Health.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'observability-drift',
-            label: "Drift Detection",
-            route: "/observability/drift",
-            componentPath: "frontend/src/pages/observability/Drift.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'observability-runbooks',
-            label: "Runbooks",
-            route: "/observability/runbooks",
-            componentPath: "frontend/src/pages/observability/Runbooks.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'observability-self-healing',
-            label: "Self-Healing",
-            route: "/observability/self-healing",
-            componentPath: "frontend/src/pages/observability/SelfHealing.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'observability-rollbacks',
-            label: "Automated Rollbacks",
-            route: "/observability/rollbacks",
-            componentPath: "frontend/src/pages/observability/Rollbacks.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-        ],
-      },
+        {
+          id: "observability-evidence-record-auditor-and-logbook-record-auditor-and-logbook",
+          label: "Record Auditor & Logbook",
+          route: "/observability/record-auditor-logbook",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-record-auditor-and-logbook-record-auditor",
+          label: "Record Auditor",
+          route: "/observability/record-auditor",
+          componentPath: "frontend/src/pages/observability/RecordAuditor.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-record-auditor-and-logbook-logbook-timeline",
+          label: "Logbook Timeline",
+          route: "/observability/record-auditor/timeline",
+          componentPath: "frontend/src/pages/observability/record-auditor/Timeline.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "observability-evidence-record-auditor-and-logbook-audit-evidence",
+          label: "Audit Evidence",
+          route: "/observability/audit",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-record-auditor-and-logbook-evidence-builder",
+          label: "Evidence Builder",
+          route: "/observability/record-auditor-logbook/builder",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'dashboards--alerting',
-        label: "Dashboards & Alerting",
-        homeRoute: "/observability",
-        homeComponentPath: "frontend/src/pages/Observability.tsx",
+        id: "observability-evidence-evidence-and-audit",
+        label: "Evidence & Audit",
+        homeRoute: "/observability/evidence-and-audit",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 6,
         features: [
-          {
-            id: 'observability-dashboards',
-            label: "Dashboards",
-            route: "/observability/dashboards",
-            componentPath: "frontend/src/pages/observability/Dashboards.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'observability-dashboards-builder',
-            label: "Dashboard Builder",
-            route: "/observability/dashboards/builder",
-            componentPath: "frontend/src/pages/observability/dashboards/Builder.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'observability-alerting',
-            label: "Alerting",
-            route: "/observability/alerting",
-            componentPath: "frontend/src/pages/observability/Alerting.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'observability-alerting-rules',
-            label: "Alert Rules",
-            route: "/observability/alerting/rules",
-            componentPath: "frontend/src/pages/observability/alerting/Rules.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'observability-alerting-channels',
-            label: "Notification Channels",
-            route: "/observability/alerting/channels",
-            componentPath: "frontend/src/pages/observability/alerting/Channels.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-        ],
-      },
+        {
+          id: "observability-evidence-evidence-and-audit-evidence-and-audit",
+          label: "Evidence & Audit",
+          route: "/observability/evidence-audit",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-evidence-and-audit-audit-logs",
+          label: "Audit Logs",
+          route: "/observability/audit-logs",
+          componentPath: "frontend/src/pages/observability/AuditLogs.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-evidence-and-audit-retention-policies",
+          label: "Retention Policies",
+          route: "/observability/retention",
+          componentPath: "frontend/src/pages/observability/Retention.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'temporal-backtesting--replay',
-        label: "Temporal Backtesting & Replay",
-        homeRoute: "/observability",
-        homeComponentPath: "frontend/src/pages/Observability.tsx",
+        id: "observability-evidence-logging-and-tracing",
+        label: "Logging & Tracing",
+        homeRoute: "/observability/logging-and-tracing",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 7,
         features: [
-          {
-            id: 'observability-replay',
-            label: "Replay Engine",
-            route: "/observability/replay",
-            componentPath: "frontend/src/pages/observability/Replay.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'observability-replay-scenarios',
-            label: "Scenario Library",
-            route: "/observability/replay/scenarios",
-            componentPath: "frontend/src/pages/observability/replay/Scenarios.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'observability-replay-determinism',
-            label: "Determinism Checks",
-            route: "/observability/replay/determinism",
-            componentPath: "frontend/src/pages/observability/replay/Determinism.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'observability-backtesting',
-            label: "Temporal Backtesting",
-            route: "/observability/backtesting",
-            componentPath: "frontend/src/pages/observability/Backtesting.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-        ],
-      },
-    ],
+        {
+          id: "observability-evidence-logging-and-tracing-logging-and-tracing-overview",
+          label: "Logging & Tracing Overview",
+          route: "/observability/logging-tracing",
+          componentPath: "frontend/src/pages/observability/LoggingTracing.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "observability-evidence-logging-and-tracing-structured-logging",
+          label: "Structured Logging",
+          route: "/observability/logging",
+          componentPath: "frontend/src/pages/observability/Logging.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-logging-and-tracing-log-explorer",
+          label: "Log Explorer",
+          route: "/observability/logging/explorer",
+          componentPath: "frontend/src/pages/observability/logging/Explorer.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "observability-evidence-logging-and-tracing-distributed-tracing",
+          label: "Distributed Tracing",
+          route: "/observability/tracing",
+          componentPath: "frontend/src/pages/observability/Tracing.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-logging-and-tracing-trace-explorer",
+          label: "Trace Explorer",
+          route: "/observability/tracing/explorer",
+          componentPath: "frontend/src/pages/observability/tracing/Explorer.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "observability-evidence-logging-and-tracing-correlation-and-context",
+          label: "Correlation & Context",
+          route: "/observability/correlation",
+          componentPath: "frontend/src/pages/observability/Correlation.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "observability-evidence-temporal-backtesting-and-replay",
+        label: "Temporal Backtesting & Replay",
+        homeRoute: "/observability/temporal-backtesting-and-replay",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 8,
+        features: [
+        {
+          id: "observability-evidence-temporal-backtesting-and-replay-temporal-backtesting-and-replay",
+          label: "Temporal Backtesting & Replay",
+          route: "/observability/temporal-backtesting-replay",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-temporal-backtesting-and-replay-replay-engine",
+          label: "Replay Engine",
+          route: "/observability/replay",
+          componentPath: "frontend/src/pages/observability/Replay.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-temporal-backtesting-and-replay-scenario-library",
+          label: "Scenario Library",
+          route: "/observability/replay/scenarios",
+          componentPath: "frontend/src/pages/observability/replay/Scenarios.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "observability-evidence-temporal-backtesting-and-replay-determinism-checks",
+          label: "Determinism Checks",
+          route: "/observability/replay/determinism",
+          componentPath: "frontend/src/pages/observability/replay/Determinism.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "observability-evidence-temporal-backtesting-and-replay-temporal-backtesting",
+          label: "Temporal Backtesting",
+          route: "/observability/backtesting",
+          componentPath: "frontend/src/pages/observability/Backtesting.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "observability-evidence-health-and-self-healing",
+        label: "Health & Self-Healing",
+        homeRoute: "/observability/health-and-self-healing",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 9,
+        features: [
+        {
+          id: "observability-evidence-health-and-self-healing-health-and-self-healing",
+          label: "Health & Self-Healing",
+          route: "/observability/health-self-healing",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-health-and-self-healing-drift-detection",
+          label: "Drift Detection",
+          route: "/observability/drift",
+          componentPath: "frontend/src/pages/observability/Drift.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "observability-evidence-health-and-self-healing-runbooks",
+          label: "Runbooks",
+          route: "/observability/runbooks",
+          componentPath: "frontend/src/pages/observability/Runbooks.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-health-and-self-healing-self-healing",
+          label: "Self-Healing",
+          route: "/observability/self-healing",
+          componentPath: "frontend/src/pages/observability/SelfHealing.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-health-and-self-healing-automated-rollbacks",
+          label: "Automated Rollbacks",
+          route: "/observability/rollbacks",
+          componentPath: "frontend/src/pages/observability/Rollbacks.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "observability-evidence-dashboards-and-alerting",
+        label: "Dashboards & Alerting",
+        homeRoute: "/observability/dashboards-and-alerting",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 10,
+        features: [
+        {
+          id: "observability-evidence-dashboards-and-alerting-dashboards-and-alerting",
+          label: "Dashboards & Alerting",
+          route: "/observability/dashboards-alerting",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-dashboards-and-alerting-dashboards",
+          label: "Dashboards",
+          route: "/observability/dashboards",
+          componentPath: "frontend/src/pages/observability/Dashboards.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-dashboards-and-alerting-dashboard-builder",
+          label: "Dashboard Builder",
+          route: "/observability/dashboards/builder",
+          componentPath: "frontend/src/pages/observability/dashboards/Builder.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "observability-evidence-dashboards-and-alerting-alerting",
+          label: "Alerting",
+          route: "/observability/alerting",
+          componentPath: "frontend/src/pages/observability/Alerting.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-dashboards-and-alerting-alert-rules",
+          label: "Alert Rules",
+          route: "/observability/alerting/rules",
+          componentPath: "frontend/src/pages/observability/alerting/Rules.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "observability-evidence-dashboards-and-alerting-notification-channels",
+          label: "Notification Channels",
+          route: "/observability/alerting/channels",
+          componentPath: "frontend/src/pages/observability/alerting/Channels.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "observability-evidence-telemetry-and-metrics",
+        label: "Telemetry & Metrics",
+        homeRoute: "/observability/telemetry-and-metrics",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 11,
+        features: [
+        {
+          id: "observability-evidence-telemetry-and-metrics-telemetry-and-metrics",
+          label: "Telemetry & Metrics",
+          route: "/observability/telemetry-metrics",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-telemetry-and-metrics-observability-overview",
+          label: "Observability Overview",
+          route: "/observability/telemetry-metrics/observability",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-telemetry-and-metrics-monitoring",
+          label: "Monitoring",
+          route: "/observability/monitoring",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-telemetry-and-metrics-analytics",
+          label: "Analytics",
+          route: "/observability/analytics",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-telemetry-and-metrics-slis-and-slos",
+          label: "SLIs & SLOs",
+          route: "/observability/slis",
+          componentPath: "frontend/src/pages/observability/Slis.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "observability-evidence-telemetry-and-metrics-slo-burn-rates",
+          label: "SLO Burn Rates",
+          route: "/observability/slis/burn",
+          componentPath: "frontend/src/pages/observability/slis/Burn.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "observability-evidence-telemetry-and-metrics-anomaly-detection",
+          label: "Anomaly Detection",
+          route: "/observability/anomalies",
+          componentPath: "frontend/src/pages/observability/Anomalies.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
+    ]
   },
   {
-    id: 'operations',
+    id: "operations-infrastructure",
     label: "Operations & Infrastructure",
     path: "/operations",
-    actorScope: 'enterprise',
+    actorScope: 'both',
     order: 11,
     categories: [
       {
-        id: 'performance--scalability',
-        label: "Performance & Scalability",
-        homeRoute: "/operations",
-        homeComponentPath: "frontend/src/pages/Operations.tsx",
+        id: "operations-infrastructure-deployment-models",
+        label: "Deployment Models",
+        homeRoute: "/operations/deployment-models",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
-        actorScope: 'enterprise',
+        actorScope: 'both',
         order: 1,
         features: [
-          {
-            id: 'operations-performance',
-            label: "Performance",
-            route: "/operations/performance",
-            componentPath: "frontend/src/pages/operations/Performance.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'operations-scaling',
-            label: "Scaling Strategies",
-            route: "/operations/scaling",
-            componentPath: "frontend/src/pages/operations/Scaling.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'operations-capacity',
-            label: "Capacity Planning",
-            route: "/operations/capacity",
-            componentPath: "frontend/src/pages/operations/Capacity.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'operations-load-testing',
-            label: "Load Testing",
-            route: "/operations/load-testing",
-            componentPath: "frontend/src/pages/operations/LoadTesting.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'operations-backpressure',
-            label: "Backpressure & Throttling",
-            route: "/operations/backpressure",
-            componentPath: "frontend/src/pages/operations/Backpressure.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'operations-reliability',
-            label: "Reliability Patterns",
-            route: "/operations/reliability",
-            componentPath: "frontend/src/pages/operations/Reliability.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'operations-driver-performance',
-            label: "Driver Performance",
-            route: "/operations/driver-performance",
-            componentPath: "frontend/src/pages/operations/DriverPerformance.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-          {
-            id: 'operations-cost-performance',
-            label: "Cost/Performance Tradeoffs",
-            route: "/operations/cost-performance",
-            componentPath: "frontend/src/pages/operations/CostPerformance.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 8,
-          },
-        ],
-      },
+        {
+          id: "operations-infrastructure-deployment-models-deploymentmodes",
+          label: "Deploymentmodes",
+          route: "/operations-infrastructure/deployment-models/deployment-modes",
+          componentPath: "frontend/src/pages/Operationsinfrastructure/Deploymentmodels/Deploymentmodes.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "operations-infrastructure-deployment-models-hybridedge",
+          label: "Hybridedge",
+          route: "/operations-infrastructure/deployment-models/hybrid-edge",
+          componentPath: "frontend/src/pages/Operationsinfrastructure/Deploymentmodels/Hybridedge.tsx",
+          bestCommit: 'stable',
+          actorScope: 'personal',
+          order: 1, isNew: true
+        }
+        {
+          id: "operations-infrastructure-deployment-models-local-mode",
+          label: "Local Mode",
+          route: "/operations/deployment/local",
+          componentPath: "frontend/src/pages/operations/deployment/Local.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 3
+        }
+        {
+          id: "operations-infrastructure-deployment-models-cloud-enterprise",
+          label: "Cloud/Enterprise",
+          route: "/operations/deployment/cloud",
+          componentPath: "frontend/src/pages/operations/deployment/Cloud.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 3
+        }
+        {
+          id: "operations-infrastructure-deployment-models-hybrid-and-edge",
+          label: "Hybrid & Edge",
+          route: "/operations/deployment/hybrid",
+          componentPath: "frontend/src/pages/operations/deployment/Hybrid.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 3
+        }
+        {
+          id: "operations-infrastructure-deployment-models-blue-green-and-canary",
+          label: "Blue/Green & Canary",
+          route: "/operations/deployment/canary",
+          componentPath: "frontend/src/pages/operations/deployment/Canary.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 3, isNew: true
+        }
+        {
+          id: "operations-infrastructure-deployment-models-deployment-modes",
+          label: "Deployment Modes",
+          route: "/operations/deployment",
+          componentPath: "frontend/src/pages/operations/Deployment.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 3
+        }
+        {
+          id: "operations-infrastructure-deployment-models-kubernetes-deployment",
+          label: "Kubernetes Deployment",
+          route: "/operations/deployment/k8s",
+          componentPath: "frontend/src/pages/operations/deployment/K8s.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 3, isNew: true
+        }
+        {
+          id: "operations-infrastructure-deployment-models-airgapped-deployment",
+          label: "Airgapped Deployment",
+          route: "/operations/deployment/airgap",
+          componentPath: "frontend/src/pages/operations/deployment/Airgap.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 3, isNew: true
+        }
+        {
+          id: "operations-infrastructure-deployment-models-upgrade-channels",
+          label: "Upgrade Channels",
+          route: "/operations/deployment/channels",
+          componentPath: "frontend/src/pages/operations/deployment/Channels.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 3, isNew: true
+        }
+        ]
+      }
       {
-        id: 'deployment-models',
-        label: "Deployment Models",
-        homeRoute: "/operations",
-        homeComponentPath: "frontend/src/pages/Operations.tsx",
+        id: "operations-infrastructure-performance-and-scalability",
+        label: "Performance & Scalability",
+        homeRoute: "/operations/performance-and-scalability",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 2,
         features: [
-          {
-            id: 'operations-deployment',
-            label: "Deployment Modes",
-            route: "/operations/deployment",
-            componentPath: "frontend/src/pages/operations/Deployment.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'operations-deployment-local',
-            label: "Local Mode",
-            route: "/operations/deployment/local",
-            componentPath: "frontend/src/pages/operations/deployment/Local.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'operations-deployment-cloud',
-            label: "Cloud/Enterprise",
-            route: "/operations/deployment/cloud",
-            componentPath: "frontend/src/pages/operations/deployment/Cloud.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'operations-deployment-hybrid',
-            label: "Hybrid & Edge",
-            route: "/operations/deployment/hybrid",
-            componentPath: "frontend/src/pages/operations/deployment/Hybrid.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'operations-deployment-k8s',
-            label: "Kubernetes Deployment",
-            route: "/operations/deployment/k8s",
-            componentPath: "frontend/src/pages/operations/deployment/K8s.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'operations-deployment-airgap',
-            label: "Airgapped Deployment",
-            route: "/operations/deployment/airgap",
-            componentPath: "frontend/src/pages/operations/deployment/Airgap.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'operations-deployment-channels',
-            label: "Upgrade Channels",
-            route: "/operations/deployment/channels",
-            componentPath: "frontend/src/pages/operations/deployment/Channels.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-        ],
-      },
+        {
+          id: "operations-infrastructure-performance-and-scalability-performance",
+          label: "Performance",
+          route: "/operations/performance",
+          componentPath: "frontend/src/pages/operations/Performance.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-performance-and-scalability-performance-and-scalability",
+          label: "Performance & Scalability",
+          route: "/operations/performance-scalability",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-performance-and-scalability-scaling-strategies",
+          label: "Scaling Strategies",
+          route: "/operations/scaling",
+          componentPath: "frontend/src/pages/operations/Scaling.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-performance-and-scalability-capacity-planning",
+          label: "Capacity Planning",
+          route: "/operations/capacity",
+          componentPath: "frontend/src/pages/operations/Capacity.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-performance-and-scalability-load-testing",
+          label: "Load Testing",
+          route: "/operations/load-testing",
+          componentPath: "frontend/src/pages/operations/LoadTesting.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "operations-infrastructure-performance-and-scalability-backpressure-and-throttling",
+          label: "Backpressure & Throttling",
+          route: "/operations/backpressure",
+          componentPath: "frontend/src/pages/operations/Backpressure.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-performance-and-scalability-reliability-patterns",
+          label: "Reliability Patterns",
+          route: "/operations/reliability",
+          componentPath: "frontend/src/pages/operations/Reliability.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-performance-and-scalability-driver-performance",
+          label: "Driver Performance",
+          route: "/operations/driver-performance",
+          componentPath: "frontend/src/pages/operations/DriverPerformance.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-performance-and-scalability-cost-performance-tradeoffs",
+          label: "Cost/Performance Tradeoffs",
+          route: "/operations/cost-performance",
+          componentPath: "frontend/src/pages/operations/CostPerformance.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'infrastructure--topology',
-        label: "Infrastructure & Topology",
-        homeRoute: "/operations",
-        homeComponentPath: "frontend/src/pages/Operations.tsx",
+        id: "operations-infrastructure-upgrades-and-migration",
+        label: "Upgrades & Migration",
+        homeRoute: "/operations/upgrades-and-migration",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 3,
         features: [
-          {
-            id: 'operations-config',
-            label: "Configuration Management",
-            route: "/operations/config",
-            componentPath: "frontend/src/pages/operations/Config.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'operations-secrets',
-            label: "Secrets & Configuration Vault",
-            route: "/operations/secrets",
-            componentPath: "frontend/src/pages/operations/Secrets.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'operations-cluster',
-            label: "Compute/Cluster Management",
-            route: "/operations/cluster",
-            componentPath: "frontend/src/pages/operations/Cluster.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'operations-topology',
-            label: "Network Topology",
-            route: "/operations/topology",
-            componentPath: "frontend/src/pages/operations/Topology.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'systems-network',
-            label: "Network Monitoring",
-            route: "/systems/network",
-            componentPath: "frontend/src/pages/systems/Network.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'operations-storage',
-            label: "Storage Topology",
-            route: "/operations/storage",
-            componentPath: "frontend/src/pages/operations/Storage.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'operations-queues',
-            label: "Queues & Search",
-            route: "/operations/queues",
-            componentPath: "frontend/src/pages/operations/Queues.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-          {
-            id: 'operations-dependencies',
-            label: "Service Dependencies",
-            route: "/operations/dependencies",
-            componentPath: "frontend/src/pages/operations/Dependencies.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 8,
-          },
-          {
-            id: 'operations-multi-region',
-            label: "Multi-Region & DR",
-            route: "/operations/multi-region",
-            componentPath: "frontend/src/pages/operations/MultiRegion.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 9,
-          },
-          {
-            id: 'operations-hpc',
-            label: "HPC Integration",
-            route: "/operations/hpc",
-            componentPath: "frontend/src/pages/operations/Hpc.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 10,
-          },
-        ],
-      },
+        {
+          id: "operations-infrastructure-upgrades-and-migration-upgrades-and-migration",
+          label: "Upgrades & Migration",
+          route: "/operations/upgrades-migration",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-upgrades-and-migration-upgrades",
+          label: "Upgrades",
+          route: "/operations/upgrades",
+          componentPath: "frontend/src/pages/operations/Upgrades.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-upgrades-and-migration-change-logs-and-release-notes",
+          label: "Change Logs & Release Notes",
+          route: "/operations/releases",
+          componentPath: "frontend/src/pages/operations/Releases.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "operations-infrastructure-upgrades-and-migration-compatibility-matrix",
+          label: "Compatibility Matrix",
+          route: "/operations/compatibility",
+          componentPath: "frontend/src/pages/operations/Compatibility.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "operations-infrastructure-upgrades-and-migration-migration",
+          label: "Migration",
+          route: "/operations/migration",
+          componentPath: "frontend/src/pages/operations/Migration.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-upgrades-and-migration-rollback-strategy",
+          label: "Rollback Strategy",
+          route: "/operations/rollback",
+          componentPath: "frontend/src/pages/operations/Rollback.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'upgrades--migration',
-        label: "Upgrades & Migration",
-        homeRoute: "/operations",
-        homeComponentPath: "frontend/src/pages/Operations.tsx",
+        id: "operations-infrastructure-failure-modes-and-resilience",
+        label: "Failure Modes & Resilience",
+        homeRoute: "/operations/failure-modes-and-resilience",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 4,
         features: [
-          {
-            id: 'operations-upgrades',
-            label: "Upgrades",
-            route: "/operations/upgrades",
-            componentPath: "frontend/src/pages/operations/Upgrades.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'operations-releases',
-            label: "Change Logs & Release Notes",
-            route: "/operations/releases",
-            componentPath: "frontend/src/pages/operations/Releases.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'operations-compatibility',
-            label: "Compatibility Matrix",
-            route: "/operations/compatibility",
-            componentPath: "frontend/src/pages/operations/Compatibility.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'operations-migration',
-            label: "Migration",
-            route: "/operations/migration",
-            componentPath: "frontend/src/pages/operations/Migration.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'operations-rollback',
-            label: "Rollback Strategy",
-            route: "/operations/rollback",
-            componentPath: "frontend/src/pages/operations/Rollback.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'operations-deployment-canary',
-            label: "Blue/Green & Canary",
-            route: "/operations/deployment/canary",
-            componentPath: "frontend/src/pages/operations/deployment/Canary.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-        ],
-      },
+        {
+          id: "operations-infrastructure-failure-modes-and-resilience-failure-modes-and-resilience",
+          label: "Failure Modes & Resilience",
+          route: "/operations/failure-modes-resilience",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-failure-modes-and-resilience-failure-modes",
+          label: "Failure Modes",
+          route: "/operations/failure",
+          componentPath: "frontend/src/pages/operations/Failure.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-failure-modes-and-resilience-detection-mechanisms",
+          label: "Detection Mechanisms",
+          route: "/operations/detection",
+          componentPath: "frontend/src/pages/operations/Detection.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-failure-modes-and-resilience-recovery-strategies",
+          label: "Recovery Strategies",
+          route: "/operations/recovery",
+          componentPath: "frontend/src/pages/operations/Recovery.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-failure-modes-and-resilience-data-loss-protection",
+          label: "Data Loss Protection",
+          route: "/operations/data-protection",
+          componentPath: "frontend/src/pages/operations/DataProtection.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-failure-modes-and-resilience-business-continuity-and-dr",
+          label: "Business Continuity & DR",
+          route: "/operations/bc-dr",
+          componentPath: "frontend/src/pages/operations/BcDr.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-failure-modes-and-resilience-dr-drills",
+          label: "DR Drills",
+          route: "/operations/bc-dr/drills",
+          componentPath: "frontend/src/pages/operations/bc-dr/Drills.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "operations-infrastructure-failure-modes-and-resilience-security-incidents",
+          label: "Security Incidents",
+          route: "/operations/security-incidents",
+          componentPath: "frontend/src/pages/operations/SecurityIncidents.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-failure-modes-and-resilience-chaos-engineering",
+          label: "Chaos Engineering",
+          route: "/operations/chaos",
+          componentPath: "frontend/src/pages/operations/Chaos.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "operations-infrastructure-failure-modes-and-resilience-postmortems",
+          label: "Postmortems",
+          route: "/operations/postmortems",
+          componentPath: "frontend/src/pages/operations/Postmortems.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'failure-modes--resilience',
-        label: "Failure Modes & Resilience",
-        homeRoute: "/operations",
-        homeComponentPath: "frontend/src/pages/Operations.tsx",
+        id: "operations-infrastructure-infrastructure-and-topology",
+        label: "Infrastructure & Topology",
+        homeRoute: "/operations/infrastructure-and-topology",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 5,
         features: [
-          {
-            id: 'operations-failure',
-            label: "Failure Modes",
-            route: "/operations/failure",
-            componentPath: "frontend/src/pages/operations/Failure.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'operations-detection',
-            label: "Detection Mechanisms",
-            route: "/operations/detection",
-            componentPath: "frontend/src/pages/operations/Detection.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'operations-recovery',
-            label: "Recovery Strategies",
-            route: "/operations/recovery",
-            componentPath: "frontend/src/pages/operations/Recovery.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'operations-data-protection',
-            label: "Data Loss Protection",
-            route: "/operations/data-protection",
-            componentPath: "frontend/src/pages/operations/DataProtection.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'operations-bc-dr',
-            label: "Business Continuity & DR",
-            route: "/operations/bc-dr",
-            componentPath: "frontend/src/pages/operations/BcDr.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'operations-bc-dr-drills',
-            label: "DR Drills",
-            route: "/operations/bc-dr/drills",
-            componentPath: "frontend/src/pages/operations/bc-dr/Drills.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'operations-security-incidents',
-            label: "Security Incidents",
-            route: "/operations/security-incidents",
-            componentPath: "frontend/src/pages/operations/SecurityIncidents.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-          {
-            id: 'operations-chaos',
-            label: "Chaos Engineering",
-            route: "/operations/chaos",
-            componentPath: "frontend/src/pages/operations/Chaos.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 8,
-          },
-          {
-            id: 'operations-postmortems',
-            label: "Postmortems",
-            route: "/operations/postmortems",
-            componentPath: "frontend/src/pages/operations/Postmortems.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 9,
-          },
-        ],
-      },
-    ],
+        {
+          id: "operations-infrastructure-infrastructure-and-topology-infrastructure-and-topology",
+          label: "Infrastructure & Topology",
+          route: "/operations/infrastructure-topology",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-infrastructure-and-topology-configuration-management",
+          label: "Configuration Management",
+          route: "/operations/config",
+          componentPath: "frontend/src/pages/operations/Config.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-infrastructure-and-topology-secrets-and-configuration-vault",
+          label: "Secrets & Configuration Vault",
+          route: "/operations/secrets",
+          componentPath: "frontend/src/pages/operations/Secrets.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "operations-infrastructure-infrastructure-and-topology-compute-cluster-management",
+          label: "Compute/Cluster Management",
+          route: "/operations/cluster",
+          componentPath: "frontend/src/pages/operations/Cluster.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "operations-infrastructure-infrastructure-and-topology-network-topology",
+          label: "Network Topology",
+          route: "/operations/topology",
+          componentPath: "frontend/src/pages/operations/Topology.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-infrastructure-and-topology-network-monitoring",
+          label: "Network Monitoring",
+          route: "/operations/infrastructure-topology/network",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-infrastructure-and-topology-storage-topology",
+          label: "Storage Topology",
+          route: "/operations/storage",
+          componentPath: "frontend/src/pages/operations/Storage.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-infrastructure-and-topology-queues-and-search",
+          label: "Queues & Search",
+          route: "/operations/queues",
+          componentPath: "frontend/src/pages/operations/Queues.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-infrastructure-and-topology-service-dependencies",
+          label: "Service Dependencies",
+          route: "/operations/dependencies",
+          componentPath: "frontend/src/pages/operations/Dependencies.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "operations-infrastructure-infrastructure-and-topology-multi-region-and-dr",
+          label: "Multi-Region & DR",
+          route: "/operations/multi-region",
+          componentPath: "frontend/src/pages/operations/MultiRegion.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "operations-infrastructure-infrastructure-and-topology-hpc-integration",
+          label: "HPC Integration",
+          route: "/operations/hpc",
+          componentPath: "frontend/src/pages/operations/Hpc.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
+    ]
   },
   {
-    id: 'roadmap',
-    label: "Roadmap & Risks",
-    path: "/roadmap",
+    id: "governance-security",
+    label: "Governance & Security",
+    path: "/governance",
     actorScope: 'enterprise',
     order: 12,
     categories: [
       {
-        id: 'roadmap--planning',
-        label: "Roadmap & Planning",
-        homeRoute: "/roadmap",
-        homeComponentPath: "frontend/src/pages/Roadmap.tsx",
+        id: "governance-security-policy-and-governance-engine",
+        label: "Policy & Governance Engine",
+        homeRoute: "/governance/policy-and-governance-engine",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 1,
         features: [
-          {
-            id: 'roadmap-overview',
-            label: "Roadmap Overview",
-            route: "/roadmap/overview",
-            componentPath: "frontend/src/pages/roadmap/Overview.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'roadmap-phases',
-            label: "Phased Delivery",
-            route: "/roadmap/phases",
-            componentPath: "frontend/src/pages/roadmap/Phases.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'roadmap-milestones',
-            label: "Milestones",
-            route: "/roadmap/milestones",
-            componentPath: "frontend/src/pages/roadmap/Milestones.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'roadmap-future',
-            label: "Long-Term Bets",
-            route: "/roadmap/future",
-            componentPath: "frontend/src/pages/roadmap/Future.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-        ],
-      },
+        {
+          id: "governance-security-policy-and-governance-engine-policy-dsl",
+          label: "Policy DSL",
+          route: "/governance/policy/dsl",
+          componentPath: "frontend/src/pages/governance/policy/Dsl.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-policy-and-governance-engine-policy-simulator",
+          label: "Policy Simulator",
+          route: "/governance/policy/simulator",
+          componentPath: "frontend/src/pages/governance/policy/Simulator.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-policy-and-governance-engine-policy-engine",
+          label: "Policy Engine",
+          route: "/governance/policy",
+          componentPath: "frontend/src/pages/governance/Policy.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-policy-and-governance-engine-policy-library-and-templates",
+          label: "Policy Library & Templates",
+          route: "/governance/policy/library",
+          componentPath: "frontend/src/pages/governance/policy/Library.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-policy-and-governance-engine-safety-harnesses",
+          label: "Safety Harnesses",
+          route: "/governance/policy/safety",
+          componentPath: "frontend/src/pages/governance/policy/Safety.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-policy-and-governance-engine-policy-versioning-and-approvals",
+          label: "Policy Versioning & Approvals",
+          route: "/governance/policy/versioning",
+          componentPath: "frontend/src/pages/governance/policy/Versioning.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-policy-and-governance-engine-enforcement-points-map",
+          label: "Enforcement Points Map",
+          route: "/governance/policy/enforcement",
+          componentPath: "frontend/src/pages/governance/policy/Enforcement.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-policy-and-governance-engine-exceptions-and-waivers",
+          label: "Exceptions & Waivers",
+          route: "/governance/policy/exceptions",
+          componentPath: "frontend/src/pages/governance/policy/Exceptions.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-policy-and-governance-engine-policy-and-governance-engine",
+          label: "Policy & Governance Engine",
+          route: "/governance/policy-governance-engine",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'risks--decisions',
-        label: "Risks & Decisions",
-        homeRoute: "/roadmap",
-        homeComponentPath: "frontend/src/pages/Roadmap.tsx",
+        id: "governance-security-identity-and-access",
+        label: "Identity & Access",
+        homeRoute: "/governance/identity-and-access",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 2,
         features: [
-          {
-            id: 'roadmap-risks',
-            label: "Risk Register",
-            route: "/roadmap/risks",
-            componentPath: "frontend/src/pages/roadmap/Risks.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'roadmap-decisions',
-            label: "Decision Log",
-            route: "/roadmap/decisions",
-            componentPath: "frontend/src/pages/roadmap/Decisions.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'roadmap-gaps',
-            label: "Known Gaps",
-            route: "/roadmap/gaps",
-            componentPath: "frontend/src/pages/roadmap/Gaps.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'roadmap-questions',
-            label: "Open Questions",
-            route: "/roadmap/questions",
-            componentPath: "frontend/src/pages/roadmap/Questions.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-        ],
-      },
+        {
+          id: "governance-security-identity-and-access-sso-saml-oidc-settings",
+          label: "SSO/SAML/OIDC Settings",
+          route: "/governance/identity/sso",
+          componentPath: "frontend/src/pages/governance/identity/Sso.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-identity-and-access-identity-and-roles",
+          label: "Identity & Roles",
+          route: "/governance/identity",
+          componentPath: "frontend/src/pages/governance/Identity.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-identity-and-access-authentication",
+          label: "Authentication",
+          route: "/governance/identity/auth",
+          componentPath: "frontend/src/pages/governance/identity/Auth.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-identity-and-access-scim-provisioning",
+          label: "SCIM Provisioning",
+          route: "/governance/identity/scim",
+          componentPath: "frontend/src/pages/governance/identity/Scim.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-identity-and-access-rbac-abac",
+          label: "RBAC/ABAC",
+          route: "/governance/identity/rbac",
+          componentPath: "frontend/src/pages/governance/identity/Rbac.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-identity-and-access-api-keys-and-tokens",
+          label: "API Keys & Tokens",
+          route: "/governance/identity/api-keys",
+          componentPath: "frontend/src/pages/governance/identity/ApiKeys.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-identity-and-access-session-management",
+          label: "Session Management",
+          route: "/governance/identity/sessions",
+          componentPath: "frontend/src/pages/governance/identity/Sessions.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-identity-and-access-access-reviews",
+          label: "Access Reviews",
+          route: "/governance/identity/reviews",
+          componentPath: "frontend/src/pages/governance/identity/Reviews.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-identity-and-access-identity-and-access",
+          label: "Identity & Access",
+          route: "/governance/identity-access",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'spec-maintenance',
-        label: "Spec Maintenance",
-        homeRoute: "/roadmap",
-        homeComponentPath: "frontend/src/pages/Roadmap.tsx",
+        id: "governance-security-compliance-packs",
+        label: "Compliance Packs",
+        homeRoute: "/governance/compliance-packs",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 3,
         features: [
-          {
-            id: 'roadmap-spec',
-            label: "Spec Versioning",
-            route: "/roadmap/spec",
-            componentPath: "frontend/src/pages/roadmap/Spec.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'roadmap-deprecations',
-            label: "Deprecations",
-            route: "/roadmap/deprecations",
-            componentPath: "frontend/src/pages/roadmap/Deprecations.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'roadmap-compatibility',
-            label: "Backward Compatibility Commitments",
-            route: "/roadmap/compatibility",
-            componentPath: "frontend/src/pages/roadmap/Compatibility.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'roadmap-future-capabilities',
-            label: "Future Capabilities",
-            route: "/roadmap/future-capabilities",
-            componentPath: "frontend/src/pages/roadmap/FutureCapabilities.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-        ],
-      },
-    ],
+        {
+          id: "governance-security-compliance-packs-compliance-packs",
+          label: "Compliance Packs",
+          route: "/governance/compliance",
+          componentPath: "frontend/src/pages/governance/Compliance.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-compliance-packs-control-framework-mapping",
+          label: "Control Framework Mapping",
+          route: "/governance/compliance/controls",
+          componentPath: "frontend/src/pages/governance/compliance/Controls.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-compliance-packs-audit-readiness-dashboard",
+          label: "Audit Readiness Dashboard",
+          route: "/governance/compliance/readiness",
+          componentPath: "frontend/src/pages/governance/compliance/Readiness.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "governance-security-regulator-fabric",
+        label: "Regulator Fabric",
+        homeRoute: "/governance/regulator-fabric",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 4,
+        features: [
+        {
+          id: "governance-security-regulator-fabric-regulator-tenancy",
+          label: "Regulator Tenancy",
+          route: "/governance/regulator/tenancy",
+          componentPath: "frontend/src/pages/governance/regulator/Tenancy.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-regulator-fabric-regulator-fabric",
+          label: "Regulator Fabric",
+          route: "/governance/regulator",
+          componentPath: "frontend/src/pages/governance/Regulator.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-regulator-fabric-evidence-access",
+          label: "Evidence Access",
+          route: "/governance/regulator/evidence",
+          componentPath: "frontend/src/pages/governance/regulator/Evidence.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-regulator-fabric-evidence-request-workflow",
+          label: "Evidence Request Workflow",
+          route: "/governance/regulator/requests",
+          componentPath: "frontend/src/pages/governance/regulator/Requests.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "governance-security-security-monitoring",
+        label: "Security Monitoring",
+        homeRoute: "/governance/security-monitoring",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 5,
+        features: [
+        {
+          id: "governance-security-security-monitoring-alignment-monitor",
+          label: "Alignment Monitor",
+          route: "/governance/security/alignment",
+          componentPath: "frontend/src/pages/governance/security/Alignment.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-security-monitoring-incident-response",
+          label: "Incident Response",
+          route: "/governance/security/incidents",
+          componentPath: "frontend/src/pages/governance/security/Incidents.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-security-monitoring-security-monitoring",
+          label: "Security Monitoring",
+          route: "/governance/security/monitoring",
+          componentPath: "frontend/src/pages/governance/security/Monitoring.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-security-monitoring-alerts-and-rules",
+          label: "Alerts & Rules",
+          route: "/governance/security/alerts",
+          componentPath: "frontend/src/pages/governance/security/Alerts.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-security-monitoring-threat-detection",
+          label: "Threat Detection",
+          route: "/governance/security/detection",
+          componentPath: "frontend/src/pages/governance/security/Detection.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-security-monitoring-risk-scoring",
+          label: "Risk Scoring",
+          route: "/governance/security/risk",
+          componentPath: "frontend/src/pages/governance/security/Risk.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-security-monitoring-forensics-and-evidence",
+          label: "Forensics & Evidence",
+          route: "/governance/security/forensics",
+          componentPath: "frontend/src/pages/governance/security/Forensics.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-security-monitoring-vulnerability-management",
+          label: "Vulnerability Management",
+          route: "/governance/security/vuln",
+          componentPath: "frontend/src/pages/governance/security/Vuln.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "governance-security-ai-billing-and-cost-governance",
+        label: "AI Billing & Cost Governance",
+        homeRoute: "/governance/ai-billing-and-cost-governance",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 6,
+        features: [
+        {
+          id: "governance-security-ai-billing-and-cost-governance-ai-billing-and-cost-governance",
+          label: "AI Billing & Cost Governance",
+          route: "/governance/ai-billing-cost-governance",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-ai-billing-and-cost-governance-billing-and-usage",
+          label: "Billing & Usage",
+          route: "/governance/billing",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-ai-billing-and-cost-governance-usage-fabric",
+          label: "Usage Fabric",
+          route: "/governance/billing/usage",
+          componentPath: "frontend/src/pages/governance/billing/Usage.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-ai-billing-and-cost-governance-budgets-and-quotas",
+          label: "Budgets & Quotas",
+          route: "/governance/billing/budgets",
+          componentPath: "frontend/src/pages/governance/billing/Budgets.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-ai-billing-and-cost-governance-cost-guardrails",
+          label: "Cost Guardrails",
+          route: "/governance/billing/guardrails",
+          componentPath: "frontend/src/pages/governance/billing/Guardrails.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-ai-billing-and-cost-governance-billing-optimizer",
+          label: "Billing Optimizer",
+          route: "/governance/billing/optimizer",
+          componentPath: "frontend/src/pages/governance/billing/Optimizer.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-ai-billing-and-cost-governance-chargeback-showback-reports",
+          label: "Chargeback/Showback Reports",
+          route: "/governance/billing/chargeback",
+          componentPath: "frontend/src/pages/governance/billing/Chargeback.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-ai-billing-and-cost-governance-forecasting",
+          label: "Forecasting",
+          route: "/governance/billing/forecasting",
+          componentPath: "frontend/src/pages/governance/billing/Forecasting.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-ai-billing-and-cost-governance-provider-rate-cards",
+          label: "Provider Rate Cards",
+          route: "/governance/billing/rates",
+          componentPath: "frontend/src/pages/governance/billing/Rates.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-ai-billing-and-cost-governance-multi-tenant-billing",
+          label: "Multi-Tenant Billing",
+          route: "/governance/billing/multi-tenant",
+          componentPath: "frontend/src/pages/governance/billing/MultiTenant.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "governance-security-compliance-and-regulator-fabric",
+        label: "Compliance & Regulator Fabric",
+        homeRoute: "/governance/compliance-and-regulator-fabric",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 7,
+        features: [
+        {
+          id: "governance-security-compliance-and-regulator-fabric-compliance-and-regulator-fabric",
+          label: "Compliance & Regulator Fabric",
+          route: "/governance/compliance-regulator-fabric",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "governance-security-security-monitoring-and-response",
+        label: "Security Monitoring & Response",
+        homeRoute: "/governance/security-monitoring-and-response",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 8,
+        features: [
+        {
+          id: "governance-security-security-monitoring-and-response-security-monitoring-and-response",
+          label: "Security Monitoring & Response",
+          route: "/governance/security-monitoring-response",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "governance-security-data-protection-and-classification",
+        label: "Data Protection & Classification",
+        homeRoute: "/governance/data-protection-and-classification",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 9,
+        features: [
+        {
+          id: "governance-security-data-protection-and-classification-data-protection-and-classification",
+          label: "Data Protection & Classification",
+          route: "/governance/data-protection-classification",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-data-protection-and-classification-data-protection",
+          label: "Data Protection",
+          route: "/governance/data-protection",
+          componentPath: "frontend/src/pages/governance/DataProtection.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-data-protection-and-classification-data-classification",
+          label: "Data Classification",
+          route: "/governance/data-protection/classification",
+          componentPath: "frontend/src/pages/governance/data-protection/Classification.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-data-protection-and-classification-data-masking",
+          label: "Data Masking",
+          route: "/governance/data-protection/masking",
+          componentPath: "frontend/src/pages/governance/data-protection/Masking.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "governance-security-data-protection-and-classification-tokenization",
+          label: "Tokenization",
+          route: "/governance/data-protection/tokenization",
+          componentPath: "frontend/src/pages/governance/data-protection/Tokenization.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-data-protection-and-classification-dlp-rules",
+          label: "DLP Rules",
+          route: "/governance/data-protection/dlp",
+          componentPath: "frontend/src/pages/governance/data-protection/Dlp.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "governance-security-data-protection-and-classification-data-residency",
+          label: "Data Residency",
+          route: "/governance/data-protection/residency",
+          componentPath: "frontend/src/pages/governance/data-protection/Residency.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
+    ]
   },
   {
-    id: 'vision',
+    id: "vision-meta-stack",
     label: "Vision & Meta-Stack",
     path: "/vision",
     actorScope: 'enterprise',
     order: 13,
     categories: [
       {
-        id: 'vision-deck-hub',
-        label: "Vision Deck Hub",
-        homeRoute: "/vision",
-        homeComponentPath: "frontend/src/pages/Vision.tsx",
+        id: "vision-meta-stack-core-os-engines",
+        label: "Core OS Engines",
+        homeRoute: "/vision/core-os-engines",
+        homeComponentPath: "frontend/src/pages/future/Core_os.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 1,
         features: [
-          {
-            id: 'vision',
-            label: "Vision Deck Hub",
-            route: "/vision",
-            componentPath: "frontend/src/pages/Vision.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'vision-roadmap',
-            label: "Vision Roadmap",
-            route: "/vision/roadmap",
-            componentPath: "frontend/src/pages/vision/Roadmap.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'vision-glossary',
-            label: "Vision Glossary",
-            route: "/vision/glossary",
-            componentPath: "frontend/src/pages/vision/Glossary.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-        ],
-      },
+        {
+          id: "vision-meta-stack-core-os-engines-core-os-engines",
+          label: "Core OS Engines",
+          route: "/vision/core-os",
+          componentPath: "frontend/src/pages/future/Core_os.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "vision-meta-stack-core-os-engines-capability-matrix",
+          label: "Capability Matrix",
+          route: "/vision/core-os-engines/matrix",
+          componentPath: "frontend/src/pages/future/core_os/Matrix.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'core-os-engines',
-        label: "Core OS Engines",
-        homeRoute: "/future",
-        homeComponentPath: "frontend/src/pages/Future.tsx",
+        id: "vision-meta-stack-advanced-capabilities",
+        label: "Advanced Capabilities",
+        homeRoute: "/vision/advanced-capabilities",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 2,
         features: [
-          {
-            id: 'future-core_os',
-            label: "Core OS Engines",
-            route: "/future/core_os",
-            componentPath: "frontend/src/pages/future/Core_os.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'future-core_os-matrix',
-            label: "Capability Matrix",
-            route: "/future/core_os/matrix",
-            componentPath: "frontend/src/pages/future/core_os/Matrix.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-        ],
-      },
+        {
+          id: "vision-meta-stack-advanced-capabilities-advanced-horizons",
+          label: "Advanced Horizons",
+          route: "/vision/advanced",
+          componentPath: "frontend/src/pages/future/Advanced.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'advanced-horizons',
-        label: "Advanced Horizons",
-        homeRoute: "/future",
-        homeComponentPath: "frontend/src/pages/Future.tsx",
+        id: "vision-meta-stack-super-capabilities",
+        label: "Super Capabilities",
+        homeRoute: "/vision/super-capabilities",
+        homeComponentPath: "frontend/src/pages/future/Super.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 3,
         features: [
-          {
-            id: 'future-advanced',
-            label: "Advanced Horizons",
-            route: "/future/advanced",
-            componentPath: "frontend/src/pages/future/Advanced.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'future-advanced-matrix',
-            label: "Capability Matrix",
-            route: "/future/advanced/matrix",
-            componentPath: "frontend/src/pages/future/advanced/Matrix.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-        ],
-      },
+        {
+          id: "vision-meta-stack-super-capabilities-super-capabilities",
+          label: "Super Capabilities",
+          route: "/vision/super",
+          componentPath: "frontend/src/pages/future/Super.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "vision-meta-stack-super-capabilities-capability-matrix",
+          label: "Capability Matrix",
+          route: "/vision/super-capabilities/matrix",
+          componentPath: "frontend/src/pages/future/super/Matrix.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'super-capabilities',
-        label: "Super Capabilities",
-        homeRoute: "/future",
-        homeComponentPath: "frontend/src/pages/Future.tsx",
+        id: "vision-meta-stack-hyper-capabilities",
+        label: "Hyper Capabilities",
+        homeRoute: "/vision/hyper-capabilities",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 4,
         features: [
-          {
-            id: 'future-super',
-            label: "Super Capabilities",
-            route: "/future/super",
-            componentPath: "frontend/src/pages/future/Super.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'future-super-matrix',
-            label: "Capability Matrix",
-            route: "/future/super/matrix",
-            componentPath: "frontend/src/pages/future/super/Matrix.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-        ],
-      },
+        {
+          id: "vision-meta-stack-hyper-capabilities-hyper-network",
+          label: "Hyper Network",
+          route: "/vision/hyper",
+          componentPath: "frontend/src/pages/future/Hyper.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'hyper-network',
-        label: "Hyper Network",
-        homeRoute: "/future",
-        homeComponentPath: "frontend/src/pages/Future.tsx",
+        id: "vision-meta-stack-ultra-capabilities",
+        label: "Ultra Capabilities",
+        homeRoute: "/vision/ultra-capabilities",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 5,
         features: [
-          {
-            id: 'future-hyper',
-            label: "Hyper Network",
-            route: "/future/hyper",
-            componentPath: "frontend/src/pages/future/Hyper.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'future-hyper-matrix',
-            label: "Capability Matrix",
-            route: "/future/hyper/matrix",
-            componentPath: "frontend/src/pages/future/hyper/Matrix.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-        ],
-      },
+        {
+          id: "vision-meta-stack-ultra-capabilities-ultra-scale",
+          label: "Ultra Scale",
+          route: "/vision/ultra",
+          componentPath: "frontend/src/pages/future/Ultra.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'ultra-scale',
-        label: "Ultra Scale",
-        homeRoute: "/future",
-        homeComponentPath: "frontend/src/pages/Future.tsx",
+        id: "vision-meta-stack-supreme-capabilities",
+        label: "Supreme Capabilities",
+        homeRoute: "/vision/supreme-capabilities",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 6,
         features: [
-          {
-            id: 'future-ultra',
-            label: "Ultra Scale",
-            route: "/future/ultra",
-            componentPath: "frontend/src/pages/future/Ultra.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'future-ultra-matrix',
-            label: "Capability Matrix",
-            route: "/future/ultra/matrix",
-            componentPath: "frontend/src/pages/future/ultra/Matrix.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-        ],
-      },
+        {
+          id: "vision-meta-stack-supreme-capabilities-supreme",
+          label: "Supreme",
+          route: "/vision/supreme",
+          componentPath: "frontend/src/pages/future/Supreme.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "vision-meta-stack-supreme-capabilities-capability-matrix",
+          label: "Capability Matrix",
+          route: "/vision/supreme/matrix",
+          componentPath: "frontend/src/pages/future/supreme/Matrix.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'supreme',
-        label: "Supreme",
-        homeRoute: "/future",
-        homeComponentPath: "frontend/src/pages/Future.tsx",
+        id: "vision-meta-stack-ascend-capabilities",
+        label: "Ascend Capabilities",
+        homeRoute: "/vision/ascend-capabilities",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 7,
         features: [
-          {
-            id: 'future-supreme',
-            label: "Supreme",
-            route: "/future/supreme",
-            componentPath: "frontend/src/pages/future/Supreme.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'future-supreme-matrix',
-            label: "Capability Matrix",
-            route: "/future/supreme/matrix",
-            componentPath: "frontend/src/pages/future/supreme/Matrix.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-        ],
-      },
+        {
+          id: "vision-meta-stack-ascend-capabilities-ascend",
+          label: "Ascend",
+          route: "/vision/ascend",
+          componentPath: "frontend/src/pages/future/Ascend.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "vision-meta-stack-ascend-capabilities-capability-matrix",
+          label: "Capability Matrix",
+          route: "/vision/ascend/matrix",
+          componentPath: "frontend/src/pages/future/ascend/Matrix.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
       {
-        id: 'ascend',
-        label: "Ascend",
-        homeRoute: "/future",
-        homeComponentPath: "frontend/src/pages/Future.tsx",
+        id: "vision-meta-stack-advanced-horizons",
+        label: "Advanced Horizons",
+        homeRoute: "/vision/advanced-horizons",
+        homeComponentPath: "frontend/src/pages/future/Advanced.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 8,
         features: [
-          {
-            id: 'future-ascend',
-            label: "Ascend",
-            route: "/future/ascend",
-            componentPath: "frontend/src/pages/future/Ascend.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'future-ascend-matrix',
-            label: "Capability Matrix",
-            route: "/future/ascend/matrix",
-            componentPath: "frontend/src/pages/future/ascend/Matrix.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-        ],
-      },
+        {
+          id: "vision-meta-stack-advanced-horizons-capability-matrix",
+          label: "Capability Matrix",
+          route: "/vision/advanced-horizons/matrix",
+          componentPath: "frontend/src/pages/future/advanced/Matrix.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "vision-meta-stack-advanced-horizons-advanced-horizons",
+          label: "Advanced Horizons",
+          route: "/future/advanced",
+          componentPath: "frontend/src/pages/future/Advanced.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'meta-envelope',
+        id: "vision-meta-stack-meta-envelope",
         label: "Meta Envelope",
-        homeRoute: "/future",
-        homeComponentPath: "frontend/src/pages/Future.tsx",
+        homeRoute: "/vision/meta-envelope",
+        homeComponentPath: "frontend/src/pages/future/Meta.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 9,
         features: [
-          {
-            id: 'future-meta',
-            label: "Meta Envelope",
-            route: "/future/meta",
-            componentPath: "frontend/src/pages/future/Meta.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'future-meta-matrix',
-            label: "Capability Matrix",
-            route: "/future/meta/matrix",
-            componentPath: "frontend/src/pages/future/meta/Matrix.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-        ],
-      },
-    ],
+        {
+          id: "vision-meta-stack-meta-envelope-meta-envelope",
+          label: "Meta Envelope",
+          route: "/vision/meta",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "vision-meta-stack-meta-envelope-capability-matrix",
+          label: "Capability Matrix",
+          route: "/vision/meta-envelope/matrix",
+          componentPath: "frontend/src/pages/future/meta/Matrix.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "vision-meta-stack-hyper-network",
+        label: "Hyper Network",
+        homeRoute: "/vision/hyper-network",
+        homeComponentPath: "frontend/src/pages/future/Hyper.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 10,
+        features: [
+        {
+          id: "vision-meta-stack-hyper-network-capability-matrix",
+          label: "Capability Matrix",
+          route: "/vision/hyper-network/matrix",
+          componentPath: "frontend/src/pages/future/hyper/Matrix.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "vision-meta-stack-hyper-network-hyper-network",
+          label: "Hyper Network",
+          route: "/future/hyper",
+          componentPath: "frontend/src/pages/future/Hyper.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "vision-meta-stack-vision-deck-hub",
+        label: "Vision Deck Hub",
+        homeRoute: "/vision/vision-deck-hub",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 11,
+        features: [
+        {
+          id: "vision-meta-stack-vision-deck-hub-vision-deck-hub",
+          label: "Vision Deck Hub",
+          route: "/vision/vision-deck-hub/vision",
+          componentPath: "frontend/src/pages/Vision.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "vision-meta-stack-vision-deck-hub-vision-roadmap",
+          label: "Vision Roadmap",
+          route: "/vision/roadmap",
+          componentPath: "frontend/src/pages/vision/Roadmap.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "vision-meta-stack-vision-deck-hub-vision-glossary",
+          label: "Vision Glossary",
+          route: "/vision/glossary",
+          componentPath: "frontend/src/pages/vision/Glossary.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "vision-meta-stack-ultra-scale",
+        label: "Ultra Scale",
+        homeRoute: "/vision/ultra-scale",
+        homeComponentPath: "frontend/src/pages/future/Ultra.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 12,
+        features: [
+        {
+          id: "vision-meta-stack-ultra-scale-capability-matrix",
+          label: "Capability Matrix",
+          route: "/vision/ultra-scale/matrix",
+          componentPath: "frontend/src/pages/future/ultra/Matrix.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "vision-meta-stack-ultra-scale-ultra-scale",
+          label: "Ultra Scale",
+          route: "/future/ultra",
+          componentPath: "frontend/src/pages/future/Ultra.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
+    ]
   },
   {
-    id: 'settings',
-    label: "Settings & Admin (Enterprise Extensions)",
-    path: "/settings",
+    id: "roadmap-risks",
+    label: "Roadmap & Risks",
+    path: "/roadmap",
     actorScope: 'enterprise',
     order: 14,
     categories: [
       {
-        id: 'user--tenant-settings',
-        label: "User & Tenant Settings",
-        homeRoute: "/settings",
-        homeComponentPath: "frontend/src/pages/Settings.tsx",
+        id: "roadmap-risks-future-capabilities",
+        label: "Future Capabilities",
+        homeRoute: "/roadmap/future-capabilities",
+        homeComponentPath: "frontend/src/pages/roadmap/FutureCapabilities.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
         order: 1,
         features: [
-          {
-            id: 'settings-team',
-            label: "Team & Members",
-            route: "/settings/team",
-            componentPath: "frontend/src/pages/settings/Team.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'settings-tenant',
-            label: "Tenancy & Org Settings",
-            route: "/settings/tenant",
-            componentPath: "frontend/src/pages/settings/Tenant.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'settings-audit',
-            label: "Audit Settings",
-            route: "/settings/audit",
-            componentPath: "frontend/src/pages/settings/Audit.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'workspaces',
-    label: "Workspaces (Enterprise Extensions)",
-    path: "/workspaces",
-    actorScope: 'enterprise',
-    order: 15,
-    categories: [
+        {
+          id: "roadmap-risks-future-capabilities-long-term-bets",
+          label: "Long-Term Bets",
+          route: "/roadmap/future",
+          componentPath: "frontend/src/pages/roadmap/Future.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
       {
-        id: 'record-auditor--logbook-workspace',
-        label: "Record Auditor & Logbook Workspace",
-        homeRoute: "/workspaces",
-        homeComponentPath: "frontend/src/pages/Workspaces.tsx",
+        id: "roadmap-risks-risk-register",
+        label: "Risk Register",
+        homeRoute: "/roadmap/risk-register",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
         homeBestCommit: 'stable',
         actorScope: 'enterprise',
-        order: 1,
+        order: 2,
         features: [
-          {
-            id: 'workspaces-auditor',
-            label: "Record Auditor",
-            route: "/workspaces/auditor",
-            componentPath: "frontend/src/pages/workspaces/Auditor.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 1,
-          },
-          {
-            id: 'workspaces-auditor-evidence',
-            label: "Evidence Trails",
-            route: "/workspaces/auditor/evidence",
-            componentPath: "frontend/src/pages/workspaces/auditor/Evidence.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 2,
-          },
-          {
-            id: 'workspaces-auditor-controls',
-            label: "Controls Mapping",
-            route: "/workspaces/auditor/controls",
-            componentPath: "frontend/src/pages/workspaces/auditor/Controls.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 3,
-          },
-          {
-            id: 'workspaces-auditor-requests',
-            label: "Evidence Requests",
-            route: "/workspaces/auditor/requests",
-            componentPath: "frontend/src/pages/workspaces/auditor/Requests.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 4,
-          },
-          {
-            id: 'workspaces-auditor-reports',
-            label: "Audit Reports",
-            route: "/workspaces/auditor/reports",
-            componentPath: "frontend/src/pages/workspaces/auditor/Reports.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 5,
-          },
-          {
-            id: 'workspaces-auditor-logbook',
-            label: "Immutable Logbook Viewer",
-            route: "/workspaces/auditor/logbook",
-            componentPath: "frontend/src/pages/workspaces/auditor/Logbook.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 6,
-          },
-          {
-            id: 'workspaces-auditor-regulator',
-            label: "Regulator Views",
-            route: "/workspaces/auditor/regulator",
-            componentPath: "frontend/src/pages/workspaces/auditor/Regulator.tsx",
-            bestCommit: 'stable',
-            actorScope: 'enterprise',
-            order: 7,
-          },
-        ],
-      },
-    ],
-  },
+        {
+          id: "roadmap-risks-risk-register-risk-register",
+          label: "Risk Register",
+          route: "/roadmap/risks",
+          componentPath: "frontend/src/pages/roadmap/Risks.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "roadmap-risks-open-questions",
+        label: "Open Questions",
+        homeRoute: "/roadmap/open-questions",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 3,
+        features: [
+        {
+          id: "roadmap-risks-open-questions-open-questions",
+          label: "Open Questions",
+          route: "/roadmap/questions",
+          componentPath: "frontend/src/pages/roadmap/Questions.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "roadmap-risks-roadmap-and-planning",
+        label: "Roadmap & Planning",
+        homeRoute: "/roadmap/roadmap-and-planning",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 4,
+        features: [
+        {
+          id: "roadmap-risks-roadmap-and-planning-roadmap-and-planning",
+          label: "Roadmap & Planning",
+          route: "/roadmap/roadmap-planning",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "roadmap-risks-roadmap-and-planning-roadmap-overview",
+          label: "Roadmap Overview",
+          route: "/roadmap/overview",
+          componentPath: "frontend/src/pages/roadmap/Overview.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "roadmap-risks-roadmap-and-planning-phased-delivery",
+          label: "Phased Delivery",
+          route: "/roadmap/phases",
+          componentPath: "frontend/src/pages/roadmap/Phases.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "roadmap-risks-roadmap-and-planning-milestones",
+          label: "Milestones",
+          route: "/roadmap/milestones",
+          componentPath: "frontend/src/pages/roadmap/Milestones.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
+      {
+        id: "roadmap-risks-spec-maintenance",
+        label: "Spec Maintenance",
+        homeRoute: "/roadmap/spec-maintenance",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 5,
+        features: [
+        {
+          id: "roadmap-risks-spec-maintenance-spec-versioning",
+          label: "Spec Versioning",
+          route: "/roadmap/spec",
+          componentPath: "frontend/src/pages/roadmap/Spec.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "roadmap-risks-spec-maintenance-deprecations",
+          label: "Deprecations",
+          route: "/roadmap/deprecations",
+          componentPath: "frontend/src/pages/roadmap/Deprecations.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        {
+          id: "roadmap-risks-spec-maintenance-backward-compatibility-commitments",
+          label: "Backward Compatibility Commitments",
+          route: "/roadmap/compatibility",
+          componentPath: "frontend/src/pages/roadmap/Compatibility.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1, isNew: true
+        }
+        ]
+      }
+      {
+        id: "roadmap-risks-risks-and-decisions",
+        label: "Risks & Decisions",
+        homeRoute: "/roadmap/risks-and-decisions",
+        homeComponentPath: "frontend/src/components/templates/CategoryHomeTemplate.tsx",
+        homeBestCommit: 'stable',
+        actorScope: 'enterprise',
+        order: 6,
+        features: [
+        {
+          id: "roadmap-risks-risks-and-decisions-risks-and-decisions",
+          label: "Risks & Decisions",
+          route: "/roadmap/risks-decisions",
+          componentPath: "frontend/src/components/templates/FeaturePageTemplate.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "roadmap-risks-risks-and-decisions-decision-log",
+          label: "Decision Log",
+          route: "/roadmap/decisions",
+          componentPath: "frontend/src/pages/roadmap/Decisions.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        {
+          id: "roadmap-risks-risks-and-decisions-known-gaps",
+          label: "Known Gaps",
+          route: "/roadmap/gaps",
+          componentPath: "frontend/src/pages/roadmap/Gaps.tsx",
+          bestCommit: 'stable',
+          actorScope: 'enterprise',
+          order: 1
+        }
+        ]
+      }
+    ]
+  }
 ]
+
+export function getPlatforms(actorScope: ActorScope): IAPlatform[] {{
+  return iaManifest.filter(p => 
+    p.actorScope === 'both' || p.actorScope === actorScope
+  )
+}}
+
+export function getCategories(platformId: string, actorScope: ActorScope): IACategory[] {{
+  const platform = iaManifest.find(p => p.id === platformId)
+  if (!platform) return []
+  
+  if (platform.actorScope !== 'both' && platform.actorScope !== actorScope) {{
+    return []
+  }}
+  
+  return platform.categories.filter(c => 
+    c.actorScope === 'both' || c.actorScope === actorScope
+  )
+}}
+
+export function getFeatures(platformId: string, categoryId: string, actorScope: ActorScope): IAFeature[] {{
+  const platform = iaManifest.find(p => p.id === platformId)
+  if (!platform) return []
+  
+  const category = platform.categories.find(c => c.id === categoryId)
+  if (!category) return []
+  
+  if (category.actorScope !== 'both' && category.actorScope !== actorScope) {{
+    return []
+  }}
+  
+  return category.features.filter(f => 
+    f.actorScope === 'both' || f.actorScope === actorScope
+  )
+}}
+
+export function findRouteContext(route: string): {{
+  platform?: IAPlatform
+  category?: IACategory
+  feature?: IAFeature
+  isCategoryHome: boolean
+}} {{
+  for (const platform of iaManifest) {{
+    for (const category of platform.categories) {{
+      if (route === category.homeRoute) {{
+        return {{
+          platform,
+          category,
+          isCategoryHome: true,
+        }}
+      }}
+      
+      for (const feature of category.features) {{
+        if (route === feature.route || route.startsWith(feature.route + '/')) {{
+          return {{
+            platform,
+            category,
+            feature,
+            isCategoryHome: false,
+          }}
+        }}
+      }}
+    }}
+  }}
+  
+  return {{ isCategoryHome: false }}
+}}

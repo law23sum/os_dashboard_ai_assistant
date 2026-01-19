@@ -1,6 +1,6 @@
 # Operations Module
 
-Unified execution pipeline for OS Dashboard AI Assistant operations.
+Unified execution pipeline for AI OS operations.
 
 ## Overview
 
@@ -197,5 +197,4 @@ python run.py pipeline --build-target web
 # One command to install, build, test, and verify
 python run.py pipeline
 ```
-
 

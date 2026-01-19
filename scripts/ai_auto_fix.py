@@ -300,7 +300,7 @@ class AIFixer:
             goal_focus = "improves the codebase"
 
         prompt = (
-            "You are the autonomous maintainer for the OS Dashboard AI Assistant. "
+            "You are the autonomous maintainer for the AI OS. "
             "Backend and frontend dev servers are running and the following component "
             f"{issue_desc}.\n\n"
             f"Component: {component}\n"
@@ -1157,7 +1157,7 @@ class LogDirectoryWatcher:
 
 
 class BinaryExecutionMonitor:
-    """Continuously scan running processes to detect known OS Dashboard binaries."""
+    """Continuously scan running processes to detect known AI OS binaries."""
 
     def __init__(
         self,
@@ -1462,7 +1462,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--disable-binary-monitor",
         action="store_true",
-        help="Disable automatic detection of running OS Dashboard binaries (start_ui.py, npm dev servers, electron).",
+        help="Disable automatic detection of running AI OS binaries (start_ui.py, npm dev servers, electron).",
     )
     parser.add_argument(
         "--daemon",

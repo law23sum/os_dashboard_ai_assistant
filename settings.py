@@ -1,12 +1,12 @@
-"""Global application settings and constants for OS Dashboard AI Assistant."""
+"""Global application settings and constants for AI OS."""
 
 import os
 from pathlib import Path
 
 # Application metadata
-APP_NAME = "OS Dashboard AI Assistant"
+APP_NAME = "AI OS"
 APP_VERSION = "1.0.0"
-APP_AUTHOR = "OS Dashboard Team"
+APP_AUTHOR = "AI OS Team"
 
 # Directory paths
 PROJECT_ROOT = Path(__file__).parent

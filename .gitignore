@@ -25,6 +25,8 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+!frontend/src/lib/
+!frontend/src/lib/**
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -62,6 +64,8 @@ db.sqlite3
 db.sqlite3-journal
 *.db-wal
 *.db-shm
+audit_data/
+audit_ledger/
 
 # Flask stuff:
 instance/
@@ -211,8 +215,17 @@ marimo/_lsp/
 __marimo__/
 
 # React frontend artifacts
+node_modules/
 frontend/node_modules/
 frontend/dist/
+frontend/playwright-report/
+frontend/test-results/
+
+# Local generated artifacts
+.worktrees/
+backend_api/tmp/
+logs/osdash/
+tmp/
 
 # Large PDF files
 Technical Spec Sheet (Version 6 Latest Version).pdf

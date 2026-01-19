@@ -1,13 +1,19 @@
 version: '3.8'
 
-# OS Dashboard AI Assistant Docker Compose
+# AI OS Docker Compose
 # Use profiles to control which services run:
 # - Default: Basic development setup
 # - full: Complete production stack with monitoring
 # - gui: Desktop GUI mode
+#
+# Usage:
+#   docker compose up -d                    # Default profile (app, postgres, redis)
+#   docker compose --profile full up -d      # Full stack with monitoring
+#   docker compose --profile gui up -d       # GUI mode
+#   docker compose down -v                   # Stop and remove volumes/networks
 
 services:
-  # Main OS Dashboard Application
+  # Main AI OS Application
   app:
     build:
       context: .
@@ -16,14 +22,16 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - ENVIRONMENT=development
+      - ENVIRONMENT=${ENVIRONMENT:-development}
       - DATABASE_URL=postgresql://postgres:osdashboard123@postgres:5432/osdashboard
       - REDIS_URL=redis://redis:6379
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
       # Persist the shared (desktop + web) SQLite store under /app/data
       # so projects/tasks/settings survive container restarts.
       - ASSISTANT_HUB_DATA_DIR=/app/data
       - ASSISTANT_HUB_DB=/app/data/assistant_hub.db
+    env_file:
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
@@ -39,13 +47,15 @@ services:
       - os_dashboard_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
     profiles:
       - default
       - full
+    command: uvicorn assistant_hub.api.server:create_app --factory --host 0.0.0.0 --port 8000
 
   # PostgreSQL Database
   postgres:
@@ -301,3 +311,7 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/16
+
+# Cleanup configuration - ensures clean shutdown
+x-cleanup: &cleanup
+  stop_grace_period: 10s

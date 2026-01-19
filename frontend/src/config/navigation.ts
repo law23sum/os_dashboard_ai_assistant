@@ -1,3 +1,4 @@
+// Legacy navigation config. The canonical UI nav is derived from gui_nav.latest.json.
 import {
   LayoutDashboard,
   CheckSquare,

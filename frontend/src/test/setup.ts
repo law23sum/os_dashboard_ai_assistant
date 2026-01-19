@@ -2,6 +2,7 @@ import React from 'react'
 import { expect, afterEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import * as matchers from '@testing-library/jest-dom/matchers'
+import { Response } from 'cross-fetch'
 
 const routerFutureFlags = {
   v7_startTransition: true,
@@ -69,6 +70,39 @@ vi.mock('../contexts/ActorContext', async () => {
   }
 })
 
+vi.mock('../lib/apiClient', () => {
+  const post = vi.fn(async () => ({ data: {} }))
+  const get = vi.fn(async () => ({ data: {} }))
+  const apiPath = (path: string) => `/api/${path}`
+  const setAccessToken = vi.fn()
+  return {
+    default: { post, get, put: vi.fn(async () => ({ data: {} })), delete: vi.fn(async () => ({ data: {} })) },
+    apiPath,
+    setAccessToken,
+  }
+})
+
+// Global fetch stub for tests to avoid network
+const fetchMock = vi.fn(async (url: RequestInfo | URL) => {
+  const href = typeof url === 'string' ? url : url.toString()
+  if (href.includes('/api/automation/status')) {
+    const payload = {
+      status: 'ok',
+      request_id: 'test',
+      correlation_id: 'test',
+      data: {
+        workspace_shell: { exists: false, files: 0, latest: null },
+        auto_fix: { exists: false, files: 0, latest: null },
+        events: [],
+      },
+    }
+    return new Response(JSON.stringify(payload), { status: 200 })
+  }
+  return new Response(JSON.stringify({ status: 'ok', data: [] }), { status: 200 })
+})
+
+vi.stubGlobal('fetch', fetchMock)
+
 const originalConsoleError = console.error
 console.error = (...args) => {
   const message = args.map(String).join(' ')
@@ -119,7 +153,6 @@ expect.extend(matchers)
 afterEach(() => {
   cleanup()
 })
-
 
 
 

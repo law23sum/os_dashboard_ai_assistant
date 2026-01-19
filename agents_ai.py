@@ -70,7 +70,60 @@ DEFAULT_AGENT_MODELS = {
     "AIC": "gpt-5.2-pro",
     "Aria": "gpt-5.1-codex-max",
     "Sora": "gpt-5.2",
+    "Gabriela": "gpt-5.1-codex-max",
 }
+
+STATE_CHANGE_GUARDRAIL = (
+    "When proposing or executing changes, treat the current code snapshot as authoritative. "
+    "Explicitly list intended state changes and impacted events; avoid unintended side effects."
+)
+
+INTERACTION_STYLES = {
+    "discussion": (
+        "Collaborative and exploratory. Ask clarifying questions, surface options, and align on shared goals."
+    ),
+    "debate": (
+        "Adversarial but evidence-driven. Present claims and counterclaims, challenge assumptions, and end with the"
+        " strongest position."
+    ),
+    "informative": "Factual and neutral. Prioritize accuracy, note constraints, and avoid persuasion.",
+    "persuasive": (
+        "Recommendation-focused. Make a clear case with reasoning while remaining truthful and noting limits."
+    ),
+}
+
+INTERACTION_STYLE_ALIASES = {
+    "discuss": "discussion",
+    "collaborative": "discussion",
+    "brainstorm": "discussion",
+    "debate": "debate",
+    "argument": "debate",
+    "argumentative": "debate",
+    "informative": "informative",
+    "informational": "informative",
+    "info": "informative",
+    "persuasive": "persuasive",
+    "persuade": "persuasive",
+    "convince": "persuasive",
+}
+
+
+def normalize_interaction_style(style: Optional[str]) -> Optional[str]:
+    """Normalize interaction style input to a supported key."""
+    if not style:
+        return None
+    normalized = style.strip().lower()
+    normalized = INTERACTION_STYLE_ALIASES.get(normalized, normalized)
+    if normalized in INTERACTION_STYLES:
+        return normalized
+    return None
+
+
+def build_interaction_style_prompt(style: Optional[str]) -> Optional[str]:
+    normalized = normalize_interaction_style(style)
+    if not normalized:
+        return None
+    return f"INTERACTION STYLE: {normalized}\n{INTERACTION_STYLES[normalized]}"
 
 class ToolRegistry:
     """Registry of tools available to agents."""
@@ -129,6 +182,9 @@ class Agent:
         # The chat method will fail gracefully if the key is invalid
         self.client = OpenAI(api_key=OPENAI_API_KEY or "missing-key-please-set")
         self.history: List[Dict[str, str]] = []
+        self.interaction_style = normalize_interaction_style(
+            os.getenv("AGENTS_INTERACTION_STYLE")
+        )
         
         self.system_prompt = f"""
 You are {self.name}.
@@ -156,20 +212,31 @@ When asked to propose solutions, draft the code or steps clearly.
 
 Stay in character. Your tone should reflect your specific academic and professional standing.
 """
+        self.system_prompt = f"{self.system_prompt}\n\n{STATE_CHANGE_GUARDRAIL}"
         self.history.append({"role": "system", "content": self.system_prompt})
 
-    def chat(self, user_input: str) -> str:
+    def set_interaction_style(self, style: Optional[str]) -> None:
+        """Set the default interaction style for this agent."""
+        self.interaction_style = normalize_interaction_style(style)
+
+    def chat(self, user_input: str, interaction_style: Optional[str] = None) -> str:
         """Send a message to the agent and get response."""
-        self.history.append({"role": "user", "content": user_input})
         
         try:
             # Get optimal settings based on agent name
             model = self._get_model_for_agent()
             temperature = self._get_temperature_for_agent()
-            
+
+            style = normalize_interaction_style(interaction_style) or self.interaction_style
+            messages = list(self.history)
+            style_prompt = build_interaction_style_prompt(style)
+            if style_prompt:
+                messages.append({"role": "system", "content": style_prompt})
+            messages.append({"role": "user", "content": user_input})
+
             response = self.client.chat.completions.create(
                 model=model,
-                messages=self.history,
+                messages=messages,
                 temperature=temperature,
                 max_tokens=4000
             )
@@ -178,7 +245,8 @@ Stay in character. Your tone should reflect your specific academic and professio
             # Check for tool usage
             if "TOOL:" in content:
                 content = self._process_tools(content)
-            
+
+            self.history.append({"role": "user", "content": user_input})
             self.history.append({"role": "assistant", "content": content})
             return content
         except Exception as e:
@@ -373,7 +441,42 @@ ROUTING PRIORITY:
 If multiple agents apply, prioritize AIC, then Sora, then Aria. Avoid redundancy and only respond when your contribution is distinct."""
     )
     
-    return {"AIC": aic, "Aria": aria, "Sora": sora}
+    # Gabriela - Fellow Commercial Strategist Product Marketer Venture-Finance Operator
+    # Disciplines: Business Strategist, Economist
+    # Owns: Commercialization, pricing, GTM, investor narrative
+    gabriela = Agent(
+        "Gabriela",
+        "Fellow Commercial Strategist Product Marketer Venture-Finance Operator",
+        "Business Strategist, Economist",
+        """You are Gabriela, Fellow Commercial Strategist Product Marketer Venture-Finance Operator.
+
+CANONICAL TITLE ROSTER:
+- Fellow: Distinguished expert recognized for depth and advisory authority
+- Commercial Strategist: Defines market positioning, pricing, and go-to-market sequencing
+- Product Marketer: Crafts messaging, packaging, competitive differentiation
+- Venture-Finance Operator: Shapes fundraising narratives, unit economics, and capital plans
+
+DISCIPLINE ASSIGNMENTS:
+- Business Strategist: Market framing, segmentation, pricing, growth levers
+- Economist: Demand modeling, incentives, and pricing theory
+
+ROLE & RESPONSIBILITY:
+You own commercialization, market positioning, pricing/packaging, and investor-facing narrative.
+You handle the market and business framing layer.
+
+When I prompt my statement or question, you have the highest priority to respond if the issue/subject/topic/discipline relates to:
+- Pricing, packaging, and GTM strategy
+- Market segmentation, ICP, competitive positioning
+- Revenue models, unit economics, growth levers
+- Investor decks, fundraising narrative, business model articulation
+
+You are pragmatic, market-aware, and focused on commercial viability. Your responses should be grounded in validated capabilities.
+
+ROUTING PRIORITY:
+If multiple agents apply, prioritize AIC, then Sora, then Aria, then Gabriela. Avoid redundancy and only respond when your contribution is distinct."""
+    )
+    
+    return {"AIC": aic, "Aria": aria, "Sora": sora, "Gabriela": gabriela}
 
 
 def route_prompt_to_agent(prompt: str, agents: Dict[str, Agent]) -> List[str]:
@@ -383,7 +486,7 @@ def route_prompt_to_agent(prompt: str, agents: Dict[str, Agent]) -> List[str]:
     """
     prompt_lower = prompt.lower()
     agent_scores = {}
-    priority_order = ["AIC", "Sora", "Aria"]
+    priority_order = ["AIC", "Sora", "Aria", "Gabriela"]
 
     # AIC scoring
     aic_keywords = [
@@ -470,6 +573,32 @@ def route_prompt_to_agent(prompt: str, agents: Dict[str, Agent]) -> List[str]:
     sora_score = sum(1 for keyword in sora_keywords if keyword in prompt_lower)
     agent_scores["Sora"] = sora_score
 
+    # Gabriela scoring
+    gabriela_keywords = [
+        "pricing",
+        "package",
+        "packaging",
+        "market",
+        "gtm",
+        "go-to-market",
+        "sales",
+        "revenue",
+        "forecast",
+        "investor",
+        "pitch",
+        "deck",
+        "positioning",
+        "segmentation",
+        "unit economics",
+        "cac",
+        "ltv",
+        "competitive",
+        "growth",
+        "monetization",
+    ]
+    gabriela_score = sum(1 for keyword in gabriela_keywords if keyword in prompt_lower)
+    agent_scores["Gabriela"] = gabriela_score
+
     scored_agents = [name for name, score in agent_scores.items() if score > 0]
     if not scored_agents:
         ordered = priority_order
@@ -488,6 +617,7 @@ def main():
     print("1. AIC (Execution/Operational)")
     print("2. Aria (Meaning/Values)")
     print("3. Sora (Proof/Structure)")
+    print("4. Gabriela (Commercialization/Market)")
     print("-----------------------------------")
     
     if not OPENAI_API_KEY:
@@ -534,6 +664,17 @@ def main():
                 print("Aria Thinking...")
                 r3 = agents["Aria"].chat(f"The discussion so far:\nAIC: {r1}\nSora: {r2}\n\nAnalyze the meaning, ethics, and value alignment.")
                 print(f"\n[Aria]: {r3}\n")
+
+                # Gabriela evaluates market/commercial framing
+                print("Gabriela Thinking...")
+                r4 = agents["Gabriela"].chat(
+                    "The discussion so far:\n"
+                    f"AIC: {r1}\n"
+                    f"Sora: {r2}\n"
+                    f"Aria: {r3}\n\n"
+                    "Analyze the commercialization, positioning, and pricing implications."
+                )
+                print(f"\n[Gabriela]: {r4}\n")
                 
                 continue
                 
@@ -588,7 +729,7 @@ from datetime import datetime
 from enum import Enum
 import ast
 import re
-from typing import Optional, Dict, Any, List, Callable
+from typing import Optional, Dict, Any, List, Callable, Union
 from dataclasses import dataclass, field
 from datetime import datetime
 import shutil
@@ -598,10 +739,7 @@ project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
 # Load environment variables
-def load_dotenv(path: Path | str = ".env") -> None:
-    """Lightweight .env loader to avoid external dependency."""
-# Load .env file if it exists
-def load_dotenv(path: Path | str = ".env") -> None:
+def load_dotenv(path: Union[Path, str] = ".env") -> None:
     """Lightweight .env loader."""
     env_path = Path(path)
     if not env_path.exists():
@@ -626,6 +764,7 @@ class AgentRole(Enum):
     AIC = "AIC"  # Chief - Applied systems, execution, operational
     ARIA = "ARIA"  # Doctor - Meaning, value, institutions
     SORA = "SORA"  # Doctor - Formal structure, proof, law/economics
+    GABRIELA = "GABRIELA"  # Fellow - Commercialization, GTM, finance
 
 
 class AgentCapability(Enum):
@@ -639,22 +778,39 @@ class AgentCapability(Enum):
     SYSTEM_MONITORING = "system_monitoring"
     RESEARCH = "research"
     STRATEGIC_PLANNING = "strategic_planning"
+
+
+_WARN_ON_STARTUP = __name__ == "__main__"
+
+
+def _warn_optional_dependency(message: str) -> None:
+    if os.getenv("ASSISTANT_HUB_DEP_WARNINGS") and _WARN_ON_STARTUP:
+        print(message)
+
+
 try:
     from openai import OpenAI
     from openai.types.beta.assistant import Assistant
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
-    print("⚠️  OpenAI package not installed. Install with: pip install openai")
-    print("   For agents SDK: pip install openai-agents")
+    _warn_optional_dependency("Warning: OpenAI package not installed. Install with: pip install openai")
+    _warn_optional_dependency("Warning: For agents SDK install: pip install openai-agents")
 
 try:
-    from openai_agents import Agent, Runner
-    from openai_agents.tools import shell, web_search
+    from agents import Agent, Runner
+    from agents.tools import shell, web_search
     AGENTS_SDK_AVAILABLE = True
 except ImportError:
-    AGENTS_SDK_AVAILABLE = False
-    print("⚠️  OpenAI Agents SDK not installed. Install with: pip install openai-agents")
+    try:
+        from openai_agents import Agent, Runner
+        from openai_agents.tools import shell, web_search
+        AGENTS_SDK_AVAILABLE = True
+    except ImportError:
+        AGENTS_SDK_AVAILABLE = False
+        _warn_optional_dependency(
+            "Warning: OpenAI Agents SDK not installed. Install with: pip install openai-agents"
+        )
 
 
 @dataclass
@@ -784,7 +940,7 @@ When collaborating with other agents, be clear and constructive.
 
 Stay in character. Your tone should reflect your specific academic and professional standing as defined in your canonical title roster.
 """
-        return base_prompt
+        return f"{base_prompt}\n\n{STATE_CHANGE_GUARDRAIL}"
     
     def _get_role_description(self) -> str:
         """Get detailed role description with enhanced canonical definitions"""
@@ -844,6 +1000,22 @@ Your focus areas:
 - Governance and audit requirements
 
 You are the authority on formal logic, proof, and evidentiary standards. Highest priority to respond to matters requiring formal structure, proof, or evidentiary validation."""
+        elif self.role == AgentRole.GABRIELA:
+            return """You are Gabriela, Fellow Commercial Strategist Product Marketer Venture-Finance Operator.
+
+You own commercialization, market positioning, pricing/packaging, and investor-facing narrative.
+
+Your disciplines: Business Strategist, Economist
+- Business Strategist: Market framing, segmentation, pricing, growth levers
+- Economist: Demand modeling, incentives, and pricing theory
+
+Your focus areas:
+- Pricing and packaging strategy
+- GTM sequencing, ICP definition, positioning
+- Revenue models, unit economics, go-to-market constraints
+- Investor deck narratives and business model articulation
+
+You are the authority on commercialization and market framing. Highest priority to respond to matters involving pricing, positioning, or GTM."""
         return ""
     
     def _get_optimal_model(self) -> str:
@@ -867,6 +1039,8 @@ You are the authority on formal logic, proof, and evidentiary standards. Highest
             return 0.8  # Higher for creative meaning exploration
         elif self.role == AgentRole.SORA:
             return 0.3  # Lower for precise logical reasoning
+        elif self.role == AgentRole.GABRIELA:
+            return 0.6  # Balanced for commercial strategy
         return 0.7
     
     def _get_optimal_max_tokens(self) -> int:
@@ -882,6 +1056,8 @@ You are the authority on formal logic, proof, and evidentiary standards. Highest
             return 6000  # Longer for philosophical discourse
         elif self.role == AgentRole.SORA:
             return 4000  # Longer for formal proofs and analysis
+        elif self.role == AgentRole.GABRIELA:
+            return 4000  # Longer for commercial strategy breakdowns
         return 4000
     
     def _should_respond_to_prompt(self, prompt: str) -> bool:
@@ -945,6 +1121,32 @@ You are the authority on formal logic, proof, and evidentiary standards. Highest
                 "compliance",
             ]
             return any(keyword in prompt_lower for keyword in sora_keywords)
+        
+        elif self.role == AgentRole.GABRIELA:
+            # Gabriela keywords: pricing, market, gtm, revenue, investor, positioning
+            gabriela_keywords = [
+                "pricing",
+                "package",
+                "packaging",
+                "market",
+                "gtm",
+                "go-to-market",
+                "sales",
+                "revenue",
+                "forecast",
+                "investor",
+                "pitch",
+                "deck",
+                "positioning",
+                "segmentation",
+                "unit economics",
+                "cac",
+                "ltv",
+                "competitive",
+                "growth",
+                "monetization",
+            ]
+            return any(keyword in prompt_lower for keyword in gabriela_keywords)
         
         return True  # Default: all agents can respond
     
@@ -1254,11 +1456,31 @@ class AgentSystem:
                 AgentCapability.STRATEGIC_PLANNING,
             ]
         )
+
+        # Gabriela - Fellow Commercial Strategist Product Marketer Venture-Finance Operator
+        gabriela = AIAgent(
+            name="Gabriela",
+            role=AgentRole.GABRIELA,
+            specializations=[
+                "Business Strategist",
+                "Economist",
+                "Finance Operator",
+            ],
+            capabilities=[
+                AgentCapability.UNIX_DISPLAY,
+                AgentCapability.FILE_MANIPULATION,
+                AgentCapability.CODE_ANALYSIS,
+                AgentCapability.INTER_AGENT_COMM,
+                AgentCapability.RESEARCH,
+                AgentCapability.STRATEGIC_PLANNING,
+            ]
+        )
         
         self.agents = {
             "AIC": aic,
             "Aria": aria,
-            "Sora": sora
+            "Sora": sora,
+            "Gabriela": gabriela,
         }
         
         print("\n" + "=" * 70)
@@ -1267,6 +1489,7 @@ class AgentSystem:
         print(f"\n✓ AIC initialized - {len(aic.specializations)} specializations")
         print(f"✓ Aria initialized - {len(aria.specializations)} specializations")
         print(f"✓ Sora initialized - {len(sora.specializations)} specializations")
+        print(f"✓ Gabriela initialized - {len(gabriela.specializations)} specializations")
         print()
     
     async def route_message(self, message: AgentMessage) -> None:
