@@ -165,19 +165,6 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-slate-900/30 border border-slate-700/50 rounded-xl">
-            <p className="text-xs font-semibold text-slate-300 mb-2">Demo Credentials:</p>
-            <div className="space-y-1 text-xs text-slate-400">
-              <p>
-                <span className="font-mono text-indigo-400">admin</span> / <span className="font-mono">admin123</span>{' '}
-                <span className="text-amber-400">(Admin)</span>
-              </p>
-              <p>
-                <span className="font-mono text-indigo-400">alice</span> / <span className="font-mono">password123</span>
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
