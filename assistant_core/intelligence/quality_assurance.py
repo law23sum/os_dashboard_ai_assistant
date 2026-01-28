@@ -9,16 +9,16 @@ import logging
 from typing import Dict, List, Any, Optional, Union, Tuple
 from dataclasses import dataclass, field
 from pathlib import Path
-import requests
-from bs4 import BeautifulSoup
-import pandas as pd
 from datetime import datetime
-import hashlib
-import asyncio
-import aiohttp
 from concurrent.futures import ThreadPoolExecutor
+import asyncio
+import hashlib
 import tempfile
 import subprocess
+
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
 
 
 @dataclass

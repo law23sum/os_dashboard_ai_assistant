@@ -1,0 +1,296 @@
+#!/usr/bin/env python3
+"""
+Unified AI Agent Script
+
+This script provides a unified interface to call AI agents:
+- AIC (Chief - Execution/Operational)
+- Aria (Doctor - Meaning/Values)
+- Sora (Doctor - Proof/Structure)
+- ChatGPT (Auto-route to AIC/Sora/Aria)
+- Cursor (IDE AI Assistant)
+
+Usage:
+    ai_agent                    # Interactive mode - select agent
+    ai_agent AIC "your message" # Call AIC directly
+    ai_agent Aria "your message" # Call Aria directly
+    ai_agent Sora "your message" # Call Sora directly
+    ai_agent ChatGPT "your message" # Auto-route to AIC/Aria/Sora
+    ai_agent cursor "your message" # Call Cursor AI
+    ai_agent --list             # List available agents
+    ai_agent --help             # Show help
+"""
+
+import os
+import sys
+import argparse
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent
+sys.path.insert(0, str(project_root))
+
+# Import agent system
+try:
+    from agents_ai import setup_agents, Agent, route_prompt_to_agent
+    AGENTS_AVAILABLE = True
+except ImportError as e:
+    print(f"WARN: Error importing agents_ai: {e}")
+    AGENTS_AVAILABLE = False
+except SyntaxError as e:
+    print(f"WARN: Syntax error in agents_ai.py: {e}")
+    AGENTS_AVAILABLE = False
+except Exception as e:
+    print(f"WARN: Error loading agents: {e}")
+    AGENTS_AVAILABLE = False
+
+# Cursor AI integration
+def call_cursor_ai(message: str) -> str:
+    """Call Cursor AI assistant"""
+    try:
+        # Try to use cursor_ai.py if available
+        cursor_script = project_root / "cursor_ai.py"
+        if cursor_script.exists():
+            import subprocess
+            result = subprocess.run(
+                [sys.executable, str(cursor_script), "--provider", "cursor", "--message", message],
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+            return result.stdout if result.returncode == 0 else f"Error: {result.stderr}"
+        else:
+            return "WARN: Cursor AI integration not available. Install cursor_ai.py"
+    except Exception as e:
+        return f"ERROR: Error calling Cursor AI: {e}"
+
+
+def list_agents():
+    """List available agents"""
+    print("\n" + "=" * 70)
+    print("  Available AI Agents")
+    print("=" * 70)
+    print("\n1. AIC - Sir Chief Fellow Director Principal Software Solutions Systems Engineer Architect")
+    print("   Disciplines: Biologist, Chemist")
+    print("   Focus: Applied systems, integration, execution, operational aspects")
+    print("   Usage: ai_agent AIC 'your message'")
+    
+    print("\n2. Aria - Sir Doctor Fellow Philosopher Metaphysician Phenomenologist Axiologist")
+    print("   Disciplines: Philosopher, Theologian")
+    print("   Focus: Meaning, value, canon, institutional identity")
+    print("   Usage: ai_agent Aria 'your message'")
+    
+    print("\n3. Sora - Sir Doctor Fellow Ontological Epistemologist Formal Logician")
+    print("   Disciplines: Mathematician, Physicist")
+    print("   Focus: Formal structure, proof, evidentiary standards, modeling")
+    print("   Usage: ai_agent Sora 'your message'")
+    
+    print("\n4. ChatGPT (Auto) - Routes to AIC/Aria/Sora")
+    print("   Focus: Auto-route by role, priority to AIC/Sora/Aria")
+    print("   Usage: ai_agent ChatGPT 'your message'")
+    print("          ChatGPT 'your message'")
+
+    print("\n5. Cursor - IDE AI Assistant")
+    print("   Focus: Code assistance, IDE integration")
+    print("   Usage: ai_agent cursor 'your message'")
+    print("\n" + "=" * 70 + "\n")
+
+
+def interactive_mode():
+    """Interactive agent selection mode"""
+    if not AGENTS_AVAILABLE:
+        print("ERROR: Agents not available. Please check agents_ai.py")
+        return
+    
+    agents = setup_agents()
+    
+    print("\n" + "=" * 70)
+    print("  AI Agent Interactive Mode")
+    print("=" * 70)
+    print("\nAvailable agents:")
+    for i, (name, agent) in enumerate(agents.items(), 1):
+        print(f"  {i}. {name} - {agent.title.split()[0:3]}...")
+    print("  4. ChatGPT (Auto) - Routes by role")
+    print("  5. Cursor - IDE AI Assistant")
+    print("  6. Exit")
+    
+    while True:
+        try:
+            choice = input("\nSelect agent (1-6) or agent name: ").strip()
+            
+            if choice.lower() in ["6", "exit", "quit"]:
+                print("Exiting...")
+                break
+            
+            # Parse choice
+            agent = None
+            if choice == "1" or choice.lower() == "aic":
+                agent = agents.get("AIC")
+                agent_name = "AIC"
+            elif choice == "2" or choice.lower() == "aria":
+                agent = agents.get("Aria")
+                agent_name = "Aria"
+            elif choice == "3" or choice.lower() == "sora":
+                agent = agents.get("Sora")
+                agent_name = "Sora"
+            elif choice == "4" or choice.lower() in ["chatgpt", "auto"]:
+                agent_name = "ChatGPT"
+                agent = None
+            elif choice == "5" or choice.lower() == "cursor":
+                agent_name = "Cursor"
+                agent = None  # Special handling for Cursor
+            else:
+                # Try to find by name
+                for name, a in agents.items():
+                    if name.lower() == choice.lower():
+                        agent = a
+                        agent_name = name
+                        break
+                
+                if not agent:
+                    print("ERROR: Invalid choice. Please select 1-6 or agent name.")
+                    continue
+            
+            # Get message
+            message = input(f"\n[{agent_name}] Enter your message (or 'back' to return): ").strip()
+            if message.lower() in ["back", "exit", "quit"]:
+                continue
+            
+            if not message:
+                continue
+            
+            # Call agent
+            if agent_name == "ChatGPT":
+                print(f"\n[{agent_name}] Routing...")
+                routed = route_prompt_to_agent(message, agents)
+                for routed_name in routed:
+                    routed_agent = agents.get(routed_name)
+                    if not routed_agent:
+                        continue
+                    print(f"\n[{routed_name}] Thinking...")
+                    response = routed_agent.chat(message)
+                    print(f"\n[{routed_name}]: {response}\n")
+            elif agent_name == "Cursor":
+                print(f"\n[{agent_name}] Processing...")
+                response = call_cursor_ai(message)
+                print(f"\n[{agent_name}]: {response}\n")
+            else:
+                print(f"\n[{agent_name}] Thinking...")
+                response = agent.chat(message)
+                print(f"\n[{agent_name}]: {response}\n")
+                
+        except KeyboardInterrupt:
+            print("\n\nExiting...")
+            break
+        except Exception as e:
+            print(f"ERROR: {e}")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Unified AI Agent Interface",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  ai_agent                           # Interactive mode
+  ai_agent AIC "optimize this code"  # Call AIC
+  ai_agent Aria "what is the meaning?" # Call Aria
+  ai_agent Sora "prove this theorem"  # Call Sora
+  ai_agent ChatGPT "route this query" # Auto-route to AIC/Aria/Sora
+  ai_agent cursor "refactor this"    # Call Cursor
+  ai_agent --list                     # List agents
+        """
+    )
+    
+    parser.add_argument(
+        "agent",
+        nargs="?",
+        choices=["AIC", "Aria", "Sora", "aic", "aria", "sora", "cursor", "Cursor", "ChatGPT", "chatgpt", "Auto", "auto"],
+        help="Agent to call (AIC, Aria, Sora, ChatGPT/Auto, or cursor)"
+    )
+    
+    parser.add_argument(
+        "message",
+        nargs="?",
+        help="Message to send to the agent"
+    )
+    
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List available agents"
+    )
+    
+    parser.add_argument(
+        "--interactive",
+        "-i",
+        action="store_true",
+        help="Start in interactive mode"
+    )
+    
+    args = parser.parse_args()
+    
+    # List agents
+    if args.list:
+        list_agents()
+        return
+    
+    # Interactive mode (default if no args)
+    if not args.agent or args.interactive:
+        interactive_mode()
+        return
+    
+    # Direct agent call
+    if not args.message:
+        print("ERROR: Message required when calling agent directly")
+        print("Usage: ai_agent <agent> '<message>'")
+        print("Or use: ai_agent (interactive mode)")
+        sys.exit(1)
+    
+    agent_arg = args.agent.lower()
+    if agent_arg in ["cursor"]:
+        agent_name = "Cursor"
+    elif agent_arg in ["chatgpt", "auto"]:
+        agent_name = "ChatGPT"
+    else:
+        agent_name = args.agent
+    
+    if agent_name == "Cursor":
+        print(f"[{agent_name}] Processing...")
+        response = call_cursor_ai(args.message)
+        print(f"\n[{agent_name}]: {response}\n")
+    elif agent_name == "ChatGPT":
+        if not AGENTS_AVAILABLE:
+            print("ERROR: Agents not available. Please check agents_ai.py")
+            sys.exit(1)
+
+        agents = setup_agents()
+        routed = route_prompt_to_agent(args.message, agents)
+        if not routed:
+            print("ERROR: No agents routed for this prompt.")
+            sys.exit(1)
+        for routed_name in routed:
+            agent = agents.get(routed_name)
+            if not agent:
+                continue
+            print(f"[{routed_name}] Thinking...")
+            response = agent.chat(args.message)
+            print(f"\n[{routed_name}]: {response}\n")
+    else:
+        if not AGENTS_AVAILABLE:
+            print("ERROR: Agents not available. Please check agents_ai.py")
+            sys.exit(1)
+        
+        agents = setup_agents()
+        agent = agents.get(agent_name)
+        
+        if not agent:
+            print(f"ERROR: Agent '{agent_name}' not found")
+            sys.exit(1)
+        
+        print(f"[{agent_name}] Thinking...")
+        response = agent.chat(args.message)
+        print(f"\n[{agent_name}]: {response}\n")
+
+
+if __name__ == "__main__":
+    main()

@@ -6,40 +6,80 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Support multiple port configurations: 8070 (assistant_hub_gui direct), 8000 (start_ui.py - default)
+const apiTarget = process.env.VITE_API_TARGET || "http://localhost:8000";
+const wsTarget = apiTarget.replace(/^http/, "ws");
+
 export default defineConfig({
   plugins: [react()],
   base: "./", // Required for Electron to load assets correctly
   resolve: {
     alias: {
+      "@": path.resolve(__dirname, "src"),
       "react-hot-toast": path.resolve(__dirname, "src/utils/toast.tsx"),
     },
   },
   server: {
+    host: process.env.VITE_HOST || '127.0.0.1', // Bind to localhost only for security (use VITE_HOST=0.0.0.0 for network access)
     port: 5173,
+    https: false,
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        target: apiTarget,
         changeOrigin: true,
+        secure: false, // Allow self-signed certificates
       },
-      "/system": "http://localhost:8000",
-      "/ai": "http://localhost:8000",
-      "/search": "http://localhost:8000",
-      "/projects": "http://localhost:8000",
-      "/billing": "http://localhost:8000",
-      "/planes": "http://localhost:8000",
-      "/operations": "http://localhost:8000",
-      "/audit": "http://localhost:8000",
-      "/docs": {
-        target: "http://localhost:8000",
+      "/system": {
+        target: apiTarget,
+        secure: false,
+      },
+      "/ai": {
+        target: apiTarget,
+        secure: false,
+      },
+      "/search": {
+        target: apiTarget,
+        secure: false,
+      },
+      "/projects": {
+        target: apiTarget,
+        secure: false,
+      },
+      "/billing": {
+        target: apiTarget,
+        secure: false,
+      },
+      "/planes": {
+        target: apiTarget,
+        secure: false,
+      },
+      "/operations": {
+        target: apiTarget,
+        secure: false,
+      },
+      "/office": {
+        target: apiTarget,
         changeOrigin: true,
+        secure: false,
+      },
+      "/audit": {
+        target: apiTarget,
+        secure: false,
+      },
+      "/docs": {
+        target: apiTarget,
+        changeOrigin: true,
+        secure: false,
       },
       "/ui": {
-        target: "http://localhost:8000",
+        target: apiTarget,
         changeOrigin: true,
+        secure: false,
       },
       "/ws": {
-        target: "ws://localhost:8000",
+        target: wsTarget,
         ws: true,
+        secure: false,
       },
     },
   },

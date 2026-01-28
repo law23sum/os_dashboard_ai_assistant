@@ -1,0 +1,164 @@
+[
+  {
+    "branch": "ia-reorg-merge-20251221",
+    "platforms": 15,
+    "categories": 66,
+    "features": 504,
+    "total": 585,
+    "found_file": "frontend/public/gui_nav.latest.json",
+    "error": null
+  },
+  {
+    "branch": "main",
+    "platforms": 15,
+    "categories": 66,
+    "features": 444,
+    "total": 525,
+    "found_file": "frontend/public/gui_nav.latest.json",
+    "error": null
+  },
+  {
+    "branch": "fix/ia-navigation-merge",
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "found_file": "frontend/public/gui_nav.latest.json",
+    "error": null
+  },
+  {
+    "branch": "fix/restore-gui-glory",
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "found_file": "frontend/public/gui_nav.latest.json",
+    "error": null
+  },
+  {
+    "branch": "fix/restore-gui-glory-20251220",
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "found_file": "frontend/public/gui_nav.latest.json",
+    "error": null
+  },
+  {
+    "branch": "gui-fully-restored",
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "found_file": "frontend/public/gui_nav.latest.json",
+    "error": null
+  },
+  {
+    "branch": "integration/codex-ia-restore-final",
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "found_file": "frontend/public/gui_nav.latest.json",
+    "error": null
+  },
+  {
+    "branch": "integration/ia-navigation-final",
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "found_file": "frontend/public/gui_nav.latest.json",
+    "error": null
+  },
+  {
+    "branch": "integration/merge-gui-commits-20251221",
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "found_file": "frontend/public/gui_nav.latest.json",
+    "error": null
+  },
+  {
+    "branch": "integration/restore-pages-ia-v2",
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "found_file": "frontend/public/gui_nav.latest.json",
+    "error": null
+  },
+  {
+    "branch": "integration/restore-pages-ia-ktg",
+    "platforms": 15,
+    "categories": 66,
+    "features": 441,
+    "total": 522,
+    "found_file": "frontend/public/gui_nav.latest.json",
+    "error": null
+  },
+  {
+    "branch": "dying",
+    "platforms": 0,
+    "categories": 0,
+    "features": 0,
+    "total": 0,
+    "found_file": null,
+    "error": "No nav file found"
+  },
+  {
+    "branch": "gui-restore-3a154a6-work",
+    "platforms": 0,
+    "categories": 0,
+    "features": 0,
+    "total": 0,
+    "found_file": null,
+    "error": "No nav file found"
+  },
+  {
+    "branch": "gui-restore-stable",
+    "platforms": 0,
+    "categories": 0,
+    "features": 0,
+    "total": 0,
+    "found_file": null,
+    "error": "No nav file found"
+  },
+  {
+    "branch": "gui-restore-stable-3a154a6",
+    "platforms": 0,
+    "categories": 0,
+    "features": 0,
+    "total": 0,
+    "found_file": null,
+    "error": "No nav file found"
+  },
+  {
+    "branch": "integration/restore-pages-ia-codex",
+    "platforms": 0,
+    "categories": 0,
+    "features": 0,
+    "total": 0,
+    "found_file": null,
+    "error": "No nav file found"
+  },
+  {
+    "branch": "restore-gui-fix",
+    "platforms": 0,
+    "categories": 0,
+    "features": 0,
+    "total": 0,
+    "found_file": null,
+    "error": "No nav file found"
+  },
+  {
+    "branch": "restore-ui",
+    "platforms": 0,
+    "categories": 0,
+    "features": 0,
+    "total": 0,
+    "found_file": null,
+    "error": "No nav file found"
+  }
+]

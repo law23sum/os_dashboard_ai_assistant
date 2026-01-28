@@ -1,0 +1,21 @@
+{
+  "name": "os-dashboard-ai-assistant",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Root package to bridge npm workflows to the frontend workspace.",
+  "scripts": {
+    "build": "npm run --prefix frontend build",
+    "dev": "npm run --prefix frontend dev",
+    "dev:web": "npm run --prefix frontend dev:web",
+    "dev:desktop": "npm run --prefix frontend dev:desktop",
+    "test": "pytest tests/test_office_router.py tests/test_office_api.py tests/test_assistant_api_office.py tests/test_desktop_launcher.py"
+  },
+  "dependencies": {
+    "@amplitude/analytics-react-native": "^1.5.16",
+    "@amplitude/plugin-session-replay-react-native": "^0.4.5",
+    "@react-native-async-storage/async-storage": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.16.0"
+  }
+}

@@ -1,0 +1,24 @@
+timestamp,source,destination,reason
+2025-12-06T19:40:03Z,Desktop/$RECYCLE.BIN,Desktop/99_Archive/SystemArtifacts/RECYCLE_BIN,Archive Windows recycle artifact
+2025-12-06T19:40:12Z,Desktop/desktop.ini,Desktop/99_Archive/SystemArtifacts/desktop.ini,Archive Windows metadata
+2025-12-06T19:40:18Z,Desktop/Thumbs.db,Desktop/99_Archive/SystemArtifacts/Thumbs.db,Archive Windows thumbnail cache
+2025-12-06T19:40:26Z,Downloads/Photos (1).zip,Downloads/_archive/photos/Photos (1).zip,Archive photo bundles
+2025-12-06T19:40:26Z,Downloads/Photos (10).zip,Downloads/_archive/photos/Photos (10).zip,Archive photo bundles
+2025-12-06T19:40:26Z,Downloads/Photos (11).zip,Downloads/_archive/photos/Photos (11).zip,Archive photo bundles
+2025-12-06T19:40:26Z,Downloads/Photos (2).zip,Downloads/_archive/photos/Photos (2).zip,Archive photo bundles
+2025-12-06T19:40:26Z,Downloads/Photos (3).zip,Downloads/_archive/photos/Photos (3).zip,Archive photo bundles
+2025-12-06T19:40:26Z,Downloads/Photos (4).zip,Downloads/_archive/photos/Photos (4).zip,Archive photo bundles
+2025-12-06T19:40:26Z,Downloads/Photos (5).zip,Downloads/_archive/photos/Photos (5).zip,Archive photo bundles
+2025-12-06T19:40:26Z,Downloads/Photos (6).zip,Downloads/_archive/photos/Photos (6).zip,Archive photo bundles
+2025-12-06T19:40:26Z,Downloads/Photos (7).zip,Downloads/_archive/photos/Photos (7).zip,Archive photo bundles
+2025-12-06T19:40:26Z,Downloads/Photos (8).zip,Downloads/_archive/photos/Photos (8).zip,Archive photo bundles
+2025-12-06T19:40:26Z,Downloads/Photos (9).zip,Downloads/_archive/photos/Photos (9).zip,Archive photo bundles
+2025-12-06T19:40:26Z,Downloads/Photos.zip,Downloads/_archive/photos/Photos.zip,Archive photo bundles
+2025-12-06T19:40:35Z,Downloads/chromedriver-mac-arm64 (2).zip,Downloads/_archive/installers/chromedriver/chromedriver-mac-arm64 (2).zip,Archive chromedriver installer
+2025-12-06T19:40:35Z,Downloads/chromedriver-mac-arm64.zip,Downloads/_archive/installers/chromedriver/chromedriver-mac-arm64.zip,Archive chromedriver installer
+2025-12-06T19:40:40Z,Downloads/chromedriver-mac-arm64,Downloads/_archive/installers/chromedriver/chromedriver-mac-arm64,Archive duplicate chromedriver build
+2025-12-06T19:40:40Z,Downloads/chromedriver-mac-arm64 2,Downloads/_archive/installers/chromedriver/chromedriver-mac-arm64 2,Archive duplicate chromedriver build
+2025-12-06T19:40:40Z,Downloads/chromedriver-mac-arm64 3,Downloads/_archive/installers/chromedriver/chromedriver-mac-arm64 3,Archive duplicate chromedriver build
+2025-12-06T19:40:40Z,Downloads/chromedriver-mac-arm64 4,Downloads/_archive/installers/chromedriver/chromedriver-mac-arm64 4,Archive duplicate chromedriver build
+2025-12-06T19:40:40Z,Downloads/chromedriver-mac-arm64 5,Downloads/_archive/installers/chromedriver/chromedriver-mac-arm64 5,Archive duplicate chromedriver build
+2025-12-06T19:40:48Z,Downloads/_archive/installers/chromedriver/chromedriver-mac-arm64,Downloads/_incoming/installers/chromedriver-mac-arm64,Keep current chromedriver handy

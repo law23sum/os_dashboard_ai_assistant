@@ -1,0 +1,146 @@
+[
+  {
+    "branch": "fix/ia-navigation-merge",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "fix/restore-gui-glory",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "fix/restore-gui-glory-20251220",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "gui-fully-restored",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "gui-restore-3a154a6-work",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "gui-restore-stable",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "gui-restore-stable-3a154a6",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "ia-reorg-merge-20251221",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "integration/codex-ia-restore-final",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "integration/ia-navigation-final",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "integration/merge-gui-commits-20251221",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "integration/restore-pages-ia-codex",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "integration/restore-pages-ia-ktg",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "integration/restore-pages-ia-v2",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "restore-gui-fix",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  },
+  {
+    "branch": "restore-ui",
+    "platforms": 15,
+    "categories": 66,
+    "features": 569,
+    "editions": 2,
+    "pages": 4215,
+    "score": 26384
+  }
+]

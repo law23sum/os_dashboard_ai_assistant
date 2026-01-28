@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/backend_api" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/openai-assistants-quickstart" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/reference/openai-cookbook" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/worktrees/legacy-restore" vcs="Git" />
+  </component>
+</project>

@@ -175,8 +175,17 @@
       const chatClear = document.getElementById('chat-clear');
       const chatResponse = document.getElementById('chat-response');
 
+      // Technical Spec v6 keeps the HTML legacy panes wired to the same /api stack as the React SPA.
+      const API_BASE = (window.__OSDASH_API_BASE__ || '/api').replace(/\/+$/, '');
+      const resolveApiUrl = (path) => {
+        if (!path) return API_BASE;
+        if (/^https?:\/\//i.test(path)) return path;
+        if (path.startsWith('/')) return `${API_BASE}${path}`;
+        return `${API_BASE}/${path}`;
+      };
+
       const API = {
-        get: (path) => fetch(path).then(res => {
+        get: (path) => fetch(resolveApiUrl(path)).then(res => {
           if (!res.ok) throw new Error('Request failed');
           return res.json();
         })
@@ -274,11 +283,11 @@
             </div>
           `;
           card.querySelector('[data-action="toggle"]').addEventListener('click', async () => {
-            await fetch(`/daemons/${daemon.name}/${daemon.enabled ? 'disable' : 'enable'}`, { method: 'POST' });
+            await fetch(resolveApiUrl(`/daemons/${daemon.name}/${daemon.enabled ? 'disable' : 'enable'}`), { method: 'POST' });
             refreshAll();
           });
           card.querySelector('[data-action="run"]').addEventListener('click', async () => {
-            await fetch(`/daemons/${daemon.name}/run`, { method: 'POST' });
+            await fetch(resolveApiUrl(`/daemons/${daemon.name}/run`), { method: 'POST' });
             refreshAll();
           });
           daemonListEl.appendChild(card);
@@ -319,7 +328,7 @@
         if (!chatInput.value.trim()) return;
         chatResponse.textContent = 'Sending…';
         try {
-          const reply = await fetch('/ai/ask', {
+          const reply = await fetch(resolveApiUrl('/ai/ask'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: chatInput.value.trim() }),

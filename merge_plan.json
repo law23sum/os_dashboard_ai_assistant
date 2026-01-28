@@ -1,0 +1,12 @@
+{
+  "navigation_source": "ia-reorg-merge-20251221",
+  "pages_to_merge": 487,
+  "branches_analyzed": [
+    "ia-reorg-merge-20251221",
+    "integration/restore-pages-ia-ktg",
+    "fix/restore-gui-glory",
+    "integration/codex-ia-restore-final",
+    "integration/ia-navigation-final",
+    "integration/merge-gui-commits-20251221"
+  ]
+}

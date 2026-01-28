@@ -1,17 +1,22 @@
 """Minimal FastAPI entrypoint showcasing the architecture skeleton."""
 from __future__ import annotations
 
+import json
+import os
+import sys
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from collections import Counter
+# Add project root to Python path to allow imports from ai_os package
+_project_root = Path(__file__).resolve().parent.parent.parent
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-import random
-import uuid
-from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -60,6 +65,41 @@ class DaemonProfile:
         return payload
 
 
+# NOTE: Debug-mode logging (NDJSON) for runtime evidence.
+# Log path is mandated by the debug-mode harness.
+_DEBUG_LOG_PATH = Path("/Users/chrisdixon/Projects/os_dashboard_ai_assistant/.cursor/debug.log")
+
+
+def _debug_log(*, run_id: str, hypothesis_id: str, location: str, message: str, data: Dict[str, Any]) -> None:
+    # #region agent log
+    try:
+        payload = {
+            "sessionId": "debug-session",
+            "runId": run_id,
+            "hypothesisId": hypothesis_id,
+            "location": location,
+            "message": message,
+            "data": data,
+            "timestamp": int(__import__("time").time() * 1000),
+        }
+        _DEBUG_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with _DEBUG_LOG_PATH.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+    # #endregion agent log
+
+
+def _run_id() -> str:
+    return os.getenv("OSDASH_DEBUG_RUN_ID", "pre-fix")
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+_DOCS_DIR = _REPO_ROOT / "docs"
+
+
 class DummyStorage:
     """Simple storage adapter for demonstrating connector wiring."""
 
@@ -98,7 +138,7 @@ class DummyStorage:
         return matches[:limit]
 
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = _REPO_ROOT
 FRONTEND_DIST = REPO_ROOT / "frontend" / "dist"
 DOCS_DIR = REPO_ROOT / "docs"
 TERMINAL_WORKSPACES = [
@@ -136,11 +176,13 @@ if FRONTEND_DIST.exists():
         StaticFiles(directory=FRONTEND_DIST, html=True),
         name="webapp",
     )
-
-    @app.get("/", response_class=HTMLResponse)
-    def serve_frontend_root():
-        index_path = FRONTEND_DIST / "index.html"
-        return index_path.read_text(encoding="utf-8")
+    assets_dir = FRONTEND_DIST / "assets"
+    if assets_dir.exists():
+        app.mount(
+            "/assets",
+            StaticFiles(directory=assets_dir),
+            name="frontend-assets",
+        )
 
 if DOCS_DIR.exists():
     app.mount(
@@ -148,6 +190,54 @@ if DOCS_DIR.exists():
         StaticFiles(directory=DOCS_DIR, html=True),
         name="docs",
     )
+
+
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    """
+    Serve a minimal landing page that links to HTML pages.
+
+    Hypothesis coverage:
+    - A: app had no HTML routes; `/` returned 404
+    - C: user ran the wrong service; log shows which app is handling `/`
+    """
+    _debug_log(
+        run_id=_run_id(),
+        hypothesis_id="A",
+        location="ai_os/app/main.py:home",
+        message="GET / (landing)",
+        data={
+            "path": request.url.path,
+            "docs_dir_exists": _DOCS_DIR.exists(),
+            "repo_root": str(_REPO_ROOT),
+            "frontend_dist_exists": FRONTEND_DIST.exists(),
+        },
+    )
+    if FRONTEND_DIST.exists():
+        index_path = FRONTEND_DIST / "index.html"
+        if index_path.exists():
+            return HTMLResponse(index_path.read_text(encoding="utf-8"))
+    if _DOCS_DIR.exists():
+        return RedirectResponse(url="/site/index.html")
+    return HTMLResponse(
+        "<!doctype html><html><head><meta charset='utf-8'><title>OS Dashboard</title></head>"
+        "<body style='font-family:system-ui;padding:24px'>"
+        "<h1>OS Dashboard AI Assistant</h1>"
+        "<p>No static site found at <code>docs/</code>.</p>"
+        "<ul>"
+        "<li><a href='/docs'>OpenAPI docs</a></li>"
+        "<li><a href='/redoc'>ReDoc</a></li>"
+        "</ul>"
+        "</body></html>"
+    )
+
+
+_VITE_SVG = FRONTEND_DIST / "vite.svg"
+if _VITE_SVG.exists():
+
+    @app.get("/vite.svg")
+    def serve_vite_svg():
+        return FileResponse(str(_VITE_SVG))
 
 bus = EventBus()
 orch = Orchestrator(bus)
@@ -370,7 +460,7 @@ def _touch_workspace() -> None:
 usage_records: List[UsageRecord] = [
     UsageRecord(
         id="usage-1",
-        subject="model:gpt-4",
+        subject="model:gpt-5-mini",
         category="model_call",
         quantity=1200,
         unit="tokens",
@@ -638,8 +728,62 @@ class ExperimentDesignRequest(BaseModel):
     variables: List[str] = []
 
 
+@app.get("/site")
+def site_root(request: Request):
+    _debug_log(
+        run_id=_run_id(),
+        hypothesis_id="A",
+        location="ai_os/app/main.py:site_root",
+        message="GET /site (redirect)",
+        data={"path": request.url.path},
+    )
+    return RedirectResponse(url="/site/index.html")
+
+
+@app.get("/site/{path:path}")
+def site_files(path: str, request: Request):
+    """
+    Serve static HTML pages from repo `docs/` directory (not FastAPI's /docs).
+
+    Hypothesis coverage:
+    - B: path resolution/asset paths are wrong; logs capture resolved file path + exists
+    - D: user expects "GUI web pages" but old UI was removed; this provides canonical pages
+    """
+    docs_root = _DOCS_DIR.resolve()
+    requested = (docs_root / path).resolve()
+    allowed = (requested == docs_root) or (docs_root in requested.parents)
+    _debug_log(
+        run_id=_run_id(),
+        hypothesis_id="B",
+        location="ai_os/app/main.py:site_files",
+        message="GET /site/*",
+        data={
+            "path": request.url.path,
+            "requested": path,
+            "resolved": str(requested),
+            "allowed": allowed,
+            "exists": requested.exists(),
+            "is_dir": requested.is_dir(),
+        },
+    )
+    if not allowed:
+        return Response(status_code=404)
+    if requested.is_dir():
+        requested = requested / "index.html"
+    if not requested.exists():
+        return Response(status_code=404)
+    return FileResponse(str(requested))
+
+
 @app.post("/notes")
 def create_note(payload: Dict[str, Any]):
+    _debug_log(
+        run_id=_run_id(),
+        hypothesis_id="E",
+        location="ai_os/app/main.py:create_note",
+        message="POST /notes",
+        data={"has_title": bool(payload.get("title")), "text_len": len(payload.get("text", "") or "")},
+    )
     title = payload.get("title", "Untitled Note")
     text = payload.get("text", "")
     cir = CIRDocument(
@@ -706,6 +850,13 @@ def add_regulation_pdf(payload: Dict[str, Any]):
 @app.get("/search")
 def unified_search(q: str):
     _ensure_seed_data()
+    _debug_log(
+        run_id=_run_id(),
+        hypothesis_id="E",
+        location="ai_os/app/main.py:unified_search",
+        message="GET /search",
+        data={"q_len": len(q or "")},
+    )
     results = index.search(q, limit=10)
     return [{"score": score, **payload} for score, payload in results]
 
@@ -867,3 +1018,20 @@ def failure_dashboard():
         "summary": failure_registry.summarize_events(),
         "signals": failure_registry.summarize_signals(),
     }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    print("🚀 Starting AI OS Dashboard server...")
+    print("📍 API will be available at http://localhost:8000")
+    print("📍 API docs at http://localhost:8000/docs")
+    print("📍 Health check at http://localhost:8000/health")
+    print("\nPress CTRL+C to stop the server\n")
+    
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+    )

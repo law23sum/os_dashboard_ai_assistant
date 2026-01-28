@@ -9,7 +9,7 @@ from ..prompts import ARIA_SYSTEM_PROMPT
 from ..openai_client import get_default_client
 
 
-def polish_text(text: str, model: str = "gpt-4.1-mini") -> str:
+def polish_text(text: str, model: str = "gpt-5-mini") -> str:
     """Polish user-facing text while preserving intent."""
 
     client = get_default_client()
@@ -24,7 +24,7 @@ def polish_text(text: str, model: str = "gpt-4.1-mini") -> str:
 
 
 def handle_narrative(
-    project: Project, intent: Optional[Intent] = None, model: str = "gpt-4.1-mini"
+    project: Project, intent: Optional[Intent] = None, model: str = "gpt-5-mini"
 ) -> str:
     """Write a user-facing narrative about the current state of a project."""
     client = get_default_client()

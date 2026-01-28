@@ -1,0 +1,599 @@
+absl_hash                                   absl_hash - Abseil hash library
+atk-bridge-2.0                              atk-bridge-2.0 - ATK/D-Bus Bridge
+gtk+-unix-print-2.0                         GTK+ - GTK+ Unix print support
+soxr                                        soxr - High quality, one-dimensional sample-rate conversion library
+rav1e                                       rav1e - The fastest and safest AV1 encoder
+libunibreak                                 libunibreak - Library to implement Unicode algorithms for line and word breaking
+Magick++-7.Q16HDRI                          Magick++ - Magick++ - C++ API for ImageMagick (ABI Q16HDRI)
+absl_random_internal_distribution_test_util absl_random_internal_distribution_test_util - Abseil random_internal_distribution_test_util library
+libevent_pthreads                           libevent_pthreads - libevent_pthreads adds pthreads-based threading support to libevent
+absl_synchronization                        absl_synchronization - Abseil synchronization library
+libavfilter                                 libavfilter - FFmpeg audio/video filtering library
+libevent                                    libevent - libevent is an asynchronous notification event loop library
+nspr                                        NSPR - The Netscape Portable Runtime
+gspell-1                                    gspell - Spell-checking for GTK applications
+aribb24                                     ARIB B24 Library - ARIB B24 Captions decoder
+scrnsaverproto                              ScrnSaverProto - ScrnSaver extension headers
+absl_log_internal_check_impl                absl_log_internal_check_impl - Abseil log_internal_check_impl library
+libpng                                      libpng - Loads and saves PNG files
+absl_str_format_internal                    absl_str_format_internal - Abseil str_format_internal library
+kbproto                                     KBProto - KB extension headers
+absl_cordz_handle                           absl_cordz_handle - Abseil cordz_handle library
+gpgme-glib                                  gpgme-glib - GnuPG Made Easy to access GnuPG with Glib
+absl_hashtablez_sampler                     absl_hashtablez_sampler - Abseil hashtablez_sampler library
+fmt                                         fmt - A modern formatting library
+absl_log_internal_nullstream                absl_log_internal_nullstream - Abseil log_internal_nullstream library
+absl_prefetch                               absl_prefetch - Abseil prefetch library
+libswresample                               libswresample - FFmpeg audio resampling library
+gflags                                      gflags - A commandline flags library that allows for distributed flags.
+absl_str_format                             absl_str_format - Abseil str_format library
+absl_sample_recorder                        absl_sample_recorder - Abseil sample_recorder library
+absl_log_internal_conditions                absl_log_internal_conditions - Abseil log_internal_conditions library
+openjph                                     openjph - Open source implementation of JPH
+absl_tracing_internal                       absl_tracing_internal - Abseil tracing_internal library
+vidstab                                     vidstab - Vid.Stab, a library for stabilizing video clips
+absl_scoped_set_env                         absl_scoped_set_env - Abseil scoped_set_env library
+absl_log_internal_strip                     absl_log_internal_strip - Abseil log_internal_strip library
+libcerf                                     libcerf - Complex error function library, C ABI
+libxdot                                     libxdot - Library for parsing graphs in xdot format
+python3                                     Python - Build a C extension for Python
+absl_random_internal_randen_slow            absl_random_internal_randen_slow - Abseil random_internal_randen_slow library
+absl_flags_commandlineflag                  absl_flags_commandlineflag - Abseil flags_commandlineflag library
+libsyn123                                   libsyn123 - A signal synthesis library accompanying mpg123
+harfbuzz-cairo                              harfbuzz-cairo - HarfBuzz cairo support
+srt                                         srt - SRT library set
+liblzma                                     liblzma - General purpose data compression library
+cairo-fc                                    cairo-fc - Fontconfig font backend for cairo graphics library
+vapigen                                     vapigen - Vala API Generator
+gio-unix-2.0                                GIO unix specific APIs - unix specific headers for glib I/O library
+speex                                       speex - Speex is an audio codec tuned for speech
+absl_log_initialize                         absl_log_initialize - Abseil log_initialize library
+gtk+-unix-print-3.0                         GTK+ - GTK+ Unix print support
+librsvg-2.0                                 librsvg - library that renders svg files
+xf86vidmodeproto                            XF86VidModeProto - XF86VidMode extension headers
+ncursesw                                    ncursesw - ncurses 5.7 library
+absl_flat_hash_map                          absl_flat_hash_map - Abseil flat_hash_map library
+cairo-ft                                    cairo-ft - FreeType font backend for cairo graphics library
+absl_flags_path_util                        absl_flags_path_util - Abseil flags_path_util library
+soxr-lsr                                    soxr-lsr - High quality, one-dimensional sample-rate conversion library (with libsamplerate-like bindings)
+libudfread                                  libudfread - UDF filesystem access library
+absl_random_internal_traits                 absl_random_internal_traits - Abseil random_internal_traits library
+libpcre2-posix                              libpcre2-posix - Posix compatible interface to libpcre2-8
+absl_strings_internal                       absl_strings_internal - Abseil strings_internal library
+x11-xcb                                     X11 XCB - X Library XCB interface
+gpgme                                       gpgme - GnuPG Made Easy to access GnuPG
+resourceproto                               ResourceProto - Resource extension headers
+absl_weakly_mixed_integer                   absl_weakly_mixed_integer - Abseil weakly_mixed_integer library
+absl_random_internal_generate_real          absl_random_internal_generate_real - Abseil random_internal_generate_real library
+gmp                                         GNU MP - GNU Multiple Precision Arithmetic Library
+mad                                         mad - MPEG Audio Decoder
+absl_raw_hash_set                           absl_raw_hash_set - Abseil raw_hash_set library
+absl_layout                                 absl_layout - Abseil layout library
+libqpdf                                     libqpdf - PDF transformation library
+libedit                                     libedit - command line editor library provides generic line editing, history, and tokenization functions.
+absl_die_if_null                            absl_die_if_null - Abseil die_if_null library
+absl_cleanup_internal                       absl_cleanup_internal - Abseil cleanup_internal library
+xcb-xf86dri                                 XCB XFree86-DRI - XCB XFree86-DRI Extension
+gdk-quartz-2.0                              GDK - GTK+ Drawing Kit (quartz target)
+liblz4                                      lz4 - extremely fast lossless compression algorithm library
+absl_random_internal_seed_material          absl_random_internal_seed_material - Abseil random_internal_seed_material library
+absl_core_headers                           absl_core_headers - Abseil core_headers library
+theoraenc                                   theora - Theora video codec (encoder)
+upb                                         Protocol Buffers - Google's Data Interchange Format
+libwebpdecoder                              libwebpdecoder - Library for the WebP graphics format (decode only)
+libffi                                      libffi - Library supporting Foreign Function Interfaces
+applewmproto                                AppleWMProto - AppleWM extension headers
+libwebpdemux                                libwebpdemux - Library for parsing the WebP graphics format container
+absl_log_internal_fnmatch                   absl_log_internal_fnmatch - Abseil log_internal_fnmatch library
+libcurl                                     libcurl - Library to transfer files with ftp, http, etc.
+graphite2                                   Graphite2 - Font rendering engine for Complex Scripts
+libpathplan                                 libpathplan - Library for planning polyline and bezier paths around polygon obstacles
+absl_cordz_update_tracker                   absl_cordz_update_tracker - Abseil cordz_update_tracker library
+absl_hashtable_control_bytes                absl_hashtable_control_bytes - Abseil hashtable_control_bytes library
+lua5.4                                      Lua - An Extensible Extension Language
+cairo-tee                                   cairo-tee - Tee surface backend for cairo graphics library
+libevent_core                               libevent_core - libevent_core
+xcb-xprint                                  XCB Xprint - XCB Xprint Extension
+absl_compressed_tuple                       absl_compressed_tuple - Abseil compressed_tuple library
+libpcreposix                                libpcreposix - PCREPosix - Posix compatible interface to libpcre
+popt                                        popt - popt library.
+xcb-record                                  XCB Record - XCB Record Extension
+absl_log                                    absl_log - Abseil log library
+libpcrecpp                                  libpcrecpp - PCRECPP - C++ wrapper for PCRE
+libwebpmux                                  libwebpmux - Library for manipulating the WebP graphics format container
+cairo-png                                   cairo-png - PNG functions for cairo graphics library
+xcb-screensaver                             XCB Screensaver - XCB Screensaver Extension
+xcb-shape                                   XCB Shape - XCB Shape Extension
+absl_flags_commandlineflag_internal         absl_flags_commandlineflag_internal - Abseil flags_commandlineflag_internal library
+GraphicsMagick                              GraphicsMagick - GraphicsMagick image processing library
+absl_algorithm_container                    absl_algorithm_container - Abseil algorithm_container library
+libavdevice                                 libavdevice - FFmpeg device handling library
+xtst                                        Xtst - The Xtst Library
+pango                                       Pango - Internationalized text handling
+absl_string_view                            absl_string_view - Abseil string_view library
+xcb-xv                                      XCB Xv - XCB Xv Extension
+gdk-quartz-3.0                              GDK - GTK+ Drawing Kit
+iso-codes                                   iso-codes - ISO country, language, script and currency codes and translations
+absl_log_internal_message                   absl_log_internal_message - Abseil log_internal_message library
+xcmiscproto                                 XCMiscProto - XCMisc extension headers
+absl_bad_any_cast                           absl_bad_any_cast - Abseil bad_any_cast library
+opus                                        Opus - Opus IETF audio codec (floating-point build)
+apr-util-1                                  APR Utils - Companion library for APR
+cairo-quartz                                cairo-quartz - Quartz surface backend for cairo graphics library
+absl_inlined_vector_internal                absl_inlined_vector_internal - Abseil inlined_vector_internal library
+libpsl                                      libpsl - Public Suffix List C library
+libmpg123                                   libmpg123 - An optimised MPEG Audio decoder
+absl_log_internal_structured_proto          absl_log_internal_structured_proto - Abseil log_internal_structured_proto library
+hogweed                                     Hogweed - Nettle low-level cryptographic library (public-key algorithms)
+libass                                      libass - libass is an SSA/ASS subtitles rendering library
+xcb-render                                  XCB Render - XCB Render Extension
+opencore-amrnb                              OpenCORE AMR-NB - Adaptive Multi-Rate speech codec library
+cairo-gobject                               cairo-gobject - cairo-gobject for cairo graphics library
+absl_memory                                 absl_memory - Abseil memory library
+sm                                          SM - X Session Management Library
+ImageMagick                                 ImageMagick - ImageMagick - convert, edit, and compose images (ABI Q16HDRI)
+gail                                        Gail - GNOME Accessibility Implementation Library
+cairo-script                                cairo-script - script surface backend for cairo graphics library
+vpx                                         vpx - WebM Project VPx codec implementation
+absl_random_internal_platform               absl_random_internal_platform - Abseil random_internal_platform library
+libglog                                     libglog - Google Log (glog) C++ logging framework
+xcb-dbe                                     XCB Dbe - XCB Double Buffer Extension
+gtk+-quartz-2.0                             GTK+ - GTK+ Graphical UI Library (quartz target)
+absl_poison                                 absl_poison - Abseil poison library
+gtksourceview-4                             gtksourceview-4 - Source code editing Gtk+ widget.
+absl_log_internal_proto                     absl_log_internal_proto - Abseil log_internal_proto library
+sqlite3                                     SQLite - SQL database engine
+harfbuzz-subset                             harfbuzz-subset - HarfBuzz font subsetter
+poppler-glib                                poppler-glib - GLib wrapper for poppler
+freetype2                                   FreeType 2 - A free, high-quality, and portable font engine.
+x11                                         X11 - X Library
+absl_random_internal_iostream_state_saver   absl_random_internal_iostream_state_saver - Abseil random_internal_iostream_state_saver library
+tk                                          The Tk Toolkit - Tk is a cross-platform graphical user interface toolkit, the standard GUI not only for Tcl, but for many other dynamic languages as well.
+absl_btree                                  absl_btree - Abseil btree library
+xmu                                         Xmu - Xmu Library
+absl_hashtable_debug                        absl_hashtable_debug - Abseil hashtable_debug library
+absl_optional                               absl_optional - Abseil optional library
+libhwy-contrib                              libhwy-contrib - Additions to Highway: dot product, image, math, sort
+libidn                                      Libidn - IETF stringprep, nameprep, punycode, IDNA text processing.
+absl_config                                 absl_config - Abseil config library
+absl_random_internal_pcg_engine             absl_random_internal_pcg_engine - Abseil random_internal_pcg_engine library
+absl_random_internal_entropy_pool           absl_random_internal_entropy_pool - Abseil random_internal_entropy_pool library
+absl_log_internal_check_op                  absl_log_internal_check_op - Abseil log_internal_check_op library
+absl_random_internal_randen_hwaes_impl      absl_random_internal_randen_hwaes_impl - Abseil random_internal_randen_hwaes_impl library
+poppler-data                                poppler-data - Encoding files for use with poppler
+xcb-res                                     XCB Res - XCB X-Resource Extension
+absl_bounded_utf8_length_sequence           absl_bounded_utf8_length_sequence - Abseil bounded_utf8_length_sequence library
+libjxl_threads                              libjxl_threads - JPEG XL multi-thread runner using std::threads.
+absl_log_internal_log_impl                  absl_log_internal_log_impl - Abseil log_internal_log_impl library
+absl_log_structured                         absl_log_structured - Abseil log_structured library
+absl_cleanup                                absl_cleanup - Abseil cleanup library
+bigreqsproto                                BigReqsProto - BigReqs extension headers
+absl_iterator_traits_test_helper_internal   absl_iterator_traits_test_helper_internal - Abseil iterator_traits_test_helper_internal library
+absl_int128                                 absl_int128 - Abseil int128 library
+xcb-xselinux                                XCB SELinux - XCB SELinux Extension
+fontconfig                                  Fontconfig - Font configuration and customization library
+inputproto                                  InputProto - Input extension headers
+libiodbc                                    iODBC - iODBC Driver Manager
+absl_meta                                   absl_meta - Abseil meta library
+gtk+-quartz-3.0                             GTK+ - GTK+ Graphical UI Library
+absl_flags_usage                            absl_flags_usage - Abseil flags_usage library
+libexslt                                    libexslt - EXSLT Extension library
+absl_failure_signal_handler                 absl_failure_signal_handler - Abseil failure_signal_handler library
+absl_statusor                               absl_statusor - Abseil statusor library
+absl_random_internal_salted_seed_seq        absl_random_internal_salted_seed_seq - Abseil random_internal_salted_seed_seq library
+libpcre16                                   libpcre16 - PCRE - Perl compatible regular expressions C library with 16 bit character support
+atspi-2                                     atspi - Accessibility Technology software library
+libuv                                       libuv - multi-platform support library with a focus on asynchronous I/O.
+absl_vlog_is_on                             absl_vlog_is_on - Abseil vlog_is_on library
+compositeproto                              CompositeExt - Composite extension headers
+absl_utf8_for_code_point                    absl_utf8_for_code_point - Abseil utf8_for_code_point library
+dmxproto                                    DMXProto - DMX extension headers
+opusurl                                     opusurl - High-level Opus decoding library, URL support
+MagickWand-7.Q16HDRI                        MagickWand - MagickWand - C API for ImageMagick (ABI Q16HDRI)
+mpfr                                        mpfr - C library for multiple-precision floating-point computations
+libuv-static                                libuv-static - multi-platform support library with a focus on asynchronous I/O.
+uvwasi                                      uvwasi - WASI syscall API built atop libuv
+absl_log_globals                            absl_log_globals - Abseil log_globals library
+frei0r                                      frei0r - minimalistic plugin API for video effects
+absl_hash_function_defaults                 absl_hash_function_defaults - Abseil hash_function_defaults library
+absl_log_sink_registry                      absl_log_sink_registry - Abseil log_sink_registry library
+absl_random_internal_uniform_helper         absl_random_internal_uniform_helper - Abseil random_internal_uniform_helper library
+MagickWand                                  MagickWand - MagickWand - C API for ImageMagick (ABI Q16HDRI)
+uuid                                        uuid - Universally unique id library
+libsharpyuv                                 libsharpyuv - Library for sharp RGB to YUV conversion
+assimp                                      Assimp - Import various well-known 3D model formats in an uniform manner.
+gpg-error                                   gpg-error - GPG Runtime
+libbrotlienc                                libbrotlienc - Brotli encoder library
+absl_raw_hash_set_resize_impl               absl_raw_hash_set_resize_impl - Abseil raw_hash_set_resize_impl library
+cairo-xlib                                  cairo-xlib - Xlib surface backend for cairo graphics library
+libout123                                   libout123 - A streaming audio output API derived from mpg123
+cairo                                       cairo - Multi-platform 2D graphics library
+cairo-xlib-xrender                          cairo-xlib-xrender - Xlib Xrender surface backend for cairo graphics library
+presentproto                                PresentProto - Present extension headers
+yaml-0.1                                    LibYAML - Library to parse and emit YAML
+gts                                         GTS - GNU Triangulated Surface Library
+xext                                        Xext - Misc X Extension Library
+jbig2dec                                    libjbig2dec - JBIG2 decoder library.
+librist                                     librist - Reliable Internet Stream Transport (RIST)
+absl_random_internal_randen_engine          absl_random_internal_randen_engine - Abseil random_internal_randen_engine library
+xineramaproto                               XineramaProto - Xinerama extension headers
+pthread-stubs                               pthread stubs - Meta package for pthread symbols - defaults to heavyweight ones if the C runtime does not provide lightweight ones.
+geoip                                       geoip - A non-DNS IP-to-country resolver library.
+libcgraph                                   libcgraph - Graph library (file i/o, dot language parsing, graph, subgraph, node, edge, attribute, data structure manipulation)
+ipoptamplinterface                          IPOPT-AMPL - Ampl Interface TNLP to Ipopt
+cairo-xcb                                   cairo-xcb - XCB surface backend for cairo graphics library
+libtcmalloc_debug                           gperftools - Performance tools for C++
+absl_profile_builder                        absl_profile_builder - Abseil profile_builder library
+absl_flags_usage_internal                   absl_flags_usage_internal - Abseil flags_usage_internal library
+absl_cordz_sample_token                     absl_cordz_sample_token - Abseil cordz_sample_token library
+GraphicsMagickWand                          GraphicsMagickWand - GraphicsMagick Wand image processing library
+absl_overload                               absl_overload - Abseil overload library
+xcb-xinput                                  XCB XInput - XCB XInput Extension (EXPERIMENTAL)
+libpcre32                                   libpcre32 - PCRE - Perl compatible regular expressions C library with 32 bit character support
+absl_crc_internal                           absl_crc_internal - Abseil crc_internal library
+absl_log_streamer                           absl_log_streamer - Abseil log_streamer library
+xcb-dri2                                    XCB DRI2 - XCB DRI2 Extension
+xcb-dri3                                    XCB DRI3 - XCB DRI3 Extension
+absl_fast_type_id                           absl_fast_type_id - Abseil fast_type_id library
+libpng16                                    libpng - Loads and saves PNG files
+absl_log_internal_append_truncated          absl_log_internal_append_truncated - Abseil log_internal_append_truncated library
+p11-kit-1                                   p11-kit - Library and proxy module for properly loading and sharing PKCS
+absl_container_memory                       absl_container_memory - Abseil container_memory library
+xi                                          Xi - X Input Extension Library
+dri3proto                                   DRI3Proto - DRI3 extension headers
+absl_log_internal_config                    absl_log_internal_config - Abseil log_internal_config library
+xt                                          Xt - X Toolkit Library
+gnutls                                      GnuTLS - Transport Security Layer implementation for the GNU system
+default-icon-theme                          default-icon-theme - The default fallback theme used by XDG icon-theme implementations.
+absl_function_ref                           absl_function_ref - Abseil function_ref library
+xcb-xevie                                   XCB Xevie - XCB Xevie Extension
+xcb-damage                                  XCB Damage - XCB Damage Extension
+libcares                                    c-ares - asynchronous DNS lookup library
+libxml-2.0                                  libXML - libXML library version2.
+gmodule-export-2.0                          GModule - Dynamic module loader for GLib
+libssh                                      libssh - The SSH Library
+absl_bits                                   absl_bits - Abseil bits library
+absl_graphcycles_internal                   absl_graphcycles_internal - Abseil graphcycles_internal library
+mysqlclient                                 mysqlclient - MySQL client library
+libssl                                      OpenSSL-libssl - Secure Sockets Layer and cryptography libraries
+libunbound                                  unbound - Library with validating, recursive, and caching DNS resolver
+absl_log_flags                              absl_log_flags - Abseil log_flags library
+libopenjp2                                  openjp2 - JPEG2000 library (Part 1 and 2)
+absl_log_internal_flags                     absl_log_internal_flags - Abseil log_internal_flags library
+absl_flags_marshalling                      absl_flags_marshalling - Abseil flags_marshalling library
+cairo-ps                                    cairo-ps - PostScript surface backend for cairo graphics library
+cairo-quartz-image                          cairo-quartz-image - Quartz Image surface backend for cairo graphics library
+absl_strerror                               absl_strerror - Abseil strerror library
+absl_node_hash_map                          absl_node_hash_map - Abseil node_hash_map library
+absl_civil_time                             absl_civil_time - Abseil civil_time library
+absl_any                                    absl_any - Abseil any library
+harfbuzz-gobject                            harfbuzz-gobject - HarfBuzz text shaping library GObject integration
+xcb-dpms                                    XCB DPMS - XCB DPMS Extension
+bdw-gc                                      Boehm-Demers-Weiser Conservative Garbage Collector - A garbage collector for C and C++
+absl_common_policy_traits                   absl_common_policy_traits - Abseil common_policy_traits library
+xcb-shm                                     XCB Shm - XCB Shm Extension
+ImageMagick-7.Q16HDRI                       ImageMagick - ImageMagick - convert, edit, and compose images (ABI Q16HDRI)
+absl_random_internal_wide_multiply          absl_random_internal_wide_multiply - Abseil random_internal_wide_multiply library
+libprofiler                                 gperftools - Performance tools for C++
+MagickCore                                  MagickCore - MagickCore - C API for ImageMagick (ABI Q16HDRI)
+isl                                         isl - isl Library
+gtk-mac-integration-gtk3                    gtk-mac-integration-gtk3 - Mac menu bar and dock integration for GTK+
+ogg                                         ogg - ogg is a library for manipulating ogg bitstreams
+gnutls-dane                                 GnuTLS-DANE - DANE security library for the GNU system
+absl_absl_log                               absl_absl_log - Abseil absl_log library
+python-3.9                                  Python - Build a C extension for Python
+vorbisfile                                  vorbisfile - vorbisfile is a library that provides a convenient high-level API for decoding and basic manipulation of all Vorbis I audio streams
+absl_random_mocking_bit_gen                 absl_random_mocking_bit_gen - Abseil random_mocking_bit_gen library
+absl_log_internal_voidify                   absl_log_internal_voidify - Abseil log_internal_voidify library
+gmodule-no-export-2.0                       GModule - Dynamic module loader for GLib
+absl_malloc_internal                        absl_malloc_internal - Abseil malloc_internal library
+absl_variant                                absl_variant - Abseil variant library
+libraw_r                                    libraw - Raw image decoder library (thread-safe)
+libtcmalloc_minimal                         gperftools - Performance tools for C++
+absl_iterator_traits_internal               absl_iterator_traits_internal - Abseil iterator_traits_internal library
+Imath                                       Imath - Imath library: vector/matrix and math operations, plus the half type.
+absl_bad_optional_access                    absl_bad_optional_access - Abseil bad_optional_access library
+xf86driproto                                XF86DRIProto - XF86DRI extension headers
+absl_spinlock_wait                          absl_spinlock_wait - Abseil spinlock_wait library
+absl_random_internal_distribution_caller    absl_random_internal_distribution_caller - Abseil random_internal_distribution_caller library
+libavcodec                                  libavcodec - FFmpeg codec library
+libsoup-3.0                                 libsoup - A glib-based HTTP library
+absl_log_internal_globals                   absl_log_internal_globals - Abseil log_internal_globals library
+xproto                                      Xproto - Xproto headers
+absl_check                                  absl_check - Abseil check library
+absl_base_internal                          absl_base_internal - Abseil base_internal library
+flac                                        FLAC - Free Lossless Audio Codec Library
+gmpxx                                       GNU MP C++ - GNU Multiple Precision Arithmetic Library (C++ bindings)
+liblab_gamut                                liblab_gamut - data library for default color labeling
+absl_debugging                              absl_debugging - Abseil debugging library
+libbrotlicommon                             libbrotlicommon - Brotli common dictionary library
+absl_crc32c                                 absl_crc32c - Abseil crc32c library
+absl_examine_stack                          absl_examine_stack - Abseil examine_stack library
+absl_hashtable_debug_hooks                  absl_hashtable_debug_hooks - Abseil hashtable_debug_hooks library
+dpmsproto                                   DPMSProto - DPMS extension headers
+python-3.14-embed                           Python - Embed Python into an application
+absl_bind_front                             absl_bind_front - Abseil bind_front library
+libpcre                                     libpcre - PCRE - Perl compatible regular expressions C library with 8 bit character support
+absl_random_internal_randen_hwaes           absl_random_internal_randen_hwaes - Abseil random_internal_randen_hwaes library
+libpcre2-16                                 libpcre2-16 - PCRE2 - Perl compatible regular expressions C library (2nd API) with 16 bit character support
+opencore-amrwb                              OpenCORE AMR-WB - Adaptive Multi-Rate Wideband speech codec library
+libavif                                     libavif - Library for encoding and decoding .avif files
+libmicrohttpd                               libmicrohttpd - A library for creating an embedded HTTP server
+libngtcp2_crypto_ossl                       libngtcp2_crypto_ossl - ngtcp2 ossl crypto library
+absl_vlog_config_internal                   absl_vlog_config_internal - Abseil vlog_config_internal library
+libwebp                                     libwebp - Library for the WebP graphics format
+libcjson_utils                              libcjson_utils - An implementation of JSON Pointer, Patch and Merge Patch based on cJSON.
+python-3.9-embed                            Python - Embed Python into an application
+absl_cordz_functions                        absl_cordz_functions - Abseil cordz_functions library
+absl_spy_hash_state                         absl_spy_hash_state - Abseil spy_hash_state library
+simdjson                                    simdjson - Parsing gigabytes of JSON per second
+absl_cord_internal                          absl_cord_internal - Abseil cord_internal library
+xfixes                                      Xfixes - X Fixes Library
+absl_charset                                absl_charset - Abseil charset library
+absl_throw_delegate                         absl_throw_delegate - Abseil throw_delegate library
+glib-2.0                                    GLib - C Utility Library
+apr-1                                       APR - The Apache Portable Runtime library
+absl_numeric                                absl_numeric - Abseil numeric library
+bash                                        bash - Bash headers for bash loadable builtins
+xf86dgaproto                                XF86DGAProto - XF86DGA extension headers
+libjxl_cms                                  libjxl_cms - CMS support library for libjxl
+sqlcipher                                   SQLCipher - SQL database engine
+lqr-1                                       lqr-1 - LiquidRescale seam-carving library
+libcjson                                    libcjson - Ultralightweight JSON parser in ANSI C
+tesseract                                   tesseract - An OCR Engine that was developed at HP Labs (1985-1995) and Google (2006-2018).
+MagickCore-7.Q16HDRI                        MagickCore - MagickCore - C API for ImageMagick (ABI Q16HDRI)
+xcb-xtest                                   XCB XTEST - XCB XTEST Extension
+absl_random_internal_nonsecure_base         absl_random_internal_nonsecure_base - Abseil random_internal_nonsecure_base library
+absl_raw_logging_internal                   absl_raw_logging_internal - Abseil raw_logging_internal library
+poppler                                     poppler - PDF rendering library
+adwaita-icon-theme                          adwaita-icon-theme - A collection of icons used as the basis for GNOME themes
+libmpdec++                                  libmpdec++ - C++ library for decimal floating point arithmetic
+absl_demangle_internal                      absl_demangle_internal - Abseil demangle_internal library
+libpcre2-32                                 libpcre2-32 - PCRE2 - Perl compatible regular expressions C library (2nd API) with 32 bit character support
+absl_raw_hash_map                           absl_raw_hash_map - Abseil raw_hash_map library
+tree-sitter                                 tree-sitter - An incremental parsing system for programming tools
+libfolly                                    libfolly - Facebook (Folly) C++ library
+xrender                                     Xrender - X Render Library
+absl_log_internal_nullguard                 absl_log_internal_nullguard - Abseil log_internal_nullguard library
+nettle                                      Nettle - Nettle low-level cryptographic library (symmetric algorithms)
+sndfile                                     sndfile - A library for reading and writing audio files
+guile-3.0                                   GNU Guile - GNU's Ubiquitous Intelligent Language for Extension
+absl_flat_hash_set                          absl_flat_hash_set - Abseil flat_hash_set library
+pangofc                                     Pango FC - Fontconfig support for Pango
+gail-3.0                                    Gail - GNOME Accessibility Implementation Library
+cairo-quartz-font                           cairo-quartz-font - Quartz font backend for cairo graphics library
+absl_city                                   absl_city - Abseil city library
+gthread-2.0                                 GThread - Thread support for GLib
+absl_endian                                 absl_endian - Abseil endian library
+absl_fixed_array                            absl_fixed_array - Abseil fixed_array library
+dav1d                                       libdav1d - AV1 decoding library
+absl_flags_parse                            absl_flags_parse - Abseil flags_parse library
+gdk-2.0                                     GDK - GTK+ Drawing Kit (quartz target)
+absl_span                                   absl_span - Abseil span library
+libzstd                                     zstd - fast lossless compression algorithm library
+absl_leak_check                             absl_leak_check - Abseil leak_check library
+xcb-ge                                      XCB GenericEvent - XCB GenericEvent Extension
+gtk-mac-integration                         gtk-mac-integration-gtk3 - Mac menu bar and dock integration for GTK+
+dbus-1                                      dbus - Free desktop message bus
+bzip2                                       bzip2 - Lossless, block-sorting data compression
+absl_debugging_internal                     absl_debugging_internal - Abseil debugging_internal library
+vorbisenc                                   vorbisenc - vorbisenc is a library that provides a convenient API for setting up an encoding environment using libvorbis
+libb2                                       libb2 - C library providing BLAKE2b, BLAKE2s, BLAKE2bp, BLAKE2sp
+cairo-svg                                   cairo-svg - SVG surface backend for cairo graphics library
+absl_stacktrace                             absl_stacktrace - Abseil stacktrace library
+absl_no_destructor                          absl_no_destructor - Abseil no_destructor library
+pixman-1                                    Pixman - The pixman library (version 1)
+zimg                                        zimg - Scaling, colorspace conversion, and dithering library
+absl_cordz_info                             absl_cordz_info - Abseil cordz_info library
+jsoncpp                                     jsoncpp - A C++ library for interacting with JSON
+xwaylandproto                               XwaylandProto - Xwayland extension headers
+double-conversion                           double-conversion - Binary-decimal and decimal-binary routines for IEEE doubles
+absl_log_sink                               absl_log_sink - Abseil log_sink library
+libgcrypt                                   libgcrypt - General purpose cryptographic library
+tcl                                         Tool Command Language - Tcl is a powerful, easy-to-learn dynamic programming language, suitable for a wide range of uses.
+videoproto                                  VideoProto - Video extension headers
+samplerate                                  samplerate - An audio Sample Rate Conversion library
+absl_random_random                          absl_random_random - Abseil random_random library
+absl_flags_config                           absl_flags_config - Abseil flags_config library
+hunspell                                    hunspell - Hunspell spellchecking library
+cairo-xcb-shm                               cairo-xcb-shm - XCB/SHM functions for cairo graphics library
+absl_hash_policy_traits                     absl_hash_policy_traits - Abseil hash_policy_traits library
+harfbuzz-icu                                harfbuzz-icu - HarfBuzz text shaping library ICU integration
+absl_demangle_rust                          absl_demangle_rust - Abseil demangle_rust library
+python-3.12-embed                           Python - Embed Python into an application
+absl_log_internal_structured                absl_log_internal_structured - Abseil log_internal_structured library
+libcrypto                                   OpenSSL-libcrypto - OpenSSL cryptography library
+libtasn1                                    libtasn1 - Library for ASN.1 and DER manipulation
+absl_dynamic_annotations                    absl_dynamic_annotations - Abseil dynamic_annotations library
+python-3.11                                 Python - Build a C extension for Python
+gdk-3.0                                     GDK - GTK+ Drawing Kit
+absl_utility                                absl_utility - Abseil utility library
+python-3.14                                 Python - Build a C extension for Python
+libpcre2-8                                  libpcre2-8 - PCRE2 - Perl compatible regular expressions C library (2nd API) with 8 bit character support
+absl_bad_variant_access                     absl_bad_variant_access - Abseil bad_variant_access library
+lua                                         Lua - An Extensible Extension Language
+absl_random_internal_fast_uniform_bits      absl_random_internal_fast_uniform_bits - Abseil random_internal_fast_uniform_bits library
+python-3.10                                 Python - Build a C extension for Python
+libtcmalloc_minimal_debug                   gperftools - Performance tools for C++
+python-3.12                                 Python - Build a C extension for Python
+libzmq                                      libzmq - 0MQ c++ library
+absl_errno_saver                            absl_errno_saver - Abseil errno_saver library
+libgvc                                      libgvc - The GraphVizContext library
+absl_absl_check                             absl_absl_check - Abseil absl_check library
+absl_scoped_mock_log                        absl_scoped_mock_log - Abseil scoped_mock_log library
+harfbuzz                                    harfbuzz - HarfBuzz text shaping library
+zlib                                        zlib - zlib compression library
+absl_nullability                            absl_nullability - Abseil nullability library
+libmpdec                                    libmpdec - C library for decimal floating point arithmetic
+absl_cordz_statistics                       absl_cordz_statistics - Abseil cordz_statistics library
+ncurses                                     ncurses - ncurses 5.7 library
+lept                                        leptonica - An open source C library for efficient image processing and image analysis operations
+absl_random_seed_gen_exception              absl_random_seed_gen_exception - Abseil random_seed_gen_exception library
+python-3.11-embed                           Python - Embed Python into an application
+rubberband                                  rubberband - Audio time-stretching and pitch-shifting library
+absl_random_internal_fastmath               absl_random_internal_fastmath - Abseil random_internal_fastmath library
+gsettings-desktop-schemas                   gsettings-desktop-schemas - Shared GSettings schemas for the desktop, including helper headers
+gobject-2.0                                 GObject - GLib Type, Object, Parameter and Signal Library
+absl_hashtable_profiler                     absl_hashtable_profiler - Abseil hashtable_profiler library
+haisrt                                      srt - SRT library set
+lcms2                                       lcms2 - LCMS Color Management Library
+flac++                                      FLAC++ - Free Lossless Audio Codec Library (C++ API)
+absl_time                                   absl_time - Abseil time library
+absl_log_severity                           absl_log_severity - Abseil log_severity library
+absl_flags                                  absl_flags - Abseil flags library
+cairo-script-interpreter                    cairo-script-interpreter - script surface backend for cairo graphics library
+absl_atomic_hook                            absl_atomic_hook - Abseil atomic_hook library
+protobuf-lite                               Protocol Buffers - Google's Data Interchange Format
+libvala-0.56                                Vala - The Vala compiler library
+absl_flags_program_name                     absl_flags_program_name - Abseil flags_program_name library
+python-3.10-embed                           Python - Embed Python into an application
+xcb-randr                                   XCB RandR - XCB RandR Extension
+gdk-pixbuf-2.0                              GdkPixbuf - Image loading and scaling
+x264                                        x264 - H.264 (MPEG4 AVC) encoder library
+absl_crc_cord_state                         absl_crc_cord_state - Abseil crc_cord_state library
+x265                                        x265 - H.265/HEVC video encoder
+absl_node_slot_policy                       absl_node_slot_policy - Abseil node_slot_policy library
+absl_log_internal_format                    absl_log_internal_format - Abseil log_internal_format library
+libsodium                                   libsodium - A modern and easy-to-use crypto library
+absl_random_bit_gen_ref                     absl_random_bit_gen_ref - Abseil random_bit_gen_ref library
+openssl                                     OpenSSL - Secure Sockets Layer and cryptography libraries and tools
+libjpeg                                     libjpeg - A SIMD-accelerated JPEG codec that provides the libjpeg API
+libheif                                     libheif - HEIF image codec.
+absl_algorithm                              absl_algorithm - Abseil algorithm library
+theoradec                                   theora - Theora video codec (decoder)
+gtk+-2.0                                    GTK+ - GTK+ Graphical UI Library (quartz target)
+xcb-xvmc                                    XCB XvMC - XCB XvMC Extension
+libraw                                      libraw - Raw image decoder library (non-thread-safe)
+xcb-glx                                     XCB GLX - XCB GLX Extension
+shared-mime-info                            shared-mime-info - Freedesktop common MIME database
+aom                                         aom - Alliance for Open Media AV1 codec library v3.13.1.
+nss                                         NSS - Mozilla Network Security Services
+absl_inlined_vector                         absl_inlined_vector - Abseil inlined_vector library
+enchant-2                                   libenchant - A spell checking library
+absl_decode_rust_punycode                   absl_decode_rust_punycode - Abseil decode_rust_punycode library
+libcbor                                     libcbor - libcbor - CBOR protocol implementation
+xmuu                                        Xmuu - Mini Xmu Library
+xf86bigfontproto                            XF86BigFontProto - XF86BigFont extension headers
+cmocka                                      cmocka - The cmocka unit testing library
+libssh2                                     libssh2 - Library for SSH-based communication
+theora                                      theora - Theora video codec
+xcb-composite                               XCB Composite - XCB Composite Extension
+libbluray                                   libbluray - library supporting Blu-ray playback
+xcb-xfixes                                  XCB XFixes - XCB XFixes Extension
+libavformat                                 libavformat - FFmpeg container format library
+libnghttp2                                  libnghttp2 - HTTP/2 C library
+libngtcp2                                   libngtcp2 - ngtcp2 library
+libvmaf                                     libvmaf - VMAF, Video Multimethod Assessment Fusion
+ipopt                                       Ipopt - Interior Point Optimizer
+absl_hash_testing                           absl_hash_testing - Abseil hash_testing library
+xdmcp                                       Xdmcp - X Display Manager Control Protocol library
+absl_periodic_sampler                       absl_periodic_sampler - Abseil periodic_sampler library
+absl_kernel_timeout_internal                absl_kernel_timeout_internal - Abseil kernel_timeout_internal library
+recordproto                                 RecordProto - Record extension headers
+libnghttp3                                  libnghttp3 - nghttp3 library
+libhwy                                      libhwy - Efficient and performance-portable SIMD wrapper
+glproto                                     GLProto - GL extension headers
+absl_absl_vlog_is_on                        absl_absl_vlog_is_on - Abseil absl_vlog_is_on library
+absl_base                                   absl_base - Abseil base library
+absl_strings                                absl_strings - Abseil strings library
+gtk+-3.0                                    GTK+ - GTK+ Graphical UI Library
+fontsproto                                  FontsProto - Fonts extension headers
+vorbis                                      vorbis - vorbis is the primary Ogg Vorbis library
+libassuan                                   libassuan - IPC library for the GnuPG components
+sdl2                                        sdl2 - Simple DirectMedia Layer is a cross-platform multimedia library designed to provide low level access to audio, keyboard, mouse, joystick, 3D hardware via OpenGL, and 2D video framebuffer.
+absl_random_seed_sequences                  absl_random_seed_sequences - Abseil random_seed_sequences library
+libmng                                      libmng - Loads PNG/MNG/JNG files
+absl_cordz_update_scope                     absl_cordz_update_scope - Abseil cordz_update_scope library
+absl_log_internal_log_sink_set              absl_log_internal_log_sink_set - Abseil log_internal_log_sink_set library
+libevent_openssl                            libevent_openssl - libevent_openssl adds openssl-based TLS support to libevent
+libdeflate                                  libdeflate - Fast implementation of DEFLATE, zlib, and gzip
+cairo-pdf                                   cairo-pdf - PDF surface backend for cairo graphics library
+xcb-xkb                                     XCB XKB - XCB Keyboard Extension (EXPERIMENTAL)
+lua-5.4                                     Lua - An Extensible Extension Language
+libtiff-4                                   libtiff - Tag Image File Format (TIFF) library.
+absl_flags_reflection                       absl_flags_reflection - Abseil flags_reflection library
+valadoc-0.56                                Valadoc - The Vala documentation compiler library
+expat                                       expat - expat XML parser
+xau                                         Xau - X authorization file management library
+absl_non_temporal_memcpy                    absl_non_temporal_memcpy - Abseil non_temporal_memcpy library
+libcdt                                      libcdt - Container DataType library
+vapigen-0.56                                vapigen - Vala API Generator
+absl_flags_internal                         absl_flags_internal - Abseil flags_internal library
+absl_compare                                absl_compare - Abseil compare library
+xextproto                                   XExtProto - XExt extension headers
+libde265                                    libde265 - H.265/HEVC video decoder.
+librtmp                                     librtmp - RTMP implementation
+md4c                                        MD4C - Markdown parser library with a SAX-like callback-based interface.
+absl_numeric_representation                 absl_numeric_representation - Abseil numeric_representation library
+GraphicsMagick++                            GraphicsMagick++ - C++ API for GraphicsMagick image processing library
+libswscale                                  libswscale - FFmpeg image rescaling library
+absl_container_common                       absl_container_common - Abseil container_common library
+fribidi                                     GNU FriBidi - Unicode Bidirectional Algorithm Library
+absl_any_invocable                          absl_any_invocable - Abseil any_invocable library
+libfido2                                    libfido2 - A FIDO2 library
+python3-embed                               Python - Embed Python into an application
+libturbojpeg                                libturbojpeg - A SIMD-accelerated JPEG codec that provides the TurboJPEG API
+absl_log_entry                              absl_log_entry - Abseil log_entry library
+absl_symbolize                              absl_symbolize - Abseil symbolize library
+xcb                                         XCB - X-protocol C Binding
+poppler-cpp                                 poppler-cpp - cpp backend for Poppler PDF rendering library
+pangoot                                     Pango OT - OpenType font support for Pango (deprecated)
+absl_random_distributions                   absl_random_distributions - Abseil random_distributions library
+absl_pretty_function                        absl_pretty_function - Abseil pretty_function library
+ice                                         ICE - X Inter Client Exchange Library
+fixesproto                                  FixesProto - X Fixes extension headers
+libevent_extra                              libevent_extra - libevent_extra
+absl_status_matchers                        absl_status_matchers - Abseil status_matchers library
+absl_cord                                   absl_cord - Abseil cord library
+absl_status                                 absl_status - Abseil status library
+absl_cord_test_helpers                      absl_cord_test_helpers - Abseil cord_test_helpers library
+enchant                                     libenchant - A spell checking library
+randrproto                                  RandrProto - Randr extension headers
+absl_time_zone                              absl_time_zone - Abseil time_zone library
+dri2proto                                   DRI2Proto - DRI2 extension headers
+absl_non_temporal_arm_intrinsics            absl_non_temporal_arm_intrinsics - Abseil non_temporal_arm_intrinsics library
+absl_random_internal_mock_helpers           absl_random_internal_mock_helpers - Abseil random_internal_mock_helpers library
+atk                                         Atk - Accessibility Toolkit
+gdlib                                       gd - GD graphics library
+libgvpr                                     libgvpr - The GVPR library
+absl_type_traits                            absl_type_traits - Abseil type_traits library
+libutf8proc                                 libutf8proc - UTF8 processing
+absl_node_hash_set                          absl_node_hash_set - Abseil node_hash_set library
+absl_random_internal_randen                 absl_random_internal_randen - Abseil random_internal_randen library
+pangoft2                                    Pango FT2 and Pango Fc - FreeType 2.0 and fontconfig font support for Pango
+opusfile                                    opusfile - High-level Opus decoding library
+libtcmalloc                                 gperftools - Performance tools for C++
+epoxy                                       epoxy - GL dispatch library
+npth                                        npth - New GNU Portable Threads Library
+gmodule-2.0                                 GModule - Dynamic module loader for GLib
+Magick++                                    Magick++ - Magick++ - C++ API for ImageMagick (ABI Q16HDRI)
+libjxl                                      libjxl - Loads and saves JPEG XL files
+jansson                                     Jansson - Library for encoding, decoding and manipulating JSON data
+libusb-1.0                                  libusb-1.0 - C API for USB device access from Linux, Mac OS X, Windows, OpenBSD/NetBSD and Solaris userspace
+libbrotlidec                                libbrotlidec - Brotli decoder library
+protobuf                                    Protocol Buffers - Google's Data Interchange Format
+ksba                                        ksba - X.509 and CMS support library
+xcb-xinerama                                XCB Xinerama - XCB Xinerama Extension
+absl_crc_cpu_detect                         absl_crc_cpu_detect - Abseil crc_cpu_detect library
+md4c-html                                   MD4C HTML renderer - Markdown to HTML converter library.
+xcb-present                                 XCB Present - XCB Present Extension
+SvtAv1Enc                                   SvtAv1Enc - SVT (Scalable Video Technology) for AV1 encoder library
+libxslt                                     libxslt - XSLT library version 2.
+renderproto                                 RenderProto - Render extension headers
+sox                                         SoX - Audio file format and effects library
+pangocairo                                  Pango Cairo - Cairo rendering support for Pango
+jasper                                      JasPer - Image Processing/Coding Tool Kit with JPEG-2000 Support
+OpenEXR                                     OpenEXR - OpenEXR image library
+absl_hash_container_defaults                absl_hash_container_defaults - Abseil hash_container_defaults library
+absl_exponential_biased                     absl_exponential_biased - Abseil exponential_biased library
+utf8_range                                  UTF8 Range - Google's UTF8 Library
+absl_has_ostream_operator                   absl_has_ostream_operator - Abseil has_ostream_operator library
+gio-2.0                                     GIO - glib I/O library
+damageproto                                 DamageProto - Damage extension headers
+absl_flags_private_handle_accessor          absl_flags_private_handle_accessor - Abseil flags_private_handle_accessor library
+libavutil                                   libavutil - FFmpeg utility library
+libidn2                                     libidn2 - Library implementing IDNA2008 and TR46
+netpbm                                      Netpbm - Graphics utilities
+xcb-sync                                    XCB Sync - XCB Sync Extension
+lzo2                                        lzo2 - LZO - a real-time data compression library
+girepository-2.0                            girepository - GObject Introspection repository parser

@@ -8,16 +8,18 @@ Technical Specification for the OS Dashboard AI Assistant.
 from __future__ import annotations
 
 import asyncio
+import heapq
+import inspect
+import itertools
 import logging
 import os
 import platform
 import shutil
-import subprocess
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -143,10 +145,62 @@ class BaseDriver:
         return next((cap for cap in self.manifest.capabilities if cap.name == name), None)
 
 
+class CapabilityDispatchDriver(BaseDriver):
+    """Base driver that centralizes capability dispatch and execution tracking."""
+
+    def __init__(self, manifest: DriverManifest, config: Optional[Dict[str, Any]] = None):
+        super().__init__(manifest, config)
+        self._handler_cache: Dict[str, Callable[[Dict[str, Any], Dict[str, Any]], Awaitable[Any] | Any]] = {}
+
+    async def execute(
+        self, capability: str, parameters: Dict[str, Any], context: Optional[Dict[str, Any]] = None
+    ) -> Any:
+        execution = DriverExecution(
+            driver_id=self.id,
+            capability=capability,
+            parameters=parameters,
+            execution_context=context or {},
+        )
+        try:
+            handler = self._get_handler(capability)
+            self.status = DriverStatus.EXECUTING
+            result = handler(parameters, context or {})
+            if inspect.isawaitable(result):
+                result = await result
+            execution.result = result
+            execution.status = "completed"
+            self.status = DriverStatus.READY
+        except Exception as exc:
+            execution.error = str(exc)
+            execution.status = "error"
+            self.status = DriverStatus.ERROR
+            logger.exception("%s driver error on %s", self.manifest.name, capability)
+            raise
+        finally:
+            execution.completed_at = datetime.now(timezone.utc)
+            self.last_execution = execution
+            self.execution_history.append(execution)
+        return execution.result
+
+    def _get_handler(self, capability: str) -> Callable[[Dict[str, Any], Dict[str, Any]], Awaitable[Any] | Any]:
+        handlers = self._get_capability_handlers()
+        if capability not in handlers:
+            raise ValueError(f"Unknown capability: {capability}")
+        return handlers[capability]
+
+    def _get_capability_handlers(self) -> Dict[str, Callable[[Dict[str, Any], Dict[str, Any]], Awaitable[Any] | Any]]:
+        if not self._handler_cache:
+            self._handler_cache = self._capability_handlers()
+        return self._handler_cache
+
+    def _capability_handlers(self) -> Dict[str, Callable[[Dict[str, Any], Dict[str, Any]], Awaitable[Any] | Any]]:
+        raise NotImplementedError
+
+
 # ---------------------------------------------------------------------------
 # 5.2 OS Drivers
 # ---------------------------------------------------------------------------
-class OSDriver(BaseDriver):
+class OSDriver(CapabilityDispatchDriver):
     def __init__(self, manifest: DriverManifest, config: Optional[Dict[str, Any]] = None):
         super().__init__(manifest, config)
         self.platform = platform.system().lower()
@@ -173,43 +227,29 @@ class FilesystemDriver(OSDriver):
         )
         super().__init__(manifest)
 
-    async def execute(
-        self, capability: str, parameters: Dict[str, Any], context: Optional[Dict[str, Any]] = None
-    ) -> Any:
-        execution = DriverExecution(
-            driver_id=self.id,
-            capability=capability,
-            parameters=parameters,
-            execution_context=context or {},
-        )
-        try:
-            self.status = DriverStatus.EXECUTING
-            if capability == "read_file":
-                result = await self._read_file(parameters.get("path", ""))
-            elif capability == "write_file":
-                result = await self._write_file(parameters.get("path", ""), parameters.get("content", ""))
-            elif capability == "list_directory":
-                result = await self._list_directory(parameters.get("path", "."))
-            elif capability == "create_directory":
-                result = await self._create_directory(parameters.get("path", ""))
-            elif capability == "delete_path":
-                result = await self._delete_path(parameters.get("path", ""))
-            else:
-                raise ValueError(f"Unknown capability: {capability}")
-            execution.result = result
-            execution.status = "completed"
-            self.status = DriverStatus.READY
-        except Exception as exc:
-            execution.error = str(exc)
-            execution.status = "error"
-            self.status = DriverStatus.ERROR
-            logger.exception("Filesystem driver error")
-            raise
-        finally:
-            execution.completed_at = datetime.now(timezone.utc)
-            self.last_execution = execution
-            self.execution_history.append(execution)
-        return execution.result
+    def _capability_handlers(self) -> Dict[str, Callable[[Dict[str, Any], Dict[str, Any]], Awaitable[Any] | Any]]:
+        return {
+            "read_file": self._handle_read_file,
+            "write_file": self._handle_write_file,
+            "list_directory": self._handle_list_directory,
+            "create_directory": self._handle_create_directory,
+            "delete_path": self._handle_delete_path,
+        }
+
+    async def _handle_read_file(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> str:
+        return await self._read_file(parameters.get("path", ""))
+
+    async def _handle_write_file(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> bool:
+        return await self._write_file(parameters.get("path", ""), parameters.get("content", ""))
+
+    async def _handle_list_directory(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> List[str]:
+        return await self._list_directory(parameters.get("path", "."))
+
+    async def _handle_create_directory(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> bool:
+        return await self._create_directory(parameters.get("path", ""))
+
+    async def _handle_delete_path(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> bool:
+        return await self._delete_path(parameters.get("path", ""))
 
     async def _read_file(self, path: str) -> str:
         with open(path, "r", encoding="utf-8") as handle:
@@ -339,7 +379,7 @@ class ProcessDriver(OSDriver):
 # ---------------------------------------------------------------------------
 # 5.4 Package & Environment Management Drivers
 # ---------------------------------------------------------------------------
-class PackageManagerDriver(BaseDriver):
+class PackageManagerDriver(CapabilityDispatchDriver):
     def __init__(self, manifest: DriverManifest, config: Optional[Dict[str, Any]] = None):
         super().__init__(manifest, config)
         self.package_manager = manifest.name
@@ -384,51 +424,34 @@ class PipDriver(PackageManagerDriver):
         )
         super().__init__(manifest)
 
-    async def execute(
-        self, capability: str, parameters: Dict[str, Any], context: Optional[Dict[str, Any]] = None
-    ) -> Any:
-        execution = DriverExecution(
-            driver_id=self.id,
-            capability=capability,
-            parameters=parameters,
-            execution_context=context or {},
-        )
-        try:
-            self.status = DriverStatus.EXECUTING
-            if capability == "install_package":
-                result = await self._execute_pm_command(["install", parameters.get("package", "")])
-            elif capability == "uninstall_package":
-                result = await self._execute_pm_command(["uninstall", parameters.get("package", ""), "-y"])
-            elif capability == "list_packages":
-                result = await self._execute_pm_command(["list"])
-                packages = []
-                if result["returncode"] == 0:
-                    for line in result["stdout"].splitlines()[2:]:
-                        line = line.strip()
-                        if line:
-                            packages.append(line.split()[0])
-                execution.result = packages
-                execution.status = "completed"
-                self.status = DriverStatus.READY
-                return packages
-            elif capability == "upgrade_package":
-                result = await self._execute_pm_command(["install", "--upgrade", parameters.get("package", "")])
-            else:
-                raise ValueError(f"Unknown capability: {capability}")
-            execution.result = result
-            execution.status = "completed"
-            self.status = DriverStatus.READY
-        except Exception as exc:
-            execution.error = str(exc)
-            execution.status = "error"
-            self.status = DriverStatus.ERROR
-            logger.exception("Pip driver error")
-            raise
-        finally:
-            execution.completed_at = datetime.now(timezone.utc)
-            self.last_execution = execution
-            self.execution_history.append(execution)
-        return execution.result
+    def _capability_handlers(self) -> Dict[str, Callable[[Dict[str, Any], Dict[str, Any]], Awaitable[Any] | Any]]:
+        return {
+            "install_package": self._handle_install_package,
+            "uninstall_package": self._handle_uninstall_package,
+            "list_packages": self._handle_list_packages,
+            "upgrade_package": self._handle_upgrade_package,
+        }
+
+    async def _handle_install_package(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> Dict[str, Any]:
+        return await self._execute_pm_command(["install", parameters.get("package", "")])
+
+    async def _handle_uninstall_package(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> Dict[str, Any]:
+        return await self._execute_pm_command(["uninstall", parameters.get("package", ""), "-y"])
+
+    async def _handle_list_packages(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> List[str] | Dict[str, Any]:
+        _ = parameters
+        result = await self._execute_pm_command(["list"])
+        if result["returncode"] != 0:
+            return result
+        packages: List[str] = []
+        for line in result["stdout"].splitlines()[2:]:
+            line = line.strip()
+            if line:
+                packages.append(line.split()[0])
+        return packages
+
+    async def _handle_upgrade_package(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> Dict[str, Any]:
+        return await self._execute_pm_command(["install", "--upgrade", parameters.get("package", "")])
 
     async def cleanup(self) -> None:
         return None
@@ -437,7 +460,7 @@ class PipDriver(PackageManagerDriver):
 # ---------------------------------------------------------------------------
 # 5.6 Software & SaaS Drivers
 # ---------------------------------------------------------------------------
-class GitDriver(BaseDriver):
+class GitDriver(CapabilityDispatchDriver):
     def __init__(self):
         manifest = DriverManifest(
             name="git",
@@ -468,43 +491,29 @@ class GitDriver(BaseDriver):
         except Exception:
             return False
 
-    async def execute(
-        self, capability: str, parameters: Dict[str, Any], context: Optional[Dict[str, Any]] = None
-    ) -> Any:
-        execution = DriverExecution(
-            driver_id=self.id,
-            capability=capability,
-            parameters=parameters,
-            execution_context=context or {},
-        )
-        try:
-            self.status = DriverStatus.EXECUTING
-            if capability == "clone_repository":
-                result = await self._execute_git_command(["clone", parameters.get("url", ""), parameters.get("path", "")])
-            elif capability == "commit_changes":
-                result = await self._commit_changes(parameters.get("path", "."), parameters.get("message", ""))
-            elif capability == "push_changes":
-                result = await self._execute_git_command(["push"], cwd=parameters.get("path", "."))
-            elif capability == "pull_changes":
-                result = await self._execute_git_command(["pull"], cwd=parameters.get("path", "."))
-            elif capability == "get_status":
-                result = await self._execute_git_command(["status", "--porcelain"], cwd=parameters.get("path", "."))
-            else:
-                raise ValueError(f"Unknown capability: {capability}")
-            execution.result = result
-            execution.status = "completed"
-            self.status = DriverStatus.READY
-        except Exception as exc:
-            execution.error = str(exc)
-            execution.status = "error"
-            self.status = DriverStatus.ERROR
-            logger.exception("Git driver error")
-            raise
-        finally:
-            execution.completed_at = datetime.now(timezone.utc)
-            self.last_execution = execution
-            self.execution_history.append(execution)
-        return execution.result
+    def _capability_handlers(self) -> Dict[str, Callable[[Dict[str, Any], Dict[str, Any]], Awaitable[Any] | Any]]:
+        return {
+            "clone_repository": self._handle_clone_repository,
+            "commit_changes": self._handle_commit_changes,
+            "push_changes": self._handle_push_changes,
+            "pull_changes": self._handle_pull_changes,
+            "get_status": self._handle_get_status,
+        }
+
+    async def _handle_clone_repository(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> Dict[str, Any]:
+        return await self._execute_git_command(["clone", parameters.get("url", ""), parameters.get("path", "")])
+
+    async def _handle_commit_changes(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> Dict[str, Any]:
+        return await self._commit_changes(parameters.get("path", "."), parameters.get("message", ""))
+
+    async def _handle_push_changes(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> Dict[str, Any]:
+        return await self._execute_git_command(["push"], cwd=parameters.get("path", "."))
+
+    async def _handle_pull_changes(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> Dict[str, Any]:
+        return await self._execute_git_command(["pull"], cwd=parameters.get("path", "."))
+
+    async def _handle_get_status(self, parameters: Dict[str, Any], _: Dict[str, Any]) -> Dict[str, Any]:
+        return await self._execute_git_command(["status", "--porcelain"], cwd=parameters.get("path", "."))
 
     async def _execute_git_command(self, args: List[str], cwd: Optional[str] = None) -> Dict[str, Any]:
         process = await asyncio.create_subprocess_exec(
@@ -550,11 +559,12 @@ class DriverExecutionRequest:
 class DriverScheduler:
     def __init__(self, max_concurrent_executions: int = 10):
         self.drivers: Dict[str, BaseDriver] = {}
-        self.execution_queue: List[DriverExecutionRequest] = []
+        self.execution_queue: List[tuple[int, int, DriverExecutionRequest]] = []
         self.active_executions: Dict[str, DriverExecution] = {}
         self.max_concurrent_executions = max_concurrent_executions
         self.scheduler_running = False
         self._scheduler_task: Optional[asyncio.Task] = None
+        self._counter = itertools.count()
 
     def register_driver(self, driver: BaseDriver) -> None:
         self.drivers[driver.id] = driver
@@ -585,23 +595,24 @@ class DriverScheduler:
         driver = self.drivers[request.driver_id]
         if not driver.can_execute(request.capability):
             raise ValueError(f"Driver {driver.manifest.name} cannot execute {request.capability}")
-        self._insert_by_priority(request)
+        self._enqueue(request)
         return request.id
 
-    def _insert_by_priority(self, request: DriverExecutionRequest) -> None:
+    def _enqueue(self, request: DriverExecutionRequest) -> None:
+        heapq.heappush(
+            self.execution_queue,
+            (self._priority_value(request.priority), next(self._counter), request),
+        )
+
+    @staticmethod
+    def _priority_value(priority: ExecutionPriority) -> int:
         ordering = {
             ExecutionPriority.CRITICAL: 0,
             ExecutionPriority.HIGH: 1,
             ExecutionPriority.NORMAL: 2,
             ExecutionPriority.LOW: 3,
         }
-        request_priority = ordering[request.priority]
-        insert_index = len(self.execution_queue)
-        for idx, queued in enumerate(self.execution_queue):
-            if ordering[queued.priority] > request_priority:
-                insert_index = idx
-                break
-        self.execution_queue.insert(insert_index, request)
+        return ordering[priority]
 
     async def _scheduler_loop(self) -> None:
         while self.scheduler_running:
@@ -609,7 +620,7 @@ class DriverScheduler:
                 len(self.active_executions) < self.max_concurrent_executions
                 and self.execution_queue
             ):
-                request = self.execution_queue.pop(0)
+                _, _, request = heapq.heappop(self.execution_queue)
                 await self._execute_request(request)
             await self._cleanup_completed_executions()
             await asyncio.sleep(0.1)
@@ -761,6 +772,7 @@ class DriverRegistry:
 
 __all__ = [
     "BaseDriver",
+    "CapabilityDispatchDriver",
     "DriverCategory",
     "DriverStatus",
     "DriverManifest",

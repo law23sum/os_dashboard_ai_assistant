@@ -3,13 +3,21 @@ FastAPI backend for OS Dashboard AI Assistant.
 Provides REST API endpoints to replace the Tkinter GUI frontend.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse
+import json
 import sys
 import os
+import time
+import traceback
+import asyncio
+from uuid import uuid4
 from pathlib import Path
+from typing import Optional
 
 # Add parent directory to path for imports
 parent_dir = Path(__file__).parent.parent
@@ -25,32 +33,231 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS middleware
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database and ensure demo users exist on startup."""
+    try:
+        from backend_api.db import db_session
+        from backend_api.routers.auth import _ensure_demo_users
+        
+        # Initialize database connection
+        with db_session() as db:
+            db.execute("SELECT 1").fetchone()
+        
+        # Ensure demo users exist (non-blocking)
+        try:
+            await _ensure_demo_users()
+        except Exception as e:
+            import logging
+            logging.warning(f"Could not ensure demo users on startup (non-fatal): {e}")
+        
+        import logging
+        logging.info("Database initialized")
+    except Exception as e:
+        import logging
+        logging.error(f"Startup initialization failed: {e}", exc_info=True)
+        # Don't fail startup - let requests handle errors
+
+# CORS middleware - more restrictive for security
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:3000", "http://127.0.0.1:3000", 
+        "http://localhost:5173", "http://127.0.0.1:5173",
+        "http://localhost:5174", "http://127.0.0.1:5174",
+        "http://localhost:5175", "http://127.0.0.1:5175",
+        "http://localhost:5176", "http://127.0.0.1:5176",
+        "http://0.0.0.0:5173", "http://0.0.0.0:5174",
+        "http://0.0.0.0:5175",
+        "http://0.0.0.0:5176",
+        # Electron file:// origin is often serialized as `null`
+        "null",
+        "https://localhost:3000", "https://127.0.0.1:3000",
+        "https://localhost:5173", "https://127.0.0.1:5173",
+        "https://localhost:5174", "https://127.0.0.1:5174",
+        "https://localhost:5175", "https://127.0.0.1:5175",
+        "https://localhost:5176", "https://127.0.0.1:5176",
+        "https://0.0.0.0:5173", "https://0.0.0.0:5174",
+        "https://0.0.0.0:5175",
+        "https://0.0.0.0:5176",
+        "https://0.0.0.0:8000", "https://localhost:8000", "https://127.0.0.1:8000"
+    ],
+    # Allow any localhost/loopback port and private network IPs for dev/preview builds.
+    # This includes: localhost, 127.0.0.1, 0.0.0.0, 192.168.x.x, 10.x.x.x, 172.16-31.x.x
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$",
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods instead of "*"
+    allow_headers=["Content-Type", "Authorization", "Accept"],  # Explicit headers instead of "*"
+    expose_headers=["Content-Type", "X-Total-Count"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
+
+# ---------------------------------------------------------------------------
+# Request tracing + unified event log
+# ---------------------------------------------------------------------------
+try:
+    from backend_api.deps import get_optional_user  # type: ignore
+    from backend_api.routers.logs import record_event  # type: ignore
+    from backend_api.db import db_session  # type: ignore
+    from backend_api.ai_updates import ErrorSignal, queue_ai_update  # type: ignore
+
+    @app.middleware("http")
+    async def _trace_requests(request: Request, call_next):
+        started = time.time()
+        request_id = request.headers.get("x-correlation-id") or request.headers.get("x-request-id") or uuid4().hex
+        request.state.correlation_id = request_id
+        user = None
+        try:
+            user = get_optional_user(request)  # type: ignore[arg-type]
+        except Exception:
+            user = None
+        try:
+            response = await call_next(request)
+        except Exception as exc:
+            duration_ms = int((time.time() - started) * 1000)
+            try:
+                with db_session() as db:
+                    record_event(
+                        db=db,
+                        source="http",
+                        level="error",
+                        message=f"{request.method} {request.url.path} -> 500 ({duration_ms}ms)",
+                        user_id=getattr(user, "id", None),
+                        metadata={
+                            "request_id": request_id,
+                            "method": request.method,
+                            "path": request.url.path,
+                            "status_code": 500,
+                            "duration_ms": duration_ms,
+                            "error": str(exc),
+                        },
+                    )
+            except Exception:
+                pass
+            try:
+                stack = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+                payload = ErrorSignal(
+                    origin="backend",
+                    source=request.url.path,
+                    message=str(exc),
+                    stack=stack,
+                    severity="error",
+                    metadata={
+                        "request_id": request_id,
+                        "method": request.method,
+                        "path": request.url.path,
+                    },
+                )
+                asyncio.create_task(asyncio.to_thread(queue_ai_update, payload))
+            except Exception:
+                pass
+            raise
+
+        duration_ms = int((time.time() - started) * 1000)
+        response.headers["x-correlation-id"] = request_id
+        try:
+            with db_session() as db:
+                record_event(
+                    db=db,
+                    source="http",
+                    level="info",
+                    message=f"{request.method} {request.url.path} -> {response.status_code} ({duration_ms}ms)",
+                    user_id=getattr(user, "id", None),
+                    metadata={
+                        "request_id": request_id,
+                        "method": request.method,
+                        "path": request.url.path,
+                        "status_code": response.status_code,
+                        "duration_ms": duration_ms,
+                    },
+                )
+        except Exception:
+            pass
+        return response
+except Exception:
+    # If imports fail during early bootstrap, skip tracing.
+    pass
+
+try:
+    from backend_api.domain.classification import sanitize_payload  # type: ignore
+except Exception:  # pragma: no cover - fallback if domain layer missing
+    def sanitize_payload(payload, user=None):
+        return payload
+
+
+@app.middleware("http")
+async def _sanitize_sensitive_fields(request: Request, call_next):
+    response = await call_next(request)
+    if getattr(response, "media_type", None) != "application/json":
+        return response
+    body = getattr(response, "body", None)
+    if not body:
+        return response
+    try:
+        data = json.loads(body)
+    except Exception:
+        return response
+    try:
+        from backend_api.deps import get_optional_user  # type: ignore
+        from backend_api.dal.context import get_data_context  # type: ignore
+        user = get_optional_user(request)
+        ctx = get_data_context(request, user)
+    except Exception:
+        user = None
+        ctx = None
+    sanitized = sanitize_payload(data, user=user, ctx=ctx)
+    return JSONResponse(content=sanitized, status_code=response.status_code, headers=dict(response.headers))
+
+
+@app.exception_handler(Exception)
+async def _unhandled_exception_handler(request: Request, exc: Exception):
+    request_id = getattr(request.state, "correlation_id", None)
+    headers = {"x-correlation-id": request_id} if request_id else None
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Internal server error",
+            "request_id": request_id,
+        },
+        headers=headers,
+    )
 
 # API Routes
 from backend_api.routers import (
+    auth,
+    admin,
+    agent_journal,
+    logs,
+    files,
     tasks,
     projects,
+    intents,
     chat,
     dashboard,
+    documents,
     templates,
     integrations,
+    exports,
+    policy,
+    office,
     settings,
     document_operations,
     analytics,
+    cookbook_integrations,
+    cookbook_patterns,
+    codex_review,
     writer,
     research,
+    constants,
+    knowledge,
+    matlab,
     api_connectors,
     ai_systems,
+    math_sim,
     terminal,
     intelligence,
+    reasoning,
     audit,
     search,
     computer_vision,
@@ -58,29 +265,81 @@ from backend_api.routers import (
     security_threat,
     edge_computing,
     workflow_orchestration,
+    platform,
+    pms,
+    personas,
+    capsules,
+    autofix,
+    runtime_diagnostics,
+    coach,
+    git,
+    network_monitoring,
+    workspace,
+    orchestrator,
+    workspace_health,
+    auth,
+    admin,
+    logs,
+    ai_enhanced,
+    version_control,
+    unified_logging,
+    document_viewer,
+    ai_integration,
+    data_management,
+    project_orchestrator,
+    responses_api,
 )
 
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
+# Auth router is registered below at /api/auth
+app.include_router(admin.router, prefix="/api", tags=["admin"])
+app.include_router(agent_journal.router, prefix="/api", tags=["agent_journal"])
+app.include_router(logs.router, prefix="/api", tags=["logs"])
+app.include_router(files.router, prefix="/api", tags=["files"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
+app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(templates.router, prefix="/api/templates", tags=["templates"])
 app.include_router(integrations.router, prefix="/api/integrations", tags=["integrations"])
 app.include_router(settings.router, prefix="/api/settings", tags=["settings"])
+app.include_router(policy.router, prefix="/api/policy", tags=["policy"])
+app.include_router(exports.router, prefix="/api/exports", tags=["exports"])
 app.include_router(
     document_operations.router,
     prefix="/api/operations",
     tags=["document_operations"],
 )
 app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
+app.include_router(
+    cookbook_integrations.router,
+    prefix="/api/cookbook",
+    tags=["cookbook"],
+)
+app.include_router(
+    cookbook_patterns.router,
+    prefix="/api/cookbook",
+    tags=["cookbook"],
+)
+app.include_router(codex_review.router, prefix="/api", tags=["codex"])
 app.include_router(writer.router, prefix="/api/writer", tags=["writer"])
 app.include_router(research.router, prefix="/api/research", tags=["research"])
+app.include_router(constants.router, prefix="/api/constants", tags=["constants"])
+app.include_router(matlab.router, prefix="/api/matlab", tags=["matlab"])
+app.include_router(knowledge.router, prefix="/api/knowledge", tags=["knowledge"])
 app.include_router(intelligence.router, prefix="/api/intelligence", tags=["intelligence"])
+app.include_router(reasoning.router, prefix="/api/reasoning", tags=["reasoning"])
 app.include_router(
     api_connectors.router, prefix="/api/api-connectors", tags=["api_connectors"]
 )
+app.include_router(math_sim.router, prefix="/api/math-sim", tags=["math_sim"])
 app.include_router(ai_systems.router, prefix="/api/ai", tags=["ai_systems"])
+app.include_router(pms.router, prefix="/api/pms", tags=["pms"])
+app.include_router(capsules.router, prefix="/api/ai", tags=["capsules"])
+app.include_router(coach.router, prefix="/api/ai", tags=["coach"])
 app.include_router(terminal.router, prefix="/api/terminal", tags=["terminal"])
+app.include_router(autofix.router, prefix="/api/autofix", tags=["autofix"])
+app.include_router(intents.router, prefix="/api", tags=["intents"])
 app.include_router(audit.router, prefix="/api/audit", tags=["audit"])
 app.include_router(search.router, prefix="/api/search", tags=["search"])
 app.include_router(
@@ -93,11 +352,64 @@ app.include_router(
     security_threat.router, prefix="/api/security", tags=["security"]
 )
 app.include_router(
+    network_monitoring.router, prefix="/api/network", tags=["network"]
+)
+app.include_router(
     edge_computing.router, prefix="/api/edge-computing", tags=["edge_computing"]
 )
 app.include_router(
     workflow_orchestration.router, prefix="/api/workflows", tags=["workflows"]
 )
+app.include_router(platform.router, prefix="/api", tags=["platform"])
+app.include_router(git.router, prefix="/api", tags=["git"])
+app.include_router(personas.router, prefix="/api/personas", tags=["personas"])
+app.include_router(office.router, prefix="/api/office", tags=["office"])
+app.include_router(runtime_diagnostics.router, prefix="/api", tags=["runtime"])
+app.include_router(workspace.router, prefix="/api", tags=["workspace"])
+app.include_router(orchestrator.router, tags=["orchestrator"])
+app.include_router(workspace_health.router, prefix="/api", tags=["workspace_health"])
+# Auth router mounted at /api/auth for /api/auth/login, /api/auth/signup, etc.
+app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
+# Admin router
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+# Logs router
+app.include_router(logs.router, prefix="/api", tags=["logs"])
+# AI enhanced router
+app.include_router(ai_enhanced.router, prefix="/api", tags=["ai_enhanced"])
+app.include_router(version_control.router, prefix="/api/versions", tags=["version_control"])
+app.include_router(unified_logging.router, prefix="/api/logs", tags=["logging"])
+app.include_router(document_viewer.router, prefix="/api/viewer", tags=["document_viewer"])
+app.include_router(ai_integration.router, prefix="/api/ai-integration", tags=["ai_integration"])
+app.include_router(data_management.router, prefix="/api/data", tags=["data_management"])
+app.include_router(project_orchestrator.router, prefix="/api", tags=["project_orchestrator"])
+# Responses API router for Next.js quickstart integration
+app.include_router(responses_api.router, prefix="/api/responses", tags=["responses_api"])
+
+# Legacy compatibility routes without the /api prefix.
+@app.get("/system", include_in_schema=False)
+async def legacy_system_status():
+    return await platform.system_status()
+
+
+@app.get("/planes/status", include_in_schema=False)
+async def legacy_planes_status():
+    return await platform.planes_status()
+
+
+@app.get("/billing/usage", include_in_schema=False)
+async def legacy_billing_usage(limit: int = 20):
+    return await platform.billing_usage(limit=limit)
+
+
+@app.get("/operations", include_in_schema=False)
+async def legacy_operations(
+    limit: int = 50,
+    status: Optional[str] = None,
+    integration_type: Optional[str] = None,
+):
+    return await document_operations.list_document_operations(
+        limit=limit, status=status, integration_type=integration_type
+    )
 
 # Mount static files
 docs_dir = REPO_ROOT / "docs"
@@ -112,10 +424,38 @@ cyberchef_dir = REPO_ROOT / "CyberChef_v10.19.4"
 if cyberchef_dir.exists():
     app.mount("/tools/cyberchef", StaticFiles(directory=str(cyberchef_dir), html=True), name="cyberchef")
 
+# Serve built frontend (Vite) at /app for desktop/packaged runs
+frontend_dist = REPO_ROOT / "frontend" / "dist"
+if frontend_dist.exists():
+    # html=True serves index.html for /app and directory requests
+    app.mount("/app", StaticFiles(directory=str(frontend_dist), html=True), name="app")
+    # Redirect root to the SPA when available to avoid a blank page
+    @app.get("/", include_in_schema=False)
+    async def _root_redirect():
+        return RedirectResponse(url="/app/")
+
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint."""
-    return {"status": "ok", "message": "OS Dashboard AI Assistant API is running"}
+    """Health check endpoint with database connectivity check."""
+    try:
+        from backend_api.db import db_session
+        # Test database connectivity
+        with db_session() as db:
+            db.execute("SELECT 1").fetchone()
+        return {
+            "status": "ok",
+            "message": "OS Dashboard AI Assistant API is running",
+            "database": "connected"
+        }
+    except Exception as e:
+        import logging
+        logging.error(f"Health check failed: {e}", exc_info=True)
+        return {
+            "status": "degraded",
+            "message": "OS Dashboard AI Assistant API is running but database is unavailable",
+            "database": "disconnected",
+            "error": str(e)
+        }
 
 
 @app.get("/api/docs/technical-spec-sheet")
@@ -129,6 +469,49 @@ async def get_technical_spec_sheet():
         filename=SPEC_SHEET_PATH.name,
     )
 
+def find_available_port(start_port: int = 8000, max_attempts: int = 100) -> int:
+    """Find an available port starting from start_port."""
+    import socket
+    
+    for port in range(start_port, start_port + max_attempts):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(("0.0.0.0", port))
+                return port
+        except OSError:
+            continue
+    
+    raise RuntimeError(f"Could not find an available port in range {start_port}-{start_port + max_attempts - 1}")
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    
+    # Find an available port
+    default_port = 8000
+    port = find_available_port(default_port)
+    
+    if port != default_port:
+        print(f"⚠️  Port {default_port} is in use. Using port {port} instead.")
+    else:
+        print(f"✅ Starting server on port {port}")
+    
+    # SSL certificate paths
+    cert_dir = REPO_ROOT / "certs"
+    cert_file = cert_dir / "cert.pem"
+    key_file = cert_dir / "key.pem"
+    
+    # Check if certificates exist, otherwise fall back to HTTP
+    if cert_file.exists() and key_file.exists():
+        print(f"🔒 Starting with SSL on https://0.0.0.0:{port}")
+        uvicorn.run(
+            app, 
+            host="0.0.0.0", 
+            port=port,
+            ssl_keyfile=str(key_file),
+            ssl_certfile=str(cert_file)
+        )
+    else:
+        print("Warning: SSL certificates not found. Running in HTTP mode.")
+        print(f"Expected certificates at: {cert_file} and {key_file}")
+        print(f"🌐 Starting server on http://0.0.0.0:{port}")
+        uvicorn.run(app, host="0.0.0.0", port=port)

@@ -10,8 +10,10 @@ existing flows.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import os
 import uuid
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
@@ -222,17 +224,51 @@ class BaseDriver:
         return True
 
 
-class OSDriver(BaseDriver):
+class ActionDispatchDriver(BaseDriver):
+    """Base class providing action→handler dispatch to reduce boilerplate."""
+
+    def __init__(self, manifest: DriverManifest) -> None:
+        super().__init__(manifest)
+        self._handler_cache: Dict[str, Callable[[Dict[str, Any]], Any]] = {}
+
+    async def execute_action(self, action: str, params: Dict[str, Any]) -> Any:
+        handler = self._get_handler(action)
+        result = handler(params)
+        if inspect.isawaitable(result):
+            return await result
+        return result
+
+    def _get_handler(self, action: str) -> Callable[[Dict[str, Any]], Any]:
+        handlers = self._get_handlers()
+        if action not in handlers:
+            raise ValueError(f"Unknown action: {action}")
+        return handlers[action]
+
+    def _get_handlers(self) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
+        if not self._handler_cache:
+            self._handler_cache = self._action_handlers()
+        return self._handler_cache
+
+    def _action_handlers(self) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
+        raise NotImplementedError
+
+
+class OSDriver(ActionDispatchDriver):
     """OS-level operations: filesystem, processes, networking."""
 
     driver_type = DriverType.OS
 
-    async def execute_action(self, action: str, params: Dict[str, Any]) -> Any:
-        if action == "create_file":
-            return await self._create_file(params["path"], params.get("content", ""))
-        if action == "run_process":
-            return await self._run_process(params["command"], params.get("env", {}))
-        raise ValueError(f"Unknown OS action: {action}")
+    def _action_handlers(self) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
+        return {
+            "create_file": self._handle_create_file,
+            "run_process": self._handle_run_process,
+        }
+
+    async def _handle_create_file(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        return await self._create_file(params["path"], params.get("content", ""))
+
+    async def _handle_run_process(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        return await self._run_process(params["command"], params.get("env", {}))
 
     async def _create_file(self, path: str, content: str) -> Dict[str, Any]:
         if not await self.policy_engine.check_file_write_permission(path):
@@ -251,7 +287,7 @@ class OSDriver(BaseDriver):
         return {"success": True, "command": command, "env": env}
 
 
-class SoftwareDriver(BaseDriver):
+class SoftwareDriver(ActionDispatchDriver):
     """Driver that wraps remote services/APIs."""
 
     driver_type = DriverType.SOFTWARE
@@ -266,16 +302,18 @@ class SoftwareDriver(BaseDriver):
     async def execute_action(self, action: str, params: Dict[str, Any]) -> Any:
         await self.rate_limiter.acquire()
         try:
-            handler = getattr(self, f"_action_{action}", None)
-            if not handler:
-                raise ValueError(f"Unknown software action: {action}")
-            return await handler(params)
+            handler = self._get_handler(action)
+            result = handler(params)
+            if inspect.isawaitable(result):
+                return await result
+            return result
         finally:
             self.rate_limiter.release()
 
-    async def _action_create_pull_request(
-        self, params: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _action_handlers(self) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
+        return {"create_pull_request": self._action_create_pull_request}
+
+    async def _action_create_pull_request(self, params: Dict[str, Any]) -> Dict[str, Any]:
         repo = params["repository"]
         if not await self.policy_engine.check_repo_access(repo):
             raise PermissionError(f"No repo access for {repo}")
@@ -287,17 +325,16 @@ class SoftwareDriver(BaseDriver):
         }
 
 
-class DataDriver(BaseDriver):
+class DataDriver(ActionDispatchDriver):
     """Structured data access with schema awareness."""
 
     driver_type = DriverType.DATA
 
-    async def execute_action(self, action: str, params: Dict[str, Any]) -> Any:
-        if action == "query":
-            return await self._execute_query(
-                params["sql"], params.get("parameters", {})
-            )
-        raise ValueError(f"Unknown data action: {action}")
+    def _action_handlers(self) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
+        return {"query": self._handle_query}
+
+    async def _handle_query(self, params: Dict[str, Any]) -> List[Dict[str, Any]]:
+        return await self._execute_query(params["sql"], params.get("parameters", {}))
 
     async def _execute_query(
         self, sql: str, parameters: Dict[str, Any]
@@ -505,7 +542,8 @@ class ExecutionPlanner:
         self, decomposition: TaskDecomposition, intent: Intent
     ) -> ExecutionPlan:
         execution_steps: List[ExecutionStep] = []
-        for step in decomposition.steps:
+        ordered_steps = self._topologically_sort_steps(decomposition)
+        for step in ordered_steps:
             candidates = await self.driver_registry.discover_drivers_for_task(
                 step.description,
                 {
@@ -541,17 +579,48 @@ class ExecutionPlanner:
             approval_checkpoints=[],
         )
 
+    def _topologically_sort_steps(self, decomposition: TaskDecomposition) -> List[TaskStep]:
+        step_map: Dict[str, TaskStep] = {step.id: step for step in decomposition.steps}
+        indegree: Dict[str, int] = {step.id: 0 for step in decomposition.steps}
+        for step_id, deps in decomposition.dependencies.items():
+            if step_id not in step_map:
+                raise ValueError(f"Unknown task step in dependencies: {step_id}")
+            for dep in deps:
+                if dep not in step_map:
+                    raise ValueError(f"Unknown dependency step: {dep}")
+                indegree[step_id] += 1
+
+        queue: deque[str] = deque([sid for sid, deg in indegree.items() if deg == 0])
+        ordered_ids: List[str] = []
+        while queue:
+            current = queue.popleft()
+            ordered_ids.append(current)
+            for dependent, deps in decomposition.dependencies.items():
+                if current in deps:
+                    indegree[dependent] -= 1
+                    if indegree[dependent] == 0:
+                        queue.append(dependent)
+
+        if len(ordered_ids) != len(decomposition.steps):
+            raise ValueError("Cycle detected in task dependencies")
+
+        return [step_map[sid] for sid in ordered_ids]
+
     async def _select_optimal_driver(
         self, candidate_drivers: List[str], task_step: TaskStep, intent: Intent
     ) -> str:
-        scores: List[Tuple[float, str]] = []
+        best_driver = None
+        best_score = float("-inf")
         for driver_name in candidate_drivers:
             score = await self.constraint_solver.score_driver_option(
                 driver_name, task_step, intent
             )
-            scores.append((score, driver_name))
-        scores.sort(key=lambda item: item[0])
-        return scores[-1][1]
+            if score > best_score:
+                best_score = score
+                best_driver = driver_name
+        if best_driver is None:
+            raise ValueError("No suitable driver found")
+        return best_driver
 
 
 # =============================================================================
@@ -693,4 +762,5 @@ __all__ = [
     "IntentProcessor",
     "DriverRegistry",
     "DriverType",
+    "ActionDispatchDriver",
 ]

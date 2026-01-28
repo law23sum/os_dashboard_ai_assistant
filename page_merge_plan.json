@@ -1,0 +1,1143 @@
+{
+  "pages_to_merge": 161,
+  "pages_to_delete": 171,
+  "merge_operations": [
+    {
+      "keep": "Safety&AlignmentOverview.tsx",
+      "merge_from": [
+        "SafetyAlignmentOverview.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Findings&Triage.tsx",
+      "merge_from": [
+        "FindingsTriage.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Projects.tsx",
+      "merge_from": [
+        "Missioncontrol/Coreflightdeck/Projects.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "KeyRotation&KMSIntegrations.tsx",
+      "merge_from": [
+        "KeyRotationKMSIntegrations.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Reviews&Ratings.tsx",
+      "merge_from": [
+        "ReviewsRatings.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "DriverHealth&Telemetry.tsx",
+      "merge_from": [
+        "DriverHealthTelemetry.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Governancesecurity/Complianceregulator/Compliancepacks.tsx",
+      "merge_from": [
+        "CompliancePacks.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Playbooks&Runbooks.tsx",
+      "merge_from": [
+        "PlaybooksRunbooks.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Versioning&Deprecation.tsx",
+      "merge_from": [
+        "VersioningDeprecation.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "BusinessContinuity&DR.tsx",
+      "merge_from": [
+        "BusinessContinuityDR.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Logging&TracingOverview.tsx",
+      "merge_from": [
+        "LoggingTracingOverview.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "AgentRegistry&Lifecycle.tsx",
+      "merge_from": [
+        "AgentRegistryLifecycle.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "ModelPackaging&Deployment.tsx",
+      "merge_from": [
+        "ModelPackagingDeployment.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Cross-PlaneFlows.tsx",
+      "merge_from": [
+        "CrossPlaneFlows.tsx",
+        "Missionarchitecture/Planesarchitecture/Crossplaneflows.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Roadmap/FutureCapabilities.tsx",
+      "merge_from": [
+        "FutureCapabilities.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "SLIs&SLOs.tsx",
+      "merge_from": [
+        "SLIsSLOs.tsx",
+        "Observabilityevidence/Telemetrymetrics/Slisslos.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "IntentLogs&Replay.tsx",
+      "merge_from": [
+        "IntentLogsReplay.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "IntentTaxonomy&RoutingRules.tsx",
+      "merge_from": [
+        "IntentTaxonomyRoutingRules.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Aifabric/Driverfabric/Aioscontrol.tsx",
+      "merge_from": [
+        "AIOSControl.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Multi-TenantBilling.tsx",
+      "merge_from": [
+        "MultiTenantBilling.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Policy-as-CodeChecks.tsx",
+      "merge_from": [
+        "PolicyasCodeChecks.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "DataMapping&Transformations.tsx",
+      "merge_from": [
+        "DataMappingTransformations.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Mission&ArchitectureHome.tsx",
+      "merge_from": [
+        "MissionArchitectureHome.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "DataFeeds&Sync.tsx",
+      "merge_from": [
+        "DataFeedsSync.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "TaskAutomation&Rules.tsx",
+      "merge_from": [
+        "TaskAutomationRules.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Multi-Region&DR.tsx",
+      "merge_from": [
+        "MultiRegionDR.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Operations&InfrastructureHome.tsx",
+      "merge_from": [
+        "OperationsInfrastructureHome.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "DriverVersioning&Deprecation.tsx",
+      "merge_from": [
+        "DriverVersioningDeprecation.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Governance&SecurityHome.tsx",
+      "merge_from": [
+        "GovernanceSecurityHome.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Observabilityevidence/Telemetrymetrics/Metricsmodel.tsx",
+      "merge_from": [
+        "MetricsModel.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Citations&References.tsx",
+      "merge_from": [
+        "CitationsReferences.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Mentions&Presence.tsx",
+      "merge_from": [
+        "MentionsPresence.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Secrets&ConfigurationVault.tsx",
+      "merge_from": [
+        "SecretsConfigurationVault.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Missionarchitecture/Architectureprinciples/Architectureoverview.tsx",
+      "merge_from": [
+        "ArchitectureOverview.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Vision&Meta-StackHome.tsx",
+      "merge_from": [
+        "VisionMeta-StackHome.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Repo&BranchBrowser.tsx",
+      "merge_from": [
+        "RepoBranchBrowser.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Driver-AwareOrchestrator.tsx",
+      "merge_from": [
+        "DriverAwareOrchestrator.tsx",
+        "Missionarchitecture/Architectureprinciples/Driverawareorchestrator.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Data&KnowledgeHome.tsx",
+      "merge_from": [
+        "DataKnowledgeHome.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Missionarchitecture/Missionidentity/Daemonfamilies.tsx",
+      "merge_from": [
+        "DaemonFamilies.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Lineage&Replay.tsx",
+      "merge_from": [
+        "LineageReplay.tsx",
+        "Aifabric/Capsulesworkflow/Lineagereplay.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Capacity&CostInsights.tsx",
+      "merge_from": [
+        "CapacityCostInsights.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Settings&AdminHome.tsx",
+      "merge_from": [
+        "SettingsAdminHome.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Missionarchitecture/Planesarchitecture/Governanceplane.tsx",
+      "merge_from": [
+        "GovernancePlane.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Backpressure&Throttling.tsx",
+      "merge_from": [
+        "BackpressureThrottling.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Aifabric/Capsulesworkflow/Mystackcapsules.tsx",
+      "merge_from": [
+        "MyStackCapsules.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Aifabric/Cognitiveagents/Advancedaiengine.tsx",
+      "merge_from": [
+        "AdvancedAIEngine.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Team&Members.tsx",
+      "merge_from": [
+        "TeamMembers.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Auto-FixConsole.tsx",
+      "merge_from": [
+        "AutoFixConsole.tsx",
+        "Aifabric/Capsulesworkflow/Autofixconsole.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Software&SaaSDrivers.tsx",
+      "merge_from": [
+        "SoftwareSaaSDrivers.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Aifabric/Capsulesworkflow/Capsuletemplates.tsx",
+      "merge_from": [
+        "CapsuleTemplates.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Legacy&Mainframe.tsx",
+      "merge_from": [
+        "LegacyMainframe.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Settings&Admin(EnterpriseExtensions)Home.tsx",
+      "merge_from": [
+        "SettingsAdminEnterpriseExtensionsHome.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Dashboard.tsx",
+      "merge_from": [
+        "Missioncontrol/Coreflightdeck/Dashboard.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "ProjectMembers&Roles.tsx",
+      "merge_from": [
+        "ProjectMembersRoles.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Exceptions&Waivers.tsx",
+      "merge_from": [
+        "ExceptionsWaivers.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Missionarchitecture/Architectureprinciples/Architecturalprinciples.tsx",
+      "merge_from": [
+        "ArchitecturalPrinciples.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Roadmap&RisksHome.tsx",
+      "merge_from": [
+        "RoadmapRisksHome.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Third-PartyRisk.tsx",
+      "merge_from": [
+        "ThirdPartyRisk.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Research&SimulationDrivers.tsx",
+      "merge_from": [
+        "ResearchSimulationDrivers.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "APIKeys&Tokens.tsx",
+      "merge_from": [
+        "APIKeysTokens.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Export&Integrations.tsx",
+      "merge_from": [
+        "ExportIntegrations.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Aifabric/Mlopsneuralarch/Nasconsole.tsx",
+      "merge_from": [
+        "NASConsole.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Governancesecurity/Complianceregulator/Regulatorfabric.tsx",
+      "merge_from": [
+        "RegulatorFabric.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Dataset&FeatureStore.tsx",
+      "merge_from": [
+        "DatasetFeatureStore.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Monitoring.tsx",
+      "merge_from": [
+        "Observabilityevidence/Telemetrymetrics/Monitoring.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Aifabric/Cognitiveagents/Daemonframework.tsx",
+      "merge_from": [
+        "DaemonFramework.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Forensics&Evidence.tsx",
+      "merge_from": [
+        "ForensicsEvidence.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Restore&Export.tsx",
+      "merge_from": [
+        "RestoreExport.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "ChangeLogs&ReleaseNotes.tsx",
+      "merge_from": [
+        "ChangeLogsReleaseNotes.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Governancesecurity/Complianceregulator/Regulatortenancy.tsx",
+      "merge_from": [
+        "RegulatorTenancy.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "PolicyLibrary&Templates.tsx",
+      "merge_from": [
+        "PolicyLibraryTemplates.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Hybrid&Edge.tsx",
+      "merge_from": [
+        "HybridEdge.tsx",
+        "Operationsinfrastructure/Deploymentmodels/Hybridedge.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Backup&Retention.tsx",
+      "merge_from": [
+        "BackupRetention.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "TaskBoard(Kanban).tsx",
+      "merge_from": [
+        "TaskBoardKanban.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Aifabric/Driverfabric/Hardwaredrivers.tsx",
+      "merge_from": [
+        "HardwareDrivers.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Aifabric/Mlopsneuralarch/Nassimulator.tsx",
+      "merge_from": [
+        "NASSimulator.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "IntentProcessor.tsx",
+      "merge_from": [
+        "Aifabric/Intentprocessing/Intentprocessor.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Evaluation&Benchmarks.tsx",
+      "merge_from": [
+        "EvaluationBenchmarks.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Export&Publishing.tsx",
+      "merge_from": [
+        "ExportPublishing.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Aifabric/Capsulesworkflow/Workfloworchestrator.tsx",
+      "merge_from": [
+        "WorkflowOrchestrator.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Missionarchitecture/Missionidentity/Modelproviderlayer.tsx",
+      "merge_from": [
+        "ModelProviderLayer.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Finance&Banking.tsx",
+      "merge_from": [
+        "FinanceBanking.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Licensing&Entitlements.tsx",
+      "merge_from": [
+        "LicensingEntitlements.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Tenancy&OrgSettings.tsx",
+      "merge_from": [
+        "TenancyOrgSettings.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Alerts&Rules.tsx",
+      "merge_from": [
+        "AlertsRules.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "DataModel&Contracts.tsx",
+      "merge_from": [
+        "DataModelContracts.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Versioning&ChangeLog.tsx",
+      "merge_from": [
+        "VersioningChangeLog.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "SavedSearches&Alerts.tsx",
+      "merge_from": [
+        "SavedSearchesAlerts.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "APIConnectors.tsx",
+      "merge_from": [
+        "Integrations/ApiConnectors.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Observability.tsx",
+      "merge_from": [
+        "Observabilityevidence/Telemetrymetrics/Observability.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Scheduling&Triggers.tsx",
+      "merge_from": [
+        "SchedulingTriggers.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "AICopilot.tsx",
+      "merge_from": [
+        "Aifabric/Cognitiveagents/Aicopilot.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "DriverPermissions&Sandboxing.tsx",
+      "merge_from": [
+        "DriverPermissionsSandboxing.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Aifabric/Capsulesworkflow/Projectledger.tsx",
+      "merge_from": [
+        "ProjectLedger.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Identity&Roles.tsx",
+      "merge_from": [
+        "IdentityRoles.tsx",
+        "Missionarchitecture/Missionidentity/Identityroles.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Aifabric/Driverfabric/Driverregistry.tsx",
+      "merge_from": [
+        "DriverRegistry.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Tasks.tsx",
+      "merge_from": [
+        "Missioncontrol/Coreflightdeck/Tasks.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "StoryQA&Continuity.tsx",
+      "merge_from": [
+        "StoryQAContinuity.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "PolicyVersioning&Approvals.tsx",
+      "merge_from": [
+        "PolicyVersioningApprovals.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Personas&Agents.tsx",
+      "merge_from": [
+        "PersonasAgents.tsx",
+        "Aifabric/Cognitiveagents/Personasagents.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Budgets&Quotas.tsx",
+      "merge_from": [
+        "BudgetsQuotas.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Missionarchitecture/Planesarchitecture/Dataplane.tsx",
+      "merge_from": [
+        "DataPlane.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Governancesecurity/Policygovernance/Policyengine.tsx",
+      "merge_from": [
+        "PolicyEngine.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Exceptions&Approvals.tsx",
+      "merge_from": [
+        "ExceptionsApprovals.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Missionarchitecture/Architectureprinciples/Majorcomponents.tsx",
+      "merge_from": [
+        "MajorComponents.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Drivers&IntegrationsHome.tsx",
+      "merge_from": [
+        "DriversIntegrationsHome.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Operationsinfrastructure/Deploymentmodels/Localmode.tsx",
+      "merge_from": [
+        "LocalMode.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Observability&EvidenceHome.tsx",
+      "merge_from": [
+        "ObservabilityEvidenceHome.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Secrets&Inputs.tsx",
+      "merge_from": [
+        "SecretsInputs.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Missionarchitecture/Architectureprinciples/Componentmapping.tsx",
+      "merge_from": [
+        "ComponentMapping.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Deployment&Serving.tsx",
+      "merge_from": [
+        "DeploymentServing.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Long-TermBets.tsx",
+      "merge_from": [
+        "LongTermBets.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Webhooks&Events.tsx",
+      "merge_from": [
+        "WebhooksEvents.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Retention&Tiering.tsx",
+      "merge_from": [
+        "RetentionTiering.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Schema&Ontology.tsx",
+      "merge_from": [
+        "SchemaOntology.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Operationsinfrastructure/Performancescalability/Capacityplanning.tsx",
+      "merge_from": [
+        "CapacityPlanning.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "MLOps.tsx",
+      "merge_from": [
+        "Aifabric/Mlopsneuralarch/Mlops.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Aifabric/Intentprocessing/Systemsmap.tsx",
+      "merge_from": [
+        "SystemsMap.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Multi-RegionReplication.tsx",
+      "merge_from": [
+        "MultiRegionReplication.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Observabilityevidence/Loggingtracing/Distributedtracing.tsx",
+      "merge_from": [
+        "DistributedTracing.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Governancesecurity/Policygovernance/Safetyharnesses.tsx",
+      "merge_from": [
+        "SafetyHarnesses.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Mission&Scope.tsx",
+      "merge_from": [
+        "MissionScope.tsx",
+        "Missionarchitecture/Missionidentity/Missionscope.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Package&EnvDrivers.tsx",
+      "merge_from": [
+        "PackageEnvDrivers.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Full-TextSearch.tsx",
+      "merge_from": [
+        "FullTextSearch.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "CapsuleMarketplace.tsx",
+      "merge_from": [
+        "Aifabric/Capsulesworkflow/Capsulemarketplace.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Aifabric/Driverfabric/Datadrivers.tsx",
+      "merge_from": [
+        "DataDrivers.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Health&DriftMonitors.tsx",
+      "merge_from": [
+        "HealthDriftMonitors.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Auth&RateLimits.tsx",
+      "merge_from": [
+        "AuthRateLimits.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Aifabric/Mlopsneuralarch/Experimentconsole.tsx",
+      "merge_from": [
+        "ExperimentConsole.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "ComputerVision.tsx",
+      "merge_from": [
+        "Aifabric/Edgevision/Computervision.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Missionarchitecture/Missionidentity/Aidriverstack.tsx",
+      "merge_from": [
+        "AI+DriverStack.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Operationsinfrastructure/Performancescalability/Scalingstrategies.tsx",
+      "merge_from": [
+        "ScalingStrategies.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Approval&Publishing.tsx",
+      "merge_from": [
+        "ApprovalPublishing.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "RateLimits&Quotas.tsx",
+      "merge_from": [
+        "RateLimitsQuotas.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Queues&Search.tsx",
+      "merge_from": [
+        "QueuesSearch.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Operationsinfrastructure/Deploymentmodels/Cloudenterprise.tsx",
+      "merge_from": [
+        "CloudEnterprise.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Governancesecurity/Complianceregulator/Evidenceaccess.tsx",
+      "merge_from": [
+        "EvidenceAccess.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Observabilityevidence/Loggingtracing/Structuredlogging.tsx",
+      "merge_from": [
+        "StructuredLogging.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "SystemBoundaries&Non-Goals.tsx",
+      "merge_from": [
+        "SystemBoundariesNonGoals.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Chat.tsx",
+      "merge_from": [
+        "Missioncontrol/Engagementpersona/Chat.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Docs&SpecHome.tsx",
+      "merge_from": [
+        "DocsSpecHome.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Encryption&Keys.tsx",
+      "merge_from": [
+        "EncryptionKeys.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Personalization.tsx",
+      "merge_from": [
+        "Missioncontrol/Engagementpersona/Personalization.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Missionarchitecture/Missionidentity/Deploymentmodes.tsx",
+      "merge_from": [
+        "DeploymentModes.tsx",
+        "Operationsinfrastructure/Deploymentmodels/Deploymentmodes.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Operationsinfrastructure/Performancescalability/Performance.tsx",
+      "merge_from": [
+        "Performance.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "EdgeComputing.tsx",
+      "merge_from": [
+        "Aifabric/Edgevision/Edgecomputing.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Correlation&Context.tsx",
+      "merge_from": [
+        "CorrelationContext.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Aifabric/Driverfabric/Osdrivers.tsx",
+      "merge_from": [
+        "OSDrivers.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "PlaneAPIs&EventContracts.tsx",
+      "merge_from": [
+        "PlaneAPIsEventContracts.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Missionarchitecture/Planesarchitecture/Controlplane.tsx",
+      "merge_from": [
+        "ControlPlane.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Collaboration.tsx",
+      "merge_from": [
+        "Missioncontrol/Engagementpersona/Collaboration.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Governancesecurity/Policygovernance/Policydsl.tsx",
+      "merge_from": [
+        "PolicyDSL.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Annotation&Labeling.tsx",
+      "merge_from": [
+        "AnnotationLabeling.tsx"
+      ],
+      "has_custom_content": false
+    },
+    {
+      "keep": "Mission/Contracts.tsx",
+      "merge_from": [
+        "Mission/Planes/Contracts.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Workspaces/Research/DigitalTwins.tsx",
+      "merge_from": [
+        "Workspaces/Researchsimulation/Digitaltwins.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Workspaces/Cyber/Incidents.tsx",
+      "merge_from": [
+        "Workspaces/Sre/Incidents.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Workspaces/Finance/Scenarios.tsx",
+      "merge_from": [
+        "Workspaces/Twins/Scenarios.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Workspaces/Dev/MergeAdvisor.tsx",
+      "merge_from": [
+        "Workspaces/Devdevops/Mergeadvisor.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Workspaces/Dev/Cicd.tsx",
+      "merge_from": [
+        "Workspaces/Devdevops/Cicd.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Workspaces/Dev/CommitTasks.tsx",
+      "merge_from": [
+        "Workspaces/Devdevops/Committasks.tsx"
+      ],
+      "has_custom_content": true
+    },
+    {
+      "keep": "Workspaces/Auditor/Reports.tsx",
+      "merge_from": [
+        "Workspaces/Finance/Reports.tsx"
+      ],
+      "has_custom_content": true
+    }
+  ]
+}

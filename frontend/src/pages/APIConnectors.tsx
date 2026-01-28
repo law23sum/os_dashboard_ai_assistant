@@ -247,14 +247,14 @@ export default function APIConnectors() {
                         <button
                           onClick={() => handleAction(connector, 'status')}
                           className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-                          disabled={actionMutation.isLoading}
+                          disabled={actionMutation.isPending}
                         >
                           Status
                         </button>
                         <button
                           onClick={() => handleAction(connector, 'sync')}
                           className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-                          disabled={actionMutation.isLoading}
+                          disabled={actionMutation.isPending}
                         >
                           Sync
                         </button>
@@ -268,7 +268,7 @@ export default function APIConnectors() {
                             )
                           }
                           className="px-3 py-2 rounded-md bg-primary-600 text-white hover:bg-primary-700 text-sm"
-                          disabled={actionMutation.isLoading}
+                          disabled={actionMutation.isPending}
                         >
                           Run
                         </button>

@@ -1,0 +1,44 @@
+{
+  "profile": {
+    "name": "test_run_checks_and_report0",
+    "root": "/private/var/folders/41/y63t2p311hd_h0nbxp7q2wfh0000gn/T/pytest-of-sum/pytest-10/test_run_checks_and_report0",
+    "commands": {
+      "test": [
+        [
+          "/Users/sum/Project/os_dashboard_ai_assistant/venv/bin/python",
+          "-c",
+          "import sys; sys.exit(0)"
+        ]
+      ]
+    },
+    "autofix_script": null
+  },
+  "summary": {
+    "run_id": "15698955-be2c-4e0a-9644-780033eadba3",
+    "timestamp": "20251217-174316",
+    "counts": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "category": "test",
+      "command": [
+        "/Users/sum/Project/os_dashboard_ai_assistant/venv/bin/python",
+        "-c",
+        "import sys; sys.exit(0)"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "duration_seconds": 0.04,
+      "output": "",
+      "ran_at": 1766011396.2540412,
+      "run_id": "15698955-be2c-4e0a-9644-780033eadba3",
+      "timeout_seconds": 300,
+      "error": null
+    }
+  ]
+}

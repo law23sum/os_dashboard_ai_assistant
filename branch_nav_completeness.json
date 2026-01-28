@@ -1,0 +1,124 @@
+{
+  "fix/ia-navigation-merge": {
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "files_found": [
+      "frontend/public/gui_nav.latest.json",
+      "documentation/gui_nav_structure/gui_nav.latest.json"
+    ]
+  },
+  "fix/restore-gui-glory": {
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "files_found": [
+      "frontend/public/gui_nav.latest.json",
+      "documentation/gui_nav_structure/gui_nav.latest.json"
+    ]
+  },
+  "gui-fully-restored": {
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "files_found": [
+      "frontend/public/gui_nav.latest.json",
+      "documentation/gui_nav_structure/gui_nav.latest.json"
+    ]
+  },
+  "gui-restore-3a154a6-work": {
+    "platforms": 0,
+    "categories": 0,
+    "features": 0,
+    "total": 0,
+    "files_found": []
+  },
+  "gui-restore-stable": {
+    "platforms": 0,
+    "categories": 0,
+    "features": 0,
+    "total": 0,
+    "files_found": []
+  },
+  "gui-restore-stable-3a154a6": {
+    "platforms": 0,
+    "categories": 0,
+    "features": 0,
+    "total": 0,
+    "files_found": []
+  },
+  "integration/codex-ia-restore-final": {
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "files_found": [
+      "frontend/public/gui_nav.latest.json",
+      "documentation/gui_nav_structure/gui_nav.latest.json"
+    ]
+  },
+  "integration/ia-navigation-final": {
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "files_found": [
+      "frontend/public/gui_nav.latest.json",
+      "documentation/gui_nav_structure/gui_nav.latest.json"
+    ]
+  },
+  "integration/merge-gui-commits-20251221": {
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "files_found": [
+      "frontend/public/gui_nav.latest.json",
+      "documentation/gui_nav_structure/gui_nav.latest.json"
+    ]
+  },
+  "integration/restore-pages-ia-codex": {
+    "platforms": 0,
+    "categories": 0,
+    "features": 0,
+    "total": 0,
+    "files_found": []
+  },
+  "integration/restore-pages-ia-ktg": {
+    "platforms": 15,
+    "categories": 66,
+    "features": 441,
+    "total": 522,
+    "files_found": [
+      "frontend/public/gui_nav.latest.json",
+      "documentation/gui_nav_structure/gui_nav.latest.json"
+    ]
+  },
+  "integration/restore-pages-ia-v2": {
+    "platforms": 15,
+    "categories": 66,
+    "features": 442,
+    "total": 523,
+    "files_found": [
+      "frontend/public/gui_nav.latest.json",
+      "documentation/gui_nav_structure/gui_nav.latest.json"
+    ]
+  },
+  "restore-gui-fix": {
+    "platforms": 0,
+    "categories": 0,
+    "features": 0,
+    "total": 0,
+    "files_found": []
+  },
+  "restore-ui": {
+    "platforms": 0,
+    "categories": 0,
+    "features": 0,
+    "total": 0,
+    "files_found": []
+  }
+}

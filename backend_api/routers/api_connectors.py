@@ -258,7 +258,7 @@ class ConnectorActionResponse(BaseModel):
 async def run_connector_action(
     connector_id: str,
     action: str,
-    payload: ConnectorActionPayload | None = None,
+    payload: Optional[ConnectorActionPayload] = None,
     gateway: IntegrationAPIGateway = Depends(_get_gateway),
 ) -> ConnectorActionResponse:
     """Execute a connector action (status, sync, etc.)."""

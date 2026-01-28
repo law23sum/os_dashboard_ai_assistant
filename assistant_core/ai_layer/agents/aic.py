@@ -9,7 +9,7 @@ from ..prompts import AIC_SYSTEM_PROMPT
 from ..openai_client import get_default_client
 
 
-def plan_actions(context: str, model: str = "gpt-4.1-mini") -> str:
+def plan_actions(context: str, model: str = "gpt-5-mini") -> str:
     """Generate a high-level plan for the provided context."""
 
     client = get_default_client()
@@ -24,7 +24,7 @@ def plan_actions(context: str, model: str = "gpt-4.1-mini") -> str:
 
 
 def handle_report(
-    project: Project, intent: Optional[Intent] = None, model: str = "gpt-4.1-mini"
+    project: Project, intent: Optional[Intent] = None, model: str = "gpt-5-mini"
 ) -> str:
     """Generate a high-level report about a project, focusing on structure, automations, and next actions."""
     client = get_default_client()

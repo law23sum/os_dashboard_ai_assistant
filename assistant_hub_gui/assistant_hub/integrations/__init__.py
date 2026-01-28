@@ -24,13 +24,7 @@ from .excel.service import ExcelService
 from .onenote import OneNoteClient, clean_section, mirror_page_to_disk, summarize_page
 
 # Word integration is optional - imports will succeed but classes raise errors when instantiated if python-docx is missing
-from .word import (
-    CloudWordClient,
-    LocalDocument,
-    WordService,
-    draft_local_revision,
-    upload_cloud_revision,
-)
+from .word import CloudWordClient, LocalDocument, WordService, draft_local_revision, upload_cloud_revision
 
 # Integration wrapper classes for GUI
 from .word_integration import WordIntegration

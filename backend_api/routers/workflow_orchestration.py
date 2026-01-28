@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 from datetime import datetime, timedelta
-from typing import Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
@@ -19,8 +19,8 @@ class WorkflowStep(BaseModel):
     name: str
     status: str
     duration_seconds: int
-    started_at: str | None
-    completed_at: str | None
+    started_at: Optional[str]
+    completed_at: Optional[str]
 
 
 class WorkflowInstance(BaseModel):
@@ -32,7 +32,7 @@ class WorkflowInstance(BaseModel):
     priority: str
     progress_percent: int
     started_at: str
-    estimated_completion: str | None
+    estimated_completion: Optional[str]
     current_step: str
     total_steps: int
     owner: str

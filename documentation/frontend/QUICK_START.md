@@ -43,14 +43,13 @@ npm run build:desktop:mac
 DEV_MODE=web npm run dev
 DEV_MODE=desktop npm run dev
 
-# Custom API URL
-VITE_API_BASE_URL=http://localhost:8000 npm run dev
+# Custom API URL (defaults to relative /api)
+VITE_API_BASE_URL=http://localhost:8000/api npm run dev
 ```
 
 ## 📝 Notes
 
-- Backend must be running on port 8000
+- Backend must be running on port 8000 (serving `/api/*` routes)
 - Web and desktop share the same codebase
 - All HTML pages preserved in `/docs`
 - Platform detection via `usePlatform()` hook
-

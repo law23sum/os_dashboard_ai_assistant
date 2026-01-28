@@ -1,0 +1,15 @@
+{
+  "strategies": {
+    "dependency_ModuleNotFoundError: No module": {
+      "description": "Recovery for dependency error",
+      "commands": [
+        "pip install {1}",
+        "pip install --upgrade {1}"
+      ],
+      "success_rate": 0.0,
+      "total_attempts": 0,
+      "successful_attempts": 0
+    }
+  },
+  "last_updated": "2025-12-19 13:49:20"
+}

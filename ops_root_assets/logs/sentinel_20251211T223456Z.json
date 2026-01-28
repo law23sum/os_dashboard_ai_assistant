@@ -1,0 +1,27 @@
+{
+  "generated_at": "20251211T223456Z",
+  "repo_count": 1,
+  "unhealthy": true,
+  "statuses": [
+    {
+      "name": "os_dashboard_ai_assistant",
+      "path": "/Users/chrisdixon/Projects/os_dashboard_ai_assistant",
+      "priority": "p0",
+      "stack": [
+        "python",
+        "fastapi",
+        "react"
+      ],
+      "notes": "Core orchestrator and SaaS surface.",
+      "exists": true,
+      "git_clean": false,
+      "git_summary": "M assistant_hub.db\n M assistant_hub_gui/autofix_monitor.py\n M docs/future_supreme.html\n M frontend/electron/main.cjs\n M frontend/electron/main.js\n M frontend/public/docs/future_supreme.html\n M frontend/src/pages/Projects.tsx\n?? README.md\n?? SECURITY_CHANGES.md\n?? apps/\n?? config/repo_manifest.json\n?? docs/DEVELOPMENT_SECURITY.md\n?? docs/NETWORK_MONITORING.md\n?? docs/codex_sentinel_hooks.md\n?? docs/v1000_blueprint.md\n?? docs/v1000_sequential_task_queue.md\n?? email_validator.py\n?? frontend/public/docs/future_god.html\n?? frontend/public/docs/home.html\n?? frontend/public/docs/install.html\n?? frontend/public/docs/products.html\n?? frontend/public/docs/scripts/\n?? frontend/public/docs/styles.css\n?? frontend/public/docs/subscription.html\n?? frontend/src/api/navigation.ts\n?? frontend/src/components/CommandPalette.tsx\n?? frontend/src/components/ProfileSummary.tsx\n?? frontend/src/components/RequireAuth.tsx\n?? frontend/src/components/SystemPulse.tsx\n?? frontend/src/context/\n?? frontend/src/hooks/useNavigation.ts\n?? frontend/src/hooks/useSystemSettings.ts\n?? frontend/src/pages/Login.tsx\n?? frontend/src/pages/Onboarding.tsx\n?? frontend/src/pages/Signup.tsx\n?? frontend/src/types/navigation.ts\n?? package-lock.json\n?? repo_paths.py\n?? scripts/codex_sentinel.py\n?? sitecustomize.py\n?? tests/test_navigation_map.py\n?? tests/test_openai_model.py\n?? tmp_pkg/\n?? tmp_pkg2/\n?? tmp_pkg3/\n?? tmp_pkg4/\n?? utils/openai_model.py"
+    }
+  ],
+  "reports": {
+    "mode": "all",
+    "overview": "/Users/chrisdixon/OS_Dashboard_AI_Assistant/FEATURES_OVERVIEW.md",
+    "deep_dive": "/Users/chrisdixon/OS_Dashboard_AI_Assistant/ARCHITECTURE_DEEP_DIVE.md",
+    "todo_report": "/Users/chrisdixon/OS_Dashboard_AI_Assistant/TODO_REMAINING_20251211T223456Z.md"
+  }
+}

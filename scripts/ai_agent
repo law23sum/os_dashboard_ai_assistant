@@ -1,0 +1,206 @@
+#!/usr/bin/env python3
+"""
+Unified AI Agent Command Script
+
+This script provides a unified interface to interact with AI agents:
+- ai_agent              # Interactive agent selection
+- ai_agent AIC          # Call AIC directly
+- ai_agent Aria         # Call Aria directly
+- ai_agent Sora         # Call Sora directly
+- ai_agent ChatGPT      # Auto-route to AIC/Sora/Aria
+- ai_agent --list       # List available agents
+- ai_agent --help       # Show help
+"""
+
+import sys
+import os
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(project_root))
+
+# Import agent system with better error handling
+def import_agents():
+    """Import agents with helpful error messages"""
+    try:
+        from agents_ai import AgentSystem, AgentRole, route_prompt_to_agent
+        import asyncio
+        return AgentSystem, AgentRole, route_prompt_to_agent, asyncio
+    except ImportError as e:
+        error_msg = str(e)
+        if "openai" in error_msg.lower() or "No module named 'openai'" in error_msg:
+            print("ERROR: OpenAI package not installed.")
+            print("\nTo install:")
+            print("   pip install openai")
+            print("\nOr if using requirements.txt:")
+            print("   pip install -r requirements.txt")
+        elif "agents_ai" in error_msg or "No module named 'agents_ai'" in error_msg:
+            print(f"ERROR: Error importing agents_ai module: {e}")
+            print(f"Make sure you're in the project root directory.")
+            print(f"Expected agents_ai.py at: {project_root / 'agents_ai.py'}")
+        else:
+            print(f"ERROR: Error importing agents: {e}")
+        raise
+
+
+async def call_agent(agent_name: str, message: str, AgentSystem, route_prompt_to_agent, asyncio):
+    """Call a specific agent with a message"""
+    system = AgentSystem()
+    
+    agent_name_upper = agent_name.upper()
+    if agent_name_upper in ["CHATGPT", "AUTO"]:
+        routed = route_prompt_to_agent(message, system.agents)
+        for routed_name in routed:
+            agent = system.agents.get(routed_name)
+            if not agent:
+                continue
+            print(f"\n{routed_name} thinking...\n")
+            response = await agent.think(message)
+            print(f"\n[{routed_name}]:\n{response}\n")
+        return
+
+    if agent_name_upper not in system.agents:
+        print(f"ERROR: Agent '{agent_name}' not found.")
+        print(f"Available agents: {', '.join(system.agents.keys())}")
+        return
+    
+    agent = system.agents[agent_name_upper]
+    print(f"\n{agent_name_upper} thinking...\n")
+    response = await agent.think(message)
+    print(f"\n[{agent_name_upper}]:\n{response}\n")
+
+
+async def interactive_mode(AgentSystem, route_prompt_to_agent, asyncio):
+    """Interactive mode for selecting and chatting with agents"""
+    system = AgentSystem()
+    
+    print("\n" + "=" * 70)
+    print("  AI Agent System - Interactive Mode")
+    print("=" * 70)
+    print("\nAvailable agents:")
+    for name, agent in system.agents.items():
+        print(f"  - {name}: {agent.role.value}")
+    print("\nCommands:")
+    print("  @<AgentName> <message>  - Talk to specific agent")
+    print("  /list                   - List agents")
+    print("  /help                   - Show help")
+    print("  /quit                   - Exit")
+    print()
+    
+    while True:
+        try:
+            user_input = input("Agent > ").strip()
+            
+            if not user_input:
+                continue
+            
+            if user_input.lower() in ["/quit", "/exit", "quit", "exit"]:
+                print("Goodbye!")
+                break
+            
+            if user_input.lower() == "/list":
+                print("\nAvailable agents:")
+                for name, agent in system.agents.items():
+                    print(f"  - {name}: {agent.role.value}")
+                print()
+                continue
+            
+            if user_input.lower() == "/help":
+                print("\nCommands:")
+                print("  @<AgentName> <message>  - Talk to specific agent (e.g., @AIC optimize this code)")
+                print("  /list                   - List agents")
+                print("  /help                   - Show help")
+                print("  /quit                   - Exit")
+                print()
+                continue
+            
+            # Check for @agent message format
+            if user_input.startswith("@"):
+                parts = user_input.split(" ", 1)
+                agent_name = parts[0][1:].upper()
+                message = parts[1] if len(parts) > 1 else "Hello"
+                
+                if agent_name in system.agents or agent_name in ["CHATGPT", "AUTO"]:
+                    await call_agent(agent_name, message, AgentSystem, route_prompt_to_agent, asyncio)
+                else:
+                    print(f"ERROR: Agent '{agent_name}' not found.")
+                    print(f"Available agents: {', '.join(system.agents.keys())}")
+            else:
+                print("Please use @<AgentName> <message> format or type /help for commands.")
+                
+        except KeyboardInterrupt:
+            print("\nGoodbye!")
+            break
+        except Exception as e:
+            print(f"ERROR: {e}")
+
+
+def main():
+    """Main entry point"""
+    # Always show help if requested, even if imports fail
+    if len(sys.argv) >= 2 and sys.argv[1] in ["--help", "-h", "help"]:
+        print(__doc__)
+        print("\nUsage:")
+        print("  ai_agent                  # Interactive mode")
+        print("  ai_agent AIC <message>    # Call AIC directly")
+        print("  ai_agent Aria <message>   # Call Aria directly")
+        print("  ai_agent Sora <message>   # Call Sora directly")
+        print("  ai_agent ChatGPT <message> # Auto-route to AIC/Aria/Sora")
+        print("  ai_agent --list           # List available agents")
+        print("\nRequirements:")
+        print("  - OpenAI API key: Set OPENAI_API_KEY environment variable")
+        print("  - openai package: pip install openai")
+        print("\nExamples:")
+        print("  ai_agent AIC 'optimize this code'")
+        print("  ai_agent Aria 'explain the meaning of this concept'")
+        print("  ai_agent Sora 'prove this mathematically'")
+        print("  ai_agent ChatGPT 'route this query'")
+        return
+    
+    # Try to import for other operations
+    try:
+        AgentSystem, AgentRole, route_prompt_to_agent, asyncio = import_agents()
+    except ImportError:
+        print("\nERROR: Cannot proceed without required dependencies.")
+        print("Run with --help to see requirements.")
+        sys.exit(1)
+    
+    if len(sys.argv) < 2:
+        # Interactive mode
+        try:
+            asyncio.run(interactive_mode(AgentSystem, route_prompt_to_agent, asyncio))
+        except KeyboardInterrupt:
+            print("\n\nGoodbye!")
+        except Exception as e:
+            print(f"\nERROR: {e}")
+            sys.exit(1)
+    elif sys.argv[1] in ["--list", "-l", "list"]:
+        try:
+            system = AgentSystem()
+            print("\nAvailable agents:")
+            for name, agent in system.agents.items():
+                print(f"  - {name}: {agent.role.value}")
+                print(f"    Specializations: {', '.join(agent.specializations[:5])}...")
+            print("  - ChatGPT: Auto-route by role")
+            print()
+        except Exception as e:
+            print(f"\nERROR: Error initializing agents: {e}")
+            if "API key" in str(e) or "OPENAI_API_KEY" in str(e):
+                print("Tip: Set your API key: export OPENAI_API_KEY='your-key-here'")
+            sys.exit(1)
+    else:
+        # Direct agent call
+        agent_name = sys.argv[1]
+        message = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else "Hello"
+        try:
+            asyncio.run(call_agent(agent_name, message, AgentSystem, route_prompt_to_agent, asyncio))
+        except KeyboardInterrupt:
+            print("\n\nInterrupted.")
+        except Exception as e:
+            print(f"\nERROR: {e}")
+            sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

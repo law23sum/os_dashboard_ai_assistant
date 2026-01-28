@@ -1,0 +1,105 @@
+directories:
+  output: dist-electron
+  buildResources: electron/resources
+appId: com.osdashboard.aiassistant
+productName: OS Dashboard AI Assistant
+copyright: Copyright © 2024 OS Dashboard
+files:
+  - filter:
+      - dist/**/*
+      - electron/**/*
+      - package.json
+mac:
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  icon: electron/resources/icon.icns
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: electron/resources/entitlements.mac.plist
+  entitlementsInherit: electron/resources/entitlements.mac.plist
+dmg:
+  contents:
+    - x: 130
+      'y': 220
+    - x: 410
+      'y': 220
+      type: link
+      path: /Applications
+  window:
+    width: 540
+    height: 380
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - ia32
+    - target: portable
+      arch:
+        - x64
+  icon: electron/resources/icon.ico
+  publisherName: OS Dashboard
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: OS Dashboard AI
+  installerIcon: electron/resources/icon.ico
+  uninstallerIcon: electron/resources/icon.ico
+  installerHeaderIcon: electron/resources/icon.ico
+  license: LICENSE
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+        - arm64
+    - target: deb
+      arch:
+        - x64
+    - target: rpm
+      arch:
+        - x64
+  category: Office
+  icon: electron/resources
+  maintainer: OS Dashboard Team
+  vendor: OS Dashboard
+  synopsis: AI-powered dashboard and assistant
+  description: A comprehensive AI assistant with dashboard, task management, and automation capabilities. Supports both web browser and desktop deployment.
+appImage:
+  artifactName: ${productName}-${version}-${arch}.AppImage
+deb:
+  depends:
+    - gconf2
+    - gconf-service
+    - libnotify4
+    - libappindicator1
+    - libxtst6
+    - libnss3
+  packageCategory: utils
+rpm:
+  depends:
+    - libnotify
+    - libappindicator
+publish:
+  provider: generic
+  url: https://releases.osdashboard.dev
+asar: true
+compression: maximum
+extraResources:
+  - from: ../backend_api
+    to: backend
+    filter:
+      - '**/*'
+      - '!**/__pycache__/**'
+      - '!**/*.pyc'
+electronVersion: 39.2.6

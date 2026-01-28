@@ -1,0 +1,170 @@
+
+12:03:46 AM [vite] (client) Re-optimizing dependencies because lockfile has changed
+
+  VITE v7.2.7  ready in 1619 ms
+
+  ➜  Local:   http://127.0.0.1:5173/
+12:20:52 AM [vite] Internal server error: Failed to resolve import "../lib/apiClient" from "src/utils/runtimeDiagnostics.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/utils/runtimeDiagnostics.ts:1:35
+  1  |  import apiClient, { apiPath } from "../lib/apiClient";
+     |                                      ^
+  2  |  const ENDPOINT = apiPath("runtime/diagnostics");
+  3  |  const serializePayload = (payload) => ({
+      at TransformPluginContext._formatLog (file:///Users/sum/Project/os_dashboard_ai_assistant/frontend/node_modules/vite/dist/node/chunks/config.js:28998:43)
+      at TransformPluginContext.error (file:///Users/sum/Project/os_dashboard_ai_assistant/frontend/node_modules/vite/dist/node/chunks/config.js:28995:14)
+      at norma  zeUrl (file:///Users/sum/Project/os_     oard_ai_assistant/frontend/node_modules/vite/dist/node/chunks/config.js:27118:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async file:///Users/sum/Project/os_dashboard_ai_assistant/frontend/node_modules/vite/dist/node/chunks/config.js:27176:32
+      at async Promise.all (index 0)
+      at async TransformPluginContext.transform (file:///Users/sum/Project/os_dashboard_ai_assistant/frontend/node_modules/vite/dist/node/chunks/config.js:27144:4)
+      at async EnvironmentPluginContainer.transform (file:///Users/sum/Project/os_dashboard_ai_assistant/frontend/node_modules/vite/dist/node/chunks/config.js:28796:14)
+      at async loadAndTransform (file:///Users/sum/Project/os_dashboard_ai_assistant/frontend/node_modules/vite/dist/node/chunks/config.js:22669:26)
+12:20:52 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/utils/runtimeDiagnostics.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/utils/runtimeDiagnostics.ts:1:35
+  1  |  import apiClient, { apiPath } from "../lib/apiClient";
+     |                                      ^
+  2  |  const ENDPOINT = apiPath("runtime/diagnostics");
+  3  |  const serializePayload = (payload) => ({
+12:20:52 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/utils/runtimeDiagnostics.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/utils/runtimeDiagnostics.ts:1:35
+  1  |  import apiClient, { apiPath } from "../lib/apiClient";
+     |                                      ^
+  2  |  const ENDPOINT = apiPath("runtime/diagnostics");
+  3  |  const serializePayload = (payload) => ({ (x2)
+12:20:55 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/pages/Login.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/pages/Login.tsx:5:31
+  20 |  import { AlertCircle, LogIn, Lock, Shield, User } from "lucide-react";
+  21 |  import { login } from "../api/auth";
+  22 |  import { setAccessToken } from "../lib/apiClient";
+     |                                  ^
+  23 |  import { toast } from "../utils/toast";
+  24 |  export default function Login() {
+12:20:55 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/pages/Admin.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/pages/Admin.tsx:6:35
+  21 |  import { useAuth } from "../auth/AuthContext";
+  22 |  import PageHeader from "../components/PageHeader";
+  23 |  import apiClient, { apiPath } from "../lib/apiClient";
+     |                                      ^
+  24 |  const fetchJson = async (url) => {
+  25 |    const { data } = await apiClient.get(apiPath(url.replace(/^\/api\//, "")));
+12:20:55 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/auth/AuthContext.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/auth/AuthContext.tsx:2:47
+  17 |  var _s = $RefreshSig$(), _s2 = $RefreshSig$();
+  18 |  import { createContext, useContext, useEffect, useMemo, useState } from "react";
+  19 |  import { getAccessToken, setAccessToken } from "../lib/apiClient";
+     |                                                  ^
+  20 |  import { me as fetchMe } from "../api/auth";
+  21 |  const AuthContext = createContext(null);
+12:20:55 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/auth/AuthContext.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/auth/AuthContext.tsx:2:47
+  17 |  var _s = $RefreshSig$(), _s2 = $RefreshSig$();
+  18 |  import { createContext, useContext, useEffect, useMemo, useState } from "react";
+  19 |  import { getAccessToken, setAccessToken } from "../lib/apiClient";
+     |                                                  ^
+  20 |  import { me as fetchMe } from "../api/auth";
+  21 |  const AuthContext = createContext(null); (x2)
+12:20:55 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/auth/AuthContext.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/auth/AuthContext.tsx:2:47
+  17 |  var _s = $RefreshSig$(), _s2 = $RefreshSig$();
+  18 |  import { createContext, useContext, useEffect, useMemo, useState } from "react";
+  19 |  import { getAccessToken, setAccessToken } from "../lib/apiClient";
+     |                                                  ^
+  20 |  import { me as fetchMe } from "../api/auth";
+  21 |  const AuthContext = createContext(null); (x3)
+12:20:55 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/auth/AuthContext.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/auth/AuthContext.tsx:2:47
+  17 |  var _s = $RefreshSig$(), _s2 = $RefreshSig$();
+  18 |  import { createContext, useContext, useEffect, useMemo, useState } from "react";
+  19 |  import { getAccessToken, setAccessToken } from "../lib/apiClient";
+     |                                                  ^
+  20 |  import { me as fetchMe } from "../api/auth";
+  21 |  const AuthContext = createContext(null); (x4)
+12:20:55 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/auth/AuthContext.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/auth/AuthContext.tsx:2:47
+  17 |  var _s = $RefreshSig$(), _s2 = $RefreshSig$();
+  18 |  import { createContext, useContext, useEffect, useMemo, useState } from "react";
+  19 |  import { getAccessToken, setAccessToken } from "../lib/apiClient";
+     |                                                  ^
+  20 |  import { me as fetchMe } from "../api/auth";
+  21 |  const AuthContext = createContext(null); (x5)
+12:20:55 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/pages/ResponsesChat.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/pages/ResponsesChat.tsx:23:35
+  31 |  } from "lucide-react";
+  32 |  import { toast } from "../utils/toast";
+  33 |  import apiClient, { apiPath } from "../lib/apiClient";
+     |                                      ^
+  34 |  import PageHeader from "../components/PageHeader";
+  35 |  export default function ResponsesChat() {
+12:20:57 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/api/auth.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/api/auth.ts:1:51
+  1  |  import apiClient, { apiPath, setAccessToken } from "../lib/apiClient";
+     |                                                      ^
+  2  |  export const login = async (emailOrUsername, password) => {
+  3  |    const { data } = await apiClient.post(apiPath("auth/login"), {
+12:20:57 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/api/auth.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/api/auth.ts:1:51
+  1  |  import apiClient, { apiPath, setAccessToken } from "../lib/apiClient";
+     |                                                      ^
+  2  |  export const login = async (emailOrUsername, password) => {
+  3  |    const { data } = await apiClient.post(apiPath("auth/login"), { (x2)
+12:20:57 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/api/auth.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/api/auth.ts:1:51
+  1  |  import apiClient, { apiPath, setAccessToken } from "../lib/apiClient";
+     |                                                      ^
+  2  |  export const login = async (emailOrUsername, password) => {
+  3  |    const { data } = await apiClient.post(apiPath("auth/login"), { (x3)
+12:20:57 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/api/pms.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/api/pms.ts:1:35
+  1  |  import apiClient, { apiPath } from "../lib/apiClient";
+     |                                      ^
+  2  |  const withScope = (scope, workspace_id) => ({
+  3  |    scope,
+12:20:57 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/api/pms.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/api/pms.ts:1:35
+  1  |  import apiClient, { apiPath } from "../lib/apiClient";
+     |                                      ^
+  2  |  const withScope = (scope, workspace_id) => ({
+  3  |    scope, (x2)
+12:20:57 AM [vite] (client) Pre-transform error: Failed to resolve import "../lib/apiClient" from "src/api/settings.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sum/Project/os_dashboard_ai_assistant/frontend/src/api/settings.ts:1:35
+  1  |  import apiClient, { apiPath } from "../lib/apiClient";
+     |                                      ^
+  2  |  export const fetchSettings = async () => {
+  3  |    const { data } = await apiClient.get(apiPath("settings"));
+cd ^[[A^[[A
+
+
+#### Step 4: Make Scripts Executable (macOS/Linux)
+
+```bash
+chmod +x *.sh scripts/*.py *.py
+```
+
+#### Step 4: Make Scripts Executable (macOS/Linux)
+
+```bash
+chmod +x *.sh scripts/*.py *.py
+```
+
+#### Step 4: Make Scripts Executable (macOS/Linux)
+
+```bash
+chmod +x *.sh scripts/*.py *.py
+```

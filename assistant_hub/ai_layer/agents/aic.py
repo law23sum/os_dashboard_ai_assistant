@@ -6,28 +6,25 @@ from typing import Optional
 from ...db import Project
 from ...core.routing import Intent
 from ..prompts import AIC_SYSTEM_PROMPT
-from ..openai_client import get_default_client
+from ..openai_client import chat
 
 
-def plan_actions(context: str, model: str = "gpt-4.1-mini") -> str:
+def plan_actions(context: str, model: str = "gpt-5-mini") -> str:
     """Generate a high-level plan for the provided context."""
 
-    client = get_default_client()
-    response = client.chat(
-        model=model,
+    return chat(
+        model,
         messages=[
             {"role": "system", "content": AIC_SYSTEM_PROMPT},
             {"role": "user", "content": context},
         ],
     )
-    return response.choices[0].message.content
 
 
 def handle_report(
-    project: Project, intent: Optional[Intent] = None, model: str = "gpt-4.1-mini"
+    project: Project, intent: Optional[Intent] = None, model: str = "gpt-5-mini"
 ) -> str:
     """Generate a high-level report about a project, focusing on structure, automations, and next actions."""
-    client = get_default_client()
 
     context = f"Project: {project.name}\nDescription: {project.description}\nStatus: {project.status}"
     if intent and intent.context:
@@ -45,5 +42,4 @@ def handle_report(
         },
     ]
 
-    response = client.chat(model=model, messages=messages)
-    return response.choices[0].message.content
+    return chat(model, messages)

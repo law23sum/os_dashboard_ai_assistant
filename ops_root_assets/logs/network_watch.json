@@ -1,0 +1,228 @@
+{
+  "generated_at": "2025-12-11T23:27:20.051750Z",
+  "auth": {
+    "window_minutes": 1,
+    "count": 0,
+    "recent_events": []
+  },
+  "listening": [
+    {
+      "error": "access_denied"
+    }
+  ],
+  "suspicious": [
+    {
+      "error": "access_denied"
+    }
+  ],
+  "interfaces": [
+    {
+      "interface": "anpi0",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "anpi1",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "anpi2",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "ap1",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "awdl0",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "bridge0",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "en0",
+      "tx_bytes_per_sec": 30720.0,
+      "rx_bytes_per_sec": 184320.0,
+      "tx_mbps": 0.2458,
+      "rx_mbps": 1.4746,
+      "tx_packets_per_sec": 330.0,
+      "rx_packets_per_sec": 500.0
+    },
+    {
+      "interface": "en1",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "en2",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "en3",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "en4",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "en5",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "en8",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "gif0",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "ipsec0",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "llw0",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "lo0",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 80.0,
+      "rx_packets_per_sec": 80.0
+    },
+    {
+      "interface": "stf0",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "utun0",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "utun1",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "utun2",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    },
+    {
+      "interface": "utun3",
+      "tx_bytes_per_sec": 0.0,
+      "rx_bytes_per_sec": 0.0,
+      "tx_mbps": 0.0,
+      "rx_mbps": 0.0,
+      "tx_packets_per_sec": 0.0,
+      "rx_packets_per_sec": 0.0
+    }
+  ],
+  "wifi": {
+    "status": "unsupported"
+  },
+  "latency": [
+    {
+      "host": "127.0.0.1",
+      "status": "error",
+      "latency": null
+    }
+  ]
+}

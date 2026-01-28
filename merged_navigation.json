@@ -1,0 +1,3013 @@
+{
+  "Personal Workstation Edition": {
+    "Mission Control": {
+      "Core Flight Deck": [
+        {
+          "title": "Core Flight Deck",
+          "path": "/dashboard/core-flight-deck",
+          "new": false
+        },
+        {
+          "title": "Dashboard",
+          "path": "/dashboard/flight-deck",
+          "new": false
+        },
+        {
+          "title": "Projects",
+          "path": "/dashboard/flight-deck/projects",
+          "new": false
+        },
+        {
+          "title": "Project Templates",
+          "path": "/dashboard/core-flight-deck/templates",
+          "new": true
+        },
+        {
+          "title": "Project Members & Roles",
+          "path": "/dashboard/core-flight-deck/members",
+          "new": true
+        },
+        {
+          "title": "Project Settings",
+          "path": "/dashboard/core-flight-deck/settings",
+          "new": true
+        },
+        {
+          "title": "Tasks",
+          "path": "/dashboard/flight-deck/tasks",
+          "new": false
+        },
+        {
+          "title": "Task Board (Kanban)",
+          "path": "/dashboard/core-flight-deck/board",
+          "new": true
+        },
+        {
+          "title": "Task Automation & Rules",
+          "path": "/dashboard/core-flight-deck/automation",
+          "new": true
+        },
+        {
+          "title": "Task Analytics",
+          "path": "/dashboard/core-flight-deck/analytics",
+          "new": true
+        },
+        {
+          "title": "Activity Feed",
+          "path": "/dashboard/core-flight-deck/activity",
+          "new": true
+        },
+        {
+          "title": "Notifications Center",
+          "path": "/dashboard/core-flight-deck/notifications",
+          "new": true
+        },
+        {
+          "title": "Work Queue / Inbox",
+          "path": "/dashboard/core-flight-deck/inbox",
+          "new": true
+        },
+        {
+          "title": "Calendar / Timeline",
+          "path": "/dashboard/core-flight-deck/timeline",
+          "new": true
+        },
+        {
+          "title": "Dashboard",
+          "path": "/",
+          "new": false
+        },
+        {
+          "title": "Projects",
+          "path": "/projects",
+          "new": false
+        },
+        {
+          "title": "Project Templates",
+          "path": "/projects/templates",
+          "new": true
+        },
+        {
+          "title": "Project Members & Roles",
+          "path": "/projects/members",
+          "new": true
+        },
+        {
+          "title": "Project Settings",
+          "path": "/projects/settings",
+          "new": true
+        },
+        {
+          "title": "Tasks",
+          "path": "/tasks",
+          "new": false
+        },
+        {
+          "title": "Task Board (Kanban)",
+          "path": "/tasks/board",
+          "new": true
+        },
+        {
+          "title": "Task Automation & Rules",
+          "path": "/tasks/automation",
+          "new": true
+        },
+        {
+          "title": "Task Analytics",
+          "path": "/tasks/analytics",
+          "new": true
+        },
+        {
+          "title": "Activity Feed",
+          "path": "/activity",
+          "new": true
+        },
+        {
+          "title": "Notifications Center",
+          "path": "/notifications",
+          "new": true
+        },
+        {
+          "title": "Work Queue / Inbox",
+          "path": "/inbox",
+          "new": true
+        },
+        {
+          "title": "Calendar / Timeline",
+          "path": "/timeline",
+          "new": true
+        }
+      ],
+      "Engagement & Persona Surfaces": [
+        {
+          "title": "Engagement & Persona Surfaces",
+          "path": "/dashboard/engagement-persona-surfaces",
+          "new": false
+        },
+        {
+          "title": "Chat",
+          "path": "/dashboard/engagement/chat",
+          "new": false
+        },
+        {
+          "title": "Conversation Library",
+          "path": "/dashboard/engagement-persona-surfaces/library",
+          "new": true
+        },
+        {
+          "title": "Search & Discovery",
+          "path": "/dashboard/engagement/search",
+          "new": false
+        },
+        {
+          "title": "Saved Searches & Alerts",
+          "path": "/dashboard/engagement-persona-surfaces/saved",
+          "new": true
+        },
+        {
+          "title": "Collaboration",
+          "path": "/dashboard/engagement/collaboration",
+          "new": false
+        },
+        {
+          "title": "Shared Spaces / Channels",
+          "path": "/dashboard/engagement-persona-surfaces/channels",
+          "new": true
+        },
+        {
+          "title": "Mentions & Presence",
+          "path": "/dashboard/engagement-persona-surfaces/presence",
+          "new": true
+        },
+        {
+          "title": "Personalization",
+          "path": "/dashboard/engagement/personalization",
+          "new": false
+        },
+        {
+          "title": "Prompt / Macro Library",
+          "path": "/dashboard/engagement-persona-surfaces/macros",
+          "new": true
+        },
+        {
+          "title": "Preference Profiles",
+          "path": "/dashboard/engagement-persona-surfaces/profiles",
+          "new": true
+        },
+        {
+          "title": "Chat",
+          "path": "/chat",
+          "new": false
+        },
+        {
+          "title": "Conversation Library",
+          "path": "/chat/library",
+          "new": true
+        },
+        {
+          "title": "Search & Discovery",
+          "path": "/search",
+          "new": false
+        },
+        {
+          "title": "Saved Searches & Alerts",
+          "path": "/search/saved",
+          "new": true
+        },
+        {
+          "title": "Collaboration",
+          "path": "/collaboration",
+          "new": false
+        },
+        {
+          "title": "Shared Spaces / Channels",
+          "path": "/collaboration/channels",
+          "new": true
+        },
+        {
+          "title": "Mentions & Presence",
+          "path": "/collaboration/presence",
+          "new": true
+        },
+        {
+          "title": "Personalization",
+          "path": "/personalization",
+          "new": false
+        },
+        {
+          "title": "Prompt / Macro Library",
+          "path": "/personalization/macros",
+          "new": true
+        },
+        {
+          "title": "Preference Profiles",
+          "path": "/personalization/profiles",
+          "new": true
+        }
+      ]
+    },
+    "Workspaces": {
+      "Dev & DevOps Workspace": [
+        {
+          "title": "Dev & DevOps Workspace",
+          "path": "/workspaces/dev-devops-workspace",
+          "new": false
+        },
+        {
+          "title": "Dev Workspace",
+          "path": "/workspaces/dev",
+          "new": false
+        },
+        {
+          "title": "Developer Tools",
+          "path": "/workspaces/dev/tools",
+          "new": false
+        },
+        {
+          "title": "Repo & Branch Browser",
+          "path": "/workspaces/dev/repos",
+          "new": true
+        },
+        {
+          "title": "CI/CD Integration",
+          "path": "/workspaces/dev/cicd",
+          "new": false
+        },
+        {
+          "title": "Build/Test Insights",
+          "path": "/workspaces/dev/build-insights",
+          "new": true
+        },
+        {
+          "title": "Commit \u2192 Task Generator",
+          "path": "/workspaces/dev/commit-tasks",
+          "new": false
+        },
+        {
+          "title": "Code Review Queue",
+          "path": "/workspaces/dev/reviews",
+          "new": true
+        },
+        {
+          "title": "Code Merge Advisor",
+          "path": "/workspaces/dev/merge-advisor",
+          "new": false
+        },
+        {
+          "title": "Dependency Updates",
+          "path": "/workspaces/dev/deps",
+          "new": true
+        },
+        {
+          "title": "Release Notes Generator",
+          "path": "/workspaces/dev/release-notes",
+          "new": true
+        },
+        {
+          "title": "Local Environment Health",
+          "path": "/workspaces/dev/env-health",
+          "new": true
+        },
+        {
+          "title": "Developer Tools",
+          "path": "/work/tools",
+          "new": false
+        }
+      ],
+      "Research & Simulation Workspace": [
+        {
+          "title": "Research & Simulation Workspace",
+          "path": "/workspaces/research-simulation-workspace",
+          "new": false
+        },
+        {
+          "title": "Research Hub",
+          "path": "/workspaces/research",
+          "new": false
+        },
+        {
+          "title": "Unified Research Lab",
+          "path": "/workspaces/research/lab",
+          "new": false
+        },
+        {
+          "title": "Dataset Registry",
+          "path": "/workspaces/research/datasets",
+          "new": true
+        },
+        {
+          "title": "Notebook / Lab Notes",
+          "path": "/workspaces/research/notes",
+          "new": true
+        },
+        {
+          "title": "Experiment Design",
+          "path": "/workspaces/research/experiments",
+          "new": false
+        },
+        {
+          "title": "Experiment Tracking",
+          "path": "/workspaces/research/tracking",
+          "new": true
+        },
+        {
+          "title": "Simulation Workbench",
+          "path": "/workspaces/research/simulation",
+          "new": false
+        },
+        {
+          "title": "HPC Orchestrator",
+          "path": "/workspaces/research/hpc",
+          "new": false
+        },
+        {
+          "title": "Model Validation",
+          "path": "/workspaces/research/validation",
+          "new": false
+        },
+        {
+          "title": "Reproducibility Packs",
+          "path": "/workspaces/research/reproducibility",
+          "new": true
+        },
+        {
+          "title": "Results Publishing",
+          "path": "/workspaces/research/publishing",
+          "new": true
+        },
+        {
+          "title": "Digital Twin Builder",
+          "path": "/workspaces/research/digital-twins",
+          "new": false
+        },
+        {
+          "title": "Research Hub",
+          "path": "/research",
+          "new": false
+        }
+      ],
+      "Writer Workspace": [
+        {
+          "title": "Writer Workspace",
+          "path": "/workspaces/writer-workspace",
+          "new": false
+        },
+        {
+          "title": "Writer Workstation",
+          "path": "/workspaces/writer",
+          "new": false
+        },
+        {
+          "title": "Templates",
+          "path": "/workspaces/writer/templates",
+          "new": false
+        },
+        {
+          "title": "Style Guide Manager",
+          "path": "/workspaces/writer/style-guide",
+          "new": true
+        },
+        {
+          "title": "Canon & Lore",
+          "path": "/workspaces/writer/canon",
+          "new": false
+        },
+        {
+          "title": "Narrative Guidance",
+          "path": "/workspaces/writer/narrative",
+          "new": false
+        },
+        {
+          "title": "Story QA & Continuity",
+          "path": "/workspaces/writer/qa",
+          "new": false
+        },
+        {
+          "title": "Versioning & Change Log",
+          "path": "/workspaces/writer/versioning",
+          "new": true
+        },
+        {
+          "title": "Citations & References",
+          "path": "/workspaces/writer/citations",
+          "new": true
+        },
+        {
+          "title": "Originality Check",
+          "path": "/workspaces/writer/originality",
+          "new": true
+        },
+        {
+          "title": "Export & Publishing",
+          "path": "/workspaces/writer/publishing",
+          "new": true
+        },
+        {
+          "title": "Writer Workstation",
+          "path": "/work/writer",
+          "new": false
+        },
+        {
+          "title": "Templates",
+          "path": "/work/templates",
+          "new": false
+        }
+      ],
+      "Cybersecurity Workspace": [
+        {
+          "title": "Cybersecurity Workspace",
+          "path": "/workspaces/cybersecurity-workspace",
+          "new": false
+        },
+        {
+          "title": "Security Guardian",
+          "path": "/workspaces/cyber",
+          "new": false
+        },
+        {
+          "title": "Findings & Triage",
+          "path": "/workspaces/cyber/findings",
+          "new": true
+        },
+        {
+          "title": "Threat Modeling",
+          "path": "/workspaces/cyber/threat-modeling",
+          "new": false
+        },
+        {
+          "title": "Policy-as-Code Checks",
+          "path": "/workspaces/cyber/policy-checks",
+          "new": true
+        },
+        {
+          "title": "Vulnerability Scan Integrations",
+          "path": "/workspaces/cyber/scanners",
+          "new": true
+        },
+        {
+          "title": "Threat Intel Feeds",
+          "path": "/workspaces/cyber/intel",
+          "new": true
+        },
+        {
+          "title": "Playbooks & Runbooks",
+          "path": "/workspaces/cyber/playbooks",
+          "new": true
+        },
+        {
+          "title": "Incident Commander",
+          "path": "/workspaces/cyber/incidents",
+          "new": true
+        },
+        {
+          "title": "Auto-Remediation",
+          "path": "/workspaces/cyber/auto-remediation",
+          "new": false
+        },
+        {
+          "title": "Security Guardian",
+          "path": "/ai/security",
+          "new": false
+        }
+      ],
+      "Business & Finance Workspace": [
+        {
+          "title": "Business & Finance Workspace",
+          "path": "/workspaces/business-finance-workspace",
+          "new": false
+        },
+        {
+          "title": "Business Console",
+          "path": "/workspaces/finance",
+          "new": false
+        },
+        {
+          "title": "KPI Dashboard",
+          "path": "/workspaces/finance/kpis",
+          "new": true
+        },
+        {
+          "title": "Budget Planner",
+          "path": "/workspaces/finance/budgets",
+          "new": true
+        },
+        {
+          "title": "Forecasting Lab",
+          "path": "/workspaces/finance/forecasting",
+          "new": true
+        },
+        {
+          "title": "Strategy Simulation",
+          "path": "/workspaces/finance/scenarios",
+          "new": false
+        },
+        {
+          "title": "Risk Register",
+          "path": "/workspaces/finance/risk",
+          "new": true
+        },
+        {
+          "title": "Report Generator",
+          "path": "/workspaces/finance/reports",
+          "new": true
+        }
+      ],
+      "Operator & SRE Workspace": [
+        {
+          "title": "Operator & SRE Workspace",
+          "path": "/workspaces/operator-sre-workspace",
+          "new": false
+        },
+        {
+          "title": "SRE Workspace",
+          "path": "/workspaces/sre",
+          "new": false
+        },
+        {
+          "title": "Reliability Dashboard",
+          "path": "/workspaces/sre/reliability",
+          "new": false
+        },
+        {
+          "title": "Health & Drift Monitors",
+          "path": "/workspaces/sre/health",
+          "new": false
+        },
+        {
+          "title": "Runbook Library",
+          "path": "/workspaces/sre/runbooks",
+          "new": true
+        },
+        {
+          "title": "Incident Timeline",
+          "path": "/workspaces/sre/incidents",
+          "new": true
+        },
+        {
+          "title": "Change Management",
+          "path": "/workspaces/sre/changes",
+          "new": true
+        },
+        {
+          "title": "Capacity & Cost Insights",
+          "path": "/workspaces/sre/capacity-cost",
+          "new": true
+        },
+        {
+          "title": "Maintenance Windows",
+          "path": "/workspaces/sre/maintenance",
+          "new": true
+        },
+        {
+          "title": "Sandbox Management",
+          "path": "/workspaces/sre/sandbox",
+          "new": false
+        }
+      ],
+      "Archive & Continuity Workspace": [
+        {
+          "title": "Archive & Continuity Workspace",
+          "path": "/workspaces/archive-continuity-workspace",
+          "new": false
+        },
+        {
+          "title": "Archive Workspace",
+          "path": "/workspaces/archive",
+          "new": false
+        },
+        {
+          "title": "Snapshot Manager",
+          "path": "/workspaces/archive/snapshots",
+          "new": true
+        },
+        {
+          "title": "Retention Policies",
+          "path": "/workspaces/archive/retention",
+          "new": true
+        },
+        {
+          "title": "Temporal Reconstruction",
+          "path": "/workspaces/archive/time-travel",
+          "new": false
+        },
+        {
+          "title": "Restore & Export",
+          "path": "/workspaces/archive/restore",
+          "new": true
+        }
+      ],
+      "Digital Twin & Enterprise Twin Workspace": [
+        {
+          "title": "Digital Twin & Enterprise Twin Workspace",
+          "path": "/workspaces/digital-twin-enterprise-twin-workspace",
+          "new": false
+        },
+        {
+          "title": "Digital Twin Builder",
+          "path": "/workspaces/twins",
+          "new": false
+        },
+        {
+          "title": "Twin Templates",
+          "path": "/workspaces/twins/templates",
+          "new": true
+        },
+        {
+          "title": "Data Feeds & Sync",
+          "path": "/workspaces/twins/feeds",
+          "new": true
+        },
+        {
+          "title": "Scenario Runner",
+          "path": "/workspaces/twins/scenarios",
+          "new": true
+        },
+        {
+          "title": "Reality Twin Mesh",
+          "path": "/workspaces/twins/reality-mesh",
+          "new": false
+        },
+        {
+          "title": "Twin Governance",
+          "path": "/workspaces/twins/governance",
+          "new": true
+        },
+        {
+          "title": "Enterprise Twin",
+          "path": "/workspaces/twins/enterprise",
+          "new": false
+        }
+      ]
+    },
+    "AI Fabric": {
+      "Cognitive Agents & Reasoning": [
+        {
+          "title": "Cognitive Agents & Reasoning",
+          "path": "/ai/cognitive-agents-reasoning",
+          "new": false
+        },
+        {
+          "title": "AI Copilot",
+          "path": "/ai/copilot",
+          "new": false
+        },
+        {
+          "title": "Personas & Agents",
+          "path": "/ai/personas",
+          "new": false
+        },
+        {
+          "title": "Prompt/Instruction Library",
+          "path": "/ai/prompts",
+          "new": true
+        },
+        {
+          "title": "Project Intelligence",
+          "path": "/ai/project-intelligence",
+          "new": false
+        },
+        {
+          "title": "Evaluation & Benchmarks",
+          "path": "/ai/evals",
+          "new": true
+        },
+        {
+          "title": "Model Router / Policy",
+          "path": "/ai/routing",
+          "new": true
+        },
+        {
+          "title": "Advanced AI Engine",
+          "path": "/ai/advanced",
+          "new": false
+        },
+        {
+          "title": "Daemon Framework",
+          "path": "/ai/daemons",
+          "new": false
+        },
+        {
+          "title": "Theoretical Reasoning Framework",
+          "path": "/ai/trf",
+          "new": false
+        },
+        {
+          "title": "Safety & Alignment Overview",
+          "path": "/ai/safety",
+          "new": true
+        },
+        {
+          "title": "Agent Registry & Lifecycle",
+          "path": "/ai/agents/registry",
+          "new": true
+        }
+      ],
+      "Driver Fabric & System Execution": [
+        {
+          "title": "Driver Fabric & System Execution",
+          "path": "/ai/driver-fabric-system-execution",
+          "new": false
+        },
+        {
+          "title": "AI OS Control",
+          "path": "/ai/os",
+          "new": false
+        },
+        {
+          "title": "AI Operations",
+          "path": "/ai/operations",
+          "new": false
+        },
+        {
+          "title": "Driver Registry",
+          "path": "/ai/drivers",
+          "new": false
+        },
+        {
+          "title": "Driver Test Harness",
+          "path": "/ai/drivers/testing",
+          "new": true
+        },
+        {
+          "title": "Driver Health & Telemetry",
+          "path": "/ai/drivers/health",
+          "new": true
+        },
+        {
+          "title": "Driver Permissions & Sandboxing",
+          "path": "/ai/drivers/permissions",
+          "new": true
+        },
+        {
+          "title": "Driver Versioning & Deprecation",
+          "path": "/ai/drivers/versioning",
+          "new": true
+        },
+        {
+          "title": "OS Drivers",
+          "path": "/ai/drivers/os",
+          "new": false
+        },
+        {
+          "title": "Package & Env Drivers",
+          "path": "/ai/drivers/package",
+          "new": false
+        },
+        {
+          "title": "Hardware Drivers",
+          "path": "/ai/drivers/hardware",
+          "new": false
+        },
+        {
+          "title": "Software & SaaS Drivers",
+          "path": "/ai/drivers/software",
+          "new": false
+        },
+        {
+          "title": "Data Drivers",
+          "path": "/ai/drivers/data",
+          "new": false
+        },
+        {
+          "title": "Research & Simulation Drivers",
+          "path": "/ai/drivers/research",
+          "new": false
+        },
+        {
+          "title": "Sandbox & Testbed",
+          "path": "/ai/drivers/sandbox",
+          "new": false
+        }
+      ],
+      "Capsules & Workflow Automation": [
+        {
+          "title": "Capsules & Workflow Automation",
+          "path": "/ai/capsules-workflow-automation",
+          "new": false
+        },
+        {
+          "title": "Workflow Orchestrator",
+          "path": "/ai/workflows",
+          "new": false
+        },
+        {
+          "title": "Scheduling & Triggers",
+          "path": "/ai/workflows/triggers",
+          "new": true
+        },
+        {
+          "title": "Workflow Observability",
+          "path": "/ai/workflows/observability",
+          "new": true
+        },
+        {
+          "title": "Capsule Builder",
+          "path": "/ai/capsules/builder",
+          "new": true
+        },
+        {
+          "title": "Capsule Templates",
+          "path": "/ai/capsules/templates",
+          "new": false
+        },
+        {
+          "title": "My Stack Capsules",
+          "path": "/ai/capsules/my-stack",
+          "new": false
+        },
+        {
+          "title": "Capsule Runtime Settings",
+          "path": "/ai/capsules/runtime",
+          "new": true
+        },
+        {
+          "title": "Secrets & Inputs",
+          "path": "/ai/capsules/secrets",
+          "new": true
+        },
+        {
+          "title": "Capsule Marketplace",
+          "path": "/ai/capsules",
+          "new": false
+        },
+        {
+          "title": "Approval & Publishing",
+          "path": "/ai/capsules/publishing",
+          "new": true
+        },
+        {
+          "title": "Operator Studio",
+          "path": "/ai/capsules/operator-studio",
+          "new": false
+        },
+        {
+          "title": "Auto-Fix Console",
+          "path": "/ai/autofix",
+          "new": false
+        },
+        {
+          "title": "Project Ledger",
+          "path": "/ai/capsules/ledger",
+          "new": false
+        },
+        {
+          "title": "Lineage & Replay",
+          "path": "/ai/capsules/lineage",
+          "new": false
+        }
+      ],
+      "MLOps & Neural Architecture": [
+        {
+          "title": "MLOps & Neural Architecture",
+          "path": "/ai/mlops-neural-architecture",
+          "new": false
+        },
+        {
+          "title": "MLOps",
+          "path": "/ai/mlops",
+          "new": false
+        },
+        {
+          "title": "Model Registry",
+          "path": "/ai/mlops/models",
+          "new": true
+        },
+        {
+          "title": "Dataset & Feature Store",
+          "path": "/ai/mlops/data",
+          "new": true
+        },
+        {
+          "title": "Training Pipelines",
+          "path": "/ai/mlops/pipelines",
+          "new": true
+        },
+        {
+          "title": "Deployment & Serving",
+          "path": "/ai/mlops/serving",
+          "new": true
+        },
+        {
+          "title": "Drift Monitoring",
+          "path": "/ai/mlops/drift",
+          "new": true
+        },
+        {
+          "title": "Governance Gates",
+          "path": "/ai/mlops/approvals",
+          "new": true
+        },
+        {
+          "title": "NAS Console",
+          "path": "/ai/nas",
+          "new": false
+        },
+        {
+          "title": "Experiment Console",
+          "path": "/ai/nas/experiments",
+          "new": false
+        },
+        {
+          "title": "NAS Simulator",
+          "path": "/ai/nas/simulator",
+          "new": false
+        }
+      ],
+      "Edge & Vision": [
+        {
+          "title": "Edge & Vision",
+          "path": "/ai/edge-vision",
+          "new": false
+        },
+        {
+          "title": "Edge Computing",
+          "path": "/ai/edge",
+          "new": false
+        },
+        {
+          "title": "Device Registry",
+          "path": "/ai/edge/devices",
+          "new": true
+        },
+        {
+          "title": "Model Packaging & Deployment",
+          "path": "/ai/edge/deploy",
+          "new": true
+        },
+        {
+          "title": "Computer Vision",
+          "path": "/ai/vision",
+          "new": false
+        },
+        {
+          "title": "Camera/Stream Integrations",
+          "path": "/ai/vision/streams",
+          "new": true
+        },
+        {
+          "title": "Vision Pipelines",
+          "path": "/ai/vision/pipelines",
+          "new": true
+        },
+        {
+          "title": "Annotation & Labeling",
+          "path": "/ai/vision/labeling",
+          "new": true
+        }
+      ],
+      "Intent Processing": [
+        {
+          "title": "Intent Processing",
+          "path": "/ai/intent-processing",
+          "new": false
+        },
+        {
+          "title": "Intent Processor",
+          "path": "/ai/intents",
+          "new": false
+        },
+        {
+          "title": "Intent Taxonomy & Routing Rules",
+          "path": "/ai/intents/taxonomy",
+          "new": true
+        },
+        {
+          "title": "Intent Logs & Replay",
+          "path": "/ai/intents/logs",
+          "new": true
+        },
+        {
+          "title": "Systems Map",
+          "path": "/ai/systems",
+          "new": false
+        },
+        {
+          "title": "System Dependency Graph",
+          "path": "/ai/systems/graph",
+          "new": true
+        },
+        {
+          "title": "Capability Registry",
+          "path": "/ai/capabilities",
+          "new": true
+        }
+      ]
+    },
+    "Drivers & Integrations": {
+      "Driver Registry & Management": [
+        {
+          "title": "Driver Registry & Management",
+          "path": "/drivers/driver-registry-management",
+          "new": false
+        },
+        {
+          "title": "Overview",
+          "path": "/drivers/driver-registry-management/drivers",
+          "new": false
+        },
+        {
+          "title": "Driver Registry",
+          "path": "/drivers/registry",
+          "new": false
+        },
+        {
+          "title": "Driver SDK",
+          "path": "/drivers/sdk",
+          "new": false
+        },
+        {
+          "title": "Driver Testing & Validation",
+          "path": "/drivers/testing",
+          "new": true
+        },
+        {
+          "title": "Runtime Permissions",
+          "path": "/drivers/permissions",
+          "new": true
+        },
+        {
+          "title": "Versioning & Deprecation",
+          "path": "/drivers/versioning",
+          "new": true
+        },
+        {
+          "title": "Driver Analytics",
+          "path": "/drivers/analytics",
+          "new": true
+        },
+        {
+          "title": "Publishing Flow",
+          "path": "/drivers/publishing",
+          "new": false
+        },
+        {
+          "title": "Overview",
+          "path": "/integrations",
+          "new": false
+        }
+      ],
+      "Connectors & Integrations": [
+        {
+          "title": "Connectors & Integrations",
+          "path": "/drivers/connectors-integrations",
+          "new": false
+        },
+        {
+          "title": "Connectors Overview",
+          "path": "/drivers/connectors-integrations/connectors",
+          "new": true
+        },
+        {
+          "title": "Credential Vault",
+          "path": "/drivers/connectors-integrations/credentials",
+          "new": true
+        },
+        {
+          "title": "API Connectors",
+          "path": "/drivers/connectors-integrations/api-connectors",
+          "new": false
+        },
+        {
+          "title": "Productivity Suites",
+          "path": "/drivers/integrations/productivity",
+          "new": false
+        },
+        {
+          "title": "Code Hosts & CI/CD",
+          "path": "/drivers/integrations/code",
+          "new": false
+        },
+        {
+          "title": "Cloud Providers",
+          "path": "/drivers/integrations/cloud",
+          "new": false
+        },
+        {
+          "title": "Office Realtime",
+          "path": "/drivers/connectors-integrations/office",
+          "new": false
+        },
+        {
+          "title": "Finance & Banking",
+          "path": "/drivers/integrations/finance",
+          "new": false
+        },
+        {
+          "title": "Research Data Sources",
+          "path": "/drivers/integrations/research",
+          "new": false
+        },
+        {
+          "title": "Legacy & Mainframe",
+          "path": "/drivers/integrations/legacy",
+          "new": false
+        },
+        {
+          "title": "Webhooks & Events",
+          "path": "/drivers/connectors-integrations/webhooks",
+          "new": true
+        },
+        {
+          "title": "Data Mapping & Transformations",
+          "path": "/drivers/connectors-integrations/mappings",
+          "new": true
+        },
+        {
+          "title": "Connector Health",
+          "path": "/drivers/connectors-integrations/health",
+          "new": true
+        },
+        {
+          "title": "Rate Limits & Quotas",
+          "path": "/drivers/connectors-integrations/rate-limits",
+          "new": true
+        },
+        {
+          "title": "Connectors Overview",
+          "path": "/integrations/connectors",
+          "new": true
+        },
+        {
+          "title": "Credential Vault",
+          "path": "/integrations/credentials",
+          "new": true
+        },
+        {
+          "title": "API Connectors",
+          "path": "/integrations/api-connectors",
+          "new": false
+        },
+        {
+          "title": "Office Realtime",
+          "path": "/integrations/office",
+          "new": false
+        },
+        {
+          "title": "Webhooks & Events",
+          "path": "/integrations/webhooks",
+          "new": true
+        },
+        {
+          "title": "Data Mapping & Transformations",
+          "path": "/integrations/mappings",
+          "new": true
+        },
+        {
+          "title": "Connector Health",
+          "path": "/integrations/health",
+          "new": true
+        },
+        {
+          "title": "Rate Limits & Quotas",
+          "path": "/integrations/rate-limits",
+          "new": true
+        }
+      ],
+      "Driver Packs & Marketplace": [
+        {
+          "title": "Driver Packs & Marketplace",
+          "path": "/drivers/driver-packs-marketplace",
+          "new": false
+        },
+        {
+          "title": "Marketplace",
+          "path": "/drivers/marketplace",
+          "new": false
+        },
+        {
+          "title": "Reviews & Ratings",
+          "path": "/drivers/marketplace/reviews",
+          "new": true
+        },
+        {
+          "title": "Security Review Pipeline",
+          "path": "/drivers/marketplace/security-review",
+          "new": true
+        },
+        {
+          "title": "Driver Packs",
+          "path": "/drivers/packs",
+          "new": false
+        },
+        {
+          "title": "Pack Builder",
+          "path": "/drivers/packs/builder",
+          "new": true
+        },
+        {
+          "title": "Vertical Editions",
+          "path": "/drivers/vertical-editions",
+          "new": false
+        },
+        {
+          "title": "Enterprise App Store",
+          "path": "/drivers/enterprise-store",
+          "new": false
+        },
+        {
+          "title": "Licensing & Entitlements",
+          "path": "/drivers/licensing",
+          "new": true
+        }
+      ],
+      "Risk & Governance": [
+        {
+          "title": "Risk & Governance",
+          "path": "/drivers/risk-governance",
+          "new": false
+        },
+        {
+          "title": "Third-Party Risk",
+          "path": "/drivers/risk",
+          "new": false
+        },
+        {
+          "title": "Vendor Inventory",
+          "path": "/drivers/risk/vendors",
+          "new": true
+        },
+        {
+          "title": "Risk Assessments",
+          "path": "/drivers/risk/assessments",
+          "new": true
+        },
+        {
+          "title": "Remediation Tracker",
+          "path": "/drivers/risk/remediation",
+          "new": true
+        },
+        {
+          "title": "Exceptions & Approvals",
+          "path": "/drivers/risk/exceptions",
+          "new": true
+        }
+      ]
+    },
+    "Data & Knowledge": {
+      "Core Data Stores": [
+        {
+          "title": "Core Data Stores",
+          "path": "/data/core-data-stores",
+          "new": false
+        },
+        {
+          "title": "Data Overview",
+          "path": "/data/core-data-stores/data",
+          "new": true
+        },
+        {
+          "title": "CIR Store",
+          "path": "/data/cir",
+          "new": false
+        },
+        {
+          "title": "Capsule Store",
+          "path": "/data/capsules",
+          "new": false
+        },
+        {
+          "title": "Project Ledger",
+          "path": "/data/ledger",
+          "new": false
+        },
+        {
+          "title": "Binary Artifacts",
+          "path": "/data/artifacts",
+          "new": false
+        },
+        {
+          "title": "Schema & Ontology",
+          "path": "/data/schema",
+          "new": true
+        },
+        {
+          "title": "Ingestion Pipelines",
+          "path": "/data/ingestion",
+          "new": true
+        },
+        {
+          "title": "Data Lineage",
+          "path": "/data/lineage",
+          "new": true
+        },
+        {
+          "title": "Data Quality Checks",
+          "path": "/data/quality",
+          "new": true
+        },
+        {
+          "title": "Data Overview",
+          "path": "/data",
+          "new": true
+        }
+      ],
+      "Indices & Search": [
+        {
+          "title": "Indices & Search",
+          "path": "/data/indices-search",
+          "new": false
+        },
+        {
+          "title": "Indices Overview",
+          "path": "/data/indices",
+          "new": false
+        },
+        {
+          "title": "Index Management",
+          "path": "/data/indices/manage",
+          "new": true
+        },
+        {
+          "title": "Full-Text Search",
+          "path": "/data/indices/fulltext",
+          "new": false
+        },
+        {
+          "title": "Semantic/Vector Search",
+          "path": "/data/indices/semantic",
+          "new": false
+        },
+        {
+          "title": "Embeddings Management",
+          "path": "/data/indices/embeddings",
+          "new": true
+        },
+        {
+          "title": "Graph Index",
+          "path": "/data/indices/graph",
+          "new": false
+        },
+        {
+          "title": "Relevance Tuning",
+          "path": "/data/indices/tuning",
+          "new": true
+        },
+        {
+          "title": "Query Console",
+          "path": "/data/query",
+          "new": true
+        }
+      ],
+      "Observability Stores": [
+        {
+          "title": "Observability Stores",
+          "path": "/data/observability-stores",
+          "new": false
+        },
+        {
+          "title": "Observability Stores Overview",
+          "path": "/data/observability",
+          "new": true
+        },
+        {
+          "title": "Metrics Store",
+          "path": "/data/metrics",
+          "new": false
+        },
+        {
+          "title": "Logs Store",
+          "path": "/data/logs",
+          "new": false
+        },
+        {
+          "title": "Traces Store",
+          "path": "/data/traces",
+          "new": false
+        },
+        {
+          "title": "Retention & Tiering",
+          "path": "/data/observability/tiering",
+          "new": true
+        },
+        {
+          "title": "Export & Integrations",
+          "path": "/data/observability/export",
+          "new": true
+        }
+      ],
+      "Archive & Retention": [
+        {
+          "title": "Archive & Retention",
+          "path": "/data/archive-retention",
+          "new": false
+        },
+        {
+          "title": "Archive",
+          "path": "/data/archive",
+          "new": false
+        },
+        {
+          "title": "Backup & Retention",
+          "path": "/data/backup",
+          "new": false
+        },
+        {
+          "title": "Retention Policy Builder",
+          "path": "/data/retention/policies",
+          "new": true
+        },
+        {
+          "title": "Legal Hold",
+          "path": "/data/legal-hold",
+          "new": false
+        },
+        {
+          "title": "Restore Testing",
+          "path": "/data/restore-testing",
+          "new": true
+        }
+      ],
+      "Data Protection": [
+        {
+          "title": "Data Protection",
+          "path": "/data/data-protection",
+          "new": false
+        },
+        {
+          "title": "Encryption & Keys",
+          "path": "/data/encryption",
+          "new": false
+        },
+        {
+          "title": "Key Rotation & KMS Integrations",
+          "path": "/data/encryption/rotation",
+          "new": true
+        },
+        {
+          "title": "Integrity Protections",
+          "path": "/data/integrity",
+          "new": false
+        }
+      ],
+      "Replication & DR": [
+        {
+          "title": "Replication & DR",
+          "path": "/data/replication-dr",
+          "new": false
+        },
+        {
+          "title": "Multi-Region Replication",
+          "path": "/data/replication",
+          "new": false
+        },
+        {
+          "title": "Consistency Models",
+          "path": "/data/consistency",
+          "new": false
+        },
+        {
+          "title": "Failover Controls",
+          "path": "/data/dr/failover",
+          "new": true
+        },
+        {
+          "title": "DR Drill Planner",
+          "path": "/data/dr/drills",
+          "new": true
+        }
+      ]
+    },
+    "Docs & Spec": {
+      "Documentation Hub": [
+        {
+          "title": "Documentation Hub",
+          "path": "/docs/documentation-hub",
+          "new": false
+        },
+        {
+          "title": "Docs Hub",
+          "path": "/docs/documentation-hub/docs",
+          "new": false
+        },
+        {
+          "title": "Getting Started",
+          "path": "/docs/getting-started",
+          "new": true
+        },
+        {
+          "title": "Tutorials",
+          "path": "/docs/tutorials",
+          "new": true
+        },
+        {
+          "title": "Glossary",
+          "path": "/docs/glossary",
+          "new": true
+        },
+        {
+          "title": "Technical Spec Sheet",
+          "path": "/docs/spec-sheet",
+          "new": false
+        },
+        {
+          "title": "Release Notes",
+          "path": "/docs/release-notes",
+          "new": true
+        },
+        {
+          "title": "Docs Hub",
+          "path": "/docs",
+          "new": false
+        }
+      ],
+      "Reference Artifacts": [
+        {
+          "title": "Reference Artifacts",
+          "path": "/docs/reference-artifacts",
+          "new": false
+        },
+        {
+          "title": "Capsule Manifests",
+          "path": "/docs/reference/capsules",
+          "new": false
+        },
+        {
+          "title": "Driver Manifests",
+          "path": "/docs/reference/drivers",
+          "new": false
+        },
+        {
+          "title": "Policy Examples",
+          "path": "/docs/reference/policies",
+          "new": false
+        },
+        {
+          "title": "Evidence Pack Templates",
+          "path": "/docs/reference/evidence",
+          "new": false
+        },
+        {
+          "title": "Data Schemas",
+          "path": "/docs/reference/data",
+          "new": true
+        },
+        {
+          "title": "UI Component Library",
+          "path": "/docs/reference/ui",
+          "new": true
+        }
+      ],
+      "API Reference": [
+        {
+          "title": "API Reference",
+          "path": "/docs/api-reference",
+          "new": false
+        },
+        {
+          "title": "API Reference",
+          "path": "/docs/api",
+          "new": false
+        },
+        {
+          "title": "SDKs",
+          "path": "/docs/api/sdks",
+          "new": true
+        },
+        {
+          "title": "Auth & Rate Limits",
+          "path": "/docs/api/auth",
+          "new": true
+        },
+        {
+          "title": "Webhooks",
+          "path": "/docs/api/webhooks",
+          "new": true
+        }
+      ],
+      "Migration & Integration": [
+        {
+          "title": "Migration & Integration",
+          "path": "/docs/migration-integration",
+          "new": false
+        },
+        {
+          "title": "Migration Continued",
+          "path": "/docs/migration_continued.md",
+          "new": false
+        },
+        {
+          "title": "Migration Guides",
+          "path": "/docs/migration",
+          "new": true
+        },
+        {
+          "title": "Integration Guides",
+          "path": "/docs/integrations",
+          "new": true
+        },
+        {
+          "title": "Deployment Guides",
+          "path": "/docs/deployment",
+          "new": true
+        }
+      ]
+    },
+    "Settings & Admin": {
+      "User & Tenant Settings": [
+        {
+          "title": "User & Tenant Settings",
+          "path": "/settings/user-tenant-settings",
+          "new": false
+        },
+        {
+          "title": "Settings",
+          "path": "/settings/user-tenant-settings/settings",
+          "new": false
+        },
+        {
+          "title": "User Profile",
+          "path": "/settings/profile",
+          "new": true
+        },
+        {
+          "title": "Preferences",
+          "path": "/settings/preferences",
+          "new": true
+        },
+        {
+          "title": "Notifications",
+          "path": "/settings/notifications",
+          "new": true
+        },
+        {
+          "title": "Integrations Credentials",
+          "path": "/settings/credentials",
+          "new": true
+        },
+        {
+          "title": "API Keys",
+          "path": "/settings/api-keys",
+          "new": true
+        },
+        {
+          "title": "Settings",
+          "path": "/settings",
+          "new": false
+        }
+      ]
+    }
+  },
+  "Enterprise Control Plane Add\u2011Ons": {
+    "Mission & Architecture": {
+      "Mission & Identity": [
+        {
+          "title": "Mission & Identity",
+          "path": "/mission/mission-identity",
+          "new": false
+        },
+        {
+          "title": "Mission & Scope",
+          "path": "/mission/overview",
+          "new": false
+        },
+        {
+          "title": "Use Cases Map",
+          "path": "/mission/use-cases",
+          "new": true
+        },
+        {
+          "title": "System Boundaries & Non-Goals",
+          "path": "/mission/non-goals",
+          "new": true
+        },
+        {
+          "title": "Terminology Glossary",
+          "path": "/mission/glossary",
+          "new": true
+        },
+        {
+          "title": "Deployment Modes",
+          "path": "/mission/modes",
+          "new": false
+        },
+        {
+          "title": "Reference Architectures by Edition",
+          "path": "/mission/reference-architectures",
+          "new": true
+        },
+        {
+          "title": "Identity & Roles",
+          "path": "/mission/identity",
+          "new": false
+        },
+        {
+          "title": "AI + Driver Stack",
+          "path": "/mission/ai-stack",
+          "new": false
+        },
+        {
+          "title": "Model Provider Layer",
+          "path": "/mission/models",
+          "new": false
+        },
+        {
+          "title": "Daemon Families",
+          "path": "/mission/daemons",
+          "new": false
+        },
+        {
+          "title": "Cognitive Agents & Personas",
+          "path": "/ai/personas",
+          "new": false
+        }
+      ],
+      "Architecture & Principles": [
+        {
+          "title": "Architecture & Principles",
+          "path": "/mission/architecture-principles",
+          "new": false
+        },
+        {
+          "title": "Architecture Overview",
+          "path": "/mission/architecture",
+          "new": false
+        },
+        {
+          "title": "Architectural Principles",
+          "path": "/mission/principles",
+          "new": false
+        },
+        {
+          "title": "Major Components",
+          "path": "/mission/components",
+          "new": false
+        },
+        {
+          "title": "Driver-Aware Orchestrator",
+          "path": "/mission/orchestrator",
+          "new": false
+        },
+        {
+          "title": "Component Mapping",
+          "path": "/mission/mapping",
+          "new": false
+        },
+        {
+          "title": "Data Model & Contracts",
+          "path": "/mission/contracts",
+          "new": true
+        },
+        {
+          "title": "Extensibility Points",
+          "path": "/mission/extensibility",
+          "new": true
+        },
+        {
+          "title": "Threat Model Summary",
+          "path": "/mission/threat-model",
+          "new": true
+        },
+        {
+          "title": "Performance Targets",
+          "path": "/mission/performance-targets",
+          "new": true
+        }
+      ],
+      "Planes Architecture": [
+        {
+          "title": "Planes Architecture",
+          "path": "/mission/planes-architecture",
+          "new": false
+        },
+        {
+          "title": "Planes Overview",
+          "path": "/mission/planes",
+          "new": true
+        },
+        {
+          "title": "Data Plane",
+          "path": "/mission/planes/data",
+          "new": false
+        },
+        {
+          "title": "Control Plane",
+          "path": "/mission/planes/control",
+          "new": false
+        },
+        {
+          "title": "Governance Plane",
+          "path": "/mission/planes/governance",
+          "new": false
+        },
+        {
+          "title": "Cross-Plane Flows",
+          "path": "/mission/planes/cross-plane",
+          "new": false
+        },
+        {
+          "title": "Plane APIs & Event Contracts",
+          "path": "/mission/planes/contracts",
+          "new": true
+        },
+        {
+          "title": "Failure Domains by Plane",
+          "path": "/mission/planes/failure-domains",
+          "new": true
+        }
+      ]
+    },
+    "Governance & Security": {
+      "Policy & Governance Engine": [
+        {
+          "title": "Policy & Governance Engine",
+          "path": "/governance/policy-governance-engine",
+          "new": false
+        },
+        {
+          "title": "Policy Engine",
+          "path": "/governance/policy",
+          "new": false
+        },
+        {
+          "title": "Policy Library & Templates",
+          "path": "/governance/policy/library",
+          "new": true
+        },
+        {
+          "title": "Policy DSL",
+          "path": "/governance/policy/dsl",
+          "new": false
+        },
+        {
+          "title": "Safety Harnesses",
+          "path": "/governance/policy/safety",
+          "new": false
+        },
+        {
+          "title": "Policy Simulator",
+          "path": "/governance/policy/simulator",
+          "new": false
+        },
+        {
+          "title": "Policy Versioning & Approvals",
+          "path": "/governance/policy/versioning",
+          "new": true
+        },
+        {
+          "title": "Enforcement Points Map",
+          "path": "/governance/policy/enforcement",
+          "new": true
+        },
+        {
+          "title": "Exceptions & Waivers",
+          "path": "/governance/policy/exceptions",
+          "new": true
+        }
+      ],
+      "Compliance & Regulator Fabric": [
+        {
+          "title": "Compliance & Regulator Fabric",
+          "path": "/governance/compliance-regulator-fabric",
+          "new": false
+        },
+        {
+          "title": "Compliance Packs",
+          "path": "/governance/compliance",
+          "new": false
+        },
+        {
+          "title": "Control Framework Mapping",
+          "path": "/governance/compliance/controls",
+          "new": true
+        },
+        {
+          "title": "Audit Readiness Dashboard",
+          "path": "/governance/compliance/readiness",
+          "new": true
+        },
+        {
+          "title": "Regulator Fabric",
+          "path": "/governance/regulator",
+          "new": false
+        },
+        {
+          "title": "Regulator Tenancy",
+          "path": "/governance/regulator/tenancy",
+          "new": false
+        },
+        {
+          "title": "Evidence Access",
+          "path": "/governance/regulator/evidence",
+          "new": false
+        },
+        {
+          "title": "Evidence Request Workflow",
+          "path": "/governance/regulator/requests",
+          "new": true
+        }
+      ],
+      "Identity & Access": [
+        {
+          "title": "Identity & Access",
+          "path": "/governance/identity-access",
+          "new": false
+        },
+        {
+          "title": "Identity & Roles",
+          "path": "/governance/identity",
+          "new": false
+        },
+        {
+          "title": "Authentication",
+          "path": "/governance/identity/auth",
+          "new": false
+        },
+        {
+          "title": "SSO/SAML/OIDC Settings",
+          "path": "/governance/identity/sso",
+          "new": true
+        },
+        {
+          "title": "SCIM Provisioning",
+          "path": "/governance/identity/scim",
+          "new": true
+        },
+        {
+          "title": "RBAC/ABAC",
+          "path": "/governance/identity/rbac",
+          "new": false
+        },
+        {
+          "title": "API Keys & Tokens",
+          "path": "/governance/identity/api-keys",
+          "new": true
+        },
+        {
+          "title": "Session Management",
+          "path": "/governance/identity/sessions",
+          "new": true
+        },
+        {
+          "title": "Access Reviews",
+          "path": "/governance/identity/reviews",
+          "new": true
+        }
+      ],
+      "Data Protection & Classification": [
+        {
+          "title": "Data Protection & Classification",
+          "path": "/governance/data-protection-classification",
+          "new": false
+        },
+        {
+          "title": "Data Protection",
+          "path": "/governance/data-protection",
+          "new": false
+        },
+        {
+          "title": "Data Classification",
+          "path": "/governance/data-protection/classification",
+          "new": false
+        },
+        {
+          "title": "Data Masking",
+          "path": "/governance/data-protection/masking",
+          "new": false
+        },
+        {
+          "title": "Tokenization",
+          "path": "/governance/data-protection/tokenization",
+          "new": true
+        },
+        {
+          "title": "DLP Rules",
+          "path": "/governance/data-protection/dlp",
+          "new": true
+        },
+        {
+          "title": "Data Residency",
+          "path": "/governance/data-protection/residency",
+          "new": false
+        }
+      ],
+      "Security Monitoring & Response": [
+        {
+          "title": "Security Monitoring & Response",
+          "path": "/governance/security-monitoring-response",
+          "new": false
+        },
+        {
+          "title": "Security Monitoring",
+          "path": "/governance/security/monitoring",
+          "new": false
+        },
+        {
+          "title": "Alerts & Rules",
+          "path": "/governance/security/alerts",
+          "new": true
+        },
+        {
+          "title": "Threat Detection",
+          "path": "/governance/security/detection",
+          "new": true
+        },
+        {
+          "title": "Risk Scoring",
+          "path": "/governance/security/risk",
+          "new": false
+        },
+        {
+          "title": "Alignment Monitor",
+          "path": "/governance/security/alignment",
+          "new": false
+        },
+        {
+          "title": "Incident Response",
+          "path": "/governance/security/incidents",
+          "new": false
+        },
+        {
+          "title": "Forensics & Evidence",
+          "path": "/governance/security/forensics",
+          "new": true
+        },
+        {
+          "title": "Vulnerability Management",
+          "path": "/governance/security/vuln",
+          "new": true
+        }
+      ],
+      "AI Billing & Cost Governance": [
+        {
+          "title": "AI Billing & Cost Governance",
+          "path": "/governance/ai-billing-cost-governance",
+          "new": false
+        },
+        {
+          "title": "Billing & Usage",
+          "path": "/governance/billing",
+          "new": false
+        },
+        {
+          "title": "Usage Fabric",
+          "path": "/governance/billing/usage",
+          "new": false
+        },
+        {
+          "title": "Budgets & Quotas",
+          "path": "/governance/billing/budgets",
+          "new": false
+        },
+        {
+          "title": "Cost Guardrails",
+          "path": "/governance/billing/guardrails",
+          "new": false
+        },
+        {
+          "title": "Billing Optimizer",
+          "path": "/governance/billing/optimizer",
+          "new": false
+        },
+        {
+          "title": "Chargeback/Showback Reports",
+          "path": "/governance/billing/chargeback",
+          "new": true
+        },
+        {
+          "title": "Forecasting",
+          "path": "/governance/billing/forecasting",
+          "new": true
+        },
+        {
+          "title": "Provider Rate Cards",
+          "path": "/governance/billing/rates",
+          "new": true
+        },
+        {
+          "title": "Multi-Tenant Billing",
+          "path": "/governance/billing/multi-tenant",
+          "new": false
+        },
+        {
+          "title": "Billing & Usage",
+          "path": "/billing",
+          "new": false
+        }
+      ]
+    },
+    "Observability & Evidence": {
+      "Telemetry & Metrics": [
+        {
+          "title": "Telemetry & Metrics",
+          "path": "/observability/telemetry-metrics",
+          "new": false
+        },
+        {
+          "title": "Observability Overview",
+          "path": "/observability/telemetry-metrics/observability",
+          "new": false
+        },
+        {
+          "title": "Monitoring",
+          "path": "/observability/monitoring",
+          "new": false
+        },
+        {
+          "title": "Analytics",
+          "path": "/observability/analytics",
+          "new": false
+        },
+        {
+          "title": "Metrics Model",
+          "path": "/observability/metrics",
+          "new": false
+        },
+        {
+          "title": "Metric Explorer",
+          "path": "/observability/metrics/explorer",
+          "new": true
+        },
+        {
+          "title": "SLIs & SLOs",
+          "path": "/observability/slis",
+          "new": false
+        },
+        {
+          "title": "SLO Burn Rates",
+          "path": "/observability/slis/burn",
+          "new": true
+        },
+        {
+          "title": "Anomaly Detection",
+          "path": "/observability/anomalies",
+          "new": true
+        },
+        {
+          "title": "Observability Overview",
+          "path": "/observability",
+          "new": false
+        },
+        {
+          "title": "Monitoring",
+          "path": "/monitoring",
+          "new": false
+        },
+        {
+          "title": "Analytics",
+          "path": "/analytics",
+          "new": false
+        }
+      ],
+      "Logging & Tracing": [
+        {
+          "title": "Logging & Tracing Overview",
+          "path": "/observability/logging-tracing",
+          "new": true
+        },
+        {
+          "title": "Structured Logging",
+          "path": "/observability/logging",
+          "new": false
+        },
+        {
+          "title": "Log Explorer",
+          "path": "/observability/logging/explorer",
+          "new": true
+        },
+        {
+          "title": "Distributed Tracing",
+          "path": "/observability/tracing",
+          "new": false
+        },
+        {
+          "title": "Trace Explorer",
+          "path": "/observability/tracing/explorer",
+          "new": true
+        },
+        {
+          "title": "Correlation & Context",
+          "path": "/observability/correlation",
+          "new": true
+        }
+      ],
+      "Record Auditor & Logbook": [
+        {
+          "title": "Record Auditor & Logbook",
+          "path": "/observability/record-auditor-logbook",
+          "new": false
+        },
+        {
+          "title": "Record Auditor",
+          "path": "/observability/record-auditor",
+          "new": false
+        },
+        {
+          "title": "Logbook Timeline",
+          "path": "/observability/record-auditor/timeline",
+          "new": true
+        },
+        {
+          "title": "Audit Evidence",
+          "path": "/observability/audit",
+          "new": false
+        },
+        {
+          "title": "Evidence Builder",
+          "path": "/observability/record-auditor-logbook/builder",
+          "new": true
+        },
+        {
+          "title": "Audit Evidence",
+          "path": "/audit",
+          "new": false
+        },
+        {
+          "title": "Evidence Builder",
+          "path": "/audit/builder",
+          "new": true
+        }
+      ],
+      "Evidence & Audit": [
+        {
+          "title": "Evidence & Audit",
+          "path": "/observability/evidence-audit",
+          "new": false
+        },
+        {
+          "title": "Audit Logs",
+          "path": "/observability/audit-logs",
+          "new": false
+        },
+        {
+          "title": "Evidence Packs",
+          "path": "/observability/evidence",
+          "new": false
+        },
+        {
+          "title": "Evidence Queries",
+          "path": "/observability/evidence/query",
+          "new": true
+        },
+        {
+          "title": "Export for Auditors",
+          "path": "/observability/evidence/export",
+          "new": true
+        },
+        {
+          "title": "Retention Policies",
+          "path": "/observability/retention",
+          "new": false
+        }
+      ],
+      "Health & Self-Healing": [
+        {
+          "title": "Health & Self-Healing",
+          "path": "/observability/health-self-healing",
+          "new": false
+        },
+        {
+          "title": "Health Checks",
+          "path": "/observability/health",
+          "new": false
+        },
+        {
+          "title": "Drift Detection",
+          "path": "/observability/drift",
+          "new": true
+        },
+        {
+          "title": "Runbooks",
+          "path": "/observability/runbooks",
+          "new": false
+        },
+        {
+          "title": "Self-Healing",
+          "path": "/observability/self-healing",
+          "new": false
+        },
+        {
+          "title": "Automated Rollbacks",
+          "path": "/observability/rollbacks",
+          "new": true
+        }
+      ],
+      "Dashboards & Alerting": [
+        {
+          "title": "Dashboards & Alerting",
+          "path": "/observability/dashboards-alerting",
+          "new": false
+        },
+        {
+          "title": "Dashboards",
+          "path": "/observability/dashboards",
+          "new": false
+        },
+        {
+          "title": "Dashboard Builder",
+          "path": "/observability/dashboards/builder",
+          "new": true
+        },
+        {
+          "title": "Alerting",
+          "path": "/observability/alerting",
+          "new": false
+        },
+        {
+          "title": "Alert Rules",
+          "path": "/observability/alerting/rules",
+          "new": true
+        },
+        {
+          "title": "Notification Channels",
+          "path": "/observability/alerting/channels",
+          "new": true
+        }
+      ],
+      "Temporal Backtesting & Replay": [
+        {
+          "title": "Temporal Backtesting & Replay",
+          "path": "/observability/temporal-backtesting-replay",
+          "new": false
+        },
+        {
+          "title": "Replay Engine",
+          "path": "/observability/replay",
+          "new": false
+        },
+        {
+          "title": "Scenario Library",
+          "path": "/observability/replay/scenarios",
+          "new": true
+        },
+        {
+          "title": "Determinism Checks",
+          "path": "/observability/replay/determinism",
+          "new": true
+        },
+        {
+          "title": "Temporal Backtesting",
+          "path": "/observability/backtesting",
+          "new": false
+        }
+      ]
+    },
+    "Operations & Infrastructure": {
+      "Performance & Scalability": [
+        {
+          "title": "Performance & Scalability",
+          "path": "/operations/performance-scalability",
+          "new": false
+        },
+        {
+          "title": "Performance",
+          "path": "/operations/performance",
+          "new": false
+        },
+        {
+          "title": "Scaling Strategies",
+          "path": "/operations/scaling",
+          "new": false
+        },
+        {
+          "title": "Capacity Planning",
+          "path": "/operations/capacity",
+          "new": false
+        },
+        {
+          "title": "Load Testing",
+          "path": "/operations/load-testing",
+          "new": true
+        },
+        {
+          "title": "Backpressure & Throttling",
+          "path": "/operations/backpressure",
+          "new": false
+        },
+        {
+          "title": "Reliability Patterns",
+          "path": "/operations/reliability",
+          "new": false
+        },
+        {
+          "title": "Driver Performance",
+          "path": "/operations/driver-performance",
+          "new": false
+        },
+        {
+          "title": "Cost/Performance Tradeoffs",
+          "path": "/operations/cost-performance",
+          "new": true
+        }
+      ],
+      "Deployment Models": [
+        {
+          "title": "Deployment Models",
+          "path": "/operations/deployment-models",
+          "new": false
+        },
+        {
+          "title": "Deployment Modes",
+          "path": "/operations/deployment",
+          "new": false
+        },
+        {
+          "title": "Local Mode",
+          "path": "/operations/deployment/local",
+          "new": false
+        },
+        {
+          "title": "Cloud/Enterprise",
+          "path": "/operations/deployment/cloud",
+          "new": false
+        },
+        {
+          "title": "Hybrid & Edge",
+          "path": "/operations/deployment/hybrid",
+          "new": false
+        },
+        {
+          "title": "Kubernetes Deployment",
+          "path": "/operations/deployment/k8s",
+          "new": true
+        },
+        {
+          "title": "Airgapped Deployment",
+          "path": "/operations/deployment/airgap",
+          "new": true
+        },
+        {
+          "title": "Upgrade Channels",
+          "path": "/operations/deployment/channels",
+          "new": true
+        }
+      ],
+      "Infrastructure & Topology": [
+        {
+          "title": "Infrastructure & Topology",
+          "path": "/operations/infrastructure-topology",
+          "new": false
+        },
+        {
+          "title": "Configuration Management",
+          "path": "/operations/config",
+          "new": false
+        },
+        {
+          "title": "Secrets & Configuration Vault",
+          "path": "/operations/secrets",
+          "new": true
+        },
+        {
+          "title": "Compute/Cluster Management",
+          "path": "/operations/cluster",
+          "new": true
+        },
+        {
+          "title": "Network Topology",
+          "path": "/operations/topology",
+          "new": false
+        },
+        {
+          "title": "Network Monitoring",
+          "path": "/operations/infrastructure-topology/network",
+          "new": false
+        },
+        {
+          "title": "Storage Topology",
+          "path": "/operations/storage",
+          "new": false
+        },
+        {
+          "title": "Queues & Search",
+          "path": "/operations/queues",
+          "new": false
+        },
+        {
+          "title": "Service Dependencies",
+          "path": "/operations/dependencies",
+          "new": true
+        },
+        {
+          "title": "Multi-Region & DR",
+          "path": "/operations/multi-region",
+          "new": false
+        },
+        {
+          "title": "HPC Integration",
+          "path": "/operations/hpc",
+          "new": false
+        },
+        {
+          "title": "Network Monitoring",
+          "path": "/systems/network",
+          "new": false
+        }
+      ],
+      "Upgrades & Migration": [
+        {
+          "title": "Upgrades & Migration",
+          "path": "/operations/upgrades-migration",
+          "new": false
+        },
+        {
+          "title": "Upgrades",
+          "path": "/operations/upgrades",
+          "new": false
+        },
+        {
+          "title": "Change Logs & Release Notes",
+          "path": "/operations/releases",
+          "new": true
+        },
+        {
+          "title": "Compatibility Matrix",
+          "path": "/operations/compatibility",
+          "new": true
+        },
+        {
+          "title": "Migration",
+          "path": "/operations/migration",
+          "new": false
+        },
+        {
+          "title": "Rollback Strategy",
+          "path": "/operations/rollback",
+          "new": false
+        },
+        {
+          "title": "Blue/Green & Canary",
+          "path": "/operations/deployment/canary",
+          "new": true
+        }
+      ],
+      "Failure Modes & Resilience": [
+        {
+          "title": "Failure Modes & Resilience",
+          "path": "/operations/failure-modes-resilience",
+          "new": false
+        },
+        {
+          "title": "Failure Modes",
+          "path": "/operations/failure",
+          "new": false
+        },
+        {
+          "title": "Detection Mechanisms",
+          "path": "/operations/detection",
+          "new": false
+        },
+        {
+          "title": "Recovery Strategies",
+          "path": "/operations/recovery",
+          "new": false
+        },
+        {
+          "title": "Data Loss Protection",
+          "path": "/operations/data-protection",
+          "new": false
+        },
+        {
+          "title": "Business Continuity & DR",
+          "path": "/operations/bc-dr",
+          "new": false
+        },
+        {
+          "title": "DR Drills",
+          "path": "/operations/bc-dr/drills",
+          "new": true
+        },
+        {
+          "title": "Security Incidents",
+          "path": "/operations/security-incidents",
+          "new": false
+        },
+        {
+          "title": "Chaos Engineering",
+          "path": "/operations/chaos",
+          "new": true
+        },
+        {
+          "title": "Postmortems",
+          "path": "/operations/postmortems",
+          "new": true
+        }
+      ]
+    },
+    "Roadmap & Risks": {
+      "Roadmap & Planning": [
+        {
+          "title": "Roadmap & Planning",
+          "path": "/roadmap/roadmap-planning",
+          "new": false
+        },
+        {
+          "title": "Roadmap Overview",
+          "path": "/roadmap/overview",
+          "new": false
+        },
+        {
+          "title": "Phased Delivery",
+          "path": "/roadmap/phases",
+          "new": false
+        },
+        {
+          "title": "Milestones",
+          "path": "/roadmap/milestones",
+          "new": false
+        },
+        {
+          "title": "Long-Term Bets",
+          "path": "/roadmap/future",
+          "new": false
+        }
+      ],
+      "Risks & Decisions": [
+        {
+          "title": "Risks & Decisions",
+          "path": "/roadmap/risks-decisions",
+          "new": false
+        },
+        {
+          "title": "Risk Register",
+          "path": "/roadmap/risks",
+          "new": false
+        },
+        {
+          "title": "Decision Log",
+          "path": "/roadmap/decisions",
+          "new": false
+        },
+        {
+          "title": "Known Gaps",
+          "path": "/roadmap/gaps",
+          "new": false
+        },
+        {
+          "title": "Open Questions",
+          "path": "/roadmap/questions",
+          "new": false
+        }
+      ],
+      "Spec Maintenance": [
+        {
+          "title": "Spec Maintenance",
+          "path": "/roadmap/spec-maintenance",
+          "new": false
+        },
+        {
+          "title": "Spec Versioning",
+          "path": "/roadmap/spec",
+          "new": false
+        },
+        {
+          "title": "Deprecations",
+          "path": "/roadmap/deprecations",
+          "new": true
+        },
+        {
+          "title": "Backward Compatibility Commitments",
+          "path": "/roadmap/compatibility",
+          "new": true
+        },
+        {
+          "title": "Future Capabilities",
+          "path": "/roadmap/future-capabilities",
+          "new": false
+        }
+      ]
+    },
+    "Vision & Meta-Stack": {
+      "Vision Deck Hub": [
+        {
+          "title": "Vision Deck Hub",
+          "path": "/vision/vision-deck-hub",
+          "new": false
+        },
+        {
+          "title": "Vision Deck Hub",
+          "path": "/vision/vision-deck-hub/vision",
+          "new": false
+        },
+        {
+          "title": "Vision Roadmap",
+          "path": "/vision/roadmap",
+          "new": true
+        },
+        {
+          "title": "Vision Glossary",
+          "path": "/vision/glossary",
+          "new": true
+        },
+        {
+          "title": "Vision Deck Hub",
+          "path": "/vision",
+          "new": false
+        }
+      ],
+      "Core OS Engines": [
+        {
+          "title": "Core OS Engines",
+          "path": "/vision/core-os-engines",
+          "new": false
+        },
+        {
+          "title": "Core OS Engines",
+          "path": "/vision/core-os",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/vision/core-os-engines/matrix",
+          "new": true
+        },
+        {
+          "title": "Core OS Engines",
+          "path": "/future/core_os",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/future/core_os/matrix",
+          "new": true
+        }
+      ],
+      "Advanced Horizons": [
+        {
+          "title": "Advanced Horizons",
+          "path": "/vision/advanced-horizons",
+          "new": false
+        },
+        {
+          "title": "Advanced Horizons",
+          "path": "/vision/advanced",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/vision/advanced-horizons/matrix",
+          "new": true
+        },
+        {
+          "title": "Advanced Horizons",
+          "path": "/future/advanced",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/future/advanced/matrix",
+          "new": true
+        }
+      ],
+      "Super Capabilities": [
+        {
+          "title": "Super Capabilities",
+          "path": "/vision/super-capabilities",
+          "new": false
+        },
+        {
+          "title": "Super Capabilities",
+          "path": "/vision/super",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/vision/super-capabilities/matrix",
+          "new": true
+        },
+        {
+          "title": "Super Capabilities",
+          "path": "/future/super",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/future/super/matrix",
+          "new": true
+        }
+      ],
+      "Hyper Network": [
+        {
+          "title": "Hyper Network",
+          "path": "/vision/hyper-network",
+          "new": false
+        },
+        {
+          "title": "Hyper Network",
+          "path": "/vision/hyper",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/vision/hyper-network/matrix",
+          "new": true
+        },
+        {
+          "title": "Hyper Network",
+          "path": "/future/hyper",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/future/hyper/matrix",
+          "new": true
+        }
+      ],
+      "Ultra Scale": [
+        {
+          "title": "Ultra Scale",
+          "path": "/vision/ultra-scale",
+          "new": false
+        },
+        {
+          "title": "Ultra Scale",
+          "path": "/vision/ultra",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/vision/ultra-scale/matrix",
+          "new": true
+        },
+        {
+          "title": "Ultra Scale",
+          "path": "/future/ultra",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/future/ultra/matrix",
+          "new": true
+        }
+      ],
+      "Supreme": [
+        {
+          "title": "Supreme",
+          "path": "/vision/supreme",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/vision/supreme/matrix",
+          "new": true
+        },
+        {
+          "title": "Supreme",
+          "path": "/future/supreme",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/future/supreme/matrix",
+          "new": true
+        }
+      ],
+      "Ascend": [
+        {
+          "title": "Ascend",
+          "path": "/vision/ascend",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/vision/ascend/matrix",
+          "new": true
+        },
+        {
+          "title": "Ascend",
+          "path": "/future/ascend",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/future/ascend/matrix",
+          "new": true
+        }
+      ],
+      "Meta Envelope": [
+        {
+          "title": "Meta Envelope",
+          "path": "/vision/meta-envelope",
+          "new": false
+        },
+        {
+          "title": "Meta Envelope",
+          "path": "/vision/meta",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/vision/meta-envelope/matrix",
+          "new": true
+        },
+        {
+          "title": "Meta Envelope",
+          "path": "/future/meta",
+          "new": false
+        },
+        {
+          "title": "Capability Matrix",
+          "path": "/future/meta/matrix",
+          "new": true
+        }
+      ]
+    },
+    "Settings & Admin (Enterprise Extensions)": {
+      "User & Tenant Settings": [
+        {
+          "title": "User & Tenant Settings",
+          "path": "/settings/enterprise/user-tenant",
+          "new": false
+        },
+        {
+          "title": "Team & Members",
+          "path": "/settings/team",
+          "new": true
+        },
+        {
+          "title": "Tenancy & Org Settings",
+          "path": "/settings/tenant",
+          "new": true
+        },
+        {
+          "title": "Audit Settings",
+          "path": "/settings/audit",
+          "new": true
+        }
+      ]
+    },
+    "Workspaces (Enterprise Extensions)": {
+      "Record Auditor & Logbook Workspace": [
+        {
+          "title": "Record Auditor & Logbook Workspace",
+          "path": "/workspaces/record-auditor-logbook-workspace",
+          "new": false
+        },
+        {
+          "title": "Record Auditor",
+          "path": "/workspaces/auditor",
+          "new": false
+        },
+        {
+          "title": "Evidence Trails",
+          "path": "/workspaces/auditor/evidence",
+          "new": false
+        },
+        {
+          "title": "Controls Mapping",
+          "path": "/workspaces/auditor/controls",
+          "new": true
+        },
+        {
+          "title": "Evidence Requests",
+          "path": "/workspaces/auditor/requests",
+          "new": true
+        },
+        {
+          "title": "Audit Reports",
+          "path": "/workspaces/auditor/reports",
+          "new": true
+        },
+        {
+          "title": "Immutable Logbook Viewer",
+          "path": "/workspaces/auditor/logbook",
+          "new": true
+        },
+        {
+          "title": "Regulator Views",
+          "path": "/workspaces/auditor/regulator",
+          "new": false
+        }
+      ]
+    }
+  }
+}

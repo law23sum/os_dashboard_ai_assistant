@@ -1,0 +1,45 @@
+{
+  "generated_at": "2025-12-11T23:52:44.584051Z",
+  "targets": {
+    "desktop": {
+      "count": 72,
+      "size": "6.3M"
+    },
+    "downloads": {
+      "count": 211,
+      "size": "1.2G"
+    },
+    "projects": {
+      "count": 8,
+      "size": "10G"
+    },
+    "ideaprojects": {
+      "count": 7,
+      "size": "740M"
+    },
+    "pycharmprojects": {
+      "count": 7,
+      "size": "6.1G"
+    },
+    "temporary": {
+      "count": 1,
+      "size": "8.0K"
+    }
+  },
+  "desktop_lanes": {
+    "inbox": 0,
+    "active": 0,
+    "archive": 1
+  },
+  "download_lanes": {
+    "incoming": {
+      "count": 1,
+      "size": "504K"
+    },
+    "archive": {
+      "count": 2,
+      "size": "105M"
+    }
+  },
+  "downloads_recent": 60
+}
