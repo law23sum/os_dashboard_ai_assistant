@@ -1,0 +1,19 @@
+{
+  "compression": "none",
+  "created_at": "2026-01-16T19:37:54.367852",
+  "encryption": "none",
+  "end_ts": "2026-01-15T19:37:52.236266",
+  "events_file_sha256": "525a8bc417152b9b65156ce71c01613086c81b3a141930896b8ed8c2392435fe",
+  "first_event_hash": "988e087d89078023098eff8d48363db99bcd68d6b5bd6b2682d6548aaa198c33",
+  "last_event_hash": "bee13d69e78971a92e846cad545f0cdaeabd372c6c3ef118a48756f43cb779a9",
+  "merkle_root": "146af071d78dfe20a63e1b4bc5d7a88d8a02baf4d36f9b5d025bda1111ea0cfd",
+  "prev_segment_hash": null,
+  "record_count": 2,
+  "retention_policy_id": "default",
+  "segment_hash": "63dd2de5e706f14193972859a6a58955db08b3aee4b22f96e1b4882bed3719fa",
+  "segment_id": "202601151935-0000",
+  "signature": "a853ad4952577d19984f0e549605e560cca346cf51923ac413dbfb2e1cfd3d2c",
+  "start_ts": "2026-01-15T19:37:52.235733",
+  "tenant_id": "default",
+  "version": "1.0"
+}

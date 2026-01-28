@@ -665,3 +665,4 @@ class PersonaRegistry:
 4. **Testing**: Each pattern should be thoroughly tested before integration, especially streaming and tool execution.
 
 
+

@@ -6,10 +6,13 @@
 export interface PlatformInfo {
   isElectron: boolean;
   isWeb: boolean;
+  isMobile: boolean;
+  isBrowserExtension: boolean;
   isMac: boolean;
   isWindows: boolean;
   isLinux: boolean;
-  platform: string;
+  platform: 'web' | 'desktop' | 'mobile' | 'extension';
+  platformName: string;
 }
 
 declare global {
@@ -28,29 +31,82 @@ declare global {
 }
 
 /**
+ * Detect if running in a browser extension
+ */
+function isBrowserExtension(): boolean {
+  if (typeof window === 'undefined') return false;
+  
+  // Check for extension context
+  if (window.chrome?.runtime?.id || window.browser?.runtime?.id) {
+    return true;
+  }
+  
+  // Check if URL is extension protocol
+  if (window.location.protocol === 'chrome-extension:' || 
+      window.location.protocol === 'moz-extension:') {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
+ * Detect if running on mobile device
+ */
+function isMobileDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  
+  const userAgent = navigator.userAgent.toLowerCase();
+  const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+  
+  return mobileRegex.test(userAgent) || 
+         (typeof window !== 'undefined' && window.innerWidth <= 768);
+}
+
+/**
  * Get platform information
  */
 export function getPlatformInfo(): PlatformInfo {
-  const isElectron = typeof window !== 'undefined' && window.electron?.isElectron === true;
-  const isWeb = !isElectron;
+  const isBrowserExt = isBrowserExtension();
+  const isElectron = typeof window !== 'undefined' && window.electron?.isElectron === true && !isBrowserExt;
+  const isMobile = isMobileDevice() && !isElectron && !isBrowserExt;
+  const isWeb = !isElectron && !isMobile && !isBrowserExt;
   
-  let platform = 'unknown';
+  let platform: 'web' | 'desktop' | 'mobile' | 'extension' = 'web';
+  let platformName = 'Web';
   let isMac = false;
   let isWindows = false;
   let isLinux = false;
 
-  if (isElectron && window.electron) {
+  if (isBrowserExt) {
+    platform = 'extension';
+    platformName = 'Browser Extension';
+  } else if (isElectron && window.electron) {
+    platform = 'desktop';
     // In Electron, we need to get platform async
     window.electron.getPlatform().then((p) => {
-      platform = p;
+      platformName = p === 'darwin' ? 'macOS' : p === 'win32' ? 'Windows' : 'Linux';
       isMac = p === 'darwin';
       isWindows = p === 'win32';
       isLinux = p === 'linux';
     });
+  } else if (isMobile) {
+    platform = 'mobile';
+    const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
+    if (/iphone|ipad|ipod/i.test(userAgent)) {
+      platformName = 'iOS';
+      isMac = true;
+    } else if (/android/i.test(userAgent)) {
+      platformName = 'Android';
+      isLinux = true;
+    } else {
+      platformName = 'Mobile';
+    }
   } else {
     // In web, detect from user agent
     const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
     platform = 'web';
+    platformName = 'Web';
     isMac = /mac|darwin/i.test(userAgent);
     isWindows = /win|windows/i.test(userAgent);
     isLinux = /linux/i.test(userAgent);
@@ -59,10 +115,13 @@ export function getPlatformInfo(): PlatformInfo {
   return {
     isElectron,
     isWeb,
+    isMobile,
+    isBrowserExtension: isBrowserExt,
     isMac,
     isWindows,
     isLinux,
     platform,
+    platformName,
   };
 }
 

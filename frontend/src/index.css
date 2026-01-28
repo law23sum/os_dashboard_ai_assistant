@@ -435,6 +435,12 @@ body .focus\:border-primary-500:focus {
     border-color: rgba(148, 163, 184, 0.3);
   }
 
+  .bg-grid-white\/\[0\.02\] {
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  }
+
   /* Page Header Component Styles */
   .page-header {
     margin-bottom: 2rem;

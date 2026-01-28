@@ -1,0 +1,4610 @@
+{
+  "platform_to_categories": {
+    "Mission Control": [
+      "Engagement & Persona Surfaces",
+      "Collaboration & Federation",
+      "Core Flight Deck"
+    ],
+    "Workspaces": [
+      "Writer Workspace",
+      "Dev & DevOps Workspace",
+      "Archive & Continuity Workspace",
+      "Operator & SRE Workspace",
+      "Research & Simulation Workspace",
+      "Record Auditor & Logbook Workspace",
+      "Business & Finance Workspace",
+      "Digital Twin & Enterprise Twin Workspace",
+      "Cybersecurity Workspace"
+    ],
+    "AI Fabric": [
+      "Capsules & Workflow Automation",
+      "Edge & Vision",
+      "MLOps & Neural Architecture",
+      "Driver Fabric & System Execution",
+      "Intent Processing",
+      "Cognitive Agents & Reasoning"
+    ],
+    "Drivers & Integrations": [
+      "Driver Registry & Management",
+      "Risk & Governance",
+      "Driver Packs & Marketplace",
+      "Connectors & Integrations"
+    ],
+    "Data & Knowledge": [
+      "Indices & Search",
+      "Replication & DR",
+      "Data Protection",
+      "Core Data Stores",
+      "Archive & Retention",
+      "Observability Stores"
+    ],
+    "Docs & Spec": [
+      "Documentation Hub",
+      "Migration & Integration",
+      "API Reference",
+      "Glossary & Definitions",
+      "Changelog & Versioning",
+      "Reference Artifacts"
+    ],
+    "Settings & Admin": [
+      "User Profile & Preferences",
+      "Tenant & Org Admin",
+      "Integrations & Credentials",
+      "Workspace Settings",
+      "System Diagnostics",
+      "User & Tenant Settings",
+      "Billing & Usage",
+      "Security & Privacy",
+      "Feature Flags & Labs"
+    ],
+    "Mission & Architecture": [
+      "Architecture & Principles",
+      "Planes Architecture",
+      "Domain & Knowledge Model",
+      "Mission & Identity"
+    ],
+    "Governance & Security": [
+      "AI Billing & Cost Governance",
+      "Law-of-the-OS & Adjudication",
+      "Identity & Access",
+      "Policy & Governance Engine",
+      "Security Monitoring & Response",
+      "Compliance & Regulator Fabric",
+      "Data Protection & Classification",
+      "Secure Development & Supply Chain"
+    ],
+    "Observability & Evidence": [
+      "Postmortems & Incident Analytics",
+      "Health & Self-Healing",
+      "Dashboards & Alerting",
+      "Telemetry & Metrics",
+      "Evidence & Audit",
+      "Record Auditor & Logbook",
+      "Logging & Tracing",
+      "Temporal Backtesting & Replay"
+    ],
+    "Operations & Infrastructure": [
+      "Failure Modes & Resilience",
+      "Infrastructure & Topology",
+      "Deployment Models",
+      "Upgrades & Migration",
+      "Performance & Scalability"
+    ],
+    "Roadmap & Risks": [
+      "Roadmap & Planning",
+      "Risks & Decisions",
+      "Spec Maintenance"
+    ],
+    "Vision & Meta-Stack": [
+      "Hyper Network",
+      "Advanced Horizons",
+      "Ultra Scale",
+      "Supreme",
+      "Meta Envelope",
+      "Super Capabilities",
+      "Ascend",
+      "Core OS Engines",
+      "Vision Deck Hub"
+    ],
+    "Settings & Admin (Enterprise Extensions)": [
+      "User Profile & Preferences",
+      "Tenant & Org Admin",
+      "Integrations & Credentials",
+      "Workspace Settings",
+      "System Diagnostics",
+      "User & Tenant Settings",
+      "Billing & Usage",
+      "Security & Privacy",
+      "Feature Flags & Labs"
+    ],
+    "Workspaces (Enterprise Extensions)": [
+      "Writer Workspace",
+      "Dev & DevOps Workspace",
+      "Archive & Continuity Workspace",
+      "Operator & SRE Workspace",
+      "Research & Simulation Workspace",
+      "Record Auditor & Logbook Workspace",
+      "Business & Finance Workspace",
+      "Digital Twin & Enterprise Twin Workspace",
+      "Cybersecurity Workspace"
+    ]
+  },
+  "category_to_platforms": {
+    "Core Flight Deck": [
+      "Mission Control"
+    ],
+    "Engagement & Persona Surfaces": [
+      "Mission Control"
+    ],
+    "Collaboration & Federation": [
+      "Mission Control"
+    ],
+    "Dev & DevOps Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Research & Simulation Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Writer Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Cybersecurity Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Business & Finance Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Operator & SRE Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Archive & Continuity Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Digital Twin & Enterprise Twin Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Record Auditor & Logbook Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Cognitive Agents & Reasoning": [
+      "AI Fabric"
+    ],
+    "Driver Fabric & System Execution": [
+      "AI Fabric"
+    ],
+    "Capsules & Workflow Automation": [
+      "AI Fabric"
+    ],
+    "MLOps & Neural Architecture": [
+      "AI Fabric"
+    ],
+    "Edge & Vision": [
+      "AI Fabric"
+    ],
+    "Intent Processing": [
+      "AI Fabric"
+    ],
+    "Driver Registry & Management": [
+      "Drivers & Integrations"
+    ],
+    "Connectors & Integrations": [
+      "Drivers & Integrations"
+    ],
+    "Driver Packs & Marketplace": [
+      "Drivers & Integrations"
+    ],
+    "Risk & Governance": [
+      "Drivers & Integrations"
+    ],
+    "Core Data Stores": [
+      "Data & Knowledge"
+    ],
+    "Indices & Search": [
+      "Data & Knowledge"
+    ],
+    "Observability Stores": [
+      "Data & Knowledge"
+    ],
+    "Archive & Retention": [
+      "Data & Knowledge"
+    ],
+    "Data Protection": [
+      "Data & Knowledge"
+    ],
+    "Replication & DR": [
+      "Data & Knowledge"
+    ],
+    "Documentation Hub": [
+      "Docs & Spec"
+    ],
+    "Reference Artifacts": [
+      "Docs & Spec"
+    ],
+    "API Reference": [
+      "Docs & Spec"
+    ],
+    "Migration & Integration": [
+      "Docs & Spec"
+    ],
+    "Changelog & Versioning": [
+      "Docs & Spec"
+    ],
+    "Glossary & Definitions": [
+      "Docs & Spec"
+    ],
+    "User & Tenant Settings": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "User Profile & Preferences": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "Workspace Settings": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "Integrations & Credentials": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "Security & Privacy": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "Billing & Usage": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "Tenant & Org Admin": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "Feature Flags & Labs": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "System Diagnostics": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "Mission & Identity": [
+      "Mission & Architecture"
+    ],
+    "Architecture & Principles": [
+      "Mission & Architecture"
+    ],
+    "Planes Architecture": [
+      "Mission & Architecture"
+    ],
+    "Domain & Knowledge Model": [
+      "Mission & Architecture"
+    ],
+    "Policy & Governance Engine": [
+      "Governance & Security"
+    ],
+    "Compliance & Regulator Fabric": [
+      "Governance & Security"
+    ],
+    "Identity & Access": [
+      "Governance & Security"
+    ],
+    "Data Protection & Classification": [
+      "Governance & Security"
+    ],
+    "Security Monitoring & Response": [
+      "Governance & Security"
+    ],
+    "AI Billing & Cost Governance": [
+      "Governance & Security"
+    ],
+    "Secure Development & Supply Chain": [
+      "Governance & Security"
+    ],
+    "Law-of-the-OS & Adjudication": [
+      "Governance & Security"
+    ],
+    "Telemetry & Metrics": [
+      "Observability & Evidence"
+    ],
+    "Logging & Tracing": [
+      "Observability & Evidence"
+    ],
+    "Record Auditor & Logbook": [
+      "Observability & Evidence"
+    ],
+    "Evidence & Audit": [
+      "Observability & Evidence"
+    ],
+    "Health & Self-Healing": [
+      "Observability & Evidence"
+    ],
+    "Dashboards & Alerting": [
+      "Observability & Evidence"
+    ],
+    "Temporal Backtesting & Replay": [
+      "Observability & Evidence"
+    ],
+    "Postmortems & Incident Analytics": [
+      "Observability & Evidence"
+    ],
+    "Performance & Scalability": [
+      "Operations & Infrastructure"
+    ],
+    "Deployment Models": [
+      "Operations & Infrastructure"
+    ],
+    "Infrastructure & Topology": [
+      "Operations & Infrastructure"
+    ],
+    "Upgrades & Migration": [
+      "Operations & Infrastructure"
+    ],
+    "Failure Modes & Resilience": [
+      "Operations & Infrastructure"
+    ],
+    "Roadmap & Planning": [
+      "Roadmap & Risks"
+    ],
+    "Risks & Decisions": [
+      "Roadmap & Risks"
+    ],
+    "Spec Maintenance": [
+      "Roadmap & Risks"
+    ],
+    "Vision Deck Hub": [
+      "Vision & Meta-Stack"
+    ],
+    "Core OS Engines": [
+      "Vision & Meta-Stack"
+    ],
+    "Advanced Horizons": [
+      "Vision & Meta-Stack"
+    ],
+    "Super Capabilities": [
+      "Vision & Meta-Stack"
+    ],
+    "Hyper Network": [
+      "Vision & Meta-Stack"
+    ],
+    "Ultra Scale": [
+      "Vision & Meta-Stack"
+    ],
+    "Supreme": [
+      "Vision & Meta-Stack"
+    ],
+    "Ascend": [
+      "Vision & Meta-Stack"
+    ],
+    "Meta Envelope": [
+      "Vision & Meta-Stack"
+    ]
+  },
+  "category_to_features": {
+    "Core Flight Deck": [
+      "Task Analytics",
+      "Task Board (Kanban)",
+      "Notifications Center",
+      "Project Settings",
+      "Status",
+      "Tasks",
+      "Task Automation & Rules",
+      "Quick Actions",
+      "Project Members & Roles",
+      "Project Templates",
+      "Activity Feed",
+      "Master Stack",
+      "Dashboard",
+      "Approvals",
+      "Projects",
+      "Calendar / Timeline",
+      "Work Queue / Inbox",
+      "Overview",
+      "Timeline",
+      "Core Flight Deck"
+    ],
+    "Engagement & Persona Surfaces": [
+      "Saved Searches & Alerts",
+      "Personalization",
+      "Conversation Library",
+      "Mentions & Presence",
+      "Shared Spaces / Channels",
+      "Collaboration",
+      "Search & Discovery",
+      "Explanations",
+      "Chat",
+      "Voice",
+      "Preference Profiles",
+      "Engagement & Persona Surfaces",
+      "Overview",
+      "Prompt / Macro Library",
+      "Cli",
+      "Feedback"
+    ],
+    "Collaboration & Federation": [
+      "My Stack Sharing",
+      "Realtime",
+      "Membership",
+      "Audit",
+      "Run Here",
+      "Overview",
+      "Todos",
+      "Federation",
+      "Pipelines",
+      "Comments",
+      "Shared Views"
+    ],
+    "Dev & DevOps Workspace": [
+      "Sbom",
+      "Cicd",
+      "Reviews",
+      "Dev Workspace",
+      "Tools",
+      "Commit \u2192 Task Generator",
+      "Todos",
+      "Code Review Queue",
+      "Repo & Branch Browser",
+      "CI/CD Integration",
+      "Environment",
+      "Merge Advisor",
+      "Dev & DevOps Workspace",
+      "Commit Tasks",
+      "Developer Tools",
+      "Release Notes Generator",
+      "Release Evidence",
+      "Build/Test Insights",
+      "Local Environment Health",
+      "Overview",
+      "Repo",
+      "Code Merge Advisor",
+      "Runbooks",
+      "Dependency Updates"
+    ],
+    "Research & Simulation Workspace": [
+      "Cross Tool",
+      "Knowledge Atlas",
+      "Research & Simulation Workspace",
+      "Optimization",
+      "HPC Orchestrator",
+      "Results Publishing",
+      "Unified Research Lab",
+      "Todos",
+      "Training",
+      "Ip Assistant",
+      "Cad Multiphysics",
+      "Validation",
+      "Digital Twin Builder",
+      "Experiment Design",
+      "Hpc",
+      "Simulation",
+      "Experiments",
+      "Sweeps",
+      "Lab",
+      "Data Sources",
+      "Research Hub",
+      "Simulation Workbench",
+      "Experiment Tracking",
+      "Composer",
+      "Knowledge Graph",
+      "Reproducibility Packs",
+      "Calibration",
+      "Digital Twins",
+      "Model Validation",
+      "Notebook / Lab Notes",
+      "Overview",
+      "Dataset Registry"
+    ],
+    "Writer Workspace": [
+      "Style Guide Manager",
+      "Drafting",
+      "Collaboration",
+      "Canon",
+      "Todos",
+      "Narrative",
+      "Writer Workspace",
+      "Versioning & Change Log",
+      "Originality Check",
+      "Production",
+      "Qa",
+      "Story QA & Continuity",
+      "Canon & Lore",
+      "Workstation",
+      "Rights",
+      "Export & Publishing",
+      "Narrative Guidance",
+      "Publishing",
+      "Writer Workstation",
+      "Templates",
+      "Citations & References",
+      "Overview"
+    ],
+    "Cybersecurity Workspace": [
+      "Guardian",
+      "Threat Intel Feeds",
+      "Threat Modeling",
+      "Auto-Remediation",
+      "Todos",
+      "Policy-as-Code Checks",
+      "Forensics",
+      "Hardening",
+      "Playbooks & Runbooks",
+      "Compliance",
+      "Findings",
+      "Vulnerability Scan Integrations",
+      "Incident Commander",
+      "Findings & Triage",
+      "Security Guardian",
+      "Cybersecurity Workspace",
+      "Incidents",
+      "Assets",
+      "Overview",
+      "Auto Remediation"
+    ],
+    "Business & Finance Workspace": [
+      "Billing Insights",
+      "Budget Planner",
+      "Studio",
+      "Risk Register",
+      "Forecasting Lab",
+      "Business & Finance Workspace",
+      "Strategy Simulation",
+      "Business Console",
+      "Budgets",
+      "Scenarios",
+      "Overview",
+      "KPI Dashboard",
+      "Todos",
+      "Report Generator",
+      "Accounting",
+      "Cost Governance"
+    ],
+    "Operator & SRE Workspace": [
+      "Maintenance Windows",
+      "Sandbox",
+      "Todos",
+      "Runbook Library",
+      "SRE Workspace",
+      "Capacity & Cost Insights",
+      "Health",
+      "Capacity",
+      "Sandbox Management",
+      "Oncall",
+      "Health & Drift Monitors",
+      "Operator & SRE Workspace",
+      "Reliability",
+      "Reliability Dashboard",
+      "Incidents",
+      "Change Management",
+      "Overview",
+      "Runbooks",
+      "Incident Timeline"
+    ],
+    "Archive & Continuity Workspace": [
+      "Archive & Continuity Workspace",
+      "Retention Policies",
+      "Restore & Export",
+      "Resonance",
+      "Snapshot Manager",
+      "Drift",
+      "Search",
+      "Archive Workspace",
+      "Engine",
+      "Overview",
+      "Time Travel",
+      "Todos",
+      "Temporal Reconstruction"
+    ],
+    "Digital Twin & Enterprise Twin Workspace": [
+      "Digital Twin Builder",
+      "Reality Mesh",
+      "Catalog",
+      "Strategy",
+      "Reality Twin Mesh",
+      "Enterprise",
+      "Digital Twin & Enterprise Twin Workspace",
+      "Overview",
+      "Twin Governance",
+      "Dependencies",
+      "Twin Templates",
+      "Scenario Runner",
+      "Builder",
+      "Enterprise Twin",
+      "Runtime",
+      "Data Feeds & Sync",
+      "Todos"
+    ],
+    "Record Auditor & Logbook Workspace": [
+      "Trails",
+      "Evidence Requests",
+      "Replay",
+      "Regulator Views",
+      "Record Auditor & Logbook Workspace",
+      "Audit Logs",
+      "Regulator",
+      "Controls Mapping",
+      "Immutable Logbook Viewer",
+      "Overview",
+      "Requests",
+      "Todos",
+      "Evidence Trails",
+      "Record Auditor",
+      "Evidence",
+      "Audit Reports"
+    ],
+    "Cognitive Agents & Reasoning": [
+      "Traces",
+      "Trf",
+      "Todos",
+      "Safety & Alignment Overview",
+      "Personas & Agents",
+      "Personas",
+      "Advanced AI Engine",
+      "AI Copilot",
+      "Theoretical Reasoning Framework",
+      "Evaluation & Benchmarks",
+      "Project Intelligence",
+      "Daemon Framework",
+      "Copilot",
+      "Agent Registry & Lifecycle",
+      "Cognitive Agents & Reasoning",
+      "Advanced",
+      "Safety",
+      "Daemons",
+      "Prompt/Instruction Library",
+      "Model Router / Policy",
+      "Overview",
+      "Time"
+    ],
+    "Driver Fabric & System Execution": [
+      "Data Drivers",
+      "Hardware Drivers",
+      "AI OS Control",
+      "Workflow",
+      "Sandbox",
+      "Todos",
+      "Research & Simulation Drivers",
+      "Data",
+      "Sandbox & Testbed",
+      "AI Operations",
+      "Os",
+      "Package & Env Drivers",
+      "Driver Fabric & System Execution",
+      "Package",
+      "Driver Registry",
+      "Operations",
+      "Governance",
+      "OS Drivers",
+      "Driver Permissions & Sandboxing",
+      "Software & SaaS Drivers",
+      "Driver Test Harness",
+      "Failures",
+      "Research",
+      "Software",
+      "Os Control",
+      "Driver Versioning & Deprecation",
+      "Scheduling",
+      "Driver Health & Telemetry",
+      "Hardware",
+      "Overview"
+    ],
+    "Capsules & Workflow Automation": [
+      "Collaboration",
+      "My Stack Capsules",
+      "Todos",
+      "Evidence Packs",
+      "Manifests",
+      "Capsule Builder",
+      "Secrets & Inputs",
+      "Project Ledger",
+      "Workflows",
+      "Autofix",
+      "Library",
+      "Workflow Observability",
+      "Scheduling & Triggers",
+      "Governance",
+      "Lifecycle",
+      "Capsule Runtime Settings",
+      "Capsule Templates",
+      "Dependencies",
+      "Operator Studio",
+      "Approval & Publishing",
+      "Capsules & Workflow Automation",
+      "Taxonomy",
+      "Workflow Orchestrator",
+      "Capsule Marketplace",
+      "Lineage & Replay",
+      "Marketplace",
+      "Auto-Fix Console",
+      "Self Evolving",
+      "Overview"
+    ],
+    "MLOps & Neural Architecture": [
+      "Deployment & Serving",
+      "Model Registry",
+      "NAS Simulator",
+      "NAS Console",
+      "MLOps",
+      "Evaluation",
+      "Nas",
+      "MLOps & Neural Architecture",
+      "Drift Monitoring",
+      "Governance Gates",
+      "Simulator",
+      "Training Pipelines",
+      "Overview",
+      "Experiments",
+      "Dataset & Feature Store",
+      "Training",
+      "Todos",
+      "Experiment Console"
+    ],
+    "Edge & Vision": [
+      "Deployment",
+      "Edge & Vision",
+      "Compute",
+      "Observability",
+      "Device Registry",
+      "Computer Vision",
+      "Edge Computing",
+      "Vision Pipelines",
+      "Vision",
+      "Annotation & Labeling",
+      "Overview",
+      "Todos",
+      "Model Packaging & Deployment",
+      "Camera/Stream Integrations"
+    ],
+    "Intent Processing": [
+      "Approvals",
+      "System Dependency Graph",
+      "Systems Map",
+      "Intent Logs & Replay",
+      "Errors",
+      "Planning Loop",
+      "Intent Taxonomy & Routing Rules",
+      "Intent Processing",
+      "Processor",
+      "Intent Processor",
+      "Overview",
+      "Todos",
+      "Capability Registry",
+      "Context"
+    ],
+    "Driver Registry & Management": [
+      "Driver Analytics",
+      "Driver Registry & Management",
+      "Publishing Flow",
+      "Taxonomy",
+      "Config",
+      "Sdk",
+      "Versioning & Deprecation",
+      "Catalog",
+      "Publishing",
+      "Driver SDK",
+      "Runtime Permissions",
+      "Overview",
+      "Versioning",
+      "Todos",
+      "Health",
+      "Details",
+      "Driver Testing & Validation",
+      "Driver Registry"
+    ],
+    "Connectors & Integrations": [
+      "Contract Testing",
+      "Office",
+      "API Connectors",
+      "Credential Vault",
+      "Todos",
+      "Code Hosts & CI/CD",
+      "Legacy & Mainframe",
+      "Api",
+      "Finance & Banking",
+      "Webhooks & Events",
+      "Data Mapping & Transformations",
+      "Connectors & Integrations",
+      "Research Data Sources",
+      "Connectors Overview",
+      "Cloud Providers",
+      "Overview",
+      "Rate Limits & Quotas",
+      "Productivity Suites",
+      "Connector Health",
+      "Office Realtime"
+    ],
+    "Driver Packs & Marketplace": [
+      "Curation",
+      "Economics",
+      "Reviews & Ratings",
+      "Driver Packs",
+      "Enterprise App Store",
+      "Packs",
+      "Marketplace",
+      "Enterprise Store",
+      "Certification",
+      "Pack Builder",
+      "Security Review Pipeline",
+      "Vertical Editions",
+      "Overview",
+      "Licensing & Entitlements",
+      "Todos",
+      "Driver Packs & Marketplace"
+    ],
+    "Risk & Governance": [
+      "Monitoring",
+      "Vendor Inventory",
+      "Permissions",
+      "Risk Assessments",
+      "Exceptions & Approvals",
+      "Sandbox",
+      "Residency",
+      "Third-Party Risk",
+      "Overview",
+      "Remediation Tracker",
+      "Todos",
+      "Risk & Governance"
+    ],
+    "Core Data Stores": [
+      "Ledger",
+      "Data Lineage",
+      "Project Ledger",
+      "Data Quality Checks",
+      "Data Overview",
+      "CIR Store",
+      "Capsule Store",
+      "Ingestion Pipelines",
+      "Capsules",
+      "Cir",
+      "Artifacts",
+      "Core Data Stores",
+      "Overview",
+      "Schema & Ontology",
+      "Todos",
+      "Binary Artifacts",
+      "Knowledge Capsules"
+    ],
+    "Indices & Search": [
+      "Semantic/Vector Search",
+      "Full-Text Search",
+      "Graph Index",
+      "Indices & Search",
+      "Query Console",
+      "Maintenance",
+      "Relevance Tuning",
+      "Ranking",
+      "Overview",
+      "Todos",
+      "Indices Overview",
+      "Index Management",
+      "Embeddings Management"
+    ],
+    "Observability Stores": [
+      "Traces Store",
+      "Policies",
+      "Observability Stores Overview",
+      "Metrics Store",
+      "Traces",
+      "Retention & Tiering",
+      "Overview",
+      "Export & Integrations",
+      "Logs",
+      "Observability Stores",
+      "Logs Store",
+      "Todos",
+      "Metrics"
+    ],
+    "Archive & Retention": [
+      "Backup & Retention",
+      "Backup",
+      "Restore Testing",
+      "Archive",
+      "Archive & Retention",
+      "Overview",
+      "Legal Hold",
+      "Time Travel",
+      "Todos",
+      "Retention Policy Builder"
+    ],
+    "Data Protection": [
+      "Encryption",
+      "Integrity Protections",
+      "Secrets",
+      "Classification",
+      "Encryption & Keys",
+      "Data Protection",
+      "Overview",
+      "Todos",
+      "Integrity",
+      "Key Rotation & KMS Integrations"
+    ],
+    "Replication & DR": [
+      "Consistency Models",
+      "Failover Controls",
+      "DR Drill Planner",
+      "Replication & DR",
+      "Consistency",
+      "Overview",
+      "Replication",
+      "Multi-Region Replication",
+      "Todos"
+    ],
+    "Documentation Hub": [
+      "Getting Started",
+      "Tutorials",
+      "Technical Spec Sheet",
+      "Spec Sheet",
+      "Canon Mapping",
+      "Documentation Hub",
+      "Glossary",
+      "Overview",
+      "Todos",
+      "Docs Hub",
+      "Open Questions",
+      "Release Notes"
+    ],
+    "Reference Artifacts": [
+      "Policy Examples",
+      "Diagrams",
+      "UI Component Library",
+      "Capsule Manifests",
+      "Conformance",
+      "Overview",
+      "Evidence Pack Templates",
+      "Reference Artifacts",
+      "Driver Manifests",
+      "Data Schemas"
+    ],
+    "API Reference": [
+      "Webhooks",
+      "Governance",
+      "API Reference",
+      "Capsules",
+      "Auth & Rate Limits",
+      "Model Provider",
+      "Overview",
+      "Billing",
+      "Federation",
+      "Drivers",
+      "SDKs"
+    ],
+    "Migration & Integration": [
+      "Migration & Integration",
+      "Research Unification",
+      "Migration Guides",
+      "Integration Guides",
+      "Legacy Bridge",
+      "Saas To Drivers",
+      "Continued",
+      "Migration Continued",
+      "Overview",
+      "Security Adoption",
+      "Todos",
+      "Deployment Guides"
+    ],
+    "Changelog & Versioning": [
+      "Deprecations",
+      "Overview",
+      "Design Shifts",
+      "Spec Timeline"
+    ],
+    "Glossary & Definitions": [
+      "Terms",
+      "Overview",
+      "Notation"
+    ],
+    "User & Tenant Settings": [
+      "Integrations Credentials",
+      "Settings",
+      "Audit Settings",
+      "User Profile",
+      "Notifications",
+      "Team & Members",
+      "Tenancy & Org Settings",
+      "User & Tenant Settings",
+      "Preferences",
+      "API Keys"
+    ],
+    "User Profile & Preferences": [
+      "Ui",
+      "Personas",
+      "Overview",
+      "Notifications",
+      "Export",
+      "Profile"
+    ],
+    "Workspace Settings": [
+      "Environment Profiles",
+      "Overview",
+      "Defaults",
+      "Manage"
+    ],
+    "Integrations & Credentials": [
+      "Credentials",
+      "Permissions",
+      "Rotation",
+      "Connected Apps",
+      "Overview"
+    ],
+    "Security & Privacy": [
+      "Devices",
+      "Auth",
+      "Privacy",
+      "Overview",
+      "Keys"
+    ],
+    "Billing & Usage": [
+      "Usage",
+      "Budgets",
+      "Overview",
+      "Payment",
+      "Plan"
+    ],
+    "Tenant & Org Admin": [
+      "Sso",
+      "Rbac",
+      "Residency",
+      "Overview",
+      "Compliance",
+      "Billing"
+    ],
+    "Feature Flags & Labs": [
+      "Feature Flags",
+      "Overview",
+      "Model Providers"
+    ],
+    "System Diagnostics": [
+      "Health",
+      "Version",
+      "Overview",
+      "Support Bundle"
+    ],
+    "Mission & Identity": [
+      "Principles",
+      "Deployment Modes",
+      "Reference Architectures by Edition",
+      "Daemon Families",
+      "Cognitive Agents & Personas",
+      "Todos",
+      "Modes",
+      "Ai Driver Stack",
+      "Personas",
+      "Use Cases Map",
+      "AI + Driver Stack",
+      "Actors",
+      "Model Provider Layer",
+      "Mission & Scope",
+      "Roles",
+      "System Boundaries & Non-Goals",
+      "Terminology Glossary",
+      "Identity & Roles",
+      "Daemons",
+      "Model Layer",
+      "Glossary",
+      "Mission & Identity",
+      "Overview"
+    ],
+    "Architecture & Principles": [
+      "Performance Targets",
+      "Principles",
+      "Todos",
+      "Data Model & Contracts",
+      "Errors",
+      "Guardrails",
+      "Platform Envelope",
+      "Component Mapping",
+      "Threat Model Summary",
+      "Architecture Overview",
+      "Major Components",
+      "Architecture & Principles",
+      "Mapping",
+      "Hitl",
+      "Architectural Principles",
+      "Orchestrator",
+      "Extensibility Points",
+      "Components",
+      "Overview",
+      "Driver-Aware Orchestrator",
+      "Deploy Mapping",
+      "Modalities"
+    ],
+    "Planes Architecture": [
+      "Control Plane",
+      "Plane APIs & Event Contracts",
+      "Slos",
+      "Cross-Plane Flows",
+      "Planes Architecture",
+      "Planes Overview",
+      "Governance Plane",
+      "Failure Domains by Plane",
+      "Overview",
+      "Todos",
+      "Data Plane"
+    ],
+    "Domain & Knowledge Model": [
+      "Ledger",
+      "Policies",
+      "Identity",
+      "Projects",
+      "Tasks",
+      "Cir",
+      "Overview",
+      "Billing",
+      "Todos",
+      "Time",
+      "Capsules",
+      "Environments"
+    ],
+    "Policy & Governance Engine": [
+      "Policy & Governance Engine",
+      "Exceptions & Waivers",
+      "Packs",
+      "Safety Harnesses",
+      "Policy Library & Templates",
+      "Policy Simulator",
+      "Policy DSL",
+      "Policy Versioning & Approvals",
+      "Workflows",
+      "Overview",
+      "Todos",
+      "Enforcement Points Map",
+      "Policy Engine",
+      "Evaluation"
+    ],
+    "Compliance & Regulator Fabric": [
+      "Builder",
+      "Reproducibility",
+      "Control Framework Mapping",
+      "Compliance & Regulator Fabric",
+      "Packs",
+      "Regulator Tenancy",
+      "Tenancy",
+      "Regulator",
+      "Overview",
+      "Todos",
+      "Audit Readiness Dashboard",
+      "Regulator Fabric",
+      "Evidence Access",
+      "Evidence",
+      "Evidence Request Workflow",
+      "Compliance Packs"
+    ],
+    "Identity & Access": [
+      "Roles",
+      "Identity & Access",
+      "SCIM Provisioning",
+      "Identity & Roles",
+      "Access Reviews",
+      "Authentication",
+      "SSO/SAML/OIDC Settings",
+      "API Keys & Tokens",
+      "Overview",
+      "Todos",
+      "Session Management",
+      "Zero Trust",
+      "RBAC/ABAC",
+      "Partners"
+    ],
+    "Data Protection & Classification": [
+      "DLP Rules",
+      "Classification",
+      "Data Residency",
+      "Protection",
+      "Tokenization",
+      "Data Protection",
+      "Residency",
+      "Masking",
+      "Data Protection & Classification",
+      "Overview",
+      "Kms",
+      "Data Classification",
+      "Todos",
+      "Data Masking"
+    ],
+    "Security Monitoring & Response": [
+      "Risk Scoring",
+      "Forensics & Evidence",
+      "Threat Detection",
+      "Security Monitoring & Response",
+      "Abuse",
+      "Vulnerability Management",
+      "Alignment Monitor",
+      "Alerts & Rules",
+      "Overview",
+      "Incident Response",
+      "Todos",
+      "Security Monitoring"
+    ],
+    "AI Billing & Cost Governance": [
+      "AI Billing & Cost Governance",
+      "Chargeback/Showback Reports",
+      "Forecasting",
+      "Invoicing",
+      "Usage Fabric",
+      "Provider Rate Cards",
+      "Multi-Tenant Billing",
+      "Billing Optimizer",
+      "Overview",
+      "Budgets & Quotas",
+      "Todos",
+      "Cost Guardrails",
+      "Billing & Usage"
+    ],
+    "Secure Development & Supply Chain": [
+      "Sbom",
+      "Provenance",
+      "Review",
+      "Overview",
+      "Env Security",
+      "Todos"
+    ],
+    "Law-of-the-OS & Adjudication": [
+      "Decision Proof Ledger",
+      "Court",
+      "Treaty",
+      "Overview",
+      "Policy Vm",
+      "Todos"
+    ],
+    "Telemetry & Metrics": [
+      "Monitoring",
+      "Model",
+      "Metrics Model",
+      "Slos",
+      "SLIs & SLOs",
+      "SLO Burn Rates",
+      "Telemetry & Metrics",
+      "Analytics",
+      "Overview",
+      "Todos",
+      "Metric Explorer",
+      "Anomaly Detection",
+      "Observability Overview"
+    ],
+    "Logging & Tracing": [
+      "Logging & Tracing Overview",
+      "Policies",
+      "Correlation & Context",
+      "Structured Logging",
+      "Log Explorer",
+      "Tracing",
+      "Trace Explorer",
+      "Distributed Tracing",
+      "Overview",
+      "Todos",
+      "Logging"
+    ],
+    "Record Auditor & Logbook": [
+      "Queries",
+      "Audit Evidence",
+      "Audit",
+      "Record Auditor & Logbook",
+      "Evidence Builder",
+      "Overview",
+      "Logbook Timeline",
+      "Todos",
+      "Record Auditor"
+    ],
+    "Evidence & Audit": [
+      "Retention Policies",
+      "Evidence Queries",
+      "Retention",
+      "Generator",
+      "Packs",
+      "Audit Logs",
+      "Regulator",
+      "Export for Auditors",
+      "Evidence & Audit",
+      "Overview",
+      "Todos",
+      "Evidence Packs"
+    ],
+    "Health & Self-Healing": [
+      "Health & Self-Healing",
+      "Self Healing",
+      "Self-Healing",
+      "Playbooks",
+      "Automated Rollbacks",
+      "Overview",
+      "Runbooks",
+      "Checks",
+      "Health Checks",
+      "Todos",
+      "Drift Detection"
+    ],
+    "Dashboards & Alerting": [
+      "Alert Rules",
+      "Oncall",
+      "Dashboards & Alerting",
+      "Alerting",
+      "Notification Channels",
+      "Dashboards",
+      "Overview",
+      "Dashboard Builder",
+      "Todos"
+    ],
+    "Temporal Backtesting & Replay": [
+      "Temporal Backtesting",
+      "Replay Engine",
+      "Determinism Checks",
+      "Engine",
+      "Overview",
+      "Scenario Library",
+      "Backtesting",
+      "Counterfactuals",
+      "Todos",
+      "Temporal Backtesting & Replay"
+    ],
+    "Postmortems & Incident Analytics": [
+      "Action Items",
+      "Overview",
+      "Root Cause",
+      "Todos",
+      "Timeline"
+    ],
+    "Performance & Scalability": [
+      "Cost/Performance Tradeoffs",
+      "Backpressure & Throttling",
+      "Driver Performance",
+      "Scaling Strategies",
+      "Scaling",
+      "Performance",
+      "Reliability",
+      "Benchmarks",
+      "Sizing",
+      "Backpressure",
+      "Capacity Planning",
+      "Reliability Patterns",
+      "Overview",
+      "Todos",
+      "Nfr",
+      "Load Testing",
+      "Performance & Scalability"
+    ],
+    "Deployment Models": [
+      "Rollback",
+      "Upgrade Channels",
+      "Cloud/Enterprise",
+      "Local Mode",
+      "Multi Region",
+      "Deployment Models",
+      "Airgapped Deployment",
+      "Deployment Modes",
+      "Overview",
+      "Todos",
+      "Hybrid & Edge",
+      "Kubernetes Deployment"
+    ],
+    "Infrastructure & Topology": [
+      "Network Monitoring",
+      "Infrastructure & Topology",
+      "Storage",
+      "Network Topology",
+      "Todos",
+      "Configuration Management",
+      "Multi-Region & DR",
+      "Zero Trust",
+      "HPC Integration",
+      "Config",
+      "Hpc",
+      "Storage Topology",
+      "Queues & Search",
+      "Service Dependencies",
+      "Compute/Cluster Management",
+      "Secrets & Configuration Vault",
+      "Overview",
+      "Queues Search",
+      "Network"
+    ],
+    "Upgrades & Migration": [
+      "Rollback",
+      "Migration",
+      "Change Logs & Release Notes",
+      "Rollback Strategy",
+      "Overview",
+      "Blue/Green & Canary",
+      "Compatibility Matrix",
+      "Todos",
+      "Upgrades & Migration",
+      "Upgrades"
+    ],
+    "Failure Modes & Resilience": [
+      "DR Drills",
+      "Failure Modes & Resilience",
+      "Data Loss Protection",
+      "Detection Mechanisms",
+      "Postmortems",
+      "Failure",
+      "Chaos Engineering",
+      "Security Incidents",
+      "Recovery",
+      "Recovery Strategies",
+      "Data Protection",
+      "Business Continuity & DR",
+      "Overview",
+      "Detection",
+      "Bc Dr",
+      "Todos",
+      "Failure Modes"
+    ],
+    "Roadmap & Planning": [
+      "Phases",
+      "Future",
+      "Long-Term Bets",
+      "Overview",
+      "Phased Delivery",
+      "Dependencies",
+      "Todos",
+      "Milestones",
+      "Roadmap & Planning",
+      "Roadmap Overview"
+    ],
+    "Risks & Decisions": [
+      "Decision Log",
+      "Questions",
+      "Decisions",
+      "Derisk",
+      "Risks & Decisions",
+      "Risk Register",
+      "Risks",
+      "Gaps",
+      "Overview",
+      "Todos",
+      "Open Questions",
+      "Known Gaps"
+    ],
+    "Spec Maintenance": [
+      "Future Capabilities",
+      "Spec Versioning",
+      "Deprecations",
+      "Backward Compatibility Commitments",
+      "Overview",
+      "Versioning",
+      "Proposals",
+      "Spec Maintenance"
+    ],
+    "Vision Deck Hub": [
+      "Capabilities",
+      "Layering",
+      "Vision Roadmap",
+      "Overview",
+      "Vision Glossary",
+      "Phasing",
+      "Todos",
+      "Vision Deck Hub"
+    ],
+    "Core OS Engines": [
+      "Overview",
+      "Capability Matrix",
+      "Baselines",
+      "Todos",
+      "Profession Os",
+      "Core OS Engines"
+    ],
+    "Advanced Horizons": [
+      "Advanced Horizons",
+      "Overview",
+      "Capability Matrix",
+      "Todos",
+      "Envelope"
+    ],
+    "Super Capabilities": [
+      "Arc",
+      "Self Evolving",
+      "Overview",
+      "Capability Matrix",
+      "Todos",
+      "Super Capabilities",
+      "Enterprise Twin"
+    ],
+    "Hyper Network": [
+      "Hypersymphony",
+      "Hyper Network",
+      "Hypermesh",
+      "Overview",
+      "Capability Matrix",
+      "Todos"
+    ],
+    "Ultra Scale": [
+      "Temporal Backtesting",
+      "Ultra Scale",
+      "Reality Twin Mesh",
+      "Overview",
+      "Capability Matrix",
+      "Todos"
+    ],
+    "Supreme": [
+      "Supreme",
+      "Canon",
+      "Overview",
+      "Contracts",
+      "Capability Matrix",
+      "Todos"
+    ],
+    "Ascend": [
+      "Obligation",
+      "Governance Shell",
+      "Overview",
+      "Capability Matrix",
+      "Todos",
+      "Ascend"
+    ],
+    "Meta Envelope": [
+      "Safety",
+      "Overview",
+      "Capability Matrix",
+      "Meta Envelope",
+      "Envelope",
+      "Todos"
+    ]
+  },
+  "feature_to_categories": {
+    "Core Flight Deck": [
+      "Core Flight Deck"
+    ],
+    "Dashboard": [
+      "Core Flight Deck"
+    ],
+    "Projects": [
+      "Domain & Knowledge Model",
+      "Core Flight Deck"
+    ],
+    "Project Templates": [
+      "Core Flight Deck"
+    ],
+    "Project Members & Roles": [
+      "Core Flight Deck"
+    ],
+    "Project Settings": [
+      "Core Flight Deck"
+    ],
+    "Tasks": [
+      "Domain & Knowledge Model",
+      "Core Flight Deck"
+    ],
+    "Task Board (Kanban)": [
+      "Core Flight Deck"
+    ],
+    "Task Automation & Rules": [
+      "Core Flight Deck"
+    ],
+    "Task Analytics": [
+      "Core Flight Deck"
+    ],
+    "Activity Feed": [
+      "Core Flight Deck"
+    ],
+    "Notifications Center": [
+      "Core Flight Deck"
+    ],
+    "Work Queue / Inbox": [
+      "Core Flight Deck"
+    ],
+    "Calendar / Timeline": [
+      "Core Flight Deck"
+    ],
+    "Overview": [
+      "Intent Processing",
+      "Driver Packs & Marketplace",
+      "Driver Registry & Management",
+      "Migration & Integration",
+      "Telemetry & Metrics",
+      "System Diagnostics",
+      "Workspace Settings",
+      "Performance & Scalability",
+      "Security Monitoring & Response",
+      "Record Auditor & Logbook Workspace",
+      "Engagement & Persona Surfaces",
+      "Risk & Governance",
+      "Vision Deck Hub",
+      "Capsules & Workflow Automation",
+      "Advanced Horizons",
+      "Meta Envelope",
+      "Law-of-the-OS & Adjudication",
+      "Research & Simulation Workspace",
+      "Business & Finance Workspace",
+      "Infrastructure & Topology",
+      "Changelog & Versioning",
+      "Super Capabilities",
+      "AI Billing & Cost Governance",
+      "Writer Workspace",
+      "Archive & Continuity Workspace",
+      "User Profile & Preferences",
+      "Postmortems & Incident Analytics",
+      "Health & Self-Healing",
+      "MLOps & Neural Architecture",
+      "Driver Fabric & System Execution",
+      "Integrations & Credentials",
+      "Domain & Knowledge Model",
+      "Spec Maintenance",
+      "Dev & DevOps Workspace",
+      "Operator & SRE Workspace",
+      "Compliance & Regulator Fabric",
+      "Cognitive Agents & Reasoning",
+      "Reference Artifacts",
+      "Logging & Tracing",
+      "Security & Privacy",
+      "Ultra Scale",
+      "Mission & Identity",
+      "Temporal Backtesting & Replay",
+      "Core Flight Deck",
+      "Edge & Vision",
+      "Documentation Hub",
+      "Deployment Models",
+      "Record Auditor & Logbook",
+      "Data Protection",
+      "Digital Twin & Enterprise Twin Workspace",
+      "Replication & DR",
+      "Archive & Retention",
+      "Secure Development & Supply Chain",
+      "Observability Stores",
+      "Tenant & Org Admin",
+      "Dashboards & Alerting",
+      "Indices & Search",
+      "Billing & Usage",
+      "Ascend",
+      "Core Data Stores",
+      "Data Protection & Classification",
+      "Upgrades & Migration",
+      "Roadmap & Planning",
+      "Failure Modes & Resilience",
+      "Policy & Governance Engine",
+      "Risks & Decisions",
+      "Supreme",
+      "Feature Flags & Labs",
+      "Identity & Access",
+      "Architecture & Principles",
+      "Glossary & Definitions",
+      "Cybersecurity Workspace",
+      "Connectors & Integrations",
+      "Hyper Network",
+      "Planes Architecture",
+      "Collaboration & Federation",
+      "API Reference",
+      "Evidence & Audit",
+      "Core OS Engines"
+    ],
+    "Master Stack": [
+      "Core Flight Deck"
+    ],
+    "Approvals": [
+      "Intent Processing",
+      "Core Flight Deck"
+    ],
+    "Timeline": [
+      "Postmortems & Incident Analytics",
+      "Core Flight Deck"
+    ],
+    "Quick Actions": [
+      "Core Flight Deck"
+    ],
+    "Status": [
+      "Core Flight Deck"
+    ],
+    "Engagement & Persona Surfaces": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Chat": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Conversation Library": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Search & Discovery": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Saved Searches & Alerts": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Collaboration": [
+      "Capsules & Workflow Automation",
+      "Writer Workspace",
+      "Engagement & Persona Surfaces"
+    ],
+    "Shared Spaces / Channels": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Mentions & Presence": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Personalization": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Prompt / Macro Library": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Preference Profiles": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Voice": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Cli": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Explanations": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Feedback": [
+      "Engagement & Persona Surfaces"
+    ],
+    "Membership": [
+      "Collaboration & Federation"
+    ],
+    "Shared Views": [
+      "Collaboration & Federation"
+    ],
+    "Comments": [
+      "Collaboration & Federation"
+    ],
+    "Pipelines": [
+      "Collaboration & Federation"
+    ],
+    "Realtime": [
+      "Collaboration & Federation"
+    ],
+    "Audit": [
+      "Record Auditor & Logbook",
+      "Collaboration & Federation"
+    ],
+    "Run Here": [
+      "Collaboration & Federation"
+    ],
+    "My Stack Sharing": [
+      "Collaboration & Federation"
+    ],
+    "Federation": [
+      "Collaboration & Federation",
+      "API Reference"
+    ],
+    "Todos": [
+      "Edge & Vision",
+      "Law-of-the-OS & Adjudication",
+      "Documentation Hub",
+      "Research & Simulation Workspace",
+      "Business & Finance Workspace",
+      "Infrastructure & Topology",
+      "Intent Processing",
+      "Deployment Models",
+      "Core Data Stores",
+      "Data Protection & Classification",
+      "Upgrades & Migration",
+      "Roadmap & Planning",
+      "Super Capabilities",
+      "Driver Packs & Marketplace",
+      "AI Billing & Cost Governance",
+      "Writer Workspace",
+      "Archive & Continuity Workspace",
+      "Driver Registry & Management",
+      "Postmortems & Incident Analytics",
+      "Failure Modes & Resilience",
+      "Policy & Governance Engine",
+      "Migration & Integration",
+      "Health & Self-Healing",
+      "Risks & Decisions",
+      "MLOps & Neural Architecture",
+      "Driver Fabric & System Execution",
+      "Telemetry & Metrics",
+      "Data Protection",
+      "Record Auditor & Logbook",
+      "Digital Twin & Enterprise Twin Workspace",
+      "Supreme",
+      "Domain & Knowledge Model",
+      "Performance & Scalability",
+      "Dev & DevOps Workspace",
+      "Identity & Access",
+      "Operator & SRE Workspace",
+      "Security Monitoring & Response",
+      "Architecture & Principles",
+      "Compliance & Regulator Fabric",
+      "Record Auditor & Logbook Workspace",
+      "Replication & DR",
+      "Cognitive Agents & Reasoning",
+      "Archive & Retention",
+      "Secure Development & Supply Chain",
+      "Cybersecurity Workspace",
+      "Connectors & Integrations",
+      "Observability Stores",
+      "Logging & Tracing",
+      "Risk & Governance",
+      "Vision Deck Hub",
+      "Capsules & Workflow Automation",
+      "Dashboards & Alerting",
+      "Advanced Horizons",
+      "Hyper Network",
+      "Planes Architecture",
+      "Indices & Search",
+      "Collaboration & Federation",
+      "Ultra Scale",
+      "Evidence & Audit",
+      "Ascend",
+      "Mission & Identity",
+      "Meta Envelope",
+      "Temporal Backtesting & Replay",
+      "Core OS Engines"
+    ],
+    "Dev & DevOps Workspace": [
+      "Dev & DevOps Workspace"
+    ],
+    "Dev Workspace": [
+      "Dev & DevOps Workspace"
+    ],
+    "Developer Tools": [
+      "Dev & DevOps Workspace"
+    ],
+    "Repo & Branch Browser": [
+      "Dev & DevOps Workspace"
+    ],
+    "CI/CD Integration": [
+      "Dev & DevOps Workspace"
+    ],
+    "Build/Test Insights": [
+      "Dev & DevOps Workspace"
+    ],
+    "Commit \u2192 Task Generator": [
+      "Dev & DevOps Workspace"
+    ],
+    "Code Review Queue": [
+      "Dev & DevOps Workspace"
+    ],
+    "Code Merge Advisor": [
+      "Dev & DevOps Workspace"
+    ],
+    "Dependency Updates": [
+      "Dev & DevOps Workspace"
+    ],
+    "Release Notes Generator": [
+      "Dev & DevOps Workspace"
+    ],
+    "Local Environment Health": [
+      "Dev & DevOps Workspace"
+    ],
+    "Repo": [
+      "Dev & DevOps Workspace"
+    ],
+    "Environment": [
+      "Dev & DevOps Workspace"
+    ],
+    "Release Evidence": [
+      "Dev & DevOps Workspace"
+    ],
+    "Sbom": [
+      "Dev & DevOps Workspace",
+      "Secure Development & Supply Chain"
+    ],
+    "Runbooks": [
+      "Dev & DevOps Workspace",
+      "Operator & SRE Workspace",
+      "Health & Self-Healing"
+    ],
+    "Research & Simulation Workspace": [
+      "Research & Simulation Workspace"
+    ],
+    "Research Hub": [
+      "Research & Simulation Workspace"
+    ],
+    "Unified Research Lab": [
+      "Research & Simulation Workspace"
+    ],
+    "Dataset Registry": [
+      "Research & Simulation Workspace"
+    ],
+    "Notebook / Lab Notes": [
+      "Research & Simulation Workspace"
+    ],
+    "Experiment Design": [
+      "Research & Simulation Workspace"
+    ],
+    "Experiment Tracking": [
+      "Research & Simulation Workspace"
+    ],
+    "Simulation Workbench": [
+      "Research & Simulation Workspace"
+    ],
+    "HPC Orchestrator": [
+      "Research & Simulation Workspace"
+    ],
+    "Model Validation": [
+      "Research & Simulation Workspace"
+    ],
+    "Reproducibility Packs": [
+      "Research & Simulation Workspace"
+    ],
+    "Results Publishing": [
+      "Research & Simulation Workspace"
+    ],
+    "Digital Twin Builder": [
+      "Research & Simulation Workspace",
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Data Sources": [
+      "Research & Simulation Workspace"
+    ],
+    "Sweeps": [
+      "Research & Simulation Workspace"
+    ],
+    "Cad Multiphysics": [
+      "Research & Simulation Workspace"
+    ],
+    "Optimization": [
+      "Research & Simulation Workspace"
+    ],
+    "Calibration": [
+      "Research & Simulation Workspace"
+    ],
+    "Composer": [
+      "Research & Simulation Workspace"
+    ],
+    "Knowledge Graph": [
+      "Research & Simulation Workspace"
+    ],
+    "Ip Assistant": [
+      "Research & Simulation Workspace"
+    ],
+    "Training": [
+      "Research & Simulation Workspace",
+      "MLOps & Neural Architecture"
+    ],
+    "Cross Tool": [
+      "Research & Simulation Workspace"
+    ],
+    "Knowledge Atlas": [
+      "Research & Simulation Workspace"
+    ],
+    "Writer Workspace": [
+      "Writer Workspace"
+    ],
+    "Writer Workstation": [
+      "Writer Workspace"
+    ],
+    "Templates": [
+      "Writer Workspace"
+    ],
+    "Style Guide Manager": [
+      "Writer Workspace"
+    ],
+    "Canon & Lore": [
+      "Writer Workspace"
+    ],
+    "Narrative Guidance": [
+      "Writer Workspace"
+    ],
+    "Story QA & Continuity": [
+      "Writer Workspace"
+    ],
+    "Versioning & Change Log": [
+      "Writer Workspace"
+    ],
+    "Citations & References": [
+      "Writer Workspace"
+    ],
+    "Originality Check": [
+      "Writer Workspace"
+    ],
+    "Export & Publishing": [
+      "Writer Workspace"
+    ],
+    "Workstation": [
+      "Writer Workspace"
+    ],
+    "Drafting": [
+      "Writer Workspace"
+    ],
+    "Production": [
+      "Writer Workspace"
+    ],
+    "Rights": [
+      "Writer Workspace"
+    ],
+    "Cybersecurity Workspace": [
+      "Cybersecurity Workspace"
+    ],
+    "Security Guardian": [
+      "Cybersecurity Workspace"
+    ],
+    "Findings & Triage": [
+      "Cybersecurity Workspace"
+    ],
+    "Threat Modeling": [
+      "Cybersecurity Workspace"
+    ],
+    "Policy-as-Code Checks": [
+      "Cybersecurity Workspace"
+    ],
+    "Vulnerability Scan Integrations": [
+      "Cybersecurity Workspace"
+    ],
+    "Threat Intel Feeds": [
+      "Cybersecurity Workspace"
+    ],
+    "Playbooks & Runbooks": [
+      "Cybersecurity Workspace"
+    ],
+    "Incident Commander": [
+      "Cybersecurity Workspace"
+    ],
+    "Auto-Remediation": [
+      "Cybersecurity Workspace"
+    ],
+    "Guardian": [
+      "Cybersecurity Workspace"
+    ],
+    "Assets": [
+      "Cybersecurity Workspace"
+    ],
+    "Hardening": [
+      "Cybersecurity Workspace"
+    ],
+    "Forensics": [
+      "Cybersecurity Workspace"
+    ],
+    "Compliance": [
+      "Tenant & Org Admin",
+      "Cybersecurity Workspace"
+    ],
+    "Business & Finance Workspace": [
+      "Business & Finance Workspace"
+    ],
+    "Business Console": [
+      "Business & Finance Workspace"
+    ],
+    "KPI Dashboard": [
+      "Business & Finance Workspace"
+    ],
+    "Budget Planner": [
+      "Business & Finance Workspace"
+    ],
+    "Forecasting Lab": [
+      "Business & Finance Workspace"
+    ],
+    "Strategy Simulation": [
+      "Business & Finance Workspace"
+    ],
+    "Risk Register": [
+      "Risks & Decisions",
+      "Business & Finance Workspace"
+    ],
+    "Report Generator": [
+      "Business & Finance Workspace"
+    ],
+    "Accounting": [
+      "Business & Finance Workspace"
+    ],
+    "Studio": [
+      "Business & Finance Workspace"
+    ],
+    "Cost Governance": [
+      "Business & Finance Workspace"
+    ],
+    "Billing Insights": [
+      "Business & Finance Workspace"
+    ],
+    "Operator & SRE Workspace": [
+      "Operator & SRE Workspace"
+    ],
+    "SRE Workspace": [
+      "Operator & SRE Workspace"
+    ],
+    "Reliability Dashboard": [
+      "Operator & SRE Workspace"
+    ],
+    "Health & Drift Monitors": [
+      "Operator & SRE Workspace"
+    ],
+    "Runbook Library": [
+      "Operator & SRE Workspace"
+    ],
+    "Incident Timeline": [
+      "Operator & SRE Workspace"
+    ],
+    "Change Management": [
+      "Operator & SRE Workspace"
+    ],
+    "Capacity & Cost Insights": [
+      "Operator & SRE Workspace"
+    ],
+    "Maintenance Windows": [
+      "Operator & SRE Workspace"
+    ],
+    "Sandbox Management": [
+      "Operator & SRE Workspace"
+    ],
+    "Oncall": [
+      "Operator & SRE Workspace",
+      "Dashboards & Alerting"
+    ],
+    "Capacity": [
+      "Operator & SRE Workspace"
+    ],
+    "Archive & Continuity Workspace": [
+      "Archive & Continuity Workspace"
+    ],
+    "Archive Workspace": [
+      "Archive & Continuity Workspace"
+    ],
+    "Snapshot Manager": [
+      "Archive & Continuity Workspace"
+    ],
+    "Retention Policies": [
+      "Evidence & Audit",
+      "Archive & Continuity Workspace"
+    ],
+    "Temporal Reconstruction": [
+      "Archive & Continuity Workspace"
+    ],
+    "Restore & Export": [
+      "Archive & Continuity Workspace"
+    ],
+    "Engine": [
+      "Archive & Continuity Workspace",
+      "Temporal Backtesting & Replay"
+    ],
+    "Search": [
+      "Archive & Continuity Workspace"
+    ],
+    "Drift": [
+      "Archive & Continuity Workspace"
+    ],
+    "Resonance": [
+      "Archive & Continuity Workspace"
+    ],
+    "Digital Twin & Enterprise Twin Workspace": [
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Twin Templates": [
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Data Feeds & Sync": [
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Scenario Runner": [
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Reality Twin Mesh": [
+      "Digital Twin & Enterprise Twin Workspace",
+      "Ultra Scale"
+    ],
+    "Twin Governance": [
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Enterprise Twin": [
+      "Super Capabilities",
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Builder": [
+      "Compliance & Regulator Fabric",
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Catalog": [
+      "Driver Registry & Management",
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Runtime": [
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Dependencies": [
+      "Capsules & Workflow Automation",
+      "Roadmap & Planning",
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Strategy": [
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Trails": [
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Evidence": [
+      "Compliance & Regulator Fabric",
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Audit Logs": [
+      "Evidence & Audit",
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Replay": [
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Regulator": [
+      "Compliance & Regulator Fabric",
+      "Record Auditor & Logbook Workspace",
+      "Evidence & Audit"
+    ],
+    "Requests": [
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Cognitive Agents & Reasoning": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "AI Copilot": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Personas & Agents": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Prompt/Instruction Library": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Project Intelligence": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Evaluation & Benchmarks": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Model Router / Policy": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Advanced AI Engine": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Daemon Framework": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Theoretical Reasoning Framework": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Safety & Alignment Overview": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Agent Registry & Lifecycle": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Copilot": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Advanced": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Personas": [
+      "User Profile & Preferences",
+      "Cognitive Agents & Reasoning",
+      "Mission & Identity"
+    ],
+    "Daemons": [
+      "Cognitive Agents & Reasoning",
+      "Mission & Identity"
+    ],
+    "Trf": [
+      "Cognitive Agents & Reasoning"
+    ],
+    "Traces": [
+      "Observability Stores",
+      "Cognitive Agents & Reasoning"
+    ],
+    "Safety": [
+      "Cognitive Agents & Reasoning",
+      "Meta Envelope"
+    ],
+    "Time": [
+      "Cognitive Agents & Reasoning",
+      "Domain & Knowledge Model"
+    ],
+    "Driver Fabric & System Execution": [
+      "Driver Fabric & System Execution"
+    ],
+    "AI OS Control": [
+      "Driver Fabric & System Execution"
+    ],
+    "AI Operations": [
+      "Driver Fabric & System Execution"
+    ],
+    "Driver Registry": [
+      "Driver Registry & Management",
+      "Driver Fabric & System Execution"
+    ],
+    "Driver Test Harness": [
+      "Driver Fabric & System Execution"
+    ],
+    "Driver Health & Telemetry": [
+      "Driver Fabric & System Execution"
+    ],
+    "Driver Permissions & Sandboxing": [
+      "Driver Fabric & System Execution"
+    ],
+    "Driver Versioning & Deprecation": [
+      "Driver Fabric & System Execution"
+    ],
+    "OS Drivers": [
+      "Driver Fabric & System Execution"
+    ],
+    "Package & Env Drivers": [
+      "Driver Fabric & System Execution"
+    ],
+    "Hardware Drivers": [
+      "Driver Fabric & System Execution"
+    ],
+    "Software & SaaS Drivers": [
+      "Driver Fabric & System Execution"
+    ],
+    "Data Drivers": [
+      "Driver Fabric & System Execution"
+    ],
+    "Research & Simulation Drivers": [
+      "Driver Fabric & System Execution"
+    ],
+    "Sandbox & Testbed": [
+      "Driver Fabric & System Execution"
+    ],
+    "Operations": [
+      "Driver Fabric & System Execution"
+    ],
+    "Os Control": [
+      "Driver Fabric & System Execution"
+    ],
+    "Os": [
+      "Driver Fabric & System Execution"
+    ],
+    "Package": [
+      "Driver Fabric & System Execution"
+    ],
+    "Hardware": [
+      "Driver Fabric & System Execution"
+    ],
+    "Software": [
+      "Driver Fabric & System Execution"
+    ],
+    "Data": [
+      "Driver Fabric & System Execution"
+    ],
+    "Workflow": [
+      "Driver Fabric & System Execution"
+    ],
+    "Governance": [
+      "Capsules & Workflow Automation",
+      "API Reference",
+      "Driver Fabric & System Execution"
+    ],
+    "Research": [
+      "Driver Fabric & System Execution"
+    ],
+    "Sandbox": [
+      "Operator & SRE Workspace",
+      "Risk & Governance",
+      "Driver Fabric & System Execution"
+    ],
+    "Scheduling": [
+      "Driver Fabric & System Execution"
+    ],
+    "Failures": [
+      "Driver Fabric & System Execution"
+    ],
+    "Capsules & Workflow Automation": [
+      "Capsules & Workflow Automation"
+    ],
+    "Workflow Orchestrator": [
+      "Capsules & Workflow Automation"
+    ],
+    "Scheduling & Triggers": [
+      "Capsules & Workflow Automation"
+    ],
+    "Workflow Observability": [
+      "Capsules & Workflow Automation"
+    ],
+    "Capsule Builder": [
+      "Capsules & Workflow Automation"
+    ],
+    "Capsule Templates": [
+      "Capsules & Workflow Automation"
+    ],
+    "My Stack Capsules": [
+      "Capsules & Workflow Automation"
+    ],
+    "Capsule Runtime Settings": [
+      "Capsules & Workflow Automation"
+    ],
+    "Secrets & Inputs": [
+      "Capsules & Workflow Automation"
+    ],
+    "Capsule Marketplace": [
+      "Capsules & Workflow Automation"
+    ],
+    "Approval & Publishing": [
+      "Capsules & Workflow Automation"
+    ],
+    "Operator Studio": [
+      "Capsules & Workflow Automation"
+    ],
+    "Auto-Fix Console": [
+      "Capsules & Workflow Automation"
+    ],
+    "Project Ledger": [
+      "Capsules & Workflow Automation",
+      "Core Data Stores"
+    ],
+    "Lineage & Replay": [
+      "Capsules & Workflow Automation"
+    ],
+    "Taxonomy": [
+      "Capsules & Workflow Automation",
+      "Driver Registry & Management"
+    ],
+    "Manifests": [
+      "Capsules & Workflow Automation"
+    ],
+    "Lifecycle": [
+      "Capsules & Workflow Automation"
+    ],
+    "Workflows": [
+      "Capsules & Workflow Automation",
+      "Policy & Governance Engine"
+    ],
+    "Library": [
+      "Capsules & Workflow Automation"
+    ],
+    "Evidence Packs": [
+      "Capsules & Workflow Automation",
+      "Evidence & Audit"
+    ],
+    "Autofix": [
+      "Capsules & Workflow Automation"
+    ],
+    "Marketplace": [
+      "Capsules & Workflow Automation",
+      "Driver Packs & Marketplace"
+    ],
+    "Self Evolving": [
+      "Capsules & Workflow Automation",
+      "Super Capabilities"
+    ],
+    "MLOps & Neural Architecture": [
+      "MLOps & Neural Architecture"
+    ],
+    "MLOps": [
+      "MLOps & Neural Architecture"
+    ],
+    "Model Registry": [
+      "MLOps & Neural Architecture"
+    ],
+    "Dataset & Feature Store": [
+      "MLOps & Neural Architecture"
+    ],
+    "Training Pipelines": [
+      "MLOps & Neural Architecture"
+    ],
+    "Deployment & Serving": [
+      "MLOps & Neural Architecture"
+    ],
+    "Drift Monitoring": [
+      "MLOps & Neural Architecture"
+    ],
+    "Governance Gates": [
+      "MLOps & Neural Architecture"
+    ],
+    "NAS Console": [
+      "MLOps & Neural Architecture"
+    ],
+    "Experiment Console": [
+      "MLOps & Neural Architecture"
+    ],
+    "NAS Simulator": [
+      "MLOps & Neural Architecture"
+    ],
+    "Experiments": [
+      "Research & Simulation Workspace",
+      "MLOps & Neural Architecture"
+    ],
+    "Evaluation": [
+      "MLOps & Neural Architecture",
+      "Policy & Governance Engine"
+    ],
+    "Nas": [
+      "MLOps & Neural Architecture"
+    ],
+    "Simulator": [
+      "MLOps & Neural Architecture"
+    ],
+    "Edge & Vision": [
+      "Edge & Vision"
+    ],
+    "Edge Computing": [
+      "Edge & Vision"
+    ],
+    "Device Registry": [
+      "Edge & Vision"
+    ],
+    "Model Packaging & Deployment": [
+      "Edge & Vision"
+    ],
+    "Computer Vision": [
+      "Edge & Vision"
+    ],
+    "Camera/Stream Integrations": [
+      "Edge & Vision"
+    ],
+    "Vision Pipelines": [
+      "Edge & Vision"
+    ],
+    "Annotation & Labeling": [
+      "Edge & Vision"
+    ],
+    "Compute": [
+      "Edge & Vision"
+    ],
+    "Vision": [
+      "Edge & Vision"
+    ],
+    "Deployment": [
+      "Edge & Vision"
+    ],
+    "Observability": [
+      "Edge & Vision"
+    ],
+    "Intent Processing": [
+      "Intent Processing"
+    ],
+    "Intent Processor": [
+      "Intent Processing"
+    ],
+    "Intent Taxonomy & Routing Rules": [
+      "Intent Processing"
+    ],
+    "Intent Logs & Replay": [
+      "Intent Processing"
+    ],
+    "Systems Map": [
+      "Intent Processing"
+    ],
+    "System Dependency Graph": [
+      "Intent Processing"
+    ],
+    "Capability Registry": [
+      "Intent Processing"
+    ],
+    "Processor": [
+      "Intent Processing"
+    ],
+    "Context": [
+      "Intent Processing"
+    ],
+    "Planning Loop": [
+      "Intent Processing"
+    ],
+    "Errors": [
+      "Intent Processing",
+      "Architecture & Principles"
+    ],
+    "Driver Registry & Management": [
+      "Driver Registry & Management"
+    ],
+    "Driver SDK": [
+      "Driver Registry & Management"
+    ],
+    "Driver Testing & Validation": [
+      "Driver Registry & Management"
+    ],
+    "Runtime Permissions": [
+      "Driver Registry & Management"
+    ],
+    "Versioning & Deprecation": [
+      "Driver Registry & Management"
+    ],
+    "Driver Analytics": [
+      "Driver Registry & Management"
+    ],
+    "Publishing Flow": [
+      "Driver Registry & Management"
+    ],
+    "Details": [
+      "Driver Registry & Management"
+    ],
+    "Config": [
+      "Infrastructure & Topology",
+      "Driver Registry & Management"
+    ],
+    "Health": [
+      "System Diagnostics",
+      "Driver Registry & Management",
+      "Operator & SRE Workspace"
+    ],
+    "Sdk": [
+      "Driver Registry & Management"
+    ],
+    "Publishing": [
+      "Driver Registry & Management",
+      "Writer Workspace"
+    ],
+    "Versioning": [
+      "Driver Registry & Management",
+      "Spec Maintenance"
+    ],
+    "Connectors & Integrations": [
+      "Connectors & Integrations"
+    ],
+    "Connectors Overview": [
+      "Connectors & Integrations"
+    ],
+    "Credential Vault": [
+      "Connectors & Integrations"
+    ],
+    "API Connectors": [
+      "Connectors & Integrations"
+    ],
+    "Productivity Suites": [
+      "Connectors & Integrations"
+    ],
+    "Code Hosts & CI/CD": [
+      "Connectors & Integrations"
+    ],
+    "Cloud Providers": [
+      "Connectors & Integrations"
+    ],
+    "Office Realtime": [
+      "Connectors & Integrations"
+    ],
+    "Finance & Banking": [
+      "Connectors & Integrations"
+    ],
+    "Research Data Sources": [
+      "Connectors & Integrations"
+    ],
+    "Legacy & Mainframe": [
+      "Connectors & Integrations"
+    ],
+    "Webhooks & Events": [
+      "Connectors & Integrations"
+    ],
+    "Data Mapping & Transformations": [
+      "Connectors & Integrations"
+    ],
+    "Connector Health": [
+      "Connectors & Integrations"
+    ],
+    "Rate Limits & Quotas": [
+      "Connectors & Integrations"
+    ],
+    "Api": [
+      "Connectors & Integrations"
+    ],
+    "Office": [
+      "Connectors & Integrations"
+    ],
+    "Contract Testing": [
+      "Connectors & Integrations"
+    ],
+    "Driver Packs & Marketplace": [
+      "Driver Packs & Marketplace"
+    ],
+    "Reviews & Ratings": [
+      "Driver Packs & Marketplace"
+    ],
+    "Security Review Pipeline": [
+      "Driver Packs & Marketplace"
+    ],
+    "Driver Packs": [
+      "Driver Packs & Marketplace"
+    ],
+    "Pack Builder": [
+      "Driver Packs & Marketplace"
+    ],
+    "Vertical Editions": [
+      "Driver Packs & Marketplace"
+    ],
+    "Enterprise App Store": [
+      "Driver Packs & Marketplace"
+    ],
+    "Licensing & Entitlements": [
+      "Driver Packs & Marketplace"
+    ],
+    "Packs": [
+      "Compliance & Regulator Fabric",
+      "Policy & Governance Engine",
+      "Evidence & Audit",
+      "Driver Packs & Marketplace"
+    ],
+    "Enterprise Store": [
+      "Driver Packs & Marketplace"
+    ],
+    "Curation": [
+      "Driver Packs & Marketplace"
+    ],
+    "Certification": [
+      "Driver Packs & Marketplace"
+    ],
+    "Economics": [
+      "Driver Packs & Marketplace"
+    ],
+    "Risk & Governance": [
+      "Risk & Governance"
+    ],
+    "Third-Party Risk": [
+      "Risk & Governance"
+    ],
+    "Vendor Inventory": [
+      "Risk & Governance"
+    ],
+    "Risk Assessments": [
+      "Risk & Governance"
+    ],
+    "Remediation Tracker": [
+      "Risk & Governance"
+    ],
+    "Exceptions & Approvals": [
+      "Risk & Governance"
+    ],
+    "Permissions": [
+      "Integrations & Credentials",
+      "Risk & Governance"
+    ],
+    "Residency": [
+      "Tenant & Org Admin",
+      "Data Protection & Classification",
+      "Risk & Governance"
+    ],
+    "Monitoring": [
+      "Telemetry & Metrics",
+      "Risk & Governance"
+    ],
+    "Core Data Stores": [
+      "Core Data Stores"
+    ],
+    "Data Overview": [
+      "Core Data Stores"
+    ],
+    "CIR Store": [
+      "Core Data Stores"
+    ],
+    "Capsule Store": [
+      "Core Data Stores"
+    ],
+    "Binary Artifacts": [
+      "Core Data Stores"
+    ],
+    "Schema & Ontology": [
+      "Core Data Stores"
+    ],
+    "Ingestion Pipelines": [
+      "Core Data Stores"
+    ],
+    "Data Lineage": [
+      "Core Data Stores"
+    ],
+    "Data Quality Checks": [
+      "Core Data Stores"
+    ],
+    "Cir": [
+      "Domain & Knowledge Model",
+      "Core Data Stores"
+    ],
+    "Ledger": [
+      "Domain & Knowledge Model",
+      "Core Data Stores"
+    ],
+    "Capsules": [
+      "Domain & Knowledge Model",
+      "Core Data Stores",
+      "API Reference"
+    ],
+    "Artifacts": [
+      "Core Data Stores"
+    ],
+    "Knowledge Capsules": [
+      "Core Data Stores"
+    ],
+    "Indices & Search": [
+      "Indices & Search"
+    ],
+    "Indices Overview": [
+      "Indices & Search"
+    ],
+    "Index Management": [
+      "Indices & Search"
+    ],
+    "Full-Text Search": [
+      "Indices & Search"
+    ],
+    "Semantic/Vector Search": [
+      "Indices & Search"
+    ],
+    "Embeddings Management": [
+      "Indices & Search"
+    ],
+    "Graph Index": [
+      "Indices & Search"
+    ],
+    "Relevance Tuning": [
+      "Indices & Search"
+    ],
+    "Query Console": [
+      "Indices & Search"
+    ],
+    "Ranking": [
+      "Indices & Search"
+    ],
+    "Maintenance": [
+      "Indices & Search"
+    ],
+    "Observability Stores": [
+      "Observability Stores"
+    ],
+    "Observability Stores Overview": [
+      "Observability Stores"
+    ],
+    "Metrics Store": [
+      "Observability Stores"
+    ],
+    "Logs Store": [
+      "Observability Stores"
+    ],
+    "Traces Store": [
+      "Observability Stores"
+    ],
+    "Retention & Tiering": [
+      "Observability Stores"
+    ],
+    "Export & Integrations": [
+      "Observability Stores"
+    ],
+    "Metrics": [
+      "Observability Stores"
+    ],
+    "Logs": [
+      "Observability Stores"
+    ],
+    "Policies": [
+      "Observability Stores",
+      "Domain & Knowledge Model",
+      "Logging & Tracing"
+    ],
+    "Archive & Retention": [
+      "Archive & Retention"
+    ],
+    "Archive": [
+      "Archive & Retention"
+    ],
+    "Backup & Retention": [
+      "Archive & Retention"
+    ],
+    "Retention Policy Builder": [
+      "Archive & Retention"
+    ],
+    "Legal Hold": [
+      "Archive & Retention"
+    ],
+    "Restore Testing": [
+      "Archive & Retention"
+    ],
+    "Backup": [
+      "Archive & Retention"
+    ],
+    "Time Travel": [
+      "Archive & Continuity Workspace",
+      "Archive & Retention"
+    ],
+    "Data Protection": [
+      "Data Protection",
+      "Failure Modes & Resilience",
+      "Data Protection & Classification"
+    ],
+    "Encryption & Keys": [
+      "Data Protection"
+    ],
+    "Key Rotation & KMS Integrations": [
+      "Data Protection"
+    ],
+    "Integrity Protections": [
+      "Data Protection"
+    ],
+    "Encryption": [
+      "Data Protection"
+    ],
+    "Integrity": [
+      "Data Protection"
+    ],
+    "Secrets": [
+      "Data Protection"
+    ],
+    "Classification": [
+      "Data Protection",
+      "Data Protection & Classification"
+    ],
+    "Replication & DR": [
+      "Replication & DR"
+    ],
+    "Multi-Region Replication": [
+      "Replication & DR"
+    ],
+    "Consistency Models": [
+      "Replication & DR"
+    ],
+    "Failover Controls": [
+      "Replication & DR"
+    ],
+    "DR Drill Planner": [
+      "Replication & DR"
+    ],
+    "Replication": [
+      "Replication & DR"
+    ],
+    "Consistency": [
+      "Replication & DR"
+    ],
+    "Documentation Hub": [
+      "Documentation Hub"
+    ],
+    "Docs Hub": [
+      "Documentation Hub"
+    ],
+    "Getting Started": [
+      "Documentation Hub"
+    ],
+    "Tutorials": [
+      "Documentation Hub"
+    ],
+    "Glossary": [
+      "Mission & Identity",
+      "Documentation Hub"
+    ],
+    "Technical Spec Sheet": [
+      "Documentation Hub"
+    ],
+    "Release Notes": [
+      "Documentation Hub"
+    ],
+    "Spec Sheet": [
+      "Documentation Hub"
+    ],
+    "Canon Mapping": [
+      "Documentation Hub"
+    ],
+    "Open Questions": [
+      "Risks & Decisions",
+      "Documentation Hub"
+    ],
+    "Reference Artifacts": [
+      "Reference Artifacts"
+    ],
+    "Capsule Manifests": [
+      "Reference Artifacts"
+    ],
+    "Driver Manifests": [
+      "Reference Artifacts"
+    ],
+    "Policy Examples": [
+      "Reference Artifacts"
+    ],
+    "Evidence Pack Templates": [
+      "Reference Artifacts"
+    ],
+    "Data Schemas": [
+      "Reference Artifacts"
+    ],
+    "UI Component Library": [
+      "Reference Artifacts"
+    ],
+    "Diagrams": [
+      "Reference Artifacts"
+    ],
+    "Conformance": [
+      "Reference Artifacts"
+    ],
+    "API Reference": [
+      "API Reference"
+    ],
+    "SDKs": [
+      "API Reference"
+    ],
+    "Auth & Rate Limits": [
+      "API Reference"
+    ],
+    "Webhooks": [
+      "API Reference"
+    ],
+    "Model Provider": [
+      "API Reference"
+    ],
+    "Drivers": [
+      "API Reference"
+    ],
+    "Billing": [
+      "Tenant & Org Admin",
+      "Domain & Knowledge Model",
+      "API Reference"
+    ],
+    "Migration & Integration": [
+      "Migration & Integration"
+    ],
+    "Migration Continued": [
+      "Migration & Integration"
+    ],
+    "Migration Guides": [
+      "Migration & Integration"
+    ],
+    "Integration Guides": [
+      "Migration & Integration"
+    ],
+    "Deployment Guides": [
+      "Migration & Integration"
+    ],
+    "Saas To Drivers": [
+      "Migration & Integration"
+    ],
+    "Research Unification": [
+      "Migration & Integration"
+    ],
+    "Security Adoption": [
+      "Migration & Integration"
+    ],
+    "Legacy Bridge": [
+      "Migration & Integration"
+    ],
+    "Continued": [
+      "Migration & Integration"
+    ],
+    "Spec Timeline": [
+      "Changelog & Versioning"
+    ],
+    "Design Shifts": [
+      "Changelog & Versioning"
+    ],
+    "Deprecations": [
+      "Changelog & Versioning",
+      "Spec Maintenance"
+    ],
+    "Terms": [
+      "Glossary & Definitions"
+    ],
+    "Notation": [
+      "Glossary & Definitions"
+    ],
+    "User & Tenant Settings": [
+      "User & Tenant Settings"
+    ],
+    "Settings": [
+      "User & Tenant Settings"
+    ],
+    "User Profile": [
+      "User & Tenant Settings"
+    ],
+    "Preferences": [
+      "User & Tenant Settings"
+    ],
+    "Notifications": [
+      "User & Tenant Settings",
+      "User Profile & Preferences"
+    ],
+    "Integrations Credentials": [
+      "User & Tenant Settings"
+    ],
+    "API Keys": [
+      "User & Tenant Settings"
+    ],
+    "Profile": [
+      "User Profile & Preferences"
+    ],
+    "Ui": [
+      "User Profile & Preferences"
+    ],
+    "Export": [
+      "User Profile & Preferences"
+    ],
+    "Manage": [
+      "Workspace Settings"
+    ],
+    "Defaults": [
+      "Workspace Settings"
+    ],
+    "Environment Profiles": [
+      "Workspace Settings"
+    ],
+    "Connected Apps": [
+      "Integrations & Credentials"
+    ],
+    "Credentials": [
+      "Integrations & Credentials"
+    ],
+    "Rotation": [
+      "Integrations & Credentials"
+    ],
+    "Auth": [
+      "Security & Privacy"
+    ],
+    "Devices": [
+      "Security & Privacy"
+    ],
+    "Privacy": [
+      "Security & Privacy"
+    ],
+    "Keys": [
+      "Security & Privacy"
+    ],
+    "Plan": [
+      "Billing & Usage"
+    ],
+    "Usage": [
+      "Billing & Usage"
+    ],
+    "Budgets": [
+      "Billing & Usage",
+      "Business & Finance Workspace"
+    ],
+    "Payment": [
+      "Billing & Usage"
+    ],
+    "Sso": [
+      "Tenant & Org Admin"
+    ],
+    "Rbac": [
+      "Tenant & Org Admin"
+    ],
+    "Feature Flags": [
+      "Feature Flags & Labs"
+    ],
+    "Model Providers": [
+      "Feature Flags & Labs"
+    ],
+    "Support Bundle": [
+      "System Diagnostics"
+    ],
+    "Version": [
+      "System Diagnostics"
+    ],
+    "Mission & Identity": [
+      "Mission & Identity"
+    ],
+    "Mission & Scope": [
+      "Mission & Identity"
+    ],
+    "Use Cases Map": [
+      "Mission & Identity"
+    ],
+    "System Boundaries & Non-Goals": [
+      "Mission & Identity"
+    ],
+    "Terminology Glossary": [
+      "Mission & Identity"
+    ],
+    "Deployment Modes": [
+      "Deployment Models",
+      "Mission & Identity"
+    ],
+    "Reference Architectures by Edition": [
+      "Mission & Identity"
+    ],
+    "Identity & Roles": [
+      "Identity & Access",
+      "Mission & Identity"
+    ],
+    "AI + Driver Stack": [
+      "Mission & Identity"
+    ],
+    "Model Provider Layer": [
+      "Mission & Identity"
+    ],
+    "Daemon Families": [
+      "Mission & Identity"
+    ],
+    "Cognitive Agents & Personas": [
+      "Mission & Identity"
+    ],
+    "Principles": [
+      "Architecture & Principles",
+      "Mission & Identity"
+    ],
+    "Modes": [
+      "Mission & Identity"
+    ],
+    "Actors": [
+      "Mission & Identity"
+    ],
+    "Roles": [
+      "Identity & Access",
+      "Mission & Identity"
+    ],
+    "Ai Driver Stack": [
+      "Mission & Identity"
+    ],
+    "Model Layer": [
+      "Mission & Identity"
+    ],
+    "Architecture & Principles": [
+      "Architecture & Principles"
+    ],
+    "Architecture Overview": [
+      "Architecture & Principles"
+    ],
+    "Architectural Principles": [
+      "Architecture & Principles"
+    ],
+    "Major Components": [
+      "Architecture & Principles"
+    ],
+    "Driver-Aware Orchestrator": [
+      "Architecture & Principles"
+    ],
+    "Component Mapping": [
+      "Architecture & Principles"
+    ],
+    "Data Model & Contracts": [
+      "Architecture & Principles"
+    ],
+    "Extensibility Points": [
+      "Architecture & Principles"
+    ],
+    "Threat Model Summary": [
+      "Architecture & Principles"
+    ],
+    "Performance Targets": [
+      "Architecture & Principles"
+    ],
+    "Components": [
+      "Architecture & Principles"
+    ],
+    "Mapping": [
+      "Architecture & Principles"
+    ],
+    "Deploy Mapping": [
+      "Architecture & Principles"
+    ],
+    "Platform Envelope": [
+      "Architecture & Principles"
+    ],
+    "Orchestrator": [
+      "Architecture & Principles"
+    ],
+    "Modalities": [
+      "Architecture & Principles"
+    ],
+    "Hitl": [
+      "Architecture & Principles"
+    ],
+    "Guardrails": [
+      "Architecture & Principles"
+    ],
+    "Planes Architecture": [
+      "Planes Architecture"
+    ],
+    "Planes Overview": [
+      "Planes Architecture"
+    ],
+    "Data Plane": [
+      "Planes Architecture"
+    ],
+    "Control Plane": [
+      "Planes Architecture"
+    ],
+    "Governance Plane": [
+      "Planes Architecture"
+    ],
+    "Cross-Plane Flows": [
+      "Planes Architecture"
+    ],
+    "Plane APIs & Event Contracts": [
+      "Planes Architecture"
+    ],
+    "Failure Domains by Plane": [
+      "Planes Architecture"
+    ],
+    "Slos": [
+      "Telemetry & Metrics",
+      "Planes Architecture"
+    ],
+    "Identity": [
+      "Domain & Knowledge Model"
+    ],
+    "Environments": [
+      "Domain & Knowledge Model"
+    ],
+    "Policy & Governance Engine": [
+      "Policy & Governance Engine"
+    ],
+    "Policy Engine": [
+      "Policy & Governance Engine"
+    ],
+    "Policy Library & Templates": [
+      "Policy & Governance Engine"
+    ],
+    "Policy DSL": [
+      "Policy & Governance Engine"
+    ],
+    "Safety Harnesses": [
+      "Policy & Governance Engine"
+    ],
+    "Policy Simulator": [
+      "Policy & Governance Engine"
+    ],
+    "Policy Versioning & Approvals": [
+      "Policy & Governance Engine"
+    ],
+    "Enforcement Points Map": [
+      "Policy & Governance Engine"
+    ],
+    "Exceptions & Waivers": [
+      "Policy & Governance Engine"
+    ],
+    "Compliance & Regulator Fabric": [
+      "Compliance & Regulator Fabric"
+    ],
+    "Compliance Packs": [
+      "Compliance & Regulator Fabric"
+    ],
+    "Control Framework Mapping": [
+      "Compliance & Regulator Fabric"
+    ],
+    "Audit Readiness Dashboard": [
+      "Compliance & Regulator Fabric"
+    ],
+    "Regulator Fabric": [
+      "Compliance & Regulator Fabric"
+    ],
+    "Regulator Tenancy": [
+      "Compliance & Regulator Fabric"
+    ],
+    "Evidence Access": [
+      "Compliance & Regulator Fabric"
+    ],
+    "Evidence Request Workflow": [
+      "Compliance & Regulator Fabric"
+    ],
+    "Tenancy": [
+      "Compliance & Regulator Fabric"
+    ],
+    "Reproducibility": [
+      "Compliance & Regulator Fabric"
+    ],
+    "Identity & Access": [
+      "Identity & Access"
+    ],
+    "Authentication": [
+      "Identity & Access"
+    ],
+    "SSO/SAML/OIDC Settings": [
+      "Identity & Access"
+    ],
+    "SCIM Provisioning": [
+      "Identity & Access"
+    ],
+    "RBAC/ABAC": [
+      "Identity & Access"
+    ],
+    "API Keys & Tokens": [
+      "Identity & Access"
+    ],
+    "Session Management": [
+      "Identity & Access"
+    ],
+    "Access Reviews": [
+      "Identity & Access"
+    ],
+    "Zero Trust": [
+      "Infrastructure & Topology",
+      "Identity & Access"
+    ],
+    "Partners": [
+      "Identity & Access"
+    ],
+    "Data Protection & Classification": [
+      "Data Protection & Classification"
+    ],
+    "Data Classification": [
+      "Data Protection & Classification"
+    ],
+    "Data Masking": [
+      "Data Protection & Classification"
+    ],
+    "Tokenization": [
+      "Data Protection & Classification"
+    ],
+    "DLP Rules": [
+      "Data Protection & Classification"
+    ],
+    "Data Residency": [
+      "Data Protection & Classification"
+    ],
+    "Protection": [
+      "Data Protection & Classification"
+    ],
+    "Masking": [
+      "Data Protection & Classification"
+    ],
+    "Kms": [
+      "Data Protection & Classification"
+    ],
+    "Security Monitoring & Response": [
+      "Security Monitoring & Response"
+    ],
+    "Security Monitoring": [
+      "Security Monitoring & Response"
+    ],
+    "Alerts & Rules": [
+      "Security Monitoring & Response"
+    ],
+    "Threat Detection": [
+      "Security Monitoring & Response"
+    ],
+    "Risk Scoring": [
+      "Security Monitoring & Response"
+    ],
+    "Alignment Monitor": [
+      "Security Monitoring & Response"
+    ],
+    "Incident Response": [
+      "Security Monitoring & Response"
+    ],
+    "Forensics & Evidence": [
+      "Security Monitoring & Response"
+    ],
+    "Vulnerability Management": [
+      "Security Monitoring & Response"
+    ],
+    "Abuse": [
+      "Security Monitoring & Response"
+    ],
+    "AI Billing & Cost Governance": [
+      "AI Billing & Cost Governance"
+    ],
+    "Billing & Usage": [
+      "AI Billing & Cost Governance"
+    ],
+    "Usage Fabric": [
+      "AI Billing & Cost Governance"
+    ],
+    "Budgets & Quotas": [
+      "AI Billing & Cost Governance"
+    ],
+    "Cost Guardrails": [
+      "AI Billing & Cost Governance"
+    ],
+    "Billing Optimizer": [
+      "AI Billing & Cost Governance"
+    ],
+    "Chargeback/Showback Reports": [
+      "AI Billing & Cost Governance"
+    ],
+    "Forecasting": [
+      "AI Billing & Cost Governance"
+    ],
+    "Provider Rate Cards": [
+      "AI Billing & Cost Governance"
+    ],
+    "Multi-Tenant Billing": [
+      "AI Billing & Cost Governance"
+    ],
+    "Invoicing": [
+      "AI Billing & Cost Governance"
+    ],
+    "Review": [
+      "Secure Development & Supply Chain"
+    ],
+    "Env Security": [
+      "Secure Development & Supply Chain"
+    ],
+    "Provenance": [
+      "Secure Development & Supply Chain"
+    ],
+    "Policy Vm": [
+      "Law-of-the-OS & Adjudication"
+    ],
+    "Court": [
+      "Law-of-the-OS & Adjudication"
+    ],
+    "Decision Proof Ledger": [
+      "Law-of-the-OS & Adjudication"
+    ],
+    "Treaty": [
+      "Law-of-the-OS & Adjudication"
+    ],
+    "Telemetry & Metrics": [
+      "Telemetry & Metrics"
+    ],
+    "Observability Overview": [
+      "Telemetry & Metrics"
+    ],
+    "Analytics": [
+      "Telemetry & Metrics"
+    ],
+    "Metrics Model": [
+      "Telemetry & Metrics"
+    ],
+    "Metric Explorer": [
+      "Telemetry & Metrics"
+    ],
+    "SLIs & SLOs": [
+      "Telemetry & Metrics"
+    ],
+    "SLO Burn Rates": [
+      "Telemetry & Metrics"
+    ],
+    "Anomaly Detection": [
+      "Telemetry & Metrics"
+    ],
+    "Model": [
+      "Telemetry & Metrics"
+    ],
+    "Logging & Tracing Overview": [
+      "Logging & Tracing"
+    ],
+    "Structured Logging": [
+      "Logging & Tracing"
+    ],
+    "Log Explorer": [
+      "Logging & Tracing"
+    ],
+    "Distributed Tracing": [
+      "Logging & Tracing"
+    ],
+    "Trace Explorer": [
+      "Logging & Tracing"
+    ],
+    "Correlation & Context": [
+      "Logging & Tracing"
+    ],
+    "Logging": [
+      "Logging & Tracing"
+    ],
+    "Tracing": [
+      "Logging & Tracing"
+    ],
+    "Record Auditor & Logbook": [
+      "Record Auditor & Logbook"
+    ],
+    "Record Auditor": [
+      "Record Auditor & Logbook",
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Logbook Timeline": [
+      "Record Auditor & Logbook"
+    ],
+    "Audit Evidence": [
+      "Record Auditor & Logbook"
+    ],
+    "Evidence Builder": [
+      "Record Auditor & Logbook"
+    ],
+    "Queries": [
+      "Record Auditor & Logbook"
+    ],
+    "Evidence & Audit": [
+      "Evidence & Audit"
+    ],
+    "Evidence Queries": [
+      "Evidence & Audit"
+    ],
+    "Export for Auditors": [
+      "Evidence & Audit"
+    ],
+    "Retention": [
+      "Evidence & Audit"
+    ],
+    "Generator": [
+      "Evidence & Audit"
+    ],
+    "Health & Self-Healing": [
+      "Health & Self-Healing"
+    ],
+    "Health Checks": [
+      "Health & Self-Healing"
+    ],
+    "Drift Detection": [
+      "Health & Self-Healing"
+    ],
+    "Self-Healing": [
+      "Health & Self-Healing"
+    ],
+    "Automated Rollbacks": [
+      "Health & Self-Healing"
+    ],
+    "Checks": [
+      "Health & Self-Healing"
+    ],
+    "Self Healing": [
+      "Health & Self-Healing"
+    ],
+    "Playbooks": [
+      "Health & Self-Healing"
+    ],
+    "Dashboards & Alerting": [
+      "Dashboards & Alerting"
+    ],
+    "Dashboards": [
+      "Dashboards & Alerting"
+    ],
+    "Dashboard Builder": [
+      "Dashboards & Alerting"
+    ],
+    "Alerting": [
+      "Dashboards & Alerting"
+    ],
+    "Alert Rules": [
+      "Dashboards & Alerting"
+    ],
+    "Notification Channels": [
+      "Dashboards & Alerting"
+    ],
+    "Temporal Backtesting & Replay": [
+      "Temporal Backtesting & Replay"
+    ],
+    "Replay Engine": [
+      "Temporal Backtesting & Replay"
+    ],
+    "Scenario Library": [
+      "Temporal Backtesting & Replay"
+    ],
+    "Determinism Checks": [
+      "Temporal Backtesting & Replay"
+    ],
+    "Temporal Backtesting": [
+      "Temporal Backtesting & Replay",
+      "Ultra Scale"
+    ],
+    "Backtesting": [
+      "Temporal Backtesting & Replay"
+    ],
+    "Counterfactuals": [
+      "Temporal Backtesting & Replay"
+    ],
+    "Root Cause": [
+      "Postmortems & Incident Analytics"
+    ],
+    "Action Items": [
+      "Postmortems & Incident Analytics"
+    ],
+    "Performance & Scalability": [
+      "Performance & Scalability"
+    ],
+    "Performance": [
+      "Performance & Scalability"
+    ],
+    "Scaling Strategies": [
+      "Performance & Scalability"
+    ],
+    "Capacity Planning": [
+      "Performance & Scalability"
+    ],
+    "Load Testing": [
+      "Performance & Scalability"
+    ],
+    "Backpressure & Throttling": [
+      "Performance & Scalability"
+    ],
+    "Reliability Patterns": [
+      "Performance & Scalability"
+    ],
+    "Driver Performance": [
+      "Performance & Scalability"
+    ],
+    "Cost/Performance Tradeoffs": [
+      "Performance & Scalability"
+    ],
+    "Nfr": [
+      "Performance & Scalability"
+    ],
+    "Sizing": [
+      "Performance & Scalability"
+    ],
+    "Scaling": [
+      "Performance & Scalability"
+    ],
+    "Backpressure": [
+      "Performance & Scalability"
+    ],
+    "Reliability": [
+      "Operator & SRE Workspace",
+      "Performance & Scalability"
+    ],
+    "Benchmarks": [
+      "Performance & Scalability"
+    ],
+    "Deployment Models": [
+      "Deployment Models"
+    ],
+    "Local Mode": [
+      "Deployment Models"
+    ],
+    "Cloud/Enterprise": [
+      "Deployment Models"
+    ],
+    "Hybrid & Edge": [
+      "Deployment Models"
+    ],
+    "Kubernetes Deployment": [
+      "Deployment Models"
+    ],
+    "Airgapped Deployment": [
+      "Deployment Models"
+    ],
+    "Upgrade Channels": [
+      "Deployment Models"
+    ],
+    "Multi Region": [
+      "Deployment Models"
+    ],
+    "Rollback": [
+      "Upgrades & Migration",
+      "Deployment Models"
+    ],
+    "Infrastructure & Topology": [
+      "Infrastructure & Topology"
+    ],
+    "Configuration Management": [
+      "Infrastructure & Topology"
+    ],
+    "Secrets & Configuration Vault": [
+      "Infrastructure & Topology"
+    ],
+    "Compute/Cluster Management": [
+      "Infrastructure & Topology"
+    ],
+    "Network Topology": [
+      "Infrastructure & Topology"
+    ],
+    "Network Monitoring": [
+      "Infrastructure & Topology"
+    ],
+    "Storage Topology": [
+      "Infrastructure & Topology"
+    ],
+    "Queues & Search": [
+      "Infrastructure & Topology"
+    ],
+    "Service Dependencies": [
+      "Infrastructure & Topology"
+    ],
+    "Multi-Region & DR": [
+      "Infrastructure & Topology"
+    ],
+    "HPC Integration": [
+      "Infrastructure & Topology"
+    ],
+    "Network": [
+      "Infrastructure & Topology"
+    ],
+    "Storage": [
+      "Infrastructure & Topology"
+    ],
+    "Queues Search": [
+      "Infrastructure & Topology"
+    ],
+    "Hpc": [
+      "Infrastructure & Topology",
+      "Research & Simulation Workspace"
+    ],
+    "Upgrades & Migration": [
+      "Upgrades & Migration"
+    ],
+    "Upgrades": [
+      "Upgrades & Migration"
+    ],
+    "Change Logs & Release Notes": [
+      "Upgrades & Migration"
+    ],
+    "Compatibility Matrix": [
+      "Upgrades & Migration"
+    ],
+    "Migration": [
+      "Upgrades & Migration"
+    ],
+    "Rollback Strategy": [
+      "Upgrades & Migration"
+    ],
+    "Blue/Green & Canary": [
+      "Upgrades & Migration"
+    ],
+    "Failure Modes & Resilience": [
+      "Failure Modes & Resilience"
+    ],
+    "Failure Modes": [
+      "Failure Modes & Resilience"
+    ],
+    "Detection Mechanisms": [
+      "Failure Modes & Resilience"
+    ],
+    "Recovery Strategies": [
+      "Failure Modes & Resilience"
+    ],
+    "Data Loss Protection": [
+      "Failure Modes & Resilience"
+    ],
+    "Business Continuity & DR": [
+      "Failure Modes & Resilience"
+    ],
+    "DR Drills": [
+      "Failure Modes & Resilience"
+    ],
+    "Security Incidents": [
+      "Failure Modes & Resilience"
+    ],
+    "Chaos Engineering": [
+      "Failure Modes & Resilience"
+    ],
+    "Postmortems": [
+      "Failure Modes & Resilience"
+    ],
+    "Failure": [
+      "Failure Modes & Resilience"
+    ],
+    "Detection": [
+      "Failure Modes & Resilience"
+    ],
+    "Recovery": [
+      "Failure Modes & Resilience"
+    ],
+    "Bc Dr": [
+      "Failure Modes & Resilience"
+    ],
+    "Roadmap & Planning": [
+      "Roadmap & Planning"
+    ],
+    "Roadmap Overview": [
+      "Roadmap & Planning"
+    ],
+    "Phased Delivery": [
+      "Roadmap & Planning"
+    ],
+    "Milestones": [
+      "Roadmap & Planning"
+    ],
+    "Long-Term Bets": [
+      "Roadmap & Planning"
+    ],
+    "Phases": [
+      "Roadmap & Planning"
+    ],
+    "Future": [
+      "Roadmap & Planning"
+    ],
+    "Risks & Decisions": [
+      "Risks & Decisions"
+    ],
+    "Decision Log": [
+      "Risks & Decisions"
+    ],
+    "Known Gaps": [
+      "Risks & Decisions"
+    ],
+    "Risks": [
+      "Risks & Decisions"
+    ],
+    "Decisions": [
+      "Risks & Decisions"
+    ],
+    "Gaps": [
+      "Risks & Decisions"
+    ],
+    "Questions": [
+      "Risks & Decisions"
+    ],
+    "Derisk": [
+      "Risks & Decisions"
+    ],
+    "Spec Maintenance": [
+      "Spec Maintenance"
+    ],
+    "Spec Versioning": [
+      "Spec Maintenance"
+    ],
+    "Backward Compatibility Commitments": [
+      "Spec Maintenance"
+    ],
+    "Future Capabilities": [
+      "Spec Maintenance"
+    ],
+    "Proposals": [
+      "Spec Maintenance"
+    ],
+    "Vision Deck Hub": [
+      "Vision Deck Hub"
+    ],
+    "Vision Roadmap": [
+      "Vision Deck Hub"
+    ],
+    "Vision Glossary": [
+      "Vision Deck Hub"
+    ],
+    "Layering": [
+      "Vision Deck Hub"
+    ],
+    "Capabilities": [
+      "Vision Deck Hub"
+    ],
+    "Phasing": [
+      "Vision Deck Hub"
+    ],
+    "Core OS Engines": [
+      "Core OS Engines"
+    ],
+    "Capability Matrix": [
+      "Hyper Network",
+      "Advanced Horizons",
+      "Ultra Scale",
+      "Supreme",
+      "Meta Envelope",
+      "Super Capabilities",
+      "Ascend",
+      "Core OS Engines"
+    ],
+    "Baselines": [
+      "Core OS Engines"
+    ],
+    "Profession Os": [
+      "Core OS Engines"
+    ],
+    "Advanced Horizons": [
+      "Advanced Horizons"
+    ],
+    "Envelope": [
+      "Advanced Horizons",
+      "Meta Envelope"
+    ],
+    "Super Capabilities": [
+      "Super Capabilities"
+    ],
+    "Arc": [
+      "Super Capabilities"
+    ],
+    "Hyper Network": [
+      "Hyper Network"
+    ],
+    "Hypermesh": [
+      "Hyper Network"
+    ],
+    "Hypersymphony": [
+      "Hyper Network"
+    ],
+    "Ultra Scale": [
+      "Ultra Scale"
+    ],
+    "Supreme": [
+      "Supreme"
+    ],
+    "Canon": [
+      "Writer Workspace",
+      "Supreme"
+    ],
+    "Contracts": [
+      "Supreme"
+    ],
+    "Ascend": [
+      "Ascend"
+    ],
+    "Obligation": [
+      "Ascend"
+    ],
+    "Governance Shell": [
+      "Ascend"
+    ],
+    "Meta Envelope": [
+      "Meta Envelope"
+    ],
+    "Team & Members": [
+      "User & Tenant Settings"
+    ],
+    "Tenancy & Org Settings": [
+      "User & Tenant Settings"
+    ],
+    "Audit Settings": [
+      "User & Tenant Settings"
+    ],
+    "Record Auditor & Logbook Workspace": [
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Evidence Trails": [
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Controls Mapping": [
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Evidence Requests": [
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Audit Reports": [
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Immutable Logbook Viewer": [
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Regulator Views": [
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Commit Tasks": [
+      "Dev & DevOps Workspace"
+    ],
+    "Merge Advisor": [
+      "Dev & DevOps Workspace"
+    ],
+    "Reviews": [
+      "Dev & DevOps Workspace"
+    ],
+    "Cicd": [
+      "Dev & DevOps Workspace"
+    ],
+    "Tools": [
+      "Dev & DevOps Workspace"
+    ],
+    "Lab": [
+      "Research & Simulation Workspace"
+    ],
+    "Simulation": [
+      "Research & Simulation Workspace"
+    ],
+    "Validation": [
+      "Research & Simulation Workspace"
+    ],
+    "Digital Twins": [
+      "Research & Simulation Workspace"
+    ],
+    "Narrative": [
+      "Writer Workspace"
+    ],
+    "Qa": [
+      "Writer Workspace"
+    ],
+    "Findings": [
+      "Cybersecurity Workspace"
+    ],
+    "Auto Remediation": [
+      "Cybersecurity Workspace"
+    ],
+    "Incidents": [
+      "Operator & SRE Workspace",
+      "Cybersecurity Workspace"
+    ],
+    "Scenarios": [
+      "Business & Finance Workspace"
+    ],
+    "Enterprise": [
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Reality Mesh": [
+      "Digital Twin & Enterprise Twin Workspace"
+    ]
+  },
+  "multi_platform_categories": {
+    "Dev & DevOps Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Research & Simulation Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Writer Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Cybersecurity Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Business & Finance Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Operator & SRE Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Archive & Continuity Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Digital Twin & Enterprise Twin Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "Record Auditor & Logbook Workspace": [
+      "Workspaces",
+      "Workspaces (Enterprise Extensions)"
+    ],
+    "User & Tenant Settings": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "User Profile & Preferences": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "Workspace Settings": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "Integrations & Credentials": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "Security & Privacy": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "Billing & Usage": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "Tenant & Org Admin": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "Feature Flags & Labs": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ],
+    "System Diagnostics": [
+      "Settings & Admin",
+      "Settings & Admin (Enterprise Extensions)"
+    ]
+  },
+  "multi_category_features": {
+    "Projects": [
+      "Domain & Knowledge Model",
+      "Core Flight Deck"
+    ],
+    "Tasks": [
+      "Domain & Knowledge Model",
+      "Core Flight Deck"
+    ],
+    "Overview": [
+      "Intent Processing",
+      "Driver Packs & Marketplace",
+      "Driver Registry & Management",
+      "Migration & Integration",
+      "Telemetry & Metrics",
+      "System Diagnostics",
+      "Workspace Settings",
+      "Performance & Scalability",
+      "Security Monitoring & Response",
+      "Record Auditor & Logbook Workspace",
+      "Engagement & Persona Surfaces",
+      "Risk & Governance",
+      "Vision Deck Hub",
+      "Capsules & Workflow Automation",
+      "Advanced Horizons",
+      "Meta Envelope",
+      "Law-of-the-OS & Adjudication",
+      "Research & Simulation Workspace",
+      "Business & Finance Workspace",
+      "Infrastructure & Topology",
+      "Changelog & Versioning",
+      "Super Capabilities",
+      "AI Billing & Cost Governance",
+      "Writer Workspace",
+      "Archive & Continuity Workspace",
+      "User Profile & Preferences",
+      "Postmortems & Incident Analytics",
+      "Health & Self-Healing",
+      "MLOps & Neural Architecture",
+      "Driver Fabric & System Execution",
+      "Integrations & Credentials",
+      "Domain & Knowledge Model",
+      "Spec Maintenance",
+      "Dev & DevOps Workspace",
+      "Operator & SRE Workspace",
+      "Compliance & Regulator Fabric",
+      "Cognitive Agents & Reasoning",
+      "Reference Artifacts",
+      "Logging & Tracing",
+      "Security & Privacy",
+      "Ultra Scale",
+      "Mission & Identity",
+      "Temporal Backtesting & Replay",
+      "Core Flight Deck",
+      "Edge & Vision",
+      "Documentation Hub",
+      "Deployment Models",
+      "Record Auditor & Logbook",
+      "Data Protection",
+      "Digital Twin & Enterprise Twin Workspace",
+      "Replication & DR",
+      "Archive & Retention",
+      "Secure Development & Supply Chain",
+      "Observability Stores",
+      "Tenant & Org Admin",
+      "Dashboards & Alerting",
+      "Indices & Search",
+      "Billing & Usage",
+      "Ascend",
+      "Core Data Stores",
+      "Data Protection & Classification",
+      "Upgrades & Migration",
+      "Roadmap & Planning",
+      "Failure Modes & Resilience",
+      "Policy & Governance Engine",
+      "Risks & Decisions",
+      "Supreme",
+      "Feature Flags & Labs",
+      "Identity & Access",
+      "Architecture & Principles",
+      "Glossary & Definitions",
+      "Cybersecurity Workspace",
+      "Connectors & Integrations",
+      "Hyper Network",
+      "Planes Architecture",
+      "Collaboration & Federation",
+      "API Reference",
+      "Evidence & Audit",
+      "Core OS Engines"
+    ],
+    "Approvals": [
+      "Intent Processing",
+      "Core Flight Deck"
+    ],
+    "Timeline": [
+      "Postmortems & Incident Analytics",
+      "Core Flight Deck"
+    ],
+    "Collaboration": [
+      "Capsules & Workflow Automation",
+      "Writer Workspace",
+      "Engagement & Persona Surfaces"
+    ],
+    "Audit": [
+      "Record Auditor & Logbook",
+      "Collaboration & Federation"
+    ],
+    "Federation": [
+      "Collaboration & Federation",
+      "API Reference"
+    ],
+    "Todos": [
+      "Edge & Vision",
+      "Law-of-the-OS & Adjudication",
+      "Documentation Hub",
+      "Research & Simulation Workspace",
+      "Business & Finance Workspace",
+      "Infrastructure & Topology",
+      "Intent Processing",
+      "Deployment Models",
+      "Core Data Stores",
+      "Data Protection & Classification",
+      "Upgrades & Migration",
+      "Roadmap & Planning",
+      "Super Capabilities",
+      "Driver Packs & Marketplace",
+      "AI Billing & Cost Governance",
+      "Writer Workspace",
+      "Archive & Continuity Workspace",
+      "Driver Registry & Management",
+      "Postmortems & Incident Analytics",
+      "Failure Modes & Resilience",
+      "Policy & Governance Engine",
+      "Migration & Integration",
+      "Health & Self-Healing",
+      "Risks & Decisions",
+      "MLOps & Neural Architecture",
+      "Driver Fabric & System Execution",
+      "Telemetry & Metrics",
+      "Data Protection",
+      "Record Auditor & Logbook",
+      "Digital Twin & Enterprise Twin Workspace",
+      "Supreme",
+      "Domain & Knowledge Model",
+      "Performance & Scalability",
+      "Dev & DevOps Workspace",
+      "Identity & Access",
+      "Operator & SRE Workspace",
+      "Security Monitoring & Response",
+      "Architecture & Principles",
+      "Compliance & Regulator Fabric",
+      "Record Auditor & Logbook Workspace",
+      "Replication & DR",
+      "Cognitive Agents & Reasoning",
+      "Archive & Retention",
+      "Secure Development & Supply Chain",
+      "Cybersecurity Workspace",
+      "Connectors & Integrations",
+      "Observability Stores",
+      "Logging & Tracing",
+      "Risk & Governance",
+      "Vision Deck Hub",
+      "Capsules & Workflow Automation",
+      "Dashboards & Alerting",
+      "Advanced Horizons",
+      "Hyper Network",
+      "Planes Architecture",
+      "Indices & Search",
+      "Collaboration & Federation",
+      "Ultra Scale",
+      "Evidence & Audit",
+      "Ascend",
+      "Mission & Identity",
+      "Meta Envelope",
+      "Temporal Backtesting & Replay",
+      "Core OS Engines"
+    ],
+    "Sbom": [
+      "Dev & DevOps Workspace",
+      "Secure Development & Supply Chain"
+    ],
+    "Runbooks": [
+      "Dev & DevOps Workspace",
+      "Operator & SRE Workspace",
+      "Health & Self-Healing"
+    ],
+    "Digital Twin Builder": [
+      "Research & Simulation Workspace",
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Training": [
+      "Research & Simulation Workspace",
+      "MLOps & Neural Architecture"
+    ],
+    "Compliance": [
+      "Tenant & Org Admin",
+      "Cybersecurity Workspace"
+    ],
+    "Risk Register": [
+      "Risks & Decisions",
+      "Business & Finance Workspace"
+    ],
+    "Oncall": [
+      "Operator & SRE Workspace",
+      "Dashboards & Alerting"
+    ],
+    "Retention Policies": [
+      "Evidence & Audit",
+      "Archive & Continuity Workspace"
+    ],
+    "Engine": [
+      "Archive & Continuity Workspace",
+      "Temporal Backtesting & Replay"
+    ],
+    "Reality Twin Mesh": [
+      "Digital Twin & Enterprise Twin Workspace",
+      "Ultra Scale"
+    ],
+    "Enterprise Twin": [
+      "Super Capabilities",
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Builder": [
+      "Compliance & Regulator Fabric",
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Catalog": [
+      "Driver Registry & Management",
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Dependencies": [
+      "Capsules & Workflow Automation",
+      "Roadmap & Planning",
+      "Digital Twin & Enterprise Twin Workspace"
+    ],
+    "Evidence": [
+      "Compliance & Regulator Fabric",
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Audit Logs": [
+      "Evidence & Audit",
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Regulator": [
+      "Compliance & Regulator Fabric",
+      "Record Auditor & Logbook Workspace",
+      "Evidence & Audit"
+    ],
+    "Personas": [
+      "User Profile & Preferences",
+      "Cognitive Agents & Reasoning",
+      "Mission & Identity"
+    ],
+    "Daemons": [
+      "Cognitive Agents & Reasoning",
+      "Mission & Identity"
+    ],
+    "Traces": [
+      "Observability Stores",
+      "Cognitive Agents & Reasoning"
+    ],
+    "Safety": [
+      "Cognitive Agents & Reasoning",
+      "Meta Envelope"
+    ],
+    "Time": [
+      "Cognitive Agents & Reasoning",
+      "Domain & Knowledge Model"
+    ],
+    "Driver Registry": [
+      "Driver Registry & Management",
+      "Driver Fabric & System Execution"
+    ],
+    "Governance": [
+      "Capsules & Workflow Automation",
+      "API Reference",
+      "Driver Fabric & System Execution"
+    ],
+    "Sandbox": [
+      "Operator & SRE Workspace",
+      "Risk & Governance",
+      "Driver Fabric & System Execution"
+    ],
+    "Project Ledger": [
+      "Capsules & Workflow Automation",
+      "Core Data Stores"
+    ],
+    "Taxonomy": [
+      "Capsules & Workflow Automation",
+      "Driver Registry & Management"
+    ],
+    "Workflows": [
+      "Capsules & Workflow Automation",
+      "Policy & Governance Engine"
+    ],
+    "Evidence Packs": [
+      "Capsules & Workflow Automation",
+      "Evidence & Audit"
+    ],
+    "Marketplace": [
+      "Capsules & Workflow Automation",
+      "Driver Packs & Marketplace"
+    ],
+    "Self Evolving": [
+      "Capsules & Workflow Automation",
+      "Super Capabilities"
+    ],
+    "Experiments": [
+      "Research & Simulation Workspace",
+      "MLOps & Neural Architecture"
+    ],
+    "Evaluation": [
+      "MLOps & Neural Architecture",
+      "Policy & Governance Engine"
+    ],
+    "Errors": [
+      "Intent Processing",
+      "Architecture & Principles"
+    ],
+    "Config": [
+      "Infrastructure & Topology",
+      "Driver Registry & Management"
+    ],
+    "Health": [
+      "System Diagnostics",
+      "Driver Registry & Management",
+      "Operator & SRE Workspace"
+    ],
+    "Publishing": [
+      "Driver Registry & Management",
+      "Writer Workspace"
+    ],
+    "Versioning": [
+      "Driver Registry & Management",
+      "Spec Maintenance"
+    ],
+    "Packs": [
+      "Compliance & Regulator Fabric",
+      "Policy & Governance Engine",
+      "Evidence & Audit",
+      "Driver Packs & Marketplace"
+    ],
+    "Permissions": [
+      "Integrations & Credentials",
+      "Risk & Governance"
+    ],
+    "Residency": [
+      "Tenant & Org Admin",
+      "Data Protection & Classification",
+      "Risk & Governance"
+    ],
+    "Monitoring": [
+      "Telemetry & Metrics",
+      "Risk & Governance"
+    ],
+    "Cir": [
+      "Domain & Knowledge Model",
+      "Core Data Stores"
+    ],
+    "Ledger": [
+      "Domain & Knowledge Model",
+      "Core Data Stores"
+    ],
+    "Capsules": [
+      "Domain & Knowledge Model",
+      "Core Data Stores",
+      "API Reference"
+    ],
+    "Policies": [
+      "Observability Stores",
+      "Domain & Knowledge Model",
+      "Logging & Tracing"
+    ],
+    "Time Travel": [
+      "Archive & Continuity Workspace",
+      "Archive & Retention"
+    ],
+    "Data Protection": [
+      "Data Protection",
+      "Failure Modes & Resilience",
+      "Data Protection & Classification"
+    ],
+    "Classification": [
+      "Data Protection",
+      "Data Protection & Classification"
+    ],
+    "Glossary": [
+      "Mission & Identity",
+      "Documentation Hub"
+    ],
+    "Open Questions": [
+      "Risks & Decisions",
+      "Documentation Hub"
+    ],
+    "Billing": [
+      "Tenant & Org Admin",
+      "Domain & Knowledge Model",
+      "API Reference"
+    ],
+    "Deprecations": [
+      "Changelog & Versioning",
+      "Spec Maintenance"
+    ],
+    "Notifications": [
+      "User & Tenant Settings",
+      "User Profile & Preferences"
+    ],
+    "Budgets": [
+      "Billing & Usage",
+      "Business & Finance Workspace"
+    ],
+    "Deployment Modes": [
+      "Deployment Models",
+      "Mission & Identity"
+    ],
+    "Identity & Roles": [
+      "Identity & Access",
+      "Mission & Identity"
+    ],
+    "Principles": [
+      "Architecture & Principles",
+      "Mission & Identity"
+    ],
+    "Roles": [
+      "Identity & Access",
+      "Mission & Identity"
+    ],
+    "Slos": [
+      "Telemetry & Metrics",
+      "Planes Architecture"
+    ],
+    "Zero Trust": [
+      "Infrastructure & Topology",
+      "Identity & Access"
+    ],
+    "Record Auditor": [
+      "Record Auditor & Logbook",
+      "Record Auditor & Logbook Workspace"
+    ],
+    "Temporal Backtesting": [
+      "Temporal Backtesting & Replay",
+      "Ultra Scale"
+    ],
+    "Reliability": [
+      "Operator & SRE Workspace",
+      "Performance & Scalability"
+    ],
+    "Rollback": [
+      "Upgrades & Migration",
+      "Deployment Models"
+    ],
+    "Hpc": [
+      "Infrastructure & Topology",
+      "Research & Simulation Workspace"
+    ],
+    "Capability Matrix": [
+      "Hyper Network",
+      "Advanced Horizons",
+      "Ultra Scale",
+      "Supreme",
+      "Meta Envelope",
+      "Super Capabilities",
+      "Ascend",
+      "Core OS Engines"
+    ],
+    "Envelope": [
+      "Advanced Horizons",
+      "Meta Envelope"
+    ],
+    "Canon": [
+      "Writer Workspace",
+      "Supreme"
+    ],
+    "Incidents": [
+      "Operator & SRE Workspace",
+      "Cybersecurity Workspace"
+    ]
+  }
+}

@@ -1,9 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('OS Dashboard E2E Sanity', () => {
   test.beforeEach(async ({ page }) => {
-    // Assuming the app runs on localhost:5173
-    await page.goto('http://localhost:5173');
+    await page.goto('/');
   });
 
   test('should load the dashboard and show top navigation', async ({ page }) => {

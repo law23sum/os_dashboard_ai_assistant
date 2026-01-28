@@ -1,0 +1,3530 @@
+{
+  "/": {
+    "route": "/",
+    "component_path": "frontend/src/pages/Dashboard.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 4,
+    "has_content": true
+  },
+  "/activity": {
+    "route": "/activity",
+    "component_path": "frontend/src/pages/Activity.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/advanced": {
+    "route": "/ai/advanced",
+    "component_path": "frontend/src/pages/AiAdvanced.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/agents/registry": {
+    "route": "/ai/agents/registry",
+    "component_path": "frontend/src/pages/AiAgentsRegistry.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/autofix": {
+    "route": "/ai/autofix",
+    "component_path": "frontend/src/pages/AiAutofix.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/capabilities": {
+    "route": "/ai/capabilities",
+    "component_path": "frontend/src/pages/AiCapabilities.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/capsules": {
+    "route": "/ai/capsules",
+    "component_path": "frontend/src/pages/AiCapsules.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/capsules/builder": {
+    "route": "/ai/capsules/builder",
+    "component_path": "frontend/src/pages/AiCapsulesBuilder.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/capsules/ledger": {
+    "route": "/ai/capsules/ledger",
+    "component_path": "frontend/src/pages/AiCapsulesLedger.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/capsules/lineage": {
+    "route": "/ai/capsules/lineage",
+    "component_path": "frontend/src/pages/AiCapsulesLineage.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/capsules/my-stack": {
+    "route": "/ai/capsules/my-stack",
+    "component_path": "frontend/src/pages/AiCapsulesMystack.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/capsules/operator-studio": {
+    "route": "/ai/capsules/operator-studio",
+    "component_path": "frontend/src/pages/AiCapsulesOperatorstudio.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/capsules/publishing": {
+    "route": "/ai/capsules/publishing",
+    "component_path": "frontend/src/pages/AiCapsulesPublishing.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/capsules/runtime": {
+    "route": "/ai/capsules/runtime",
+    "component_path": "frontend/src/pages/AiCapsulesRuntime.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/capsules/secrets": {
+    "route": "/ai/capsules/secrets",
+    "component_path": "frontend/src/pages/AiCapsulesSecrets.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/capsules/templates": {
+    "route": "/ai/capsules/templates",
+    "component_path": "frontend/src/pages/AiCapsulesTemplates.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/copilot": {
+    "route": "/ai/copilot",
+    "component_path": "frontend/src/pages/AiCopilot.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/daemons": {
+    "route": "/ai/daemons",
+    "component_path": "frontend/src/pages/AiDaemons.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/drivers": {
+    "route": "/ai/drivers",
+    "component_path": "frontend/src/pages/AiDrivers.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/drivers/data": {
+    "route": "/ai/drivers/data",
+    "component_path": "frontend/src/pages/AiDriversData.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/drivers/hardware": {
+    "route": "/ai/drivers/hardware",
+    "component_path": "frontend/src/pages/AiDriversHardware.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/drivers/health": {
+    "route": "/ai/drivers/health",
+    "component_path": "frontend/src/pages/AiDriversHealth.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/drivers/os": {
+    "route": "/ai/drivers/os",
+    "component_path": "frontend/src/pages/AiDriversOs.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/drivers/package": {
+    "route": "/ai/drivers/package",
+    "component_path": "frontend/src/pages/AiDriversPackage.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/drivers/permissions": {
+    "route": "/ai/drivers/permissions",
+    "component_path": "frontend/src/pages/AiDriversPermissions.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/drivers/research": {
+    "route": "/ai/drivers/research",
+    "component_path": "frontend/src/pages/AiDriversResearch.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/drivers/sandbox": {
+    "route": "/ai/drivers/sandbox",
+    "component_path": "frontend/src/pages/AiDriversSandbox.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/drivers/software": {
+    "route": "/ai/drivers/software",
+    "component_path": "frontend/src/pages/AiDriversSoftware.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/drivers/testing": {
+    "route": "/ai/drivers/testing",
+    "component_path": "frontend/src/pages/AiDriversTesting.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/drivers/versioning": {
+    "route": "/ai/drivers/versioning",
+    "component_path": "frontend/src/pages/AiDriversVersioning.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/edge": {
+    "route": "/ai/edge",
+    "component_path": "frontend/src/pages/AiEdge.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/edge/deploy": {
+    "route": "/ai/edge/deploy",
+    "component_path": "frontend/src/pages/AiEdgeDeploy.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/edge/devices": {
+    "route": "/ai/edge/devices",
+    "component_path": "frontend/src/pages/AiEdgeDevices.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/evals": {
+    "route": "/ai/evals",
+    "component_path": "frontend/src/pages/AiEvals.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/intents": {
+    "route": "/ai/intents",
+    "component_path": "frontend/src/pages/AiIntents.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/intents/logs": {
+    "route": "/ai/intents/logs",
+    "component_path": "frontend/src/pages/AiIntentsLogs.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/intents/taxonomy": {
+    "route": "/ai/intents/taxonomy",
+    "component_path": "frontend/src/pages/AiIntentsTaxonomy.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/mlops": {
+    "route": "/ai/mlops",
+    "component_path": "frontend/src/pages/AiMlops.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/mlops/approvals": {
+    "route": "/ai/mlops/approvals",
+    "component_path": "frontend/src/pages/AiMlopsApprovals.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/mlops/data": {
+    "route": "/ai/mlops/data",
+    "component_path": "frontend/src/pages/AiMlopsData.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/mlops/drift": {
+    "route": "/ai/mlops/drift",
+    "component_path": "frontend/src/pages/AiMlopsDrift.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/mlops/models": {
+    "route": "/ai/mlops/models",
+    "component_path": "frontend/src/pages/AiMlopsModels.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/mlops/pipelines": {
+    "route": "/ai/mlops/pipelines",
+    "component_path": "frontend/src/pages/AiMlopsPipelines.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/mlops/serving": {
+    "route": "/ai/mlops/serving",
+    "component_path": "frontend/src/pages/AiMlopsServing.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/nas": {
+    "route": "/ai/nas",
+    "component_path": "frontend/src/pages/AiNas.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/nas/experiments": {
+    "route": "/ai/nas/experiments",
+    "component_path": "frontend/src/pages/AiNasExperiments.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/nas/simulator": {
+    "route": "/ai/nas/simulator",
+    "component_path": "frontend/src/pages/AiNasSimulator.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/operations": {
+    "route": "/ai/operations",
+    "component_path": "frontend/src/pages/AiOperations.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/os": {
+    "route": "/ai/os",
+    "component_path": "frontend/src/pages/AiOs.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/personas": {
+    "route": "/ai/personas",
+    "component_path": "frontend/src/pages/AiPersonas.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/project-intelligence": {
+    "route": "/ai/project-intelligence",
+    "component_path": "frontend/src/pages/AiProjectintelligence.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/prompts": {
+    "route": "/ai/prompts",
+    "component_path": "frontend/src/pages/AiPrompts.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/routing": {
+    "route": "/ai/routing",
+    "component_path": "frontend/src/pages/AiRouting.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/safety": {
+    "route": "/ai/safety",
+    "component_path": "frontend/src/pages/AiSafety.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/security": {
+    "route": "/ai/security",
+    "component_path": "frontend/src/pages/AiSecurity.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/systems": {
+    "route": "/ai/systems",
+    "component_path": "frontend/src/pages/AiSystems.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/systems/graph": {
+    "route": "/ai/systems/graph",
+    "component_path": "frontend/src/pages/AiSystemsGraph.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/trf": {
+    "route": "/ai/trf",
+    "component_path": "frontend/src/pages/AiTrf.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/vision": {
+    "route": "/ai/vision",
+    "component_path": "frontend/src/pages/AiVision.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/vision/labeling": {
+    "route": "/ai/vision/labeling",
+    "component_path": "frontend/src/pages/AiVisionLabeling.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/vision/pipelines": {
+    "route": "/ai/vision/pipelines",
+    "component_path": "frontend/src/pages/AiVisionPipelines.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/vision/streams": {
+    "route": "/ai/vision/streams",
+    "component_path": "frontend/src/pages/AiVisionStreams.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/workflows": {
+    "route": "/ai/workflows",
+    "component_path": "frontend/src/pages/AiWorkflows.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/workflows/observability": {
+    "route": "/ai/workflows/observability",
+    "component_path": "frontend/src/pages/AiWorkflowsObservability.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/ai/workflows/triggers": {
+    "route": "/ai/workflows/triggers",
+    "component_path": "frontend/src/pages/AiWorkflowsTriggers.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/analytics": {
+    "route": "/analytics",
+    "component_path": "frontend/src/pages/Analytics.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 3,
+    "has_content": true
+  },
+  "/audit": {
+    "route": "/audit",
+    "component_path": "frontend/src/pages/Audit.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 7,
+    "has_content": true
+  },
+  "/audit/builder": {
+    "route": "/audit/builder",
+    "component_path": "frontend/src/pages/AuditBuilder.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/billing": {
+    "route": "/billing",
+    "component_path": "frontend/src/pages/Billing.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 3,
+    "has_content": true
+  },
+  "/chat": {
+    "route": "/chat",
+    "component_path": "frontend/src/pages/Chat.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 3,
+    "has_content": true
+  },
+  "/chat/library": {
+    "route": "/chat/library",
+    "component_path": "frontend/src/pages/ChatLibrary.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/collaboration": {
+    "route": "/collaboration",
+    "component_path": "frontend/src/pages/Collaboration.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 4,
+    "has_content": true
+  },
+  "/collaboration/channels": {
+    "route": "/collaboration/channels",
+    "component_path": "frontend/src/pages/CollaborationChannels.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/collaboration/presence": {
+    "route": "/collaboration/presence",
+    "component_path": "frontend/src/pages/CollaborationPresence.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data": {
+    "route": "/data",
+    "component_path": "frontend/src/pages/Data.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/archive": {
+    "route": "/data/archive",
+    "component_path": "frontend/src/pages/DataArchive.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/artifacts": {
+    "route": "/data/artifacts",
+    "component_path": "frontend/src/pages/DataArtifacts.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/backup": {
+    "route": "/data/backup",
+    "component_path": "frontend/src/pages/DataBackup.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/capsules": {
+    "route": "/data/capsules",
+    "component_path": "frontend/src/pages/DataCapsules.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/cir": {
+    "route": "/data/cir",
+    "component_path": "frontend/src/pages/DataCir.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/consistency": {
+    "route": "/data/consistency",
+    "component_path": "frontend/src/pages/DataConsistency.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/dr/drills": {
+    "route": "/data/dr/drills",
+    "component_path": "frontend/src/pages/DataDrDrills.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/dr/failover": {
+    "route": "/data/dr/failover",
+    "component_path": "frontend/src/pages/DataDrFailover.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/encryption": {
+    "route": "/data/encryption",
+    "component_path": "frontend/src/pages/DataEncryption.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/encryption/rotation": {
+    "route": "/data/encryption/rotation",
+    "component_path": "frontend/src/pages/DataEncryptionRotation.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/indices": {
+    "route": "/data/indices",
+    "component_path": "frontend/src/pages/DataIndices.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/indices/embeddings": {
+    "route": "/data/indices/embeddings",
+    "component_path": "frontend/src/pages/DataIndicesEmbeddings.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/indices/fulltext": {
+    "route": "/data/indices/fulltext",
+    "component_path": "frontend/src/pages/DataIndicesFulltext.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/indices/graph": {
+    "route": "/data/indices/graph",
+    "component_path": "frontend/src/pages/DataIndicesGraph.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/indices/manage": {
+    "route": "/data/indices/manage",
+    "component_path": "frontend/src/pages/DataIndicesManage.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/indices/semantic": {
+    "route": "/data/indices/semantic",
+    "component_path": "frontend/src/pages/DataIndicesSemantic.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/indices/tuning": {
+    "route": "/data/indices/tuning",
+    "component_path": "frontend/src/pages/DataIndicesTuning.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/ingestion": {
+    "route": "/data/ingestion",
+    "component_path": "frontend/src/pages/DataIngestion.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/integrity": {
+    "route": "/data/integrity",
+    "component_path": "frontend/src/pages/DataIntegrity.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/ledger": {
+    "route": "/data/ledger",
+    "component_path": "frontend/src/pages/DataLedger.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/legal-hold": {
+    "route": "/data/legal-hold",
+    "component_path": "frontend/src/pages/DataLegalhold.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/lineage": {
+    "route": "/data/lineage",
+    "component_path": "frontend/src/pages/DataLineage.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/logs": {
+    "route": "/data/logs",
+    "component_path": "frontend/src/pages/DataLogs.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/metrics": {
+    "route": "/data/metrics",
+    "component_path": "frontend/src/pages/DataMetrics.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/observability": {
+    "route": "/data/observability",
+    "component_path": "frontend/src/pages/DataObservability.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/observability/export": {
+    "route": "/data/observability/export",
+    "component_path": "frontend/src/pages/DataObservabilityExport.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/observability/tiering": {
+    "route": "/data/observability/tiering",
+    "component_path": "frontend/src/pages/DataObservabilityTiering.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/quality": {
+    "route": "/data/quality",
+    "component_path": "frontend/src/pages/DataQuality.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/query": {
+    "route": "/data/query",
+    "component_path": "frontend/src/pages/DataQuery.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/replication": {
+    "route": "/data/replication",
+    "component_path": "frontend/src/pages/DataReplication.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/restore-testing": {
+    "route": "/data/restore-testing",
+    "component_path": "frontend/src/pages/DataRestoretesting.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/retention/policies": {
+    "route": "/data/retention/policies",
+    "component_path": "frontend/src/pages/DataRetentionPolicies.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/schema": {
+    "route": "/data/schema",
+    "component_path": "frontend/src/pages/DataSchema.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/data/traces": {
+    "route": "/data/traces",
+    "component_path": "frontend/src/pages/DataTraces.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs": {
+    "route": "/docs",
+    "component_path": "frontend/src/pages/Docs.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": -1,
+    "has_content": true
+  },
+  "/docs/api": {
+    "route": "/docs/api",
+    "component_path": "frontend/src/pages/DocsApi.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/api/auth": {
+    "route": "/docs/api/auth",
+    "component_path": "frontend/src/pages/DocsApiAuth.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/api/sdks": {
+    "route": "/docs/api/sdks",
+    "component_path": "frontend/src/pages/DocsApiSdks.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/api/webhooks": {
+    "route": "/docs/api/webhooks",
+    "component_path": "frontend/src/pages/DocsApiWebhooks.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/deployment": {
+    "route": "/docs/deployment",
+    "component_path": "frontend/src/pages/DocsDeployment.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/getting-started": {
+    "route": "/docs/getting-started",
+    "component_path": "frontend/src/pages/DocsGettingstarted.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/glossary": {
+    "route": "/docs/glossary",
+    "component_path": "frontend/src/pages/DocsGlossary.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/integrations": {
+    "route": "/docs/integrations",
+    "component_path": "frontend/src/pages/DocsIntegrations.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/migration": {
+    "route": "/docs/migration",
+    "component_path": "frontend/src/pages/DocsMigration.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/migration_continued.md": {
+    "route": "/docs/migration_continued.md",
+    "component_path": "frontend/src/pages/DocsMigration_continued.md.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/reference/capsules": {
+    "route": "/docs/reference/capsules",
+    "component_path": "frontend/src/pages/DocsReferenceCapsules.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/reference/data": {
+    "route": "/docs/reference/data",
+    "component_path": "frontend/src/pages/DocsReferenceData.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/reference/drivers": {
+    "route": "/docs/reference/drivers",
+    "component_path": "frontend/src/pages/DocsReferenceDrivers.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/reference/evidence": {
+    "route": "/docs/reference/evidence",
+    "component_path": "frontend/src/pages/DocsReferenceEvidence.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/reference/policies": {
+    "route": "/docs/reference/policies",
+    "component_path": "frontend/src/pages/DocsReferencePolicies.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/reference/ui": {
+    "route": "/docs/reference/ui",
+    "component_path": "frontend/src/pages/DocsReferenceUi.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/release-notes": {
+    "route": "/docs/release-notes",
+    "component_path": "frontend/src/pages/DocsReleasenotes.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/spec-sheet": {
+    "route": "/docs/spec-sheet",
+    "component_path": "frontend/src/pages/DocsSpecsheet.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/docs/tutorials": {
+    "route": "/docs/tutorials",
+    "component_path": "frontend/src/pages/DocsTutorials.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/analytics": {
+    "route": "/drivers/analytics",
+    "component_path": "frontend/src/pages/DriversAnalytics.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/enterprise-store": {
+    "route": "/drivers/enterprise-store",
+    "component_path": "frontend/src/pages/DriversEnterprisestore.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/integrations/cloud": {
+    "route": "/drivers/integrations/cloud",
+    "component_path": "frontend/src/pages/DriversIntegrationsCloud.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/integrations/code": {
+    "route": "/drivers/integrations/code",
+    "component_path": "frontend/src/pages/DriversIntegrationsCode.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/integrations/finance": {
+    "route": "/drivers/integrations/finance",
+    "component_path": "frontend/src/pages/DriversIntegrationsFinance.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/integrations/legacy": {
+    "route": "/drivers/integrations/legacy",
+    "component_path": "frontend/src/pages/DriversIntegrationsLegacy.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/integrations/productivity": {
+    "route": "/drivers/integrations/productivity",
+    "component_path": "frontend/src/pages/DriversIntegrationsProductivity.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/integrations/research": {
+    "route": "/drivers/integrations/research",
+    "component_path": "frontend/src/pages/DriversIntegrationsResearch.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/licensing": {
+    "route": "/drivers/licensing",
+    "component_path": "frontend/src/pages/DriversLicensing.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/marketplace": {
+    "route": "/drivers/marketplace",
+    "component_path": "frontend/src/pages/DriversMarketplace.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/marketplace/reviews": {
+    "route": "/drivers/marketplace/reviews",
+    "component_path": "frontend/src/pages/DriversMarketplaceReviews.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/marketplace/security-review": {
+    "route": "/drivers/marketplace/security-review",
+    "component_path": "frontend/src/pages/DriversMarketplaceSecurityreview.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/packs": {
+    "route": "/drivers/packs",
+    "component_path": "frontend/src/pages/DriversPacks.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/packs/builder": {
+    "route": "/drivers/packs/builder",
+    "component_path": "frontend/src/pages/DriversPacksBuilder.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/permissions": {
+    "route": "/drivers/permissions",
+    "component_path": "frontend/src/pages/DriversPermissions.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/publishing": {
+    "route": "/drivers/publishing",
+    "component_path": "frontend/src/pages/DriversPublishing.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/registry": {
+    "route": "/drivers/registry",
+    "component_path": "frontend/src/pages/DriversRegistry.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/risk": {
+    "route": "/drivers/risk",
+    "component_path": "frontend/src/pages/DriversRisk.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/risk/assessments": {
+    "route": "/drivers/risk/assessments",
+    "component_path": "frontend/src/pages/DriversRiskAssessments.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/risk/exceptions": {
+    "route": "/drivers/risk/exceptions",
+    "component_path": "frontend/src/pages/DriversRiskExceptions.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/risk/remediation": {
+    "route": "/drivers/risk/remediation",
+    "component_path": "frontend/src/pages/DriversRiskRemediation.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/risk/vendors": {
+    "route": "/drivers/risk/vendors",
+    "component_path": "frontend/src/pages/DriversRiskVendors.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/sdk": {
+    "route": "/drivers/sdk",
+    "component_path": "frontend/src/pages/DriversSdk.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/testing": {
+    "route": "/drivers/testing",
+    "component_path": "frontend/src/pages/DriversTesting.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/versioning": {
+    "route": "/drivers/versioning",
+    "component_path": "frontend/src/pages/DriversVersioning.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/drivers/vertical-editions": {
+    "route": "/drivers/vertical-editions",
+    "component_path": "frontend/src/pages/DriversVerticaleditions.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/advanced": {
+    "route": "/future/advanced",
+    "component_path": "frontend/src/pages/FutureAdvanced.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/advanced/matrix": {
+    "route": "/future/advanced/matrix",
+    "component_path": "frontend/src/pages/FutureAdvancedMatrix.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/ascend": {
+    "route": "/future/ascend",
+    "component_path": "frontend/src/pages/FutureAscend.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/ascend/matrix": {
+    "route": "/future/ascend/matrix",
+    "component_path": "frontend/src/pages/FutureAscendMatrix.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/core_os": {
+    "route": "/future/core_os",
+    "component_path": "frontend/src/pages/FutureCore_os.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/core_os/matrix": {
+    "route": "/future/core_os/matrix",
+    "component_path": "frontend/src/pages/FutureCore_osMatrix.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/hyper": {
+    "route": "/future/hyper",
+    "component_path": "frontend/src/pages/FutureHyper.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/hyper/matrix": {
+    "route": "/future/hyper/matrix",
+    "component_path": "frontend/src/pages/FutureHyperMatrix.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/meta": {
+    "route": "/future/meta",
+    "component_path": "frontend/src/pages/FutureMeta.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/meta/matrix": {
+    "route": "/future/meta/matrix",
+    "component_path": "frontend/src/pages/FutureMetaMatrix.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/super": {
+    "route": "/future/super",
+    "component_path": "frontend/src/pages/FutureSuper.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/super/matrix": {
+    "route": "/future/super/matrix",
+    "component_path": "frontend/src/pages/FutureSuperMatrix.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/supreme": {
+    "route": "/future/supreme",
+    "component_path": "frontend/src/pages/FutureSupreme.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/supreme/matrix": {
+    "route": "/future/supreme/matrix",
+    "component_path": "frontend/src/pages/FutureSupremeMatrix.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/ultra": {
+    "route": "/future/ultra",
+    "component_path": "frontend/src/pages/FutureUltra.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/future/ultra/matrix": {
+    "route": "/future/ultra/matrix",
+    "component_path": "frontend/src/pages/FutureUltraMatrix.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/billing/budgets": {
+    "route": "/governance/billing/budgets",
+    "component_path": "frontend/src/pages/GovernanceBillingBudgets.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/billing/chargeback": {
+    "route": "/governance/billing/chargeback",
+    "component_path": "frontend/src/pages/GovernanceBillingChargeback.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/billing/forecasting": {
+    "route": "/governance/billing/forecasting",
+    "component_path": "frontend/src/pages/GovernanceBillingForecasting.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/billing/guardrails": {
+    "route": "/governance/billing/guardrails",
+    "component_path": "frontend/src/pages/GovernanceBillingGuardrails.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/billing/multi-tenant": {
+    "route": "/governance/billing/multi-tenant",
+    "component_path": "frontend/src/pages/GovernanceBillingMultitenant.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/billing/optimizer": {
+    "route": "/governance/billing/optimizer",
+    "component_path": "frontend/src/pages/GovernanceBillingOptimizer.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/billing/rates": {
+    "route": "/governance/billing/rates",
+    "component_path": "frontend/src/pages/GovernanceBillingRates.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/billing/usage": {
+    "route": "/governance/billing/usage",
+    "component_path": "frontend/src/pages/GovernanceBillingUsage.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/compliance": {
+    "route": "/governance/compliance",
+    "component_path": "frontend/src/pages/GovernanceCompliance.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/compliance/controls": {
+    "route": "/governance/compliance/controls",
+    "component_path": "frontend/src/pages/GovernanceComplianceControls.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/compliance/readiness": {
+    "route": "/governance/compliance/readiness",
+    "component_path": "frontend/src/pages/GovernanceComplianceReadiness.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/data-protection": {
+    "route": "/governance/data-protection",
+    "component_path": "frontend/src/pages/GovernanceDataprotection.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/data-protection/classification": {
+    "route": "/governance/data-protection/classification",
+    "component_path": "frontend/src/pages/GovernanceDataprotectionClassification.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/data-protection/dlp": {
+    "route": "/governance/data-protection/dlp",
+    "component_path": "frontend/src/pages/GovernanceDataprotectionDlp.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/data-protection/masking": {
+    "route": "/governance/data-protection/masking",
+    "component_path": "frontend/src/pages/GovernanceDataprotectionMasking.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/data-protection/residency": {
+    "route": "/governance/data-protection/residency",
+    "component_path": "frontend/src/pages/GovernanceDataprotectionResidency.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/data-protection/tokenization": {
+    "route": "/governance/data-protection/tokenization",
+    "component_path": "frontend/src/pages/GovernanceDataprotectionTokenization.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/identity": {
+    "route": "/governance/identity",
+    "component_path": "frontend/src/pages/GovernanceIdentity.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/identity/api-keys": {
+    "route": "/governance/identity/api-keys",
+    "component_path": "frontend/src/pages/GovernanceIdentityApikeys.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/identity/auth": {
+    "route": "/governance/identity/auth",
+    "component_path": "frontend/src/pages/GovernanceIdentityAuth.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/identity/rbac": {
+    "route": "/governance/identity/rbac",
+    "component_path": "frontend/src/pages/GovernanceIdentityRbac.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/identity/reviews": {
+    "route": "/governance/identity/reviews",
+    "component_path": "frontend/src/pages/GovernanceIdentityReviews.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/identity/scim": {
+    "route": "/governance/identity/scim",
+    "component_path": "frontend/src/pages/GovernanceIdentityScim.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/identity/sessions": {
+    "route": "/governance/identity/sessions",
+    "component_path": "frontend/src/pages/GovernanceIdentitySessions.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/identity/sso": {
+    "route": "/governance/identity/sso",
+    "component_path": "frontend/src/pages/GovernanceIdentitySso.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/policy": {
+    "route": "/governance/policy",
+    "component_path": "frontend/src/pages/GovernancePolicy.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/policy/dsl": {
+    "route": "/governance/policy/dsl",
+    "component_path": "frontend/src/pages/GovernancePolicyDsl.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/policy/enforcement": {
+    "route": "/governance/policy/enforcement",
+    "component_path": "frontend/src/pages/GovernancePolicyEnforcement.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/policy/exceptions": {
+    "route": "/governance/policy/exceptions",
+    "component_path": "frontend/src/pages/GovernancePolicyExceptions.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/policy/library": {
+    "route": "/governance/policy/library",
+    "component_path": "frontend/src/pages/GovernancePolicyLibrary.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/policy/safety": {
+    "route": "/governance/policy/safety",
+    "component_path": "frontend/src/pages/GovernancePolicySafety.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/policy/simulator": {
+    "route": "/governance/policy/simulator",
+    "component_path": "frontend/src/pages/GovernancePolicySimulator.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/policy/versioning": {
+    "route": "/governance/policy/versioning",
+    "component_path": "frontend/src/pages/GovernancePolicyVersioning.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/regulator": {
+    "route": "/governance/regulator",
+    "component_path": "frontend/src/pages/GovernanceRegulator.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/regulator/evidence": {
+    "route": "/governance/regulator/evidence",
+    "component_path": "frontend/src/pages/GovernanceRegulatorEvidence.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/regulator/requests": {
+    "route": "/governance/regulator/requests",
+    "component_path": "frontend/src/pages/GovernanceRegulatorRequests.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/regulator/tenancy": {
+    "route": "/governance/regulator/tenancy",
+    "component_path": "frontend/src/pages/GovernanceRegulatorTenancy.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/security/alerts": {
+    "route": "/governance/security/alerts",
+    "component_path": "frontend/src/pages/GovernanceSecurityAlerts.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/security/alignment": {
+    "route": "/governance/security/alignment",
+    "component_path": "frontend/src/pages/GovernanceSecurityAlignment.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/security/detection": {
+    "route": "/governance/security/detection",
+    "component_path": "frontend/src/pages/GovernanceSecurityDetection.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/security/forensics": {
+    "route": "/governance/security/forensics",
+    "component_path": "frontend/src/pages/GovernanceSecurityForensics.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/security/incidents": {
+    "route": "/governance/security/incidents",
+    "component_path": "frontend/src/pages/GovernanceSecurityIncidents.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/security/monitoring": {
+    "route": "/governance/security/monitoring",
+    "component_path": "frontend/src/pages/GovernanceSecurityMonitoring.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/security/risk": {
+    "route": "/governance/security/risk",
+    "component_path": "frontend/src/pages/GovernanceSecurityRisk.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/governance/security/vuln": {
+    "route": "/governance/security/vuln",
+    "component_path": "frontend/src/pages/GovernanceSecurityVuln.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/inbox": {
+    "route": "/inbox",
+    "component_path": "frontend/src/pages/Inbox.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/integrations": {
+    "route": "/integrations",
+    "component_path": "frontend/src/pages/Integrations.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 3,
+    "has_content": true
+  },
+  "/integrations/api-connectors": {
+    "route": "/integrations/api-connectors",
+    "component_path": "frontend/src/pages/IntegrationsApiconnectors.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/integrations/connectors": {
+    "route": "/integrations/connectors",
+    "component_path": "frontend/src/pages/IntegrationsConnectors.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/integrations/credentials": {
+    "route": "/integrations/credentials",
+    "component_path": "frontend/src/pages/IntegrationsCredentials.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/integrations/health": {
+    "route": "/integrations/health",
+    "component_path": "frontend/src/pages/IntegrationsHealth.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/integrations/mappings": {
+    "route": "/integrations/mappings",
+    "component_path": "frontend/src/pages/IntegrationsMappings.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/integrations/office": {
+    "route": "/integrations/office",
+    "component_path": "frontend/src/pages/IntegrationsOffice.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/integrations/rate-limits": {
+    "route": "/integrations/rate-limits",
+    "component_path": "frontend/src/pages/IntegrationsRatelimits.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/integrations/webhooks": {
+    "route": "/integrations/webhooks",
+    "component_path": "frontend/src/pages/IntegrationsWebhooks.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/ai-stack": {
+    "route": "/mission/ai-stack",
+    "component_path": "frontend/src/pages/MissionAistack.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/architecture": {
+    "route": "/mission/architecture",
+    "component_path": "frontend/src/pages/MissionArchitecture.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/components": {
+    "route": "/mission/components",
+    "component_path": "frontend/src/pages/MissionComponents.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/contracts": {
+    "route": "/mission/contracts",
+    "component_path": "frontend/src/pages/MissionContracts.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/daemons": {
+    "route": "/mission/daemons",
+    "component_path": "frontend/src/pages/MissionDaemons.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/extensibility": {
+    "route": "/mission/extensibility",
+    "component_path": "frontend/src/pages/MissionExtensibility.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/glossary": {
+    "route": "/mission/glossary",
+    "component_path": "frontend/src/pages/MissionGlossary.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/identity": {
+    "route": "/mission/identity",
+    "component_path": "frontend/src/pages/MissionIdentity.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/mapping": {
+    "route": "/mission/mapping",
+    "component_path": "frontend/src/pages/MissionMapping.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/models": {
+    "route": "/mission/models",
+    "component_path": "frontend/src/pages/MissionModels.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/modes": {
+    "route": "/mission/modes",
+    "component_path": "frontend/src/pages/MissionModes.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/non-goals": {
+    "route": "/mission/non-goals",
+    "component_path": "frontend/src/pages/MissionNongoals.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/orchestrator": {
+    "route": "/mission/orchestrator",
+    "component_path": "frontend/src/pages/MissionOrchestrator.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/overview": {
+    "route": "/mission/overview",
+    "component_path": "frontend/src/pages/MissionOverview.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/performance-targets": {
+    "route": "/mission/performance-targets",
+    "component_path": "frontend/src/pages/MissionPerformancetargets.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/planes": {
+    "route": "/mission/planes",
+    "component_path": "frontend/src/pages/MissionPlanes.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/planes/contracts": {
+    "route": "/mission/planes/contracts",
+    "component_path": "frontend/src/pages/MissionPlanesContracts.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/planes/control": {
+    "route": "/mission/planes/control",
+    "component_path": "frontend/src/pages/MissionPlanesControl.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/planes/cross-plane": {
+    "route": "/mission/planes/cross-plane",
+    "component_path": "frontend/src/pages/MissionPlanesCrossplane.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/planes/data": {
+    "route": "/mission/planes/data",
+    "component_path": "frontend/src/pages/MissionPlanesData.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/planes/failure-domains": {
+    "route": "/mission/planes/failure-domains",
+    "component_path": "frontend/src/pages/MissionPlanesFailuredomains.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/planes/governance": {
+    "route": "/mission/planes/governance",
+    "component_path": "frontend/src/pages/MissionPlanesGovernance.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/principles": {
+    "route": "/mission/principles",
+    "component_path": "frontend/src/pages/MissionPrinciples.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/reference-architectures": {
+    "route": "/mission/reference-architectures",
+    "component_path": "frontend/src/pages/MissionReferencearchitectures.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/threat-model": {
+    "route": "/mission/threat-model",
+    "component_path": "frontend/src/pages/MissionThreatmodel.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/mission/use-cases": {
+    "route": "/mission/use-cases",
+    "component_path": "frontend/src/pages/MissionUsecases.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/monitoring": {
+    "route": "/monitoring",
+    "component_path": "frontend/src/pages/Monitoring.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 4,
+    "has_content": true
+  },
+  "/notifications": {
+    "route": "/notifications",
+    "component_path": "frontend/src/pages/Notifications.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability": {
+    "route": "/observability",
+    "component_path": "frontend/src/pages/Observability.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 5,
+    "has_content": true
+  },
+  "/observability/alerting": {
+    "route": "/observability/alerting",
+    "component_path": "frontend/src/pages/ObservabilityAlerting.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/alerting/channels": {
+    "route": "/observability/alerting/channels",
+    "component_path": "frontend/src/pages/ObservabilityAlertingChannels.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/alerting/rules": {
+    "route": "/observability/alerting/rules",
+    "component_path": "frontend/src/pages/ObservabilityAlertingRules.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/anomalies": {
+    "route": "/observability/anomalies",
+    "component_path": "frontend/src/pages/ObservabilityAnomalies.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/audit-logs": {
+    "route": "/observability/audit-logs",
+    "component_path": "frontend/src/pages/ObservabilityAuditlogs.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/backtesting": {
+    "route": "/observability/backtesting",
+    "component_path": "frontend/src/pages/ObservabilityBacktesting.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/correlation": {
+    "route": "/observability/correlation",
+    "component_path": "frontend/src/pages/ObservabilityCorrelation.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/dashboards": {
+    "route": "/observability/dashboards",
+    "component_path": "frontend/src/pages/ObservabilityDashboards.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/dashboards/builder": {
+    "route": "/observability/dashboards/builder",
+    "component_path": "frontend/src/pages/ObservabilityDashboardsBuilder.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/drift": {
+    "route": "/observability/drift",
+    "component_path": "frontend/src/pages/ObservabilityDrift.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/evidence": {
+    "route": "/observability/evidence",
+    "component_path": "frontend/src/pages/ObservabilityEvidence.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/evidence/export": {
+    "route": "/observability/evidence/export",
+    "component_path": "frontend/src/pages/ObservabilityEvidenceExport.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/evidence/query": {
+    "route": "/observability/evidence/query",
+    "component_path": "frontend/src/pages/ObservabilityEvidenceQuery.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/health": {
+    "route": "/observability/health",
+    "component_path": "frontend/src/pages/ObservabilityHealth.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/logging": {
+    "route": "/observability/logging",
+    "component_path": "frontend/src/pages/ObservabilityLogging.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/logging-tracing": {
+    "route": "/observability/logging-tracing",
+    "component_path": "frontend/src/pages/ObservabilityLoggingtracing.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/logging/explorer": {
+    "route": "/observability/logging/explorer",
+    "component_path": "frontend/src/pages/ObservabilityLoggingExplorer.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/metrics": {
+    "route": "/observability/metrics",
+    "component_path": "frontend/src/pages/ObservabilityMetrics.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/metrics/explorer": {
+    "route": "/observability/metrics/explorer",
+    "component_path": "frontend/src/pages/ObservabilityMetricsExplorer.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/record-auditor": {
+    "route": "/observability/record-auditor",
+    "component_path": "frontend/src/pages/ObservabilityRecordauditor.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/record-auditor/timeline": {
+    "route": "/observability/record-auditor/timeline",
+    "component_path": "frontend/src/pages/ObservabilityRecordauditorTimeline.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/replay": {
+    "route": "/observability/replay",
+    "component_path": "frontend/src/pages/ObservabilityReplay.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/replay/determinism": {
+    "route": "/observability/replay/determinism",
+    "component_path": "frontend/src/pages/ObservabilityReplayDeterminism.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/replay/scenarios": {
+    "route": "/observability/replay/scenarios",
+    "component_path": "frontend/src/pages/ObservabilityReplayScenarios.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/retention": {
+    "route": "/observability/retention",
+    "component_path": "frontend/src/pages/ObservabilityRetention.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/rollbacks": {
+    "route": "/observability/rollbacks",
+    "component_path": "frontend/src/pages/ObservabilityRollbacks.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/runbooks": {
+    "route": "/observability/runbooks",
+    "component_path": "frontend/src/pages/ObservabilityRunbooks.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/self-healing": {
+    "route": "/observability/self-healing",
+    "component_path": "frontend/src/pages/ObservabilitySelfhealing.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/slis": {
+    "route": "/observability/slis",
+    "component_path": "frontend/src/pages/ObservabilitySlis.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/slis/burn": {
+    "route": "/observability/slis/burn",
+    "component_path": "frontend/src/pages/ObservabilitySlisBurn.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/tracing": {
+    "route": "/observability/tracing",
+    "component_path": "frontend/src/pages/ObservabilityTracing.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/observability/tracing/explorer": {
+    "route": "/observability/tracing/explorer",
+    "component_path": "frontend/src/pages/ObservabilityTracingExplorer.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/backpressure": {
+    "route": "/operations/backpressure",
+    "component_path": "frontend/src/pages/OperationsBackpressure.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/bc-dr": {
+    "route": "/operations/bc-dr",
+    "component_path": "frontend/src/pages/OperationsBcdr.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/bc-dr/drills": {
+    "route": "/operations/bc-dr/drills",
+    "component_path": "frontend/src/pages/OperationsBcdrDrills.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/capacity": {
+    "route": "/operations/capacity",
+    "component_path": "frontend/src/pages/OperationsCapacity.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/chaos": {
+    "route": "/operations/chaos",
+    "component_path": "frontend/src/pages/OperationsChaos.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/cluster": {
+    "route": "/operations/cluster",
+    "component_path": "frontend/src/pages/OperationsCluster.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/compatibility": {
+    "route": "/operations/compatibility",
+    "component_path": "frontend/src/pages/OperationsCompatibility.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/config": {
+    "route": "/operations/config",
+    "component_path": "frontend/src/pages/OperationsConfig.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/cost-performance": {
+    "route": "/operations/cost-performance",
+    "component_path": "frontend/src/pages/OperationsCostperformance.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/data-protection": {
+    "route": "/operations/data-protection",
+    "component_path": "frontend/src/pages/OperationsDataprotection.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/dependencies": {
+    "route": "/operations/dependencies",
+    "component_path": "frontend/src/pages/OperationsDependencies.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/deployment": {
+    "route": "/operations/deployment",
+    "component_path": "frontend/src/pages/OperationsDeployment.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/deployment/airgap": {
+    "route": "/operations/deployment/airgap",
+    "component_path": "frontend/src/pages/OperationsDeploymentAirgap.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/deployment/canary": {
+    "route": "/operations/deployment/canary",
+    "component_path": "frontend/src/pages/OperationsDeploymentCanary.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/deployment/channels": {
+    "route": "/operations/deployment/channels",
+    "component_path": "frontend/src/pages/OperationsDeploymentChannels.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/deployment/cloud": {
+    "route": "/operations/deployment/cloud",
+    "component_path": "frontend/src/pages/OperationsDeploymentCloud.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/deployment/hybrid": {
+    "route": "/operations/deployment/hybrid",
+    "component_path": "frontend/src/pages/OperationsDeploymentHybrid.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/deployment/k8s": {
+    "route": "/operations/deployment/k8s",
+    "component_path": "frontend/src/pages/OperationsDeploymentK8s.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/deployment/local": {
+    "route": "/operations/deployment/local",
+    "component_path": "frontend/src/pages/OperationsDeploymentLocal.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/detection": {
+    "route": "/operations/detection",
+    "component_path": "frontend/src/pages/OperationsDetection.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/driver-performance": {
+    "route": "/operations/driver-performance",
+    "component_path": "frontend/src/pages/OperationsDriverperformance.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/failure": {
+    "route": "/operations/failure",
+    "component_path": "frontend/src/pages/OperationsFailure.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/hpc": {
+    "route": "/operations/hpc",
+    "component_path": "frontend/src/pages/OperationsHpc.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/load-testing": {
+    "route": "/operations/load-testing",
+    "component_path": "frontend/src/pages/OperationsLoadtesting.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/migration": {
+    "route": "/operations/migration",
+    "component_path": "frontend/src/pages/OperationsMigration.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/multi-region": {
+    "route": "/operations/multi-region",
+    "component_path": "frontend/src/pages/OperationsMultiregion.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/performance": {
+    "route": "/operations/performance",
+    "component_path": "frontend/src/pages/OperationsPerformance.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/postmortems": {
+    "route": "/operations/postmortems",
+    "component_path": "frontend/src/pages/OperationsPostmortems.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/queues": {
+    "route": "/operations/queues",
+    "component_path": "frontend/src/pages/OperationsQueues.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/recovery": {
+    "route": "/operations/recovery",
+    "component_path": "frontend/src/pages/OperationsRecovery.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/releases": {
+    "route": "/operations/releases",
+    "component_path": "frontend/src/pages/OperationsReleases.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/reliability": {
+    "route": "/operations/reliability",
+    "component_path": "frontend/src/pages/OperationsReliability.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/rollback": {
+    "route": "/operations/rollback",
+    "component_path": "frontend/src/pages/OperationsRollback.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/scaling": {
+    "route": "/operations/scaling",
+    "component_path": "frontend/src/pages/OperationsScaling.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/secrets": {
+    "route": "/operations/secrets",
+    "component_path": "frontend/src/pages/OperationsSecrets.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/security-incidents": {
+    "route": "/operations/security-incidents",
+    "component_path": "frontend/src/pages/OperationsSecurityincidents.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/storage": {
+    "route": "/operations/storage",
+    "component_path": "frontend/src/pages/OperationsStorage.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/topology": {
+    "route": "/operations/topology",
+    "component_path": "frontend/src/pages/OperationsTopology.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/operations/upgrades": {
+    "route": "/operations/upgrades",
+    "component_path": "frontend/src/pages/OperationsUpgrades.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/personalization": {
+    "route": "/personalization",
+    "component_path": "frontend/src/pages/Personalization.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 5,
+    "has_content": true
+  },
+  "/personalization/macros": {
+    "route": "/personalization/macros",
+    "component_path": "frontend/src/pages/PersonalizationMacros.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/personalization/profiles": {
+    "route": "/personalization/profiles",
+    "component_path": "frontend/src/pages/PersonalizationProfiles.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/projects": {
+    "route": "/projects",
+    "component_path": "frontend/src/pages/Projects.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 4,
+    "has_content": true
+  },
+  "/projects/members": {
+    "route": "/projects/members",
+    "component_path": "frontend/src/pages/ProjectsMembers.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/projects/settings": {
+    "route": "/projects/settings",
+    "component_path": "frontend/src/pages/ProjectsSettings.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/projects/templates": {
+    "route": "/projects/templates",
+    "component_path": "frontend/src/pages/ProjectsTemplates.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/research": {
+    "route": "/research",
+    "component_path": "frontend/src/pages/Research.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 5,
+    "has_content": true
+  },
+  "/roadmap/compatibility": {
+    "route": "/roadmap/compatibility",
+    "component_path": "frontend/src/pages/RoadmapCompatibility.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/roadmap/decisions": {
+    "route": "/roadmap/decisions",
+    "component_path": "frontend/src/pages/RoadmapDecisions.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/roadmap/deprecations": {
+    "route": "/roadmap/deprecations",
+    "component_path": "frontend/src/pages/RoadmapDeprecations.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/roadmap/future": {
+    "route": "/roadmap/future",
+    "component_path": "frontend/src/pages/RoadmapFuture.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/roadmap/future-capabilities": {
+    "route": "/roadmap/future-capabilities",
+    "component_path": "frontend/src/pages/RoadmapFuturecapabilities.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/roadmap/gaps": {
+    "route": "/roadmap/gaps",
+    "component_path": "frontend/src/pages/RoadmapGaps.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/roadmap/milestones": {
+    "route": "/roadmap/milestones",
+    "component_path": "frontend/src/pages/RoadmapMilestones.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/roadmap/overview": {
+    "route": "/roadmap/overview",
+    "component_path": "frontend/src/pages/RoadmapOverview.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/roadmap/phases": {
+    "route": "/roadmap/phases",
+    "component_path": "frontend/src/pages/RoadmapPhases.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/roadmap/questions": {
+    "route": "/roadmap/questions",
+    "component_path": "frontend/src/pages/RoadmapQuestions.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/roadmap/risks": {
+    "route": "/roadmap/risks",
+    "component_path": "frontend/src/pages/RoadmapRisks.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/roadmap/spec": {
+    "route": "/roadmap/spec",
+    "component_path": "frontend/src/pages/RoadmapSpec.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/search": {
+    "route": "/search",
+    "component_path": "frontend/src/pages/Search.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/search/saved": {
+    "route": "/search/saved",
+    "component_path": "frontend/src/pages/SearchSaved.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/settings": {
+    "route": "/settings",
+    "component_path": "frontend/src/pages/Settings.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 7,
+    "has_content": true
+  },
+  "/settings/api-keys": {
+    "route": "/settings/api-keys",
+    "component_path": "frontend/src/pages/SettingsApikeys.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/settings/audit": {
+    "route": "/settings/audit",
+    "component_path": "frontend/src/pages/SettingsAudit.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/settings/credentials": {
+    "route": "/settings/credentials",
+    "component_path": "frontend/src/pages/SettingsCredentials.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/settings/notifications": {
+    "route": "/settings/notifications",
+    "component_path": "frontend/src/pages/SettingsNotifications.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/settings/preferences": {
+    "route": "/settings/preferences",
+    "component_path": "frontend/src/pages/SettingsPreferences.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/settings/profile": {
+    "route": "/settings/profile",
+    "component_path": "frontend/src/pages/SettingsProfile.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/settings/team": {
+    "route": "/settings/team",
+    "component_path": "frontend/src/pages/SettingsTeam.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/settings/tenant": {
+    "route": "/settings/tenant",
+    "component_path": "frontend/src/pages/SettingsTenant.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/systems/network": {
+    "route": "/systems/network",
+    "component_path": "frontend/src/pages/SystemsNetwork.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/tasks": {
+    "route": "/tasks",
+    "component_path": "frontend/src/pages/Tasks.tsx",
+    "best_commit": "stable",
+    "best_commit_sha": "3a154a6e6305fe9f3a760f44b1b10d73e1ed3256",
+    "score": 3,
+    "has_content": true
+  },
+  "/tasks/analytics": {
+    "route": "/tasks/analytics",
+    "component_path": "frontend/src/pages/TasksAnalytics.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/tasks/automation": {
+    "route": "/tasks/automation",
+    "component_path": "frontend/src/pages/TasksAutomation.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/tasks/board": {
+    "route": "/tasks/board",
+    "component_path": "frontend/src/pages/TasksBoard.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/timeline": {
+    "route": "/timeline",
+    "component_path": "frontend/src/pages/Timeline.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/vision": {
+    "route": "/vision",
+    "component_path": "frontend/src/pages/Vision.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/vision/glossary": {
+    "route": "/vision/glossary",
+    "component_path": "frontend/src/pages/VisionGlossary.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/vision/roadmap": {
+    "route": "/vision/roadmap",
+    "component_path": "frontend/src/pages/VisionRoadmap.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/work/templates": {
+    "route": "/work/templates",
+    "component_path": "frontend/src/pages/WorkTemplates.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/work/tools": {
+    "route": "/work/tools",
+    "component_path": "frontend/src/pages/WorkTools.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/work/writer": {
+    "route": "/work/writer",
+    "component_path": "frontend/src/pages/WorkWriter.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/archive": {
+    "route": "/workspaces/archive",
+    "component_path": "frontend/src/pages/WorkspacesArchive.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/archive/restore": {
+    "route": "/workspaces/archive/restore",
+    "component_path": "frontend/src/pages/WorkspacesArchiveRestore.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/archive/retention": {
+    "route": "/workspaces/archive/retention",
+    "component_path": "frontend/src/pages/WorkspacesArchiveRetention.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/archive/snapshots": {
+    "route": "/workspaces/archive/snapshots",
+    "component_path": "frontend/src/pages/WorkspacesArchiveSnapshots.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/archive/time-travel": {
+    "route": "/workspaces/archive/time-travel",
+    "component_path": "frontend/src/pages/WorkspacesArchiveTimetravel.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/auditor": {
+    "route": "/workspaces/auditor",
+    "component_path": "frontend/src/pages/WorkspacesAuditor.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/auditor/controls": {
+    "route": "/workspaces/auditor/controls",
+    "component_path": "frontend/src/pages/WorkspacesAuditorControls.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/auditor/evidence": {
+    "route": "/workspaces/auditor/evidence",
+    "component_path": "frontend/src/pages/WorkspacesAuditorEvidence.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/auditor/logbook": {
+    "route": "/workspaces/auditor/logbook",
+    "component_path": "frontend/src/pages/WorkspacesAuditorLogbook.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/auditor/regulator": {
+    "route": "/workspaces/auditor/regulator",
+    "component_path": "frontend/src/pages/WorkspacesAuditorRegulator.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/auditor/reports": {
+    "route": "/workspaces/auditor/reports",
+    "component_path": "frontend/src/pages/WorkspacesAuditorReports.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/auditor/requests": {
+    "route": "/workspaces/auditor/requests",
+    "component_path": "frontend/src/pages/WorkspacesAuditorRequests.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/cyber/auto-remediation": {
+    "route": "/workspaces/cyber/auto-remediation",
+    "component_path": "frontend/src/pages/WorkspacesCyberAutoremediation.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/cyber/findings": {
+    "route": "/workspaces/cyber/findings",
+    "component_path": "frontend/src/pages/WorkspacesCyberFindings.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/cyber/incidents": {
+    "route": "/workspaces/cyber/incidents",
+    "component_path": "frontend/src/pages/WorkspacesCyberIncidents.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/cyber/intel": {
+    "route": "/workspaces/cyber/intel",
+    "component_path": "frontend/src/pages/WorkspacesCyberIntel.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/cyber/playbooks": {
+    "route": "/workspaces/cyber/playbooks",
+    "component_path": "frontend/src/pages/WorkspacesCyberPlaybooks.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/cyber/policy-checks": {
+    "route": "/workspaces/cyber/policy-checks",
+    "component_path": "frontend/src/pages/WorkspacesCyberPolicychecks.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/cyber/scanners": {
+    "route": "/workspaces/cyber/scanners",
+    "component_path": "frontend/src/pages/WorkspacesCyberScanners.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/cyber/threat-modeling": {
+    "route": "/workspaces/cyber/threat-modeling",
+    "component_path": "frontend/src/pages/WorkspacesCyberThreatmodeling.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/dev": {
+    "route": "/workspaces/dev",
+    "component_path": "frontend/src/pages/WorkspacesDev.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/dev/build-insights": {
+    "route": "/workspaces/dev/build-insights",
+    "component_path": "frontend/src/pages/WorkspacesDevBuildinsights.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/dev/cicd": {
+    "route": "/workspaces/dev/cicd",
+    "component_path": "frontend/src/pages/WorkspacesDevCicd.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/dev/commit-tasks": {
+    "route": "/workspaces/dev/commit-tasks",
+    "component_path": "frontend/src/pages/WorkspacesDevCommittasks.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/dev/deps": {
+    "route": "/workspaces/dev/deps",
+    "component_path": "frontend/src/pages/WorkspacesDevDeps.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/dev/env-health": {
+    "route": "/workspaces/dev/env-health",
+    "component_path": "frontend/src/pages/WorkspacesDevEnvhealth.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/dev/merge-advisor": {
+    "route": "/workspaces/dev/merge-advisor",
+    "component_path": "frontend/src/pages/WorkspacesDevMergeadvisor.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/dev/release-notes": {
+    "route": "/workspaces/dev/release-notes",
+    "component_path": "frontend/src/pages/WorkspacesDevReleasenotes.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/dev/repos": {
+    "route": "/workspaces/dev/repos",
+    "component_path": "frontend/src/pages/WorkspacesDevRepos.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/dev/reviews": {
+    "route": "/workspaces/dev/reviews",
+    "component_path": "frontend/src/pages/WorkspacesDevReviews.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/finance": {
+    "route": "/workspaces/finance",
+    "component_path": "frontend/src/pages/WorkspacesFinance.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/finance/budgets": {
+    "route": "/workspaces/finance/budgets",
+    "component_path": "frontend/src/pages/WorkspacesFinanceBudgets.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/finance/forecasting": {
+    "route": "/workspaces/finance/forecasting",
+    "component_path": "frontend/src/pages/WorkspacesFinanceForecasting.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/finance/kpis": {
+    "route": "/workspaces/finance/kpis",
+    "component_path": "frontend/src/pages/WorkspacesFinanceKpis.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/finance/reports": {
+    "route": "/workspaces/finance/reports",
+    "component_path": "frontend/src/pages/WorkspacesFinanceReports.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/finance/risk": {
+    "route": "/workspaces/finance/risk",
+    "component_path": "frontend/src/pages/WorkspacesFinanceRisk.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/finance/scenarios": {
+    "route": "/workspaces/finance/scenarios",
+    "component_path": "frontend/src/pages/WorkspacesFinanceScenarios.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/research/datasets": {
+    "route": "/workspaces/research/datasets",
+    "component_path": "frontend/src/pages/WorkspacesResearchDatasets.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/research/digital-twins": {
+    "route": "/workspaces/research/digital-twins",
+    "component_path": "frontend/src/pages/WorkspacesResearchDigitaltwins.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/research/experiments": {
+    "route": "/workspaces/research/experiments",
+    "component_path": "frontend/src/pages/WorkspacesResearchExperiments.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/research/hpc": {
+    "route": "/workspaces/research/hpc",
+    "component_path": "frontend/src/pages/WorkspacesResearchHpc.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/research/lab": {
+    "route": "/workspaces/research/lab",
+    "component_path": "frontend/src/pages/WorkspacesResearchLab.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/research/notes": {
+    "route": "/workspaces/research/notes",
+    "component_path": "frontend/src/pages/WorkspacesResearchNotes.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/research/publishing": {
+    "route": "/workspaces/research/publishing",
+    "component_path": "frontend/src/pages/WorkspacesResearchPublishing.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/research/reproducibility": {
+    "route": "/workspaces/research/reproducibility",
+    "component_path": "frontend/src/pages/WorkspacesResearchReproducibility.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/research/simulation": {
+    "route": "/workspaces/research/simulation",
+    "component_path": "frontend/src/pages/WorkspacesResearchSimulation.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/research/tracking": {
+    "route": "/workspaces/research/tracking",
+    "component_path": "frontend/src/pages/WorkspacesResearchTracking.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/research/validation": {
+    "route": "/workspaces/research/validation",
+    "component_path": "frontend/src/pages/WorkspacesResearchValidation.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/sre": {
+    "route": "/workspaces/sre",
+    "component_path": "frontend/src/pages/WorkspacesSre.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/sre/capacity-cost": {
+    "route": "/workspaces/sre/capacity-cost",
+    "component_path": "frontend/src/pages/WorkspacesSreCapacitycost.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/sre/changes": {
+    "route": "/workspaces/sre/changes",
+    "component_path": "frontend/src/pages/WorkspacesSreChanges.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/sre/health": {
+    "route": "/workspaces/sre/health",
+    "component_path": "frontend/src/pages/WorkspacesSreHealth.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/sre/incidents": {
+    "route": "/workspaces/sre/incidents",
+    "component_path": "frontend/src/pages/WorkspacesSreIncidents.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/sre/maintenance": {
+    "route": "/workspaces/sre/maintenance",
+    "component_path": "frontend/src/pages/WorkspacesSreMaintenance.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/sre/reliability": {
+    "route": "/workspaces/sre/reliability",
+    "component_path": "frontend/src/pages/WorkspacesSreReliability.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/sre/runbooks": {
+    "route": "/workspaces/sre/runbooks",
+    "component_path": "frontend/src/pages/WorkspacesSreRunbooks.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/sre/sandbox": {
+    "route": "/workspaces/sre/sandbox",
+    "component_path": "frontend/src/pages/WorkspacesSreSandbox.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/twins": {
+    "route": "/workspaces/twins",
+    "component_path": "frontend/src/pages/WorkspacesTwins.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/twins/enterprise": {
+    "route": "/workspaces/twins/enterprise",
+    "component_path": "frontend/src/pages/WorkspacesTwinsEnterprise.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/twins/feeds": {
+    "route": "/workspaces/twins/feeds",
+    "component_path": "frontend/src/pages/WorkspacesTwinsFeeds.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/twins/governance": {
+    "route": "/workspaces/twins/governance",
+    "component_path": "frontend/src/pages/WorkspacesTwinsGovernance.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/twins/reality-mesh": {
+    "route": "/workspaces/twins/reality-mesh",
+    "component_path": "frontend/src/pages/WorkspacesTwinsRealitymesh.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/twins/scenarios": {
+    "route": "/workspaces/twins/scenarios",
+    "component_path": "frontend/src/pages/WorkspacesTwinsScenarios.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/twins/templates": {
+    "route": "/workspaces/twins/templates",
+    "component_path": "frontend/src/pages/WorkspacesTwinsTemplates.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/writer/canon": {
+    "route": "/workspaces/writer/canon",
+    "component_path": "frontend/src/pages/WorkspacesWriterCanon.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/writer/citations": {
+    "route": "/workspaces/writer/citations",
+    "component_path": "frontend/src/pages/WorkspacesWriterCitations.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/writer/narrative": {
+    "route": "/workspaces/writer/narrative",
+    "component_path": "frontend/src/pages/WorkspacesWriterNarrative.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/writer/originality": {
+    "route": "/workspaces/writer/originality",
+    "component_path": "frontend/src/pages/WorkspacesWriterOriginality.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/writer/publishing": {
+    "route": "/workspaces/writer/publishing",
+    "component_path": "frontend/src/pages/WorkspacesWriterPublishing.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/writer/qa": {
+    "route": "/workspaces/writer/qa",
+    "component_path": "frontend/src/pages/WorkspacesWriterQa.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/writer/style-guide": {
+    "route": "/workspaces/writer/style-guide",
+    "component_path": "frontend/src/pages/WorkspacesWriterStyleguide.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  },
+  "/workspaces/writer/versioning": {
+    "route": "/workspaces/writer/versioning",
+    "component_path": "frontend/src/pages/WorkspacesWriterVersioning.tsx",
+    "best_commit": null,
+    "best_commit_sha": null,
+    "score": -1000,
+    "has_content": false
+  }
+}

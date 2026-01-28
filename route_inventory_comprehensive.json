@@ -1,0 +1,5733 @@
+{
+  "/": {
+    "route": "/",
+    "component_path": "frontend/src/pages/Dashboard.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Dashboard.tsx"
+    ]
+  },
+  "/activity": {
+    "route": "/activity",
+    "component_path": "frontend/src/pages/Activity.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Activity.ts",
+      "frontend/src/pages/Activity.jsx",
+      "frontend/src/pages/Activity.tsx"
+    ]
+  },
+  "/ai/advanced": {
+    "route": "/ai/advanced",
+    "component_path": "frontend/src/pages/AiAdvanced.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiAdvanced.ts",
+      "frontend/src/pages/AiAdvanced.js",
+      "frontend/src/pages/AiAdvanced.jsx"
+    ]
+  },
+  "/ai/agents/registry": {
+    "route": "/ai/agents/registry",
+    "component_path": "frontend/src/pages/AiAgentsRegistry.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiAgentsRegistry.ts",
+      "frontend/src/pages/AiAgentsRegistry.tsx",
+      "frontend/src/pages/Ai/Agents/Registry.ts"
+    ]
+  },
+  "/ai/autofix": {
+    "route": "/ai/autofix",
+    "component_path": "frontend/src/pages/AiAutofix.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiAutofix.tsx",
+      "frontend/src/pages/AiAutofix.jsx",
+      "frontend/src/pages/AiAutofix.js"
+    ]
+  },
+  "/ai/capabilities": {
+    "route": "/ai/capabilities",
+    "component_path": "frontend/src/pages/AiCapabilities.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiCapabilities.ts",
+      "frontend/src/pages/AiCapabilities.js",
+      "frontend/src/pages/AiCapabilities.jsx"
+    ]
+  },
+  "/ai/capsules": {
+    "route": "/ai/capsules",
+    "component_path": "frontend/src/pages/AiCapsules.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiCapsules.jsx",
+      "frontend/src/pages/AiCapsules.js",
+      "frontend/src/pages/AiCapsules.ts"
+    ]
+  },
+  "/ai/capsules/builder": {
+    "route": "/ai/capsules/builder",
+    "component_path": "frontend/src/pages/Ai/Capsules/Builder.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiCapsulesBuilder.jsx",
+      "frontend/src/pages/Ai/Capsules/Builder.tsx",
+      "frontend/src/pages/Ai/Capsules/Builder.ts"
+    ]
+  },
+  "/ai/capsules/ledger": {
+    "route": "/ai/capsules/ledger",
+    "component_path": "frontend/src/pages/AiCapsulesLedger.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiCapsulesLedger.js",
+      "frontend/src/pages/AiCapsulesLedger.tsx",
+      "frontend/src/pages/Ai/Capsules/Ledger.ts"
+    ]
+  },
+  "/ai/capsules/lineage": {
+    "route": "/ai/capsules/lineage",
+    "component_path": "frontend/src/pages/Ai/Capsules/Lineage.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiCapsulesLineage.ts",
+      "frontend/src/pages/Ai/Capsules/Lineage.tsx",
+      "frontend/src/pages/AiCapsulesLineage.jsx"
+    ]
+  },
+  "/ai/capsules/my-stack": {
+    "route": "/ai/capsules/my-stack",
+    "component_path": "frontend/src/pages/Ai/Capsules/Mystack.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Capsules/Mystack.jsx",
+      "frontend/src/pages/Ai/Capsules/Mystack.tsx",
+      "frontend/src/pages/AiCapsulesMystack.tsx"
+    ]
+  },
+  "/ai/capsules/operator-studio": {
+    "route": "/ai/capsules/operator-studio",
+    "component_path": "frontend/src/pages/Ai/Capsules/Operatorstudio.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Capsules/Operatorstudio.tsx",
+      "frontend/src/pages/AiCapsulesOperatorstudio.jsx",
+      "frontend/src/pages/AiCapsulesOperatorstudio.ts"
+    ]
+  },
+  "/ai/capsules/publishing": {
+    "route": "/ai/capsules/publishing",
+    "component_path": "frontend/src/pages/AiCapsulesPublishing.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Capsules/Publishing.jsx",
+      "frontend/src/pages/AiCapsulesPublishing.js",
+      "frontend/src/pages/AiCapsulesPublishing.jsx"
+    ]
+  },
+  "/ai/capsules/runtime": {
+    "route": "/ai/capsules/runtime",
+    "component_path": "frontend/src/pages/AiCapsulesRuntime.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiCapsulesRuntime.tsx",
+      "frontend/src/pages/Ai/Capsules/Runtime.js",
+      "frontend/src/pages/Ai/Capsules/Runtime.ts"
+    ]
+  },
+  "/ai/capsules/secrets": {
+    "route": "/ai/capsules/secrets",
+    "component_path": "frontend/src/pages/Ai/Capsules/Secrets.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Capsules/Secrets.tsx",
+      "frontend/src/pages/Ai/Capsules/Secrets.jsx",
+      "frontend/src/pages/AiCapsulesSecrets.js"
+    ]
+  },
+  "/ai/capsules/templates": {
+    "route": "/ai/capsules/templates",
+    "component_path": "frontend/src/pages/Ai/Capsules/Templates.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Capsules/Templates.jsx",
+      "frontend/src/pages/Ai/Capsules/Templates.js",
+      "frontend/src/pages/Ai/Capsules/Templates.tsx"
+    ]
+  },
+  "/ai/copilot": {
+    "route": "/ai/copilot",
+    "component_path": "frontend/src/pages/AiCopilot.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 2,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiCopilot.tsx",
+      "frontend/src/pages/AiCopilot.js",
+      "frontend/src/pages/AiCopilot.jsx"
+    ]
+  },
+  "/ai/daemons": {
+    "route": "/ai/daemons",
+    "component_path": "frontend/src/pages/AiDaemons.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiDaemons.ts",
+      "frontend/src/pages/AiDaemons.jsx",
+      "frontend/src/pages/AiDaemons.js"
+    ]
+  },
+  "/ai/drivers": {
+    "route": "/ai/drivers",
+    "component_path": "frontend/src/pages/AiDrivers.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiDrivers.ts",
+      "frontend/src/pages/AiDrivers.js",
+      "frontend/src/pages/AiDrivers.tsx"
+    ]
+  },
+  "/ai/drivers/data": {
+    "route": "/ai/drivers/data",
+    "component_path": "frontend/src/pages/AiDriversData.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiDriversData.ts",
+      "frontend/src/pages/Ai/Drivers/Data.jsx",
+      "frontend/src/pages/AiDriversData.tsx"
+    ]
+  },
+  "/ai/drivers/hardware": {
+    "route": "/ai/drivers/hardware",
+    "component_path": "frontend/src/pages/Ai/Drivers/Hardware.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiDriversHardware.jsx",
+      "frontend/src/pages/Ai/Drivers/Hardware.jsx",
+      "frontend/src/pages/Ai/Drivers/Hardware.tsx"
+    ]
+  },
+  "/ai/drivers/health": {
+    "route": "/ai/drivers/health",
+    "component_path": "frontend/src/pages/Ai/Drivers/Health.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiDriversHealth.ts",
+      "frontend/src/pages/Ai/Drivers/Health.jsx",
+      "frontend/src/pages/Ai/Drivers/Health.tsx"
+    ]
+  },
+  "/ai/drivers/os": {
+    "route": "/ai/drivers/os",
+    "component_path": "frontend/src/pages/Ai/Drivers/Os.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Drivers/Os.tsx",
+      "frontend/src/pages/AiDriversOs.jsx",
+      "frontend/src/pages/Ai/Drivers/Os.js"
+    ]
+  },
+  "/ai/drivers/package": {
+    "route": "/ai/drivers/package",
+    "component_path": "frontend/src/pages/AiDriversPackage.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Drivers/Package.jsx",
+      "frontend/src/pages/AiDriversPackage.tsx",
+      "frontend/src/pages/Ai/Drivers/Package.tsx"
+    ]
+  },
+  "/ai/drivers/permissions": {
+    "route": "/ai/drivers/permissions",
+    "component_path": "frontend/src/pages/AiDriversPermissions.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiDriversPermissions.jsx",
+      "frontend/src/pages/AiDriversPermissions.ts",
+      "frontend/src/pages/Ai/Drivers/Permissions.ts"
+    ]
+  },
+  "/ai/drivers/research": {
+    "route": "/ai/drivers/research",
+    "component_path": "frontend/src/pages/Ai/Drivers/Research.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Drivers/Research.tsx",
+      "frontend/src/pages/Ai/Drivers/Research.jsx",
+      "frontend/src/pages/AiDriversResearch.js"
+    ]
+  },
+  "/ai/drivers/sandbox": {
+    "route": "/ai/drivers/sandbox",
+    "component_path": "frontend/src/pages/Ai/Drivers/Sandbox.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiDriversSandbox.jsx",
+      "frontend/src/pages/Ai/Drivers/Sandbox.ts",
+      "frontend/src/pages/Ai/Drivers/Sandbox.tsx"
+    ]
+  },
+  "/ai/drivers/software": {
+    "route": "/ai/drivers/software",
+    "component_path": "frontend/src/pages/Ai/Drivers/Software.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiDriversSoftware.js",
+      "frontend/src/pages/Ai/Drivers/Software.jsx",
+      "frontend/src/pages/Ai/Drivers/Software.ts"
+    ]
+  },
+  "/ai/drivers/testing": {
+    "route": "/ai/drivers/testing",
+    "component_path": "frontend/src/pages/AiDriversTesting.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiDriversTesting.jsx",
+      "frontend/src/pages/AiDriversTesting.tsx",
+      "frontend/src/pages/Ai/Drivers/Testing.ts"
+    ]
+  },
+  "/ai/drivers/versioning": {
+    "route": "/ai/drivers/versioning",
+    "component_path": "frontend/src/pages/AiDriversVersioning.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Drivers/Versioning.js",
+      "frontend/src/pages/Ai/Drivers/Versioning.ts",
+      "frontend/src/pages/Ai/Drivers/Versioning.jsx"
+    ]
+  },
+  "/ai/edge": {
+    "route": "/ai/edge",
+    "component_path": "frontend/src/pages/AiEdge.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiEdge.ts",
+      "frontend/src/pages/AiEdge.tsx",
+      "frontend/src/pages/AiEdge.js"
+    ]
+  },
+  "/ai/edge/deploy": {
+    "route": "/ai/edge/deploy",
+    "component_path": "frontend/src/pages/AiEdgeDeploy.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiEdgeDeploy.jsx",
+      "frontend/src/pages/Ai/Edge/Deploy.jsx",
+      "frontend/src/pages/Ai/Edge/Deploy.js"
+    ]
+  },
+  "/ai/edge/devices": {
+    "route": "/ai/edge/devices",
+    "component_path": "frontend/src/pages/AiEdgeDevices.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Edge/Devices.jsx",
+      "frontend/src/pages/AiEdgeDevices.ts",
+      "frontend/src/pages/Ai/Edge/Devices.js"
+    ]
+  },
+  "/ai/evals": {
+    "route": "/ai/evals",
+    "component_path": "frontend/src/pages/AiEvals.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiEvals.jsx",
+      "frontend/src/pages/AiEvals.js",
+      "frontend/src/pages/AiEvals.ts"
+    ]
+  },
+  "/ai/intents": {
+    "route": "/ai/intents",
+    "component_path": "frontend/src/pages/AiIntents.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiIntents.ts",
+      "frontend/src/pages/AiIntents.tsx",
+      "frontend/src/pages/AiIntents.js"
+    ]
+  },
+  "/ai/intents/logs": {
+    "route": "/ai/intents/logs",
+    "component_path": "frontend/src/pages/Ai/Intents/Logs.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Intents/Logs.ts",
+      "frontend/src/pages/AiIntentsLogs.js",
+      "frontend/src/pages/Ai/Intents/Logs.js"
+    ]
+  },
+  "/ai/intents/taxonomy": {
+    "route": "/ai/intents/taxonomy",
+    "component_path": "frontend/src/pages/AiIntentsTaxonomy.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Intents/Taxonomy.jsx",
+      "frontend/src/pages/AiIntentsTaxonomy.tsx",
+      "frontend/src/pages/AiIntentsTaxonomy.jsx"
+    ]
+  },
+  "/ai/mlops": {
+    "route": "/ai/mlops",
+    "component_path": "frontend/src/pages/AiMlops.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiMlops.ts",
+      "frontend/src/pages/AiMlops.jsx",
+      "frontend/src/pages/AiMlops.tsx"
+    ]
+  },
+  "/ai/mlops/approvals": {
+    "route": "/ai/mlops/approvals",
+    "component_path": "frontend/src/pages/Ai/Mlops/Approvals.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Mlops/Approvals.js",
+      "frontend/src/pages/Ai/Mlops/Approvals.tsx",
+      "frontend/src/pages/AiMlopsApprovals.js"
+    ]
+  },
+  "/ai/mlops/data": {
+    "route": "/ai/mlops/data",
+    "component_path": "frontend/src/pages/AiMlopsData.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiMlopsData.ts",
+      "frontend/src/pages/AiMlopsData.js",
+      "frontend/src/pages/AiMlopsData.tsx"
+    ]
+  },
+  "/ai/mlops/drift": {
+    "route": "/ai/mlops/drift",
+    "component_path": "frontend/src/pages/AiMlopsDrift.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Mlops/Drift.ts",
+      "frontend/src/pages/AiMlopsDrift.tsx",
+      "frontend/src/pages/Ai/Mlops/Drift.tsx"
+    ]
+  },
+  "/ai/mlops/models": {
+    "route": "/ai/mlops/models",
+    "component_path": "frontend/src/pages/Ai/Mlops/Models.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Mlops/Models.ts",
+      "frontend/src/pages/AiMlopsModels.ts",
+      "frontend/src/pages/Ai/Mlops/Models.tsx"
+    ]
+  },
+  "/ai/mlops/pipelines": {
+    "route": "/ai/mlops/pipelines",
+    "component_path": "frontend/src/pages/Ai/Mlops/Pipelines.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Mlops/Pipelines.tsx",
+      "frontend/src/pages/Ai/Mlops/Pipelines.jsx",
+      "frontend/src/pages/AiMlopsPipelines.tsx"
+    ]
+  },
+  "/ai/mlops/serving": {
+    "route": "/ai/mlops/serving",
+    "component_path": "frontend/src/pages/AiMlopsServing.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiMlopsServing.tsx",
+      "frontend/src/pages/Ai/Mlops/Serving.tsx",
+      "frontend/src/pages/Ai/Mlops/Serving.jsx"
+    ]
+  },
+  "/ai/nas": {
+    "route": "/ai/nas",
+    "component_path": "frontend/src/pages/AiNas.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiNas.tsx",
+      "frontend/src/pages/AiNas.ts",
+      "frontend/src/pages/AiNas.jsx"
+    ]
+  },
+  "/ai/nas/experiments": {
+    "route": "/ai/nas/experiments",
+    "component_path": "frontend/src/pages/AiNasExperiments.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiNasExperiments.ts",
+      "frontend/src/pages/AiNasExperiments.tsx",
+      "frontend/src/pages/Ai/Nas/Experiments.jsx"
+    ]
+  },
+  "/ai/nas/simulator": {
+    "route": "/ai/nas/simulator",
+    "component_path": "frontend/src/pages/Ai/Nas/Simulator.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Nas/Simulator.tsx",
+      "frontend/src/pages/AiNasSimulator.jsx",
+      "frontend/src/pages/Ai/Nas/Simulator.jsx"
+    ]
+  },
+  "/ai/operations": {
+    "route": "/ai/operations",
+    "component_path": "frontend/src/pages/AiOperations.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiOperations.tsx",
+      "frontend/src/pages/AiOperations.ts",
+      "frontend/src/pages/AiOperations.jsx"
+    ]
+  },
+  "/ai/os": {
+    "route": "/ai/os",
+    "component_path": "frontend/src/pages/AiOs.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiOs.tsx",
+      "frontend/src/pages/AiOs.ts",
+      "frontend/src/pages/AiOs.js"
+    ]
+  },
+  "/ai/personas": {
+    "route": "/ai/personas",
+    "component_path": "frontend/src/pages/AiPersonas.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiPersonas.jsx",
+      "frontend/src/pages/AiPersonas.tsx",
+      "frontend/src/pages/AiPersonas.js"
+    ]
+  },
+  "/ai/project-intelligence": {
+    "route": "/ai/project-intelligence",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/AiProjectintelligence.tsx",
+      "frontend/src/pages/AiProjectintelligence.jsx",
+      "frontend/src/pages/AiProjectintelligence.js"
+    ]
+  },
+  "/ai/prompts": {
+    "route": "/ai/prompts",
+    "component_path": "frontend/src/pages/AiPrompts.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiPrompts.jsx",
+      "frontend/src/pages/AiPrompts.ts",
+      "frontend/src/pages/AiPrompts.tsx"
+    ]
+  },
+  "/ai/routing": {
+    "route": "/ai/routing",
+    "component_path": "frontend/src/pages/AiRouting.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiRouting.js",
+      "frontend/src/pages/AiRouting.tsx",
+      "frontend/src/pages/AiRouting.ts"
+    ]
+  },
+  "/ai/safety": {
+    "route": "/ai/safety",
+    "component_path": "frontend/src/pages/AiSafety.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiSafety.tsx",
+      "frontend/src/pages/AiSafety.jsx",
+      "frontend/src/pages/AiSafety.ts"
+    ]
+  },
+  "/ai/security": {
+    "route": "/ai/security",
+    "component_path": "frontend/src/pages/AiSecurity.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiSecurity.js",
+      "frontend/src/pages/AiSecurity.ts",
+      "frontend/src/pages/AiSecurity.tsx"
+    ]
+  },
+  "/ai/systems": {
+    "route": "/ai/systems",
+    "component_path": "frontend/src/pages/AiSystems.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiSystems.js",
+      "frontend/src/pages/AiSystems.ts",
+      "frontend/src/pages/AiSystems.tsx"
+    ]
+  },
+  "/ai/systems/graph": {
+    "route": "/ai/systems/graph",
+    "component_path": "frontend/src/pages/Ai/Systems/Graph.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Systems/Graph.js",
+      "frontend/src/pages/AiSystemsGraph.ts",
+      "frontend/src/pages/AiSystemsGraph.js"
+    ]
+  },
+  "/ai/trf": {
+    "route": "/ai/trf",
+    "component_path": "frontend/src/pages/AiTrf.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiTrf.tsx",
+      "frontend/src/pages/AiTrf.jsx",
+      "frontend/src/pages/AiTrf.ts"
+    ]
+  },
+  "/ai/vision": {
+    "route": "/ai/vision",
+    "component_path": "frontend/src/pages/AiVision.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiVision.tsx",
+      "frontend/src/pages/AiVision.ts",
+      "frontend/src/pages/AiVision.jsx"
+    ]
+  },
+  "/ai/vision/labeling": {
+    "route": "/ai/vision/labeling",
+    "component_path": "frontend/src/pages/Ai/Vision/Labeling.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Ai/Vision/Labeling.tsx",
+      "frontend/src/pages/AiVisionLabeling.ts",
+      "frontend/src/pages/Ai/Vision/Labeling.ts"
+    ]
+  },
+  "/ai/vision/pipelines": {
+    "route": "/ai/vision/pipelines",
+    "component_path": "frontend/src/pages/AiVisionPipelines.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiVisionPipelines.js",
+      "frontend/src/pages/Ai/Vision/Pipelines.ts",
+      "frontend/src/pages/Ai/Vision/Pipelines.jsx"
+    ]
+  },
+  "/ai/vision/streams": {
+    "route": "/ai/vision/streams",
+    "component_path": "frontend/src/pages/AiVisionStreams.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiVisionStreams.js",
+      "frontend/src/pages/AiVisionStreams.tsx",
+      "frontend/src/pages/Ai/Vision/Streams.ts"
+    ]
+  },
+  "/ai/workflows": {
+    "route": "/ai/workflows",
+    "component_path": "frontend/src/pages/AiWorkflows.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiWorkflows.tsx",
+      "frontend/src/pages/AiWorkflows.js",
+      "frontend/src/pages/AiWorkflows.ts"
+    ]
+  },
+  "/ai/workflows/observability": {
+    "route": "/ai/workflows/observability",
+    "component_path": "frontend/src/pages/Ai/Workflows/Observability.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiWorkflowsObservability.ts",
+      "frontend/src/pages/Ai/Workflows/Observability.js",
+      "frontend/src/pages/Ai/Workflows/Observability.ts"
+    ]
+  },
+  "/ai/workflows/triggers": {
+    "route": "/ai/workflows/triggers",
+    "component_path": "frontend/src/pages/AiWorkflowsTriggers.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/AiWorkflowsTriggers.js",
+      "frontend/src/pages/AiWorkflowsTriggers.tsx",
+      "frontend/src/pages/Ai/Workflows/Triggers.js"
+    ]
+  },
+  "/analytics": {
+    "route": "/analytics",
+    "component_path": "frontend/src/pages/Analytics.js",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Analytics.js",
+      "frontend/src/pages/Analytics.jsx",
+      "frontend/src/pages/Analytics.ts"
+    ]
+  },
+  "/audit": {
+    "route": "/audit",
+    "component_path": "frontend/src/pages/Audit.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 6,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Audit.jsx",
+      "frontend/src/pages/Audit.ts",
+      "frontend/src/pages/Audit.tsx"
+    ]
+  },
+  "/audit/builder": {
+    "route": "/audit/builder",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/AuditBuilder.ts",
+      "frontend/src/pages/AuditBuilder.jsx",
+      "frontend/src/pages/AuditBuilder.tsx"
+    ]
+  },
+  "/billing": {
+    "route": "/billing",
+    "component_path": "frontend/src/pages/Billing.js",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Billing.js",
+      "frontend/src/pages/Billing.jsx",
+      "frontend/src/pages/Billing.tsx"
+    ]
+  },
+  "/chat": {
+    "route": "/chat",
+    "component_path": "frontend/src/pages/Chat.js",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Chat.js",
+      "frontend/src/pages/Chat.jsx",
+      "frontend/src/pages/Chat.ts"
+    ]
+  },
+  "/chat/library": {
+    "route": "/chat/library",
+    "component_path": "frontend/src/pages/ChatLibrary.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/ChatLibrary.ts",
+      "frontend/src/pages/ChatLibrary.tsx",
+      "frontend/src/pages/ChatLibrary.jsx"
+    ]
+  },
+  "/collaboration": {
+    "route": "/collaboration",
+    "component_path": "frontend/src/pages/Collaboration.js",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Collaboration.js",
+      "frontend/src/pages/Collaboration.tsx",
+      "frontend/src/pages/Collaboration.ts"
+    ]
+  },
+  "/collaboration/channels": {
+    "route": "/collaboration/channels",
+    "component_path": "frontend/src/pages/CollaborationChannels.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/CollaborationChannels.jsx",
+      "frontend/src/pages/CollaborationChannels.tsx",
+      "frontend/src/pages/CollaborationChannels.js"
+    ]
+  },
+  "/collaboration/presence": {
+    "route": "/collaboration/presence",
+    "component_path": "frontend/src/pages/CollaborationPresence.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/CollaborationPresence.ts",
+      "frontend/src/pages/CollaborationPresence.tsx",
+      "frontend/src/pages/CollaborationPresence.js"
+    ]
+  },
+  "/data": {
+    "route": "/data",
+    "component_path": "frontend/src/pages/Data.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 2,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Data.ts",
+      "frontend/src/pages/Data.js",
+      "frontend/src/pages/Data.tsx"
+    ]
+  },
+  "/data/archive": {
+    "route": "/data/archive",
+    "component_path": "frontend/src/pages/DataArchive.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataArchive.jsx",
+      "frontend/src/pages/DataArchive.js",
+      "frontend/src/pages/DataArchive.tsx"
+    ]
+  },
+  "/data/artifacts": {
+    "route": "/data/artifacts",
+    "component_path": "frontend/src/pages/DataArtifacts.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataArtifacts.tsx",
+      "frontend/src/pages/DataArtifacts.jsx",
+      "frontend/src/pages/DataArtifacts.ts"
+    ]
+  },
+  "/data/backup": {
+    "route": "/data/backup",
+    "component_path": "frontend/src/pages/DataBackup.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataBackup.jsx",
+      "frontend/src/pages/DataBackup.ts",
+      "frontend/src/pages/DataBackup.tsx"
+    ]
+  },
+  "/data/capsules": {
+    "route": "/data/capsules",
+    "component_path": "frontend/src/pages/DataCapsules.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataCapsules.ts",
+      "frontend/src/pages/DataCapsules.jsx",
+      "frontend/src/pages/DataCapsules.tsx"
+    ]
+  },
+  "/data/cir": {
+    "route": "/data/cir",
+    "component_path": "frontend/src/pages/DataCir.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataCir.jsx",
+      "frontend/src/pages/DataCir.ts",
+      "frontend/src/pages/DataCir.tsx"
+    ]
+  },
+  "/data/consistency": {
+    "route": "/data/consistency",
+    "component_path": "frontend/src/pages/DataConsistency.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataConsistency.tsx",
+      "frontend/src/pages/DataConsistency.js",
+      "frontend/src/pages/DataConsistency.ts"
+    ]
+  },
+  "/data/dr/drills": {
+    "route": "/data/dr/drills",
+    "component_path": "frontend/src/pages/Data/Dr/Drills.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Data/Dr/Drills.jsx",
+      "frontend/src/pages/Data/Dr/Drills.js",
+      "frontend/src/pages/Data/Dr/Drills.tsx"
+    ]
+  },
+  "/data/dr/failover": {
+    "route": "/data/dr/failover",
+    "component_path": "frontend/src/pages/DataDrFailover.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataDrFailover.jsx",
+      "frontend/src/pages/DataDrFailover.js",
+      "frontend/src/pages/DataDrFailover.ts"
+    ]
+  },
+  "/data/encryption": {
+    "route": "/data/encryption",
+    "component_path": "frontend/src/pages/DataEncryption.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataEncryption.js",
+      "frontend/src/pages/DataEncryption.jsx",
+      "frontend/src/pages/DataEncryption.ts"
+    ]
+  },
+  "/data/encryption/rotation": {
+    "route": "/data/encryption/rotation",
+    "component_path": "frontend/src/pages/Data/Encryption/Rotation.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataEncryptionRotation.js",
+      "frontend/src/pages/DataEncryptionRotation.ts",
+      "frontend/src/pages/DataEncryptionRotation.jsx"
+    ]
+  },
+  "/data/indices": {
+    "route": "/data/indices",
+    "component_path": "frontend/src/pages/DataIndices.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataIndices.js",
+      "frontend/src/pages/DataIndices.jsx",
+      "frontend/src/pages/DataIndices.tsx"
+    ]
+  },
+  "/data/indices/embeddings": {
+    "route": "/data/indices/embeddings",
+    "component_path": "frontend/src/pages/Data/Indices/Embeddings.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Data/Indices/Embeddings.ts",
+      "frontend/src/pages/Data/Indices/Embeddings.tsx",
+      "frontend/src/pages/Data/Indices/Embeddings.js"
+    ]
+  },
+  "/data/indices/fulltext": {
+    "route": "/data/indices/fulltext",
+    "component_path": "frontend/src/pages/DataIndicesFulltext.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataIndicesFulltext.ts",
+      "frontend/src/pages/DataIndicesFulltext.js",
+      "frontend/src/pages/Data/Indices/Fulltext.js"
+    ]
+  },
+  "/data/indices/graph": {
+    "route": "/data/indices/graph",
+    "component_path": "frontend/src/pages/DataIndicesGraph.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 6,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Data/Indices/Graph.jsx",
+      "frontend/src/pages/DataIndicesGraph.js",
+      "frontend/src/pages/Data/Indices/Graph.js"
+    ]
+  },
+  "/data/indices/manage": {
+    "route": "/data/indices/manage",
+    "component_path": "frontend/src/pages/DataIndicesManage.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataIndicesManage.jsx",
+      "frontend/src/pages/DataIndicesManage.tsx",
+      "frontend/src/pages/Data/Indices/Manage.tsx"
+    ]
+  },
+  "/data/indices/semantic": {
+    "route": "/data/indices/semantic",
+    "component_path": "frontend/src/pages/DataIndicesSemantic.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataIndicesSemantic.js",
+      "frontend/src/pages/Data/Indices/Semantic.js",
+      "frontend/src/pages/Data/Indices/Semantic.jsx"
+    ]
+  },
+  "/data/indices/tuning": {
+    "route": "/data/indices/tuning",
+    "component_path": "frontend/src/pages/Data/Indices/Tuning.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Data/Indices/Tuning.tsx",
+      "frontend/src/pages/DataIndicesTuning.js",
+      "frontend/src/pages/Data/Indices/Tuning.js"
+    ]
+  },
+  "/data/ingestion": {
+    "route": "/data/ingestion",
+    "component_path": "frontend/src/pages/DataIngestion.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataIngestion.ts",
+      "frontend/src/pages/DataIngestion.tsx",
+      "frontend/src/pages/DataIngestion.jsx"
+    ]
+  },
+  "/data/integrity": {
+    "route": "/data/integrity",
+    "component_path": "frontend/src/pages/DataIntegrity.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataIntegrity.tsx",
+      "frontend/src/pages/DataIntegrity.js",
+      "frontend/src/pages/DataIntegrity.ts"
+    ]
+  },
+  "/data/ledger": {
+    "route": "/data/ledger",
+    "component_path": "frontend/src/pages/DataLedger.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataLedger.jsx",
+      "frontend/src/pages/DataLedger.tsx",
+      "frontend/src/pages/DataLedger.ts"
+    ]
+  },
+  "/data/legal-hold": {
+    "route": "/data/legal-hold",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/DataLegalhold.tsx",
+      "frontend/src/pages/DataLegalhold.ts",
+      "frontend/src/pages/DataLegalhold.jsx"
+    ]
+  },
+  "/data/lineage": {
+    "route": "/data/lineage",
+    "component_path": "frontend/src/pages/DataLineage.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataLineage.jsx",
+      "frontend/src/pages/DataLineage.js",
+      "frontend/src/pages/DataLineage.tsx"
+    ]
+  },
+  "/data/logs": {
+    "route": "/data/logs",
+    "component_path": "frontend/src/pages/DataLogs.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataLogs.jsx",
+      "frontend/src/pages/DataLogs.js",
+      "frontend/src/pages/DataLogs.tsx"
+    ]
+  },
+  "/data/metrics": {
+    "route": "/data/metrics",
+    "component_path": "frontend/src/pages/DataMetrics.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataMetrics.jsx",
+      "frontend/src/pages/DataMetrics.js",
+      "frontend/src/pages/DataMetrics.ts"
+    ]
+  },
+  "/data/observability": {
+    "route": "/data/observability",
+    "component_path": "frontend/src/pages/DataObservability.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataObservability.tsx",
+      "frontend/src/pages/DataObservability.js",
+      "frontend/src/pages/DataObservability.jsx"
+    ]
+  },
+  "/data/observability/export": {
+    "route": "/data/observability/export",
+    "component_path": "frontend/src/pages/DataObservabilityExport.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataObservabilityExport.js",
+      "frontend/src/pages/DataObservabilityExport.tsx",
+      "frontend/src/pages/Data/Observability/Export.jsx"
+    ]
+  },
+  "/data/observability/tiering": {
+    "route": "/data/observability/tiering",
+    "component_path": "frontend/src/pages/Data/Observability/Tiering.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Data/Observability/Tiering.tsx",
+      "frontend/src/pages/Data/Observability/Tiering.js",
+      "frontend/src/pages/DataObservabilityTiering.ts"
+    ]
+  },
+  "/data/quality": {
+    "route": "/data/quality",
+    "component_path": "frontend/src/pages/DataQuality.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataQuality.js",
+      "frontend/src/pages/DataQuality.ts",
+      "frontend/src/pages/DataQuality.tsx"
+    ]
+  },
+  "/data/query": {
+    "route": "/data/query",
+    "component_path": "frontend/src/pages/DataQuery.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataQuery.js",
+      "frontend/src/pages/DataQuery.tsx",
+      "frontend/src/pages/DataQuery.ts"
+    ]
+  },
+  "/data/replication": {
+    "route": "/data/replication",
+    "component_path": "frontend/src/pages/DataReplication.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataReplication.jsx",
+      "frontend/src/pages/DataReplication.tsx",
+      "frontend/src/pages/DataReplication.ts"
+    ]
+  },
+  "/data/restore-testing": {
+    "route": "/data/restore-testing",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/DataRestoretesting.js",
+      "frontend/src/pages/DataRestoretesting.ts",
+      "frontend/src/pages/DataRestoretesting.jsx"
+    ]
+  },
+  "/data/retention/policies": {
+    "route": "/data/retention/policies",
+    "component_path": "frontend/src/pages/Data/Retention/Policies.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Data/Retention/Policies.ts",
+      "frontend/src/pages/DataRetentionPolicies.js",
+      "frontend/src/pages/DataRetentionPolicies.jsx"
+    ]
+  },
+  "/data/schema": {
+    "route": "/data/schema",
+    "component_path": "frontend/src/pages/DataSchema.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataSchema.tsx",
+      "frontend/src/pages/DataSchema.jsx",
+      "frontend/src/pages/DataSchema.ts"
+    ]
+  },
+  "/data/traces": {
+    "route": "/data/traces",
+    "component_path": "frontend/src/pages/DataTraces.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DataTraces.ts",
+      "frontend/src/pages/DataTraces.jsx",
+      "frontend/src/pages/DataTraces.js"
+    ]
+  },
+  "/docs": {
+    "route": "/docs",
+    "component_path": "frontend/src/pages/Docs.js",
+    "source": "current",
+    "source_sha": null,
+    "score": -1,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Docs.js",
+      "frontend/src/pages/Docs.ts",
+      "frontend/src/pages/Docs.tsx"
+    ]
+  },
+  "/docs/api": {
+    "route": "/docs/api",
+    "component_path": "frontend/src/pages/DocsApi.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DocsApi.tsx",
+      "frontend/src/pages/DocsApi.js",
+      "frontend/src/pages/DocsApi.jsx"
+    ]
+  },
+  "/docs/api/auth": {
+    "route": "/docs/api/auth",
+    "component_path": "frontend/src/pages/Docs/Api/Auth.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": -1,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Docs/Api/Auth.ts",
+      "frontend/src/pages/Docs/Api/Auth.jsx",
+      "frontend/src/pages/DocsApiAuth.js"
+    ]
+  },
+  "/docs/api/sdks": {
+    "route": "/docs/api/sdks",
+    "component_path": "frontend/src/pages/DocsApiSdks.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DocsApiSdks.tsx",
+      "frontend/src/pages/DocsApiSdks.ts",
+      "frontend/src/pages/DocsApiSdks.js"
+    ]
+  },
+  "/docs/api/webhooks": {
+    "route": "/docs/api/webhooks",
+    "component_path": "frontend/src/pages/DocsApiWebhooks.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DocsApiWebhooks.js",
+      "frontend/src/pages/Docs/Api/Webhooks.ts",
+      "frontend/src/pages/DocsApiWebhooks.tsx"
+    ]
+  },
+  "/docs/deployment": {
+    "route": "/docs/deployment",
+    "component_path": "frontend/src/pages/DocsDeployment.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DocsDeployment.ts",
+      "frontend/src/pages/DocsDeployment.jsx",
+      "frontend/src/pages/DocsDeployment.tsx"
+    ]
+  },
+  "/docs/getting-started": {
+    "route": "/docs/getting-started",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/DocsGettingstarted.jsx",
+      "frontend/src/pages/DocsGettingstarted.js",
+      "frontend/src/pages/DocsGettingstarted.ts"
+    ]
+  },
+  "/docs/glossary": {
+    "route": "/docs/glossary",
+    "component_path": "frontend/src/pages/DocsGlossary.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DocsGlossary.jsx",
+      "frontend/src/pages/DocsGlossary.ts",
+      "frontend/src/pages/DocsGlossary.tsx"
+    ]
+  },
+  "/docs/integrations": {
+    "route": "/docs/integrations",
+    "component_path": "frontend/src/pages/DocsIntegrations.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DocsIntegrations.tsx",
+      "frontend/src/pages/DocsIntegrations.js",
+      "frontend/src/pages/DocsIntegrations.ts"
+    ]
+  },
+  "/docs/migration": {
+    "route": "/docs/migration",
+    "component_path": "frontend/src/pages/DocsMigration.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DocsMigration.js",
+      "frontend/src/pages/DocsMigration.ts",
+      "frontend/src/pages/DocsMigration.tsx"
+    ]
+  },
+  "/docs/migration_continued.md": {
+    "route": "/docs/migration_continued.md",
+    "component_path": "frontend/src/pages/DocsMigration_continued.md.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DocsMigration_continued.md.js",
+      "frontend/src/pages/DocsMigration_continued.md.ts",
+      "frontend/src/pages/DocsMigration_continued.md.jsx"
+    ]
+  },
+  "/docs/reference/capsules": {
+    "route": "/docs/reference/capsules",
+    "component_path": "frontend/src/pages/Docs/Reference/Capsules.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": -1,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Docs/Reference/Capsules.tsx",
+      "frontend/src/pages/Docs/Reference/Capsules.js",
+      "frontend/src/pages/Docs/Reference/Capsules.ts"
+    ]
+  },
+  "/docs/reference/data": {
+    "route": "/docs/reference/data",
+    "component_path": "frontend/src/pages/DocsReferenceData.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Docs/Reference/Data.ts",
+      "frontend/src/pages/DocsReferenceData.ts",
+      "frontend/src/pages/DocsReferenceData.tsx"
+    ]
+  },
+  "/docs/reference/drivers": {
+    "route": "/docs/reference/drivers",
+    "component_path": "frontend/src/pages/Docs/Reference/Drivers.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": -1,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Docs/Reference/Drivers.jsx",
+      "frontend/src/pages/Docs/Reference/Drivers.ts",
+      "frontend/src/pages/Docs/Reference/Drivers.js"
+    ]
+  },
+  "/docs/reference/evidence": {
+    "route": "/docs/reference/evidence",
+    "component_path": "frontend/src/pages/Docs/Reference/Evidence.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": -1,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Docs/Reference/Evidence.js",
+      "frontend/src/pages/DocsReferenceEvidence.js",
+      "frontend/src/pages/DocsReferenceEvidence.ts"
+    ]
+  },
+  "/docs/reference/policies": {
+    "route": "/docs/reference/policies",
+    "component_path": "frontend/src/pages/DocsReferencePolicies.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DocsReferencePolicies.tsx",
+      "frontend/src/pages/Docs/Reference/Policies.js",
+      "frontend/src/pages/DocsReferencePolicies.jsx"
+    ]
+  },
+  "/docs/reference/ui": {
+    "route": "/docs/reference/ui",
+    "component_path": "frontend/src/pages/Docs/Reference/Ui.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": -1,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DocsReferenceUi.ts",
+      "frontend/src/pages/DocsReferenceUi.jsx",
+      "frontend/src/pages/Docs/Reference/Ui.jsx"
+    ]
+  },
+  "/docs/release-notes": {
+    "route": "/docs/release-notes",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/DocsReleasenotes.js",
+      "frontend/src/pages/DocsReleasenotes.ts",
+      "frontend/src/pages/DocsReleasenotes.tsx"
+    ]
+  },
+  "/docs/spec-sheet": {
+    "route": "/docs/spec-sheet",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/DocsSpecsheet.jsx",
+      "frontend/src/pages/DocsSpecsheet.tsx",
+      "frontend/src/pages/DocsSpecsheet.js"
+    ]
+  },
+  "/docs/tutorials": {
+    "route": "/docs/tutorials",
+    "component_path": "frontend/src/pages/DocsTutorials.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DocsTutorials.tsx",
+      "frontend/src/pages/DocsTutorials.jsx",
+      "frontend/src/pages/DocsTutorials.ts"
+    ]
+  },
+  "/drivers/analytics": {
+    "route": "/drivers/analytics",
+    "component_path": "frontend/src/pages/DriversAnalytics.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversAnalytics.tsx",
+      "frontend/src/pages/DriversAnalytics.ts",
+      "frontend/src/pages/DriversAnalytics.js"
+    ]
+  },
+  "/drivers/enterprise-store": {
+    "route": "/drivers/enterprise-store",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/DriversEnterprisestore.ts",
+      "frontend/src/pages/DriversEnterprisestore.js",
+      "frontend/src/pages/DriversEnterprisestore.tsx"
+    ]
+  },
+  "/drivers/integrations/cloud": {
+    "route": "/drivers/integrations/cloud",
+    "component_path": "frontend/src/pages/DriversIntegrationsCloud.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversIntegrationsCloud.tsx",
+      "frontend/src/pages/Drivers/Integrations/Cloud.tsx",
+      "frontend/src/pages/DriversIntegrationsCloud.ts"
+    ]
+  },
+  "/drivers/integrations/code": {
+    "route": "/drivers/integrations/code",
+    "component_path": "frontend/src/pages/DriversIntegrationsCode.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Drivers/Integrations/Code.js",
+      "frontend/src/pages/DriversIntegrationsCode.jsx",
+      "frontend/src/pages/DriversIntegrationsCode.ts"
+    ]
+  },
+  "/drivers/integrations/finance": {
+    "route": "/drivers/integrations/finance",
+    "component_path": "frontend/src/pages/Drivers/Integrations/Finance.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 2,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversIntegrationsFinance.js",
+      "frontend/src/pages/Drivers/Integrations/Finance.ts",
+      "frontend/src/pages/Drivers/Integrations/Finance.jsx"
+    ]
+  },
+  "/drivers/integrations/legacy": {
+    "route": "/drivers/integrations/legacy",
+    "component_path": "frontend/src/pages/DriversIntegrationsLegacy.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversIntegrationsLegacy.js",
+      "frontend/src/pages/DriversIntegrationsLegacy.tsx",
+      "frontend/src/pages/DriversIntegrationsLegacy.ts"
+    ]
+  },
+  "/drivers/integrations/productivity": {
+    "route": "/drivers/integrations/productivity",
+    "component_path": "frontend/src/pages/Drivers/Integrations/Productivity.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 2,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Drivers/Integrations/Productivity.ts",
+      "frontend/src/pages/Drivers/Integrations/Productivity.tsx",
+      "frontend/src/pages/DriversIntegrationsProductivity.tsx"
+    ]
+  },
+  "/drivers/integrations/research": {
+    "route": "/drivers/integrations/research",
+    "component_path": "frontend/src/pages/Drivers/Integrations/Research.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversIntegrationsResearch.jsx",
+      "frontend/src/pages/Drivers/Integrations/Research.ts",
+      "frontend/src/pages/Drivers/Integrations/Research.js"
+    ]
+  },
+  "/drivers/licensing": {
+    "route": "/drivers/licensing",
+    "component_path": "frontend/src/pages/DriversLicensing.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversLicensing.tsx",
+      "frontend/src/pages/DriversLicensing.jsx",
+      "frontend/src/pages/DriversLicensing.ts"
+    ]
+  },
+  "/drivers/marketplace": {
+    "route": "/drivers/marketplace",
+    "component_path": "frontend/src/pages/DriversMarketplace.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversMarketplace.js",
+      "frontend/src/pages/DriversMarketplace.ts",
+      "frontend/src/pages/DriversMarketplace.tsx"
+    ]
+  },
+  "/drivers/marketplace/reviews": {
+    "route": "/drivers/marketplace/reviews",
+    "component_path": "frontend/src/pages/DriversMarketplaceReviews.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Drivers/Marketplace/Reviews.ts",
+      "frontend/src/pages/DriversMarketplaceReviews.jsx",
+      "frontend/src/pages/DriversMarketplaceReviews.tsx"
+    ]
+  },
+  "/drivers/marketplace/security-review": {
+    "route": "/drivers/marketplace/security-review",
+    "component_path": "frontend/src/pages/Drivers/Marketplace/Securityreview.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 2,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Drivers/Marketplace/Securityreview.jsx",
+      "frontend/src/pages/DriversMarketplaceSecurityreview.ts",
+      "frontend/src/pages/DriversMarketplaceSecurityreview.jsx"
+    ]
+  },
+  "/drivers/packs": {
+    "route": "/drivers/packs",
+    "component_path": "frontend/src/pages/DriversPacks.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversPacks.jsx",
+      "frontend/src/pages/DriversPacks.js",
+      "frontend/src/pages/DriversPacks.ts"
+    ]
+  },
+  "/drivers/packs/builder": {
+    "route": "/drivers/packs/builder",
+    "component_path": "frontend/src/pages/DriversPacksBuilder.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversPacksBuilder.jsx",
+      "frontend/src/pages/Drivers/Packs/Builder.js",
+      "frontend/src/pages/Drivers/Packs/Builder.jsx"
+    ]
+  },
+  "/drivers/permissions": {
+    "route": "/drivers/permissions",
+    "component_path": "frontend/src/pages/DriversPermissions.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversPermissions.tsx",
+      "frontend/src/pages/DriversPermissions.jsx",
+      "frontend/src/pages/DriversPermissions.js"
+    ]
+  },
+  "/drivers/publishing": {
+    "route": "/drivers/publishing",
+    "component_path": "frontend/src/pages/DriversPublishing.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversPublishing.jsx",
+      "frontend/src/pages/DriversPublishing.js",
+      "frontend/src/pages/DriversPublishing.ts"
+    ]
+  },
+  "/drivers/registry": {
+    "route": "/drivers/registry",
+    "component_path": "frontend/src/pages/DriversRegistry.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversRegistry.js",
+      "frontend/src/pages/DriversRegistry.tsx",
+      "frontend/src/pages/DriversRegistry.jsx"
+    ]
+  },
+  "/drivers/risk": {
+    "route": "/drivers/risk",
+    "component_path": "frontend/src/pages/DriversRisk.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversRisk.jsx",
+      "frontend/src/pages/DriversRisk.ts",
+      "frontend/src/pages/DriversRisk.js"
+    ]
+  },
+  "/drivers/risk/assessments": {
+    "route": "/drivers/risk/assessments",
+    "component_path": "frontend/src/pages/Drivers/Risk/Assessments.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversRiskAssessments.js",
+      "frontend/src/pages/DriversRiskAssessments.ts",
+      "frontend/src/pages/Drivers/Risk/Assessments.tsx"
+    ]
+  },
+  "/drivers/risk/exceptions": {
+    "route": "/drivers/risk/exceptions",
+    "component_path": "frontend/src/pages/DriversRiskExceptions.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversRiskExceptions.tsx",
+      "frontend/src/pages/Drivers/Risk/Exceptions.ts",
+      "frontend/src/pages/DriversRiskExceptions.ts"
+    ]
+  },
+  "/drivers/risk/remediation": {
+    "route": "/drivers/risk/remediation",
+    "component_path": "frontend/src/pages/DriversRiskRemediation.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Drivers/Risk/Remediation.jsx",
+      "frontend/src/pages/DriversRiskRemediation.tsx",
+      "frontend/src/pages/Drivers/Risk/Remediation.tsx"
+    ]
+  },
+  "/drivers/risk/vendors": {
+    "route": "/drivers/risk/vendors",
+    "component_path": "frontend/src/pages/Drivers/Risk/Vendors.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Drivers/Risk/Vendors.tsx",
+      "frontend/src/pages/Drivers/Risk/Vendors.js",
+      "frontend/src/pages/DriversRiskVendors.js"
+    ]
+  },
+  "/drivers/sdk": {
+    "route": "/drivers/sdk",
+    "component_path": "frontend/src/pages/DriversSdk.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversSdk.tsx",
+      "frontend/src/pages/DriversSdk.js",
+      "frontend/src/pages/DriversSdk.jsx"
+    ]
+  },
+  "/drivers/testing": {
+    "route": "/drivers/testing",
+    "component_path": "frontend/src/pages/DriversTesting.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversTesting.js",
+      "frontend/src/pages/DriversTesting.jsx",
+      "frontend/src/pages/DriversTesting.ts"
+    ]
+  },
+  "/drivers/versioning": {
+    "route": "/drivers/versioning",
+    "component_path": "frontend/src/pages/DriversVersioning.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/DriversVersioning.js",
+      "frontend/src/pages/DriversVersioning.ts",
+      "frontend/src/pages/DriversVersioning.tsx"
+    ]
+  },
+  "/drivers/vertical-editions": {
+    "route": "/drivers/vertical-editions",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/DriversVerticaleditions.jsx",
+      "frontend/src/pages/DriversVerticaleditions.tsx",
+      "frontend/src/pages/DriversVerticaleditions.ts"
+    ]
+  },
+  "/future/advanced": {
+    "route": "/future/advanced",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/FutureAdvanced.js",
+      "frontend/src/pages/FutureAdvanced.ts",
+      "frontend/src/pages/FutureAdvanced.jsx"
+    ]
+  },
+  "/future/advanced/matrix": {
+    "route": "/future/advanced/matrix",
+    "component_path": "frontend/src/pages/Future/Advanced/Matrix.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/FutureAdvancedMatrix.ts",
+      "frontend/src/pages/Future/Advanced/Matrix.ts",
+      "frontend/src/pages/Future/Advanced/Matrix.jsx"
+    ]
+  },
+  "/future/ascend": {
+    "route": "/future/ascend",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/FutureAscend.ts",
+      "frontend/src/pages/FutureAscend.jsx",
+      "frontend/src/pages/FutureAscend.tsx"
+    ]
+  },
+  "/future/ascend/matrix": {
+    "route": "/future/ascend/matrix",
+    "component_path": "frontend/src/pages/Future/Ascend/Matrix.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/FutureAscendMatrix.js",
+      "frontend/src/pages/FutureAscendMatrix.tsx",
+      "frontend/src/pages/Future/Ascend/Matrix.tsx"
+    ]
+  },
+  "/future/core_os": {
+    "route": "/future/core_os",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/FutureCore_os.ts",
+      "frontend/src/pages/FutureCore_os.jsx",
+      "frontend/src/pages/FutureCore_os.js"
+    ]
+  },
+  "/future/core_os/matrix": {
+    "route": "/future/core_os/matrix",
+    "component_path": "frontend/src/pages/Future/Core_os/Matrix.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Future/Core_os/Matrix.ts",
+      "frontend/src/pages/Future/Core_os/Matrix.jsx",
+      "frontend/src/pages/Future/Core_os/Matrix.js"
+    ]
+  },
+  "/future/hyper": {
+    "route": "/future/hyper",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/FutureHyper.jsx",
+      "frontend/src/pages/FutureHyper.js",
+      "frontend/src/pages/FutureHyper.ts"
+    ]
+  },
+  "/future/hyper/matrix": {
+    "route": "/future/hyper/matrix",
+    "component_path": "frontend/src/pages/Future/Hyper/Matrix.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Future/Hyper/Matrix.ts",
+      "frontend/src/pages/Future/Hyper/Matrix.tsx",
+      "frontend/src/pages/FutureHyperMatrix.tsx"
+    ]
+  },
+  "/future/meta": {
+    "route": "/future/meta",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/FutureMeta.tsx",
+      "frontend/src/pages/FutureMeta.js",
+      "frontend/src/pages/FutureMeta.jsx"
+    ]
+  },
+  "/future/meta/matrix": {
+    "route": "/future/meta/matrix",
+    "component_path": "frontend/src/pages/Future/Meta/Matrix.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/FutureMetaMatrix.js",
+      "frontend/src/pages/Future/Meta/Matrix.js",
+      "frontend/src/pages/FutureMetaMatrix.jsx"
+    ]
+  },
+  "/future/super": {
+    "route": "/future/super",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/FutureSuper.ts",
+      "frontend/src/pages/FutureSuper.tsx",
+      "frontend/src/pages/FutureSuper.js"
+    ]
+  },
+  "/future/super/matrix": {
+    "route": "/future/super/matrix",
+    "component_path": "frontend/src/pages/Future/Super/Matrix.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/FutureSuperMatrix.jsx",
+      "frontend/src/pages/Future/Super/Matrix.jsx",
+      "frontend/src/pages/Future/Super/Matrix.js"
+    ]
+  },
+  "/future/supreme": {
+    "route": "/future/supreme",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/FutureSupreme.tsx",
+      "frontend/src/pages/FutureSupreme.ts",
+      "frontend/src/pages/FutureSupreme.js"
+    ]
+  },
+  "/future/supreme/matrix": {
+    "route": "/future/supreme/matrix",
+    "component_path": "frontend/src/pages/Future/Supreme/Matrix.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Future/Supreme/Matrix.js",
+      "frontend/src/pages/Future/Supreme/Matrix.jsx",
+      "frontend/src/pages/FutureSupremeMatrix.jsx"
+    ]
+  },
+  "/future/ultra": {
+    "route": "/future/ultra",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/FutureUltra.js",
+      "frontend/src/pages/FutureUltra.jsx",
+      "frontend/src/pages/FutureUltra.ts"
+    ]
+  },
+  "/future/ultra/matrix": {
+    "route": "/future/ultra/matrix",
+    "component_path": "frontend/src/pages/Future/Ultra/Matrix.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Future/Ultra/Matrix.ts",
+      "frontend/src/pages/Future/Ultra/Matrix.js",
+      "frontend/src/pages/FutureUltraMatrix.tsx"
+    ]
+  },
+  "/governance/billing/budgets": {
+    "route": "/governance/billing/budgets",
+    "component_path": "frontend/src/pages/Governance/Billing/Budgets.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceBillingBudgets.jsx",
+      "frontend/src/pages/Governance/Billing/Budgets.tsx",
+      "frontend/src/pages/Governance/Billing/Budgets.ts"
+    ]
+  },
+  "/governance/billing/chargeback": {
+    "route": "/governance/billing/chargeback",
+    "component_path": "frontend/src/pages/Governance/Billing/Chargeback.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Billing/Chargeback.js",
+      "frontend/src/pages/Governance/Billing/Chargeback.ts",
+      "frontend/src/pages/Governance/Billing/Chargeback.jsx"
+    ]
+  },
+  "/governance/billing/forecasting": {
+    "route": "/governance/billing/forecasting",
+    "component_path": "frontend/src/pages/Governance/Billing/Forecasting.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Billing/Forecasting.jsx",
+      "frontend/src/pages/Governance/Billing/Forecasting.ts",
+      "frontend/src/pages/Governance/Billing/Forecasting.js"
+    ]
+  },
+  "/governance/billing/guardrails": {
+    "route": "/governance/billing/guardrails",
+    "component_path": "frontend/src/pages/Governance/Billing/Guardrails.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Billing/Guardrails.jsx",
+      "frontend/src/pages/Governance/Billing/Guardrails.ts",
+      "frontend/src/pages/GovernanceBillingGuardrails.js"
+    ]
+  },
+  "/governance/billing/multi-tenant": {
+    "route": "/governance/billing/multi-tenant",
+    "component_path": "frontend/src/pages/Governance/Billing/Multitenant.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceBillingMultitenant.tsx",
+      "frontend/src/pages/GovernanceBillingMultitenant.ts",
+      "frontend/src/pages/Governance/Billing/Multitenant.ts"
+    ]
+  },
+  "/governance/billing/optimizer": {
+    "route": "/governance/billing/optimizer",
+    "component_path": "frontend/src/pages/Governance/Billing/Optimizer.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceBillingOptimizer.ts",
+      "frontend/src/pages/GovernanceBillingOptimizer.js",
+      "frontend/src/pages/GovernanceBillingOptimizer.jsx"
+    ]
+  },
+  "/governance/billing/rates": {
+    "route": "/governance/billing/rates",
+    "component_path": "frontend/src/pages/Governance/Billing/Rates.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceBillingRates.tsx",
+      "frontend/src/pages/GovernanceBillingRates.jsx",
+      "frontend/src/pages/Governance/Billing/Rates.jsx"
+    ]
+  },
+  "/governance/billing/usage": {
+    "route": "/governance/billing/usage",
+    "component_path": "frontend/src/pages/Governance/Billing/Usage.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceBillingUsage.js",
+      "frontend/src/pages/GovernanceBillingUsage.ts",
+      "frontend/src/pages/Governance/Billing/Usage.jsx"
+    ]
+  },
+  "/governance/compliance": {
+    "route": "/governance/compliance",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceCompliance.tsx",
+      "frontend/src/pages/GovernanceCompliance.jsx",
+      "frontend/src/pages/GovernanceCompliance.js"
+    ]
+  },
+  "/governance/compliance/controls": {
+    "route": "/governance/compliance/controls",
+    "component_path": "frontend/src/pages/Governance/Compliance/Controls.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceComplianceControls.jsx",
+      "frontend/src/pages/Governance/Compliance/Controls.tsx",
+      "frontend/src/pages/GovernanceComplianceControls.tsx"
+    ]
+  },
+  "/governance/compliance/readiness": {
+    "route": "/governance/compliance/readiness",
+    "component_path": "frontend/src/pages/Governance/Compliance/Readiness.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceComplianceReadiness.tsx",
+      "frontend/src/pages/GovernanceComplianceReadiness.jsx",
+      "frontend/src/pages/Governance/Compliance/Readiness.js"
+    ]
+  },
+  "/governance/data-protection": {
+    "route": "/governance/data-protection",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceDataprotection.js",
+      "frontend/src/pages/GovernanceDataprotection.tsx",
+      "frontend/src/pages/GovernanceDataprotection.jsx"
+    ]
+  },
+  "/governance/data-protection/classification": {
+    "route": "/governance/data-protection/classification",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Data-protection/Classification.jsx",
+      "frontend/src/pages/GovernanceDataprotectionClassification.jsx",
+      "frontend/src/pages/GovernanceDataprotectionClassification.ts"
+    ]
+  },
+  "/governance/data-protection/dlp": {
+    "route": "/governance/data-protection/dlp",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Data-protection/Dlp.jsx",
+      "frontend/src/pages/GovernanceDataprotectionDlp.tsx",
+      "frontend/src/pages/GovernanceDataprotectionDlp.jsx"
+    ]
+  },
+  "/governance/data-protection/masking": {
+    "route": "/governance/data-protection/masking",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceDataprotectionMasking.tsx",
+      "frontend/src/pages/GovernanceDataprotectionMasking.jsx",
+      "frontend/src/pages/Governance/Data-protection/Masking.jsx"
+    ]
+  },
+  "/governance/data-protection/residency": {
+    "route": "/governance/data-protection/residency",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceDataprotectionResidency.js",
+      "frontend/src/pages/Governance/Data-protection/Residency.tsx",
+      "frontend/src/pages/Governance/Data-protection/Residency.ts"
+    ]
+  },
+  "/governance/data-protection/tokenization": {
+    "route": "/governance/data-protection/tokenization",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceDataprotectionTokenization.tsx",
+      "frontend/src/pages/GovernanceDataprotectionTokenization.ts",
+      "frontend/src/pages/GovernanceDataprotectionTokenization.jsx"
+    ]
+  },
+  "/governance/identity": {
+    "route": "/governance/identity",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceIdentity.tsx",
+      "frontend/src/pages/GovernanceIdentity.jsx",
+      "frontend/src/pages/GovernanceIdentity.ts"
+    ]
+  },
+  "/governance/identity/api-keys": {
+    "route": "/governance/identity/api-keys",
+    "component_path": "frontend/src/pages/Governance/Identity/Apikeys.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Identity/Apikeys.js",
+      "frontend/src/pages/GovernanceIdentityApikeys.tsx",
+      "frontend/src/pages/Governance/Identity/Apikeys.jsx"
+    ]
+  },
+  "/governance/identity/auth": {
+    "route": "/governance/identity/auth",
+    "component_path": "frontend/src/pages/Governance/Identity/Auth.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceIdentityAuth.js",
+      "frontend/src/pages/Governance/Identity/Auth.js",
+      "frontend/src/pages/GovernanceIdentityAuth.tsx"
+    ]
+  },
+  "/governance/identity/rbac": {
+    "route": "/governance/identity/rbac",
+    "component_path": "frontend/src/pages/Governance/Identity/Rbac.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Identity/Rbac.jsx",
+      "frontend/src/pages/Governance/Identity/Rbac.js",
+      "frontend/src/pages/GovernanceIdentityRbac.ts"
+    ]
+  },
+  "/governance/identity/reviews": {
+    "route": "/governance/identity/reviews",
+    "component_path": "frontend/src/pages/Governance/Identity/Reviews.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceIdentityReviews.ts",
+      "frontend/src/pages/Governance/Identity/Reviews.jsx",
+      "frontend/src/pages/Governance/Identity/Reviews.js"
+    ]
+  },
+  "/governance/identity/scim": {
+    "route": "/governance/identity/scim",
+    "component_path": "frontend/src/pages/Governance/Identity/Scim.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceIdentityScim.js",
+      "frontend/src/pages/GovernanceIdentityScim.ts",
+      "frontend/src/pages/GovernanceIdentityScim.jsx"
+    ]
+  },
+  "/governance/identity/sessions": {
+    "route": "/governance/identity/sessions",
+    "component_path": "frontend/src/pages/Governance/Identity/Sessions.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Identity/Sessions.js",
+      "frontend/src/pages/GovernanceIdentitySessions.tsx",
+      "frontend/src/pages/GovernanceIdentitySessions.ts"
+    ]
+  },
+  "/governance/identity/sso": {
+    "route": "/governance/identity/sso",
+    "component_path": "frontend/src/pages/Governance/Identity/Sso.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceIdentitySso.js",
+      "frontend/src/pages/Governance/Identity/Sso.ts",
+      "frontend/src/pages/Governance/Identity/Sso.tsx"
+    ]
+  },
+  "/governance/policy": {
+    "route": "/governance/policy",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/GovernancePolicy.ts",
+      "frontend/src/pages/GovernancePolicy.js",
+      "frontend/src/pages/GovernancePolicy.tsx"
+    ]
+  },
+  "/governance/policy/dsl": {
+    "route": "/governance/policy/dsl",
+    "component_path": "frontend/src/pages/Governance/Policy/Dsl.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernancePolicyDsl.js",
+      "frontend/src/pages/GovernancePolicyDsl.ts",
+      "frontend/src/pages/GovernancePolicyDsl.tsx"
+    ]
+  },
+  "/governance/policy/enforcement": {
+    "route": "/governance/policy/enforcement",
+    "component_path": "frontend/src/pages/Governance/Policy/Enforcement.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernancePolicyEnforcement.js",
+      "frontend/src/pages/GovernancePolicyEnforcement.jsx",
+      "frontend/src/pages/GovernancePolicyEnforcement.ts"
+    ]
+  },
+  "/governance/policy/exceptions": {
+    "route": "/governance/policy/exceptions",
+    "component_path": "frontend/src/pages/Governance/Policy/Exceptions.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernancePolicyExceptions.ts",
+      "frontend/src/pages/GovernancePolicyExceptions.tsx",
+      "frontend/src/pages/GovernancePolicyExceptions.jsx"
+    ]
+  },
+  "/governance/policy/library": {
+    "route": "/governance/policy/library",
+    "component_path": "frontend/src/pages/Governance/Policy/Library.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Policy/Library.tsx",
+      "frontend/src/pages/Governance/Policy/Library.js",
+      "frontend/src/pages/GovernancePolicyLibrary.tsx"
+    ]
+  },
+  "/governance/policy/safety": {
+    "route": "/governance/policy/safety",
+    "component_path": "frontend/src/pages/Governance/Policy/Safety.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernancePolicySafety.ts",
+      "frontend/src/pages/Governance/Policy/Safety.ts",
+      "frontend/src/pages/Governance/Policy/Safety.tsx"
+    ]
+  },
+  "/governance/policy/simulator": {
+    "route": "/governance/policy/simulator",
+    "component_path": "frontend/src/pages/Governance/Policy/Simulator.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 8,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernancePolicySimulator.jsx",
+      "frontend/src/pages/GovernancePolicySimulator.js",
+      "frontend/src/pages/Governance/Policy/Simulator.ts"
+    ]
+  },
+  "/governance/policy/versioning": {
+    "route": "/governance/policy/versioning",
+    "component_path": "frontend/src/pages/Governance/Policy/Versioning.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Policy/Versioning.js",
+      "frontend/src/pages/GovernancePolicyVersioning.js",
+      "frontend/src/pages/GovernancePolicyVersioning.ts"
+    ]
+  },
+  "/governance/regulator": {
+    "route": "/governance/regulator",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceRegulator.jsx",
+      "frontend/src/pages/GovernanceRegulator.tsx",
+      "frontend/src/pages/GovernanceRegulator.js"
+    ]
+  },
+  "/governance/regulator/evidence": {
+    "route": "/governance/regulator/evidence",
+    "component_path": "frontend/src/pages/Governance/Regulator/Evidence.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Regulator/Evidence.jsx",
+      "frontend/src/pages/GovernanceRegulatorEvidence.tsx",
+      "frontend/src/pages/GovernanceRegulatorEvidence.ts"
+    ]
+  },
+  "/governance/regulator/requests": {
+    "route": "/governance/regulator/requests",
+    "component_path": "frontend/src/pages/Governance/Regulator/Requests.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceRegulatorRequests.jsx",
+      "frontend/src/pages/Governance/Regulator/Requests.tsx",
+      "frontend/src/pages/GovernanceRegulatorRequests.ts"
+    ]
+  },
+  "/governance/regulator/tenancy": {
+    "route": "/governance/regulator/tenancy",
+    "component_path": "frontend/src/pages/Governance/Regulator/Tenancy.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Regulator/Tenancy.tsx",
+      "frontend/src/pages/GovernanceRegulatorTenancy.tsx",
+      "frontend/src/pages/GovernanceRegulatorTenancy.ts"
+    ]
+  },
+  "/governance/security/alerts": {
+    "route": "/governance/security/alerts",
+    "component_path": "frontend/src/pages/Governance/Security/Alerts.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 2,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceSecurityAlerts.jsx",
+      "frontend/src/pages/GovernanceSecurityAlerts.ts",
+      "frontend/src/pages/Governance/Security/Alerts.tsx"
+    ]
+  },
+  "/governance/security/alignment": {
+    "route": "/governance/security/alignment",
+    "component_path": "frontend/src/pages/Governance/Security/Alignment.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 2,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Security/Alignment.ts",
+      "frontend/src/pages/GovernanceSecurityAlignment.jsx",
+      "frontend/src/pages/GovernanceSecurityAlignment.js"
+    ]
+  },
+  "/governance/security/detection": {
+    "route": "/governance/security/detection",
+    "component_path": "frontend/src/pages/Governance/Security/Detection.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 2,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Security/Detection.ts",
+      "frontend/src/pages/Governance/Security/Detection.jsx",
+      "frontend/src/pages/GovernanceSecurityDetection.tsx"
+    ]
+  },
+  "/governance/security/forensics": {
+    "route": "/governance/security/forensics",
+    "component_path": "frontend/src/pages/Governance/Security/Forensics.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 2,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Security/Forensics.jsx",
+      "frontend/src/pages/GovernanceSecurityForensics.tsx",
+      "frontend/src/pages/Governance/Security/Forensics.js"
+    ]
+  },
+  "/governance/security/incidents": {
+    "route": "/governance/security/incidents",
+    "component_path": "frontend/src/pages/Governance/Security/Incidents.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 2,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Governance/Security/Incidents.ts",
+      "frontend/src/pages/GovernanceSecurityIncidents.ts",
+      "frontend/src/pages/Governance/Security/Incidents.tsx"
+    ]
+  },
+  "/governance/security/monitoring": {
+    "route": "/governance/security/monitoring",
+    "component_path": "frontend/src/pages/Governance/Security/Monitoring.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceSecurityMonitoring.js",
+      "frontend/src/pages/Governance/Security/Monitoring.js",
+      "frontend/src/pages/Governance/Security/Monitoring.tsx"
+    ]
+  },
+  "/governance/security/risk": {
+    "route": "/governance/security/risk",
+    "component_path": "frontend/src/pages/Governance/Security/Risk.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 2,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceSecurityRisk.js",
+      "frontend/src/pages/Governance/Security/Risk.tsx",
+      "frontend/src/pages/GovernanceSecurityRisk.jsx"
+    ]
+  },
+  "/governance/security/vuln": {
+    "route": "/governance/security/vuln",
+    "component_path": "frontend/src/pages/Governance/Security/Vuln.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 2,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/GovernanceSecurityVuln.js",
+      "frontend/src/pages/GovernanceSecurityVuln.ts",
+      "frontend/src/pages/Governance/Security/Vuln.tsx"
+    ]
+  },
+  "/inbox": {
+    "route": "/inbox",
+    "component_path": "frontend/src/pages/Inbox.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Inbox.jsx",
+      "frontend/src/pages/Inbox.js",
+      "frontend/src/pages/Inbox.tsx"
+    ]
+  },
+  "/integrations": {
+    "route": "/integrations",
+    "component_path": "frontend/src/pages/Integrations.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 2,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Integrations.tsx",
+      "frontend/src/pages/Integrations.ts",
+      "frontend/src/pages/Integrations.js"
+    ]
+  },
+  "/integrations/api-connectors": {
+    "route": "/integrations/api-connectors",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/IntegrationsApiconnectors.tsx",
+      "frontend/src/pages/IntegrationsApiconnectors.jsx",
+      "frontend/src/pages/IntegrationsApiconnectors.ts"
+    ]
+  },
+  "/integrations/connectors": {
+    "route": "/integrations/connectors",
+    "component_path": "frontend/src/pages/IntegrationsConnectors.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/IntegrationsConnectors.tsx",
+      "frontend/src/pages/IntegrationsConnectors.jsx",
+      "frontend/src/pages/IntegrationsConnectors.js"
+    ]
+  },
+  "/integrations/credentials": {
+    "route": "/integrations/credentials",
+    "component_path": "frontend/src/pages/IntegrationsCredentials.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/IntegrationsCredentials.jsx",
+      "frontend/src/pages/IntegrationsCredentials.js",
+      "frontend/src/pages/IntegrationsCredentials.tsx"
+    ]
+  },
+  "/integrations/health": {
+    "route": "/integrations/health",
+    "component_path": "frontend/src/pages/IntegrationsHealth.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/IntegrationsHealth.tsx",
+      "frontend/src/pages/IntegrationsHealth.jsx",
+      "frontend/src/pages/IntegrationsHealth.ts"
+    ]
+  },
+  "/integrations/mappings": {
+    "route": "/integrations/mappings",
+    "component_path": "frontend/src/pages/IntegrationsMappings.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/IntegrationsMappings.jsx",
+      "frontend/src/pages/IntegrationsMappings.js",
+      "frontend/src/pages/IntegrationsMappings.tsx"
+    ]
+  },
+  "/integrations/office": {
+    "route": "/integrations/office",
+    "component_path": "frontend/src/pages/IntegrationsOffice.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/IntegrationsOffice.jsx",
+      "frontend/src/pages/IntegrationsOffice.ts",
+      "frontend/src/pages/IntegrationsOffice.js"
+    ]
+  },
+  "/integrations/rate-limits": {
+    "route": "/integrations/rate-limits",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/IntegrationsRatelimits.ts",
+      "frontend/src/pages/IntegrationsRatelimits.jsx",
+      "frontend/src/pages/IntegrationsRatelimits.js"
+    ]
+  },
+  "/integrations/webhooks": {
+    "route": "/integrations/webhooks",
+    "component_path": "frontend/src/pages/IntegrationsWebhooks.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/IntegrationsWebhooks.js",
+      "frontend/src/pages/IntegrationsWebhooks.jsx",
+      "frontend/src/pages/IntegrationsWebhooks.ts"
+    ]
+  },
+  "/mission/ai-stack": {
+    "route": "/mission/ai-stack",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionAistack.js",
+      "frontend/src/pages/MissionAistack.jsx",
+      "frontend/src/pages/MissionAistack.tsx"
+    ]
+  },
+  "/mission/architecture": {
+    "route": "/mission/architecture",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionArchitecture.ts",
+      "frontend/src/pages/MissionArchitecture.jsx",
+      "frontend/src/pages/MissionArchitecture.js"
+    ]
+  },
+  "/mission/components": {
+    "route": "/mission/components",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionComponents.ts",
+      "frontend/src/pages/MissionComponents.jsx",
+      "frontend/src/pages/MissionComponents.tsx"
+    ]
+  },
+  "/mission/contracts": {
+    "route": "/mission/contracts",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionContracts.js",
+      "frontend/src/pages/MissionContracts.jsx",
+      "frontend/src/pages/MissionContracts.tsx"
+    ]
+  },
+  "/mission/daemons": {
+    "route": "/mission/daemons",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionDaemons.jsx",
+      "frontend/src/pages/MissionDaemons.tsx",
+      "frontend/src/pages/MissionDaemons.js"
+    ]
+  },
+  "/mission/extensibility": {
+    "route": "/mission/extensibility",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionExtensibility.ts",
+      "frontend/src/pages/MissionExtensibility.tsx",
+      "frontend/src/pages/MissionExtensibility.js"
+    ]
+  },
+  "/mission/glossary": {
+    "route": "/mission/glossary",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionGlossary.jsx",
+      "frontend/src/pages/MissionGlossary.ts",
+      "frontend/src/pages/MissionGlossary.tsx"
+    ]
+  },
+  "/mission/identity": {
+    "route": "/mission/identity",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionIdentity.js",
+      "frontend/src/pages/MissionIdentity.ts",
+      "frontend/src/pages/MissionIdentity.tsx"
+    ]
+  },
+  "/mission/mapping": {
+    "route": "/mission/mapping",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionMapping.jsx",
+      "frontend/src/pages/MissionMapping.tsx",
+      "frontend/src/pages/MissionMapping.js"
+    ]
+  },
+  "/mission/models": {
+    "route": "/mission/models",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionModels.jsx",
+      "frontend/src/pages/MissionModels.js",
+      "frontend/src/pages/MissionModels.tsx"
+    ]
+  },
+  "/mission/modes": {
+    "route": "/mission/modes",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionModes.ts",
+      "frontend/src/pages/MissionModes.tsx",
+      "frontend/src/pages/MissionModes.js"
+    ]
+  },
+  "/mission/non-goals": {
+    "route": "/mission/non-goals",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionNongoals.tsx",
+      "frontend/src/pages/MissionNongoals.ts",
+      "frontend/src/pages/MissionNongoals.jsx"
+    ]
+  },
+  "/mission/orchestrator": {
+    "route": "/mission/orchestrator",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionOrchestrator.jsx",
+      "frontend/src/pages/MissionOrchestrator.js",
+      "frontend/src/pages/MissionOrchestrator.ts"
+    ]
+  },
+  "/mission/overview": {
+    "route": "/mission/overview",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionOverview.ts",
+      "frontend/src/pages/MissionOverview.jsx",
+      "frontend/src/pages/MissionOverview.js"
+    ]
+  },
+  "/mission/performance-targets": {
+    "route": "/mission/performance-targets",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionPerformancetargets.ts",
+      "frontend/src/pages/MissionPerformancetargets.jsx",
+      "frontend/src/pages/MissionPerformancetargets.js"
+    ]
+  },
+  "/mission/planes": {
+    "route": "/mission/planes",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionPlanes.ts",
+      "frontend/src/pages/MissionPlanes.tsx",
+      "frontend/src/pages/MissionPlanes.jsx"
+    ]
+  },
+  "/mission/planes/contracts": {
+    "route": "/mission/planes/contracts",
+    "component_path": "frontend/src/pages/Mission/Planes/Contracts.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/MissionPlanesContracts.jsx",
+      "frontend/src/pages/Mission/Planes/Contracts.tsx",
+      "frontend/src/pages/MissionPlanesContracts.js"
+    ]
+  },
+  "/mission/planes/control": {
+    "route": "/mission/planes/control",
+    "component_path": "frontend/src/pages/Mission/Planes/Control.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Mission/Planes/Control.js",
+      "frontend/src/pages/MissionPlanesControl.tsx",
+      "frontend/src/pages/Mission/Planes/Control.ts"
+    ]
+  },
+  "/mission/planes/cross-plane": {
+    "route": "/mission/planes/cross-plane",
+    "component_path": "frontend/src/pages/Mission/Planes/Crossplane.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Mission/Planes/Crossplane.tsx",
+      "frontend/src/pages/MissionPlanesCrossplane.js",
+      "frontend/src/pages/MissionPlanesCrossplane.ts"
+    ]
+  },
+  "/mission/planes/data": {
+    "route": "/mission/planes/data",
+    "component_path": "frontend/src/pages/Mission/Planes/Data.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Mission/Planes/Data.ts",
+      "frontend/src/pages/Mission/Planes/Data.jsx",
+      "frontend/src/pages/Mission/Planes/Data.js"
+    ]
+  },
+  "/mission/planes/failure-domains": {
+    "route": "/mission/planes/failure-domains",
+    "component_path": "frontend/src/pages/Mission/Planes/Failuredomains.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Mission/Planes/Failuredomains.jsx",
+      "frontend/src/pages/MissionPlanesFailuredomains.ts",
+      "frontend/src/pages/Mission/Planes/Failuredomains.ts"
+    ]
+  },
+  "/mission/planes/governance": {
+    "route": "/mission/planes/governance",
+    "component_path": "frontend/src/pages/Mission/Planes/Governance.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/MissionPlanesGovernance.jsx",
+      "frontend/src/pages/Mission/Planes/Governance.ts",
+      "frontend/src/pages/MissionPlanesGovernance.ts"
+    ]
+  },
+  "/mission/principles": {
+    "route": "/mission/principles",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionPrinciples.jsx",
+      "frontend/src/pages/MissionPrinciples.js",
+      "frontend/src/pages/MissionPrinciples.tsx"
+    ]
+  },
+  "/mission/reference-architectures": {
+    "route": "/mission/reference-architectures",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionReferencearchitectures.jsx",
+      "frontend/src/pages/MissionReferencearchitectures.ts",
+      "frontend/src/pages/MissionReferencearchitectures.tsx"
+    ]
+  },
+  "/mission/threat-model": {
+    "route": "/mission/threat-model",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionThreatmodel.js",
+      "frontend/src/pages/MissionThreatmodel.tsx",
+      "frontend/src/pages/MissionThreatmodel.ts"
+    ]
+  },
+  "/mission/use-cases": {
+    "route": "/mission/use-cases",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/MissionUsecases.jsx",
+      "frontend/src/pages/MissionUsecases.ts",
+      "frontend/src/pages/MissionUsecases.js"
+    ]
+  },
+  "/monitoring": {
+    "route": "/monitoring",
+    "component_path": "frontend/src/pages/Monitoring.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Monitoring.ts",
+      "frontend/src/pages/Monitoring.jsx",
+      "frontend/src/pages/Monitoring.tsx"
+    ]
+  },
+  "/notifications": {
+    "route": "/notifications",
+    "component_path": "frontend/src/pages/Notifications.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Notifications.jsx",
+      "frontend/src/pages/Notifications.tsx",
+      "frontend/src/pages/Notifications.ts"
+    ]
+  },
+  "/observability": {
+    "route": "/observability",
+    "component_path": "frontend/src/pages/Observability.js",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Observability.js",
+      "frontend/src/pages/Observability.tsx",
+      "frontend/src/pages/Observability.jsx"
+    ]
+  },
+  "/observability/alerting": {
+    "route": "/observability/alerting",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityAlerting.jsx",
+      "frontend/src/pages/ObservabilityAlerting.tsx",
+      "frontend/src/pages/ObservabilityAlerting.ts"
+    ]
+  },
+  "/observability/alerting/channels": {
+    "route": "/observability/alerting/channels",
+    "component_path": "frontend/src/pages/Observability/Alerting/Channels.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Observability/Alerting/Channels.jsx",
+      "frontend/src/pages/Observability/Alerting/Channels.ts",
+      "frontend/src/pages/Observability/Alerting/Channels.js"
+    ]
+  },
+  "/observability/alerting/rules": {
+    "route": "/observability/alerting/rules",
+    "component_path": "frontend/src/pages/Observability/Alerting/Rules.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Observability/Alerting/Rules.jsx",
+      "frontend/src/pages/ObservabilityAlertingRules.tsx",
+      "frontend/src/pages/Observability/Alerting/Rules.tsx"
+    ]
+  },
+  "/observability/anomalies": {
+    "route": "/observability/anomalies",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityAnomalies.jsx",
+      "frontend/src/pages/ObservabilityAnomalies.ts",
+      "frontend/src/pages/ObservabilityAnomalies.tsx"
+    ]
+  },
+  "/observability/audit-logs": {
+    "route": "/observability/audit-logs",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityAuditlogs.tsx",
+      "frontend/src/pages/ObservabilityAuditlogs.jsx",
+      "frontend/src/pages/ObservabilityAuditlogs.ts"
+    ]
+  },
+  "/observability/backtesting": {
+    "route": "/observability/backtesting",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityBacktesting.jsx",
+      "frontend/src/pages/ObservabilityBacktesting.js",
+      "frontend/src/pages/ObservabilityBacktesting.ts"
+    ]
+  },
+  "/observability/correlation": {
+    "route": "/observability/correlation",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityCorrelation.jsx",
+      "frontend/src/pages/ObservabilityCorrelation.tsx",
+      "frontend/src/pages/ObservabilityCorrelation.ts"
+    ]
+  },
+  "/observability/dashboards": {
+    "route": "/observability/dashboards",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityDashboards.js",
+      "frontend/src/pages/ObservabilityDashboards.jsx",
+      "frontend/src/pages/ObservabilityDashboards.tsx"
+    ]
+  },
+  "/observability/dashboards/builder": {
+    "route": "/observability/dashboards/builder",
+    "component_path": "frontend/src/pages/Observability/Dashboards/Builder.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityDashboardsBuilder.js",
+      "frontend/src/pages/ObservabilityDashboardsBuilder.tsx",
+      "frontend/src/pages/Observability/Dashboards/Builder.jsx"
+    ]
+  },
+  "/observability/drift": {
+    "route": "/observability/drift",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityDrift.jsx",
+      "frontend/src/pages/ObservabilityDrift.js",
+      "frontend/src/pages/ObservabilityDrift.ts"
+    ]
+  },
+  "/observability/evidence": {
+    "route": "/observability/evidence",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityEvidence.jsx",
+      "frontend/src/pages/ObservabilityEvidence.ts",
+      "frontend/src/pages/ObservabilityEvidence.js"
+    ]
+  },
+  "/observability/evidence/export": {
+    "route": "/observability/evidence/export",
+    "component_path": "frontend/src/pages/Observability/Evidence/Export.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Observability/Evidence/Export.js",
+      "frontend/src/pages/ObservabilityEvidenceExport.js",
+      "frontend/src/pages/Observability/Evidence/Export.ts"
+    ]
+  },
+  "/observability/evidence/query": {
+    "route": "/observability/evidence/query",
+    "component_path": "frontend/src/pages/Observability/Evidence/Query.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Observability/Evidence/Query.ts",
+      "frontend/src/pages/Observability/Evidence/Query.jsx",
+      "frontend/src/pages/ObservabilityEvidenceQuery.tsx"
+    ]
+  },
+  "/observability/health": {
+    "route": "/observability/health",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityHealth.jsx",
+      "frontend/src/pages/ObservabilityHealth.ts",
+      "frontend/src/pages/ObservabilityHealth.tsx"
+    ]
+  },
+  "/observability/logging": {
+    "route": "/observability/logging",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityLogging.js",
+      "frontend/src/pages/ObservabilityLogging.jsx",
+      "frontend/src/pages/ObservabilityLogging.tsx"
+    ]
+  },
+  "/observability/logging-tracing": {
+    "route": "/observability/logging-tracing",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityLoggingtracing.tsx",
+      "frontend/src/pages/ObservabilityLoggingtracing.jsx",
+      "frontend/src/pages/ObservabilityLoggingtracing.js"
+    ]
+  },
+  "/observability/logging/explorer": {
+    "route": "/observability/logging/explorer",
+    "component_path": "frontend/src/pages/Observability/Logging/Explorer.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityLoggingExplorer.ts",
+      "frontend/src/pages/ObservabilityLoggingExplorer.jsx",
+      "frontend/src/pages/ObservabilityLoggingExplorer.tsx"
+    ]
+  },
+  "/observability/metrics": {
+    "route": "/observability/metrics",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityMetrics.tsx",
+      "frontend/src/pages/ObservabilityMetrics.ts",
+      "frontend/src/pages/ObservabilityMetrics.jsx"
+    ]
+  },
+  "/observability/metrics/explorer": {
+    "route": "/observability/metrics/explorer",
+    "component_path": "frontend/src/pages/Observability/Metrics/Explorer.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityMetricsExplorer.tsx",
+      "frontend/src/pages/Observability/Metrics/Explorer.tsx",
+      "frontend/src/pages/Observability/Metrics/Explorer.jsx"
+    ]
+  },
+  "/observability/record-auditor": {
+    "route": "/observability/record-auditor",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityRecordauditor.tsx",
+      "frontend/src/pages/ObservabilityRecordauditor.jsx",
+      "frontend/src/pages/ObservabilityRecordauditor.js"
+    ]
+  },
+  "/observability/record-auditor/timeline": {
+    "route": "/observability/record-auditor/timeline",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/Observability/Record-auditor/Timeline.js",
+      "frontend/src/pages/Observability/Record-auditor/Timeline.ts",
+      "frontend/src/pages/ObservabilityRecordauditorTimeline.js"
+    ]
+  },
+  "/observability/replay": {
+    "route": "/observability/replay",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityReplay.jsx",
+      "frontend/src/pages/ObservabilityReplay.ts",
+      "frontend/src/pages/ObservabilityReplay.js"
+    ]
+  },
+  "/observability/replay/determinism": {
+    "route": "/observability/replay/determinism",
+    "component_path": "frontend/src/pages/Observability/Replay/Determinism.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityReplayDeterminism.tsx",
+      "frontend/src/pages/ObservabilityReplayDeterminism.jsx",
+      "frontend/src/pages/Observability/Replay/Determinism.ts"
+    ]
+  },
+  "/observability/replay/scenarios": {
+    "route": "/observability/replay/scenarios",
+    "component_path": "frontend/src/pages/Observability/Replay/Scenarios.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Observability/Replay/Scenarios.jsx",
+      "frontend/src/pages/ObservabilityReplayScenarios.tsx",
+      "frontend/src/pages/Observability/Replay/Scenarios.ts"
+    ]
+  },
+  "/observability/retention": {
+    "route": "/observability/retention",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityRetention.ts",
+      "frontend/src/pages/ObservabilityRetention.jsx",
+      "frontend/src/pages/ObservabilityRetention.tsx"
+    ]
+  },
+  "/observability/rollbacks": {
+    "route": "/observability/rollbacks",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityRollbacks.jsx",
+      "frontend/src/pages/ObservabilityRollbacks.tsx",
+      "frontend/src/pages/ObservabilityRollbacks.js"
+    ]
+  },
+  "/observability/runbooks": {
+    "route": "/observability/runbooks",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityRunbooks.ts",
+      "frontend/src/pages/ObservabilityRunbooks.js",
+      "frontend/src/pages/ObservabilityRunbooks.tsx"
+    ]
+  },
+  "/observability/self-healing": {
+    "route": "/observability/self-healing",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilitySelfhealing.ts",
+      "frontend/src/pages/ObservabilitySelfhealing.tsx",
+      "frontend/src/pages/ObservabilitySelfhealing.js"
+    ]
+  },
+  "/observability/slis": {
+    "route": "/observability/slis",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilitySlis.jsx",
+      "frontend/src/pages/ObservabilitySlis.js",
+      "frontend/src/pages/ObservabilitySlis.tsx"
+    ]
+  },
+  "/observability/slis/burn": {
+    "route": "/observability/slis/burn",
+    "component_path": "frontend/src/pages/Observability/Slis/Burn.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Observability/Slis/Burn.js",
+      "frontend/src/pages/ObservabilitySlisBurn.js",
+      "frontend/src/pages/ObservabilitySlisBurn.tsx"
+    ]
+  },
+  "/observability/tracing": {
+    "route": "/observability/tracing",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityTracing.jsx",
+      "frontend/src/pages/ObservabilityTracing.tsx",
+      "frontend/src/pages/ObservabilityTracing.ts"
+    ]
+  },
+  "/observability/tracing/explorer": {
+    "route": "/observability/tracing/explorer",
+    "component_path": "frontend/src/pages/Observability/Tracing/Explorer.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/ObservabilityTracingExplorer.js",
+      "frontend/src/pages/ObservabilityTracingExplorer.ts",
+      "frontend/src/pages/Observability/Tracing/Explorer.jsx"
+    ]
+  },
+  "/operations/backpressure": {
+    "route": "/operations/backpressure",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsBackpressure.tsx",
+      "frontend/src/pages/OperationsBackpressure.ts",
+      "frontend/src/pages/OperationsBackpressure.jsx"
+    ]
+  },
+  "/operations/bc-dr": {
+    "route": "/operations/bc-dr",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsBcdr.tsx",
+      "frontend/src/pages/OperationsBcdr.js",
+      "frontend/src/pages/OperationsBcdr.jsx"
+    ]
+  },
+  "/operations/bc-dr/drills": {
+    "route": "/operations/bc-dr/drills",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/Operations/Bc-dr/Drills.ts",
+      "frontend/src/pages/OperationsBcdrDrills.ts",
+      "frontend/src/pages/OperationsBcdrDrills.js"
+    ]
+  },
+  "/operations/capacity": {
+    "route": "/operations/capacity",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsCapacity.js",
+      "frontend/src/pages/OperationsCapacity.ts",
+      "frontend/src/pages/OperationsCapacity.jsx"
+    ]
+  },
+  "/operations/chaos": {
+    "route": "/operations/chaos",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsChaos.ts",
+      "frontend/src/pages/OperationsChaos.jsx",
+      "frontend/src/pages/OperationsChaos.tsx"
+    ]
+  },
+  "/operations/cluster": {
+    "route": "/operations/cluster",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsCluster.jsx",
+      "frontend/src/pages/OperationsCluster.js",
+      "frontend/src/pages/OperationsCluster.tsx"
+    ]
+  },
+  "/operations/compatibility": {
+    "route": "/operations/compatibility",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsCompatibility.jsx",
+      "frontend/src/pages/OperationsCompatibility.tsx",
+      "frontend/src/pages/OperationsCompatibility.ts"
+    ]
+  },
+  "/operations/config": {
+    "route": "/operations/config",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsConfig.tsx",
+      "frontend/src/pages/OperationsConfig.js",
+      "frontend/src/pages/OperationsConfig.jsx"
+    ]
+  },
+  "/operations/cost-performance": {
+    "route": "/operations/cost-performance",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsCostperformance.ts",
+      "frontend/src/pages/OperationsCostperformance.js",
+      "frontend/src/pages/OperationsCostperformance.tsx"
+    ]
+  },
+  "/operations/data-protection": {
+    "route": "/operations/data-protection",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsDataprotection.jsx",
+      "frontend/src/pages/OperationsDataprotection.tsx",
+      "frontend/src/pages/OperationsDataprotection.ts"
+    ]
+  },
+  "/operations/dependencies": {
+    "route": "/operations/dependencies",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsDependencies.js",
+      "frontend/src/pages/OperationsDependencies.ts",
+      "frontend/src/pages/OperationsDependencies.tsx"
+    ]
+  },
+  "/operations/deployment": {
+    "route": "/operations/deployment",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsDeployment.js",
+      "frontend/src/pages/OperationsDeployment.tsx",
+      "frontend/src/pages/OperationsDeployment.ts"
+    ]
+  },
+  "/operations/deployment/airgap": {
+    "route": "/operations/deployment/airgap",
+    "component_path": "frontend/src/pages/Operations/Deployment/Airgap.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsDeploymentAirgap.js",
+      "frontend/src/pages/Operations/Deployment/Airgap.ts",
+      "frontend/src/pages/OperationsDeploymentAirgap.tsx"
+    ]
+  },
+  "/operations/deployment/canary": {
+    "route": "/operations/deployment/canary",
+    "component_path": "frontend/src/pages/Operations/Deployment/Canary.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Operations/Deployment/Canary.jsx",
+      "frontend/src/pages/OperationsDeploymentCanary.jsx",
+      "frontend/src/pages/OperationsDeploymentCanary.js"
+    ]
+  },
+  "/operations/deployment/channels": {
+    "route": "/operations/deployment/channels",
+    "component_path": "frontend/src/pages/Operations/Deployment/Channels.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsDeploymentChannels.jsx",
+      "frontend/src/pages/OperationsDeploymentChannels.ts",
+      "frontend/src/pages/OperationsDeploymentChannels.js"
+    ]
+  },
+  "/operations/deployment/cloud": {
+    "route": "/operations/deployment/cloud",
+    "component_path": "frontend/src/pages/Operations/Deployment/Cloud.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Operations/Deployment/Cloud.tsx",
+      "frontend/src/pages/Operations/Deployment/Cloud.js",
+      "frontend/src/pages/Operations/Deployment/Cloud.jsx"
+    ]
+  },
+  "/operations/deployment/hybrid": {
+    "route": "/operations/deployment/hybrid",
+    "component_path": "frontend/src/pages/Operations/Deployment/Hybrid.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Operations/Deployment/Hybrid.tsx",
+      "frontend/src/pages/OperationsDeploymentHybrid.tsx",
+      "frontend/src/pages/Operations/Deployment/Hybrid.jsx"
+    ]
+  },
+  "/operations/deployment/k8s": {
+    "route": "/operations/deployment/k8s",
+    "component_path": "frontend/src/pages/Operations/Deployment/K8s.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsDeploymentK8s.js",
+      "frontend/src/pages/Operations/Deployment/K8s.ts",
+      "frontend/src/pages/Operations/Deployment/K8s.jsx"
+    ]
+  },
+  "/operations/deployment/local": {
+    "route": "/operations/deployment/local",
+    "component_path": "frontend/src/pages/Operations/Deployment/Local.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsDeploymentLocal.js",
+      "frontend/src/pages/Operations/Deployment/Local.js",
+      "frontend/src/pages/OperationsDeploymentLocal.ts"
+    ]
+  },
+  "/operations/detection": {
+    "route": "/operations/detection",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsDetection.ts",
+      "frontend/src/pages/OperationsDetection.jsx",
+      "frontend/src/pages/OperationsDetection.js"
+    ]
+  },
+  "/operations/driver-performance": {
+    "route": "/operations/driver-performance",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsDriverperformance.jsx",
+      "frontend/src/pages/OperationsDriverperformance.tsx",
+      "frontend/src/pages/OperationsDriverperformance.ts"
+    ]
+  },
+  "/operations/failure": {
+    "route": "/operations/failure",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsFailure.tsx",
+      "frontend/src/pages/OperationsFailure.js",
+      "frontend/src/pages/OperationsFailure.ts"
+    ]
+  },
+  "/operations/hpc": {
+    "route": "/operations/hpc",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsHpc.jsx",
+      "frontend/src/pages/OperationsHpc.tsx",
+      "frontend/src/pages/OperationsHpc.js"
+    ]
+  },
+  "/operations/load-testing": {
+    "route": "/operations/load-testing",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsLoadtesting.ts",
+      "frontend/src/pages/OperationsLoadtesting.js",
+      "frontend/src/pages/OperationsLoadtesting.tsx"
+    ]
+  },
+  "/operations/migration": {
+    "route": "/operations/migration",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsMigration.js",
+      "frontend/src/pages/OperationsMigration.ts",
+      "frontend/src/pages/OperationsMigration.tsx"
+    ]
+  },
+  "/operations/multi-region": {
+    "route": "/operations/multi-region",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsMultiregion.js",
+      "frontend/src/pages/OperationsMultiregion.tsx",
+      "frontend/src/pages/OperationsMultiregion.jsx"
+    ]
+  },
+  "/operations/performance": {
+    "route": "/operations/performance",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsPerformance.jsx",
+      "frontend/src/pages/OperationsPerformance.js",
+      "frontend/src/pages/OperationsPerformance.ts"
+    ]
+  },
+  "/operations/postmortems": {
+    "route": "/operations/postmortems",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsPostmortems.jsx",
+      "frontend/src/pages/OperationsPostmortems.ts",
+      "frontend/src/pages/OperationsPostmortems.js"
+    ]
+  },
+  "/operations/queues": {
+    "route": "/operations/queues",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsQueues.js",
+      "frontend/src/pages/OperationsQueues.jsx",
+      "frontend/src/pages/OperationsQueues.tsx"
+    ]
+  },
+  "/operations/recovery": {
+    "route": "/operations/recovery",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsRecovery.js",
+      "frontend/src/pages/OperationsRecovery.jsx",
+      "frontend/src/pages/OperationsRecovery.ts"
+    ]
+  },
+  "/operations/releases": {
+    "route": "/operations/releases",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsReleases.js",
+      "frontend/src/pages/OperationsReleases.jsx",
+      "frontend/src/pages/OperationsReleases.tsx"
+    ]
+  },
+  "/operations/reliability": {
+    "route": "/operations/reliability",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsReliability.js",
+      "frontend/src/pages/OperationsReliability.ts",
+      "frontend/src/pages/OperationsReliability.tsx"
+    ]
+  },
+  "/operations/rollback": {
+    "route": "/operations/rollback",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsRollback.ts",
+      "frontend/src/pages/OperationsRollback.jsx",
+      "frontend/src/pages/OperationsRollback.js"
+    ]
+  },
+  "/operations/scaling": {
+    "route": "/operations/scaling",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsScaling.jsx",
+      "frontend/src/pages/OperationsScaling.ts",
+      "frontend/src/pages/OperationsScaling.js"
+    ]
+  },
+  "/operations/secrets": {
+    "route": "/operations/secrets",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsSecrets.jsx",
+      "frontend/src/pages/OperationsSecrets.tsx",
+      "frontend/src/pages/OperationsSecrets.ts"
+    ]
+  },
+  "/operations/security-incidents": {
+    "route": "/operations/security-incidents",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsSecurityincidents.ts",
+      "frontend/src/pages/OperationsSecurityincidents.tsx",
+      "frontend/src/pages/OperationsSecurityincidents.jsx"
+    ]
+  },
+  "/operations/storage": {
+    "route": "/operations/storage",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsStorage.jsx",
+      "frontend/src/pages/OperationsStorage.js",
+      "frontend/src/pages/OperationsStorage.ts"
+    ]
+  },
+  "/operations/topology": {
+    "route": "/operations/topology",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsTopology.jsx",
+      "frontend/src/pages/OperationsTopology.js",
+      "frontend/src/pages/OperationsTopology.ts"
+    ]
+  },
+  "/operations/upgrades": {
+    "route": "/operations/upgrades",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/OperationsUpgrades.jsx",
+      "frontend/src/pages/OperationsUpgrades.js",
+      "frontend/src/pages/OperationsUpgrades.ts"
+    ]
+  },
+  "/personalization": {
+    "route": "/personalization",
+    "component_path": "frontend/src/pages/Personalization.js",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Personalization.ts",
+      "frontend/src/pages/Personalization.jsx",
+      "frontend/src/pages/Personalization.js"
+    ]
+  },
+  "/personalization/macros": {
+    "route": "/personalization/macros",
+    "component_path": "frontend/src/pages/PersonalizationMacros.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/PersonalizationMacros.jsx",
+      "frontend/src/pages/PersonalizationMacros.ts",
+      "frontend/src/pages/PersonalizationMacros.tsx"
+    ]
+  },
+  "/personalization/profiles": {
+    "route": "/personalization/profiles",
+    "component_path": "frontend/src/pages/PersonalizationProfiles.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/PersonalizationProfiles.js",
+      "frontend/src/pages/PersonalizationProfiles.jsx",
+      "frontend/src/pages/PersonalizationProfiles.ts"
+    ]
+  },
+  "/projects": {
+    "route": "/projects",
+    "component_path": "frontend/src/pages/Projects.js",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Projects.jsx",
+      "frontend/src/pages/Projects.js",
+      "frontend/src/pages/Projects.ts"
+    ]
+  },
+  "/projects/members": {
+    "route": "/projects/members",
+    "component_path": "frontend/src/pages/ProjectsMembers.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/ProjectsMembers.tsx",
+      "frontend/src/pages/ProjectsMembers.js",
+      "frontend/src/pages/ProjectsMembers.jsx"
+    ]
+  },
+  "/projects/settings": {
+    "route": "/projects/settings",
+    "component_path": "frontend/src/pages/ProjectsSettings.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/ProjectsSettings.jsx",
+      "frontend/src/pages/ProjectsSettings.js",
+      "frontend/src/pages/ProjectsSettings.ts"
+    ]
+  },
+  "/projects/templates": {
+    "route": "/projects/templates",
+    "component_path": "frontend/src/pages/ProjectsTemplates.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/ProjectsTemplates.js",
+      "frontend/src/pages/ProjectsTemplates.ts",
+      "frontend/src/pages/ProjectsTemplates.jsx"
+    ]
+  },
+  "/research": {
+    "route": "/research",
+    "component_path": "frontend/src/pages/Research.js",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Research.js",
+      "frontend/src/pages/Research.ts",
+      "frontend/src/pages/Research.tsx"
+    ]
+  },
+  "/roadmap/compatibility": {
+    "route": "/roadmap/compatibility",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/RoadmapCompatibility.tsx",
+      "frontend/src/pages/RoadmapCompatibility.js",
+      "frontend/src/pages/RoadmapCompatibility.jsx"
+    ]
+  },
+  "/roadmap/decisions": {
+    "route": "/roadmap/decisions",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/RoadmapDecisions.js",
+      "frontend/src/pages/RoadmapDecisions.jsx",
+      "frontend/src/pages/RoadmapDecisions.tsx"
+    ]
+  },
+  "/roadmap/deprecations": {
+    "route": "/roadmap/deprecations",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/RoadmapDeprecations.jsx",
+      "frontend/src/pages/RoadmapDeprecations.tsx",
+      "frontend/src/pages/RoadmapDeprecations.ts"
+    ]
+  },
+  "/roadmap/future": {
+    "route": "/roadmap/future",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/RoadmapFuture.ts",
+      "frontend/src/pages/RoadmapFuture.tsx",
+      "frontend/src/pages/RoadmapFuture.jsx"
+    ]
+  },
+  "/roadmap/future-capabilities": {
+    "route": "/roadmap/future-capabilities",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/RoadmapFuturecapabilities.js",
+      "frontend/src/pages/RoadmapFuturecapabilities.jsx",
+      "frontend/src/pages/RoadmapFuturecapabilities.ts"
+    ]
+  },
+  "/roadmap/gaps": {
+    "route": "/roadmap/gaps",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/RoadmapGaps.tsx",
+      "frontend/src/pages/RoadmapGaps.jsx",
+      "frontend/src/pages/RoadmapGaps.js"
+    ]
+  },
+  "/roadmap/milestones": {
+    "route": "/roadmap/milestones",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/RoadmapMilestones.js",
+      "frontend/src/pages/RoadmapMilestones.tsx",
+      "frontend/src/pages/RoadmapMilestones.jsx"
+    ]
+  },
+  "/roadmap/overview": {
+    "route": "/roadmap/overview",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/RoadmapOverview.ts",
+      "frontend/src/pages/RoadmapOverview.js",
+      "frontend/src/pages/RoadmapOverview.jsx"
+    ]
+  },
+  "/roadmap/phases": {
+    "route": "/roadmap/phases",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/RoadmapPhases.ts",
+      "frontend/src/pages/RoadmapPhases.jsx",
+      "frontend/src/pages/RoadmapPhases.js"
+    ]
+  },
+  "/roadmap/questions": {
+    "route": "/roadmap/questions",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/RoadmapQuestions.tsx",
+      "frontend/src/pages/RoadmapQuestions.ts",
+      "frontend/src/pages/RoadmapQuestions.jsx"
+    ]
+  },
+  "/roadmap/risks": {
+    "route": "/roadmap/risks",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/RoadmapRisks.jsx",
+      "frontend/src/pages/RoadmapRisks.tsx",
+      "frontend/src/pages/RoadmapRisks.js"
+    ]
+  },
+  "/roadmap/spec": {
+    "route": "/roadmap/spec",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/RoadmapSpec.jsx",
+      "frontend/src/pages/RoadmapSpec.tsx",
+      "frontend/src/pages/RoadmapSpec.ts"
+    ]
+  },
+  "/search": {
+    "route": "/search",
+    "component_path": "frontend/src/pages/Search.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Search.ts",
+      "frontend/src/pages/Search.jsx",
+      "frontend/src/pages/Search.js"
+    ]
+  },
+  "/search/saved": {
+    "route": "/search/saved",
+    "component_path": "frontend/src/pages/SearchSaved.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/SearchSaved.jsx",
+      "frontend/src/pages/SearchSaved.ts",
+      "frontend/src/pages/SearchSaved.tsx"
+    ]
+  },
+  "/settings": {
+    "route": "/settings",
+    "component_path": "frontend/src/pages/Settings.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 7,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Settings.jsx",
+      "frontend/src/pages/Settings.tsx",
+      "frontend/src/pages/Settings.js"
+    ]
+  },
+  "/settings/api-keys": {
+    "route": "/settings/api-keys",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/SettingsApikeys.js",
+      "frontend/src/pages/SettingsApikeys.jsx",
+      "frontend/src/pages/SettingsApikeys.ts"
+    ]
+  },
+  "/settings/audit": {
+    "route": "/settings/audit",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/SettingsAudit.jsx",
+      "frontend/src/pages/SettingsAudit.tsx",
+      "frontend/src/pages/SettingsAudit.js"
+    ]
+  },
+  "/settings/credentials": {
+    "route": "/settings/credentials",
+    "component_path": "frontend/src/pages/SettingsCredentials.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/SettingsCredentials.tsx",
+      "frontend/src/pages/SettingsCredentials.ts",
+      "frontend/src/pages/SettingsCredentials.js"
+    ]
+  },
+  "/settings/notifications": {
+    "route": "/settings/notifications",
+    "component_path": "frontend/src/pages/SettingsNotifications.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/SettingsNotifications.ts",
+      "frontend/src/pages/SettingsNotifications.jsx",
+      "frontend/src/pages/SettingsNotifications.tsx"
+    ]
+  },
+  "/settings/preferences": {
+    "route": "/settings/preferences",
+    "component_path": "frontend/src/pages/SettingsPreferences.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/SettingsPreferences.tsx",
+      "frontend/src/pages/SettingsPreferences.ts",
+      "frontend/src/pages/SettingsPreferences.js"
+    ]
+  },
+  "/settings/profile": {
+    "route": "/settings/profile",
+    "component_path": "frontend/src/pages/SettingsProfile.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/SettingsProfile.jsx",
+      "frontend/src/pages/SettingsProfile.js",
+      "frontend/src/pages/SettingsProfile.tsx"
+    ]
+  },
+  "/settings/team": {
+    "route": "/settings/team",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/SettingsTeam.ts",
+      "frontend/src/pages/SettingsTeam.jsx",
+      "frontend/src/pages/SettingsTeam.tsx"
+    ]
+  },
+  "/settings/tenant": {
+    "route": "/settings/tenant",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/SettingsTenant.ts",
+      "frontend/src/pages/SettingsTenant.tsx",
+      "frontend/src/pages/SettingsTenant.js"
+    ]
+  },
+  "/systems/network": {
+    "route": "/systems/network",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/SystemsNetwork.tsx",
+      "frontend/src/pages/SystemsNetwork.ts",
+      "frontend/src/pages/SystemsNetwork.js"
+    ]
+  },
+  "/tasks": {
+    "route": "/tasks",
+    "component_path": "frontend/src/pages/Tasks.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Tasks.tsx",
+      "frontend/src/pages/Tasks.jsx",
+      "frontend/src/pages/Tasks.ts"
+    ]
+  },
+  "/tasks/analytics": {
+    "route": "/tasks/analytics",
+    "component_path": "frontend/src/pages/TasksAnalytics.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/TasksAnalytics.tsx",
+      "frontend/src/pages/TasksAnalytics.js",
+      "frontend/src/pages/TasksAnalytics.ts"
+    ]
+  },
+  "/tasks/automation": {
+    "route": "/tasks/automation",
+    "component_path": "frontend/src/pages/TasksAutomation.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/TasksAutomation.tsx",
+      "frontend/src/pages/TasksAutomation.js",
+      "frontend/src/pages/TasksAutomation.jsx"
+    ]
+  },
+  "/tasks/board": {
+    "route": "/tasks/board",
+    "component_path": "frontend/src/pages/TasksBoard.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/TasksBoard.tsx",
+      "frontend/src/pages/TasksBoard.js",
+      "frontend/src/pages/TasksBoard.ts"
+    ]
+  },
+  "/timeline": {
+    "route": "/timeline",
+    "component_path": "frontend/src/pages/Timeline.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Timeline.ts",
+      "frontend/src/pages/Timeline.js",
+      "frontend/src/pages/Timeline.tsx"
+    ]
+  },
+  "/vision": {
+    "route": "/vision",
+    "component_path": "frontend/src/pages/Vision.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Vision.jsx",
+      "frontend/src/pages/Vision.tsx",
+      "frontend/src/pages/Vision.js"
+    ]
+  },
+  "/vision/glossary": {
+    "route": "/vision/glossary",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/VisionGlossary.tsx",
+      "frontend/src/pages/VisionGlossary.ts",
+      "frontend/src/pages/VisionGlossary.jsx"
+    ]
+  },
+  "/vision/roadmap": {
+    "route": "/vision/roadmap",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/VisionRoadmap.ts",
+      "frontend/src/pages/VisionRoadmap.jsx",
+      "frontend/src/pages/VisionRoadmap.tsx"
+    ]
+  },
+  "/work/templates": {
+    "route": "/work/templates",
+    "component_path": "frontend/src/pages/WorkTemplates.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkTemplates.jsx",
+      "frontend/src/pages/WorkTemplates.ts",
+      "frontend/src/pages/WorkTemplates.tsx"
+    ]
+  },
+  "/work/tools": {
+    "route": "/work/tools",
+    "component_path": "frontend/src/pages/WorkTools.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkTools.ts",
+      "frontend/src/pages/WorkTools.js",
+      "frontend/src/pages/WorkTools.jsx"
+    ]
+  },
+  "/work/writer": {
+    "route": "/work/writer",
+    "component_path": "frontend/src/pages/WorkWriter.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkWriter.tsx",
+      "frontend/src/pages/WorkWriter.js",
+      "frontend/src/pages/WorkWriter.ts"
+    ]
+  },
+  "/workspaces/archive": {
+    "route": "/workspaces/archive",
+    "component_path": "frontend/src/pages/WorkspacesArchive.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesArchive.tsx",
+      "frontend/src/pages/WorkspacesArchive.ts",
+      "frontend/src/pages/WorkspacesArchive.jsx"
+    ]
+  },
+  "/workspaces/archive/restore": {
+    "route": "/workspaces/archive/restore",
+    "component_path": "frontend/src/pages/WorkspacesArchiveRestore.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Archive/Restore.ts",
+      "frontend/src/pages/WorkspacesArchiveRestore.ts",
+      "frontend/src/pages/Workspaces/Archive/Restore.jsx"
+    ]
+  },
+  "/workspaces/archive/retention": {
+    "route": "/workspaces/archive/retention",
+    "component_path": "frontend/src/pages/WorkspacesArchiveRetention.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Archive/Retention.js",
+      "frontend/src/pages/WorkspacesArchiveRetention.tsx",
+      "frontend/src/pages/Workspaces/Archive/Retention.ts"
+    ]
+  },
+  "/workspaces/archive/snapshots": {
+    "route": "/workspaces/archive/snapshots",
+    "component_path": "frontend/src/pages/Workspaces/Archive/Snapshots.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesArchiveSnapshots.jsx",
+      "frontend/src/pages/Workspaces/Archive/Snapshots.tsx",
+      "frontend/src/pages/Workspaces/Archive/Snapshots.jsx"
+    ]
+  },
+  "/workspaces/archive/time-travel": {
+    "route": "/workspaces/archive/time-travel",
+    "component_path": "frontend/src/pages/Workspaces/Archive/Timetravel.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesArchiveTimetravel.ts",
+      "frontend/src/pages/Workspaces/Archive/Timetravel.ts",
+      "frontend/src/pages/Workspaces/Archive/Timetravel.tsx"
+    ]
+  },
+  "/workspaces/auditor": {
+    "route": "/workspaces/auditor",
+    "component_path": null,
+    "source": null,
+    "source_sha": null,
+    "score": -1000,
+    "has_content": false,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesAuditor.ts",
+      "frontend/src/pages/WorkspacesAuditor.jsx",
+      "frontend/src/pages/WorkspacesAuditor.js"
+    ]
+  },
+  "/workspaces/auditor/controls": {
+    "route": "/workspaces/auditor/controls",
+    "component_path": "frontend/src/pages/Workspaces/Auditor/Controls.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesAuditorControls.ts",
+      "frontend/src/pages/Workspaces/Auditor/Controls.ts",
+      "frontend/src/pages/WorkspacesAuditorControls.jsx"
+    ]
+  },
+  "/workspaces/auditor/evidence": {
+    "route": "/workspaces/auditor/evidence",
+    "component_path": "frontend/src/pages/Workspaces/Auditor/Evidence.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesAuditorEvidence.tsx",
+      "frontend/src/pages/Workspaces/Auditor/Evidence.js",
+      "frontend/src/pages/Workspaces/Auditor/Evidence.tsx"
+    ]
+  },
+  "/workspaces/auditor/logbook": {
+    "route": "/workspaces/auditor/logbook",
+    "component_path": "frontend/src/pages/Workspaces/Auditor/Logbook.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Auditor/Logbook.tsx",
+      "frontend/src/pages/WorkspacesAuditorLogbook.ts",
+      "frontend/src/pages/Workspaces/Auditor/Logbook.ts"
+    ]
+  },
+  "/workspaces/auditor/regulator": {
+    "route": "/workspaces/auditor/regulator",
+    "component_path": "frontend/src/pages/Workspaces/Auditor/Regulator.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Auditor/Regulator.js",
+      "frontend/src/pages/Workspaces/Auditor/Regulator.ts",
+      "frontend/src/pages/WorkspacesAuditorRegulator.tsx"
+    ]
+  },
+  "/workspaces/auditor/reports": {
+    "route": "/workspaces/auditor/reports",
+    "component_path": "frontend/src/pages/Workspaces/Auditor/Reports.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesAuditorReports.tsx",
+      "frontend/src/pages/Workspaces/Auditor/Reports.jsx",
+      "frontend/src/pages/WorkspacesAuditorReports.js"
+    ]
+  },
+  "/workspaces/auditor/requests": {
+    "route": "/workspaces/auditor/requests",
+    "component_path": "frontend/src/pages/Workspaces/Auditor/Requests.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Auditor/Requests.tsx",
+      "frontend/src/pages/Workspaces/Auditor/Requests.js",
+      "frontend/src/pages/WorkspacesAuditorRequests.js"
+    ]
+  },
+  "/workspaces/cyber/auto-remediation": {
+    "route": "/workspaces/cyber/auto-remediation",
+    "component_path": "frontend/src/pages/Workspaces/Cyber/Autoremediation.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Cyber/Autoremediation.js",
+      "frontend/src/pages/WorkspacesCyberAutoremediation.jsx",
+      "frontend/src/pages/Workspaces/Cyber/Autoremediation.tsx"
+    ]
+  },
+  "/workspaces/cyber/findings": {
+    "route": "/workspaces/cyber/findings",
+    "component_path": "frontend/src/pages/Workspaces/Cyber/Findings.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesCyberFindings.ts",
+      "frontend/src/pages/Workspaces/Cyber/Findings.js",
+      "frontend/src/pages/Workspaces/Cyber/Findings.tsx"
+    ]
+  },
+  "/workspaces/cyber/incidents": {
+    "route": "/workspaces/cyber/incidents",
+    "component_path": "frontend/src/pages/WorkspacesCyberIncidents.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesCyberIncidents.tsx",
+      "frontend/src/pages/Workspaces/Cyber/Incidents.jsx",
+      "frontend/src/pages/Workspaces/Cyber/Incidents.js"
+    ]
+  },
+  "/workspaces/cyber/intel": {
+    "route": "/workspaces/cyber/intel",
+    "component_path": "frontend/src/pages/Workspaces/Cyber/Intel.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Cyber/Intel.js",
+      "frontend/src/pages/Workspaces/Cyber/Intel.tsx",
+      "frontend/src/pages/WorkspacesCyberIntel.js"
+    ]
+  },
+  "/workspaces/cyber/playbooks": {
+    "route": "/workspaces/cyber/playbooks",
+    "component_path": "frontend/src/pages/Workspaces/Cyber/Playbooks.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Cyber/Playbooks.ts",
+      "frontend/src/pages/Workspaces/Cyber/Playbooks.js",
+      "frontend/src/pages/WorkspacesCyberPlaybooks.ts"
+    ]
+  },
+  "/workspaces/cyber/policy-checks": {
+    "route": "/workspaces/cyber/policy-checks",
+    "component_path": "frontend/src/pages/Workspaces/Cyber/Policychecks.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Cyber/Policychecks.js",
+      "frontend/src/pages/WorkspacesCyberPolicychecks.jsx",
+      "frontend/src/pages/Workspaces/Cyber/Policychecks.ts"
+    ]
+  },
+  "/workspaces/cyber/scanners": {
+    "route": "/workspaces/cyber/scanners",
+    "component_path": "frontend/src/pages/Workspaces/Cyber/Scanners.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Cyber/Scanners.js",
+      "frontend/src/pages/Workspaces/Cyber/Scanners.tsx",
+      "frontend/src/pages/WorkspacesCyberScanners.jsx"
+    ]
+  },
+  "/workspaces/cyber/threat-modeling": {
+    "route": "/workspaces/cyber/threat-modeling",
+    "component_path": "frontend/src/pages/Workspaces/Cyber/Threatmodeling.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Cyber/Threatmodeling.ts",
+      "frontend/src/pages/Workspaces/Cyber/Threatmodeling.jsx",
+      "frontend/src/pages/Workspaces/Cyber/Threatmodeling.js"
+    ]
+  },
+  "/workspaces/dev": {
+    "route": "/workspaces/dev",
+    "component_path": "frontend/src/pages/WorkspacesDev.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesDev.tsx",
+      "frontend/src/pages/WorkspacesDev.js",
+      "frontend/src/pages/WorkspacesDev.jsx"
+    ]
+  },
+  "/workspaces/dev/build-insights": {
+    "route": "/workspaces/dev/build-insights",
+    "component_path": "frontend/src/pages/Workspaces/Dev/Buildinsights.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Dev/Buildinsights.jsx",
+      "frontend/src/pages/Workspaces/Dev/Buildinsights.js",
+      "frontend/src/pages/Workspaces/Dev/Buildinsights.tsx"
+    ]
+  },
+  "/workspaces/dev/cicd": {
+    "route": "/workspaces/dev/cicd",
+    "component_path": "frontend/src/pages/WorkspacesDevCicd.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesDevCicd.tsx",
+      "frontend/src/pages/WorkspacesDevCicd.ts",
+      "frontend/src/pages/Workspaces/Dev/Cicd.ts"
+    ]
+  },
+  "/workspaces/dev/commit-tasks": {
+    "route": "/workspaces/dev/commit-tasks",
+    "component_path": "frontend/src/pages/Workspaces/Dev/Committasks.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesDevCommittasks.jsx",
+      "frontend/src/pages/WorkspacesDevCommittasks.ts",
+      "frontend/src/pages/Workspaces/Dev/Committasks.tsx"
+    ]
+  },
+  "/workspaces/dev/deps": {
+    "route": "/workspaces/dev/deps",
+    "component_path": "frontend/src/pages/Workspaces/Dev/Deps.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesDevDeps.js",
+      "frontend/src/pages/Workspaces/Dev/Deps.tsx",
+      "frontend/src/pages/WorkspacesDevDeps.ts"
+    ]
+  },
+  "/workspaces/dev/env-health": {
+    "route": "/workspaces/dev/env-health",
+    "component_path": "frontend/src/pages/Workspaces/Dev/Envhealth.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesDevEnvhealth.ts",
+      "frontend/src/pages/Workspaces/Dev/Envhealth.ts",
+      "frontend/src/pages/WorkspacesDevEnvhealth.tsx"
+    ]
+  },
+  "/workspaces/dev/merge-advisor": {
+    "route": "/workspaces/dev/merge-advisor",
+    "component_path": "frontend/src/pages/Workspaces/Dev/Mergeadvisor.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Dev/Mergeadvisor.jsx",
+      "frontend/src/pages/WorkspacesDevMergeadvisor.js",
+      "frontend/src/pages/Workspaces/Dev/Mergeadvisor.js"
+    ]
+  },
+  "/workspaces/dev/release-notes": {
+    "route": "/workspaces/dev/release-notes",
+    "component_path": "frontend/src/pages/Workspaces/Dev/Releasenotes.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesDevReleasenotes.js",
+      "frontend/src/pages/Workspaces/Dev/Releasenotes.js",
+      "frontend/src/pages/WorkspacesDevReleasenotes.ts"
+    ]
+  },
+  "/workspaces/dev/repos": {
+    "route": "/workspaces/dev/repos",
+    "component_path": "frontend/src/pages/WorkspacesDevRepos.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesDevRepos.ts",
+      "frontend/src/pages/Workspaces/Dev/Repos.js",
+      "frontend/src/pages/WorkspacesDevRepos.jsx"
+    ]
+  },
+  "/workspaces/dev/reviews": {
+    "route": "/workspaces/dev/reviews",
+    "component_path": "frontend/src/pages/Workspaces/Dev/Reviews.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesDevReviews.ts",
+      "frontend/src/pages/Workspaces/Dev/Reviews.jsx",
+      "frontend/src/pages/WorkspacesDevReviews.jsx"
+    ]
+  },
+  "/workspaces/finance": {
+    "route": "/workspaces/finance",
+    "component_path": "frontend/src/pages/WorkspacesFinance.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesFinance.ts",
+      "frontend/src/pages/WorkspacesFinance.js",
+      "frontend/src/pages/WorkspacesFinance.jsx"
+    ]
+  },
+  "/workspaces/finance/budgets": {
+    "route": "/workspaces/finance/budgets",
+    "component_path": "frontend/src/pages/WorkspacesFinanceBudgets.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesFinanceBudgets.ts",
+      "frontend/src/pages/Workspaces/Finance/Budgets.jsx",
+      "frontend/src/pages/WorkspacesFinanceBudgets.tsx"
+    ]
+  },
+  "/workspaces/finance/forecasting": {
+    "route": "/workspaces/finance/forecasting",
+    "component_path": "frontend/src/pages/WorkspacesFinanceForecasting.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesFinanceForecasting.tsx",
+      "frontend/src/pages/Workspaces/Finance/Forecasting.ts",
+      "frontend/src/pages/WorkspacesFinanceForecasting.ts"
+    ]
+  },
+  "/workspaces/finance/kpis": {
+    "route": "/workspaces/finance/kpis",
+    "component_path": "frontend/src/pages/Workspaces/Finance/Kpis.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Finance/Kpis.tsx",
+      "frontend/src/pages/Workspaces/Finance/Kpis.js",
+      "frontend/src/pages/WorkspacesFinanceKpis.jsx"
+    ]
+  },
+  "/workspaces/finance/reports": {
+    "route": "/workspaces/finance/reports",
+    "component_path": "frontend/src/pages/WorkspacesFinanceReports.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Finance/Reports.jsx",
+      "frontend/src/pages/WorkspacesFinanceReports.ts",
+      "frontend/src/pages/WorkspacesFinanceReports.js"
+    ]
+  },
+  "/workspaces/finance/risk": {
+    "route": "/workspaces/finance/risk",
+    "component_path": "frontend/src/pages/Workspaces/Finance/Risk.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Finance/Risk.tsx",
+      "frontend/src/pages/Workspaces/Finance/Risk.ts",
+      "frontend/src/pages/Workspaces/Finance/Risk.jsx"
+    ]
+  },
+  "/workspaces/finance/scenarios": {
+    "route": "/workspaces/finance/scenarios",
+    "component_path": "frontend/src/pages/Workspaces/Finance/Scenarios.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Finance/Scenarios.jsx",
+      "frontend/src/pages/Workspaces/Finance/Scenarios.tsx",
+      "frontend/src/pages/WorkspacesFinanceScenarios.jsx"
+    ]
+  },
+  "/workspaces/research/datasets": {
+    "route": "/workspaces/research/datasets",
+    "component_path": "frontend/src/pages/WorkspacesResearchDatasets.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesResearchDatasets.ts",
+      "frontend/src/pages/Workspaces/Research/Datasets.js",
+      "frontend/src/pages/Workspaces/Research/Datasets.jsx"
+    ]
+  },
+  "/workspaces/research/digital-twins": {
+    "route": "/workspaces/research/digital-twins",
+    "component_path": "frontend/src/pages/Workspaces/Research/Digitaltwins.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesResearchDigitaltwins.ts",
+      "frontend/src/pages/WorkspacesResearchDigitaltwins.tsx",
+      "frontend/src/pages/WorkspacesResearchDigitaltwins.jsx"
+    ]
+  },
+  "/workspaces/research/experiments": {
+    "route": "/workspaces/research/experiments",
+    "component_path": "frontend/src/pages/Workspaces/Research/Experiments.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Research/Experiments.ts",
+      "frontend/src/pages/Workspaces/Research/Experiments.js",
+      "frontend/src/pages/Workspaces/Research/Experiments.tsx"
+    ]
+  },
+  "/workspaces/research/hpc": {
+    "route": "/workspaces/research/hpc",
+    "component_path": "frontend/src/pages/WorkspacesResearchHpc.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesResearchHpc.tsx",
+      "frontend/src/pages/WorkspacesResearchHpc.js",
+      "frontend/src/pages/Workspaces/Research/Hpc.ts"
+    ]
+  },
+  "/workspaces/research/lab": {
+    "route": "/workspaces/research/lab",
+    "component_path": "frontend/src/pages/WorkspacesResearchLab.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesResearchLab.tsx",
+      "frontend/src/pages/WorkspacesResearchLab.ts",
+      "frontend/src/pages/Workspaces/Research/Lab.jsx"
+    ]
+  },
+  "/workspaces/research/notes": {
+    "route": "/workspaces/research/notes",
+    "component_path": "frontend/src/pages/WorkspacesResearchNotes.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesResearchNotes.tsx",
+      "frontend/src/pages/Workspaces/Research/Notes.tsx",
+      "frontend/src/pages/WorkspacesResearchNotes.js"
+    ]
+  },
+  "/workspaces/research/publishing": {
+    "route": "/workspaces/research/publishing",
+    "component_path": "frontend/src/pages/Workspaces/Research/Publishing.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Research/Publishing.tsx",
+      "frontend/src/pages/WorkspacesResearchPublishing.ts",
+      "frontend/src/pages/Workspaces/Research/Publishing.jsx"
+    ]
+  },
+  "/workspaces/research/reproducibility": {
+    "route": "/workspaces/research/reproducibility",
+    "component_path": "frontend/src/pages/Workspaces/Research/Reproducibility.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Research/Reproducibility.js",
+      "frontend/src/pages/Workspaces/Research/Reproducibility.jsx",
+      "frontend/src/pages/Workspaces/Research/Reproducibility.ts"
+    ]
+  },
+  "/workspaces/research/simulation": {
+    "route": "/workspaces/research/simulation",
+    "component_path": "frontend/src/pages/Workspaces/Research/Simulation.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Research/Simulation.tsx",
+      "frontend/src/pages/Workspaces/Research/Simulation.jsx",
+      "frontend/src/pages/WorkspacesResearchSimulation.tsx"
+    ]
+  },
+  "/workspaces/research/tracking": {
+    "route": "/workspaces/research/tracking",
+    "component_path": "frontend/src/pages/Workspaces/Research/Tracking.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Research/Tracking.jsx",
+      "frontend/src/pages/Workspaces/Research/Tracking.tsx",
+      "frontend/src/pages/WorkspacesResearchTracking.tsx"
+    ]
+  },
+  "/workspaces/research/validation": {
+    "route": "/workspaces/research/validation",
+    "component_path": "frontend/src/pages/WorkspacesResearchValidation.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesResearchValidation.js",
+      "frontend/src/pages/Workspaces/Research/Validation.jsx",
+      "frontend/src/pages/Workspaces/Research/Validation.ts"
+    ]
+  },
+  "/workspaces/sre": {
+    "route": "/workspaces/sre",
+    "component_path": "frontend/src/pages/WorkspacesSre.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesSre.js",
+      "frontend/src/pages/WorkspacesSre.tsx",
+      "frontend/src/pages/WorkspacesSre.jsx"
+    ]
+  },
+  "/workspaces/sre/capacity-cost": {
+    "route": "/workspaces/sre/capacity-cost",
+    "component_path": "frontend/src/pages/Workspaces/Sre/Capacitycost.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesSreCapacitycost.js",
+      "frontend/src/pages/WorkspacesSreCapacitycost.ts",
+      "frontend/src/pages/Workspaces/Sre/Capacitycost.js"
+    ]
+  },
+  "/workspaces/sre/changes": {
+    "route": "/workspaces/sre/changes",
+    "component_path": "frontend/src/pages/Workspaces/Sre/Changes.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesSreChanges.jsx",
+      "frontend/src/pages/Workspaces/Sre/Changes.jsx",
+      "frontend/src/pages/WorkspacesSreChanges.ts"
+    ]
+  },
+  "/workspaces/sre/health": {
+    "route": "/workspaces/sre/health",
+    "component_path": "frontend/src/pages/Workspaces/Sre/Health.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Sre/Health.js",
+      "frontend/src/pages/Workspaces/Sre/Health.tsx",
+      "frontend/src/pages/Workspaces/Sre/Health.ts"
+    ]
+  },
+  "/workspaces/sre/incidents": {
+    "route": "/workspaces/sre/incidents",
+    "component_path": "frontend/src/pages/WorkspacesSreIncidents.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesSreIncidents.jsx",
+      "frontend/src/pages/WorkspacesSreIncidents.tsx",
+      "frontend/src/pages/Workspaces/Sre/Incidents.ts"
+    ]
+  },
+  "/workspaces/sre/maintenance": {
+    "route": "/workspaces/sre/maintenance",
+    "component_path": "frontend/src/pages/Workspaces/Sre/Maintenance.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Sre/Maintenance.tsx",
+      "frontend/src/pages/Workspaces/Sre/Maintenance.ts",
+      "frontend/src/pages/WorkspacesSreMaintenance.jsx"
+    ]
+  },
+  "/workspaces/sre/reliability": {
+    "route": "/workspaces/sre/reliability",
+    "component_path": "frontend/src/pages/WorkspacesSreReliability.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesSreReliability.ts",
+      "frontend/src/pages/WorkspacesSreReliability.tsx",
+      "frontend/src/pages/WorkspacesSreReliability.js"
+    ]
+  },
+  "/workspaces/sre/runbooks": {
+    "route": "/workspaces/sre/runbooks",
+    "component_path": "frontend/src/pages/WorkspacesSreRunbooks.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesSreRunbooks.tsx",
+      "frontend/src/pages/WorkspacesSreRunbooks.js",
+      "frontend/src/pages/WorkspacesSreRunbooks.ts"
+    ]
+  },
+  "/workspaces/sre/sandbox": {
+    "route": "/workspaces/sre/sandbox",
+    "component_path": "frontend/src/pages/Workspaces/Sre/Sandbox.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Sre/Sandbox.tsx",
+      "frontend/src/pages/WorkspacesSreSandbox.tsx",
+      "frontend/src/pages/Workspaces/Sre/Sandbox.ts"
+    ]
+  },
+  "/workspaces/twins": {
+    "route": "/workspaces/twins",
+    "component_path": "frontend/src/pages/WorkspacesTwins.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 0,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesTwins.jsx",
+      "frontend/src/pages/WorkspacesTwins.js",
+      "frontend/src/pages/WorkspacesTwins.tsx"
+    ]
+  },
+  "/workspaces/twins/enterprise": {
+    "route": "/workspaces/twins/enterprise",
+    "component_path": "frontend/src/pages/Workspaces/Twins/Enterprise.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Twins/Enterprise.tsx",
+      "frontend/src/pages/WorkspacesTwinsEnterprise.js",
+      "frontend/src/pages/Workspaces/Twins/Enterprise.js"
+    ]
+  },
+  "/workspaces/twins/feeds": {
+    "route": "/workspaces/twins/feeds",
+    "component_path": "frontend/src/pages/Workspaces/Twins/Feeds.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Twins/Feeds.js",
+      "frontend/src/pages/WorkspacesTwinsFeeds.js",
+      "frontend/src/pages/Workspaces/Twins/Feeds.tsx"
+    ]
+  },
+  "/workspaces/twins/governance": {
+    "route": "/workspaces/twins/governance",
+    "component_path": "frontend/src/pages/WorkspacesTwinsGovernance.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Twins/Governance.jsx",
+      "frontend/src/pages/Workspaces/Twins/Governance.ts",
+      "frontend/src/pages/WorkspacesTwinsGovernance.jsx"
+    ]
+  },
+  "/workspaces/twins/reality-mesh": {
+    "route": "/workspaces/twins/reality-mesh",
+    "component_path": "frontend/src/pages/Workspaces/Twins/Realitymesh.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Twins/Realitymesh.ts",
+      "frontend/src/pages/Workspaces/Twins/Realitymesh.jsx",
+      "frontend/src/pages/WorkspacesTwinsRealitymesh.ts"
+    ]
+  },
+  "/workspaces/twins/scenarios": {
+    "route": "/workspaces/twins/scenarios",
+    "component_path": "frontend/src/pages/Workspaces/Twins/Scenarios.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 5,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesTwinsScenarios.jsx",
+      "frontend/src/pages/Workspaces/Twins/Scenarios.jsx",
+      "frontend/src/pages/Workspaces/Twins/Scenarios.js"
+    ]
+  },
+  "/workspaces/twins/templates": {
+    "route": "/workspaces/twins/templates",
+    "component_path": "frontend/src/pages/Workspaces/Twins/Templates.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesTwinsTemplates.ts",
+      "frontend/src/pages/Workspaces/Twins/Templates.tsx",
+      "frontend/src/pages/Workspaces/Twins/Templates.ts"
+    ]
+  },
+  "/workspaces/writer/canon": {
+    "route": "/workspaces/writer/canon",
+    "component_path": "frontend/src/pages/Workspaces/Writer/Canon.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesWriterCanon.jsx",
+      "frontend/src/pages/WorkspacesWriterCanon.js",
+      "frontend/src/pages/Workspaces/Writer/Canon.ts"
+    ]
+  },
+  "/workspaces/writer/citations": {
+    "route": "/workspaces/writer/citations",
+    "component_path": "frontend/src/pages/Workspaces/Writer/Citations.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesWriterCitations.ts",
+      "frontend/src/pages/Workspaces/Writer/Citations.tsx",
+      "frontend/src/pages/WorkspacesWriterCitations.jsx"
+    ]
+  },
+  "/workspaces/writer/narrative": {
+    "route": "/workspaces/writer/narrative",
+    "component_path": "frontend/src/pages/Workspaces/Writer/Narrative.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Writer/Narrative.ts",
+      "frontend/src/pages/WorkspacesWriterNarrative.js",
+      "frontend/src/pages/WorkspacesWriterNarrative.ts"
+    ]
+  },
+  "/workspaces/writer/originality": {
+    "route": "/workspaces/writer/originality",
+    "component_path": "frontend/src/pages/Workspaces/Writer/Originality.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesWriterOriginality.ts",
+      "frontend/src/pages/WorkspacesWriterOriginality.js",
+      "frontend/src/pages/Workspaces/Writer/Originality.tsx"
+    ]
+  },
+  "/workspaces/writer/publishing": {
+    "route": "/workspaces/writer/publishing",
+    "component_path": "frontend/src/pages/WorkspacesWriterPublishing.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 4,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesWriterPublishing.ts",
+      "frontend/src/pages/WorkspacesWriterPublishing.tsx",
+      "frontend/src/pages/WorkspacesWriterPublishing.jsx"
+    ]
+  },
+  "/workspaces/writer/qa": {
+    "route": "/workspaces/writer/qa",
+    "component_path": "frontend/src/pages/Workspaces/Writer/Qa.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesWriterQa.ts",
+      "frontend/src/pages/Workspaces/Writer/Qa.tsx",
+      "frontend/src/pages/Workspaces/Writer/Qa.js"
+    ]
+  },
+  "/workspaces/writer/style-guide": {
+    "route": "/workspaces/writer/style-guide",
+    "component_path": "frontend/src/pages/Workspaces/Writer/Styleguide.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/Workspaces/Writer/Styleguide.ts",
+      "frontend/src/pages/Workspaces/Writer/Styleguide.tsx",
+      "frontend/src/pages/WorkspacesWriterStyleguide.tsx"
+    ]
+  },
+  "/workspaces/writer/versioning": {
+    "route": "/workspaces/writer/versioning",
+    "component_path": "frontend/src/pages/Workspaces/Writer/Versioning.tsx",
+    "source": "current",
+    "source_sha": null,
+    "score": 3,
+    "has_content": true,
+    "candidate_paths": [
+      "frontend/src/pages/WorkspacesWriterVersioning.js",
+      "frontend/src/pages/Workspaces/Writer/Versioning.jsx",
+      "frontend/src/pages/WorkspacesWriterVersioning.jsx"
+    ]
+  }
+}

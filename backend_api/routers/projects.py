@@ -686,12 +686,12 @@ async def get_project_count():
 
 
 @router.get("/intelligence", response_model=List[ProjectIntelligenceResponse])
-async def list_project_intelligence():
+async def list_project_intelligence(user: AuthUser = Depends(get_current_user)):
     """Return calculated project intelligence/health metrics."""
     with db_session() as db:
         cursor = db.execute("SELECT name FROM projects ORDER BY order_num, name")
         project_rows = cursor.fetchall()
-        tasks_map = _group_tasks_by_project(db)
+        tasks_map = _group_tasks_by_project(db, user.id)
         return [
             _compute_project_intelligence(db, project_row["name"], tasks_map) for project_row in project_rows
         ]

@@ -1,0 +1,23 @@
+{
+  "stage": "dev",
+  "profile": "quick",
+  "required_pass_rate": 0.97,
+  "pass_rate": 1.0,
+  "tests": 37,
+  "failures": 0,
+  "backend": {
+    "tests": 35,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "failures_detail": []
+  },
+  "frontend": {
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "failures_detail": []
+  },
+  "failures_detail": []
+}

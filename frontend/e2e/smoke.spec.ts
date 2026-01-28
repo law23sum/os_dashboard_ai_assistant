@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 
 test('loads dashboard and top navigation', async ({ page }) => {
   await page.goto('/')
@@ -14,4 +14,3 @@ test('navigates to Projects and shows feature sidebar', async ({ page }) => {
   await expect(page.getByText('Platform features')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Ledger' })).toBeVisible()
 })
-

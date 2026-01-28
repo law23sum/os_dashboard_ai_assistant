@@ -54,7 +54,9 @@ async function findAvailablePort(startPort) {
     }
     candidate += 1
   }
-  throw new Error(`Unable to locate a free port near ${startPort}. Close existing Vite/Electron windows.`)
+  const errorMsg = `Unable to locate a free port between ${startPort} and ${startPort + PORT_SCAN_LIMIT - 1}.\n` +
+    `Please close any existing Vite dev servers or Electron windows, or set VITE_DEV_SERVER_PORT to a different port.`
+  throw new Error(errorMsg)
 }
 
 function waitForPort(port, timeoutMs = 20000) {
@@ -184,7 +186,12 @@ function stopAutoFixMonitor() {
     return
   }
   if (autoFixProcess.exitCode == null) {
-    autoFixProcess.kill('SIGINT')
+    try {
+      autoFixProcess.kill('SIGINT')
+    } catch (error) {
+      // Ignore kill errors - process may have already exited
+      console.warn(logPrefix(`Warning: Could not stop auto-fix monitor: ${error?.message || error}`))
+    }
   }
   if (process.env.OSDASH_AUTOFIX_ACTIVE === String(autoFixProcess.pid)) {
     delete process.env.OSDASH_AUTOFIX_ACTIVE

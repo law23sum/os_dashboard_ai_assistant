@@ -18,13 +18,24 @@ logger = logging.getLogger(__name__)
 
 ensure_data_directories()
 DB_FILE = str(DB_PATH)
+DEFAULT_TENANT_ID = "default-tenant"
+DEFAULT_TENANT_NAME = "Default Tenant"
+DEFAULT_WORKSPACE_ID = "default-workspace"
+DEFAULT_WORKSPACE_NAME = "Default Workspace"
 
 PERSONAS = ["Chris", "AIC", "Aria", "Sora"]
 PERSONA_ROLES = {
     "Chris": "Human Owner / Primary User",
-    "AIC": "Auditor – reviews, checks, cross-validates",
-    "Aria": "Assistant – daily flow, tasks, priorities",
-    "Sora": "Archive – long-term structure, history, references",
+    "AIC": "Sir Chief Fellow Director Principal Software Solutions Systems Engineer Architect",
+    "Aria": (
+        "Sir Doctor Fellow Philosopher Metaphysician Phenomenologist Axiologist "
+        "Semiotician Dialectician Rhetorician Conceptual Cartographer "
+        "Interdisciplinary Synthesist Canon Curator Professor"
+    ),
+    "Sora": (
+        "Sir Doctor Fellow Ontological Epistemologist Formal Logician Scientific "
+        "Methodologist Semantic Taxonomist Evidence Examiner Governance Auditor Professor"
+    ),
 }
 
 STATUS_OPTIONS = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE"]
@@ -39,6 +50,26 @@ CHANGE_PERMISSION_MODES = ["auto", "ask", "ask_when_unsure"]
 CONTINUITY_MODES = ["full", "automation-off", "read-only"]
 RISK_APPETITE_MODES = ["conservative", "balanced", "progressive"]
 
+PMS_PROJECT_MODES = ["personal", "enterprise"]
+PMS_TASK_STATUSES = ["TODO", "IN_PROGRESS", "BLOCKED", "DONE", "ARCHIVED"]
+PMS_TODO_STATUSES = ["TODO", "IN_PROGRESS", "DONE", "ARCHIVED"]
+PMS_RUN_STATUSES = ["queued", "running", "succeeded", "failed", "needs_review"]
+PMS_DOCUMENT_VISIBILITY = ["private", "team", "public"]
+PMS_DOCUMENT_KINDS = ["spec", "notes", "runbook", "manuscript", "draft", "journal"]
+PMS_DEFAULT_PRIORITY_TIERS = ["P0", "P1", "P2", "P3"]
+PMS_JOURNAL_SECTION_TYPES = [
+    "Comments",
+    "KnowledgeTransfer",
+    "DisputableDebate",
+    "ChallengesRisks",
+    "SolutionsMitigations",
+    "ProposalRaised",
+    "MisunderstandingClarification",
+    "TechnicalDesign",
+    "CommonDiscussions",
+    "Questions",
+    "NextSteps",
+]
 DEFAULT_FETCH_PREFERENCES = {
     "notes": True,
     "calendar": True,
@@ -209,6 +240,256 @@ class DocumentOperation:
 
 
 @dataclass
+class Deliverable:
+    """Project deliverable entry seeded from curated roadmaps."""
+
+    id: int
+    item_number: int
+    title: str
+    layer: str = ""
+    content: str = ""
+    source: str = ""
+    created_at: str = datetime.now().isoformat(timespec="seconds")
+    user_id: str = "demo"
+
+
+@dataclass
+class PmsProject:
+    project_id: str
+    name: str
+    mode: str = "personal"
+    scope_type: str = "user"
+    scope_id: str = "demo"
+    status: str = "active"
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    config_json: str = ""
+    budget_json: str = ""
+    created_by: str = "demo"
+    is_sample: int = 0
+
+
+@dataclass
+class PmsEpic:
+    epic_id: str
+    project_id: str
+    title: str
+    description: str = ""
+    acceptance_criteria: str = ""
+    status: str = "active"
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    scope_type: str = "user"
+    scope_id: str = "demo"
+    created_by: str = "demo"
+    is_archived: int = 0
+
+
+@dataclass
+class PmsTask:
+    task_id: str
+    project_id: str
+    title: str
+    deliverable_spec: str = ""
+    acceptance_criteria: str = ""
+    priority: str = "P1"
+    category: str = "General"
+    task_type: str = "General"
+    status: str = "TODO"
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    enqueue_time: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    epic_id: Optional[str] = None
+    scope_type: str = "user"
+    scope_id: str = "demo"
+    created_by: str = "demo"
+    is_archived: int = 0
+
+
+@dataclass
+class PmsTodo:
+    todo_id: str
+    task_id: str
+    text: str
+    status: str = "TODO"
+    position: int = 0
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    scope_type: str = "user"
+    scope_id: str = "demo"
+    created_by: str = "demo"
+
+
+@dataclass
+class PmsExecutionRun:
+    run_id: str
+    project_id: str
+    input_params: str = ""
+    status: str = "queued"
+    started_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    ended_at: Optional[str] = None
+    summary: str = ""
+    created_by: str = "demo"
+    epic_id: Optional[str] = None
+    task_id: Optional[str] = None
+    todo_id: Optional[str] = None
+    scope_type: str = "user"
+    scope_id: str = "demo"
+
+
+@dataclass
+class PmsArtifact:
+    artifact_id: str
+    project_id: str
+    kind: str
+    filename: str
+    display_name: str
+    mime_type: str
+    size: int
+    sha256: str
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    storage_path: str = ""
+    run_id: Optional[str] = None
+    scope_type: str = "user"
+    scope_id: str = "demo"
+
+
+@dataclass
+class PmsDocument:
+    document_id: str
+    project_id: str
+    title: str
+    kind: str = "spec"
+    visibility: str = "private"
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    published_revision_hash: Optional[str] = None
+    latest_revision_hash: Optional[str] = None
+    epic_id: Optional[str] = None
+    task_id: Optional[str] = None
+    scope_type: str = "user"
+    scope_id: str = "demo"
+    created_by: str = "demo"
+    is_archived: int = 0
+
+
+@dataclass
+class PmsDocumentRevision:
+    revision_id: str
+    document_id: str
+    revision_hash: str
+    parent_hash: Optional[str] = None
+    author: str = "demo"
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    metadata_json: str = ""
+
+
+@dataclass
+class PmsDocumentBlob:
+    blob_hash: str
+    content: str
+    size: int
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+
+
+@dataclass
+class PmsExpenseEntry:
+    expense_id: str
+    project_id: str
+    amount: float
+    currency: str
+    category: str
+    description: str
+    occurred_at: str
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    epic_id: Optional[str] = None
+    task_id: Optional[str] = None
+    vendor: Optional[str] = None
+    created_by: str = "demo"
+    scope_type: str = "user"
+    scope_id: str = "demo"
+
+
+@dataclass
+class PmsTimeEntry:
+    time_entry_id: str
+    project_id: str
+    actor_id: str
+    role: str
+    duration_minutes: int
+    hourly_rate: float
+    occurred_at: str
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    epic_id: Optional[str] = None
+    task_id: Optional[str] = None
+    scope_type: str = "user"
+    scope_id: str = "demo"
+
+
+@dataclass
+class PmsMeetingSession:
+    meeting_id: str
+    project_id: str
+    title: str
+    started_at: str
+    ended_at: Optional[str] = None
+    participants_json: str = ""
+    language: str = "en"
+    created_by: str = "demo"
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    epic_id: Optional[str] = None
+    task_id: Optional[str] = None
+    scope_type: str = "user"
+    scope_id: str = "demo"
+    recording_status: str = "none"
+    recording_path: str = ""
+    recording_mime_type: Optional[str] = None
+    recording_size: Optional[int] = None
+    recording_sha256: Optional[str] = None
+    transcript_status: Optional[str] = None
+    journal_status: Optional[str] = None
+
+
+@dataclass
+class PmsTranscriptSegment:
+    segment_id: str
+    meeting_id: str
+    ts_start: float
+    ts_end: float
+    speaker_label: str
+    text_original: str
+    text_translated: Optional[str] = None
+    confidence: Optional[float] = None
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+
+
+@dataclass
+class PmsJournalBlock:
+    block_id: str
+    meeting_id: str
+    ts_start: float
+    ts_end: float
+    section_type: str
+    content: str
+    speaker_label: Optional[str] = None
+    references_json: str = ""
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+
+
+@dataclass
+class PmsSpeakerMapping:
+    mapping_id: str
+    meeting_id: str
+    speaker_label: str
+    participant_name: str
+    consented_by: str
+    consented_at: str
+    updated_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+
+
+@dataclass
 class UserAccount:
     """Authenticated user account for multi-tenant web/desktop surfaces."""
 
@@ -341,6 +622,22 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
 
     c = conn.cursor()
 
+    def _column_exists(table: str, column: str) -> bool:
+        try:
+            rows = conn.execute(f"PRAGMA table_info({table})").fetchall()
+            return any(row[1] == column for row in rows)
+        except Exception:
+            return False
+
+    def _add_column(table: str, column: str, definition: str) -> None:
+        if _column_exists(table, column):
+            return
+        try:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+        except Exception:
+            # Ignore if the table does not exist yet or if column cannot be added.
+            pass
+
     c.execute("""
         CREATE TABLE IF NOT EXISTS state_meta (
             key TEXT PRIMARY KEY,
@@ -364,6 +661,589 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
             created_at TEXT NOT NULL,
             last_login TEXT
         )
+        """
+    )
+    c.execute("PRAGMA table_info(users)")
+    columns = [row[1] for row in c.fetchall()]
+    if "tenant_id" not in columns:
+        c.execute("ALTER TABLE users ADD COLUMN tenant_id TEXT")
+    if "workspace_id" not in columns:
+        c.execute("ALTER TABLE users ADD COLUMN workspace_id TEXT")
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tenants (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS workspaces (
+            id TEXT PRIMARY KEY,
+            tenant_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS ledger_events (
+            id TEXT PRIMARY KEY,
+            entity_type TEXT NOT NULL,
+            entity_id TEXT NOT NULL,
+            action TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            metadata_json TEXT
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS cir_documents (
+            id TEXT PRIMARY KEY,
+            workspace_id TEXT NOT NULL,
+            title TEXT NOT NULL,
+            status TEXT,
+            created_at TEXT NOT NULL,
+            metadata_json TEXT,
+            FOREIGN KEY(workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS capsules (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            policy_tier TEXT,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS drivers (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            category TEXT,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS policies (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            version TEXT,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS policy_packs (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            version TEXT,
+            created_at TEXT NOT NULL,
+            tenant_id TEXT,
+            workspace_id TEXT
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS policy_decisions (
+            id TEXT PRIMARY KEY,
+            simulation_id TEXT NOT NULL,
+            decision TEXT NOT NULL,
+            rationale TEXT,
+            severity TEXT,
+            created_at TEXT NOT NULL,
+            tenant_id TEXT,
+            workspace_id TEXT,
+            FOREIGN KEY(simulation_id) REFERENCES policy_simulations(id) ON DELETE CASCADE
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id TEXT PRIMARY KEY,
+            actor_id TEXT,
+            action TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            metadata_json TEXT
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS usage_records (
+            id TEXT PRIMARY KEY,
+            tenant_id TEXT NOT NULL,
+            metric TEXT NOT NULL,
+            value REAL NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS evidence_packs (
+            id TEXT PRIMARY KEY,
+            workspace_id TEXT NOT NULL,
+            label TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY(workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS configs (
+            id TEXT PRIMARY KEY,
+            scope TEXT NOT NULL,
+            data_json TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS metrics (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            value REAL NOT NULL,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS secrets (
+            id TEXT PRIMARY KEY,
+            handle TEXT NOT NULL,
+            kind TEXT,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS artifacts (
+            id TEXT PRIMARY KEY,
+            handle TEXT NOT NULL,
+            storage_uri TEXT,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS policy_simulations (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            policy_pack_id TEXT NOT NULL,
+            scenario TEXT NOT NULL,
+            environment_profile TEXT NOT NULL,
+            status TEXT NOT NULL,
+            risk_score REAL NOT NULL,
+            cost_estimate REAL NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
+        )
+        """
+    )
+
+    # ---------------------------------------------------------------------
+    # Governance / classification scaffolding columns
+    # ---------------------------------------------------------------------
+    _add_column("audit_logs", "tenant_id", "TEXT")
+    _add_column("audit_logs", "workspace_id", "TEXT")
+    _add_column("audit_logs", "user_id", "TEXT")
+    _add_column("audit_logs", "status", "TEXT")
+    _add_column("audit_logs", "retention_policy", "TEXT")
+    _add_column("audit_logs", "legal_hold", "INTEGER DEFAULT 0")
+    _add_column("audit_logs", "residency", "TEXT")
+
+    _add_column("tasks", "tenant_id", "TEXT")
+    _add_column("tasks", "workspace_id", "TEXT")
+    _add_column("tasks", "updated_at", "TEXT")
+
+    _add_column("projects", "tenant_id", "TEXT")
+    _add_column("projects", "workspace_id", "TEXT")
+    _add_column("projects", "created_at", "TEXT")
+    _add_column("projects", "updated_at", "TEXT")
+
+    _add_column("usage_records", "workspace_id", "TEXT")
+    _add_column("usage_records", "user_id", "TEXT")
+
+    _add_column("evidence_packs", "tenant_id", "TEXT")
+    _add_column("evidence_packs", "user_id", "TEXT")
+    _add_column("evidence_packs", "retention_policy", "TEXT")
+    _add_column("evidence_packs", "legal_hold", "INTEGER DEFAULT 0")
+    _add_column("evidence_packs", "residency", "TEXT")
+
+    _add_column("configs", "tenant_id", "TEXT")
+    _add_column("configs", "workspace_id", "TEXT")
+    _add_column("configs", "user_id", "TEXT")
+    _add_column("configs", "updated_at", "TEXT")
+
+    _add_column("metrics", "tenant_id", "TEXT")
+    _add_column("metrics", "workspace_id", "TEXT")
+    _add_column("metrics", "user_id", "TEXT")
+    _add_column("metrics", "dimension_json", "TEXT")
+    _add_column("metrics", "source", "TEXT")
+
+    _add_column("secrets", "handle", "TEXT NOT NULL DEFAULT ''")
+    _add_column("secrets", "tenant_id", "TEXT")
+    _add_column("secrets", "workspace_id", "TEXT")
+    _add_column("secrets", "user_id", "TEXT")
+    _add_column("secrets", "last_rotated_at", "TEXT")
+    _add_column("secrets", "expires_at", "TEXT")
+    _add_column("secrets", "retention_policy", "TEXT")
+
+    _add_column("artifacts", "handle", "TEXT NOT NULL DEFAULT ''")
+    _add_column("artifacts", "tenant_id", "TEXT")
+    _add_column("artifacts", "workspace_id", "TEXT")
+    _add_column("artifacts", "user_id", "TEXT")
+    _add_column("artifacts", "size_bytes", "INTEGER")
+    _add_column("artifacts", "content_type", "TEXT")
+    _add_column("artifacts", "checksum", "TEXT")
+    _add_column("artifacts", "retention_policy", "TEXT")
+    _add_column("artifacts", "legal_hold", "INTEGER DEFAULT 0")
+    _add_column("artifacts", "residency", "TEXT")
+
+    _add_column("policy_simulations", "tenant_id", "TEXT")
+    _add_column("policy_simulations", "workspace_id", "TEXT")
+    _add_column("policy_simulations", "decisions_json", "TEXT")
+    _add_column("policy_simulations", "distribution_json", "TEXT")
+    _add_column("policy_simulations", "report", "TEXT")
+    _add_column("policy_simulations", "updated_at", "TEXT")
+
+    _add_column("ledger_events", "tenant_id", "TEXT")
+    _add_column("ledger_events", "workspace_id", "TEXT")
+    _add_column("ledger_events", "user_id", "TEXT")
+
+    _add_column("cir_documents", "tenant_id", "TEXT")
+    _add_column("cir_documents", "user_id", "TEXT")
+
+    _add_column("capsules", "tenant_id", "TEXT")
+    _add_column("drivers", "tenant_id", "TEXT")
+    _add_column("policies", "tenant_id", "TEXT")
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_policy_simulations_user
+        ON policy_simulations(user_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_policy_simulations_pack
+        ON policy_simulations(policy_pack_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_policy_simulations_status
+        ON policy_simulations(status, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_policy_simulations_tenant
+        ON policy_simulations(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_policy_simulations_workspace
+        ON policy_simulations(workspace_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_policy_packs_tenant
+        ON policy_packs(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_policy_packs_workspace
+        ON policy_packs(workspace_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_policy_decisions_simulation
+        ON policy_decisions(simulation_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_policy_decisions_tenant
+        ON policy_decisions(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_policy_decisions_workspace
+        ON policy_decisions(workspace_id, datetime(created_at) DESC)
+        """
+    )
+
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_tenants_name
+        ON tenants(name)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_workspaces_tenant
+        ON workspaces(tenant_id)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_ledger_events_entity
+        ON ledger_events(entity_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_ledger_events_tenant
+        ON ledger_events(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_ledger_events_workspace
+        ON ledger_events(workspace_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_ledger_events_user
+        ON ledger_events(user_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_cir_documents_workspace
+        ON cir_documents(workspace_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_cir_documents_tenant
+        ON cir_documents(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_cir_documents_user
+        ON cir_documents(user_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_audit_logs_actor
+        ON audit_logs(actor_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_audit_logs_tenant
+        ON audit_logs(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_audit_logs_workspace
+        ON audit_logs(workspace_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_audit_logs_user
+        ON audit_logs(user_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_usage_records_tenant
+        ON usage_records(tenant_id, metric, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_usage_records_workspace
+        ON usage_records(workspace_id, metric, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_usage_records_user
+        ON usage_records(user_id, metric, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_evidence_packs_workspace
+        ON evidence_packs(workspace_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_evidence_packs_tenant
+        ON evidence_packs(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_evidence_packs_user
+        ON evidence_packs(user_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_configs_scope
+        ON configs(scope)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_configs_tenant
+        ON configs(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_configs_workspace
+        ON configs(workspace_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_configs_user
+        ON configs(user_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_metrics_name
+        ON metrics(name, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_metrics_tenant
+        ON metrics(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_metrics_workspace
+        ON metrics(workspace_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_metrics_user
+        ON metrics(user_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_secrets_handle
+        ON secrets(handle)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_secrets_tenant
+        ON secrets(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_secrets_workspace
+        ON secrets(workspace_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_secrets_user
+        ON secrets(user_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_artifacts_handle
+        ON artifacts(handle)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_artifacts_tenant
+        ON artifacts(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_artifacts_workspace
+        ON artifacts(workspace_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_artifacts_user
+        ON artifacts(user_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_capsules_tenant
+        ON capsules(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_drivers_tenant
+        ON drivers(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_policies_tenant
+        ON policies(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_policy_simulations_user
+        ON policy_simulations(user_id, policy_pack_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_users_tenant
+        ON users(tenant_id)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_users_workspace
+        ON users(workspace_id)
         """
     )
 
@@ -453,6 +1333,35 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
     columns = [row[1] for row in c.fetchall()]
     if "user_id" not in columns:
         c.execute("ALTER TABLE tasks ADD COLUMN user_id TEXT DEFAULT 'demo'")
+
+    _add_column("tasks", "created_at", "TEXT")
+    _add_column("tasks", "tenant_id", "TEXT")
+    _add_column("tasks", "workspace_id", "TEXT")
+
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_tasks_user
+        ON tasks(user_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_tasks_tenant
+        ON tasks(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_tasks_workspace
+        ON tasks(workspace_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_tasks_status
+        ON tasks(status, datetime(created_at) DESC)
+        """
+    )
     
     # Create task_templates table
     c.execute("""
@@ -493,6 +1402,35 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
     columns = [row[1] for row in c.fetchall()]
     if "user_id" not in columns:
         c.execute("ALTER TABLE projects ADD COLUMN user_id TEXT DEFAULT 'demo'")
+
+    _add_column("projects", "created_at", "TEXT")
+    _add_column("projects", "tenant_id", "TEXT")
+    _add_column("projects", "workspace_id", "TEXT")
+
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_projects_user
+        ON projects(user_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_projects_tenant
+        ON projects(tenant_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_projects_workspace
+        ON projects(workspace_id, datetime(created_at) DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_projects_status
+        ON projects(status)
+        """
+    )
 
     c.execute("""
         CREATE TABLE IF NOT EXISTS external_sources (
@@ -621,6 +1559,450 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
     columns = [row[1] for row in c.fetchall()]
     if "user_id" not in columns:
         c.execute("ALTER TABLE project_events ADD COLUMN user_id TEXT DEFAULT 'demo'")
+
+    # ---------------------------------------------------------------------
+    # Deliverables catalog (admin-seeded)
+    # ---------------------------------------------------------------------
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS deliverables (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_number INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            layer TEXT,
+            content TEXT,
+            source TEXT,
+            created_at TEXT NOT NULL,
+            user_id TEXT DEFAULT 'demo'
+        )
+        """
+    )
+    c.execute("PRAGMA table_info(deliverables)")
+    columns = [row[1] for row in c.fetchall()]
+    if "user_id" not in columns:
+        c.execute("ALTER TABLE deliverables ADD COLUMN user_id TEXT DEFAULT 'demo'")
+    if "layer" not in columns:
+        c.execute("ALTER TABLE deliverables ADD COLUMN layer TEXT DEFAULT ''")
+    if "source" not in columns:
+        c.execute("ALTER TABLE deliverables ADD COLUMN source TEXT DEFAULT ''")
+
+    # ---------------------------------------------------------------------
+    # Project Management System (PMS) tables
+    # ---------------------------------------------------------------------
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_projects (
+            project_id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            mode TEXT NOT NULL,
+            scope_type TEXT NOT NULL,
+            scope_id TEXT NOT NULL,
+            status TEXT NOT NULL,
+            created_at TEXT,
+            updated_at TEXT,
+            config_json TEXT,
+            budget_json TEXT,
+            created_by TEXT,
+            is_sample INTEGER DEFAULT 0
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_epics (
+            epic_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            acceptance_criteria TEXT,
+            status TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            scope_type TEXT,
+            scope_id TEXT,
+            created_by TEXT,
+            is_archived INTEGER DEFAULT 0
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_tasks (
+            task_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            epic_id TEXT,
+            title TEXT NOT NULL,
+            deliverable_spec TEXT,
+            acceptance_criteria TEXT,
+            priority TEXT,
+            category TEXT,
+            task_type TEXT,
+            status TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            enqueue_time TEXT,
+            scope_type TEXT,
+            scope_id TEXT,
+            created_by TEXT,
+            is_archived INTEGER DEFAULT 0
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_todos (
+            todo_id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL,
+            text TEXT NOT NULL,
+            status TEXT,
+            position INTEGER,
+            created_at TEXT,
+            updated_at TEXT,
+            scope_type TEXT,
+            scope_id TEXT,
+            created_by TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_runs (
+            run_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            epic_id TEXT,
+            task_id TEXT,
+            todo_id TEXT,
+            input_params TEXT,
+            status TEXT,
+            started_at TEXT,
+            ended_at TEXT,
+            summary TEXT,
+            created_by TEXT,
+            scope_type TEXT,
+            scope_id TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_artifacts (
+            artifact_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            run_id TEXT,
+            kind TEXT,
+            filename TEXT,
+            display_name TEXT,
+            mime_type TEXT,
+            size INTEGER,
+            sha256 TEXT,
+            created_at TEXT,
+            storage_path TEXT,
+            scope_type TEXT,
+            scope_id TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_documents (
+            document_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            epic_id TEXT,
+            task_id TEXT,
+            title TEXT,
+            kind TEXT,
+            visibility TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            published_revision_hash TEXT,
+            latest_revision_hash TEXT,
+            scope_type TEXT,
+            scope_id TEXT,
+            created_by TEXT,
+            is_archived INTEGER DEFAULT 0
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_document_blobs (
+            blob_hash TEXT PRIMARY KEY,
+            content TEXT,
+            size INTEGER,
+            created_at TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_document_revisions (
+            revision_id TEXT PRIMARY KEY,
+            document_id TEXT NOT NULL,
+            revision_hash TEXT NOT NULL,
+            parent_hash TEXT,
+            author TEXT,
+            created_at TEXT,
+            metadata_json TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_expenses (
+            expense_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            epic_id TEXT,
+            task_id TEXT,
+            amount REAL,
+            currency TEXT,
+            category TEXT,
+            vendor TEXT,
+            description TEXT,
+            occurred_at TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            created_by TEXT,
+            scope_type TEXT,
+            scope_id TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_time_entries (
+            time_entry_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            epic_id TEXT,
+            task_id TEXT,
+            actor_id TEXT,
+            role TEXT,
+            duration_minutes INTEGER,
+            hourly_rate REAL,
+            occurred_at TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            scope_type TEXT,
+            scope_id TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_meetings (
+            meeting_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            epic_id TEXT,
+            task_id TEXT,
+            title TEXT,
+            started_at TEXT,
+            ended_at TEXT,
+            participants_json TEXT,
+            language TEXT,
+            created_by TEXT,
+            created_at TEXT,
+            scope_type TEXT,
+            scope_id TEXT,
+            recording_status TEXT,
+            recording_path TEXT,
+            recording_mime_type TEXT,
+            recording_size INTEGER,
+            recording_sha256 TEXT,
+            transcript_status TEXT,
+            journal_status TEXT
+        )
+        """
+    )
+
+    c.execute("PRAGMA table_info(pms_meetings)")
+    meeting_columns = {row[1] for row in c.fetchall()}
+    for column_name, column_type in {
+        "recording_path": "TEXT",
+        "recording_mime_type": "TEXT",
+        "recording_size": "INTEGER",
+        "recording_sha256": "TEXT",
+        "transcript_status": "TEXT",
+        "journal_status": "TEXT",
+    }.items():
+        if column_name not in meeting_columns:
+            c.execute(f"ALTER TABLE pms_meetings ADD COLUMN {column_name} {column_type}")
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_transcript_segments (
+            segment_id TEXT PRIMARY KEY,
+            meeting_id TEXT NOT NULL,
+            ts_start REAL,
+            ts_end REAL,
+            speaker_label TEXT,
+            text_original TEXT,
+            text_translated TEXT,
+            confidence REAL,
+            created_at TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_journal_blocks (
+            block_id TEXT PRIMARY KEY,
+            meeting_id TEXT NOT NULL,
+            ts_start REAL,
+            ts_end REAL,
+            section_type TEXT,
+            speaker_label TEXT,
+            content TEXT,
+            references_json TEXT,
+            created_at TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pms_speaker_mappings (
+            mapping_id TEXT PRIMARY KEY,
+            meeting_id TEXT NOT NULL,
+            speaker_label TEXT,
+            participant_name TEXT,
+            consented_by TEXT,
+            consented_at TEXT,
+            updated_at TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_pms_projects_scope_name
+        ON pms_projects(scope_type, scope_id, name)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_projects_scope
+        ON pms_projects(scope_type, scope_id, status)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_projects_sample
+        ON pms_projects(is_sample, created_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_epics_project
+        ON pms_epics(project_id, updated_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_tasks_project
+        ON pms_tasks(project_id, status, priority)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_tasks_epic
+        ON pms_tasks(epic_id, updated_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_tasks_enqueue
+        ON pms_tasks(enqueue_time, task_id)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_todos_task
+        ON pms_todos(task_id, position)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_runs_project
+        ON pms_runs(project_id, started_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_runs_task
+        ON pms_runs(task_id, started_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_artifacts_run
+        ON pms_artifacts(run_id, created_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_documents_project
+        ON pms_documents(project_id, updated_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_pms_doc_revision_unique
+        ON pms_document_revisions(document_id, revision_hash)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_doc_revisions_doc
+        ON pms_document_revisions(document_id, created_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_expenses_project
+        ON pms_expenses(project_id, occurred_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_time_entries_project
+        ON pms_time_entries(project_id, occurred_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_meetings_project
+        ON pms_meetings(project_id, started_at DESC)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_transcript_meeting
+        ON pms_transcript_segments(meeting_id, ts_start)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_journal_meeting
+        ON pms_journal_blocks(meeting_id, section_type, ts_start)
+        """
+    )
+    c.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_pms_speaker_meeting
+        ON pms_speaker_mappings(meeting_id, speaker_label)
+        """
+    )
 
     c.execute(
         """
@@ -997,7 +2379,9 @@ def init_db(db_path: Optional[os.PathLike | str] = None) -> sqlite3.Connection:
             CREATE INDEX IF NOT EXISTS idx_project_ledger_project_created 
             ON project_ledger(project_id, created_at DESC)
         """)
+
     conn.commit()
+    _ensure_default_tenant_workspace(conn)
     _ensure_bootstrap_accounts(conn)
     return conn
 
@@ -1009,6 +2393,35 @@ def _bcrypt_hash_password(raw_password: str) -> str:
     salt = bcrypt.gensalt()
     hashed = bcrypt.hashpw(raw_password.encode("utf-8"), salt)
     return hashed.decode("utf-8")
+
+
+def _ensure_default_tenant_workspace(conn: sqlite3.Connection) -> None:
+    """Ensure a default tenant/workspace exist for scope enforcement."""
+    now = datetime.now().isoformat(timespec="seconds")
+    cur = conn.cursor()
+    cur.execute(
+        """
+        INSERT OR IGNORE INTO tenants (id, name, created_at)
+        VALUES (?, ?, ?)
+        """,
+        (DEFAULT_TENANT_ID, DEFAULT_TENANT_NAME, now),
+    )
+    cur.execute(
+        """
+        INSERT OR IGNORE INTO workspaces (id, tenant_id, name, created_at)
+        VALUES (?, ?, ?, ?)
+        """,
+        (DEFAULT_WORKSPACE_ID, DEFAULT_TENANT_ID, DEFAULT_WORKSPACE_NAME, now),
+    )
+    cur.execute(
+        "UPDATE users SET tenant_id = ? WHERE tenant_id IS NULL OR tenant_id = ''",
+        (DEFAULT_TENANT_ID,),
+    )
+    cur.execute(
+        "UPDATE users SET workspace_id = ? WHERE workspace_id IS NULL OR workspace_id = ''",
+        (DEFAULT_WORKSPACE_ID,),
+    )
+    conn.commit()
 
 
 def _ensure_bootstrap_accounts(conn: sqlite3.Connection) -> None:
@@ -1038,8 +2451,20 @@ def _ensure_bootstrap_accounts(conn: sqlite3.Connection) -> None:
             return
         cur.execute(
             """
-            INSERT INTO users (id, email, display_name, password_hash, is_admin, environment, disabled, created_at, last_login)
-            VALUES (?, ?, ?, ?, ?, ?, 0, ?, NULL)
+            INSERT INTO users (
+                id,
+                email,
+                display_name,
+                password_hash,
+                is_admin,
+                environment,
+                disabled,
+                created_at,
+                last_login,
+                tenant_id,
+                workspace_id
+            )
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, NULL, ?, ?)
             """,
             (
                 user_id,
@@ -1049,6 +2474,8 @@ def _ensure_bootstrap_accounts(conn: sqlite3.Connection) -> None:
                 1 if is_admin else 0,
                 environment,
                 now,
+                DEFAULT_TENANT_ID,
+                DEFAULT_WORKSPACE_ID,
             ),
         )
 
@@ -2090,7 +3517,7 @@ def db_list_project_events(
     params.append(max(1, min(limit, 500)))
 
     query = f"""
-        SELECT id, project_id, event_type, payload, created_at, hash_prev, hash_curr
+        SELECT id, project_id, event_type, payload, created_at, hash_prev, hash_curr, user_id
         FROM project_events
         {where}
         ORDER BY datetime(created_at) DESC, id DESC
@@ -2099,8 +3526,18 @@ def db_list_project_events(
     try:
         rows = cursor.execute(query, params).fetchall()
     except sqlite3.OperationalError:
-        # Table might not exist yet on very old databases.
-        return []
+        # Table/column might not exist yet on very old databases.
+        fallback_query = f"""
+            SELECT id, project_id, event_type, payload, created_at, hash_prev, hash_curr
+            FROM project_events
+            {where}
+            ORDER BY datetime(created_at) DESC, id DESC
+            LIMIT ?
+        """
+        try:
+            rows = cursor.execute(fallback_query, params).fetchall()
+        except sqlite3.OperationalError:
+            return []
 
     events: List[Dict[str, Any]] = []
     for row in rows:
@@ -2119,6 +3556,7 @@ def db_list_project_events(
                 "created_at": row["created_at"],
                 "hash_prev": row["hash_prev"],
                 "hash_curr": row["hash_curr"],
+                "user_id": row["user_id"] if "user_id" in row.keys() else None,
             }
         )
     return events

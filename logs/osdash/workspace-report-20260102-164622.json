@@ -1,0 +1,58 @@
+{
+  "summary": {
+    "root": "/private/var/folders/41/y63t2p311hd_h0nbxp7q2wfh0000gn/T/pytest-of-sum/pytest-46/test_workspace_checks_api0",
+    "generated_at": "20260102-164622",
+    "run_id": "02c0d825-0a85-4e9a-9b50-a0e08a4e272c",
+    "projects": 1,
+    "checks": 1,
+    "failed": 0,
+    "passed": 0,
+    "skipped": 1,
+    "dry_run": true,
+    "status": "passed"
+  },
+  "projects": [
+    {
+      "profile": {
+        "name": "demo",
+        "root": "/private/var/folders/41/y63t2p311hd_h0nbxp7q2wfh0000gn/T/pytest-of-sum/pytest-46/test_workspace_checks_api0",
+        "commands": {
+          "test": [
+            [
+              "echo",
+              "ok"
+            ]
+          ]
+        },
+        "autofix_script": null
+      },
+      "results": [
+        {
+          "category": "test",
+          "command": [
+            "echo",
+            "ok"
+          ],
+          "status": "skipped",
+          "exit_code": null,
+          "duration_seconds": 0.0,
+          "output": "dry-run (command not executed)",
+          "ran_at": 1767390382.931013,
+          "run_id": "02c0d825-0a85-4e9a-9b50-a0e08a4e272c",
+          "timeout_seconds": 300,
+          "error": null
+        }
+      ],
+      "counts": {
+        "total": 1,
+        "failed": 0,
+        "passed": 0,
+        "skipped": 1
+      },
+      "status": "passed",
+      "run_id": "02c0d825-0a85-4e9a-9b50-a0e08a4e272c"
+    }
+  ],
+  "errors": [],
+  "report_path": "/Users/sum/Project/os_dashboard_ai_assistant/logs/osdash/workspace-report-20260102-164622.json"
+}

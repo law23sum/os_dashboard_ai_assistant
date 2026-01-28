@@ -15,6 +15,7 @@ export default defineConfig({
   base: "./", // Required for Electron to load assets correctly
   resolve: {
     alias: {
+      "@": path.resolve(__dirname, "src"),
       "react-hot-toast": path.resolve(__dirname, "src/utils/toast.tsx"),
     },
   },

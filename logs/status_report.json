@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-12-22 23:40:00",
+  "timestamp": "2026-01-28 00:55:00",
   "root": "/Users/sum/Project",
-  "total_projects": 15,
+  "total_projects": 21,
   "projects": {
     "os_dashboard_ai_assistant": {
       "path": "/Users/sum/Project/os_dashboard_ai_assistant",
       "status": "stopped",
-      "branch": "incremeents",
+      "branch": "develop",
       "has_ai_autofix": true,
       "has_tests": true,
       "todo_count": 0
@@ -15,6 +15,22 @@
       "path": "/Users/sum/Project/trader_exchange",
       "status": "discovered",
       "branch": "main",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "os_dashboard_ai_assistant_clean": {
+      "path": "/Users/sum/Project/os_dashboard_ai_assistant_clean",
+      "status": "stopped",
+      "branch": "integrate/functional-pages-clean",
+      "has_ai_autofix": true,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "Repositories": {
+      "path": "/Users/sum/Project/Archive/IdeaProjects/Repositories",
+      "status": "discovered",
+      "branch": "develop_pull",
       "has_ai_autofix": false,
       "has_tests": false,
       "todo_count": 0
@@ -31,6 +47,46 @@
       "path": "/Users/sum/Project/Archive/IdeaProjects/JavaTutorial",
       "status": "discovered",
       "branch": "mvn_gradle_wrapper",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "mathematician+physicist+theoritical-engineer_research+simulations+experiments+calculations": {
+      "path": "/Users/sum/Project/mathematician+physicist+theoritical-engineer_research+simulations+experiments+calculations",
+      "status": "discovered",
+      "branch": "develop",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "moderngl": {
+      "path": "/Users/sum/Project/external_repositories/moderngl",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": true,
+      "todo_count": 0
+    },
+    "manim": {
+      "path": "/Users/sum/Project/external_repositories/manim",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "videos": {
+      "path": "/Users/sum/Project/external_repositories/videos",
+      "status": "discovered",
+      "branch": "master",
+      "has_ai_autofix": false,
+      "has_tests": false,
+      "todo_count": 0
+    },
+    "My-CyberSecurity-Store": {
+      "path": "/Users/sum/Project/external_repositories/My-CyberSecurity-Store",
+      "status": "discovered",
+      "branch": "main",
       "has_ai_autofix": false,
       "has_tests": false,
       "todo_count": 0
@@ -57,14 +113,6 @@
       "branch": "cities",
       "has_ai_autofix": false,
       "has_tests": true,
-      "todo_count": 0
-    },
-    "Repositories": {
-      "path": "/Users/sum/Project/Archive/IdeaProjects/Repositories",
-      "status": "discovered",
-      "branch": "develop_pull",
-      "has_ai_autofix": false,
-      "has_tests": false,
       "todo_count": 0
     },
     "JavaProject": {
@@ -137,7 +185,7 @@
   "monitors": {
     "running": 0,
     "healthy": 0,
-    "stopped": 1,
+    "stopped": 2,
     "error": 0
   }
 }

@@ -1,0 +1,17 @@
+{
+  "actors": {},
+  "encoding": "delta",
+  "event_families": {
+    "action_step": [
+      0,
+      1
+    ]
+  },
+  "event_types": {
+    "workflow_execute": [
+      0,
+      1
+    ]
+  },
+  "subjects": {}
+}

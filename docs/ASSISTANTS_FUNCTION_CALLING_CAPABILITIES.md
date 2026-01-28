@@ -860,3 +860,4 @@ if result["function_call"]:
 The codebase has comprehensive support for function calling in both the deprecated Assistants API and the current Responses API. The Responses API implementation includes advanced features like allowed tools constraints, reasoning effort control, and text verbosity settings. Tool execution is fully integrated with the GUI and supports interactive loops for multi-step operations.
 
 
+

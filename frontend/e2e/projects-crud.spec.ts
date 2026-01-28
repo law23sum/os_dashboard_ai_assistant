@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 
 test('projects CRUD: create -> verify -> delete', async ({ page }) => {
   const suffix = `${Date.now()}`
@@ -23,4 +23,3 @@ test('projects CRUD: create -> verify -> delete', async ({ page }) => {
   // Verify it disappears (give backend a moment)
   await expect(page.getByText(projectName)).not.toBeVisible({ timeout: 15_000 })
 })
-

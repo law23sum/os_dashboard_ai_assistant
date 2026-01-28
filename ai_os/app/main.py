@@ -7,6 +7,11 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+# Add project root to Python path to allow imports from ai_os package
+_project_root = Path(__file__).resolve().parent.parent.parent
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 
@@ -1013,3 +1018,20 @@ def failure_dashboard():
         "summary": failure_registry.summarize_events(),
         "signals": failure_registry.summarize_signals(),
     }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    print("🚀 Starting AI OS Dashboard server...")
+    print("📍 API will be available at http://localhost:8000")
+    print("📍 API docs at http://localhost:8000/docs")
+    print("📍 Health check at http://localhost:8000/health")
+    print("\nPress CTRL+C to stop the server\n")
+    
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+    )
