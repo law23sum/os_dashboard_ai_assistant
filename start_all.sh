@@ -22,7 +22,7 @@ if ! command -v node &> /dev/null; then
 fi
 
 echo -e "${BLUE}📦 Installing Python dependencies...${NC}"
-pip install -q -r requirements.txt
+python3 -m pip install -q -r requirements.txt
 
 echo -e "${GREEN}✅ Python dependencies installed${NC}"
 echo ""
@@ -34,7 +34,7 @@ echo ""
 
 echo -e "${BLUE}🔧 Starting Backend API on port 8000...${NC}"
 cd backend_api
-python main.py &
+python3 main.py &
 BACKEND_PID=$!
 cd ..
 
@@ -51,6 +51,13 @@ cd frontend
 if [ ! -d "node_modules" ]; then
     echo -e "${BLUE}📦 Installing Node.js dependencies (first time only)...${NC}"
     npm install
+fi
+
+# Skip preflight tests by default for faster local startup and to avoid
+# failures when AI auto-fix credentials are not configured.
+if [ -z "${OSDASH_SKIP_PREFLIGHT_TESTS:-}" ]; then
+    export OSDASH_SKIP_PREFLIGHT_TESTS=1
+    echo -e "${YELLOW}⚠️  Preflight tests skipped (set OSDASH_SKIP_PREFLIGHT_TESTS=0 to enable).${NC}"
 fi
 
 npm run dev &

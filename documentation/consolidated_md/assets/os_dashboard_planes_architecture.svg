@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820">
+  <defs>
+    <style>
+      .title { font: 18px sans-serif; font-weight: 700; fill: #111827; }
+      .plane { fill: #f8fafc; stroke: #1f2937; stroke-width: 1.5; }
+      .plane-title { font: 14px sans-serif; font-weight: 700; fill: #111827; }
+      .box { fill: #ffffff; stroke: #4b5563; stroke-width: 1.2; }
+      .label { font: 12px sans-serif; fill: #111827; }
+      .note { font: 11px sans-serif; fill: #374151; }
+      .arrow { stroke: #111827; stroke-width: 1.2; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#111827" />
+    </marker>
+  </defs>
+
+  <text x="40" y="30" class="title">OS Dashboard Plane-Based Architecture (Spec Aligned)</text>
+
+  <!-- Ingress / Edge -->
+  <rect x="40" y="60" width="800" height="100" rx="8" class="plane" />
+  <text x="55" y="80" class="plane-title">Ingress / Edge</text>
+  <rect x="60" y="95" width="220" height="45" rx="6" class="box" />
+  <text x="75" y="123" class="label">Desktop / Web / CLI / API</text>
+  <rect x="300" y="95" width="240" height="45" rx="6" class="box" />
+  <text x="315" y="123" class="label">API Gateway + PEP</text>
+
+  <!-- Control Plane -->
+  <rect x="40" y="180" width="800" height="210" rx="8" class="plane" />
+  <text x="55" y="200" class="plane-title">Control Plane</text>
+  <rect x="60" y="220" width="220" height="50" rx="6" class="box" />
+  <text x="75" y="250" class="label">Workflow Engine</text>
+  <rect x="320" y="220" width="200" height="50" rx="6" class="box" />
+  <text x="335" y="250" class="label">Orchestrator</text>
+  <rect x="540" y="220" width="200" height="50" rx="6" class="box" />
+  <text x="555" y="250" class="label">Driver Fabric</text>
+  <rect x="60" y="280" width="200" height="50" rx="6" class="box" />
+  <text x="75" y="310" class="label">Capsule Runtime</text>
+  <rect x="280" y="280" width="160" height="50" rx="6" class="box" />
+  <text x="295" y="310" class="label">Queues</text>
+  <rect x="460" y="280" width="200" height="50" rx="6" class="box" />
+  <text x="475" y="310" class="label">Daemon Runtime</text>
+
+  <!-- Data Plane -->
+  <rect x="40" y="410" width="800" height="190" rx="8" class="plane" />
+  <text x="55" y="430" class="plane-title">Data Plane</text>
+  <rect x="60" y="450" width="160" height="50" rx="6" class="box" />
+  <text x="75" y="480" class="label">CIR Store</text>
+  <rect x="240" y="450" width="160" height="50" rx="6" class="box" />
+  <text x="255" y="480" class="label">Project Ledger</text>
+  <rect x="420" y="450" width="200" height="50" rx="6" class="box" />
+  <text x="435" y="480" class="label">Capsule / Artifact Store</text>
+  <rect x="640" y="450" width="180" height="50" rx="6" class="box" />
+  <text x="655" y="480" class="label">Evidence Packs</text>
+  <rect x="60" y="510" width="200" height="50" rx="6" class="box" />
+  <text x="75" y="540" class="label">Search / Vector / Graph</text>
+  <rect x="280" y="510" width="200" height="50" rx="6" class="box" />
+  <text x="295" y="540" class="label">Metrics / Logs / Traces</text>
+
+  <!-- Governance Plane -->
+  <rect x="40" y="620" width="800" height="150" rx="8" class="plane" />
+  <text x="55" y="640" class="plane-title">Governance Plane</text>
+  <rect x="60" y="650" width="160" height="50" rx="6" class="box" />
+  <text x="75" y="680" class="label">Identity + Access</text>
+  <rect x="240" y="650" width="160" height="50" rx="6" class="box" />
+  <text x="255" y="680" class="label">Policy Engine</text>
+  <rect x="420" y="650" width="180" height="50" rx="6" class="box" />
+  <text x="435" y="680" class="label">Secrets / Key Mgmt</text>
+  <rect x="620" y="650" width="160" height="50" rx="6" class="box" />
+  <text x="635" y="680" class="label">Billing / Metering</text>
+  <rect x="280" y="710" width="200" height="40" rx="6" class="box" />
+  <text x="295" y="735" class="label">Compliance Packs</text>
+  <rect x="560" y="710" width="200" height="40" rx="6" class="box" />
+  <text x="575" y="735" class="label">Regulator Fabric</text>
+
+  <!-- Model Layer -->
+  <rect x="860" y="60" width="300" height="150" rx="8" class="plane" />
+  <text x="875" y="80" class="plane-title">Model Layer</text>
+  <rect x="880" y="95" width="260" height="40" rx="6" class="box" />
+  <text x="895" y="120" class="label">Model Router</text>
+  <rect x="880" y="145" width="260" height="40" rx="6" class="box" />
+  <text x="895" y="170" class="label">Model Providers</text>
+
+  <!-- External Systems -->
+  <rect x="860" y="240" width="300" height="120" rx="8" class="plane" />
+  <text x="875" y="260" class="plane-title">External Systems</text>
+  <rect x="880" y="275" width="260" height="45" rx="6" class="box" />
+  <text x="895" y="302" class="label">OS / SaaS / DB / PM</text>
+  <text x="880" y="330" class="note">All actions via Drivers + Capsules</text>
+
+  <!-- Auditors / Regulators -->
+  <rect x="860" y="620" width="300" height="150" rx="8" class="plane" />
+  <text x="875" y="640" class="plane-title">Auditors / Regulators</text>
+  <rect x="880" y="655" width="260" height="45" rx="6" class="box" />
+  <text x="895" y="682" class="label">Read-only Audit Access</text>
+  <text x="880" y="710" class="note">Evidence + Ledger inspection</text>
+
+  <!-- Arrows -->
+  <line x1="280" y1="117" x2="300" y2="117" class="arrow" />
+  <line x1="420" y1="140" x2="420" y2="220" class="arrow" />
+  <line x1="420" y1="270" x2="420" y2="450" class="arrow" />
+  <line x1="520" y1="245" x2="880" y2="115" class="arrow" />
+  <line x1="740" y1="245" x2="880" y2="297" class="arrow" />
+  <line x1="760" y1="730" x2="860" y2="678" class="arrow" />
+</svg>

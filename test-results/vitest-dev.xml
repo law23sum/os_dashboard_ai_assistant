@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="2" failures="0" errors="0" time="0.0645315">
+    <testsuite name="src/test/smoke.test.tsx" timestamp="2026-01-02T21:48:20.172Z" hostname="macmini.local" tests="2" failures="0" errors="0" skipped="0" time="0.0645315">
+        <testcase classname="src/test/smoke.test.tsx" name="ui smoke &gt; renders a primary button" time="0.049245333">
+        </testcase>
+        <testcase classname="src/test/smoke.test.tsx" name="ui smoke &gt; disables the button when loading" time="0.014171167">
+        </testcase>
+    </testsuite>
+</testsuites>

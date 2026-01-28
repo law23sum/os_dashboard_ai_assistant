@@ -1,0 +1,14 @@
+{
+  "archive_sha256": "a966f7002a9fbbff96c85dc4e9c3c5ab7cea1473bd6cf5369dafc27a1a50ad18",
+  "compression": "zip",
+  "created_at": "2026-01-20T19:38:03.458797",
+  "events_file_sha256": "06e5abc82744747b1947f8e6520a38adb7c2c70449c2190d54c9303ed39931f5",
+  "files": [
+    "202601191935-0000.events.jsonl",
+    "202601191935-0000.manifest.json",
+    "202601191935-0000.index.json"
+  ],
+  "segment_hash": "042cc0728608fc307b390fee540bf25bfa5f04439a42a47aa489475dcb9cc5aa",
+  "segment_id": "202601191935-0000",
+  "tenant_id": "default"
+}

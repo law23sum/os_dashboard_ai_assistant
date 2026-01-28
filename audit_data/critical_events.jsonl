@@ -1,0 +1,1 @@
+{"event_id": "b9677e15-a556-42f9-aab4-e33bab19156f", "segment_id": "202601050730-0000", "timestamp": "2026-01-05T07:31:04.286870", "event_type": "security_event", "rule_id": "manual", "evidence_refs": [], "actor_id": null, "subject_id": null, "event_hash": "658ea0bed04f89fea3eab9e66629784eb94116fc4840b3435251dea9ffeb6038", "severity": "critical"}

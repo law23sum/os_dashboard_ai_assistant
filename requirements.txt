@@ -103,6 +103,7 @@ textblob>=0.17.0
 
 # Google API dependencies
 google-api-python-client>=2.0.0
+google-auth>=2.23.0,<2.42.0
 google-auth-httplib2>=0.1.0
 google-auth-oauthlib>=0.4.0
 

@@ -15,6 +15,7 @@ import Documentation from './pages/Documentation'
 import ResponsesChat from './pages/ResponsesChat'
 import FutureDeck from './pages/FutureDeck'
 import PmsProjectDetail from './pages/pms/PmsProjectDetail'
+import PlatformHome from './pages/home/PlatformHome'
 
 // Auth
 import { AuthProvider } from './auth/AuthContext'
@@ -155,6 +156,8 @@ function App() {
 
               {/* Protected Routes */}
               <Route element={<RequireAuth><LayoutWrapper /></RequireAuth>}>
+                <Route path="/" element={<PlatformHome />} />
+                <Route path="/home" element={<PlatformHome />} />
                 <Route
                   path="/admin"
                   element={

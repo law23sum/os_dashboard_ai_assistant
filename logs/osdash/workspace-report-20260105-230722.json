@@ -1,0 +1,60 @@
+{
+  "summary": {
+    "root": "/private/var/folders/41/y63t2p311hd_h0nbxp7q2wfh0000gn/T/pytest-of-sum/pytest-8/test_run_workspace_checks_exec0",
+    "generated_at": "20260105-230722",
+    "run_id": "5ef91266-6c81-46d7-9b15-86ea253654ca",
+    "projects": 1,
+    "checks": 1,
+    "failed": 0,
+    "passed": 1,
+    "skipped": 0,
+    "dry_run": false,
+    "status": "passed"
+  },
+  "projects": [
+    {
+      "profile": {
+        "name": "test_run_workspace_checks_exec0",
+        "root": "/private/var/folders/41/y63t2p311hd_h0nbxp7q2wfh0000gn/T/pytest-of-sum/pytest-8/test_run_workspace_checks_exec0",
+        "commands": {
+          "test": [
+            [
+              "/opt/homebrew/opt/python@3.10/bin/python3.10",
+              "-c",
+              "import sys; sys.exit(0)"
+            ]
+          ]
+        },
+        "autofix_script": null
+      },
+      "results": [
+        {
+          "category": "test",
+          "command": [
+            "/opt/homebrew/opt/python@3.10/bin/python3.10",
+            "-c",
+            "import sys; sys.exit(0)"
+          ],
+          "status": "passed",
+          "exit_code": 0,
+          "duration_seconds": 0.39,
+          "output": "",
+          "ran_at": 1767672441.6664479,
+          "run_id": "5ef91266-6c81-46d7-9b15-86ea253654ca",
+          "timeout_seconds": 2,
+          "error": null
+        }
+      ],
+      "counts": {
+        "total": 1,
+        "failed": 0,
+        "passed": 1,
+        "skipped": 0
+      },
+      "status": "passed",
+      "run_id": "5ef91266-6c81-46d7-9b15-86ea253654ca"
+    }
+  ],
+  "errors": [],
+  "report_path": "/Users/sum/Project/os_dashboard_ai_assistant/logs/osdash/workspace-report-20260105-230722.json"
+}
