@@ -61,7 +61,7 @@ redis==5.0.1
 fastapi==0.104.1
 uvicorn==0.24.0
 flask==3.0.0
-django==4.2.27
+django==4.2.29
 
 # File Processing
 pypdf2==3.0.1
