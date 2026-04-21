@@ -86,7 +86,7 @@ pyjwt==2.8.0
 passlib==1.7.4
 
 # Configuration & Environment
-python-dotenv==1.0.0
+python-dotenv==1.2.2
 pyyaml==6.0.1
 configparser==6.0.0
 
