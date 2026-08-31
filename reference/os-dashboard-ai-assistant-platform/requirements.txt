@@ -28,7 +28,7 @@ weasyprint==60.2
 matplotlib==3.8.2
 seaborn==0.13.0
 plotly==5.17.0
-bokeh==3.3.2
+bokeh==3.8.2
 altair==5.2.0
 
 # System Operations
