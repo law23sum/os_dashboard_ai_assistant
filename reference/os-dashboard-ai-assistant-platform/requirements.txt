@@ -99,7 +99,7 @@ kombu==5.3.4
 scikit-learn==1.5.0
 tensorflow==2.15.0
 torch==2.8.0
-transformers==4.53.0
+transformers==5.0.0rc3
 
 # Development Tools
 ipython==8.17.2
