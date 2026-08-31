@@ -83,7 +83,7 @@ croniter==2.0.1
 apscheduler==3.10.4
 
 # Security and encryption
-cryptography==46.0.5
+cryptography==50.0.0
 bcrypt==4.1.2
 python-jose[cryptography]==3.3.0
 PyJWT>=2.8.0
