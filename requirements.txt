@@ -41,7 +41,7 @@ pytesseract==0.3.10
 Pillow==10.3.0
 
 # Git integration
-GitPython==3.1.41
+GitPython==3.1.50
 
 # OpenAI integration
 openai>=2.9.0
