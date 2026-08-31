@@ -54,7 +54,7 @@ customtkinter==5.2.0
 # Database Support
 sqlalchemy==2.0.23
 sqlite3
-pymongo==4.6.0
+pymongo==4.6.3
 redis==5.0.1
 
 # API & Web Framework Support
