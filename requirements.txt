@@ -85,7 +85,7 @@ apscheduler==3.10.4
 # Security and encryption
 cryptography==50.0.0
 bcrypt==4.1.2
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.5.0
 PyJWT>=2.8.0
 passlib[bcrypt]>=1.7.4
 passlib[bcrypt]==1.7.4
