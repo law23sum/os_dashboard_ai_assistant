@@ -165,7 +165,7 @@ camelot-py[cv]==0.11.0; extra == "advanced-pdf"
 easyocr==1.7.0; extra == "vision"
 
 # Optional: Database drivers
-pymongo==4.6.3; extra == "mongodb"
+pymongo==4.18.2; extra == "mongodb"
 elasticsearch==8.11.0; extra == "elasticsearch"
 
 # Future development (planned features / observability / SDK glue)
