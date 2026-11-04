@@ -21,6 +21,13 @@ if ! command -v node &> /dev/null; then
     exit 1
 fi
 
+# The backend refuses to start without a JWT signing secret.
+if [ -z "${OSDASH_JWT_SECRET:-}" ]; then
+    echo -e "${YELLOW}⚠️  OSDASH_JWT_SECRET is not set. Generate one with:${NC}"
+    echo "    export OSDASH_JWT_SECRET=\"\$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')\""
+    exit 1
+fi
+
 echo -e "${BLUE}📦 Installing Python dependencies...${NC}"
 python3 -m pip install -q -r requirements.txt
 
@@ -77,15 +84,9 @@ echo -e "   Backend:   ${GREEN}http://localhost:8000${NC}"
 echo -e "   API Docs:  ${GREEN}http://localhost:8000/swagger${NC}"
 echo -e "   Admin:     ${GREEN}http://localhost:5173/admin${NC}"
 echo ""
-echo -e "${BLUE}🔐 Default Credentials:${NC}"
-echo -e "   Username:  ${YELLOW}admin${NC}"
-echo -e "   Password:  ${YELLOW}admin123${NC}"
-echo -e "   ${YELLOW}⚠️  CHANGE THIS PASSWORD IMMEDIATELY!${NC}"
-echo ""
-echo -e "${BLUE}📝 Demo Users:${NC}"
-echo -e "   alice / password123"
-echo -e "   bob / password123"
-echo -e "   charlie / password123"
+echo -e "${BLUE}🔐 Accounts:${NC}"
+echo -e "   No default accounts are created. Set OSDASH_BOOTSTRAP_ADMIN_PASSWORD"
+echo -e "   (12+ chars) before first start to create an initial admin, or sign up."
 echo ""
 echo -e "${BLUE}🆕 New Features:${NC}"
 echo -e "   ✅ JWT Authentication with Login/Signup"

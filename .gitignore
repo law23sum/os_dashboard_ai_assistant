@@ -226,3 +226,24 @@ frontend/public/docs/CyberChef_v10.19.4/
 # SSL certificates (self-signed for local development)
 certs/*.pem
 certs/*.key
+
+# --- Secrets, local state and generated data (never commit) ---
+# Google OAuth client secrets
+client_secret_*.json
+# Local SQLite databases and their backups (users, assistant hub data)
+*.db.backup*
+*.db.bak
+/assistant_hub.db
+assistant_hub_gui/*.db
+assistant_hub_gui/*.db.backup*
+assistant_hub_gui/assistant_hub/*.db
+assistant_hub_gui/assistant_hub/*.db.backup*
+assistant_hub_gui/assistant_hub/*.db-*
+/assistant_hub_gui/backups/
+versions/**/assistant_hub.db
+# Local inventory, audit exports and runtime logs
+/local_system_inventory/
+/audit_data/
+/logs/
+# Dependencies (root level; frontend/node_modules/ is ignored above)
+/node_modules/

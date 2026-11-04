@@ -14,6 +14,10 @@ import pytest
 from httpx import AsyncClient
 from fastapi.testclient import TestClient
 
+# backend_api refuses to import without a JWT secret. Use a throwaway test
+# value (set before backend_api is imported below); never a real secret.
+os.environ.setdefault("OSDASH_JWT_SECRET", "test-only-jwt-secret-" + "x" * 32)
+
 # Add parent directory to path
 import sys
 parent_dir = Path(__file__).parent.parent

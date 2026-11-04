@@ -5,6 +5,7 @@ This layer is intentionally lightweight (SQLite-backed users table).
 
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -14,8 +15,54 @@ import bcrypt
 from jose import JWTError, jwt
 
 
+_MIN_JWT_SECRET_LEN = 32
+_REJECTED_JWT_SECRETS = {"dev-secret-change-me", "changeme", "change-me", "secret"}
+_MIN_SEED_PASSWORD_LEN = 12
+
+
+def require_jwt_secret() -> str:
+    """Return the JWT signing secret from ``OSDASH_JWT_SECRET``.
+
+    There is deliberately no default: a missing, placeholder or short secret
+    makes tokens forgeable (or, if generated per-process, invalid after every
+    restart), so we refuse to start instead.
+    """
+    secret = os.getenv("OSDASH_JWT_SECRET", "").strip()
+    if not secret:
+        raise RuntimeError(
+            "OSDASH_JWT_SECRET is not set. Set it to a random value of at least "
+            f"{_MIN_JWT_SECRET_LEN} characters, e.g. "
+            "`python -c 'import secrets; print(secrets.token_urlsafe(48))'`."
+        )
+    if secret.lower() in _REJECTED_JWT_SECRETS or len(secret) < _MIN_JWT_SECRET_LEN:
+        raise RuntimeError(
+            "OSDASH_JWT_SECRET is a placeholder or shorter than "
+            f"{_MIN_JWT_SECRET_LEN} characters; set a random value."
+        )
+    return secret
+
+
 def _jwt_secret() -> str:
-    return os.getenv("OSDASH_JWT_SECRET", "dev-secret-change-me")
+    return require_jwt_secret()
+
+
+def seed_password_from_env(name: str) -> Optional[str]:
+    """Read an optional seed password from the environment.
+
+    Returns ``None`` when unset/empty. A set-but-too-short value is ignored
+    (and logged by name only) so a weak seed password is never created.
+    """
+    value = os.getenv(name, "")
+    if not value:
+        return None
+    if len(value) < _MIN_SEED_PASSWORD_LEN:
+        logging.getLogger(__name__).error(
+            "%s is shorter than %d characters; not seeding that account.",
+            name,
+            _MIN_SEED_PASSWORD_LEN,
+        )
+        return None
+    return value
 
 
 def _jwt_algorithm() -> str:
