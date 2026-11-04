@@ -454,7 +454,7 @@ async def health_check():
             "status": "degraded",
             "message": "OS Dashboard AI Assistant API is running but database is unavailable",
             "database": "disconnected",
-            "error": str(e)
+            "error": "database check failed"
         }
 
 

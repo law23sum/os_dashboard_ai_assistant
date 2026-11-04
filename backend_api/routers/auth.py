@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta
 from typing import Optional
 from uuid import uuid4
@@ -12,7 +13,13 @@ from pydantic import BaseModel, EmailStr, Field
 from backend_api.db import db_session
 from backend_api.deps import get_current_user
 from backend_api.auth import get_current_admin_user
-from backend_api.security import AuthUser, create_access_token, hash_password, verify_password
+from backend_api.security import (
+    AuthUser,
+    create_access_token,
+    hash_password,
+    seed_password_from_env,
+    verify_password,
+)
 from assistant_hub.demo_seed import ensure_demo_data
 
 router = APIRouter()
@@ -70,60 +77,68 @@ def _row_to_user(row) -> AuthUser:
 
 
 async def _ensure_demo_users() -> None:
-    """Ensure demo users exist in the database for testing."""
+    """Optionally seed demo accounts from the environment.
+
+    Nothing is seeded by default. Passwords come only from the environment and
+    are never hardcoded or logged:
+
+    * ``OSDASH_BOOTSTRAP_ADMIN_PASSWORD`` creates the admin account
+      (``OSDASH_BOOTSTRAP_ADMIN_EMAIL``, default ``admin@demo.local``).
+    * ``OSDASH_DEMO_USER_PASSWORD`` creates the non-admin demo users.
+
+    Seeding is insert-only: existing accounts are never modified, so a changed
+    password, a revoked admin flag or a disabled account survives a restart.
+    """
+    admin_email = os.getenv("OSDASH_BOOTSTRAP_ADMIN_EMAIL", "admin@demo.local").strip().lower()
+    admin_password = seed_password_from_env("OSDASH_BOOTSTRAP_ADMIN_PASSWORD")
+    user_password = seed_password_from_env("OSDASH_DEMO_USER_PASSWORD")
+    if not admin_password and not user_password:
+        return
+
+    demo_users = []
+    if admin_password:
+        demo_users.append((admin_email, "Admin User", admin_password, True))
+    if user_password:
+        demo_users.extend(
+            (email, name, user_password, False)
+            for email, name in (
+                ("user@demo.local", "Regular User"),
+                ("alice@demo.local", "Alice"),
+                ("bob@demo.local", "Bob"),
+                ("charlie@demo.local", "Charlie"),
+            )
+        )
+
     try:
         with db_session() as db:
             now = datetime.now().isoformat(timespec="seconds")
-            
-            # Demo users to create
-            demo_users = [
-                ("admin@demo.local", "Admin User", "admin123", True),
-                ("user@demo.local", "Regular User", "user123", False),
-                ("alice@demo.local", "Alice", "password123", False),
-                ("bob@demo.local", "Bob", "password123", False),
-                ("charlie@demo.local", "Charlie", "password123", False),
-            ]
-            
             for email, display_name, password, is_admin in demo_users:
                 existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
-                hashed_pw = hash_password(password)
-                if not existing:
-                    user_id = str(uuid4())
-                    db.execute(
-                        """
-                        INSERT INTO users (
-                            id,
-                            email,
-                            display_name,
-                            password_hash,
-                            is_admin,
-                            environment,
-                            disabled,
-                            created_at,
-                            last_login,
-                            tenant_id,
-                            workspace_id
-                        )
-                        VALUES (?, ?, ?, ?, ?, 'demo', 0, ?, NULL, 'default-tenant', 'default-workspace')
-                        """,
-                        (user_id, email, display_name, hashed_pw, 1 if is_admin else 0, now),
+                if existing:
+                    continue
+                db.execute(
+                    """
+                    INSERT INTO users (
+                        id,
+                        email,
+                        display_name,
+                        password_hash,
+                        is_admin,
+                        environment,
+                        disabled,
+                        created_at,
+                        last_login,
+                        tenant_id,
+                        workspace_id
                     )
-                else:
-                    # Update password/details for existing demo users to ensure they are always valid
-                    db.execute(
-                        """
-                        UPDATE users 
-                        SET password_hash = ?, display_name = ?, is_admin = ?, disabled = 0
-                        WHERE email = ?
-                        """,
-                        (hashed_pw, display_name, 1 if is_admin else 0, email),
-                    )
-            admin_row = db.execute(
-                "SELECT id FROM users WHERE email = ?",
-                ("admin@demo.local",),
-            ).fetchone()
-            if admin_row:
-                ensure_demo_data(db, admin_user_id=str(admin_row["id"]))
+                    VALUES (?, ?, ?, ?, ?, 'demo', 0, ?, NULL, 'default-tenant', 'default-workspace')
+                    """,
+                    (str(uuid4()), email, display_name, hash_password(password), 1 if is_admin else 0, now),
+                )
+            if admin_password:
+                admin_row = db.execute("SELECT id FROM users WHERE email = ?", (admin_email,)).fetchone()
+                if admin_row:
+                    ensure_demo_data(db, admin_user_id=str(admin_row["id"]))
     except Exception as e:
         import logging
         logging.error(f"Error ensuring demo users: {e}", exc_info=True)

@@ -5,7 +5,6 @@ Supports login, signup, JWT tokens, and role-based access control.
 
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
-import secrets
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
@@ -16,11 +15,16 @@ from contextlib import contextmanager
 from pathlib import Path
 import shutil
 import logging
+import os
+
+from backend_api.security import require_jwt_secret, seed_password_from_env
 
 logger = logging.getLogger(__name__)
 
 # Security configuration
-SECRET_KEY = secrets.token_urlsafe(32)  # Generate secure secret key
+# Required from the environment (OSDASH_JWT_SECRET); no default and never
+# generated per-process, so tokens stay valid across restarts and workers.
+SECRET_KEY = require_jwt_secret()
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 REFRESH_TOKEN_EXPIRE_DAYS = 30
@@ -193,32 +197,20 @@ def init_user_db():
                 )
             """)
             
-            # Create admin user if not exists
-            cursor.execute("SELECT id FROM users WHERE username = ?", ("admin",))
-            if not cursor.fetchone():
-                admin_password = "admin123"  # Default password - should be changed
-                hashed = pwd_context.hash(admin_password)
-                cursor.execute("""
-                    INSERT INTO users (username, email, hashed_password, full_name, role)
-                    VALUES (?, ?, ?, ?, ?)
-                """, ("admin", "admin@osdashboard.ai", hashed, "System Administrator", "admin"))
-                logger.info("✅ Admin user created: username='admin', password='admin123' (CHANGE THIS!)")
-            
-            # Create dummy test users for demonstration
-            test_users = [
-                ("alice", "alice@example.com", "Alice Johnson", "user"),
-                ("bob", "bob@example.com", "Bob Smith", "user"),
-                ("charlie", "charlie@example.com", "Charlie Brown", "user"),
-            ]
-            
-            for username, email, full_name, role in test_users:
-                cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+            # No accounts are seeded by default. An initial admin is created
+            # only when OSDASH_BOOTSTRAP_ADMIN_PASSWORD is set in the
+            # environment. The password is never logged.
+            admin_password = seed_password_from_env("OSDASH_BOOTSTRAP_ADMIN_PASSWORD")
+            if admin_password:
+                cursor.execute("SELECT id FROM users WHERE username = ?", ("admin",))
                 if not cursor.fetchone():
-                    hashed = pwd_context.hash("password123")
+                    hashed = pwd_context.hash(admin_password)
                     cursor.execute("""
                         INSERT INTO users (username, email, hashed_password, full_name, role)
                         VALUES (?, ?, ?, ?, ?)
-                    """, (username, email, hashed, full_name, role))
+                    """, ("admin", os.getenv("OSDASH_BOOTSTRAP_ADMIN_EMAIL", "admin@osdashboard.ai"),
+                          hashed, "System Administrator", "admin"))
+                    logger.info("Bootstrap admin user 'admin' created from environment")
             
             conn.commit()
             logger.info("User database initialized successfully")
