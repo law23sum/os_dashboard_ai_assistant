@@ -8,6 +8,8 @@ on:
 
 env:
   PYTHON_VERSION: '3.11'
+  # Throwaway value for tests only; the backend refuses to start without one.
+  OSDASH_JWT_SECRET: ci-only-jwt-secret-not-used-anywhere-else-0123456789
   NODE_VERSION: '20'
 
 jobs:
@@ -43,9 +45,8 @@ jobs:
         pip install -r requirements.txt
     
     - name: Run unit tests (unittest discovery)
-      continue-on-error: true
       run: |
-        python -m unittest discover -s tests -p "test_*.py" -v 2>&1 | head -100 || echo "No unittest tests found or tests failed (continuing for smoke checks)"
+        python -m unittest discover -s tests -p "test_*.py" -v
     
     - name: Run import/smoke sanity check
       run: |
@@ -61,11 +62,9 @@ jobs:
             sys.exit(1)
         "
     
-    - name: Run pytest if available
-      continue-on-error: true
+    - name: Run pytest
       run: |
-        pip install pytest pytest-asyncio || true
-        python -m pytest tests/ -v --tb=short -x --maxfail=5 2>&1 | head -200 || echo "Pytest completed with errors (continuing)"
+        python -m pytest tests/ -v --tb=short
 
   frontend_build:
     name: Frontend Build
